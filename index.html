@@ -270,26 +270,99 @@ textarea.fi{resize:vertical;min-height:72px}
 <main class="main">
   <!-- DASHBOARD -->
   <div class="sec on" id="sec-dashboard">
-    <div class="ph">
-      <div><div class="pt">Дашборд</div><div class="ps">Загальна статистика та активність</div></div>
-      <div class="bg"><button class="btn bp" onclick="openM('m-test')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Новий тест</button></div>
-    </div>
-    <div class="sg">
-      <div class="sc ft"><div class="si wh">📋</div><div class="sv" id="s-t">—</div><div class="sl">Всього тестів</div></div>
-      <div class="sc"><div class="si tl">✅</div><div class="sv" id="s-a">—</div><div class="sl">Спроб пройдено</div></div>
-      <div class="sc"><div class="si bl">🔗</div><div class="sv" id="s-l">—</div><div class="sl">Активних посилань</div></div>
-      <div class="sc"><div class="si am">⭐</div><div class="sv" id="s-g">—</div><div class="sl">Середня оцінка</div></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 320px;gap:16px">
-      <div class="card">
-        <div class="ch"><span class="ct">Останні спроби</span><span class="ca" onclick="showSec('attempts')">Всі →</span></div>
-        <table class="tbl"><thead><tr><th>Студент</th><th>Тест</th><th>Оцінка</th><th>Статус</th><th>Дата</th></tr></thead><tbody id="d-att"></tbody></table>
+
+    <!-- Заголовок -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:var(--text)">Дашборд</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:2px" id="dash-date"></div>
       </div>
-      <div class="card">
-        <div class="ch"><span class="ct">Активні посилання</span><span class="ca" onclick="showSec('links')">Всі →</span></div>
-        <div id="d-lnk"></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn bs" onclick="showSec('students')" style="font-size:13px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          Студенти
+        </button>
+        <button class="btn bp" onclick="openM('m-test')" style="font-size:13px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Новий тест
+        </button>
       </div>
     </div>
+
+    <!-- 4 stat cards -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+      <!-- Тести -->
+      <div style="background:linear-gradient(135deg,#2d5be3,#1a3ab8);border-radius:18px;padding:20px;cursor:pointer;transition:all .2s"
+        onclick="showSec('tests')"
+        onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 32px rgba(45,91,227,.4)'"
+        onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;margin-bottom:16px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:32px;color:white;line-height:1" id="s-t">—</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.7);margin-top:5px;text-transform:uppercase;letter-spacing:.5px">Тестів</div>
+      </div>
+      <!-- Спроби -->
+      <div style="background:white;border:1.5px solid var(--border);border-radius:18px;padding:20px;cursor:pointer;transition:all .2s"
+        onclick="showSec('attempts')"
+        onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 32px rgba(0,0,0,.08)';this.style.borderColor='rgba(45,91,227,.2)'"
+        onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'">
+        <div style="width:38px;height:38px;border-radius:11px;background:rgba(13,158,133,.1);display:flex;align-items:center;justify-content:center;margin-bottom:16px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0d9e85" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        </div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:32px;color:var(--text);line-height:1" id="s-a">—</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.5px">Спроб</div>
+      </div>
+      <!-- Посилання -->
+      <div style="background:white;border:1.5px solid var(--border);border-radius:18px;padding:20px;cursor:pointer;transition:all .2s"
+        onclick="showSec('links')"
+        onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 32px rgba(0,0,0,.08)';this.style.borderColor='rgba(45,91,227,.2)'"
+        onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'">
+        <div style="width:38px;height:38px;border-radius:11px;background:rgba(45,91,227,.08);display:flex;align-items:center;justify-content:center;margin-bottom:16px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2d5be3" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        </div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:32px;color:var(--text);line-height:1" id="s-l">—</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.5px">Посилань</div>
+      </div>
+      <!-- Оцінка -->
+      <div style="background:white;border:1.5px solid var(--border);border-radius:18px;padding:20px;transition:all .2s"
+        onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 32px rgba(0,0,0,.08)'"
+        onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="width:38px;height:38px;border-radius:11px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center;margin-bottom:16px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:32px;color:var(--text);line-height:1" id="s-g">—</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.5px">Середня оцінка</div>
+      </div>
+    </div>
+
+    <!-- Онлайн зараз (якщо є) -->
+    <div id="dash-online-banner" style="display:none;background:linear-gradient(135deg,rgba(13,158,133,.08),rgba(13,158,133,.03));border:1.5px solid rgba(13,158,133,.2);border-radius:16px;padding:14px 18px;margin-bottom:16px;display:none;align-items:center;gap:12px;cursor:pointer" onclick="showSec('online')">
+      <div style="width:10px;height:10px;border-radius:50%;background:#0d9e85;animation:pulse 1.5s ease infinite;flex-shrink:0"></div>
+      <div style="flex:1;font-size:14px;font-weight:600;color:#0d9e85" id="dash-online-text">Студенти проходять тест зараз</div>
+      <span style="font-size:12px;color:#0d9e85;opacity:.7">Переглянути →</span>
+    </div>
+
+    <!-- Нижній блок: спроби + посилання -->
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:16px">
+      <!-- Останні спроби -->
+      <div style="background:white;border:1.5px solid var(--border);border-radius:18px;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">Останні спроби</div>
+          <span onclick="showSec('attempts')" style="font-size:13px;color:var(--primary);cursor:pointer;font-weight:500">Всі →</span>
+        </div>
+        <table class="tbl"><thead><tr><th style="padding:11px 16px">Студент</th><th>Тест</th><th>Оцінка</th><th>Статус</th><th>Дата</th></tr></thead><tbody id="d-att"></tbody></table>
+      </div>
+      <!-- Активні посилання -->
+      <div style="background:white;border:1.5px solid var(--border);border-radius:18px;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">Активні посилання</div>
+          <span onclick="showSec('links')" style="font-size:13px;color:var(--primary);cursor:pointer;font-weight:500">Всі →</span>
+        </div>
+        <div id="d-lnk" style="padding:4px 0"></div>
+      </div>
+    </div>
+
   </div>
 
   <!-- TESTS -->
@@ -1214,6 +1287,24 @@ function updateBadges(){
 
 // DASHBOARD
 function renderDashAtt(){
+  // Дата
+  const dateEl=$("dash-date");
+  if(dateEl){
+    const now=new Date();
+    dateEl.textContent=now.toLocaleDateString("uk-UA",{weekday:"long",day:"numeric",month:"long"});
+  }
+  // Онлайн банер
+  const online=attempts.filter(a=>a.status==="in_progress");
+  const banner=document.getElementById("dash-online-banner");
+  if(banner){
+    if(online.length){
+      banner.style.display="flex";
+      const txt=document.getElementById("dash-online-text");
+      if(txt) txt.textContent=`${online.length} студент${online.length===1?"":"ів"} проходить тест зараз`;
+    } else {
+      banner.style.display="none";
+    }
+  }
   const tb=$("d-att"), r=attempts.slice(0,8);
   if(!r.length){tb.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="ei">📭</div><div class="et">Ще немає спроб</div></div></td></tr>`;return;}
   tb.innerHTML=r.map(a=>{
@@ -1227,8 +1318,19 @@ function renderDashLinks(){
   const c=$("d-lnk"),al=links.filter(l=>l.status==="active").slice(0,4);
   if(!al.length){c.innerHTML=`<div style="text-align:center;color:var(--muted);padding:18px;font-size:14px">Немає активних посилань</div>`;return;}
   c.innerHTML=al.map(l=>{
-    const t=tests.find(x=>x.id===l.testId),pct=l.maxAttempts?Math.round(l.usedAttempts/l.maxAttempts*100):0;
-    return`<div style="margin-bottom:13px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px"><span style="font-weight:500">${esc(t?.title||"—")}</span><span style="color:var(--muted)">${l.usedAttempts}/${l.maxAttempts}</span></div><div class="pb"><div class="pf" style="width:${pct}%"></div></div></div>`;
+    const t=tests.find(x=>x.id===l.testId);
+    const pct=l.maxAttempts?Math.round(l.usedAttempts/l.maxAttempts*100):0;
+    const barColor=pct>=80?"#f43f5e":pct>=50?"#f59e0b":"#2d5be3";
+    return`<div style="padding:12px 16px;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px">${esc(t?.title||"—")}</span>
+        <span style="font-size:12px;color:var(--muted);flex-shrink:0;margin-left:8px">${l.usedAttempts}/${l.maxAttempts}</span>
+      </div>
+      <div style="background:var(--border);border-radius:4px;height:5px;overflow:hidden">
+        <div style="background:${barColor};height:100%;border-radius:4px;width:${pct}%;transition:width .4s"></div>
+      </div>
+      ${l.group?`<div style="font-size:11px;color:var(--muted);margin-top:4px">${esc(l.group)}</div>`:""}
+    </div>`;
   }).join("");
 }
 
