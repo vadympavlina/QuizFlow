@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/><circle cx='24' cy='22' r='5' fill='none' stroke='white' stroke-width='2.2'/><line x1='27.5' y1='25.5' x2='29.5' y2='27.5' stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>">
+<title>QuizFlow — Конструктор</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f0f3fa;--sidebar-bg:#0a0f2e;--primary:#2d5be3;--primary-light:#4d78ff;--primary-glow:rgba(45,91,227,0.15);--teal:#14d4b4;--amber:#f59e0b;--rose:#f43f5e;--card:#ffffff;--border:rgba(45,91,227,0.1);--text:#0d1340;--text-muted:#6b7280;--text-light:#a0a8c0;--gradient:linear-gradient(135deg,#2d5be3 0%,#1a3ab8 100%)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+  .sidebar{display:none}
+  .logo{display:flex;align-items:center;gap:10px;padding:0 8px 32px}
+  .logo-icon{width:36px;height:36px;background:var(--gradient);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:white}
+  .logo-text{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:white}
+  .ni{display:flex;align-items:center;gap:9px;padding:10px 10px;border-radius:10px;cursor:pointer;transition:all .2s;color:rgba(255,255,255,0.5);font-size:14px;text-decoration:none;border:none;background:none;width:100%;text-align:left;margin-bottom:2px}
+  .ni:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85)}
+  .ni svg{width:18px;height:18px;flex-shrink:0}
+  .ni.active{background:var(--primary);color:white}
+  .ni.active .nb{background:rgba(255,255,255,.25)}
+  .nb{margin-left:auto;background:rgba(255,255,255,.15);color:#fff;font-size:11px;padding:2px 7px;border-radius:20px;font-weight:600;min-width:20px;text-align:center}
+  .nav-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:0 12px;margin-bottom:8px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:all 0.2s;color:rgba(255,255,255,0.5);font-size:14px;text-decoration:none}
+  .nav-item:hover{background:rgba(255,255,255,0.06);color:white}
+  .nav-item.active{background:var(--primary);color:white}
+  .nav-item svg{width:18px;height:18px;flex-shrink:0}
+  .sidebar-footer{margin-top:auto;padding:16px;background:rgba(255,255,255,0.04);border-radius:12px;display:flex;align-items:center;gap:10px}
+  .avatar-sm{width:36px;height:36px;border-radius:10px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;color:white;font-size:14px;flex-shrink:0}
+  .sidebar-user-name{font-size:13px;font-weight:500;color:white}
+  .sidebar-user-role{font-size:11px;color:rgba(255,255,255,0.4);margin-top:1px}
+  .main{margin-left:0;flex:1;display:flex;flex-direction:column;max-width:100vw}
+  .con-topbar{display:flex;align-items:center;gap:12px;padding:14px 24px;background:white;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;flex-wrap:wrap}
+  .back-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;color:var(--text-muted);cursor:pointer;transition:all 0.2s;background:white;text-decoration:none}
+  .back-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .test-name-input{padding:10px 16px;border-radius:12px;border:1.5px solid var(--border);font-family:'Syne',sans-serif;font-size:16px;font-weight:600;color:var(--text);outline:none;transition:border-color 0.2s;min-width:200px;flex:1;max-width:360px}
+  .test-name-input:focus{border-color:var(--primary)}
+  .status-select{padding:9px 14px;border-radius:11px;border:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;cursor:pointer;background:white}
+  .btn{display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s;border:none}
+  .btn-ghost{background:transparent;color:var(--text-muted);border:1.5px solid var(--border)}
+  .btn-ghost:hover{border-color:var(--primary);color:var(--primary)}
+  .btn-primary{background:var(--gradient);color:white;box-shadow:0 4px 16px var(--primary-glow)}
+  .btn-primary:hover{transform:translateY(-1px)}
+  .con-layout{display:flex;flex:1;min-height:calc(100vh - 65px)}
+  .q-list-panel{width:260px;border-right:1px solid var(--border);background:white;display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+  .q-list-header{padding:18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .q-list-title{font-family:'Syne',sans-serif;font-weight:600;font-size:14px}
+  .q-count{font-size:12px;color:var(--text-muted)}
+  .q-list{padding:10px;flex:1}
+  .q-list-item{display:flex;align-items:center;gap:10px;padding:11px;border-radius:12px;cursor:pointer;transition:all 0.2s;margin-bottom:3px;border:1.5px solid transparent}
+  .q-list-item:hover{background:rgba(45,91,227,0.04)}
+  .q-list-item.active{background:rgba(45,91,227,0.06);border-color:rgba(45,91,227,0.15)}
+  .q-drag-handle{display:flex;flex-direction:column;gap:2.5px;cursor:grab;flex-shrink:0;opacity:0.3;transition:opacity 0.2s}
+  .q-list-item:hover .q-drag-handle{opacity:0.6}
+  .q-drag-handle span{display:block;width:14px;height:1.5px;background:var(--text);border-radius:1px}
+  .q-num-badge{width:28px;height:28px;border-radius:8px;background:rgba(45,91,227,0.08);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--primary);flex-shrink:0}
+  .q-list-item.active .q-num-badge{background:var(--primary);color:white}
+  .q-list-info{flex:1;min-width:0}
+  .q-list-text{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .q-list-type{font-size:11px;color:var(--text-muted);margin-top:2px}
+  .q-add-btn{margin:10px;padding:11px;border-radius:12px;border:2px dashed rgba(45,91,227,0.2);text-align:center;font-size:13px;color:var(--primary);cursor:pointer;transition:all 0.2s;font-weight:500}
+  .q-add-btn:hover{border-color:var(--primary);background:rgba(45,91,227,0.04)}
+  .editor-panel{flex:1;padding:28px;overflow-y:auto}
+  .editor-card{background:white;border-radius:20px;border:1.5px solid var(--border);padding:28px;margin-bottom:16px;animation:fadeUp 0.3s ease both}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .editor-row{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+  .editor-q-num{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text-muted)}
+  .type-select{padding:8px 14px;border-radius:10px;border:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);outline:none;cursor:pointer;background:white;transition:border-color 0.2s}
+  .type-select:focus{border-color:var(--primary)}
+  .editor-actions-row{display:flex;gap:8px;margin-left:auto}
+  .icon-btn-sm{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);transition:all 0.2s}
+  .icon-btn-sm:hover{border-color:var(--primary);color:var(--primary)}
+  .icon-btn-sm.danger:hover{border-color:var(--rose);color:var(--rose)}
+
+  /* RICH TEXT EDITOR */
+  .rte-wrap{position:relative;margin-bottom:16px}
+  .rte-toolbar{display:flex;align-items:center;gap:4px;padding:7px 10px;
+    background:#f8faff;border:1.5px solid var(--border);border-radius:12px 12px 0 0;
+    flex-wrap:wrap;border-bottom:none}
+  .rte-btn{width:30px;height:30px;border-radius:8px;border:none;background:transparent;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    font-size:14px;color:var(--text-muted);transition:all .15s;flex-shrink:0}
+  .rte-btn:hover{background:rgba(45,91,227,.09);color:var(--primary)}
+  .rte-btn.active{background:rgba(45,91,227,.12);color:var(--primary)}
+  .rte-sep{width:1px;height:20px;background:var(--border);margin:0 3px;flex-shrink:0}
+  .rte-color-wrap{position:relative;display:inline-flex}
+  .rte-color-btn{width:30px;height:30px;border-radius:8px;border:none;background:transparent;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:2px;
+    color:var(--text-muted);transition:all .15s;font-size:13px;font-weight:700;padding:0}
+  .rte-color-btn:hover{background:rgba(45,91,227,.09)}
+  .rte-color-dot{width:12px;height:5px;border-radius:2px;background:var(--primary);margin-top:-2px}
+  .rte-color-menu{position:absolute;top:calc(100% + 6px);left:0;background:white;
+    border:1.5px solid var(--border);border-radius:12px;padding:8px;
+    box-shadow:0 8px 28px rgba(45,91,227,.14);z-index:300;display:none;
+    animation:conDropIn .15s ease;min-width:160px}
+  .rte-color-menu.open{display:block}
+  .rte-color-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+  .rte-swatch{width:24px;height:24px;border-radius:7px;cursor:pointer;border:2px solid transparent;
+    transition:all .15s;flex-shrink:0}
+  .rte-swatch:hover{transform:scale(1.15);border-color:rgba(0,0,0,.15)}
+  .rte-swatch.reset{background:linear-gradient(135deg,#f3f4f6,#e5e7eb);
+    display:flex;align-items:center;justify-content:center;font-size:11px}
+  .rte-color-label{font-size:11px;color:var(--text-muted);padding:2px 0 4px;letter-spacing:.3px}
+  .rte-field{width:100%;padding:16px 20px;border-radius:0 0 14px 14px;
+    border:1.5px solid var(--border);font-family:'Syne',sans-serif;font-size:18px;
+    font-weight:600;color:var(--text);outline:none;min-height:90px;line-height:1.45;
+    transition:border-color .2s,box-shadow .2s;background:white;word-break:break-word}
+  .rte-field:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(45,91,227,.08)}
+  .rte-field:empty::before{content:attr(data-placeholder);color:rgba(107,114,128,.4);
+    font-weight:400;pointer-events:none}
+  /* Стилі всередині редактора */
+  .rte-field b,.rte-field strong{font-weight:800}
+  .rte-field i,.rte-field em{font-style:italic}
+  .rte-field u{text-decoration:underline}
+  .q-textarea{width:100%;padding:16px 20px;border-radius:14px;border:1.5px solid var(--border);font-family:'Syne',sans-serif;font-size:18px;font-weight:600;color:var(--text);outline:none;resize:none;min-height:80px;transition:border-color 0.2s,box-shadow 0.2s;line-height:1.4}
+  .q-textarea:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(45,91,227,0.08)}
+  .q-textarea::placeholder{color:rgba(107,114,128,0.4);font-weight:400}
+  .ai-row{display:flex;gap:8px;margin-top:10px;margin-bottom:24px}
+  .ai-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;border:none}
+  .ai-rephrase{background:rgba(45,91,227,0.08);color:var(--primary)}
+  .ai-rephrase:hover{background:rgba(45,91,227,0.15)}
+  .ai-generate{background:rgba(20,212,180,0.1);color:#0d9e85}
+  .ai-generate:hover{background:rgba(20,212,180,0.2)}
+  .options-label{font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--text-light);font-weight:500;margin-bottom:12px}
+  .option-item{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .correct-toggle{width:32px;height:32px;border-radius:9px;border:2px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-light);transition:all 0.2s;flex-shrink:0}
+  .correct-toggle.correct{border-color:var(--teal);background:rgba(20,212,180,0.1);color:var(--teal)}
+  .option-input{flex:1;padding:11px 16px;border-radius:12px;border:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color 0.2s}
+  .option-input:focus{border-color:var(--primary)}
+  .add-option-btn{display:flex;align-items:center;gap:6px;padding:10px 16px;border-radius:11px;border:2px dashed rgba(45,91,227,0.2);font-size:13px;color:var(--primary);cursor:pointer;transition:all 0.2s;background:transparent;margin-top:4px}
+  .add-option-btn:hover{border-color:var(--primary);background:rgba(45,91,227,0.04)}
+  .order-num{width:28px;height:28px;border-radius:8px;background:rgba(45,91,227,0.08);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--primary);flex-shrink:0}
+  .matching-editor-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;padding:14px;background:rgba(45,91,227,0.02);border-radius:14px;border:1.5px solid var(--border)}
+  .settings-panel{width:240px;border-left:1px solid var(--border);background:white;padding:22px;overflow-y:auto;flex-shrink:0}
+  .settings-title{font-family:'Syne',sans-serif;font-weight:600;font-size:13px;margin-bottom:14px}
+  .setting-field{margin-bottom:14px}
+  .setting-label{font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;font-weight:500}
+  .setting-input{width:100%;padding:9px 12px;border-radius:11px;border:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color 0.2s;background:white}
+  .setting-input:focus{border-color:var(--primary)}
+  .settings-section{margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+  .link-gen-item{padding:12px;border-radius:12px;border:1.5px solid var(--border);margin-bottom:8px}
+  .link-url{font-size:11px;color:var(--primary);word-break:break-all;background:rgba(45,91,227,0.04);padding:6px 10px;border-radius:8px;margin-bottom:8px;font-family:monospace}
+  .link-gen-meta{font-size:12px;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .link-status-dot{width:7px;height:7px;border-radius:50%;background:var(--teal);display:inline-block;margin-right:4px;box-shadow:0 0 5px rgba(20,212,180,0.5)}
+  .link-status-dot.closed{background:var(--rose);box-shadow:none}
+  .new-link-btn{width:100%;padding:10px;border-radius:11px;border:2px dashed rgba(45,91,227,0.2);background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--primary);cursor:pointer;transition:all 0.2s;font-weight:500}
+  .new-link-btn:hover{border-color:var(--primary);background:rgba(45,91,227,0.04)}
+  .progress-mini{width:100%;height:3px;background:rgba(45,91,227,0.1);border-radius:2px;overflow:hidden;margin-top:4px}
+  .progress-mini-fill{height:100%;border-radius:2px;background:var(--primary)}
+  .modal-overlay{position:fixed;inset:0;background:rgba(10,15,46,0.5);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s}
+  .modal-overlay.open{opacity:1;pointer-events:all}
+  .modal-box{background:white;border-radius:24px;padding:32px;width:100%;max-width:480px;box-shadow:0 24px 80px rgba(0,0,0,0.15);transform:translateY(20px);transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);position:relative}
+  .modal-overlay.open .modal-box{transform:translateY(0)}
+  .modal-title{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;margin-bottom:4px}
+  .modal-sub{font-size:13px;color:var(--text-muted);margin-bottom:24px}
+  .modal-close-btn{position:absolute;top:18px;right:18px;width:32px;height:32px;border-radius:8px;border:1.5px solid var(--border);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:18px}
+  #globalLoader{position:fixed;inset:0;background:rgba(240,243,250,0.8);backdrop-filter:blur(4px);z-index:300;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+  .loader-spinner{width:40px;height:40px;border:3px solid rgba(45,91,227,0.15);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:500;z-index:400;display:none;box-shadow:0 8px 32px rgba(0,0,0,0.15)}
+  .toast-success{background:#0d1340;color:white}
+  .toast-error{background:var(--rose);color:white}
+  #dirtyIndicator{display:none;width:8px;height:8px;border-radius:50%;background:var(--amber);margin-left:4px}
+  /* CUSTOM SELECT (arrow style) */
+  .custom-select-wrap{position:relative;display:block}
+  .custom-select{width:100%;padding:10px 36px 10px 14px;border-radius:11px;border:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);outline:none;cursor:pointer;background:white;appearance:none;-webkit-appearance:none;transition:border-color .2s,box-shadow .2s}
+  .custom-select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(45,91,227,.08)}
+  .custom-select:hover{border-color:rgba(45,91,227,.3)}
+  .sel-arrow{position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-muted)}
+
+  /* DROPDOWN MENU STYLE */
+  .con-cd-wrap{position:relative;display:inline-block}
+  .con-cd-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:11px;border:1.5px solid var(--border);background:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none}
+  .con-cd-btn:hover{border-color:rgba(45,91,227,.3);color:var(--primary)}
+  .con-cd-btn:hover svg{stroke:var(--primary)}
+  .con-cd-btn.active{border-color:var(--primary);color:var(--primary);background:rgba(45,91,227,.04)}
+  .con-cd-btn svg{transition:transform .2s;flex-shrink:0;stroke:var(--text-muted)}
+  .con-cd-menu{position:absolute;top:calc(100% + 6px);left:0;min-width:160px;background:#fff;border:1.5px solid var(--border);border-radius:13px;box-shadow:0 8px 28px rgba(45,91,227,.12);z-index:250;overflow:hidden;display:none;animation:conDropIn .15s ease}
+  .con-cd-menu.open{display:block}
+  @keyframes conDropIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+  .con-cd-item{display:flex;align-items:center;padding:10px 14px;font-size:13px;cursor:pointer;color:var(--text);transition:background .12s;white-space:nowrap}
+  .con-cd-item:hover{background:rgba(45,91,227,.05);color:var(--primary)}
+  .con-cd-item.con-cd-active{font-weight:600;color:var(--primary);background:rgba(45,91,227,.04)}
+  .con-cd-item.con-cd-active::after{content:"✓";margin-left:auto;padding-left:10px;font-size:12px}
+
+  /* Override старих дропдаунів */
+  .status-select,.type-select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;transition:border-color .2s,box-shadow .2s}
+  .status-select:hover,.type-select:hover{border-color:rgba(45,91,227,.3)}
+  .status-select:focus,.type-select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(45,91,227,.08)}
+
+
+  /* CON CUSTOM DROPDOWNS */
+  .con-cd-wrap{position:relative;display:inline-block}
+  .con-cd-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:10px;border:1.5px solid var(--border);background:white;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none}
+  .con-cd-btn:hover{border-color:rgba(45,91,227,.3);color:var(--primary)}
+  .con-cd-btn:hover svg{stroke:var(--primary)}
+  .con-cd-btn.open{border-color:var(--primary);color:var(--primary);background:rgba(45,91,227,.03)}
+  .con-cd-btn.open svg{transform:rotate(180deg);stroke:var(--primary)}
+  .con-cd-btn svg{transition:transform .2s;stroke:var(--text-muted);flex-shrink:0}
+  .con-cd-menu{position:absolute;top:calc(100% + 5px);left:0;min-width:180px;background:white;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 24px rgba(45,91,227,.12);z-index:250;overflow:hidden;display:none;animation:conDropIn .15s ease}
+  .con-cd-menu.open{display:block}
+  @keyframes conDropIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+  .con-cd-item{display:flex;align-items:center;padding:9px 13px;font-size:13px;cursor:pointer;color:var(--text);transition:background .1s;white-space:nowrap}
+  .con-cd-item:hover{background:rgba(45,91,227,.05);color:var(--primary)}
+  .con-cd-item.con-cd-active{font-weight:600;color:var(--primary);background:rgba(45,91,227,.04)}
+  .con-cd-item.con-cd-active::after{content:"✓";margin-left:auto;padding-left:10px;font-size:11px}
+  ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:rgba(45,91,227,0.15);border-radius:3px}
+</style>
+</head>
+<body>
+<div id="globalLoader"><div class="loader-spinner"></div><div style="font-size:14px;color:var(--text-muted)">Завантаження...</div></div>
+<div id="toast"></div>
+
+<aside class="sidebar">
+  <div class="logo" style="display:flex;align-items:center;gap:10px;padding:0 4px;margin-bottom:28px">
+    <div class="logo-icon">Q</div><span class="logo-text">QuizFlow</span>
+  </div>
+  <button class="ni" onclick="window.navGuard('')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Дашборд
+  </button>
+  <button class="ni active" style="pointer-events:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    Тести <span class="nb" id="con-nb-t"></span>
+  </button>
+  <button class="ni" id="navAttempts" onclick="window.navGuard('attempts')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+    Спроби <span class="nb" id="con-nb-a"></span>
+  </button>
+  <button class="ni" id="navLinks" onclick="window.navGuard('links')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+    Посилання <span class="nb" id="con-nb-l"></span>
+  </button>
+  <button class="ni" onclick="window.navGuard('analytics')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Аналітика
+  </button>
+  <button class="ni" onclick="window.navGuard('notifications')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    Сповіщення
+  </button>
+  <div style="margin-top:auto;display:flex;align-items:center;gap:10px;padding:12px 8px;border-top:1px solid rgba(255,255,255,.07)">
+    <div class="avatar-sm" id="sidebarAvatar">ВЧ</div>
+    <div style="flex:1;min-width:0">
+      <div class="sidebar-user-name">Викладач</div>
+    </div>
+    <button onclick="window.doLogout()" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.35)" title="Вийти">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
+  </div>
+</aside>
+
+
+<!-- МОДАЛ: НЕЗБЕРЕЖЕНІ ЗМІНИ -->
+<div class="modal-overlay" id="unsavedModal" style="z-index:400">
+  <div class="modal-box" style="max-width:400px;text-align:center;padding:36px 32px">
+    <div style="font-size:42px;margin-bottom:14px">⚠️</div>
+    <div class="modal-title" style="margin-bottom:8px">Є незбережені зміни</div>
+    <div style="font-size:14px;color:var(--text-muted);margin-bottom:24px;line-height:1.5">Ви внесли зміни до тесту. Якщо перейдете зараз — вони будуть втрачені.</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button id="unsavedSaveBtn" style="width:100%;padding:14px;border-radius:13px;border:none;background:linear-gradient(135deg,#2d5be3,#1a3ab8);color:white;font-family:'Syne',sans-serif;font-weight:600;font-size:15px;cursor:pointer">
+        💾 Зберегти і перейти
+      </button>
+      <button id="unsavedLeaveBtn" style="width:100%;padding:13px;border-radius:13px;border:1.5px solid rgba(244,63,94,.3);background:rgba(244,63,94,.05);color:#be123c;font-family:'DM Sans',sans-serif;font-size:15px;cursor:pointer;font-weight:500">
+        Перейти без збереження
+      </button>
+      <button onclick="closeUnsavedModal()" style="width:100%;padding:11px;border-radius:13px;border:1.5px solid var(--border);background:white;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer">
+        Скасувати
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- МОДАЛ: ВИДАЛЕННЯ ПИТАННЯ -->
+<div class="modal-overlay" id="deleteQModal" style="z-index:300">
+  <div class="modal-box" style="max-width:380px;text-align:center;padding:36px 32px">
+    <div style="font-size:40px;margin-bottom:14px">🗑️</div>
+    <div class="modal-title" style="margin-bottom:8px">Видалити питання?</div>
+    <div style="font-size:14px;color:var(--text-muted);margin-bottom:24px">Питання <strong id="deleteQNum"></strong> буде видалено без можливості відновлення</div>
+    <div style="display:flex;gap:10px">
+      <button onclick="document.getElementById('deleteQModal').classList.remove('open')"
+        style="flex:1;padding:13px;border-radius:12px;border:1.5px solid var(--border);background:white;font-family:'DM Sans',sans-serif;font-size:15px;cursor:pointer;color:var(--text-muted)">
+        Скасувати
+      </button>
+      <button id="deleteQConfirmBtn"
+        style="flex:1;padding:13px;border-radius:12px;border:none;background:var(--rose);color:white;font-family:'Syne',sans-serif;font-weight:600;font-size:15px;cursor:pointer">
+        Видалити
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="con-topbar">
+    <button class="back-btn" onclick="window.navGuard('')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>Назад</button>
+    <input class="test-name-input" type="text" id="testTitle" placeholder="Назва тесту...">
+    <div id="dirtyIndicator" title="Є незбережені зміни"></div>
+    <div class="con-cd-wrap" id="con-cd-status">
+      <button class="con-cd-btn" onclick="conToggleDrop('con-cd-status')">
+        <span id="con-cd-status-label">📝 Чернетка</span>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="con-cd-menu" id="con-cd-status-menu">
+        <div class="con-cd-item con-cd-active" onclick="conSelectStatus('draft','📝 Чернетка')">📝 Чернетка</div>
+        <div class="con-cd-item" onclick="conSelectStatus('active','✅ Активний')">✅ Активний</div>
+        <div class="con-cd-item" onclick="conSelectStatus('closed','🔒 Закритий')">🔒 Закритий</div>
+      </div>
+    </div>
+    <select class="status-select" id="testStatus" style="display:none">
+      <option value="draft">Чернетка</option>
+      <option value="active">Активний</option>
+      <option value="closed">Закритий</option>
+    </select>
+    <button class="btn btn-ghost" onclick="window.openAiModal()">✦ AI Генерація</button>
+    <button class="btn btn-ghost" onclick="window.openExcelModal()">📥 Імпорт Excel</button>
+    <button class="btn btn-ghost" onclick="window.previewTest()" title="Переглянути як студент" style="gap:6px">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Перегляд
+    </button>
+    <button class="btn btn-primary" id="saveBtn" onclick="window.saveTest()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Зберегти
+    </button>
+  </div>
+
+  <div class="con-layout">
+    <!-- Questions List -->
+    <div class="q-list-panel">
+      <div class="q-list-header">
+        <span class="q-list-title">Питання</span>
+        <span class="q-count" id="questionCount">0 шт.</span>
+      </div>
+      <div class="q-list" id="questionList"></div>
+      <div class="q-add-btn" onclick="window.addQuestion()">+ Додати питання</div>
+    </div>
+
+    <!-- Editor -->
+    <div class="editor-panel">
+      <div id="editorContainer"></div>
+    </div>
+
+    <!-- Settings -->
+    <div class="settings-panel">
+      <div class="settings-section">
+        <div class="settings-title">⚙️ Налаштування</div>
+        <div class="setting-field">
+          <div class="setting-label">Папка</div>
+          <div id="folderChipsPanel" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px"></div>
+          <div style="font-size:11px;color:var(--text-light)">Оберіть або залиш без папки</div>
+        </div>
+        <div class="setting-field">
+          <div class="setting-label">Теги (через кому)</div>
+          <input class="setting-input" type="text" id="tagsInput" placeholder="html, css, js">
+        </div>
+        <div class="setting-field">
+          <div class="setting-label">Ліміт часу (хвилин)</div>
+          <input class="setting-input" type="number" id="testTimeLimit" value="10" min="1" max="300">
+        </div>
+      </div>
+
+      <div>
+        <div class="settings-title">🔗 Посилання</div>
+        <div id="linksList"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+          <input type="number" id="newLinkMax" value="30" min="1" class="setting-input" style="width:70px">
+          <button class="new-link-btn" onclick="window.createNewLink()">+ Нове посилання</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI Modal -->
+<div class="modal-overlay" id="aiModal">
+  <div class="modal-box" style="max-width:520px">
+    <button class="modal-close-btn" onclick="document.getElementById('aiModal').classList.remove('open')">×</button>
+    <div style="font-size:28px;margin-bottom:10px">✦</div>
+    <div class="modal-title">AI Генерація питань</div>
+    <div class="modal-sub">Groq AI створить питання за вашими параметрами</div>
+
+    <div class="setting-field" style="margin-bottom:14px">
+      <div class="setting-label">Тема *</div>
+      <input class="setting-input" type="text" id="aiTopic" placeholder="Наприклад: Типи даних у Python">
+    </div>
+
+    <div class="setting-field" style="margin-bottom:14px">
+      <div class="setting-label">Опис / що саме генерувати</div>
+      <textarea class="setting-input" id="aiDesc" rows="3"
+        placeholder="Наприклад: Питання для підсумкового іспиту. Фокус на практичному застосуванні — типи даних, функції, списки, словники. Уникати теоретичних визначень."
+        style="resize:none;line-height:1.5"></textarea>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+      <div>
+        <div class="setting-label">Складність</div>
+        <div class="con-cd-wrap" id="con-cd-diff" style="display:block">
+          <button class="con-cd-btn" style="width:100%;justify-content:space-between" onclick="conToggleDrop('con-cd-diff')">
+            <span id="con-cd-diff-label">🟡 Середня</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="con-cd-menu" id="con-cd-diff-menu" style="width:100%">
+            <div class="con-cd-item" onclick="conSelectAI('aiDifficulty','con-cd-diff','легка','🟢 Легка')">🟢 Легка</div>
+            <div class="con-cd-item con-cd-active" onclick="conSelectAI('aiDifficulty','con-cd-diff','середня','🟡 Середня')">🟡 Середня</div>
+            <div class="con-cd-item" onclick="conSelectAI('aiDifficulty','con-cd-diff','складна','🔴 Складна')">🔴 Складна</div>
+          </div>
+        </div>
+        <select id="aiDifficulty" style="display:none"><option value="легка">Легка</option><option value="середня" selected>Середня</option><option value="складна">Складна</option></select>
+      </div>
+      <div>
+        <div class="setting-label">Кількість</div>
+        <div class="con-cd-wrap" id="con-cd-count" style="display:block">
+          <button class="con-cd-btn" style="width:100%;justify-content:space-between" onclick="conToggleDrop('con-cd-count')">
+            <span id="con-cd-count-label">10 питань</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="con-cd-menu" id="con-cd-count-menu" style="width:100%">
+            ${["5","10","15","20","30","40","50"].map(n=>`<div class="con-cd-item${n==="10"?" con-cd-active":""}" onclick="conSelectAI('aiCount','con-cd-count','${n}','${n} питань')">${n} питань</div>`).join("")}
+          </div>
+        </div>
+        <select id="aiCount" style="display:none"><option value="5">5</option><option value="10" selected>10</option><option value="15">15</option><option value="20">20</option><option value="30">30</option><option value="40">40</option><option value="50">50</option></select>
+      </div>
+      <div>
+        <div class="setting-label">Тип</div>
+        <div class="con-cd-wrap" id="con-cd-type" style="display:block">
+          <button class="con-cd-btn" style="width:100%;justify-content:space-between" onclick="conToggleDrop('con-cd-type')">
+            <span id="con-cd-type-label">🎲 Мікс</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="con-cd-menu" id="con-cd-type-menu" style="width:100%">
+            <div class="con-cd-item con-cd-active" onclick="conSelectAI('aiType','con-cd-type','mix','🎲 Мікс')">🎲 Мікс</div>
+            <div class="con-cd-item" onclick="conSelectAI('aiType','con-cd-type','single','⭕ Одна відповідь')">⭕ Одна відповідь</div>
+            <div class="con-cd-item" onclick="conSelectAI('aiType','con-cd-type','multi','☑️ Кілька')">☑️ Кілька</div>
+            <div class="con-cd-item" onclick="conSelectAI('aiType','con-cd-type','text','✏️ Текстові')">✏️ Текстові</div>
+          </div>
+        </div>
+        <select id="aiType" style="display:none"><option value="mix">mix</option><option value="single">single</option><option value="multi">multi</option><option value="text">text</option></select>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost" style="flex:1" onclick="document.getElementById('aiModal').classList.remove('open')">Скасувати</button>
+      <button class="btn btn-primary" id="aiGenerateBtn" style="flex:2;justify-content:center" onclick="window.runAiGenerate()">✦ Генерувати</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, set, push, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// js/firebase.js — Firebase Realtime Database
+
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",
+  authDomain:        "quizflow-8a978.firebaseapp.com",
+  databaseURL:       "https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "quizflow-8a978",
+  storageBucket:     "quizflow-8a978.firebasestorage.app",
+  messagingSenderId: "206469794166",
+  appId:             "1:206469794166:web:55cd7007b429607acd5257"
+};
+
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+
+function snapToArray(snap) {
+  if (!snap.exists()) return [];
+  const val = snap.val();
+  return Object.entries(val).map(([id, data]) => ({ id, ...data }));
+}
+
+function nowTs() {
+  return Date.now();
+}
+
+// ─── ADMIN AUTH ───────────────────────────────────────────────────────────────
+
+async function getAdmin() {
+  const snap = await get(ref(db, "admin"));
+  return snap.exists() ? snap.val() : null;
+}
+
+async function checkLogin(login, password) {
+  const admin = await getAdmin();
+  if (!admin) return false;
+  return admin.login === login && admin.password === password;
+}
+
+// ─── TESTS ────────────────────────────────────────────────────────────────────
+
+async function getTests() {
+  const snap = await get(ref(db, "tests"));
+  if (!snap.exists()) return [];
+  const arr = snapToArray(snap);
+  return arr.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+}
+
+async function getTest(testId) {
+  const snap = await get(ref(db, `tests/${testId}`));
+  if (!snap.exists()) return null;
+  const data = snap.val();
+  if (data.questions && !Array.isArray(data.questions)) {
+    data.questions = Object.values(data.questions);
+  }
+  if (!data.questions) data.questions = [];
+  return { id: testId, ...data };
+}
+
+async function createTest(data) {
+  const newRef = push(ref(db, "tests"));
+  await set(newRef, {
+    title:     data.title     || "Новий тест",
+    folder:    data.folder    || "",
+    tags:      data.tags      || [],
+    timeLimit: data.timeLimit || 600,
+    status:    "draft",
+    questions: [],
+    createdAt: nowTs()
+  });
+  return newRef.key;
+}
+
+async function saveTest(testId, data) {
+  await update(ref(db, `tests/${testId}`), data);
+}
+
+async function deleteTest(testId) {
+  await remove(ref(db, `tests/${testId}`));
+  const linksSnap = await get(ref(db, "links"));
+  if (linksSnap.exists()) {
+    const updates = {};
+    Object.entries(linksSnap.val()).forEach(([k, v]) => {
+      if (v.testId === testId) updates[k] = null;
+    });
+    if (Object.keys(updates).length) await update(ref(db, "links"), updates);
+  }
+}
+
+
+// ─── PREVIEW ─────────────────────────────────────────────────────────────────
+window.previewTest = async () => {
+  // Зберігаємо перед переглядом
+  const btn = document.getElementById("saveBtn");
+  btn.disabled = true;
+  try {
+    const tags = document.getElementById("tagsInput")?.value.split(",").map(t=>t.trim()).filter(Boolean)||[];
+    await saveTest(testId, {
+      title:     document.getElementById("testTitle")?.value.trim()||"",
+      folderId:  window._selectedFolderId ?? testData.folderId ?? null,
+      timeLimit: (Number(document.getElementById("testTimeLimit")?.value)||10)*60,
+      status:    document.getElementById("testStatus")?.value||"draft",
+      tags,
+      questions: testData.questions
+    });
+    isDirty = false;
+  } catch(e){ showToast("Помилка збереження: "+e.message,"error"); btn.disabled=false; return; }
+  btn.disabled = false;
+
+  // Відкриваємо тест напряму через testId в режимі preview (без таймера і результатів)
+  const base = window.location.origin + window.location.pathname.replace("constructor.html","");
+  const url = `${base}test.html?testId=${testId}&preview=1`;
+  window.open(url, "_blank");
+};
+
+// ─── LINKS ────────────────────────────────────────────────────────────────────
+
+async function createLink(testId, maxAttempts) {
+  const newRef = push(ref(db, "links"));
+  await set(newRef, {
+    testId,
+    maxAttempts:  Number(maxAttempts) || 30,
+    usedAttempts: 0,
+    status:       "active",
+    createdAt:    nowTs()
+  });
+  return newRef.key;
+}
+
+async function getLink(linkId) {
+  const snap = await get(ref(db, `links/${linkId}`));
+  if (!snap.exists()) return null;
+  return { id: linkId, ...snap.val() };
+}
+
+async function getLinksByTest(testId) {
+  const snap = await get(ref(db, "links"));
+  if (!snap.exists()) return [];
+  return snapToArray(snap).filter(l => l.testId === testId);
+}
+
+async function updateLink(linkId, data) {
+  await update(ref(db, `links/${linkId}`), data);
+}
+
+async function deleteLink(linkId) {
+  await remove(ref(db, `links/${linkId}`));
+}
+
+async function incrementLinkUsage(linkId) {
+  const snap = await get(ref(db, `links/${linkId}/usedAttempts`));
+  const current = snap.exists() ? snap.val() : 0;
+  await set(ref(db, `links/${linkId}/usedAttempts`), current + 1);
+}
+
+// ─── ATTEMPTS ─────────────────────────────────────────────────────────────────
+
+async function createAttempt(data) {
+  const newRef = push(ref(db, "attempts"));
+  await set(newRef, {
+    testId:    data.testId,
+    linkId:    data.linkId,
+    name:      data.name,
+    surname:   data.surname,
+    answers:   data.answers   || [],
+    score:     data.score     ?? null,
+    grade12:   data.grade12   ?? null,
+    aiComment: data.aiComment ?? null,
+    createdAt: nowTs()
+  });
+  return newRef.key;
+}
+
+async function updateAttempt(attemptId, data) {
+  await update(ref(db, `attempts/${attemptId}`), data);
+}
+
+async function getAttemptsByTest(testId) {
+  const snap = await get(ref(db, "attempts"));
+  if (!snap.exists()) return [];
+  return snapToArray(snap)
+    .filter(a => a.testId === testId)
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+}
+
+async function checkDuplicateAttempt(testId, name, surname) {
+  const snap = await get(ref(db, "attempts"));
+  if (!snap.exists()) return false;
+  return Object.values(snap.val()).some(a =>
+    a.testId === testId &&
+    a.name?.toLowerCase()    === name.toLowerCase() &&
+    a.surname?.toLowerCase() === surname.toLowerCase()
+  );
+}
+
+// js/ai.js — Groq API напряму з браузера (без Firebase Functions)
+
+const GROQ_API_KEY = "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";
+const GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions";
+const GROQ_MODEL   = "llama-3.3-70b-versatile";
+
+// ─── Базовий запит до Groq ────────────────────────────────────────────────────
+
+// Системний промпт - завжди українська мова
+const UA_SYSTEM = {
+  role: "system",
+  content: "Ти — розумний асистент викладача. ОБОВ'ЯЗКОВО відповідай ВИКЛЮЧНО українською мовою. " +
+           "Жодних інших мов, ієрогліфів, китайських символів або нерозпізнаного тексту. " +
+           "Якщо щось не знаєш українською — все одно пиши по-українськи."
+};
+
+async function callGroq(messages, maxTokens = 800, temperature = 0.5) {
+  // Завжди додаємо системний промпт українською
+  const allMessages = [UA_SYSTEM, ...messages];
+
+  const res = await fetch(GROQ_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type":  "application/json",
+      "Authorization": `Bearer ${GROQ_API_KEY}`
+    },
+    body: JSON.stringify({
+      model:       GROQ_MODEL,
+      messages:    allMessages,
+      max_tokens:  maxTokens,
+      temperature
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Groq error ${res.status}: ${err}`);
+  }
+
+  const data = await res.json();
+  const result = data.choices?.[0]?.message?.content || "";
+
+  // Перевіряємо чи немає нелатинських/некириличних блоків (китайські, японські тощо)
+  if (/[一-鿿぀-ヿ㐀-䶿]/.test(result)) {
+    console.warn("AI returned non-UA text, content may be mixed");
+  }
+
+  return result;
+}
+
+// ─── AI для студента: оцінка + коментар ──────────────────────────────────────
+
+async function getStudentAIComment({ testTitle, totalQuestions, correctCount }) {
+  const incorrectCount = totalQuestions - correctCount;
+  const percent        = Math.round((correctCount / totalQuestions) * 100);
+
+  const prompt = `Ти — досвідчений викладач. Студент щойно пройшов тест.
+
+Тест: "${testTitle}"
+Всього питань: ${totalQuestions}
+Правильних: ${correctCount}
+Неправильних: ${incorrectCount}
+Відсоток: ${percent}%
+
+Дай оцінку від 1 до 12 та короткий коментар (2-4 речення) українською мовою — доброзичливо і конструктивно.
+
+Відповідай ТІЛЬКИ у форматі JSON без markdown:
+{"grade": 10, "comment": "..."}`;
+
+  const raw = await callGroq([{ role: "user", content: prompt }], 300);
+
+  try {
+    return JSON.parse(raw.replace(/```json|```/g, "").trim());
+  } catch {
+    return { grade: percentToGrade(percent), comment: raw };
+  }
+}
+
+// ─── AI перефразування питання ────────────────────────────────────────────────
+
+async function rephraseQuestion(questionText, options = []) {
+  let prompt = `Перефразуй тестове питання ІНШИМИ словами, зберігаючи зміст і правильні відповіді.
+
+ПРАВИЛА:
+- Відповідай ТІЛЬКИ українською мовою
+- Змінюй формулювання, але зміст залишай той самий
+- Якщо є варіанти — їх теж перефразуй (але правильні залишаються правильними)
+- Відповідай ТІЛЬКИ JSON без markdown
+
+Питання: "${questionText}"`;
+
+  if (options.length > 0) {
+    prompt += `
+Варіанти: ${JSON.stringify(options)}
+Формат: {"question":"нове питання","options":["новий А","новий Б","новий В","новий Г"]}`;
+  } else {
+    prompt += `
+Формат: {"question":"нове питання"}`;
+  }
+
+  const raw = await callGroq([{ role: "user", content: prompt }], 400, 0.6);
+  try {
+    return JSON.parse(raw.replace(/```json|```/g, "").trim());
+  } catch {
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("Невірний формат відповіді");
+    return JSON.parse(match[0]);
+  }
+}
+
+// ─── AI генерація кількох питань ─────────────────────────────────────────────
+
+async function generateQuestions({ topic, desc = "", difficulty, type, count = 10 }) {
+  const typeMap = {
+    mix:    "різні типи: single choice, multiple choice, text (чергуй рівномірно)",
+    single: "ТІЛЬКИ single choice (одна правильна відповідь)",
+    multi:  "ТІЛЬКИ multiple choice (кілька правильних відповідей)",
+    text:   "ТІЛЬКИ text (коротка текстова відповідь)"
+  };
+
+  const descPart = desc ? `
+Додаткові вимоги від викладача: ${desc}` : "";
+  const maxTokens = Math.max(2500, count * 220);
+
+  const prompt = `Ти — досвідчений викладач. Склади рівно ${count} унікальних тестових питань.
+
+Тема: "${topic}"${descPart}
+Складність: ${difficulty}
+Тип: ${typeMap[type] || type}
+
+ОБОВ'ЯЗКОВІ ПРАВИЛА:
+1. Всі питання та відповіді — ТІЛЬКИ українською мовою
+2. Кожне питання повинно бути УНІКАЛЬНИМ — жодних повторень навіть схожих формулювань
+3. Варіанти відповідей — правдоподібні, не очевидні
+4. Питань рівно ${count} — не більше, не менше
+5. Для single/multi: 4 варіанти, correct = масив індексів (з 0)
+6. Для text: correct = рядок-відповідь
+7. JSON без markdown, без пояснень — тільки масив
+
+Формат:
+[{"type":"single","text":"Питання?","options":["А","Б","В","Г"],"correct":[0]},{"type":"multi","text":"Питання?","options":["А","Б","В","Г"],"correct":[1,2]},{"type":"text","text":"Питання?","correct":"відповідь"}]`;
+
+  const raw = await callGroq([{ role: "user", content: prompt }], maxTokens, 0.6);
+  let parsed;
+  try {
+    parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
+  } catch {
+    // Якщо парсинг не вдався - пробуємо знайти масив у відповіді
+    const match = raw.match(/\[[\s\S]*\]/);
+    if (!match) throw new Error("AI не повернув коректний JSON");
+    parsed = JSON.parse(match[0]);
+  }
+
+  // Фільтруємо дублікати за текстом питання
+  const seen = new Set();
+  const unique = parsed.filter(q => {
+    const key = q.text?.toLowerCase().trim();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  return unique;
+}
+
+// ─── Допоміжна функція оцінки ─────────────────────────────────────────────────
+
+function percentToGrade(percent) {
+  if (percent >= 95) return 12;
+  if (percent >= 88) return 11;
+  if (percent >= 80) return 10;
+  if (percent >= 72) return 9;
+  if (percent >= 64) return 8;
+  if (percent >= 56) return 7;
+  if (percent >= 48) return 6;
+  if (percent >= 40) return 5;
+  if (percent >= 30) return 4;
+  if (percent >= 20) return 3;
+  if (percent >= 10) return 2;
+  return 1;
+}
+
+// js/constructor.js — Конструктор тестів
+
+
+// ─── AUTH GUARD ───────────────────────────────────────────────────────────────
+if (sessionStorage.getItem("qf_auth") !== "1") {
+  window.location.href = "login.html";
+}
+
+
+// ─── CONSTRUCTOR CUSTOM DROPDOWNS ─────────────────────────────────────────────
+window.conToggleDrop = function(wrapId){
+  const menu = document.getElementById(wrapId+"-menu");
+  const btn  = document.querySelector(`#${wrapId} .con-cd-btn`);
+  const isOpen = menu?.classList.contains("open");
+  // закриваємо всі
+  document.querySelectorAll(".con-cd-menu.open").forEach(m=>m.classList.remove("open"));
+  document.querySelectorAll(".con-cd-btn.open").forEach(b=>b.classList.remove("open"));
+  if(!isOpen){ menu?.classList.add("open"); btn?.classList.add("open"); }
+};
+
+window.conSelectStatus = function(value, label){
+  document.getElementById("testStatus").value = value;
+  document.getElementById("con-cd-status-label").textContent = label;
+  document.querySelectorAll("#con-cd-status-menu .con-cd-item").forEach(el=>{
+    el.classList.toggle("con-cd-active", el.textContent.trim()===label.trim());
+  });
+  document.querySelector("#con-cd-status .con-cd-btn")?.classList.remove("open");
+  document.getElementById("con-cd-status-menu")?.classList.remove("open");
+  markDirty();
+};
+
+window.conSelectAI = function(selId, wrapId, value, label){
+  const sel = document.getElementById(selId);
+  if(sel) sel.value = value;
+  document.getElementById(wrapId+"-label").textContent = label;
+  document.querySelectorAll(`#${wrapId}-menu .con-cd-item`).forEach(el=>{
+    el.classList.toggle("con-cd-active", el.textContent.trim()===label.trim());
+  });
+  document.querySelector(`#${wrapId} .con-cd-btn`)?.classList.remove("open");
+  document.getElementById(wrapId+"-menu")?.classList.remove("open");
+};
+
+window.conSelectQType = function(value, label){
+  document.getElementById("con-cd-qtype-label").textContent = label;
+  document.querySelector("#con-cd-qtype .con-cd-btn")?.classList.remove("open");
+  document.getElementById("con-cd-qtype-menu")?.classList.remove("open");
+};
+
+// Закриваємо при кліку поза
+document.addEventListener("click", (e)=>{
+  if(!e.target.closest(".con-cd-wrap")){
+    document.querySelectorAll(".con-cd-menu.open").forEach(m=>m.classList.remove("open"));
+    document.querySelectorAll(".con-cd-btn.open").forEach(b=>b.classList.remove("open"));
+  }
+});
+
+// Синхронізуємо кастомний статус при завантаженні тесту
+function syncStatusDropdown(value){
+  const labels = {draft:"📝 Чернетка", active:"✅ Активний", closed:"🔒 Закритий"};
+  const label = labels[value] || "📝 Чернетка";
+  const lbl = document.getElementById("con-cd-status-label");
+  if(lbl) lbl.textContent = label;
+  document.querySelectorAll("#con-cd-status-menu .con-cd-item").forEach(el=>{
+    el.classList.toggle("con-cd-active", el.textContent.trim()===label.trim());
+  });
+}
+
+window.navTo = (section) => {
+  if (section) sessionStorage.setItem("qf_nav", section);
+  location.href = "index.html";
+};
+
+// Nav click handlers - встановлюємо після завантаження DOM
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("navAttempts")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    sessionStorage.setItem("qf_nav", "attempts");
+    location.href = "index.html";
+  });
+  document.getElementById("navLinks")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    sessionStorage.setItem("qf_nav", "links");
+    location.href = "index.html";
+  });
+
+  // Завантажуємо лічильники для сайдбару
+  loadSidebarCounts();
+});
+
+async function loadSidebarCounts() {
+  try {
+    const [testsSnap, attSnap, linksSnap] = await Promise.all([
+      get(ref(db, "tests")),
+      get(ref(db, "attempts")),
+      get(ref(db, "links"))
+    ]);
+    const tCount = testsSnap.exists() ? Object.keys(testsSnap.val()).length : 0;
+    const aCount = attSnap.exists()   ? Object.keys(attSnap.val()).length   : 0;
+    const lCount = linksSnap.exists() ?
+      Object.values(linksSnap.val()).filter(l => l.status === "active").length : 0;
+
+    const nbT = document.getElementById("con-nb-t");
+    const nbA = document.getElementById("con-nb-a");
+    const nbL = document.getElementById("con-nb-l");
+    if (nbT) nbT.textContent = tCount;
+    if (nbA) nbA.textContent = aCount;
+    if (nbL) nbL.textContent = lCount;
+  } catch(e) {
+    console.warn("Sidebar counts failed:", e.message);
+  }
+}
+
+
+// ─── NAV GUARD (перевірка незбережених змін) ─────────────────────────────────
+let _pendingNavTarget = null;
+
+function closeUnsavedModal(){
+  document.getElementById("unsavedModal")?.classList.remove("open");
+  _pendingNavTarget = null;
+}
+
+window.navGuard = (section) => {
+  if(isDirty){
+    _pendingNavTarget = section;
+    document.getElementById("unsavedModal")?.classList.add("open");
+    document.getElementById("unsavedSaveBtn").onclick = async () => {
+      await window.saveTest();
+      document.getElementById("unsavedModal")?.classList.remove("open");
+      if(_pendingNavTarget !== null){
+        if(_pendingNavTarget) sessionStorage.setItem("qf_nav", _pendingNavTarget);
+        location.href = "index.html";
+      }
+    };
+    document.getElementById("unsavedLeaveBtn").onclick = () => {
+      isDirty = false;
+      document.getElementById("unsavedModal")?.classList.remove("open");
+      if(_pendingNavTarget !== null){
+        if(_pendingNavTarget) sessionStorage.setItem("qf_nav", _pendingNavTarget);
+        location.href = "index.html";
+      }
+    };
+  } else {
+    if(section) sessionStorage.setItem("qf_nav", section);
+    location.href = "index.html";
+  }
+};
+
+// beforeunload відключено — використовуємо кастомний модал
+
+window.doLogout = () => {
+  sessionStorage.removeItem("qf_auth");
+  window.location.href = "login.html";
+};
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let testId       = null;
+let testData     = null;
+let activeQIndex = 0;
+let isDirty      = false;
+let dragSrcIdx   = null;
+
+const QUESTION_TYPES = {
+  single:   "Одна відповідь",
+  multi:    "Кілька відповідей",
+  text:     "Коротка відповідь",
+  number:   "Число",
+  matching: "Зіставлення",
+  ordering: "Впорядкування",
+  long:     "Розгорнута відповідь"
+};
+
+// ─── INIT — чекаємо на auth, потім завантажуємо ──────────────────────────────
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const params = new URLSearchParams(window.location.search);
+  testId = params.get("id");
+
+  if (!testId) {
+    showToast("Невірне посилання", "error");
+    setTimeout(() => location.href = "index.html", 2000);
+    return;
+  }
+
+  await loadTest();
+  bindEvents();
+  checkAutosave();
+});
+
+
+
+// ─── EXCEL IMPORT ─────────────────────────────────────────────────────────────
+let _excelRows = [];
+
+window.openExcelModal = () => {
+  _excelRows = [];
+  document.getElementById("excel-preview").style.display = "none";
+  document.getElementById("excel-import-btn").style.display = "none";
+  document.getElementById("excel-file-input").value = "";
+  document.getElementById("excelModal").classList.add("open");
+};
+
+window.handleExcelDrop = (e) => {
+  e.preventDefault();
+  e.currentTarget.style.borderColor = "";
+  e.currentTarget.style.background = "";
+  const file = e.dataTransfer.files[0];
+  if (file) window.handleExcelFile(file);
+};
+
+window.handleExcelFile = async (file) => {
+  if (!file) return;
+  const ext = file.name.split(".").pop().toLowerCase();
+
+  try {
+    if (ext === "csv") {
+      await parseCSV(file);
+    } else {
+      await parseXLSX(file);
+    }
+  } catch(e) {
+    showToast("Помилка читання файлу: " + e.message, "error");
+  }
+};
+
+async function parseCSV(file) {
+  const text = await file.text();
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  const rows = lines.slice(1).map(line => {
+    // Простий CSV парсинг (з підтримкою лапок)
+    const cols = [];
+    let cur = "", inQ = false;
+    for (const ch of line) {
+      if (ch === '"') { inQ = !inQ; continue; }
+      if (ch === "," && !inQ) { cols.push(cur.trim()); cur = ""; continue; }
+      if (ch === ";" && !inQ) { cols.push(cur.trim()); cur = ""; continue; }
+      cur += ch;
+    }
+    cols.push(cur.trim());
+    return cols;
+  });
+  showExcelPreview(rows);
+}
+
+async function parseXLSX(file) {
+  // Динамічно завантажуємо SheetJS
+  if (!window.XLSX) {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+      s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+  const ab = await file.arrayBuffer();
+  const wb = XLSX.read(ab, { type: "array" });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+  showExcelPreview(data.slice(1)); // пропускаємо заголовок
+}
+
+function showExcelPreview(rows) {
+  // Фільтруємо порожні рядки і валідуємо
+  _excelRows = rows.filter(r => r[0] && r.length >= 2);
+
+  const cnt = document.getElementById("excel-count");
+  const tbl = document.getElementById("excel-table");
+  const prev = document.getElementById("excel-preview");
+  const btn = document.getElementById("excel-import-btn");
+
+  if (!_excelRows.length) {
+    showToast("Не знайдено питань. Перевірте формат файлу.", "error");
+    return;
+  }
+
+  cnt.innerHTML = `Знайдено <strong style="color:var(--primary)">${_excelRows.length}</strong> питань`;
+
+  tbl.innerHTML = `<tr style="background:rgba(45,91,227,.04)">
+    <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text-muted)">Питання</th>
+    <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text-muted)">Варіанти</th>
+    <th style="padding:8px 10px;font-size:11px;color:var(--text-muted)">✓</th>
+  </tr>` + _excelRows.slice(0, 5).map(r => {
+    const opts = [r[1], r[2], r[3], r[4]].filter(Boolean).join(" / ");
+    const correct = r[5] ? `${r[5]}` : "?";
+    return `<tr style="border-top:1px solid rgba(45,91,227,.06)">
+      <td style="padding:7px 10px;font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r[0]||"—"}</td>
+      <td style="padding:7px 10px;font-size:12px;color:var(--text-muted)">${opts}</td>
+      <td style="padding:7px 10px;text-align:center;font-size:12px;font-weight:600;color:var(--teal)">${correct}</td>
+    </tr>`;
+  }).join("") + (_excelRows.length > 5 ? `<tr><td colspan="3" style="padding:7px 10px;font-size:12px;color:var(--text-muted);text-align:center">...і ще ${_excelRows.length - 5} питань</td></tr>` : "");
+
+  prev.style.display = "block";
+  btn.style.display = "flex";
+}
+
+window.downloadExcelTemplate = () => {
+  const rows = [
+    ["Текст питання", "Варіант 1", "Варіант 2", "Варіант 3", "Варіант 4", "Правильна відповідь (1-4)"],
+    ["Яка функція виводить текст у Python?", "print()", "echo()", "write()", "show()", "1"],
+    ["Який тип даних для цілих чисел у Python?", "float", "int", "str", "bool", "2"],
+    ["Що означає HTML?", "HyperText Markup Language", "High Tech Modern Language", "Home Tool Markup Language", "Hyperlink Text Mode Language", "1"],
+    ["Ваше питання тут...", "Варіант А", "Варіант Б", "Варіант В", "Варіант Г", "3"],
+  ];
+  const csv = rows.map(r =>
+    r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+  ).join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "QuizFlow_Шаблон_Питань.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast("Шаблон завантажено!");
+};
+
+window.doExcelImport = () => {
+  if (!_excelRows.length) return;
+  let imported = 0;
+
+  _excelRows.forEach(r => {
+    const text = String(r[0] || "").trim();
+    if (!text) return;
+
+    const opts = [r[1], r[2], r[3], r[4]].map(o => String(o || "").trim()).filter(Boolean);
+    const correctNum = parseInt(r[5]) || 1;
+    const correctIdx = Math.min(Math.max(correctNum - 1, 0), opts.length - 1);
+
+    const q = {
+      id:      genId(),
+      type:    opts.length >= 2 ? "single" : "text",
+      text,
+      options: opts.length >= 2 ? opts : undefined,
+      correct: opts.length >= 2 ? [correctIdx] : text
+    };
+
+    window.addQuestion(q);
+    imported++;
+  });
+
+  document.getElementById("excelModal").classList.remove("open");
+  showToast(`✅ Імпортовано ${imported} питань!`);
+  _excelRows = [];
+};
+
+async function loadTest() {
+  showLoading(true);
+  try {
+    // Завантажуємо тест і папки паралельно
+    const [, foldersSnap] = await Promise.all([
+      (async () => { testData = await getTest(testId); })(),
+      get(ref(db, "folders"))
+    ]);
+
+    if (!testData) {
+      showToast("Тест не знайдено", "error");
+      setTimeout(() => location.href = "index.html", 2000);
+      return;
+    }
+
+    // Папки
+    window._allFolders = foldersSnap.exists()
+      ? Object.entries(foldersSnap.val()).map(([id,v])=>({id,...v})).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0))
+      : [];
+    window._selectedFolderId = testData.folderId || null;
+
+    if (!Array.isArray(testData.questions)) testData.questions = [];
+
+    document.getElementById("testTitle").value     = testData.title || "";
+    document.getElementById("testTimeLimit").value = Math.round((testData.timeLimit || 600) / 60);
+    document.getElementById("testStatus").value    = testData.status || "draft";
+    document.getElementById("tagsInput").value     = (testData.tags || []).join(", ");
+
+    renderFolderChips();
+    renderQuestionList();
+    if (testData.questions.length > 0) {
+      selectQuestion(0);
+    } else {
+      showEmptyEditor();
+    }
+
+    await renderLinks();
+  } catch (e) {
+    console.error("loadTest error:", e);
+    showToast("Помилка: " + e.message, "error");
+  } finally {
+    showLoading(false);
+  }
+}
+
+function renderFolderChips() {
+  const container = document.getElementById("folderChipsPanel");
+  if (!container) return;
+  const folders = window._allFolders || [];
+  if (!folders.length) {
+    container.innerHTML = `<span style="font-size:12px;color:var(--text-light)">Немає папок</span>`;
+    return;
+  }
+  container.innerHTML = [
+    { id: null, name: "Без папки" },
+    ...folders
+  ].map(f => {
+    const sel = window._selectedFolderId === f.id;
+    return `<span
+      onclick="window.selectFolderInConstructor('${f.id||""}')"
+      style="display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:20px;
+             border:1.5px solid ${sel?"var(--primary)":"var(--border)"};
+             background:${sel?"rgba(45,91,227,.08)":"white"};
+             color:${sel?"var(--primary)":"var(--text-muted)"};
+             font-size:12px;font-weight:500;cursor:pointer;transition:all .15s">
+      ${f.id?"📁":""}${f.name}
+    </span>`;
+  }).join("");
+}
+
+window.selectFolderInConstructor = (fid) => {
+  window._selectedFolderId = fid || null;
+  renderFolderChips();
+  markDirty();
+};
+
+// ─── QUESTION LIST ────────────────────────────────────────────────────────────
+function renderQuestionList() {
+  const list   = document.getElementById("questionList");
+  const count  = document.getElementById("questionCount");
+  const qs     = testData.questions;
+
+  if (count) count.textContent = `${qs.length} шт.`;
+
+  list.innerHTML = qs.map((q, i) => `
+    <div class="q-list-item ${i === activeQIndex ? "active" : ""}"
+         draggable="true"
+         data-idx="${i}"
+         onclick="window.selectQ(${i})"
+         ondragstart="window.qDragStart(${i})"
+         ondragover="window.qDragOver(event)"
+         ondrop="window.qDrop(${i})">
+      <div class="q-drag-handle"><span></span><span></span><span></span></div>
+      <div class="q-num-badge">${i + 1}</div>
+      <div class="q-list-info">
+        <div class="q-list-text">${(q.text || "Без тексту").replace(/<[^>]+>/g,"").substring(0,60)}</div>
+        <div class="q-list-type">${QUESTION_TYPES[q.type] || q.type}</div>
+      </div>
+    </div>`).join("");
+}
+
+window.selectQ = selectQuestion;
+function selectQuestion(idx) {
+  activeQIndex = idx;
+  renderQuestionList();
+  renderEditor();
+}
+
+function showEmptyEditor() {
+  document.getElementById("editorContainer").innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:400px;gap:16px;color:var(--text-muted)">
+      <div style="font-size:48px">📋</div>
+      <div style="font-size:16px;font-weight:500">Немає питань</div>
+      <button class="btn btn-primary" onclick="window.addQuestion()">+ Додати перше питання</button>
+    </div>`;
+}
+
+// ─── ADD QUESTION ─────────────────────────────────────────────────────────────
+window.addQuestion = (preset = null) => {
+  const newQ = preset || {
+    id:      genId(),
+    type:    "single",
+    text:    "",
+    options: ["", "", "", ""],
+    correct: []
+  };
+
+  testData.questions.push(newQ);
+  activeQIndex = testData.questions.length - 1;
+  markDirty();
+  renderQuestionList();
+  renderEditor();
+};
+
+window.deleteQuestion = (idx) => {
+  const modal = document.getElementById("deleteQModal");
+  const numEl = document.getElementById("deleteQNum");
+  if (numEl) numEl.textContent = `№${idx + 1}`;
+  modal.classList.add("open");
+
+  const btn = document.getElementById("deleteQConfirmBtn");
+  const newBtn = btn.cloneNode(true); // скидаємо попередній listener
+  btn.parentNode.replaceChild(newBtn, btn);
+
+  newBtn.addEventListener("click", () => {
+    modal.classList.remove("open");
+    doDeleteQuestion(idx);
+  });
+
+  modal.addEventListener("click", e => {
+    if (e.target === modal) modal.classList.remove("open");
+  }, { once: true });
+};
+
+function doDeleteQuestion(idx) {
+  testData.questions.splice(idx, 1);
+  activeQIndex = Math.max(0, activeQIndex - 1);
+  markDirty();
+  renderQuestionList();
+  if (testData.questions.length) renderEditor();
+  else showEmptyEditor();
+};
+
+window.duplicateQuestion = (idx) => {
+  const copy = JSON.parse(JSON.stringify(testData.questions[idx]));
+  copy.id    = genId();
+  testData.questions.splice(idx + 1, 0, copy);
+  activeQIndex = idx + 1;
+  markDirty();
+  renderQuestionList();
+  renderEditor();
+};
+
+// ─── DRAG & DROP (questions reorder) ─────────────────────────────────────────
+window.qDragStart = (idx) => { dragSrcIdx = idx; };
+window.qDragOver  = (e)   => e.preventDefault();
+window.qDrop      = (idx) => {
+  if (dragSrcIdx === null || dragSrcIdx === idx) return;
+  const qs  = testData.questions;
+  const [q] = qs.splice(dragSrcIdx, 1);
+  qs.splice(idx, 0, q);
+  activeQIndex = idx;
+  dragSrcIdx   = null;
+  markDirty();
+  renderQuestionList();
+  renderEditor();
+};
+
+// ─── EDITOR ───────────────────────────────────────────────────────────────────
+function renderEditor() {
+  const q = testData.questions[activeQIndex];
+  if (!q) return showEmptyEditor();
+
+  const container = document.getElementById("editorContainer");
+
+  // typeOptions unused - type dropdown is inline in editor HTML
+
+  let answerSection = "";
+  switch (q.type) {
+    case "single":
+    case "multi":
+      answerSection = renderChoiceOptions(q);
+      break;
+    case "text":
+    case "number":
+      answerSection = renderTextOption(q);
+      break;
+    case "matching":
+      answerSection = renderMatchingOptions(q);
+      break;
+    case "ordering":
+      answerSection = renderOrderingOptions(q);
+      break;
+    case "long":
+      answerSection = `<div class="options-label">Розгорнута відповідь — перевіряється вручну</div>
+        <div style="padding:16px;background:rgba(45,91,227,0.04);border-radius:14px;font-size:13px;color:var(--text-muted)">
+          Студент вводить довільний текст. Автоматична перевірка не проводиться.
+        </div>`;
+      break;
+  }
+
+  container.innerHTML = `
+    <div class="editor-card" id="activeEditor">
+      <div class="editor-row">
+        <span class="editor-q-num">Питання ${activeQIndex + 1}</span>
+        <div class="con-cd-wrap" id="con-cd-qtype">
+          <button class="con-cd-btn" onclick="conToggleDrop('con-cd-qtype')">
+            <span id="con-cd-qtype-label">${(()=>{const icons={single:"⭕",multi:"☑️",text:"✏️",number:"🔢",matching:"🔗",ordering:"📋",long:"📝"};return (icons[q.type]||"")+" "+(QUESTION_TYPES[q.type]||q.type);})()}</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="con-cd-menu" id="con-cd-qtype-menu">
+            ${[
+              ["single","Одна відповідь","⭕"],
+              ["multi","Кілька відповідей","☑️"],
+              ["text","Коротка відповідь","✏️"],
+              ["number","Числова відповідь","🔢"],
+              ["long","Розгорнута відповідь","📝"],
+              ["matching","Зіставлення","🔗"],
+              ["ordering","Впорядкування","📋"]
+            ].map(([v,l,ic])=>`<div class="con-cd-item${q.type===v?" con-cd-active":""}" onclick="window.changeType('${v}');conSelectQType('${v}','${ic} ${l}')">${ic} ${l}</div>`).join("")}
+          </div>
+        </div>
+
+        <div class="editor-actions-row">
+          <div class="icon-btn-sm" title="Дублювати" onclick="window.duplicateQuestion(${activeQIndex})">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          </div>
+          <div class="icon-btn-sm danger" title="Видалити" onclick="window.deleteQuestion(${activeQIndex})">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="rte-wrap">
+        <div class="rte-toolbar" id="rteToolbar">
+          <!-- Жирний -->
+          <button class="rte-btn" title="Жирний (Ctrl+B)" onclick="window.rteFormat('bold')" id="rte-bold">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h8a4 4 0 010 8H6zM6 12h9a4 4 0 010 8H6z"/></svg>
+          </button>
+          <!-- Похилий -->
+          <button class="rte-btn" title="Похилий (Ctrl+I)" onclick="window.rteFormat('italic')" id="rte-italic">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>
+          </button>
+          <!-- Підкреслений -->
+          <button class="rte-btn" title="Підкреслений (Ctrl+U)" onclick="window.rteFormat('underline')" id="rte-underline">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 3v7a6 6 0 0012 0V3"/><line x1="4" y1="21" x2="20" y2="21"/></svg>
+          </button>
+          <div class="rte-sep"></div>
+          <!-- Колір тексту -->
+          <div class="rte-color-wrap" id="rteColorWrap">
+            <button class="rte-color-btn" title="Колір тексту" onclick="window.rteToggleColors()" id="rte-color-btn">
+              <span style="font-size:13px;font-weight:800;color:var(--text)">A</span>
+              <div class="rte-color-dot" id="rteColorDot"></div>
+            </button>
+            <div class="rte-color-menu" id="rteColorMenu">
+              <div class="rte-color-label">Колір тексту</div>
+              <div class="rte-color-row">
+                <div class="rte-swatch" style="background:#e02020" title="Червоний" onclick="window.rteColor('#e02020')"></div>
+                <div class="rte-swatch" style="background:#0d9e85" title="Зелений" onclick="window.rteColor('#0d9e85')"></div>
+                <div class="rte-swatch" style="background:#2d5be3" title="Синій" onclick="window.rteColor('#2d5be3')"></div>
+                <div class="rte-swatch" style="background:#f59e0b" title="Жовтий" onclick="window.rteColor('#f59e0b')"></div>
+                <div class="rte-swatch" style="background:#9333ea" title="Фіолетовий" onclick="window.rteColor('#9333ea')"></div>
+                <div class="rte-swatch reset" title="Скинути колір" onclick="window.rteColor(null)">✕</div>
+              </div>
+            </div>
+          </div>
+          <div class="rte-sep"></div>
+          <!-- Очистити форматування -->
+          <button class="rte-btn" title="Очистити форматування" onclick="window.rteFormat('removeFormat')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+          </button>
+        </div>
+        <div class="rte-field" id="qText" contenteditable="true"
+          data-placeholder="Введіть текст питання..."
+          oninput="window.rteInput()"
+          onkeydown="window.rteKeydown(event)">${q.text || ""}</div>
+      </div>
+
+      <div class="ai-row">
+        <button class="ai-btn ai-rephrase" onclick="window.aiRephrase()">✦ Перефразувати</button>
+        <button class="ai-btn ai-generate" onclick="window.openAiModal()">⚡ AI генерація</button>
+      </div>
+
+      ${answerSection}
+    </div>`;
+}
+
+function renderChoiceOptions(q) {
+  const opts = q.options || [];
+  const isSingle = q.type === "single";
+  const correct  = Array.isArray(q.correct) ? q.correct : (q.correct !== undefined ? [q.correct] : []);
+
+  return `
+    <div class="options-label">Варіанти відповідей ${isSingle ? "(одна правильна)" : "(кілька правильних)"}</div>
+    <div id="optionsList">
+      ${opts.map((opt, i) => `
+        <div class="option-item" id="opt-${i}">
+          <div class="correct-toggle ${correct.includes(i) ? "correct" : ""}"
+               onclick="window.toggleCorrect(${i})" title="Правильна відповідь">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <input class="option-input" type="text" value="${escHtml(opt)}" placeholder="Варіант ${i + 1}"
+                 oninput="window.updateOption(${i}, this.value)">
+          <div class="icon-btn-sm danger" onclick="window.removeOption(${i})">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+        </div>`).join("")}
+    </div>
+    <button class="add-option-btn" onclick="window.addOption()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Додати варіант
+    </button>`;
+}
+
+function renderTextOption(q) {
+  return `
+    <div class="options-label">Правильна відповідь</div>
+    <input class="option-input" type="${q.type === "number" ? "number" : "text"}"
+           value="${escHtml(String(q.correct || ""))}"
+           placeholder="Введіть правильну відповідь..."
+           oninput="window.updateCorrectText(this.value)"
+           style="width:100%;max-width:400px">`;
+}
+
+function renderMatchingOptions(q) {
+  const pairs = q.pairs || [{ left: "", options: ["", "", "", ""], correct: 0 }];
+  return `
+    <div class="options-label">Пари для зіставлення</div>
+    <div id="matchingList">
+      ${pairs.map((pair, pi) => `
+        <div class="matching-editor-row">
+          <input class="option-input" value="${escHtml(pair.left)}" placeholder="Ліва частина"
+                 oninput="window.updatePairLeft(${pi}, this.value)">
+          <span style="color:var(--text-muted);padding:0 8px">→</span>
+          <div style="flex:1">
+            ${(pair.options || []).map((opt, oi) => `
+              <div style="display:flex;gap:8px;margin-bottom:6px">
+                <div class="correct-toggle ${pair.correct === oi ? "correct" : ""}"
+                     onclick="window.setPairCorrect(${pi}, ${oi})" title="Правильний варіант">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <input class="option-input" value="${escHtml(opt)}" placeholder="Варіант ${oi + 1}"
+                       oninput="window.updatePairOption(${pi}, ${oi}, this.value)">
+              </div>`).join("")}
+          </div>
+          <div class="icon-btn-sm danger" onclick="window.removePair(${pi})">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+        </div>`).join("")}
+    </div>
+    <button class="add-option-btn" onclick="window.addPair()">+ Додати пару</button>`;
+}
+
+function renderOrderingOptions(q) {
+  const items = q.items || [];
+  return `
+    <div class="options-label">Елементи для впорядкування (правильний порядок — зверху вниз)</div>
+    <div id="orderingList">
+      ${items.map((item, i) => `
+        <div class="option-item">
+          <div class="order-num">${i + 1}</div>
+          <input class="option-input" value="${escHtml(item)}" placeholder="Елемент ${i + 1}"
+                 oninput="window.updateOrderItem(${i}, this.value)">
+          <div class="icon-btn-sm danger" onclick="window.removeOrderItem(${i})">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+        </div>`).join("")}
+    </div>
+    <button class="add-option-btn" onclick="window.addOrderItem()">+ Додати елемент</button>`;
+}
+
+// ─── FIELD MUTATORS ───────────────────────────────────────────────────────────
+const q = () => testData.questions[activeQIndex];
+
+
+// ─── RICH TEXT EDITOR ─────────────────────────────────────────────────────────
+let _savedSelection = null;
+
+window.rteInput = () => {
+  const el = document.getElementById("qText");
+  if(!el) return;
+  // Зберігаємо HTML як text питання
+  const html = el.innerHTML
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/&nbsp;/g, " ");
+  q().text = html;
+  markDirty();
+  renderQuestionList();
+  rteUpdateButtons();
+};
+
+window.rteKeydown = (e) => {
+  // Ctrl+B / Ctrl+I / Ctrl+U
+  if(e.ctrlKey || e.metaKey){
+    if(e.key==="b"){ e.preventDefault(); window.rteFormat("bold"); }
+    if(e.key==="i"){ e.preventDefault(); window.rteFormat("italic"); }
+    if(e.key==="u"){ e.preventDefault(); window.rteFormat("underline"); }
+  }
+};
+
+window.rteFormat = (cmd) => {
+  document.getElementById("qText")?.focus();
+  document.execCommand(cmd, false, null);
+  rteUpdateButtons();
+  window.rteInput();
+};
+
+window.rteColor = (color) => {
+  const el = document.getElementById("qText");
+  if(!el) return;
+  el.focus();
+  // Відновлюємо виділення якщо було збережено
+  if(_savedSelection) restoreSelection(_savedSelection);
+  if(color){
+    document.execCommand("styleWithCSS", false, true);
+    document.execCommand("foreColor", false, color);
+    // Оновлюємо колір-індикатор
+    const dot = document.getElementById("rteColorDot");
+    if(dot) dot.style.background = color;
+  } else {
+    document.execCommand("removeFormat", false, null);
+    const dot = document.getElementById("rteColorDot");
+    if(dot) dot.style.background = "var(--primary)";
+  }
+  document.getElementById("rteColorMenu")?.classList.remove("open");
+  window.rteInput();
+};
+
+window.rteToggleColors = () => {
+  const el = document.getElementById("qText");
+  const menu = document.getElementById("rteColorMenu");
+  if(!menu) return;
+  // Зберігаємо поточне виділення
+  const sel = window.getSelection();
+  if(sel && sel.rangeCount) _savedSelection = saveSelection(el);
+  menu.classList.toggle("open");
+};
+
+function saveSelection(containerEl) {
+  const sel = window.getSelection();
+  if(!sel?.rangeCount) return null;
+  const range = sel.getRangeAt(0);
+  const preSelRange = range.cloneRange();
+  preSelRange.selectNodeContents(containerEl);
+  preSelRange.setEnd(range.startContainer, range.startOffset);
+  const start = preSelRange.toString().length;
+  return { start, end: start + range.toString().length };
+}
+
+function restoreSelection(savedSel) {
+  if(!savedSel) return;
+  const el = document.getElementById("qText");
+  if(!el) return;
+  const sel = window.getSelection();
+  const range = createRangeFromOffset(el, savedSel.start, savedSel.end);
+  if(range){ sel.removeAllRanges(); sel.addRange(range); }
+}
+
+function createRangeFromOffset(el, start, end) {
+  const range = document.createRange();
+  let charCount = 0, startNode = null, startOffset = 0, endNode = null, endOffset = 0;
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+  let node;
+  while((node = walker.nextNode())){
+    const len = node.textContent.length;
+    if(!startNode && charCount + len >= start){
+      startNode = node; startOffset = start - charCount;
+    }
+    if(!endNode && charCount + len >= end){
+      endNode = node; endOffset = end - charCount; break;
+    }
+    charCount += len;
+  }
+  if(!startNode) return null;
+  range.setStart(startNode, startOffset);
+  range.setEnd(endNode || startNode, endNode ? endOffset : startOffset);
+  return range;
+}
+
+function rteUpdateButtons() {
+  document.getElementById("rte-bold")?.classList.toggle("active", document.queryCommandState("bold"));
+  document.getElementById("rte-italic")?.classList.toggle("active", document.queryCommandState("italic"));
+  document.getElementById("rte-underline")?.classList.toggle("active", document.queryCommandState("underline"));
+}
+
+// Закриваємо color menu при кліку поза
+document.addEventListener("click", (e) => {
+  if(!e.target.closest("#rteColorWrap")){
+    document.getElementById("rteColorMenu")?.classList.remove("open");
+  }
+});
+
+// Слухаємо selectionchange для оновлення кнопок
+document.addEventListener("selectionchange", () => {
+  const active = document.activeElement;
+  if(active?.id === "qText") rteUpdateButtons();
+});
+
+window.updateQText = (val) => { q().text = val; markDirty(); renderQuestionList(); };
+
+window.changeType = (type) => {
+  const current = q();
+  current.type = type;
+  if (type === "single" || type === "multi") {
+    if (!current.options) current.options = ["", "", "", ""];
+    if (!current.correct) current.correct = [];
+  }
+  if (type === "matching") {
+    current.pairs = current.pairs || [{ left: "", options: ["", "", "", ""], correct: 0 }];
+  }
+  if (type === "ordering") {
+    current.items = current.items || ["", "", "", ""];
+  }
+  markDirty(); renderEditor();
+};
+
+window.toggleCorrect = (idx) => {
+  const curr = q();
+  if (curr.type === "single") {
+    curr.correct = [idx];
+  } else {
+    if (!Array.isArray(curr.correct)) curr.correct = [];
+    const pos = curr.correct.indexOf(idx);
+    if (pos === -1) curr.correct.push(idx);
+    else curr.correct.splice(pos, 1);
+  }
+  markDirty();
+  // update toggles visually without full re-render
+  document.querySelectorAll(".correct-toggle").forEach((el, i) => {
+    el.classList.toggle("correct", curr.correct.includes(i));
+  });
+};
+
+window.updateOption = (idx, val) => { q().options[idx] = val; markDirty(); };
+window.addOption    = ()         => { q().options.push(""); markDirty(); renderEditor(); };
+window.removeOption = (idx)      => {
+  const curr = q();
+  curr.options.splice(idx, 1);
+  curr.correct = (curr.correct || []).filter(i => i !== idx).map(i => i > idx ? i - 1 : i);
+  markDirty(); renderEditor();
+};
+
+window.updateCorrectText = (val) => { q().correct = val; markDirty(); };
+
+window.updatePairLeft   = (pi, val) => { q().pairs[pi].left = val; markDirty(); };
+window.updatePairOption = (pi, oi, val) => { q().pairs[pi].options[oi] = val; markDirty(); };
+window.setPairCorrect   = (pi, oi) => { q().pairs[pi].correct = oi; markDirty(); renderEditor(); };
+window.addPair          = () => { q().pairs.push({ left: "", options: ["", "", "", ""], correct: 0 }); markDirty(); renderEditor(); };
+window.removePair       = (pi) => { q().pairs.splice(pi, 1); markDirty(); renderEditor(); };
+
+window.updateOrderItem = (i, val) => { q().items[i] = val; markDirty(); };
+window.addOrderItem    = () => { q().items.push(""); markDirty(); renderEditor(); };
+window.removeOrderItem = (i) => { q().items.splice(i, 1); markDirty(); renderEditor(); };
+
+// ─── SAVE ────────────────────────────────────────────────────────────────────
+window.saveTest = async () => {
+  const btn = document.getElementById("saveBtn");
+  btn.disabled = true;
+  btn.innerHTML = `<div style="width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite"></div>`;
+
+  try {
+    const tags = document.getElementById("tagsInput").value
+      .split(",").map(t => t.trim()).filter(Boolean);
+
+    await saveTest(testId, {
+      title:     document.getElementById("testTitle").value.trim(),
+      folderId:  window._selectedFolderId ?? testData.folderId ?? null,
+      timeLimit: (Number(document.getElementById("testTimeLimit").value) || 10) * 60,
+      status:    document.getElementById("testStatus").value,
+      tags,
+      questions: testData.questions
+    });
+
+    isDirty = false;
+    const indicator = document.getElementById("dirtyIndicator");
+    if (indicator) indicator.style.display = "none";
+    showToast("Збережено ✓");
+  } catch (e) {
+    showToast("Помилка: " + e.message, "error");
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Зберегти`;
+};
+
+// ─── AI ──────────────────────────────────────────────────────────────────────
+window.aiRephrase = async () => {
+  const curr = q();
+  if (!curr.text) { showToast("Спочатку введіть текст питання", "error"); return; }
+
+  const btn = document.querySelector(".ai-rephrase");
+  btn.disabled = true; btn.textContent = "✦ Генерую...";
+
+  try {
+    const result = await rephraseQuestion(curr.text, curr.options);
+    curr.text = result.question;
+    if (result.options) curr.options = result.options;
+    markDirty(); renderEditor();
+    showToast("Перефразовано!");
+  } catch (e) {
+    showToast("AI помилка: " + e.message, "error");
+  }
+  btn.disabled = false; btn.textContent = "✦ Перефразувати";
+};
+
+window.openAiModal = () => {
+  document.getElementById("aiModal").classList.add("open");
+};
+
+window.runAiGenerate = async () => {
+  const topic      = document.getElementById("aiTopic").value.trim();
+  const desc       = document.getElementById("aiDesc")?.value.trim() || "";
+  const difficulty = document.getElementById("aiDifficulty").value;
+  const type       = document.getElementById("aiType").value;
+  const count      = Number(document.getElementById("aiCount").value) || 10;
+
+  if (!topic) { showToast("Введіть тему", "error"); return; }
+
+  const btn = document.getElementById("aiGenerateBtn");
+  btn.disabled = true;
+  btn.innerHTML = `<div style="width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;display:inline-block;margin-right:8px"></div>Генерую ${count} питань...`;
+
+  try {
+    const questions = await generateQuestions({ topic, desc, difficulty, type, count });
+    questions.forEach(q => window.addQuestion({ ...q, id: genId() }));
+    document.getElementById("aiModal").classList.remove("open");
+    showToast(`✅ Додано ${questions.length} питань!`);
+  } catch (e) {
+    showToast("AI помилка: " + e.message, "error");
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = "✦ Генерувати";
+};
+
+
+// ─── PREVIEW ─────────────────────────────────────────────────────────────────
+window.previewTest = async () => {
+  // Зберігаємо перед переглядом
+  const btn = document.getElementById("saveBtn");
+  btn.disabled = true;
+  try {
+    const tags = document.getElementById("tagsInput")?.value.split(",").map(t=>t.trim()).filter(Boolean)||[];
+    await saveTest(testId, {
+      title:     document.getElementById("testTitle")?.value.trim()||"",
+      folderId:  window._selectedFolderId ?? testData.folderId ?? null,
+      timeLimit: (Number(document.getElementById("testTimeLimit")?.value)||10)*60,
+      status:    document.getElementById("testStatus")?.value||"draft",
+      tags,
+      questions: testData.questions
+    });
+    isDirty = false;
+  } catch(e){ showToast("Помилка збереження: "+e.message,"error"); btn.disabled=false; return; }
+  btn.disabled = false;
+
+  // Відкриваємо тест напряму через testId в режимі preview (без таймера і результатів)
+  const base = window.location.origin + window.location.pathname.replace("constructor.html","");
+  const url = `${base}test.html?testId=${testId}&preview=1`;
+  window.open(url, "_blank");
+};
+
+// ─── LINKS ────────────────────────────────────────────────────────────────────
+async function renderLinks() {
+  const container = document.getElementById("linksList");
+  const links = await getLinksByTest(testId);
+  const base  = window.location.origin + window.location.pathname.replace("constructor.html", "");
+
+  if (!links.length) {
+    container.innerHTML = `<div style="font-size:13px;color:var(--text-muted)">Немає посилань</div>`;
+    return;
+  }
+
+  container.innerHTML = links.map(l => {
+    const url = `${base}test.html?link=${l.id}`;
+    const pct = l.maxAttempts ? Math.round((l.usedAttempts / l.maxAttempts) * 100) : 0;
+    return `
+    <div class="link-gen-item">
+      <div class="link-url" title="${url}">${url.replace(window.location.origin, "")}</div>
+      <div class="link-gen-meta">
+        <span><span class="link-status-dot ${l.status !== 'active' ? 'closed' : ''}"></span>${l.usedAttempts}/${l.maxAttempts}</span>
+        <span style="cursor:pointer;color:var(--primary);font-size:12px" onclick="window.copyUrl('${url}')">Копіювати</span>
+      </div>
+      <div class="progress-mini"><div class="progress-mini-fill" style="width:${pct}%"></div></div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button onclick="window.toggleSingleLink('${l.id}','${l.status}')" style="flex:1;padding:5px;border-radius:8px;border:1.5px solid var(--border);background:white;font-size:12px;cursor:pointer">
+          ${l.status === 'active' ? 'Закрити' : 'Відкрити'}
+        </button>
+        <button onclick="window.deleteSingleLink('${l.id}')" style="padding:5px 10px;border-radius:8px;border:1.5px solid rgba(244,63,94,0.2);background:white;color:var(--rose);font-size:12px;cursor:pointer">✕</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+window.createNewLink = async () => {
+  const max = Number(document.getElementById("newLinkMax").value) || 30;
+  await createLink(testId, max);
+  await renderLinks();
+  showToast("Посилання створено");
+};
+
+window.toggleSingleLink = async (linkId, status) => {
+  await updateLink(linkId, { status: status === "active" ? "closed" : "active" });
+  await renderLinks();
+};
+
+window.deleteSingleLink = async (linkId) => {
+  if (!confirm("Видалити посилання?")) return;
+  await deleteLink(linkId);
+  await renderLinks();
+};
+
+window.copyUrl = async (url) => {
+  await navigator.clipboard.writeText(url);
+  showToast("Скопійовано!");
+};
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+
+// ─── AUTOSAVE ─────────────────────────────────────────────────────────────────
+function getAutosaveKey(){ return `qf_autosave_${testId}`; }
+
+function autosave(){
+  if(!isDirty || !testId) return;
+  try {
+    localStorage.setItem(getAutosaveKey(), JSON.stringify({
+      title:     document.getElementById("testTitle")?.value||"",
+      folderId:  window._selectedFolderId ?? testData?.folderId ?? null,
+      timeLimit: document.getElementById("testTimeLimit")?.value||"10",
+      status:    document.getElementById("testStatus")?.value||"draft",
+      questions: testData?.questions||[],
+      savedAt:   Date.now()
+    }));
+    const saveBtn = document.getElementById("saveBtn");
+    if(saveBtn && !saveBtn.disabled){
+      saveBtn.style.opacity=".7";
+      setTimeout(()=>{ saveBtn.style.opacity="1"; }, 600);
+    }
+  } catch(e){ console.warn("Autosave failed:", e.message); }
+}
+
+function checkAutosave(){
+  if(!testId) return;
+  const key = getAutosaveKey();
+  const raw = localStorage.getItem(key);
+  if(!raw) return;
+  try {
+    const data = JSON.parse(raw);
+    const age = Math.round((Date.now()-data.savedAt)/60000);
+    if(age > 60*24) { localStorage.removeItem(key); return; }
+    if(confirm(`Знайдено незбережену версію (${age < 1 ? "щойно" : age + " хв тому"}). Відновити?`)){
+      if(document.getElementById("testTitle")) document.getElementById("testTitle").value = data.title||"";
+      if(data.questions) testData.questions = data.questions;
+      if(data.status) document.getElementById("testStatus").value = data.status;
+      isDirty = true;
+      renderQuestionList();
+      if(testData.questions.length>0) renderEditor(0);
+      showToast("Чернетку відновлено","ok");
+    }
+    localStorage.removeItem(key);
+  } catch(e){}
+}
+
+setInterval(autosave, 30000);
+
+function markDirty() {
+  isDirty = true;
+  const indicator = document.getElementById("dirtyIndicator");
+  if (indicator) indicator.style.display = "inline-block";
+}
+
+function genId() {
+  return Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+}
+
+function escHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function showLoading(show) {
+  const el = document.getElementById("globalLoader");
+  if (el) el.style.display = show ? "flex" : "none";
+}
+
+window.showToast = (msg, type = "success") => {
+  let toast = document.getElementById("toast");
+  if (!toast) { toast = document.createElement("div"); toast.id = "toast"; document.body.appendChild(toast); }
+  toast.className = `toast toast-${type}`;
+  toast.textContent = msg;
+  toast.style.display = "block";
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => toast.style.display = "none", 3000);
+};
+
+// beforeunload відключено — використовуємо кастомний модал navGuard
+
+function bindEvents() {
+  document.querySelectorAll(".modal-overlay").forEach(overlay => {
+    overlay.addEventListener("click", e => {
+      if (e.target === overlay) overlay.classList.remove("open");
+    });
+  });
+}
+</script>
+
+<!-- Excel Import Modal -->
+<div class="modal-overlay" id="excelModal">
+  <div class="modal-box" style="max-width:520px">
+    <button class="modal-close-btn" onclick="document.getElementById('excelModal').classList.remove('open')">×</button>
+    <div style="font-size:26px;margin-bottom:10px">📊</div>
+    <div class="modal-title">Імпорт питань з Excel</div>
+    <div class="modal-sub">Завантажте файл .xlsx або .csv</div>
+
+    <div style="background:rgba(45,91,227,.04);border:1.5px solid rgba(45,91,227,.1);border-radius:13px;padding:14px 16px;margin-bottom:18px;font-size:13px;line-height:1.7">
+      <strong>Формат таблиці:</strong><br>
+      Колонка A: <code>Текст питання</code><br>
+      Колонки B–E: <code>Варіант 1 | Варіант 2 | Варіант 3 | Варіант 4</code><br>
+      Колонка F: <code>Номер правильної відповіді (1, 2, 3 або 4)</code><br>
+      <span style="color:var(--text-muted)">Перший рядок — заголовки (пропускається автоматично)</span>
+    </div>
+
+    <div id="excel-drop-zone" style="border:2px dashed var(--border);border-radius:13px;padding:32px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:16px"
+         onclick="document.getElementById('excel-file-input').click()"
+         ondragover="event.preventDefault();this.style.borderColor='var(--primary)';this.style.background='rgba(45,91,227,.04)'"
+         ondragleave="this.style.borderColor='';this.style.background=''"
+         ondrop="window.handleExcelDrop(event)">
+      <div style="font-size:32px;margin-bottom:10px">📂</div>
+      <div style="font-weight:500;margin-bottom:4px">Перетягни файл або натисни</div>
+      <div style="font-size:13px;color:var(--text-muted)">.xlsx, .xls або .csv</div>
+    </div>
+    <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="window.handleExcelFile(this.files[0])">
+
+    <div id="excel-preview" style="display:none;margin-bottom:16px">
+      <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;margin-bottom:10px" id="excel-count"></div>
+      <div style="max-height:200px;overflow-y:auto;border:1.5px solid var(--border);border-radius:10px">
+        <table style="width:100%;border-collapse:collapse;font-size:13px" id="excel-table"></table>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-bottom:10px">
+      <button class="btn btn-ghost" style="flex:1;font-size:13px" onclick="window.downloadExcelTemplate()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Завантажити шаблон
+      </button>
+    </div>
+
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost" style="flex:1" onclick="document.getElementById('excelModal').classList.remove('open')">Скасувати</button>
+      <button class="btn btn-primary" id="excel-import-btn" style="flex:2;justify-content:center;display:none" onclick="window.doExcelImport()">📥 Імпортувати питання</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "rules": {
+    "admin": {
+      ".read": true,
+      ".write": false
+    },
+    "tests": {
+      ".read": true,
+      ".write": true
+    },
+    "links": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": ["testId"]
+    },
+    "attempts": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": ["testId"]
+    }
+  }
+}

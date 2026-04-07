@@ -1,0 +1,3055 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/><circle cx='24' cy='22' r='5' fill='none' stroke='white' stroke-width='2.2'/><line x1='27.5' y1='25.5' x2='29.5' y2='27.5' stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>">
+<title>QuizFlow — Панель викладача</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f0f3fa;--sidebar:#0a0f2e;--primary:#2d5be3;--primary-light:#4d78ff;--glow:rgba(45,91,227,0.15);--teal:#14d4b4;--amber:#f59e0b;--rose:#f43f5e;--card:#fff;--border:rgba(45,91,227,0.08);--text:#0d1340;--muted:#6b7280;--light:#a0a8c0;--grad:linear-gradient(135deg,#2d5be3,#1a3ab8)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+/* SIDEBAR */
+.sb{width:220px;background:var(--sidebar);display:flex;flex-direction:column;padding:22px 12px;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px;padding:0 8px 26px}
+.logo-i{width:36px;height:36px;background:var(--grad);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:#fff}
+.logo-t{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:#fff}
+.nav-sec{margin-bottom:4px;font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:8px 10px 4px}
+.ni{display:flex;align-items:center;gap:9px;padding:10px 10px;border-radius:10px;cursor:pointer;transition:all .2s;color:rgba(255,255,255,0.5);font-size:14px;text-decoration:none;border:none;background:none;width:100%;text-align:left}
+.ni:hover{background:rgba(255,255,255,.07);color:#fff}
+.ni.active{background:var(--primary);color:#fff}
+.ni svg{width:17px;height:17px;flex-shrink:0}
+.nb{margin-left:auto;background:rgba(255,255,255,.15);color:#fff;font-size:11px;padding:2px 7px;border-radius:20px;font-weight:600}
+.ni.active .nb{background:rgba(255,255,255,.25)}
+.sb-foot{margin-top:auto;padding:13px;background:rgba(255,255,255,.04);border-radius:12px;display:flex;align-items:center;gap:10px}
+.ava{width:34px;height:34px;border-radius:9px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;color:#fff;font-size:13px;flex-shrink:0}
+.sb-name{font-size:13px;font-weight:500;color:#fff}
+.sb-role{font-size:11px;color:rgba(255,255,255,.4);margin-top:1px}
+/* MAIN */
+.main{margin-left:220px;flex:1;padding:26px 30px;max-width:calc(100vw - 220px)}
+.topbar{display:flex;align-items:center;gap:12px;margin-bottom:26px}
+.sbox{display:flex;align-items:center;gap:9px;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:10px 15px;flex:1;max-width:310px;transition:border-color .2s}
+.sbox:focus-within{border-color:var(--primary)}
+.sbox input{border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:14px;width:100%;color:var(--text);background:none}
+.sec{display:none}.sec.on{display:block}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:10px}
+.pt{font-family:'Syne',sans-serif;font-weight:700;font-size:24px;letter-spacing:-.5px}
+.ps{font-size:14px;color:var(--muted);margin-top:3px}
+.bg{display:flex;gap:8px;flex-wrap:wrap}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 17px;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;border:none}
+.bp{background:var(--grad);color:#fff;box-shadow:0 4px 16px var(--glow)}.bp:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(45,91,227,.3)}
+.bs{background:#fff;color:var(--text);border:1.5px solid var(--border)}.bs:hover{border-color:var(--primary);color:var(--primary)}
+.bd{background:rgba(244,63,94,.08);color:var(--rose);border:1.5px solid rgba(244,63,94,.2)}.bd:hover{background:var(--rose);color:#fff}
+.btn-sm{padding:6px 12px;font-size:13px}
+.ib{width:34px;height:34px;border-radius:9px;border:1.5px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:all .2s;flex-shrink:0}
+.ib:hover{border-color:var(--primary);color:var(--primary)}
+.ib.d:hover{border-color:var(--rose);color:var(--rose)}
+/* CARDS */
+.card{background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:20px}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.ct{font-family:'Syne',sans-serif;font-weight:600;font-size:15px}
+.ca{font-size:13px;color:var(--primary);cursor:pointer;font-weight:500}
+/* STATS */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.sc{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:18px;transition:transform .2s,box-shadow .2s}
+.sc:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(45,91,227,.1)}
+.sc.ft{background:var(--grad);border-color:transparent}
+.si{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:16px}
+.si.bl{background:rgba(45,91,227,.1);color:var(--primary)}.si.tl{background:rgba(20,212,180,.1);color:var(--teal)}.si.am{background:rgba(245,158,11,.1);color:var(--amber)}.si.wh{background:rgba(255,255,255,.2);color:#fff}
+.sv{font-family:'Syne',sans-serif;font-weight:700;font-size:28px;letter-spacing:-1px;line-height:1}
+.sc.ft .sv,.sc.ft .sl{color:#fff}.sc.ft .sl{opacity:.7}
+.sl{font-size:13px;color:var(--muted);margin-top:3px}
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--light);padding:0 12px 10px;font-weight:500}
+.tbl td{padding:11px 12px;border-top:1px solid rgba(45,91,227,.05);font-size:14px;vertical-align:middle}
+.tbl tr:hover td{background:rgba(45,91,227,.02)}
+.ra{display:flex;gap:5px;opacity:0;transition:opacity .2s}.tbl tr:hover .ra{opacity:1}
+/* BADGES */
+.tag{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:500}
+.tb{background:rgba(45,91,227,.1);color:var(--primary)}.tt{background:rgba(20,212,180,.1);color:#0d9e85}.tam{background:rgba(245,158,11,.1);color:#b45309}.tr{background:rgba(244,63,94,.1);color:#be123c}
+.sd{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
+.sa{background:var(--teal);box-shadow:0 0 5px rgba(20,212,180,.5)}.sdr{background:var(--light)}.sdc{background:var(--rose)}
+.bdg{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.bg-g{background:rgba(20,212,180,.1);color:#0d9e85}.bg-r{background:rgba(244,63,94,.1);color:#be123c}
+.bg-o{background:rgba(245,158,11,.1);color:#b45309;border:1.5px solid rgba(245,158,11,.2)}.bg-a{background:rgba(245,158,11,.1);color:#b45309}.bg-b{background:rgba(45,91,227,.1);color:var(--primary)}
+/* FOLDER FILTER TABS */
+.ftab{display:inline-flex;align-items:center;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);border:1.5px solid var(--border);background:#fff;transition:all .15s;user-select:none}
+.ftab:hover{border-color:rgba(45,91,227,.3);color:var(--primary)}
+.ftab-a{background:var(--primary);border-color:var(--primary);color:#fff}
+.ftab-a:hover{background:var(--primary-light);color:#fff;border-color:var(--primary-light)}
+.fg{margin-bottom:12px;border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(45,91,227,.06)}
+.fh{display:flex;align-items:center;gap:11px;padding:14px 18px;background:#fff;border:1.5px solid var(--border);border-radius:14px 14px 0 0;cursor:pointer;transition:background .15s;user-select:none}
+.fh:hover{background:rgba(45,91,227,.02)}.fh.col{border-radius:14px}
+.fn{font-family:'Syne',sans-serif;font-weight:600;font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fc{font-size:12px;color:var(--primary);background:rgba(45,91,227,.08);padding:3px 10px;border-radius:20px;font-weight:600;flex-shrink:0}
+.fchev{color:var(--light);transition:transform .2s;flex-shrink:0}.fh.col .fchev{transform:rotate(-90deg)}
+.fb{border:1.5px solid var(--border);border-top:none;border-radius:0 0 14px 14px;background:#fff;overflow:hidden}
+.fb.hid{display:none}
+/* Test table inside folder */
+.fb .tbl th{padding:8px 16px;font-size:11px;background:rgba(45,91,227,.02)}
+.fb .tbl td{padding:13px 16px}
+.fb .tbl td:first-child{min-width:220px}
+.fb .tbl td:nth-child(2){white-space:nowrap}
+.fb .tbl td:nth-child(3),.fb .tbl td:nth-child(4){white-space:nowrap}
+/* PROGRESS */
+.pb{height:5px;background:rgba(45,91,227,.1);border-radius:3px;overflow:hidden;margin-top:3px}
+.pf{height:100%;background:var(--grad);border-radius:3px;transition:width .3s}
+/* FILTERS */
+.flt{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.fs{padding:8px 34px 8px 13px;border-radius:10px;border:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);outline:none;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='11' height='7' viewBox='0 0 11 7' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5.5 5.5L10 1' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;transition:border-color .2s,box-shadow .2s}
+.fs:hover{border-color:rgba(45,91,227,.3)}
+.fs:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(45,91,227,.08)}
+.fs:focus{border-color:var(--primary)}
+/* MODALS */
+.mo{position:fixed;inset:0;background:rgba(10,15,46,.5);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;padding:16px}
+.mo.on{opacity:1;pointer-events:all}
+.mb{background:#fff;border-radius:22px;padding:28px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.15);transform:translateY(20px);transition:transform .3s cubic-bezier(.34,1.56,.64,1);position:relative}
+.mo.on .mb{transform:translateY(0)}.mb.wd{max-width:700px}
+.mtl{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;margin-bottom:3px}
+.msu{font-size:13px;color:var(--muted);margin-bottom:20px}
+.mcl{position:sticky;top:0;float:right;margin:-4px -4px 8px 8px;width:30px;height:30px;border-radius:9px;border:1.5px solid var(--border);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px;line-height:1;z-index:10;transition:all .15s}
+.mcl:hover{border-color:var(--rose);color:var(--rose)}
+.mcl:hover{border-color:var(--rose);color:var(--rose);background:rgba(244,63,94,.05)}
+.fl{margin-bottom:14px}
+.fl label{font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;font-weight:500;display:block}
+.fi{width:100%;padding:11px 14px;border-radius:11px;border:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;background:#fff}
+.fi:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(45,91,227,.08)}.fi.er{border-color:var(--rose)}
+select.fi{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='11' height='7' viewBox='0 0 11 7' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5.5 5.5L10 1' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:36px;cursor:pointer}
+select.fi:hover{border-color:rgba(45,91,227,.3)}
+textarea.fi{resize:vertical;min-height:72px}
+.ma{display:flex;gap:9px;margin-top:22px}.ma .btn{flex:1;justify-content:center}
+/* CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);transition:all .15s;user-select:none}
+.chip.sel{background:rgba(45,91,227,.08);border-color:var(--primary);color:var(--primary)}
+.chip:hover:not(.sel){border-color:rgba(45,91,227,.3);color:var(--primary)}
+/* DETAIL */
+.dh{background:var(--grad);border-radius:16px;padding:26px;color:#fff;margin-bottom:20px}
+.dh::before{content:'';position:absolute;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.06);top:-70px;right:-50px}
+.qr{padding:13px;background:#f8faff;border:1.5px solid var(--border);border-radius:11px;margin-bottom:8px}
+.qr.ok{border-left:4px solid var(--teal)}.qr.no{border-left:4px solid var(--rose)}.qr.pt{border-left:4px solid var(--amber)}
+/* LINK ITEM */
+.li{padding:14px;background:rgba(45,91,227,.03);border:1.5px solid var(--border);border-radius:12px;margin-bottom:8px}
+/* LOADER & TOAST */
+#ldr{position:fixed;inset:0;background:rgba(240,243,250,.85);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.sp{width:38px;height:38px;border:3px solid rgba(45,91,227,.15);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#tst{position:fixed;bottom:20px;right:20px;padding:11px 18px;border-radius:11px;font-size:14px;font-weight:500;z-index:400;display:none;box-shadow:0 8px 28px rgba(0,0,0,.14)}
+.tok{background:#0d1340;color:#fff}.ter{background:var(--rose);color:#fff}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.ei{font-size:40px;margin-bottom:10px}.et{font-family:'Syne',sans-serif;font-weight:600;font-size:16px;color:var(--text);margin-bottom:5px}
+@keyframes notifIn{from{opacity:0;transform:translateX(-20px) scale(.95)}to{opacity:1;transform:none}}
+@keyframes notifOut{to{opacity:0;transform:translateX(-20px) scale(.95)}}
+
+/* CUSTOM DROPDOWNS */
+.cd-wrap{position:relative;display:inline-block}
+.cd-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:11px;border:1.5px solid var(--border);background:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none}
+.cd-btn:hover{border-color:rgba(45,91,227,.3);color:var(--primary)}
+.cd-btn:hover svg{stroke:var(--primary)}
+.cd-btn.active{border-color:var(--primary);color:var(--primary);background:rgba(45,91,227,.04)}
+.cd-btn.active svg{stroke:var(--primary);transform:rotate(180deg)}
+.cd-btn svg{transition:transform .2s;flex-shrink:0;stroke:var(--muted)}
+.cd-label{font-size:13px}
+.cd-menu{position:absolute;top:calc(100% + 6px);left:0;min-width:180px;background:#fff;border:1.5px solid var(--border);border-radius:13px;box-shadow:0 8px 28px rgba(45,91,227,.12);z-index:150;overflow:hidden;display:none;animation:dropIn .15s ease}
+.cd-menu.open{display:block}
+@keyframes dropIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.cd-item{display:flex;align-items:center;padding:10px 14px;font-size:13px;cursor:pointer;color:var(--text);transition:background .12s;white-space:nowrap}
+.cd-item:hover{background:rgba(45,91,227,.05);color:var(--primary)}
+.cd-item.cd-active{font-weight:600;color:var(--primary);background:rgba(45,91,227,.04)}
+.cd-item.cd-active::after{content:"✓";margin-left:auto;font-size:12px;padding-left:10px}
+
+/* NOTIFICATION ITEMS */
+.notif-item{display:flex;align-items:flex-start;gap:14px;padding:16px 18px;background:#fff;border:1.5px solid var(--border);border-radius:14px;margin-bottom:10px;transition:all .2s;cursor:pointer;position:relative}
+.notif-item:hover{border-color:rgba(45,91,227,.2);box-shadow:0 4px 16px rgba(45,91,227,.08)}
+.notif-item.unread{border-left:4px solid var(--primary)}
+.notif-item.unread-warn{border-left:4px solid var(--rose)}
+.notif-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.notif-body{flex:1;min-width:0}
+.notif-title{font-weight:600;font-size:14px;margin-bottom:3px}
+.notif-desc{font-size:13px;color:var(--muted);line-height:1.4}
+.notif-time{font-size:11px;color:var(--light);margin-top:4px}
+.notif-badge-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);position:absolute;top:14px;right:14px;flex-shrink:0}
+
+/* JOURNAL TABLE */
+.jrn-tbl{border-collapse:collapse;min-width:100%;font-size:13px}
+.jrn-tbl th{padding:10px 14px;background:#f8faff;font-family:'Syne',sans-serif;font-weight:600;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);white-space:nowrap;border-bottom:2px solid var(--border);position:sticky;top:0;z-index:2}
+.jrn-tbl th:first-child{position:sticky;left:0;z-index:3;background:#f8faff}
+.jrn-tbl td{padding:10px 14px;border-bottom:1px solid rgba(45,91,227,.06);white-space:nowrap}
+.jrn-tbl td:first-child{position:sticky;left:0;background:white;font-weight:600;z-index:1;border-right:1px solid var(--border)}
+.jrn-tbl tr:hover td{background:rgba(45,91,227,.02)}
+.jrn-tbl tr:hover td:first-child{background:#fafbff}
+.jrn-grade{display:inline-flex;align-items:center;justify-content:center;width:36px;height:28px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px}
+.jrn-g-high{background:rgba(13,158,133,.12);color:#0d9e85}
+.jrn-g-mid{background:rgba(45,91,227,.1);color:#2d5be3}
+.jrn-g-low{background:rgba(244,63,94,.1);color:#be123c}
+.jrn-empty{color:var(--light);font-size:12px}
+.jrn-reviewing{font-size:11px;color:var(--amber)}
+
+/* TEST THEMES */
+.theme-default{background:linear-gradient(135deg,#2d5be3,#1a3ab8)}
+.theme-ocean{background:linear-gradient(135deg,#0891b2,#0e7490)}
+.theme-forest{background:linear-gradient(135deg,#16a34a,#14532d)}
+.theme-sunset{background:linear-gradient(135deg,#ea580c,#9a3412)}
+.theme-midnight{background:linear-gradient(135deg,#1e1b4b,#312e81)}
+
+/* SORT */
+.sort-th:hover{color:var(--primary)}
+.sort-arrow{font-size:10px;color:var(--muted);margin-left:3px}
+.sort-arrow.asc::after{content:"▲"}
+.sort-arrow.desc::after{content:"▼"}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:rgba(45,91,227,.2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<div id="ldr"><div class="sp"></div><div style="font-size:14px;color:var(--muted)">Завантаження...</div></div>
+<div id="tst"></div>
+
+<!-- SIDEBAR -->
+<aside class="sb">
+  <div class="logo"><div class="logo-i">Q</div><span class="logo-t">QuizFlow</span></div>
+  <div class="nav-sec">Головне</div>
+  <button class="ni active" id="ni-dashboard" onclick="showSec('dashboard')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Дашборд
+  </button>
+  <button class="ni" id="ni-tests" onclick="showSec('tests')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    Тести <span class="nb" id="nb-t">0</span>
+  </button>
+  <button class="ni" id="ni-attempts" onclick="showSec('attempts')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+    Спроби <span class="nb" id="nb-a">0</span>
+  </button>
+  <button class="ni" id="ni-links" onclick="showSec('links')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+    Посилання <span class="nb" id="nb-l">0</span>
+  </button>
+  <button class="ni" id="ni-analytics" onclick="showSec('analytics')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Аналітика
+  </button>
+  <button class="ni" id="ni-students" onclick="showSec('students')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+    Студенти <span class="nb" id="nb-students" style="display:none">0</span>
+  </button>
+  <button class="ni" id="ni-gradebook" onclick="showSec('gradebook')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+    Журнал
+  </button>
+  <button class="ni" id="ni-suspicious" onclick="showSec('suspicious')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    Підозрілі <span class="nb" id="nb-suspicious" style="display:none;background:rgba(244,63,94,.8)">0</span>
+  </button>
+  <button class="ni" id="ni-online" onclick="showSec('online')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+    Онлайн зараз <span class="nb" id="nb-online" style="display:none;background:#0d9e85">0</span>
+  </button>
+  <button class="ni" id="ni-notifications" onclick="showSec('notifications')" style="position:relative">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    Сповіщення
+    <span class="nb" id="nb-notif" style="display:none">0</span>
+  </button>
+
+  <div class="sb-foot">
+    <div class="ava">ВЧ</div>
+    <div><div class="sb-name">Викладач</div><div class="sb-role">Адміністратор</div></div>
+    <button onclick="doLogout()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.35)" title="Вийти">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
+  </div>
+</aside>
+
+<main class="main">
+  <!-- DASHBOARD -->
+  <div class="sec on" id="sec-dashboard">
+    <div class="ph">
+      <div><div class="pt">Дашборд</div><div class="ps">Загальна статистика та активність</div></div>
+      <div class="bg"><button class="btn bp" onclick="openM('m-test')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Новий тест</button></div>
+    </div>
+    <div class="sg">
+      <div class="sc ft"><div class="si wh">📋</div><div class="sv" id="s-t">—</div><div class="sl">Всього тестів</div></div>
+      <div class="sc"><div class="si tl">✅</div><div class="sv" id="s-a">—</div><div class="sl">Спроб пройдено</div></div>
+      <div class="sc"><div class="si bl">🔗</div><div class="sv" id="s-l">—</div><div class="sl">Активних посилань</div></div>
+      <div class="sc"><div class="si am">⭐</div><div class="sv" id="s-g">—</div><div class="sl">Середня оцінка</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:16px">
+      <div class="card">
+        <div class="ch"><span class="ct">Останні спроби</span><span class="ca" onclick="showSec('attempts')">Всі →</span></div>
+        <table class="tbl"><thead><tr><th>Студент</th><th>Тест</th><th>Оцінка</th><th>Статус</th><th>Дата</th></tr></thead><tbody id="d-att"></tbody></table>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">Активні посилання</span><span class="ca" onclick="showSec('links')">Всі →</span></div>
+        <div id="d-lnk"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TESTS -->
+  <div class="sec" id="sec-tests">
+    <div class="ph">
+      <div><div class="pt">Тести</div><div class="ps">Управління тестами та папками</div></div>
+      <div class="bg" style="align-items:center;gap:10px">
+        <div class="sbox" style="max-width:200px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="srch" placeholder="Пошук тестів..." oninput="renderTests(this.value)" autocomplete="off">
+        </div>
+        <button class="btn bs" onclick="openM('m-folder')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Нова папка</button>
+        <button class="btn bp" onclick="openM('m-test')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Новий тест</button>
+      </div>
+    </div>
+    <div id="tc"></div>
+
+    <!-- АРХІВ ТЕСТІВ -->
+    <div id="archive-section" style="margin-top:8px">
+      <div style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:12px 0"
+           onclick="G.toggleArchive()">
+        <span style="font-size:13px;color:var(--muted);font-weight:500">📦 Архів тестів</span>
+        <span id="archive-count" style="font-size:12px;color:var(--muted);background:rgba(107,114,128,.1);padding:2px 9px;border-radius:20px"></span>
+        <svg id="archive-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted);transition:transform .2s"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div id="archive-list" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- ATTEMPTS -->
+  <div class="sec" id="sec-attempts">
+    <div class="ph"><div><div class="pt">Спроби</div><div class="ps">Всі проходження тестів студентами</div></div></div>
+
+    <!-- Кастомні фільтри -->
+    <div class="flt" style="gap:8px;flex-wrap:wrap;align-items:center">
+      <!-- Пошук -->
+      <div class="sbox" style="max-width:260px;flex:1">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="att-srch" placeholder="Пошук студента..." oninput="renderAttempts()" autocomplete="off">
+        <button id="att-srch-clear" onclick="$('att-srch').value='';renderAttempts()" style="display:none;background:none;border:none;cursor:pointer;color:var(--muted);padding:0;font-size:18px;line-height:1">×</button>
+      </div>
+
+      <!-- Кастомний дропдаун: Тест -->
+      <div class="cd-wrap" id="cd-ft">
+        <button class="cd-btn" onclick="G.toggleDrop('cd-ft')">
+          <span class="cd-label" id="cd-ft-label">Всі тести</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="cd-menu" id="cd-ft-menu">
+          <div class="cd-item cd-active" onclick="G.selectDrop('cd-ft','','Всі тести')">Всі тести</div>
+          <!-- Заповнюється динамічно -->
+        </div>
+        <select id="ft" style="display:none"></select>
+      </div>
+
+      <!-- Кастомний дропдаун: Група -->
+      <div class="cd-wrap" id="cd-fgrp">
+        <button class="cd-btn" onclick="G.toggleDrop('cd-fgrp')">
+          <span class="cd-label" id="cd-fgrp-label">Всі групи</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="cd-menu" id="cd-fgrp-menu">
+          <div class="cd-item cd-active" onclick="G.selectDrop('cd-fgrp','','Всі групи')">Всі групи</div>
+        </div>
+        <select id="fgrp" style="display:none"></select>
+      </div>
+
+      <!-- Кастомний дропдаун: Статус -->
+      <div class="cd-wrap" id="cd-fst">
+        <button class="cd-btn" onclick="G.toggleDrop('cd-fst')">
+          <span class="cd-label" id="cd-fst-label">Всі статуси</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="cd-menu" id="cd-fst-menu">
+          <div class="cd-item cd-active" onclick="G.selectDrop('cd-fst','','Всі статуси')">Всі статуси</div>
+          <div class="cd-item" onclick="G.selectDrop('cd-fst','completed','Завершені')"><span class="sd sa" style="margin-right:6px"></span>Завершені</div>
+          <div class="cd-item" onclick="G.selectDrop('cd-fst','reviewing','⏳ Перевіряється')">⏳ Перевіряється</div>
+          <div class="cd-item" onclick="G.selectDrop('cd-fst','in_progress','В процесі')"><span class="sd sdr" style="margin-right:6px"></span>В процесі</div>
+        </div>
+        <select id="fst" style="display:none">
+          <option value="">Всі статуси</option>
+          <option value="completed">Завершені</option>
+          <option value="in_progress">В процесі</option>
+        </select>
+      </div>
+
+      <!-- Кастомний дропдаун: Оцінка -->
+      <div class="cd-wrap" id="cd-fg">
+        <button class="cd-btn" onclick="G.toggleDrop('cd-fg')">
+          <span class="cd-label" id="cd-fg-label">Будь-яка оцінка</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="cd-menu" id="cd-fg-menu">
+          <div class="cd-item cd-active" onclick="G.selectDrop('cd-fg','','Будь-яка оцінка')">Будь-яка оцінка</div>
+          <div class="cd-item" onclick="G.selectDrop('cd-fg','high','Відмінники')"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#0d9e85;margin-right:7px"></span>Відмінники (10–12)</div>
+          <div class="cd-item" onclick="G.selectDrop('cd-fg','mid','Середні')"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2d5be3;margin-right:7px"></span>Середні (6–9)</div>
+          <div class="cd-item" onclick="G.selectDrop('cd-fg','low','Низькі')"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f43f5e;margin-right:7px"></span>Низькі (1–5)</div>
+        </div>
+        <select id="fg" style="display:none">
+          <option value="">Будь-яка оцінка</option>
+          <option value="high">Відмінники</option>
+          <option value="mid">Середні</option>
+          <option value="low">Низькі</option>
+        </select>
+      </div>
+    </div>
+    <div class="card">
+      <table class="tbl"><thead><tr>
+        <th class="sort-th" onclick="G.sortAttempts('name')" style="cursor:pointer;user-select:none">Студент <span id="sort-name" class="sort-arrow"></span></th>
+        <th>Тест</th>
+        <th>Група</th>
+        <th class="sort-th" onclick="G.sortAttempts('grade')" style="cursor:pointer;user-select:none">Оцінка <span id="sort-grade" class="sort-arrow"></span></th>
+        <th>Правильних</th>
+        <th class="sort-th" onclick="G.sortAttempts('time')" style="cursor:pointer;user-select:none">Час <span id="sort-time" class="sort-arrow"></span></th>
+        <th>Статус</th>
+        <th class="sort-th" onclick="G.sortAttempts('date')" style="cursor:pointer;user-select:none">Дата <span id="sort-date" class="sort-arrow"></span></th>
+        <th></th>
+      </tr></thead><tbody id="att-tbl"></tbody></table>
+      <div id="att-pagination"></div>
+    </div>
+  </div>
+
+  <!-- LINKS -->
+  <div class="sec" id="sec-links">
+    <div class="ph">
+      <div><div class="pt">Посилання</div><div class="ps">Управління посиланнями на тести</div></div>
+      <div class="bg"><button class="btn bp" onclick="openM('m-link')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Нове посилання</button></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div class="sbox" style="max-width:280px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="lnk-srch" placeholder="Пошук по групі або тесту..." oninput="renderLinks()">
+      </div>
+    </div>
+    <div class="card">
+      <table class="tbl"><thead><tr><th>Тест / Група</th><th>Посилання</th><th>Спроби</th><th>Статус</th><th></th></tr></thead><tbody id="lnk-tbl"></tbody></table>
+    </div>
+  </div>
+
+  <!-- SUSPICIOUS -->
+  <div class="sec" id="sec-suspicious">
+    <div class="ph">
+      <div><div class="pt">Підозрілі спроби</div><div class="ps">Студенти з підозрілою активністю під час тесту</div></div>
+    </div>
+    <div id="suspicious-body">
+      <div class="empty" style="padding:60px 20px"><div class="ei">🔍</div><div class="et">Завантаження...</div></div>
+    </div>
+  </div>
+
+  <!-- ONLINE -->
+  <div class="sec" id="sec-online">
+    <div class="ph">
+      <div><div class="pt">Онлайн зараз</div><div class="ps">Студенти що проходять тест прямо зараз</div></div>
+      <button class="btn bs btn-sm" onclick="G.renderOnline()" style="font-size:13px">↻ Оновити</button>
+    </div>
+    <div id="online-body">
+      <div class="empty" style="padding:60px 20px"><div class="ei">📡</div><div class="et">Завантаження...</div></div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS -->
+  <div class="sec" id="sec-notifications">
+    <div class="ph">
+      <div><div class="pt">Сповіщення</div><div class="ps">Активність студентів у реальному часі</div></div>
+      <div class="bg" style="align-items:center">
+        <div class="cd-wrap" id="cd-notif-filter">
+          <button class="cd-btn" onclick="G.toggleDrop('cd-notif-filter')">
+            <span class="cd-label" id="cd-notif-filter-label">Всі</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="cd-menu" id="cd-notif-filter-menu">
+            <div class="cd-item cd-active" data-val="" onclick="G.selectNotifFilter('','Всі')">Всі</div>
+            <div class="cd-item" data-val="warn" onclick="G.selectNotifFilter('warn','⚠️ Підозрілі')">⚠️ Підозрілі</div>
+            <div class="cd-item" data-val="completed" onclick="G.selectNotifFilter('completed','✅ Завершили')">✅ Завершили</div>
+            <div class="cd-item" data-val="started" onclick="G.selectNotifFilter('started','🎓 Почали')">🎓 Почали</div>
+          </div>
+          <select id="notif-filter" style="display:none">
+            <option value="">Всі</option>
+            <option value="warn">Підозрілі</option>
+            <option value="completed">Завершили</option>
+            <option value="started">Почали</option>
+          </select>
+        </div>
+        <button class="btn bs btn-sm" onclick="G.clearAllNotifs()" style="font-size:13px;color:var(--rose);border-color:rgba(244,63,94,.2)">🗑 Очистити все</button>
+        <button class="btn bs btn-sm" id="notif-sound-btn" onclick="G.toggleNotifSound()" style="font-size:13px" title="Звук сповіщень">🔔</button>
+      </div>
+    </div>
+    <div id="notif-list">
+      <div class="empty" style="padding:60px 20px">
+        <div class="ei">🔔</div>
+        <div class="et">Немає сповіщень</div>
+        <p style="margin-top:6px;font-size:14px">Тут з'являтимуться повідомлення про активність студентів</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANALYTICS -->
+  <div class="sec" id="sec-analytics">
+    <div class="ph">
+      <div><div class="pt">Аналітика</div><div class="ps">Статистика по тесту та групі</div></div>
+    </div>
+
+    <!-- Фільтри аналітики -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-end">
+      <div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:500;margin-bottom:6px">Тест</div>
+        <div class="cd-wrap" id="cd-an-test">
+          <button class="cd-btn" style="min-width:220px;justify-content:space-between" onclick="G.toggleDrop('cd-an-test')">
+            <span class="cd-label" id="cd-an-test-label">Оберіть тест...</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="cd-menu" id="cd-an-test-menu" style="min-width:260px">
+            <div class="cd-item cd-active" onclick="G.selectAnalyticsDrop('test','','Оберіть тест...')">— Без фільтру</div>
+          </div>
+          <select id="an-test" style="display:none" onchange="G.renderAnalytics()">
+            <option value="">Оберіть тест...</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:500;margin-bottom:6px">Група</div>
+        <div class="cd-wrap" id="cd-an-group">
+          <button class="cd-btn" style="min-width:180px;justify-content:space-between" onclick="G.toggleDrop('cd-an-group')">
+            <span class="cd-label" id="cd-an-group-label">Всі групи</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="cd-menu" id="cd-an-group-menu">
+            <div class="cd-item cd-active" onclick="G.selectAnalyticsDrop('group','','Всі групи')">Всі групи</div>
+          </div>
+          <select id="an-group" style="display:none" onchange="G.renderAnalytics()">
+            <option value="">Всі групи</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="analytics-body">
+      <div class="empty" style="padding:60px 20px">
+        <div class="ei">📊</div>
+        <div class="et">Оберіть тест для перегляду статистики</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- STUDENTS -->
+  <div class="sec" id="sec-students">
+    <div class="ph">
+      <div><div class="pt">Студенти</div><div class="ps">Картки студентів з усіма спробами</div></div>
+      <div class="bg" style="align-items:center;gap:8px">
+        <div class="sbox" style="max-width:220px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="student-srch" placeholder="Пошук студента..." oninput="G.renderStudents()" autocomplete="off">
+        </div>
+        <div class="cd-wrap" id="cd-st-group">
+          <button class="cd-btn" onclick="G.toggleDrop('cd-st-group')">
+            <span class="cd-label" id="cd-st-group-label">Всі групи</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="cd-menu" id="cd-st-group-menu">
+            <div class="cd-item cd-active" data-val="" onclick="G.selectStFilter('','Всі групи')">Всі групи</div>
+          </div>
+          <select id="st-group" style="display:none"></select>
+        </div>
+      </div>
+    </div>
+    <div id="students-body">
+      <div class="empty" style="padding:60px 20px"><div class="ei">🎓</div><div class="et">Завантаження...</div></div>
+    </div>
+  </div>
+
+  <!-- GRADEBOOK -->  <!-- STUDENTS -->
+  <div class="sec" id="sec-students">
+    <div class="ph">
+      <div><div class="pt">Студенти</div><div class="ps">Картки студентів з усіма спробами</div></div>
+      <div class="bg" style="align-items:center;gap:8px">
+        <div class="sbox" style="max-width:220px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="student-srch" placeholder="Пошук студента..." oninput="G.renderStudents()" autocomplete="off">
+        </div>
+        <div class="cd-wrap" id="cd-st-group">
+          <button class="cd-btn" onclick="G.toggleDrop('cd-st-group')">
+            <span class="cd-label" id="cd-st-group-label">Всі групи</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="cd-menu" id="cd-st-group-menu">
+            <div class="cd-item cd-active" data-val="" onclick="G.selectStFilter('','Всі групи')">Всі групи</div>
+          </div>
+          <select id="st-group" style="display:none"></select>
+        </div>
+      </div>
+    </div>
+    <div id="students-body">
+      <div class="empty" style="padding:60px 20px"><div class="ei">🎓</div><div class="et">Завантаження...</div></div>
+    </div>
+  </div>
+
+  <!-- GRADEBOOK -->
+  <div class="sec" id="sec-gradebook">
+    <div class="ph">
+      <div><div class="pt">Журнал оцінок</div><div class="ps">Зведена відомість по студентах і тестах</div></div>
+      <div class="bg" style="align-items:center;gap:8px">
+        <!-- Фільтр: Тест -->
+        <div class="cd-wrap" id="cd-gb-test">
+          <button class="cd-btn" onclick="G.toggleDrop('cd-gb-test')">
+            <span class="cd-label" id="cd-gb-test-label">Всі тести</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="cd-menu" id="cd-gb-test-menu" style="min-width:220px">
+            <div class="cd-item cd-active" data-val="" onclick="G.selectGbFilter('test','','Всі тести')">Всі тести</div>
+          </div>
+          <select id="gb-test" style="display:none"></select>
+        </div>
+        <!-- Фільтр: Група -->
+        <div class="cd-wrap" id="cd-gb-group">
+          <button class="cd-btn" onclick="G.toggleDrop('cd-gb-group')">
+            <span class="cd-label" id="cd-gb-group-label">Всі групи</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="cd-menu" id="cd-gb-group-menu">
+            <div class="cd-item cd-active" data-val="" onclick="G.selectGbFilter('group','','Всі групи')">Всі групи</div>
+          </div>
+          <select id="gb-group" style="display:none"></select>
+        </div>
+        <button class="btn bs btn-sm" onclick="G.exportGradebook('csv')" style="font-size:13px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          CSV
+        </button>
+        <button class="btn bp btn-sm" onclick="G.exportGradebook('html')" style="font-size:13px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          HTML
+        </button>
+      </div>
+    </div>
+    <div id="gradebook-body">
+      <div class="empty" style="padding:60px 20px"><div class="ei">📋</div><div class="et">Оберіть групу або дочекайтесь завантаження</div></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- MODALS -->
+<!-- Новий тест -->
+<div class="mo" id="m-test"><div class="mb">
+  <button class="mcl" onclick="closeM('m-test')">×</button>
+  <div style="font-size:26px;margin-bottom:8px">📋</div>
+  <div class="mtl">Новий тест</div><div class="msu">Заповніть інформацію</div>
+  <div class="fl"><label>Назва *</label><input class="fi" id="nt-n" placeholder="Наприклад: HTML Основи" onkeydown="if(event.key==='Enter')G.submitTest()"></div>
+  <div class="fl"><label>Опис</label><textarea class="fi" id="nt-d" rows="2" placeholder="Короткий опис..."></textarea></div>
+  <div class="fl"><label>Папка</label><div class="chips" id="nt-chips"></div><div style="font-size:12px;color:var(--muted);margin-top:3px">Оберіть існуючу або залиш без папки</div></div>
+  <div class="fl"><label>Теги (через кому)</label><input class="fi" id="nt-tg" placeholder="html, css, js"></div>
+  <div class="fl"><label>Ліміт часу (хвилин)</label><input class="fi" type="number" id="nt-tm" value="10" min="1"></div>
+  <div class="ma"><button class="btn bs" onclick="closeM('m-test')">Скасувати</button><button class="btn bp" onclick="G.submitTest()">Створити тест →</button></div>
+</div></div>
+
+<!-- DELETE STUDENT MODAL -->
+<div class="mo" id="m-del-student"><div class="mb" style="max-width:380px;text-align:center;padding:36px 32px">
+  <button class="mcl" onclick="closeM('m-del-student')">×</button>
+  <div style="font-size:44px;margin-bottom:14px">🗑️</div>
+  <div class="mtl" style="margin-bottom:8px">Видалити картку?</div>
+  <div style="font-size:14px;color:var(--muted);line-height:1.55;margin-bottom:28px">
+    Картку студента <strong id="del-student-name"></strong> буде видалено.<br>
+    Спроби в базі <strong>залишаться</strong> — видаляється тільки профіль.
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <button id="del-student-confirm-btn"
+      style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#f43f5e,#be123c);color:white;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 4px 16px rgba(244,63,94,.3);transition:all .2s"
+      onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 8px 24px rgba(244,63,94,.4)'"
+      onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(244,63,94,.3)'">
+      🗑 Так, видалити картку
+    </button>
+    <button onclick="closeM('m-del-student')"
+      style="width:100%;padding:12px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;transition:all .15s"
+      onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
+      onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">
+      Скасувати
+    </button>
+  </div>
+</div></div>
+
+<!-- MERGE STUDENTS MODAL -->
+<div class="mo" id="m-merge"><div class="mb" style="max-width:440px">
+  <button class="mcl" onclick="closeM('m-merge')">×</button>
+  <div style="font-size:26px;margin-bottom:8px">🔗</div>
+  <div class="mtl">Об'єднати картки</div>
+  <div class="msu" id="m-merge-sub">Вибери картку з якою об'єднати</div>
+  <div id="m-merge-list" style="max-height:280px;overflow-y:auto;margin:16px 0;display:flex;flex-direction:column;gap:8px"></div>
+  <div class="ma">
+    <button class="btn bs" onclick="closeM('m-merge')">Скасувати</button>
+    <button class="btn bp" id="merge-confirm-btn" onclick="G.confirmMerge()" disabled>Об'єднати →</button>
+  </div>
+</div></div>
+
+<!-- STUDENT CARD MODAL -->
+<div class="mo" id="m-student"><div class="mb wd" style="max-width:680px">
+  <button class="mcl" onclick="closeM('m-student')">×</button>
+  <div id="m-student-body"></div>
+</div></div>
+
+<!-- Нова папка -->
+<div class="mo" id="m-folder"><div class="mb" style="max-width:400px">
+  <button class="mcl" onclick="closeM('m-folder')">×</button>
+  <div style="font-size:26px;margin-bottom:8px">📁</div>
+  <div class="mtl">Нова папка</div><div class="msu">Назва для групування тестів</div>
+  <div class="fl"><label>Назва *</label><input class="fi" id="nf-n" placeholder="Наприклад: Frontend" onkeydown="if(event.key==='Enter')G.submitFolder()"></div>
+  <div class="ma"><button class="btn bs" onclick="closeM('m-folder')">Скасувати</button><button class="btn bp" onclick="G.submitFolder()">Створити →</button></div>
+</div></div>
+
+<!-- Нове посилання -->
+<div class="mo" id="m-link"><div class="mb" style="max-width:460px">
+  <button class="mcl" onclick="closeM('m-link')">×</button>
+  <div style="font-size:26px;margin-bottom:8px">🔗</div>
+  <div class="mtl" id="m-link-title">Нове посилання</div>
+  <div class="msu" id="m-link-sub">Для студентів на тест</div>
+  <div class="fl" id="m-link-test-wrap">
+    <label>Тест *</label>
+    <div class="cd-wrap" id="cd-nl-t" style="display:block">
+      <button class="cd-btn" style="width:100%;justify-content:space-between;padding:11px 14px;border-radius:11px" onclick="G.toggleDrop('cd-nl-t')">
+        <span class="cd-label" id="cd-nl-t-label" style="font-size:14px">Оберіть тест...</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="cd-menu" id="cd-nl-t-menu" style="width:100%"></div>
+    </div>
+    <select class="fi" id="nl-t" style="display:none"></select>
+  </div>
+  <div class="fl"><label>Назва групи <span style="font-weight:400;font-size:11px;color:var(--muted)">(необов'язково)</span></label>
+    <input class="fi" id="nl-g" placeholder="Наприклад: ПК-21, Потік А, Іспит...">
+  </div>
+  <div class="fl"><label>Ліміт спроб</label>
+    <input class="fi" type="number" id="nl-m" value="30" min="1">
+    <div style="font-size:12px;color:var(--muted);margin-top:4px">Скільки студентів можуть пройти по цьому посиланню</div>
+  </div>
+
+
+  <div class="fl">
+    <label style="margin-bottom:10px">Перемішування</label>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:400;text-transform:none;letter-spacing:0">
+        <input type="checkbox" id="nl-sq" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer">
+        Перемішувати питання
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:400;text-transform:none;letter-spacing:0">
+        <input type="checkbox" id="nl-sa" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer">
+        Перемішувати варіанти відповідей
+      </label>
+    </div>
+  </div>
+  <div class="ma">
+    <button class="btn bs" onclick="closeM('m-link')">Скасувати</button>
+    <button class="btn bp" id="nl-submit-btn" onclick="G.submitLink()">Створити →</button>
+  </div>
+</div></div>
+
+<!-- Деталі спроби -->
+<div class="mo" id="m-attempt"><div class="mb wd">
+  <button class="mcl" onclick="closeM('m-attempt')">×</button>
+  <div id="att-det"></div>
+</div></div>
+
+<!-- Студенти по посиланню -->
+<div class="mo" id="m-students"><div class="mb wd">
+  <button class="mcl" onclick="closeM('m-students')">×</button>
+  <div id="stud-det"></div>
+</div></div>
+
+<!-- Видалення тесту -->
+<div class="mo" id="m-del-test"><div class="mb" style="max-width:400px;text-align:center">
+  <div style="font-size:36px;margin-bottom:10px">📋</div>
+  <div class="mtl" style="margin-bottom:6px">Що зробити з тестом?</div>
+  <div style="font-size:14px;color:var(--muted);margin-bottom:20px"><strong id="del-tn"></strong></div>
+
+  <div style="display:flex;flex-direction:column;gap:10px;text-align:left;margin-bottom:16px">
+    <button onclick="G.doDelTest('archive')"
+      style="display:flex;align-items:flex-start;gap:14px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(245,158,11,.25);background:rgba(245,158,11,.04);cursor:pointer;text-align:left;width:100%">
+      <span style="font-size:22px;flex-shrink:0">📦</span>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;color:#b45309;margin-bottom:2px">Перемістити в архів</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.4">Тест зникне зі списку, але всі спроби збережуться</div>
+      </div>
+    </button>
+    <button onclick="G.doDelTest('delete')"
+      style="display:flex;align-items:flex-start;gap:14px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(244,63,94,.2);background:rgba(244,63,94,.04);cursor:pointer;text-align:left;width:100%">
+      <span style="font-size:22px;flex-shrink:0">🗑️</span>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;color:#be123c;margin-bottom:2px">Видалити назавжди</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.4">Тест та всі спроби студентів видаляться</div>
+      </div>
+    </button>
+  </div>
+
+  <button class="btn bs" onclick="closeM('m-del-test')" style="width:100%;justify-content:center">Скасувати</button>
+</div></div>
+
+<!-- Статистика тесту -->
+<div class="mo" id="m-stats"><div class="mb wd" style="max-width:680px">
+  <button class="mcl" onclick="closeM('m-stats')">×</button>
+  <div id="stats-content"></div>
+</div></div>
+
+<!-- QR-код посилання -->
+<div class="mo" id="m-qr"><div class="mb" style="max-width:360px;text-align:center">
+  <button class="mcl" onclick="closeM('m-qr')">×</button>
+  <div style="font-size:24px;margin-bottom:8px">📱</div>
+  <div class="mtl" id="qr-title" style="margin-bottom:4px"></div>
+  <div style="font-size:13px;color:var(--muted);margin-bottom:18px" id="qr-group"></div>
+  <div style="background:#fff;padding:16px;border-radius:16px;border:1.5px solid var(--border);display:inline-block;margin-bottom:16px">
+    <div id="qr-canvas"></div>
+  </div>
+  <div style="font-size:12px;color:var(--muted);background:rgba(45,91,227,.04);border-radius:10px;padding:8px 12px;margin-bottom:16px;word-break:break-all" id="qr-url-text"></div>
+  <div style="display:flex;gap:8px">
+    <button class="btn bs" style="flex:1;justify-content:center" onclick="G.copyUrl(window._qrUrl)">📋 Копіювати</button>
+    <button class="btn bp" style="flex:1;justify-content:center" onclick="G.downloadQR()">⬇ Завантажити</button>
+  </div>
+</div></div>
+
+<!-- Видалення спроби -->
+<div class="mo" id="m-del-attempt"><div class="mb" style="max-width:380px;text-align:center">
+  <div style="font-size:36px;margin-bottom:10px">🗑️</div>
+  <div class="mtl">Видалити спробу?</div>
+  <div style="font-size:14px;color:var(--muted);margin:6px 0 22px">Спроба студента <strong id="del-att-name"></strong> буде видалена назавжди</div>
+  <div class="ma"><button class="btn bs" onclick="closeM('m-del-attempt')">Скасувати</button><button class="btn bd" onclick="G.doDelAttempt()">Видалити</button></div>
+</div></div>
+
+<!-- Видалення папки -->
+<div class="mo" id="m-del-folder"><div class="mb" style="max-width:380px;text-align:center;padding:36px 32px">
+  <button class="mcl" onclick="closeM('m-del-folder')">×</button>
+  <div style="font-size:44px;margin-bottom:14px">📁</div>
+  <div class="mtl" style="margin-bottom:8px">Видалити папку?</div>
+  <div style="font-size:14px;color:var(--muted);line-height:1.55;margin-bottom:28px">Папка <strong id="del-fn"></strong> буде видалена.<br>Тести залишаться <strong>без папки</strong>.</div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <button onclick="G.doDelFolder()"
+      style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#f43f5e,#be123c);color:white;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 4px 16px rgba(244,63,94,.3);transition:all .2s"
+      onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 8px 24px rgba(244,63,94,.4)'"
+      onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(244,63,94,.3)'">
+      🗑 Так, видалити папку
+    </button>
+    <button onclick="closeM('m-del-folder')"
+      style="width:100%;padding:12px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;transition:all .15s"
+      onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
+      onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">
+      Скасувати
+    </button>
+  </div>
+</div></div>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, set, push, update, remove, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const FC = {apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",authDomain:"quizflow-8a978.firebaseapp.com",databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",projectId:"quizflow-8a978",storageBucket:"quizflow-8a978.firebasestorage.app",messagingSenderId:"206469794166",appId:"1:206469794166:web:55cd7007b429607acd5257"};
+const app = getApps().length?getApps()[0]:initializeApp(FC);
+const db  = getDatabase(app);
+
+// AUTH
+if (sessionStorage.getItem("qf_auth")!=="1") location.href="login.html";
+window.doLogout = ()=>{sessionStorage.removeItem("qf_auth");location.href="login.html";};
+
+// UTILS
+const $ = id => document.getElementById(id);
+const esc = s => String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const ts  = ()=>Date.now();
+const toArr = snap => {
+  if (!snap.exists()) return [];
+  return Object.entries(snap.val()).map(([id,v]) => {
+    // RTDB зберігає масиви як об'єкти - конвертуємо questions назад
+    if (v.questions && !Array.isArray(v.questions)) {
+      v.questions = Object.values(v.questions);
+    }
+    if (!v.questions) v.questions = [];
+    // Конвертуємо questionsSnapshot теж (для спроб)
+    if (v.questionsSnapshot && !Array.isArray(v.questionsSnapshot)) {
+      v.questionsSnapshot = Object.values(v.questionsSnapshot);
+    }
+    // Конвертуємо answers теж
+    if (v.answers && !Array.isArray(v.answers)) {
+      v.answers = Object.values(v.answers);
+    }
+    return { id, ...v };
+  });
+};
+const ldr = v => $("ldr").style.display=v?"flex":"none";
+const toast = (msg,t="ok")=>{const e=$("tst");e.className=t==="ok"?"tok":"ter";e.textContent=msg;e.style.display="block";clearTimeout(e._);e._=setTimeout(()=>e.style.display="none",3200);};
+const timeAgo = t=>{if(!t)return"—";const d=(Date.now()-t)/1e3;if(d<60)return"щойно";if(d<3600)return`${Math.floor(d/60)} хв тому`;if(d<86400)return`${Math.floor(d/3600)} год тому`;return new Date(t).toLocaleDateString("uk-UA");};
+const fmtTime = s=>{const m=Math.floor(s/60),sc=Math.floor(s%60);return`${m}:${sc.toString().padStart(2,"0")}`;};
+const grBdg = g=>g>=10?"bg-g":g>=6?"bg-b":"bg-r";
+const stripHtml = s => {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = s || "";
+  return tmp.textContent || "";
+};
+const dbPush = async(path,val)=>{const r=push(ref(db,path));await set(r,val);return r.key;};
+const dbSet  = (path,val)=>set(ref(db,path),val);
+const dbUpd  = (path,val)=>update(ref(db,path),val);
+const dbDel  = path=>remove(ref(db,path));
+const dbGet  = path=>get(ref(db,path));
+
+// STATE
+let folders=[], tests=[], links=[], attempts=[], _students=[];
+let _fid=null, _pid=null;
+
+// LOAD
+// ─── Real-time listeners ─────────────────────────────────────────────────────
+let _realtimeActive = false;
+
+async function loadAll(){
+  ldr(true);
+  try{
+    const [fs,ts_,ls,as] = await Promise.all([dbGet("folders"),dbGet("tests"),dbGet("links"),dbGet("attempts")]);
+    folders  = toArr(fs).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+    tests    = toArr(ts_).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    links    = toArr(ls).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    attempts = toArr(as).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    renderAll();
+    // Запускаємо real-time підписку на спроби після першого завантаження
+    if(!_realtimeActive) startRealtimeListeners();
+  }catch(e){toast("Помилка завантаження: "+e.message,"err");}
+  ldr(false);
+}
+
+
+// ─── NOTIFICATIONS STORE (Firebase) ─────────────────────────────────────────
+let _notifications = [];
+
+async function loadStoredNotifs(){
+  try {
+    const snap = await dbGet("notifications");
+    _notifications = snap.exists()
+      ? Object.entries(snap.val())
+          .map(([id,v])=>({id,...v}))
+          .sort((a,b)=>(b.ts||0)-(a.ts||0))
+      : [];
+    updateNotifBadge();
+  } catch(e){ console.warn("Notifs load error:", e.message); _notifications=[]; }
+}
+
+
+// ─── NOTIFICATION SOUND ──────────────────────────────────────────────────────
+let _audioCtx = null;
+let _soundEnabled = localStorage.getItem("qf_sound") !== "0"; // увімкнено за замовчуванням
+
+function playNotifSound(isWarning = false){
+  if(!_soundEnabled) return;
+  try {
+    if(!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = _audioCtx;
+
+    if(isWarning){
+      // Попередження — два коротких низьких сигнали
+      [0, 180].forEach(delay => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(380, ctx.currentTime + delay/1000);
+        osc.frequency.exponentialRampToValueAtTime(280, ctx.currentTime + delay/1000 + 0.15);
+        gain.gain.setValueAtTime(0.18, ctx.currentTime + delay/1000);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay/1000 + 0.2);
+        osc.start(ctx.currentTime + delay/1000);
+        osc.stop(ctx.currentTime + delay/1000 + 0.2);
+      });
+    } else {
+      // Звичайне — приємний короткий "ping" два тони вгору
+      [[0, 600], [120, 900]].forEach(([delay, freq]) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + delay/1000);
+        gain.gain.setValueAtTime(0.14, ctx.currentTime + delay/1000);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay/1000 + 0.25);
+        osc.start(ctx.currentTime + delay/1000);
+        osc.stop(ctx.currentTime + delay/1000 + 0.25);
+      });
+    }
+  } catch(e){ /* AudioContext може бути заблокований до першого кліку */ }
+}
+
+async function addNotification(notif){
+  const id = Date.now()+"_"+Math.random().toString(36).slice(2);
+  const item = { ...notif, id, read: false, ts: notif.ts||Date.now() };
+  _notifications.unshift(item);
+  updateNotifBadge();
+  playNotifSound(!!notif.isWarning);
+  if(document.querySelector("#sec-notifications.on")) G.renderNotifications();
+  // Зберігаємо в Firebase асинхронно
+  try { await dbSet(`notifications/${id}`, item); } catch(e){ console.warn(e.message); }
+}
+
+async function markNotifRead(id){
+  _notifications = _notifications.map(n=>n.id===id?{...n,read:true}:n);
+  updateNotifBadge();
+  try { await dbUpd(`notifications/${id}`, {read:true}); } catch{}
+}
+
+async function markAllNotifsRead(){
+  const unread = _notifications.filter(n=>!n.read);
+  _notifications = _notifications.map(n=>({...n,read:true}));
+  updateNotifBadge();
+  // Оновлюємо в Firebase паралельно
+  await Promise.all(unread.map(n=>dbUpd(`notifications/${n.id}`,{read:true}).catch(()=>{})));
+}
+
+function updateNotifBadge(){
+  const unread = _notifications.filter(n=>!n.read).length;
+  const badge = $("nb-notif");
+  if(!badge) return;
+  if(unread > 0){
+    badge.textContent = unread > 99 ? "99+" : unread;
+    badge.style.display = "";
+  } else {
+    badge.style.display = "none";
+  }
+}
+loadStoredNotifs();
+// Синхронізуємо кнопку звуку при завантаженні
+setTimeout(()=>{
+  const btn = document.getElementById("notif-sound-btn");
+  if(btn && !_soundEnabled){ btn.textContent="🔕"; btn.style.opacity="0.5"; }
+}, 500);
+
+function startRealtimeListeners(){
+  _realtimeActive = true;
+
+  // Підписка на спроби — оновлюється при будь-якій зміні
+  onValue(ref(db, "attempts"), (snap) => {
+    const newAttempts = toArr(snap).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+
+    // Знаходимо нові завершені спроби для нотифікації
+    if(attempts.length > 0){
+      newAttempts.forEach(na => {
+        const old = attempts.find(a=>a.id===na.id);
+        // Нова спроба або щойно завершена
+        if(!old && na.status==="completed"){
+          showNotification(na, "new");
+        } else if(old && old.status==="in_progress" && na.status==="completed"){
+          showNotification(na, "completed");
+        } else if(!old && na.status==="in_progress"){
+          showNotification(na, "started");
+        }
+      });
+    }
+
+    attempts = newAttempts;
+    // Оновлюємо тільки те що залежить від спроб
+    renderDashAtt();
+    renderAttempts();
+    renderStats();
+    updateBadges();
+    // Оновлюємо аналітику якщо відкрита
+    const sec = document.querySelector(".sec.on")?.id;
+    if(sec==="sec-analytics") G.renderAnalytics();
+  });
+
+  // Real-time підписка на сповіщення
+  let _prevNotifCount = 0;
+  onValue(ref(db, "notifications"), (snap) => {
+    const all = snap.exists()
+      ? Object.entries(snap.val()).map(([id,v])=>({id,...v})).sort((a,b)=>(b.ts||0)-(a.ts||0))
+      : [];
+    // Якщо нових сповіщень стало більше — відтворюємо звук
+    const newCount = all.filter(n=>!n.read).length;
+    if(_prevNotifCount > 0 && newCount > _prevNotifCount){
+      const newest = all[0];
+      playNotifSound(!!(newest?.isWarning));
+    }
+    _prevNotifCount = newCount;
+    _notifications = all;
+    updateNotifBadge();
+    if(document.querySelector("#sec-notifications.on")) G.renderNotifications();
+  });
+
+  // Підписка на посилання (щоб usedAttempts оновлювався)
+  onValue(ref(db, "links"), (snap) => {
+    links = toArr(snap).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    renderLinks();
+    renderDashLinks();
+    updateBadges();
+    fillSelects();
+  });
+}
+
+// ─── Нотифікації ─────────────────────────────────────────────────────────────
+let _notifQueue = [];
+let _notifActive = false;
+
+function showNotification(attempt, type){
+  const test = tests.find(t=>t.id===attempt.testId);
+  const name = `${attempt.name} ${attempt.surname}`;
+  const testTitle = test?.title || "—";
+
+  let icon, title, desc, color, isWarning = false;
+
+  if(type==="completed"){
+    icon  = "✅";
+    title = `${name} завершив(ла) тест`;
+    desc  = `${testTitle}${attempt.grade12 ? ` · Оцінка ${attempt.grade12}/12` : ""}`;
+    color = "#0d9e85";
+    // Підозріла активність — показуємо тільки у вкладці "Підозрілі", не в сповіщеннях
+  } else if(type==="started"){
+    icon  = "🎓";
+    title = `${name} розпочав(ла) тест`;
+    desc  = testTitle;
+    color = "#2d5be3";
+  } else {
+    icon  = "🎯";
+    title = `${name} завершив(ла) тест`;
+    desc  = testTitle;
+    color = "#0d9e85";
+  }
+
+  // Зберігаємо в store
+  addNotification({ icon, title, desc, color, isWarning, attemptId: attempt.id, type, ts: Date.now() });
+
+  // Показуємо банер
+  const bannerMsg = isWarning
+    ? `${icon} ${name} — ${testTitle} ⚠️`
+    : `${icon} ${name} — ${testTitle}`;
+  _notifQueue.push({icon, msg: `<strong>${name}</strong> · ${desc}`, color, id: attempt.id});
+  if(!_notifActive) processNotifQueue();
+}
+
+function processNotifQueue(){
+  if(!_notifQueue.length){ _notifActive=false; return; }
+  _notifActive = true;
+  const notif = _notifQueue.shift();
+  showNotifBanner(notif);
+  setTimeout(processNotifQueue, 4200);
+}
+
+function showNotifBanner({icon, msg, color, id}){
+  // Створюємо або отримуємо контейнер
+  let container = document.getElementById("notif-container");
+  if(!container){
+    container = document.createElement("div");
+    container.id = "notif-container";
+    container.style.cssText = "position:fixed;bottom:24px;left:24px;z-index:500;display:flex;flex-direction:column;gap:8px;pointer-events:none";
+    document.body.appendChild(container);
+  }
+
+  const el = document.createElement("div");
+  el.style.cssText = `
+    display:flex;align-items:center;gap:12px;
+    background:#0d1340;color:white;
+    padding:12px 16px;border-radius:14px;
+    box-shadow:0 8px 28px rgba(0,0,0,.25);
+    font-family:'DM Sans',sans-serif;font-size:14px;
+    max-width:320px;pointer-events:all;cursor:pointer;
+    border-left:4px solid ${color};
+    animation:notifIn .3s cubic-bezier(.34,1.56,.64,1);
+  `;
+  el.innerHTML = `
+    <span style="font-size:20px;flex-shrink:0">${icon}</span>
+    <div style="flex:1;line-height:1.4">${msg}</div>
+    <button onclick="this.closest('[style]').remove()" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:18px;padding:0;line-height:1;flex-shrink:0">×</button>
+  `;
+  el.addEventListener("click", (e) => {
+    if(e.target.tagName==="BUTTON") return;
+    G.viewAtt(id);
+    el.remove();
+  });
+
+  container.appendChild(el);
+
+  // Автовидалення через 4 секунди
+  setTimeout(() => {
+    el.style.animation = "notifOut .25s ease forwards";
+    setTimeout(() => el.remove(), 250);
+  }, 3800);
+}
+
+function renderAll(){
+  renderStats(); renderDashAtt(); renderDashLinks();
+  renderTests(); renderAttempts(); renderLinks();
+  updateBadges(); fillSelects();
+  // Оновлюємо лічильник архіву
+  const archiveCnt=document.getElementById("archive-count");
+  if(archiveCnt) archiveCnt.textContent=tests.filter(t=>t.status==="archived").length||"";
+}
+
+// STATS
+function renderStats(){
+  const al = links.filter(l=>l.status==="active").length;
+  const cp = attempts.filter(a=>a.status==="completed");
+  const gs = cp.filter(a=>a.grade12).map(a=>a.grade12);
+  const av = gs.length?(gs.reduce((s,g)=>s+g,0)/gs.length).toFixed(1):"—";
+  $("s-t").textContent=tests.length; $("s-a").textContent=attempts.length;
+  $("s-l").textContent=al; $("s-g").textContent=av;
+}
+function updateBadges(){
+  $("nb-t").textContent=tests.length;
+  $("nb-a").textContent=attempts.length;
+  $("nb-l").textContent=links.filter(l=>l.status==="active").length;
+}
+
+// DASHBOARD
+function renderDashAtt(){
+  const tb=$("d-att"), r=attempts.slice(0,8);
+  if(!r.length){tb.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="ei">📭</div><div class="et">Ще немає спроб</div></div></td></tr>`;return;}
+  tb.innerHTML=r.map(a=>{
+    const t=tests.find(x=>x.id===a.testId);
+    return`<tr><td><strong>${esc(a.name)} ${esc(a.surname)}</strong></td><td style="color:var(--muted)">${esc(t?.title||"—")}</td><td>${a.grade12?`<span class="bdg ${grBdg(a.grade12)}">${a.grade12}/12</span>`:"—"}</td><td><span class="bdg ${a.status==="completed"?"bg-g":a.status==="reviewing"?"bg-a":""}">
+  ${a.status==="completed"?"Завершено":a.status==="reviewing"?"⏳ Перевіряється":"В процесі"}
+</span></td><td style="font-size:12px;color:var(--muted)">${timeAgo(a.createdAt)}</td></tr>`;
+  }).join("");
+}
+function renderDashLinks(){
+  const c=$("d-lnk"),al=links.filter(l=>l.status==="active").slice(0,4);
+  if(!al.length){c.innerHTML=`<div style="text-align:center;color:var(--muted);padding:18px;font-size:14px">Немає активних посилань</div>`;return;}
+  c.innerHTML=al.map(l=>{
+    const t=tests.find(x=>x.id===l.testId),pct=l.maxAttempts?Math.round(l.usedAttempts/l.maxAttempts*100):0;
+    return`<div style="margin-bottom:13px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px"><span style="font-weight:500">${esc(t?.title||"—")}</span><span style="color:var(--muted)">${l.usedAttempts}/${l.maxAttempts}</span></div><div class="pb"><div class="pf" style="width:${pct}%"></div></div></div>`;
+  }).join("");
+}
+
+// TESTS & FOLDERS
+let _fFilter = "all";
+
+function setFolderFilter(v){ _fFilter=v; renderTests(document.getElementById("srch")?.value||""); }
+
+function buildTestRow(t){
+  const cnt=attempts.filter(a=>a.testId===t.id).length;
+  const statusMap={
+    active: {dot:"sa", label:"Активний", badge:"bg-g"},
+    draft:  {dot:"sdr",label:"Чернетка", badge:""},
+    closed: {dot:"sdc",label:"Закрито",  badge:"bg-r"}
+  };
+  const s=statusMap[t.status]||statusMap.draft;
+  const qCnt=(t.questions||[]).length;
+
+  return`<tr style="transition:background .15s">
+    <td style="padding:14px 16px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:36px;height:36px;border-radius:10px;background:rgba(45,91,227,.07);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">📄</div>
+        <div style="min-width:0">
+          <div style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px">${esc(t.title)}</div>
+          ${t.description?`<div style="font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px">${esc(t.description.substring(0,60))}${t.description.length>60?"…":""}</div>`:""}
+          ${(t.tags||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${t.tags.map(g=>`<span class="tag tb" style="font-size:11px;padding:2px 8px">${esc(g)}</span>`).join("")}</div>`:""}
+        </div>
+      </div>
+    </td>
+    <td style="padding:14px 16px;white-space:nowrap">
+      <div style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:20px;background:${t.status==="active"?"rgba(20,212,180,.08)":t.status==="closed"?"rgba(244,63,94,.06)":"rgba(107,114,128,.06)"}">
+        <span class="sd ${s.dot}" style="flex-shrink:0"></span>
+        <span style="font-size:13px;font-weight:500;color:${t.status==="active"?"#0d9e85":t.status==="closed"?"#be123c":"var(--muted)"}">${s.label}</span>
+      </div>
+    </td>
+    <td style="padding:14px 16px;white-space:nowrap">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:14px;font-weight:600;color:var(--text)">${qCnt}</span>
+        <span style="font-size:12px;color:var(--muted)">${qCnt===1?"питання":qCnt<5?"питань":"питань"}</span>
+      </div>
+    </td>
+    <td style="padding:14px 16px;white-space:nowrap">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:14px;font-weight:600;color:${cnt>0?"var(--primary)":"var(--muted)"}">${cnt}</span>
+        <span style="font-size:12px;color:var(--muted)">${cnt===1?"спроба":cnt<5?"спроби":"спроб"}</span>
+      </div>
+    </td>
+    <td style="padding:14px 16px">
+      <div class="ra">
+        <div class="ib" title="Редагувати" onclick="location.href='constructor.html?id=${t.id}'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+        <div class="ib" title="Нове посилання" onclick="G.qLink('${t.id}')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        </div>
+        <div class="ib" title="Статистика" onclick="G.showStats('${t.id}')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </div>
+        <div class="ib" title="Спроби" onclick="showSec('attempts');$('ft').value='${t.id}';G.rAttempts()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="ib d" title="Видалити" onclick="G.confDelTest('${t.id}','${esc(t.title)}')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        </div>
+      </div>
+    </td>
+  </tr>`;
+}
+
+window.renderTests = function(q=""){
+  const c=$("tc");
+  if(!tests.length&&!folders.length){
+    c.innerHTML=`<div class="empty"><div class="ei">📋</div><div class="et">Ще немає тестів</div><p style="margin-top:6px">Створіть папку або одразу новий тест</p></div>`;
+    return;
+  }
+
+  let lst=tests.filter(t=>t.status!=="archived");
+  if(q) lst=lst.filter(t=>t.title.toLowerCase().includes(q.toLowerCase())||(t.tags||[]).some(g=>g.toLowerCase().includes(q.toLowerCase())));
+
+  // ─── Вид: сітка папок ────────────────────────────────────────────────────
+  const hasNoFolder=lst.some(t=>!t.folderId||!folders.find(f=>f.id===t.folderId));
+  const noFolderTests=lst.filter(t=>!t.folderId||!folders.find(f=>f.id===t.folderId));
+
+  // Картки папок
+  const folderCards = folders.map(f=>{
+    const fTests = lst.filter(t=>t.folderId===f.id);
+    const isOpen = _fFilter===f.id;
+    const cnt = fTests.length;
+    const lb = cnt===0?"Порожня":cnt===1?"1 тест":cnt<5?`${cnt} тести`:`${cnt} тестів`;
+    return `<div style="background:white;border:1.5px solid ${isOpen?"var(--primary)":"var(--border)"};border-radius:16px;overflow:hidden;transition:all .2s">
+      <!-- Заголовок папки -->
+      <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;transition:background .15s;background:${isOpen?"rgba(45,91,227,.03)":"white"}"
+        onclick="G.setFF('${isOpen?"all":f.id}')">
+        <div style="width:38px;height:38px;border-radius:11px;background:${isOpen?"var(--primary)":"rgba(45,91,227,.08)"};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${isOpen?"white":"var(--primary)"}" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(f.name)}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:1px">${lb}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button onclick="event.stopPropagation();G.openTestInFolder('${f.id}')" title="Додати тест"
+            style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:white;color:var(--primary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s"
+            onmouseover="this.style.borderColor='var(--primary)';this.style.background='rgba(45,91,227,.05)'"
+            onmouseout="this.style.borderColor='var(--border)';this.style.background='white'">+</button>
+          <button onclick="event.stopPropagation();G.confDelFolder('${f.id}','${esc(f.name)}')" title="Видалити папку"
+            style="width:28px;height:28px;border-radius:8px;border:1.5px solid rgba(244,63,94,.2);background:rgba(244,63,94,.05);color:#be123c;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s"
+            onmouseover="this.style.background='rgba(244,63,94,.15)'"
+            onmouseout="this.style.background='rgba(244,63,94,.05)'">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+          </button>
+          <svg style="color:var(--muted);transition:transform .2s;transform:rotate(${isOpen?"0":"180deg"})" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 15 12 9 18 15"/></svg>
+        </div>
+      </div>
+      <!-- Тести всередині папки -->
+      ${isOpen?`<div style="border-top:1px solid var(--border)">
+        ${fTests.length?`<table class="tbl" style="margin:0">
+          <thead><tr style="background:rgba(45,91,227,.02)"><th style="padding:10px 16px">Назва</th><th>Статус</th><th>Питань</th><th>Спроб</th><th></th></tr></thead>
+          <tbody>${fTests.map(t=>buildTestRow(t)).join("")}</tbody>
+        </table>`:`<div style="padding:20px;text-align:center;color:var(--muted);font-size:14px">Папка порожня — <span style="color:var(--primary);cursor:pointer" onclick="G.openTestInFolder('${f.id}')">додати тест</span></div>`}
+      </div>`:""}
+    </div>`;
+  }).join("");
+
+  // Тести без папки
+  const noFolderCard = hasNoFolder?`<div style="background:white;border:1.5px solid ${_fFilter==="none"?"var(--primary)":"var(--border)"};border-radius:16px;overflow:hidden;transition:all .2s">
+    <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;background:${_fFilter==="none"?"rgba(45,91,227,.03)":"white"}"
+      onclick="G.setFF('${_fFilter==="none"?"all":"none"}')">
+      <div style="width:38px;height:38px;border-radius:11px;background:rgba(107,114,128,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <div style="flex:1">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px">Без папки</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:1px">${noFolderTests.length} тест${noFolderTests.length===1?"":"ів"}</div>
+      </div>
+      <svg style="color:var(--muted);transition:transform .2s;transform:rotate(${_fFilter==="none"?"0":"180deg"})" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 15 12 9 18 15"/></svg>
+    </div>
+    ${_fFilter==="none"?`<div style="border-top:1px solid var(--border)"><table class="tbl" style="margin:0">
+      <thead><tr style="background:rgba(45,91,227,.02)"><th style="padding:10px 16px">Назва</th><th>Статус</th><th>Питань</th><th>Спроб</th><th></th></tr></thead>
+      <tbody>${noFolderTests.map(t=>buildTestRow(t)).join("")}</tbody>
+    </table></div>`:""}
+  </div>`:"";
+
+  const allExpanded = _fFilter==="all"?`<div style="background:white;border:1.5px solid var(--border);border-radius:16px;overflow:hidden"><table class="tbl" style="margin:0">
+    <thead><tr style="background:rgba(45,91,227,.02)"><th style="padding:10px 16px">Назва</th><th>Статус</th><th>Питань</th><th>Спроб</th><th></th></tr></thead>
+    <tbody>${lst.map(t=>buildTestRow(t)).join("")}</tbody>
+  </table></div>`:"";
+
+  if(!lst.length){
+    c.innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">${folderCards}${noFolderCard}</div><div class="empty" style="margin-top:16px"><div class="ei">🔍</div><div class="et">Тестів не знайдено</div></div>`;
+    return;
+  }
+
+  c.innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">
+    ${folderCards}
+    ${noFolderCard}
+  </div>`;
+}
+
+
+// ATTEMPTS
+window.fillSelects = function(){
+  // Прихований select для сумісності з renderAttempts
+  $("ft").innerHTML=`<option value="">Всі тести</option>`+tests.filter(t=>t.status!=="archived").map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
+  // Кастомний дропдаун тестів
+  const ftMenu=document.getElementById("cd-ft-menu");
+  if(ftMenu){
+    const curFt=$("ft").value;
+    ftMenu.innerHTML=`<div class="cd-item${!curFt?" cd-active":""}" onclick="G.selectDrop('cd-ft','','Всі тести')">Всі тести</div>`+
+      tests.filter(t=>t.status!=="archived").map(t=>
+        `<div class="cd-item${curFt===t.id?" cd-active":""}" onclick="G.selectDrop('cd-ft','${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
+      ).join("");
+  }
+  $("nl-t").innerHTML=tests.map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
+  // Групи з посилань
+  const groups=[...new Set(links.map(l=>l.group).filter(Boolean))].sort();
+  $("fgrp").innerHTML=`<option value="">Всі групи</option>`+groups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join("");
+  // Кастомний дропдаун груп
+  const grpMenu=document.getElementById("cd-fgrp-menu");
+  if(grpMenu){
+    const curGrp=$("fgrp").value;
+    grpMenu.innerHTML=`<div class="cd-item${!curGrp?" cd-active":""}" onclick="G.selectDrop('cd-fgrp','','Всі групи')">Всі групи</div>`+
+      groups.map(g=>`<div class="cd-item${curGrp===g?" cd-active":""}" onclick="G.selectDrop('cd-fgrp','${esc(g)}','${esc(g)}')">${esc(g)}</div>`
+      ).join("");
+  }
+  // Аналітика - тести
+  const anTest=$("an-test");
+  if(anTest){
+    const prev=anTest.value;
+    anTest.innerHTML=`<option value="">Оберіть тест...</option>`+
+      tests.filter(t=>t.status!=="archived").map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
+    if(prev) anTest.value=prev;
+  }
+  const anMenu=document.getElementById("cd-an-test-menu");
+  if(anMenu){
+    const curAn=$("an-test")?.value||"";
+    anMenu.innerHTML=`<div class="cd-item${!curAn?" cd-active":""}" data-val="_none" onclick="G.selectAnalyticsDrop('test','','Оберіть тест...')">— Без фільтру</div>`+
+      tests.filter(t=>t.status!=="archived").map(t=>
+        `<div class="cd-item${curAn===t.id?" cd-active":""}" data-val="${t.id}" onclick="G.selectAnalyticsDrop('test','${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
+      ).join("");
+  }
+  // Аналітика - групи
+  const anGrp=$("an-group");
+  if(anGrp){
+    anGrp.innerHTML=`<option value="">Всі групи</option>`+groups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join("");
+  }
+  const anGrpMenu=document.getElementById("cd-an-group-menu");
+  if(anGrpMenu){
+    const curGrpAn=$("an-group")?.value||"";
+    anGrpMenu.innerHTML=`<div class="cd-item${!curGrpAn?" cd-active":""}" data-val="_none" onclick="G.selectAnalyticsDrop('group','','Всі групи')">Всі групи</div>`+
+      groups.map(g=>`<div class="cd-item${curGrpAn===g?" cd-active":""}" data-val="${esc(g)}" onclick="G.selectAnalyticsDrop('group','${esc(g)}','${esc(g)}')">${esc(g)}</div>`
+      ).join("");
+  }
+  // Посилання - тест у модалі
+  const nlMenu=document.getElementById("cd-nl-t-menu");
+  if(nlMenu){
+    const curNl=$("nl-t")?.value||"";
+    nlMenu.innerHTML=tests.filter(t=>t.status!=="archived").map(t=>
+      `<div class="cd-item${curNl===t.id?" cd-active":""}" data-val="${t.id}" onclick="G.selectLinkTest('${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
+    ).join("") || `<div class="cd-item" style="color:var(--muted)">Немає тестів</div>`;
+  }
+}
+
+
+// ─── ATTEMPTS SORT + SELECT ──────────────────────────────────────────────────
+let _attSort = { field: "date", dir: "desc" };
+let _attPage = 1;
+const ATT_PER_PAGE = 20;
+
+window.renderAttempts = function(resetPage=false){
+  if(resetPage) _attPage=1;
+  const tF=$("ft")?.value||"",sF=$("fst")?.value||"",gF=$("fg")?.value||"",grpF=$("fgrp")?.value||"";
+  const q=($("att-srch")?.value||"").toLowerCase().trim();
+  // Показуємо/ховаємо кнопку очистки
+  const clr=$("att-srch-clear");
+  if(clr) clr.style.display=q?"inline":"none";
+  let lst=attempts;
+  if(tF) lst=lst.filter(a=>a.testId===tF);
+  if(sF) lst=lst.filter(a=>a.status===sF);
+  if(gF==="high") lst=lst.filter(a=>(a.grade12||0)>=10);
+  if(gF==="mid")  lst=lst.filter(a=>(a.grade12||0)>=6&&(a.grade12||0)<10);
+  if(gF==="low")  lst=lst.filter(a=>(a.grade12||0)>0&&(a.grade12||0)<6);
+  if(grpF) lst=lst.filter(a=>{ const l=links.find(x=>x.id===a.linkId); return (l?.group||"")===grpF; });
+  if(q){
+    lst=lst.filter(a=>{
+      const fullName=`${a.name} ${a.surname}`.toLowerCase();
+      const testTitle=(tests.find(t=>t.id===a.testId)?.title||"").toLowerCase();
+      const group=(links.find(l=>l.id===a.linkId)?.group||"").toLowerCase();
+      return fullName.includes(q)||testTitle.includes(q)||group.includes(q)||
+             a.name.toLowerCase().includes(q)||a.surname.toLowerCase().includes(q);
+    });
+  }
+  const tb=$("att-tbl");
+  if(!lst.length){tb.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="ei">📭</div><div class="et">Немає спроб</div></div></td></tr>`;return;}
+  // Застосовуємо сортування
+  const sf=_attSort.field, sd=_attSort.dir;
+  if(sf) lst=[...lst].sort((a,b)=>{
+    let av,bv;
+    if(sf==="name")  { av=`${a.surname}${a.name}`.toLowerCase(); bv=`${b.surname}${b.name}`.toLowerCase(); }
+    if(sf==="grade") { av=a.grade12||0; bv=b.grade12||0; }
+    if(sf==="time")  { av=(a.finishedAt&&a.startedAt)?(a.finishedAt-a.startedAt):0; bv=(b.finishedAt&&b.startedAt)?(b.finishedAt-b.startedAt):0; }
+    if(sf==="date")  { av=a.createdAt||0; bv=b.createdAt||0; }
+    return sd==="asc"?(av>bv?1:av<bv?-1:0):(av<bv?1:av>bv?-1:0);
+  });
+
+  // Пагінація
+  const totalPages = Math.max(1, Math.ceil(lst.length / ATT_PER_PAGE));
+  if(_attPage > totalPages) _attPage = totalPages;
+  const pageStart = (_attPage - 1) * ATT_PER_PAGE;
+  const pageLst = lst.slice(pageStart, pageStart + ATT_PER_PAGE);
+
+  // Рендер пагінації
+  let paginationHtml = "";
+  if(totalPages > 1){
+    const pages = [];
+    for(let p = 1; p <= totalPages; p++){
+      if(p === 1 || p === totalPages || Math.abs(p - _attPage) <= 1){
+        pages.push(p);
+      } else if(pages[pages.length-1] !== "..."){
+        pages.push("...");
+      }
+    }
+    paginationHtml = `<div style="display:flex;align-items:center;gap:6px;padding:12px 16px;justify-content:center;border-top:1px solid var(--border)">
+      <button class="btn bs btn-sm" onclick="_attPage=Math.max(1,_attPage-1);renderAttempts()" style="font-size:12px;padding:5px 10px" ${_attPage===1?"disabled":""}>‹</button>
+      ${pages.map(p => p === "..." 
+        ? `<span style="color:var(--muted);font-size:13px;padding:0 4px">...</span>`
+        : `<button onclick="_attPage=${p};renderAttempts()" style="min-width:30px;height:30px;border-radius:8px;border:1.5px solid ${p===_attPage?"var(--primary)":"var(--border)"};background:${p===_attPage?"var(--primary)":"white"};color:${p===_attPage?"white":"var(--text)"};font-size:13px;font-weight:${p===_attPage?"600":"400"};cursor:pointer">${p}</button>`
+      ).join("")}
+      <button class="btn bs btn-sm" onclick="_attPage=Math.min(${totalPages},_attPage+1);renderAttempts()" style="font-size:12px;padding:5px 10px" ${_attPage===totalPages?"disabled":""}>›</button>
+      <span style="font-size:12px;color:var(--muted);margin-left:4px">${pageStart+1}–${Math.min(pageStart+ATT_PER_PAGE,lst.length)} з ${lst.length}</span>
+    </div>`;
+  }
+
+  tb.innerHTML=pageLst.map(a=>{
+    const t=tests.find(x=>x.id===a.testId),l=links.find(x=>x.id===a.linkId);
+    const c=a.score?.correct??"—",tot=a.score?.total??"—";
+    let el2="—";
+    if(a.finishedAt&&a.startedAt&&a.finishedAt>a.startedAt) el2=fmtTime((a.finishedAt-a.startedAt)/1000);
+    const group=l?.group||"";
+    const dateStr=a.createdAt?new Date(a.createdAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"—";
+    return`<tr>
+      <td><strong>${esc(a.name)} ${esc(a.surname)}</strong></td>
+      <td style="color:var(--muted)">${esc(t?.title||"—")}</td>
+      <td>${group?`<span class="bdg bg-b" style="font-size:11px">${esc(group)}</span>`:'<span style="color:var(--light);font-size:12px">—</span>'}</td>
+      <td>${a.grade12?`<span class="bdg ${grBdg(a.grade12)}">${a.grade12}/12</span>`:"—"}</td>
+      <td style="font-size:13px">${c}/${tot}</td>
+      <td style="font-size:13px;color:var(--muted)">${el2}</td>
+      <td><span class="bdg ${a.status==="completed"?"bg-g":a.status==="pending_review"?"bg-a":a.status==="in_progress"?"bg-o":""}">${a.status==="completed"?"Завершено":a.status==="pending_review"?"⏳ Перевіряється":a.status==="in_progress"?"В процесі":"В процесі"}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${dateStr}</td>
+      <td><div class="ra">
+        <div class="ib" title="Переглянути" onclick="G.viewAtt('${a.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <div class="ib d" title="Видалити" onclick="G.confDelAttempt('${a.id}','${esc(a.name)} ${esc(a.surname)}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></div>
+      </div></td>
+    </tr>`;
+  }).join("");
+
+  // Додаємо пагінацію після таблиці
+  const paginationEl = document.getElementById("att-pagination");
+  if(paginationEl) paginationEl.innerHTML = paginationHtml;
+
+}
+
+
+// LINKS
+window.renderLinks = function(){
+  const tb=$("lnk-tbl");
+  const base=location.origin+location.pathname.replace("index.html","");
+
+  // Фільтр пошуку
+  const q = $("lnk-srch")?.value?.toLowerCase() || "";
+  let lst = links;
+  if(q) lst = lst.filter(l=>{
+    const t = tests.find(x=>x.id===l.testId);
+    return (l.group||"").toLowerCase().includes(q) || (t?.title||"").toLowerCase().includes(q);
+  });
+
+  if(!lst.length){
+    tb.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="ei">🔗</div><div class="et">${links.length?"Нічого не знайдено":"Немає посилань"}</div></div></td></tr>`;
+    return;
+  }
+  tb.innerHTML=lst.map(l=>{
+    const t=tests.find(x=>x.id===l.testId),url=`${base}test.html?link=${l.id}`,pct=l.maxAttempts?Math.round(l.usedAttempts/l.maxAttempts*100):0,ia=l.status==="active";
+    return`<tr>
+      <td>
+        <div style="font-weight:500">${esc(t?.title||"—")}</div>
+        ${l.group?`<div style="font-size:12px;color:var(--primary);margin-top:2px;font-weight:500">👥 ${esc(l.group)}</div>`:""}
+      </td>
+      <td><div style="display:flex;align-items:center;gap:7px">
+        <code style="font-size:11px;color:var(--primary);background:rgba(45,91,227,.06);padding:3px 8px;border-radius:6px">${url.replace(location.origin,"")}</code>
+        <div class="ib" style="width:28px;height:28px" title="Копіювати" onclick="G.copyUrl('${url}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></div>
+      </div></td>
+      <td>
+        <div style="font-size:13px;margin-bottom:3px">${l.usedAttempts} / ${l.maxAttempts}</div>
+        <div class="pb" style="width:90px"><div class="pf" style="width:${pct}%"></div></div>
+      </td>
+      <td><span class="bdg ${ia?"bg-g":"bg-r"}">${ia?"Активне":"Закрите"}</span></td>
+      <td><div class="ra">
+        <div class="ib" title="QR-код" onclick="G.showQR('${l.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 14v3M14 17h3"/></svg></div>
+        <div class="ib" title="Студенти" onclick="G.showStudents('${l.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+        <div class="ib" title="Редагувати" onclick="G.editLink('${l.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+        <div class="ib" title="${ia?"Закрити":"Відкрити"}" onclick="G.togLink('${l.id}','${l.status}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ia?'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>':'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0114 0"/>'}</svg></div>
+        <div class="ib d" title="Видалити" onclick="G.delLink('${l.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></div>
+      </div></td>
+    </tr>`;
+  }).join("");
+}
+
+
+// G — global actions
+window.G = {
+  // Folders
+  setFF(v){ _fFilter=v; renderTests(document.getElementById("srch")?.value||""); },
+
+  toggleDrop(wrapId){
+    const menu=document.getElementById(wrapId+"-menu");
+    const btn=document.querySelector(`#${wrapId} .cd-btn`);
+    const isOpen=menu?.classList.contains("open");
+    // Закриваємо всі інші
+    document.querySelectorAll(".cd-menu.open").forEach(m=>m.classList.remove("open"));
+    document.querySelectorAll(".cd-btn.active").forEach(b=>b.classList.remove("active"));
+    if(!isOpen){
+      menu?.classList.add("open");
+      btn?.classList.add("active");
+    }
+  },
+
+  selectDrop(wrapId, value, label){
+    // Оновлюємо label
+    const labelEl=document.getElementById(wrapId+"-label");
+    if(labelEl) labelEl.textContent=label;
+    // Позначаємо active item
+    const menu=document.getElementById(wrapId+"-menu");
+    menu?.querySelectorAll(".cd-item").forEach(el=>{
+      el.classList.toggle("cd-active", el.textContent.trim().startsWith(label.trim()));
+    });
+    // Синхронізуємо прихований select
+    const idMap={
+      "cd-ft":"ft","cd-fgrp":"fgrp","cd-fst":"fst","cd-fg":"fg"
+    };
+    const selId=idMap[wrapId];
+    const sel=document.getElementById(selId);
+    if(sel){
+      // Знаходимо опцію з відповідним value
+      const opt=[...sel.options].find(o=>o.value===value);
+      if(opt) sel.value=value; else sel.value="";
+    }
+    // Підсвічуємо кнопку якщо є активний фільтр
+    const btn=document.querySelector(`#${wrapId} .cd-btn`);
+    btn?.classList.toggle("active", value!=="");
+    if(value==="") btn?.querySelector("svg")?.style.removeProperty("transform");
+    // Закриваємо меню
+    document.getElementById(wrapId+"-menu")?.classList.remove("open");
+    _attPage=1; renderAttempts();
+  },
+
+  selectAnalyticsDrop(field, value, label){
+    const ids = field==="test"
+      ? {wrap:"cd-an-test", sel:"an-test", lbl:"cd-an-test-label"}
+      : {wrap:"cd-an-group", sel:"an-group", lbl:"cd-an-group-label"};
+    const labelEl=document.getElementById(ids.lbl);
+    if(labelEl) labelEl.textContent=label;
+    const menu=document.getElementById(ids.wrap+"-menu");
+    menu?.querySelectorAll(".cd-item").forEach(el=>{
+      el.classList.toggle("cd-active", el.dataset.val===value || (!value && el.dataset.val==="_none"));
+    });
+    const sel=document.getElementById(ids.sel);
+    if(sel) sel.value=value;
+    const btn=document.querySelector(`#${ids.wrap} .cd-btn`);
+    btn?.classList.toggle("active", !!value);
+    menu?.classList.remove("open");
+    G.renderAnalytics();
+  },
+
+  selectLinkTest(testId, title){
+    document.getElementById("cd-nl-t-label").textContent=title;
+    document.getElementById("nl-t").value=testId;
+    const menu=document.getElementById("cd-nl-t-menu");
+    menu?.querySelectorAll(".cd-item").forEach(el=>{
+      el.classList.toggle("cd-active", el.dataset.val===testId);
+    });
+    const btn=document.querySelector("#cd-nl-t .cd-btn");
+    btn?.classList.toggle("active", !!testId);
+    menu?.classList.remove("open");
+  },
+  toggleArchive(){
+    const list=document.getElementById("archive-list");
+    const chev=document.getElementById("archive-chevron");
+    if(!list)return;
+    const isHidden=list.style.display==="none";
+    list.style.display=isHidden?"block":"none";
+    if(chev) chev.style.transform=isHidden?"rotate(180deg)":"";
+    if(isHidden) G.renderArchive();
+  },
+  renderArchive(){
+    const archived=tests.filter(t=>t.status==="archived");
+    const cnt=document.getElementById("archive-count");
+    if(cnt) cnt.textContent=archived.length;
+    const list=document.getElementById("archive-list");
+    if(!list)return;
+    if(!archived.length){
+      list.innerHTML=`<div style="padding:16px;font-size:14px;color:var(--muted);text-align:center">Архів порожній</div>`;
+      return;
+    }
+    list.innerHTML=archived.map(t=>{
+      const attCount=attempts.filter(a=>a.testId===t.id).length;
+      return`<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(107,114,128,.05);border:1.5px solid var(--border);border-radius:12px;margin-bottom:8px">
+        <span style="font-size:18px">📦</span>
+        <div style="flex:1">
+          <div style="font-weight:500;font-size:14px;color:var(--muted)">${esc(t.title)}</div>
+          <div style="font-size:12px;color:var(--light);margin-top:2px">${attCount} спроб · Архівовано ${timeAgo(t.archivedAt||t.createdAt)}</div>
+        </div>
+        <button class="btn bs btn-sm" onclick="G.restoreTest('${t.id}')" style="font-size:12px">↩ Відновити</button>
+        <button class="btn bd btn-sm" onclick="G.permDeleteTest('${t.id}','${esc(t.title)}')" style="font-size:12px">🗑</button>
+      </div>`;
+    }).join("");
+  },
+  async restoreTest(id){
+    try{
+      await dbUpd(`tests/${id}`,{status:"draft",archivedAt:null});
+      tests=tests.map(t=>t.id===id?{...t,status:"draft",archivedAt:null}:t);
+      renderAll(); G.renderArchive(); toast("Тест відновлено як чернетка");
+    }catch(e){toast("Помилка: "+e.message,"err");}
+  },
+  async permDeleteTest(id,name){
+    if(!confirm(`Остаточно видалити "${name}"? Всі спроби теж видаляться.`))return;
+    ldr(true);
+    try{
+      const rl=links.filter(l=>l.testId===id),ra=attempts.filter(a=>a.testId===id);
+      await Promise.all([dbDel(`tests/${id}`),...rl.map(l=>dbDel(`links/${l.id}`)),...ra.map(a=>dbDel(`attempts/${a.id}`))]);
+      tests=tests.filter(t=>t.id!==id);links=links.filter(l=>l.testId!==id);attempts=attempts.filter(a=>a.testId!==id);
+      renderAll(); G.renderArchive(); toast("Видалено назавжди");
+    }catch(e){toast("Помилка: "+e.message,"err");}
+    ldr(false);
+  },
+  togFld(id){
+    document.getElementById(`fb-${id}`)?.classList.toggle("hid");
+    document.querySelector(`.fh[onclick*="'${id}'"]`)?.classList.toggle("col");
+  },
+  async submitFolder(){
+    const n=$("nf-n").value.trim();
+    if(!n){$("nf-n").classList.add("er");return;}
+    if(folders.some(f=>f.name===n)){toast(`Папка «${n}» вже існує`,"err");return;}
+    try{
+      const id=await dbPush("folders",{name:n,createdAt:ts()});
+      folders.push({id,name:n,createdAt:ts()});
+      closeM("m-folder"); $("nf-n").value="";
+      renderTests(); updateBadges(); toast(`Папку «${n}» створено`);
+    }catch(e){toast("Помилка: "+e.message,"err");}
+  },
+  confDelFolder(id,name){_pid=id;$("del-fn").textContent=name;openM("m-del-folder");},
+  async doDelFolder(){
+    const id=_pid;_pid=null;closeM("m-del-folder");
+    try{
+      // Видаляємо папку — тести залишаються (просто без папки)
+      const ops=[dbDel(`folders/${id}`)];
+      tests.filter(t=>t.folderId===id).forEach(t=>ops.push(dbUpd(`tests/${t.id}`,{folderId:null})));
+      await Promise.all(ops);
+      folders=folders.filter(f=>f.id!==id);
+      tests=tests.map(t=>t.folderId===id?{...t,folderId:null}:t);
+      renderTests(); toast("Папку видалено. Тести переміщено в «Без папки»");
+    }catch(e){toast("Помилка: "+e.message,"err");}
+  },
+  // Tests
+  openTestInFolder(fid){_fid=fid||null;openM("m-test");buildChips();},
+  async submitTest(){
+    const n=$("nt-n").value.trim();
+    if(!n){$("nt-n").classList.add("er");$("nt-n").focus();return;}
+    const desc=$("nt-d").value.trim(),tags=$("nt-tg").value.split(",").map(s=>s.trim()).filter(Boolean),tl=(parseInt($("nt-tm").value)||10)*60;
+    ldr(true);closeM("m-test");
+    try{
+      const id=await dbPush("tests",{title:n,description:desc,folderId:_fid||null,tags,timeLimit:tl,status:"draft",questions:[],createdAt:ts()});
+      location.href=`constructor.html?id=${id}`;
+    }catch(e){toast("Помилка: "+e.message,"err");ldr(false);}
+  },
+  confDelTest(id,name){_pid=id;$("del-tn").textContent=name;openM("m-del-test");},
+  async doDelTest(mode="archive"){
+    const id=_pid;_pid=null;closeM("m-del-test");ldr(true);
+    try{
+      if(mode==="archive"){
+        // Архівуємо тест — зберігаємо спроби, закриваємо посилання
+        await dbUpd(`tests/${id}`,{status:"archived",archivedAt:ts()});
+        const rl=links.filter(l=>l.testId===id);
+        await Promise.all(rl.map(l=>dbUpd(`links/${l.id}`,{status:"closed"})));
+        tests=tests.map(t=>t.id===id?{...t,status:"archived"}:t);
+        links=links.map(l=>l.testId===id?{...l,status:"closed"}:l);
+        renderAll();toast("Тест переміщено в архів");
+      } else {
+        // Повне видалення
+        const rl=links.filter(l=>l.testId===id),ra=attempts.filter(a=>a.testId===id);
+        await Promise.all([dbDel(`tests/${id}`),...rl.map(l=>dbDel(`links/${l.id}`)),...ra.map(a=>dbDel(`attempts/${a.id}`))]);
+        tests=tests.filter(t=>t.id!==id);links=links.filter(l=>l.testId!==id);attempts=attempts.filter(a=>a.testId!==id);
+        renderAll();toast("Тест та всі спроби видалено");
+      }
+    }catch(e){toast("Помилка: "+e.message,"err");}
+    ldr(false);
+  },
+  // Links
+  qLink(tid){
+    window._editLinkId=null;
+    $("m-link-title").textContent="Нове посилання";
+    $("m-link-sub").textContent="Для студентів на тест";
+    $("m-link-test-wrap").style.display="";
+    $("cd-nl-t").style.display="block";
+    $("nl-submit-btn").textContent="Створити →";
+    $("nl-t").value=tid; $("nl-m").value="30"; $("nl-g").value="";
+    $("nl-sq").checked=false; $("nl-sa").checked=false;
+    // Оновлюємо кастомний дропдаун
+    const selTest=tests.find(t=>t.id===tid);
+    if(selTest){ G.selectLinkTest(tid,selTest.title); }
+    else {
+      const lbl=document.getElementById("cd-nl-t-label");
+      if(lbl) lbl.textContent="Оберіть тест...";
+    }
+    openM("m-link");
+  },
+  editLink(id){
+    const l=links.find(x=>x.id===id); if(!l)return;
+    window._editLinkId=id;
+    $("m-link-title").textContent="Редагувати посилання";
+    $("m-link-sub").textContent="Змінити налаштування";
+    $("m-link-test-wrap").style.display="none";
+    $("cd-nl-t").style.display="none";
+    $("nl-submit-btn").textContent="Зберегти →";
+    $("nl-m").value=l.maxAttempts||30; $("nl-g").value=l.group||"";
+    $("nl-sq").checked=l.shuffleQuestions||false;
+    $("nl-sa").checked=l.shuffleAnswers||false;
+    const themeVal=l.theme||"";
+    openM("m-link");
+  },
+  async submitLink(){
+    const editId=window._editLinkId, group=$("nl-g").value.trim(), mx=parseInt($("nl-m").value)||30;
+    const shuffleQuestions=$("nl-sq")?.checked||false;
+    const shuffleAnswers  =$("nl-sa")?.checked||false;
+    if(editId){
+      try{
+        await dbUpd(`links/${editId}`,{maxAttempts:mx,group,shuffleQuestions,shuffleAnswers});
+        links=links.map(l=>l.id===editId?{...l,maxAttempts:mx,group,shuffleQuestions,shuffleAnswers}:l);
+        closeM("m-link");renderLinks();toast("Збережено");
+      }catch(e){toast("Помилка: "+e.message,"err");}
+      return;
+    }
+    const tid=$("nl-t").value;
+    if(!tid){toast("Оберіть тест","err");return;}
+    try{
+      const id=await dbPush("links",{testId:tid,maxAttempts:mx,usedAttempts:0,status:"active",group,shuffleQuestions,shuffleAnswers,createdAt:ts()});
+      links.push({id,testId:tid,maxAttempts:mx,usedAttempts:0,status:"active",group,shuffleQuestions,shuffleAnswers,createdAt:ts()});
+      closeM("m-link");renderLinks();renderDashLinks();updateBadges();renderStats();toast("Посилання створено");
+    }catch(e){toast("Помилка: "+e.message,"err");}
+  },
+  async togLink(id,st){
+    const ns=st==="active"?"closed":"active";
+    try{
+      await dbUpd(`links/${id}`,{status:ns});
+      links=links.map(l=>l.id===id?{...l,status:ns}:l);
+      renderLinks();renderDashLinks();updateBadges();toast(ns==="active"?"Посилання відкрито":"Посилання закрито");
+    }catch(e){toast("Помилка: "+e.message,"err");}
+  },
+  async delLink(id){
+    try{
+      await dbDel(`links/${id}`);
+      links=links.filter(l=>l.id!==id);
+      renderLinks();renderDashLinks();updateBadges();renderStats();toast("Посилання видалено");
+    }catch(e){toast("Помилка: "+e.message,"err");}
+  },
+  showQR(linkId){
+    const l=links.find(x=>x.id===linkId),t=tests.find(x=>x.id===l?.testId);
+    if(!l)return;
+    const base=location.origin+location.pathname.replace("index.html","");
+    const url=`${base}test.html?link=${linkId}`;
+    window._qrUrl=url;
+    $("qr-title").textContent=t?.title||"—";
+    $("qr-group").textContent=l.group?`Група: ${l.group}`:"";
+    $("qr-url-text").textContent=url;
+    // Генеруємо QR через QRCode.js CDN
+    const canvas=$("qr-canvas");
+    canvas.innerHTML="";
+    if(window.QRCode){
+      new QRCode(canvas,{text:url,width:200,height:200,colorDark:"#0d1340",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});
+    } else {
+      canvas.innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}&color=0d1340" style="width:200px;height:200px;border-radius:8px">`;
+    }
+    openM("m-qr");
+  },
+  downloadQR(){
+    const canvas=$("qr-canvas")?.querySelector("canvas");
+    const img=$("qr-canvas")?.querySelector("img");
+    const t=$("qr-title")?.textContent||"qr";
+    if(canvas){
+      const a=document.createElement("a");a.download=`QR_${t}.png`;a.href=canvas.toDataURL("image/png");a.click();
+    } else if(img){
+      // Завантажуємо через blob
+      fetch(img.src).then(r=>r.blob()).then(blob=>{
+        const a=document.createElement("a");a.download=`QR_${t}.png`;a.href=URL.createObjectURL(blob);a.click();
+      });
+    }
+  },
+  sortAttempts(field){
+    if(_attSort.field===field){
+      _attSort.dir=_attSort.dir==="asc"?"desc":"asc";
+    } else {
+      _attSort.field=field;
+      _attSort.dir=field==="date"?"desc":"asc";
+    }
+    // Оновлюємо стрілки
+    ["name","grade","time","date"].forEach(f=>{
+      const el=$(`sort-${f}`);
+      if(!el) return;
+      el.className="sort-arrow";
+      if(f===_attSort.field) el.classList.add(_attSort.dir);
+    });
+    renderAttempts();
+  },
+
+  copyUrl:async url=>{try{await navigator.clipboard.writeText(url);toast("Скопійовано!");}catch{toast("Не вдалось скопіювати","err");}},
+  // Attempts
+  rAttempts:renderAttempts,
+
+  renderNotifications(){
+    const list=$("notif-list");
+    if(!list) return;
+    markAllNotifsRead();
+
+    const fVal=$("notif-filter")?.value||"";
+    let filtered=_notifications;
+    if(fVal==="warn")      filtered=filtered.filter(n=>n.isWarning);
+    if(fVal==="completed") filtered=filtered.filter(n=>n.type==="completed");
+    if(fVal==="started")   filtered=filtered.filter(n=>n.type==="started");
+
+    if(!filtered.length){
+      list.innerHTML=`<div class="empty" style="padding:60px 20px"><div class="ei">🔔</div><div class="et">${fVal?"Немає сповіщень за фільтром":"Немає сповіщень"}</div></div>`;
+      return;
+    }
+    const today=new Date().toDateString(),yest=new Date(Date.now()-86400000).toDateString();
+    let lastGroup=null;
+    list.innerHTML=filtered.map(n=>{
+      const d=new Date(n.ts),dStr=d.toDateString();
+      const groupLabel=dStr===today?"Сьогодні":dStr===yest?"Вчора":d.toLocaleDateString("uk-UA",{day:"numeric",month:"long"});
+      let groupHtml="";
+      if(groupLabel!==lastGroup){lastGroup=groupLabel;
+        groupHtml=`<div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--light);font-weight:600;padding:8px 4px 6px;margin-top:4px">${groupLabel}</div>`;}
+      const time=d.toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
+      const isWarn=n.isWarning;
+      const nid=n.id||"";
+      const aid=n.attemptId||"";
+      return groupHtml+`
+      <div class="notif-item${isWarn?" unread-warn":""}" style="background:${isWarn?"rgba(244,63,94,.04)":"#fff"}">
+        <div class="notif-icon" style="background:${isWarn?"rgba(244,63,94,.1)":"rgba(45,91,227,.07)"}">${n.icon||"🔔"}</div>
+        <div class="notif-body">
+          <div class="notif-title">${esc(n.title||"")}</div>
+          <div class="notif-desc">${esc(n.desc||"")}</div>
+          <div class="notif-time">${time}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+          ${aid?`<div class="ib" title="Деталі" onclick="G.viewAtt('${aid}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>`:""}
+          <div class="ib d" title="Видалити" onclick="G.delNotif('${nid}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></div>
+        </div>
+      </div>`;
+    }).join("");
+  },
+
+  selectNotifFilter(value, label){
+    document.getElementById("notif-filter").value = value;
+    document.getElementById("cd-notif-filter-label").textContent = label;
+    const menu = document.getElementById("cd-notif-filter-menu");
+    menu?.querySelectorAll(".cd-item").forEach(el=>{
+      el.classList.toggle("cd-active", el.dataset.val===value);
+    });
+    menu?.classList.remove("open");
+    const btn = document.querySelector("#cd-notif-filter .cd-btn");
+    btn?.classList.toggle("active", !!value);
+    btn?.classList.remove("open");
+    G.renderNotifications();
+  },
+
+  async delNotif(id){
+    _notifications=_notifications.filter(n=>n.id!==id);
+    updateNotifBadge();
+    G.renderNotifications();
+    try{ await dbDel(`notifications/${id}`); }catch(e){console.warn(e);}
+  },
+
+  toggleNotifSound(){
+    _soundEnabled = !_soundEnabled;
+    localStorage.setItem("qf_sound", _soundEnabled ? "1" : "0");
+    const btn = document.getElementById("notif-sound-btn");
+    if(btn){
+      btn.textContent = _soundEnabled ? "🔔" : "🔕";
+      btn.title = _soundEnabled ? "Звук увімкнено" : "Звук вимкнено";
+      btn.style.opacity = _soundEnabled ? "1" : "0.5";
+    }
+    toast(_soundEnabled ? "Звук сповіщень увімкнено" : "Звук сповіщень вимкнено");
+  },
+
+  async clearAllNotifs(){
+    const ids=[..._notifications.map(n=>n.id)];
+    _notifications=[];
+    updateNotifBadge();
+    G.renderNotifications();
+    toast("Сповіщення очищено");
+    await Promise.all(ids.map(id=>dbDel(`notifications/${id}`).catch(()=>{})));
+  },
+
+
+  // ─── STUDENTS ────────────────────────────────────────────────────────────
+  async initStudents(){
+    // Завантажуємо студентів з Firebase
+    try{
+      const snap = await dbGet("students");
+      _students = snap.exists()
+        ? Object.entries(snap.val()).map(([id,v])=>({id,...v})).sort((a,b)=>
+            (a.surname||"").localeCompare(b.surname||"","uk"))
+        : [];
+    }catch(e){ _students=[]; }
+
+    // Оновлюємо бейдж
+    const badge=$("nb-students");
+    if(badge){ badge.textContent=_students.length; badge.style.display=_students.length?"":"none"; }
+
+    // Фільтр груп
+    const groups=[...new Set(_students.flatMap(s=>s.groups||[]).filter(Boolean))].sort();
+    const menu=document.getElementById("cd-st-group-menu");
+    if(menu){
+      menu.innerHTML=`<div class="cd-item cd-active" data-val="" onclick="G.selectStFilter('','Всі групи')">Всі групи</div>`+
+        groups.map(g=>`<div class="cd-item" data-val="${esc(g)}" onclick="G.selectStFilter('${esc(g)}','${esc(g)}')">${esc(g)}</div>`).join("");
+    }
+    G.renderStudents();
+  },
+
+  selectStFilter(value, label){
+    document.getElementById("cd-st-group-label").textContent=label;
+    document.getElementById("st-group").value=value;
+    const menu=document.getElementById("cd-st-group-menu");
+    menu?.querySelectorAll(".cd-item").forEach(el=>el.classList.toggle("cd-active",el.dataset.val===value));
+    menu?.classList.remove("open");
+    document.querySelector("#cd-st-group .cd-btn")?.classList.toggle("active",!!value);
+    G.renderStudents();
+  },
+
+  renderStudents(){
+    const body=document.getElementById("students-body");
+    if(!body) return;
+    const q=(document.getElementById("student-srch")?.value||"").toLowerCase().trim();
+    const grp=document.getElementById("st-group")?.value||"";
+
+    let list=[..._students];
+    if(q) list=list.filter(s=>`${s.name} ${s.surname}`.toLowerCase().includes(q)||`${s.surname} ${s.name}`.toLowerCase().includes(q));
+    if(grp) list=list.filter(s=>(s.groups||[]).includes(grp));
+
+    if(!list.length){
+      body.innerHTML=`<div class="empty" style="padding:60px 20px"><div class="ei">🎓</div><div class="et">${q||grp?"Нічого не знайдено":"Немає студентів"}</div><p style="margin-top:6px;font-size:14px;color:var(--muted)">Студенти з'являться після першого проходження тесту</p></div>`;
+      return;
+    }
+
+    body.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;padding:4px 0">
+      ${list.map(s=>{
+        const att=Array.isArray(s.attempts)?s.attempts:[];
+        const lastAtt=att.length?att[att.length-1]:null;
+        const lastDate=lastAtt?new Date(lastAtt.date).toLocaleDateString("uk-UA",{day:"numeric",month:"short"}):null;
+        const gradeColor=s.avgGrade>=10?"#0d9e85":s.avgGrade>=6?"#2d5be3":s.avgGrade>=4?"#f59e0b":"#f43f5e";
+        const groups=(s.groups||[]).filter(Boolean);
+        const miniBar = att.slice(-5).map(a=>{
+          const pct = Math.round((a.grade||0)/12*100);
+          const cl = a.grade>=10?"#0d9e85":a.grade>=6?"#2d5be3":a.grade>=4?"#f59e0b":"#f43f5e";
+          return `<div style="flex:1;background:#f0f2f8;border-radius:2px;height:28px;position:relative;overflow:hidden"><div style="position:absolute;bottom:0;left:0;right:0;background:${cl};height:${pct}%;border-radius:2px;transition:height .3s"></div></div>`;
+        }).join("");
+
+        return `<div style="background:white;border-radius:18px;padding:0;cursor:pointer;transition:all .2s;border:1.5px solid var(--border);overflow:hidden"
+          onclick="G.openStudentCard('${s.id}')"
+          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 32px rgba(45,91,227,.13)';this.style.borderColor='rgba(45,91,227,.25)'"
+          onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'">
+          <!-- Топ картки -->
+          <div style="padding:18px 18px 14px;display:flex;justify-content:space-between;align-items:flex-start">
+            <div style="flex:1;min-width:0">
+              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(s.surname)} ${esc(s.name)}</div>
+              <div style="margin-top:5px;display:flex;gap:4px;flex-wrap:wrap">
+                ${groups.length?groups.map(g=>`<span style="background:rgba(45,91,227,.08);color:var(--primary);padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500">${esc(g)}</span>`).join(""):`<span style="color:var(--light);font-size:12px">Без групи</span>`}
+              </div>
+            </div>
+            <div style="text-align:right;flex-shrink:0;margin-left:10px">
+              <div style="font-family:'DM Sans',sans-serif;font-weight:800;font-size:26px;color:${gradeColor};line-height:1">${s.avgGrade||"—"}</div>
+              <div style="font-size:10px;color:var(--light);letter-spacing:.3px">СЕРЕДНЯ</div>
+            </div>
+          </div>
+          <!-- Міні-графік -->
+          ${att.length>=2?`<div style="display:flex;gap:2px;padding:0 18px;height:28px;align-items:flex-end;margin-bottom:12px">${miniBar}</div>`:'<div style="height:12px"></div>'}
+          <!-- Підвал -->
+          <div style="padding:10px 18px 14px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(45,91,227,.06)">
+            <span style="font-size:12px;color:var(--muted)">📝 ${att.length} ${att.length===1?"спроба":att.length<5?"спроби":"спроб"}</span>
+            ${lastDate?`<span style="font-size:11px;color:var(--light)">${lastDate}</span>`:""}
+          </div>
+        </div>`;
+      }).join("")}
+    </div>`;
+  },
+
+  openStudentCard(id){
+    const s=_students.find(x=>x.id===id);
+    if(!s) return;
+    const att=Array.isArray(s.attempts)?s.attempts:[];
+    const groups=(s.groups||[]).filter(Boolean);
+
+    const attRows=att.slice().reverse().map(a=>{
+      const gc=a.grade>=10?"bg-g":a.grade>=6?"bg-b":a.grade>=4?"bg-a":"bg-r";
+      const dateStr=new Date(a.date).toLocaleDateString("uk-UA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+      return `<tr>
+        <td style="padding:10px 14px;font-size:13px">${esc(a.testTitle||"—")}</td>
+        <td style="padding:10px 14px">${a.grade?`<span class="bdg ${gc}">${a.grade}/12</span>`:"—"}</td>
+        <td style="padding:10px 14px;font-size:12px;color:var(--muted)">${a.percent||0}%</td>
+        <td style="padding:10px 14px;font-size:12px;color:var(--muted)">${a.group||"—"}</td>
+        <td style="padding:10px 14px;font-size:12px;color:var(--muted)">${dateStr}</td>
+        ${a.attemptId?`<td style="padding:10px 14px"><span style="font-size:11px;color:var(--primary);cursor:pointer" onclick="closeM('m-student');G.viewAtt('${a.attemptId}')">деталі →</span></td>`:"<td></td>"}
+      </tr>`;
+    }).join("");
+
+    const passRate = att.length ? Math.round(att.filter(a=>a.grade>=4).length/att.length*100) : 0;
+    const bestGrade = att.length ? Math.max(...att.map(a=>a.grade||0)) : 0;
+    const totalTests = [...new Set(att.map(a=>a.testId))].length;
+    const gradeColor = s.avgGrade>=10?"#0d9e85":s.avgGrade>=6?"#2d5be3":s.avgGrade>=4?"#f59e0b":"#f43f5e";
+    const gradeEmoji = s.avgGrade>=10?"🏆":s.avgGrade>=6?"✅":s.avgGrade>=4?"📈":"📉";
+
+    // Мінібар динаміки
+    const miniSeg = att.slice(-10).map(a=>{
+      const pct = Math.round((a.grade||0)/12*100);
+      const cl = a.grade>=10?"#0d9e85":a.grade>=6?"#2d5be3":a.grade>=4?"#f59e0b":"#f43f5e";
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+        <div style="font-size:9px;color:rgba(255,255,255,.55)">${a.grade||0}</div>
+        <div style="width:100%;border-radius:3px;background:rgba(255,255,255,.15);height:32px;position:relative;overflow:hidden">
+          <div style="position:absolute;bottom:0;left:0;right:0;background:${cl};height:${Math.max(pct,8)}%;border-radius:3px;transition:height .4s"></div>
+        </div>
+      </div>`;
+    }).join("");
+
+    $("m-student-body").innerHTML=`
+      <!-- Шапка -->
+      <div style="background:linear-gradient(140deg,#2d5be3 0%,#1a3ab8 60%,#1530a0 100%);
+        border-radius:20px;padding:24px;margin:-1px -28px 0;position:relative;overflow:hidden;color:white">
+        <!-- Декор -->
+        <div style="position:absolute;width:240px;height:240px;border-radius:50%;
+          background:rgba(255,255,255,.05);top:-80px;right:-60px"></div>
+        <div style="position:absolute;width:140px;height:140px;border-radius:50%;
+          background:rgba(255,255,255,.04);bottom:-50px;left:-30px"></div>
+
+        <!-- Ім'я та оцінка -->
+        <div style="position:relative;z-index:1;display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:${att.length>=2?'16':'20'}px">
+          <div>
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;opacity:.55;margin-bottom:6px">Студент</div>
+            <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;line-height:1.15;text-shadow:0 2px 8px rgba(0,0,0,.2)">
+              ${esc(s.surname)}<br>${esc(s.name)}
+            </div>
+            <div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap">
+              ${groups.length
+                ? groups.map(g=>`<span style="background:rgba(255,255,255,.15);backdrop-filter:blur(6px);padding:3px 11px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid rgba(255,255,255,.2)">${esc(g)}</span>`).join("")
+                : `<span style="opacity:.45;font-size:12px;font-style:italic">Без групи</span>`}
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;margin-left:12px">
+            <div style="font-size:10px;opacity:.55;text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px">Середня</div>
+            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:52px;line-height:1;
+              text-shadow:0 4px 16px rgba(0,0,0,.25);color:${gradeColor==="#2d5be3"?"white":gradeColor==="#0d9e85"?"#7effd8":gradeColor==="#f59e0b"?"#ffe28a":"#ffb3b3"}">${s.avgGrade||"—"}</div>
+            <div style="font-size:11px;opacity:.5">/ 12 балів ${gradeEmoji}</div>
+          </div>
+        </div>
+
+        <!-- Динаміка -->
+        ${att.length>=2?`<div style="position:relative;z-index:1">
+          <div style="font-size:9px;opacity:.5;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Динаміка останніх спроб</div>
+          <div style="display:flex;gap:4px;align-items:flex-end;height:52px">${miniSeg}</div>
+        </div>`:""}
+      </div>
+
+      <!-- Метрики -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0">
+        ${[
+          {val:att.length, label:"Спроб", icon:"📝", bg:"rgba(45,91,227,.06)", col:"var(--primary)", border:"rgba(45,91,227,.12)"},
+          {val:att.filter(a=>a.grade>=4).length, label:"Склав", icon:"✅", bg:"rgba(13,158,133,.06)", col:"#0d9e85", border:"rgba(13,158,133,.15)"},
+          {val:passRate+"%", label:"Успішність", icon:"📊", bg:"rgba(245,158,11,.06)", col:"#d97706", border:"rgba(245,158,11,.15)"},
+          {val:totalTests, label:"Тестів", icon:"📚", bg:"rgba(147,51,234,.05)", col:"#9333ea", border:"rgba(147,51,234,.12)"},
+        ].map(m=>`
+          <div style="background:${m.bg};border:1.5px solid ${m.border};border-radius:14px;padding:13px 8px;text-align:center">
+            <div style="font-size:15px;margin-bottom:3px">${m.icon}</div>
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:19px;color:${m.col}">${m.val}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.3px">${m.label}</div>
+          </div>`
+        ).join("")}
+      </div>
+
+      <!-- Таблиця -->
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Всі спроби</div>
+      ${att.length
+        ? `<div style="border-radius:14px;border:1.5px solid var(--border);overflow:hidden">
+            <table class="tbl" style="margin:0">
+              <thead><tr style="background:rgba(45,91,227,.03)">
+                <th style="padding:10px 14px">Тест</th>
+                <th style="padding:10px 12px;text-align:center">Оцінка</th>
+                <th style="padding:10px 10px;text-align:center">%</th>
+                <th style="padding:10px 10px">Група</th>
+                <th style="padding:10px 12px">Дата</th>
+                <th></th>
+              </tr></thead>
+              <tbody>${attRows}</tbody>
+            </table>
+          </div>`
+        : `<div style="background:#f8faff;border-radius:14px;padding:28px;text-align:center">
+            <div style="font-size:28px;margin-bottom:8px">📭</div>
+            <div style="color:var(--muted);font-size:14px">Немає спроб</div>
+          </div>`}
+
+      <!-- Дії -->
+      <div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <button class="btn bs btn-sm" onclick="G.openMergeModal('${s.id}')" style="font-size:13px">🔗 Об'єднати</button>
+        <button class="btn bd btn-sm" onclick="G.deleteStudent('${s.id}')" style="font-size:13px">🗑 Видалити картку</button>
+      </div>`;    openM("m-student");
+  },
+
+
+  openMergeModal(sourceId){
+    closeM("m-merge");  // на випадок якщо вже відкрито
+    closeM("m-student");
+    const source = _students.find(s=>s.id===sourceId);
+    if(!source) return;
+    window._mergeSourceId = sourceId;
+    window._mergeTargetId = null;
+
+    document.getElementById("m-merge-sub").textContent =
+      `Об'єднати картку "${source.surname} ${source.name}" з:`;
+
+    // Показуємо всіх студентів крім поточного
+    const list = document.getElementById("m-merge-list");
+    const others = _students.filter(s=>s.id!==sourceId);
+
+    if(!others.length){
+      list.innerHTML=`<div style="color:var(--muted);font-size:14px;text-align:center;padding:16px">Немає інших карток для об'єднання</div>`;
+      document.getElementById("merge-confirm-btn").disabled=true;
+    } else {
+      list.innerHTML = others.map(s=>{
+        const att = Array.isArray(s.attempts)?s.attempts:[];
+        return `<div class="merge-item" id="mi-${s.id}" onclick="G.selectMergeTarget('${s.id}')"
+          style="padding:12px 14px;border:1.5px solid var(--border);border-radius:13px;cursor:pointer;transition:all .15s;display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:600;font-size:14px">${esc(s.surname)} ${esc(s.name)}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">${att.length} спроб · Середня: ${s.avgGrade||"—"}</div>
+          </div>
+          <div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);flex-shrink:0" id="mi-dot-${s.id}"></div>
+        </div>`;
+      }).join("");
+      document.getElementById("merge-confirm-btn").disabled=true;
+    }
+    openM("m-merge");
+  },
+
+  selectMergeTarget(targetId){
+    // Скидаємо попередній вибір
+    document.querySelectorAll(".merge-item").forEach(el=>{
+      el.style.borderColor="var(--border)";
+      el.style.background="";
+    });
+    document.querySelectorAll("[id^='mi-dot-']").forEach(el=>{
+      el.style.background=""; el.style.borderColor="var(--border)";
+    });
+
+    window._mergeTargetId = targetId;
+    const item = document.getElementById(`mi-${targetId}`);
+    const dot  = document.getElementById(`mi-dot-${targetId}`);
+    if(item){ item.style.borderColor="var(--primary)"; item.style.background="rgba(45,91,227,.04)"; }
+    if(dot){  dot.style.background="var(--primary)"; dot.style.borderColor="var(--primary)"; }
+    document.getElementById("merge-confirm-btn").disabled=false;
+  },
+
+  async confirmMerge(){
+    const sourceId = window._mergeSourceId;
+    const targetId = window._mergeTargetId;
+    if(!sourceId || !targetId) return;
+
+    const source = _students.find(s=>s.id===sourceId);
+    const target = _students.find(s=>s.id===targetId);
+    if(!source || !target) return;
+
+    const btn = document.getElementById("merge-confirm-btn");
+    btn.disabled=true; btn.textContent="Об'єднання...";
+
+    // Об'єднуємо спроби
+    const srcAttempts = Array.isArray(source.attempts)?source.attempts:[];
+    const tgtAttempts = Array.isArray(target.attempts)?target.attempts:[];
+    const merged = [...tgtAttempts, ...srcAttempts].sort((a,b)=>(a.date||0)-(b.date||0));
+
+    // Об'єднуємо групи
+    const groups = [...new Set([...(target.groups||[]),...(source.groups||[])].filter(Boolean))];
+
+    // Перераховуємо середню
+    const grades = merged.map(a=>a.grade).filter(g=>g>0);
+    const avgGrade = grades.length ? Math.round((grades.reduce((a,b)=>a+b,0)/grades.length)*10)/10 : 0;
+
+    // Зберігаємо в target і видаляємо source
+    await dbUpd(`students/${targetId}`, { attempts: merged, groups, avgGrade, lastSeen: Date.now() });
+    await dbDel(`students/${sourceId}`);
+
+    _students = _students.filter(s=>s.id!==sourceId);
+    const tIdx = _students.findIndex(s=>s.id===targetId);
+    if(tIdx>=0) _students[tIdx] = { ..._students[tIdx], attempts: merged, groups, avgGrade };
+
+    closeM("m-merge");
+    G.renderStudents();
+    toast(`Картки об'єднано: ${merged.length} спроб`);
+    btn.disabled=false; btn.textContent="Об'єднати →";
+  },
+
+  deleteStudent(id){
+    const s=_students.find(x=>x.id===id);
+    if(!s) return;
+    const nameEl=document.getElementById("del-student-name");
+    if(nameEl) nameEl.textContent=`${s.surname} ${s.name}`;
+    document.getElementById("del-student-confirm-btn").onclick = async () => {
+      closeM("m-del-student");
+      await dbDel(`students/${id}`);
+      _students=_students.filter(x=>x.id!==id);
+      closeM("m-student");
+      G.renderStudents();
+      toast("Картку видалено");
+    };
+    closeM("m-student");
+    openM("m-del-student");
+  },
+
+
+  renderSuspicious(){
+    const body = document.getElementById("suspicious-body");
+    if(!body) return;
+
+    // Рахуємо рівень підозрілості
+    const scored = attempts
+      .filter(a => a.status === "completed" || a.status === "pending_review")
+      .map(a => {
+        const score = (a.tabSwitches||0)*2 + (a.copyAttempts||0)*3 + (a.screenshots||0)*5;
+        return { ...a, suspScore: score };
+      })
+      .filter(a => a.suspScore > 0)
+      .sort((a,b) => b.suspScore - a.suspScore);
+
+    // Оновлюємо бейдж
+    const badge = $("nb-suspicious");
+    if(badge){ badge.textContent = scored.length; badge.style.display = scored.length ? "" : "none"; }
+
+    if(!scored.length){
+      body.innerHTML=`<div class="empty" style="padding:60px 20px"><div class="ei">✅</div><div class="et">Підозрілих спроб не виявлено</div></div>`;
+      return;
+    }
+
+    body.innerHTML = scored.map(a => {
+      const t = tests.find(x=>x.id===a.testId);
+      const l = links.find(x=>x.id===a.linkId);
+      const score = a.suspScore;
+      const level = score >= 10 ? {label:"Висока",color:"#be123c",bg:"rgba(244,63,94,.08)"} :
+                    score >= 5  ? {label:"Середня",color:"#b45309",bg:"rgba(245,158,11,.08)"} :
+                                  {label:"Низька",color:"#1d4ed8",bg:"rgba(45,91,227,.06)"};
+      const dateStr = a.createdAt ? new Date(a.createdAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}) : "—";
+
+      return `<div style="background:${level.bg};border:1.5px solid ${level.color}33;border-radius:16px;padding:18px 20px;margin-bottom:10px;display:flex;align-items:center;gap:16px">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">${esc(a.name)} ${esc(a.surname)}</span>
+            <span style="background:${level.color};color:white;font-size:11px;padding:2px 9px;border-radius:20px;font-weight:600">${level.label} ризик</span>
+          </div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:8px">${esc(t?.title||"—")} · ${esc(l?.group||"—")} · ${dateStr}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            ${(a.tabSwitches||0)>0?`<span style="background:rgba(245,158,11,.12);color:#b45309;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500">🔄 Вкладки: ${a.tabSwitches}</span>`:""}
+            ${(a.copyAttempts||0)>0?`<span style="background:rgba(244,63,94,.1);color:#be123c;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500">📋 Копіювання: ${a.copyAttempts}</span>`:""}
+            ${(a.screenshots||0)>0?`<span style="background:rgba(147,51,234,.1);color:#7e22ce;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500">📸 Скріншоти: ${a.screenshots}</span>`:""}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:28px;color:${level.color}">${score}</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">балів</div>
+          <button class="ib" style="margin-top:6px" onclick="G.viewAtt('${a.id}')" title="Переглянути спробу">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>`;
+    }).join("");
+  },
+
+  renderOnline(){
+    const body = document.getElementById("online-body");
+    if(!body) return;
+
+    // "Онлайн" = спроби зі статусом in_progress
+    const online = attempts
+      .filter(a => a.status === "in_progress")
+      .sort((a,b) => (b.startedAt||0)-(a.startedAt||0));
+
+    const badge = $("nb-online");
+    if(badge){ badge.textContent = online.length; badge.style.display = online.length ? "" : "none"; }
+
+    if(!online.length){
+      body.innerHTML=`<div class="empty" style="padding:60px 20px"><div class="ei">📡</div><div class="et">Ніхто не проходить тест зараз</div></div>`;
+      return;
+    }
+
+    body.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+        <div style="width:10px;height:10px;border-radius:50%;background:#0d9e85;animation:pulse 1.5s ease infinite"></div>
+        <span style="font-size:14px;color:var(--muted)">${online.length} студент${online.length===1?"":"ів"} зараз в тесті</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+      ${online.map(a => {
+        const t = tests.find(x=>x.id===a.testId);
+        const l = links.find(x=>x.id===a.linkId);
+        const elapsed = a.startedAt ? Math.round((Date.now()-a.startedAt)/60000) : 0;
+        const elStr = elapsed < 1 ? "щойно" : `${elapsed} хв`;
+        return `<div style="background:white;border:1.5px solid var(--border);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px">
+          <div style="width:10px;height:10px;border-radius:50%;background:#0d9e85;flex-shrink:0;box-shadow:0 0 0 3px rgba(13,158,133,.2)"></div>
+          <div style="flex:1;min-width:0">
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px">${esc(a.name)} ${esc(a.surname)}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:3px">
+              ${esc(t?.title||"—")}${l?.group?` · ${esc(l.group)}`:""} · почав ${elStr} тому
+            </div>
+            ${a.currentQ?(()=>{const pct=a.totalQ?Math.round(a.currentQ/a.totalQ*100):0;return '<div style="margin-top:6px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><span style="font-size:11px;color:var(--muted)">Питання '+a.currentQ+' з '+(a.totalQ||'?')+'</span><span style="font-size:11px;color:var(--muted)">'+pct+'%</span></div><div style="background:var(--border);border-radius:4px;height:5px;overflow:hidden"><div style="background:linear-gradient(90deg,#0d9e85,#2d5be3);height:100%;border-radius:4px;width:'+pct+'%;transition:width .5s"></div></div></div>';})():""}
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            ${(a.tabSwitches||0)>0||((a.copyAttempts||0)>0)||((a.screenshots||0)>0)?`<span title="Підозріла активність" style="font-size:16px">⚠️</span>`:""}
+            <button class="ib" onclick="G.viewAtt('${a.id}')" title="Переглянути">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>`;
+      }).join("")}
+      </div>`;
+  },
+
+  initGradebook(){
+    // Заповнюємо тести
+    const gbTestMenu=document.getElementById("cd-gb-test-menu");
+    if(gbTestMenu){
+      gbTestMenu.innerHTML=`<div class="cd-item cd-active" data-val="" onclick="G.selectGbFilter('test','','Всі тести')">Всі тести</div>`+
+        tests.filter(t=>t.status!=="archived").map(t=>
+          `<div class="cd-item" data-val="${t.id}" onclick="G.selectGbFilter('test','${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
+        ).join("");
+    }
+    // Заповнюємо групи
+    const groups=[...new Set(links.map(l=>l.group).filter(Boolean))].sort();
+    const gbGrpMenu=document.getElementById("cd-gb-group-menu");
+    if(gbGrpMenu){
+      gbGrpMenu.innerHTML=`<div class="cd-item cd-active" data-val="" onclick="G.selectGbFilter('group','','Всі групи')">Всі групи</div>`+
+        groups.map(g=>`<div class="cd-item" data-val="${esc(g)}" onclick="G.selectGbFilter('group','${esc(g)}','${esc(g)}')">${esc(g)}</div>`
+        ).join("");
+    }
+    G.renderGradebook();
+  },
+
+  selectGbFilter(field, value, label){
+    const wrap = field==="test" ? "cd-gb-test" : "cd-gb-group";
+    const selId = field==="test" ? "gb-test" : "gb-group";
+    const lbl = document.getElementById(wrap+"-label");
+    if(lbl) lbl.textContent=label;
+    const menu=document.getElementById(wrap+"-menu");
+    menu?.querySelectorAll(".cd-item").forEach(el=>{
+      el.classList.toggle("cd-active", el.dataset.val===value);
+    });
+    menu?.classList.remove("open");
+    const btn=document.querySelector(`#${wrap} .cd-btn`);
+    btn?.classList.toggle("active", !!value);
+    const sel=document.getElementById(selId);
+    if(sel) sel.value=value;
+    G.renderGradebook();
+  },
+
+  renderGradebook(){
+    const body=document.getElementById("gradebook-body");
+    if(!body) return;
+    const groupF=document.getElementById("gb-group")?.value||"";
+    const testF=document.getElementById("gb-test")?.value||"";
+
+    let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
+    if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
+    if(testF)  att=att.filter(a=>a.testId===testF);
+
+    if(!att.length){
+      body.innerHTML=`<div class="empty" style="padding:60px 20px"><div class="ei">📋</div><div class="et">Немає завершених спроб</div></div>`;
+      return;
+    }
+
+    // Унікальні студенти і тести
+    const studentMap={};
+    att.forEach(a=>{
+      const key=`${a.surname}|${a.name}`;
+      if(!studentMap[key]) studentMap[key]={name:a.name,surname:a.surname,attempts:{}};
+      if(!studentMap[key].attempts[a.testId] || (a.grade12 > (studentMap[key].attempts[a.testId]?.grade||0)))
+        studentMap[key].attempts[a.testId]={grade:a.grade12,status:a.status,id:a.id};
+    });
+
+    const usedTestIds=testF ? [testF] : [...new Set(att.map(a=>a.testId))];
+    const usedTests=usedTestIds.map(id=>tests.find(t=>t.id===id)).filter(Boolean);
+    const students=Object.values(studentMap).sort((a,b)=>a.surname.localeCompare(b.surname,"uk"));
+
+    const thCells=usedTests.map(t=>`<th style="padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;text-align:center" title="${esc(t.title)}">${esc(t.title.substring(0,20))}${t.title.length>20?"…":""}</th>`).join("");
+
+    const rows=students.map(s=>{
+      const cells=usedTests.map(t=>{
+        const att_=s.attempts[t.id];
+        if(!att_) return `<td style="padding:10px 14px;text-align:center;color:var(--light)">—</td>`;
+        if(att_.status==="pending_review") return `<td style="padding:10px 14px;text-align:center"><span title="Очікує перевірки" style="font-size:16px">⏳</span></td>`;
+        const g=att_.grade||0;
+        const cl=g>=10?"bg-g":g>=6?"bg-b":"bg-r";
+        return `<td style="padding:10px 14px;text-align:center;cursor:pointer" onclick="G.viewAtt('${att_.id}')"><span class="bdg ${cl}" style="font-size:12px">${g}/12</span></td>`;
+      }).join("");
+      return `<tr style="border-top:1px solid var(--border)">
+        <td style="padding:11px 16px;white-space:nowrap;font-weight:500">${esc(s.surname)} ${esc(s.name)}</td>
+        ${cells}
+      </tr>`;
+    }).join("");
+
+    body.innerHTML=`
+      <div class="card" style="overflow-x:auto">
+        <table class="tbl" style="min-width:400px">
+          <thead><tr style="background:rgba(45,91,227,.03)">
+            <th style="padding:10px 16px;text-align:left;min-width:160px">Студент</th>
+            ${thCells}
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:10px">⏳ — очікує перевірки · Натисніть на оцінку щоб переглянути деталі</div>`;
+  },
+
+    async exportGradebook(format='csv'){
+    const groupF=document.getElementById("gb-group")?.value||"";
+    const testF=document.getElementById("gb-test")?.value||"";
+    let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
+    if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
+    if(testF)  att=att.filter(a=>a.testId===testF);
+    if(!att.length){toast("Немає даних для експорту","err");return;}
+
+    const studentMap={};
+    att.forEach(a=>{
+      const key=`${a.surname}|${a.name}`;
+      if(!studentMap[key]) studentMap[key]={name:a.name,surname:a.surname,attempts:{}};
+      studentMap[key].attempts[a.testId]=a.grade12||"⏳";
+    });
+    const usedTestIds=testF?[testF]:[...new Set(att.map(a=>a.testId))];
+    const usedTests=usedTestIds.map(id=>tests.find(t=>t.id===id)).filter(Boolean);
+    const students=Object.values(studentMap).sort((a,b)=>a.surname.localeCompare(b.surname,"uk"));
+    const dateStr=new Date().toLocaleDateString("uk-UA");
+    const fname=`Журнал_${groupF||"всі"}_${dateStr}`;
+
+    if(format==="csv"){
+      const header=["Прізвище","Ім'я",...usedTests.map(t=>t.title)].join(",");
+      const rows=students.map(s=>{
+        const grades=usedTests.map(t=>s.attempts[t.id]||"");
+        return [s.surname,s.name,...grades].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",");
+      });
+      const csv="﻿"+header+"\n"+rows.join("\n");
+      const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+      const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=fname+".csv";a.click();
+      toast("CSV завантажено");
+    } else {
+      // HTML звіт
+      const thHTML=usedTests.map(t=>`<th>${esc(t.title)}</th>`).join("");
+      const rowsHTML=students.map(s=>{
+        const cells=usedTests.map(t=>{
+          const g=s.attempts[t.id];
+          if(!g||g==="⏳") return `<td style="text-align:center;color:#999">⏳</td>`;
+          const col=g>=10?"#0d9e85":g>=6?"#2d5be3":g>=4?"#f59e0b":"#f43f5e";
+          return `<td style="text-align:center;font-weight:700;color:${col}">${g}/12</td>`;
+        }).join("");
+        return `<tr><td>${esc(s.surname)} ${esc(s.name)}</td>${cells}</tr>`;
+      }).join("");
+
+      const html=`<!DOCTYPE html><html lang="uk"><head><meta charset="UTF-8">
+<title>Журнал оцінок — ${esc(groupF||"Всі групи")} — ${dateStr}</title>
+<style>
+  body{font-family:'Arial',sans-serif;padding:32px;background:#f5f7fa;color:#0d1340}
+  h1{font-size:22px;margin-bottom:4px}
+  .meta{font-size:13px;color:#6b7280;margin-bottom:24px}
+  table{width:100%;border-collapse:collapse;background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+  th{background:#2d5be3;color:white;padding:12px 16px;font-size:12px;text-transform:uppercase;letter-spacing:.5px;text-align:left}
+  td{padding:11px 16px;border-bottom:1px solid #e5e7eb;font-size:14px}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#f0f3fa}
+  .footer{margin-top:16px;font-size:12px;color:#9ca3af;text-align:center}
+</style></head><body>
+<h1>Журнал оцінок${groupF?" — "+esc(groupF):""}</h1>
+<div class="meta">Сформовано ${dateStr} · ${students.length} студентів · QuizFlow</div>
+<table><thead><tr><th>Студент</th>${thHTML}</tr></thead>
+<tbody>${rowsHTML}</tbody></table>
+<div class="footer">QuizFlow — система тестування</div>
+</body></html>`;
+      const blob=new Blob([html],{type:"text/html;charset=utf-8"});
+      const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=fname+".html";a.click();
+      toast("HTML звіт завантажено");
+    }
+  },
+
+
+  initAnalytics(){
+    fillSelects();
+    const testId=$("an-test")?.value;
+    if(testId) G.renderAnalytics();
+  },
+
+  renderAnalytics(){
+    const testId=$("an-test")?.value;
+    const groupF=$("an-group")?.value;
+    const body=$("analytics-body");
+    if(!body)return;
+
+    if(!testId){
+      body.innerHTML=`<div class="empty" style="padding:60px 20px"><div class="ei">📊</div><div class="et">Оберіть тест для перегляду статистики</div></div>`;
+      return;
+    }
+
+    const test=tests.find(t=>t.id===testId);
+    if(!test){body.innerHTML=`<div class="empty"><div class="ei">❌</div><div class="et">Тест не знайдено</div></div>`;return;}
+
+    const qs=test.questions||[];
+
+    // Фільтруємо спроби по тесту і групі
+    let ta=attempts.filter(a=>a.testId===testId && a.status==="completed");
+    if(groupF){
+      ta=ta.filter(a=>{
+        const l=links.find(x=>x.id===a.linkId);
+        return (l?.group||"")===groupF;
+      });
+    }
+
+    if(!ta.length){
+      body.innerHTML=`<div class="empty" style="padding:48px 20px"><div class="ei">📭</div><div class="et">Немає завершених спроб${groupF?` для групи «${esc(groupF)}»`:""}</div></div>`;
+      return;
+    }
+
+    // ── Метрики ──────────────────────────────────────────────────────────
+    const grades=ta.filter(a=>a.grade12).map(a=>a.grade12);
+    const avgGrade=grades.length?(grades.reduce((s,g)=>s+g,0)/grades.length).toFixed(1):"—";
+    const avgPct=ta.filter(a=>a.score).length?Math.round(ta.filter(a=>a.score).reduce((s,a)=>s+(a.score?.percent||0),0)/ta.filter(a=>a.score).length):0;
+    const passRate=Math.round(ta.filter(a=>(a.grade12||0)>=4).length/ta.length*100);
+
+    // ── Розподіл оцінок ──────────────────────────────────────────────────
+    const dist=Array.from({length:12},(_,i)=>({g:i+1,cnt:grades.filter(g=>g===i+1).length}));
+    const maxCnt=Math.max(...dist.map(d=>d.cnt),1);
+    const gc=g=>g>=10?"#0d9e85":g>=7?"#2d5be3":g>=4?"#f59e0b":"#f43f5e";
+    const barH=d=>d.cnt?Math.max(8,Math.round(d.cnt/maxCnt*100)):4;
+
+    const CHART_H = 90; // висота зони стовпців у px
+    const distBars = dist.map(d => {
+      const h = d.cnt ? Math.max(10, Math.round(d.cnt / maxCnt * CHART_H)) : 3;
+      const col = gc(d.g);
+      const opacity = d.cnt ? 1 : 0.12;
+      return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0">
+        <!-- Лічильник зверху -->
+        <div style="height:20px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:4px">
+          ${d.cnt
+            ? `<span style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:${col};line-height:1">${d.cnt}</span>`
+            : `<span style="font-size:10px;color:rgba(107,114,128,.3)">·</span>`}
+        </div>
+        <!-- Стовпець -->
+        <div style="width:100%;max-width:28px;border-radius:5px 5px 0 0;background:${col};height:${h}px;opacity:${opacity};transition:height .4s ease"></div>
+        <!-- Підпис оцінки -->
+        <div style="margin-top:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--muted);line-height:1">${d.g}</div>
+      </div>`;
+    }).join("");
+
+    // ── Найважчі питання ──────────────────────────────────────────────────
+    const qStats=qs.map((q,i)=>{
+      let wrong=0,total=0;
+      ta.forEach(a=>{
+        const ans=(a.answers||[]).find(x=>x.questionId===q.id);
+        if(ans){total++;if(!ans.correct&&!ans.partial)wrong++;}
+      });
+      return{q,i,wrong,total,errRate:total?Math.round(wrong/total*100):0};
+    }).filter(x=>x.total>0).sort((a,b)=>b.errRate-a.errRate);
+
+    const hardRows=qStats.slice(0,8).map((x,rank)=>`
+      <tr>
+        <td style="font-size:13px;padding:10px 12px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="width:22px;height:22px;border-radius:6px;background:${rank<3?"rgba(244,63,94,.1)":"rgba(45,91,227,.06)"};color:${rank<3?"var(--rose)":"var(--primary)"};font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${x.i+1}</span>
+            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px">${esc(x.q.text)}</span>
+          </div>
+        </td>
+        <td style="font-size:13px;color:var(--muted);padding:10px 12px">${x.wrong}/${x.total}</td>
+        <td style="padding:10px 12px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="flex:1;height:6px;background:rgba(45,91,227,.08);border-radius:3px;overflow:hidden;min-width:60px">
+              <div style="height:100%;width:${x.errRate}%;background:${x.errRate>60?"var(--rose)":x.errRate>30?"var(--amber)":"var(--teal)"};border-radius:3px"></div>
+            </div>
+            <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:${x.errRate>60?"var(--rose)":x.errRate>30?"var(--amber)":"var(--muted)"};width:34px;text-align:right">${x.errRate}%</span>
+          </div>
+        </td>
+      </tr>`).join("");
+
+    // ── Список студентів з оцінками ────────────────────────────────────
+    const sortedStudents=[...ta].sort((a,b)=>(b.grade12||0)-(a.grade12||0));
+// студенти рендеряться inline в body.innerHTML
+
+    body.innerHTML=`
+      <!-- Метрики -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+        <div style="background:linear-gradient(135deg,#2d5be3,#1a3ab8);border-radius:14px;padding:16px;color:white;text-align:center">
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:34px">${avgGrade}</div>
+          <div style="font-size:12px;opacity:.75;margin-top:3px">Середня оцінка</div>
+        </div>
+        <div class="card" style="text-align:center;padding:16px">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:34px;color:var(--primary)">${avgPct}%</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">Середній % правильних</div>
+        </div>
+        <div class="card" style="text-align:center;padding:16px">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:34px;color:${passRate>=50?"#0d9e85":"var(--rose)"}">${passRate}%</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">Склали тест (≥4)</div>
+        </div>
+        <div class="card" style="text-align:center;padding:16px">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:34px;color:var(--primary)">${ta.length}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">Студентів</div>
+        </div>
+      </div>
+
+      <!-- Графік оцінок -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+        <div class="card">
+          <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;margin-bottom:16px">📊 Розподіл оцінок</div>
+          <!-- Зона графіка: висота = лічильник(20) + бар(90) + підпис(18) + відступи -->
+          <div style="display:flex;align-items:flex-end;gap:3px;padding:0 2px;overflow:hidden">
+            ${distBars}
+          </div>
+          <!-- Легенда -->
+          <div style="display:flex;justify-content:center;gap:14px;margin-top:12px;flex-wrap:wrap">
+            ${[["#f43f5e","1–3"],["#f59e0b","4–6"],["#2d5be3","7–9"],["#0d9e85","10–12"]].map(([c,l])=>
+              `<div style="display:flex;align-items:center;gap:5px">
+                <div style="width:10px;height:10px;border-radius:3px;background:${c}"></div>
+                <span style="font-size:12px;color:var(--muted);font-family:'DM Sans',sans-serif">${l}</span>
+              </div>`
+            ).join("")}
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;margin-bottom:14px">🎯 Найважчі питання</div>
+          <table class="tbl" style="margin:-4px">
+            <thead><tr><th style="padding:4px 12px">Питання</th><th>Помилок</th><th>%</th></tr></thead>
+            <tbody>${hardRows||`<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:16px">Недостатньо даних</td></tr>`}</tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Топ студентів -->
+      ${sortedStudents.length >= 3 ? `
+      <div class="card" style="margin-bottom:16px">
+        <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;margin-bottom:16px">🏆 Топ студентів</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+          ${sortedStudents.slice(0,3).map((a,i)=>{
+            const medals=["🥇","🥈","🥉"];
+            const bgs=["linear-gradient(135deg,#f59e0b,#d97706)","linear-gradient(135deg,#94a3b8,#64748b)","linear-gradient(135deg,#cd7c2f,#b45309)"];
+            const g=a.grade12||0;
+            return `<div style="background:${bgs[i]};border-radius:16px;padding:18px;color:white;text-align:center;position:relative">
+              <div style="font-size:28px;margin-bottom:8px">${medals[i]}</div>
+              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:4px">${esc(a.surname)} ${esc(a.name)}</div>
+              <div style="font-size:28px;font-weight:800;font-family:'DM Sans',sans-serif">${g}</div>
+              <div style="font-size:11px;opacity:.8">/12 балів</div>
+              <div style="font-size:11px;opacity:.75;margin-top:4px">${a.score?.percent??0}% правильних</div>
+            </div>`;
+          }).join("")}
+        </div>
+      </div>` : ""}
+
+      <!-- Студенти -->
+      <div class="card">
+        <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;margin-bottom:14px">👥 Результати студентів${groupF?` — ${esc(groupF)}`:""}</div>
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Студент</th><th>Оцінка</th><th>Правильних</th><th>Результат</th><th></th></tr></thead>
+          <tbody>${sortedStudents.map((a,i)=>`
+      <tr>
+        <td style="padding:10px 12px;color:var(--muted);font-size:13px">${i+1}</td>
+        <td style="padding:10px 12px"><strong>${esc(a.name)} ${esc(a.surname)}</strong></td>
+        <td style="padding:10px 12px">${a.grade12?`<span class="bdg ${grBdg(a.grade12)}">${a.grade12}/12</span>`:"—"}</td>
+        <td style="font-size:13px;color:var(--muted);padding:10px 12px">${a.score?.correct??"—"}/${a.score?.total??"—"}</td>
+        <td style="font-size:13px;color:var(--muted);padding:10px 12px">${a.score?.percent??"—"}%</td>
+        <td style="padding:10px 12px"><span style="font-size:11px;cursor:pointer;color:var(--primary)" onclick="G.viewAtt('${a.id}')">деталі →</span></td>
+      </tr>`).join("")}</tbody>
+        </table>
+      </div>`;
+  },
+
+  showStats(testId){
+    const test = tests.find(t=>t.id===testId);
+    if(!test) return;
+    const ta = attempts.filter(a=>a.testId===testId && a.status==="completed");
+    // Для статистики використовуємо питання поточного тесту
+    // (для агрегованих даних snapshot не потрібен)
+    const qs = test.questions || [];
+
+    // ── Середня оцінка ────────────────────────────────────────────────────
+    const grades = ta.filter(a=>a.grade12).map(a=>a.grade12);
+    const avgGrade = grades.length ? (grades.reduce((s,g)=>s+g,0)/grades.length).toFixed(1) : "—";
+    const avgPct   = ta.filter(a=>a.score).length
+      ? Math.round(ta.reduce((s,a)=>s+(a.score?.percent||0),0)/ta.filter(a=>a.score).length) + "%"
+      : "—";
+
+    // ── Розподіл оцінок (1-12) ────────────────────────────────────────────
+    const gradeDist = Array.from({length:12},(_,i)=>({g:i+1, cnt:grades.filter(g=>g===i+1).length}));
+    const maxCnt = Math.max(...gradeDist.map(d=>d.cnt), 1);
+    const gradeBarColor = g => g>=10?"#0d9e85":g>=7?"#2d5be3":g>=4?"#f59e0b":"#f43f5e";
+
+    const SH = 80; // chart height
+    const distHTML = gradeDist.map(d=>{
+      const h = d.cnt ? Math.max(10, Math.round(d.cnt/maxCnt*SH)) : 3;
+      const col = gradeBarColor(d.g);
+      return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0">
+        <div style="height:18px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:4px">
+          ${d.cnt
+            ? `<span style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;color:${col};line-height:1">${d.cnt}</span>`
+            : `<span style="font-size:10px;color:rgba(107,114,128,.25)">·</span>`}
+        </div>
+        <div style="width:100%;max-width:26px;border-radius:4px 4px 0 0;background:${col};height:${h}px;opacity:${d.cnt?1:0.12};transition:height .3s"></div>
+        <div style="margin-top:5px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;color:var(--muted);line-height:1">${d.g}</div>
+      </div>`;
+    }).join("");
+
+    // ── Найважчі питання ──────────────────────────────────────────────────
+    const qStats = qs.map((q,i)=>{
+      let wrong=0, total=0;
+      ta.forEach(a=>{
+        const ans=(a.answers||[]).find(x=>x.questionId===q.id);
+        if(ans){ total++; if(!ans.correct && !ans.partial) wrong++; }
+      });
+      const errRate = total ? Math.round(wrong/total*100) : 0;
+      return {q, i, wrong, total, errRate};
+    }).filter(x=>x.total>0).sort((a,b)=>b.errRate-a.errRate);
+
+    const hardHTML = qStats.slice(0,5).map((x,rank)=>`
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:${rank===0?"rgba(244,63,94,.04)":"rgba(45,91,227,.02)"};border:1.5px solid ${rank===0?"rgba(244,63,94,.15)":"var(--border)"};border-radius:12px;margin-bottom:8px">
+        <div style="width:28px;height:28px;border-radius:8px;background:${rank===0?"var(--rose)":"rgba(45,91,227,.08)"};color:${rank===0?"white":"var(--primary)"};display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;flex-shrink:0">${x.i+1}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.q.text)}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${x.wrong} з ${x.total} відповіли неправильно</div>
+        </div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:${x.errRate>60?"var(--rose)":x.errRate>30?"var(--amber)":"var(--muted)"};flex-shrink:0">${x.errRate}%</div>
+        <div style="width:50px">
+          <div style="height:5px;background:rgba(244,63,94,.12);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${x.errRate}%;background:${x.errRate>60?"var(--rose)":x.errRate>30?"var(--amber)":"var(--teal)"};border-radius:3px"></div>
+          </div>
+        </div>
+      </div>`).join("") || `<div style="color:var(--muted);font-size:14px;text-align:center;padding:16px">Недостатньо даних</div>`;
+
+    $("stats-content").innerHTML = `
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:20px;margin-bottom:4px">${esc(test.title)}</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:22px">${ta.length} завершених спроб · ${qs.length} питань</div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px">
+        <div style="background:var(--grad,linear-gradient(135deg,#2d5be3,#1a3ab8));border-radius:14px;padding:18px;color:white;text-align:center">
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:36px;letter-spacing:-1px">${avgGrade}</div>
+          <div style="font-size:12px;opacity:.75;margin-top:4px">Середня оцінка</div>
+        </div>
+        <div style="background:rgba(45,91,227,.04);border:1.5px solid var(--border);border-radius:14px;padding:18px;text-align:center">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:36px;color:var(--primary)">${avgPct}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Середній результат</div>
+        </div>
+        <div style="background:rgba(45,91,227,.04);border:1.5px solid var(--border);border-radius:14px;padding:18px;text-align:center">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:36px;color:var(--primary)">${ta.length}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Завершили тест</div>
+        </div>
+      </div>
+
+      <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;margin-bottom:14px">Розподіл оцінок</div>
+      ${grades.length ? `<div style="background:rgba(45,91,227,.03);border:1.5px solid var(--border);border-radius:14px;padding:16px 20px;margin-bottom:22px">
+        <div style="display:flex;align-items:flex-end;gap:4px;height:90px">${distHTML}</div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px">
+          <span style="font-size:11px;color:var(--muted)">🔴 Незадовільно (1–3)</span>
+          <span style="font-size:11px;color:var(--muted)">🟡 Задовільно (4–6)</span>
+          <span style="font-size:11px;color:var(--muted)">🔵 Добре (7–9)</span>
+          <span style="font-size:11px;color:var(--muted)">🟢 Відмінно (10–12)</span>
+        </div>
+      </div>` : `<div style="color:var(--muted);font-size:14px;margin-bottom:22px;padding:16px;background:rgba(45,91,227,.03);border-radius:12px;text-align:center">Немає завершених спроб</div>`}
+
+      <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;margin-bottom:14px">Найважчі питання</div>
+      ${hardHTML}
+    `;
+    openM("m-stats");
+  },
+  confDelAttempt(id,name){
+    _pid=id;
+    document.getElementById("del-att-name").textContent=name;
+    openM("m-del-attempt");
+  },
+  async doDelAttempt(){
+    const id=_pid;_pid=null;closeM("m-del-attempt");
+    try{
+      await dbDel(`attempts/${id}`);
+      attempts=attempts.filter(a=>a.id!==id);
+      renderAttempts();renderDashAtt();renderStats();updateBadges();
+      toast("Спробу видалено");
+    }catch(e){toast("Помилка: "+e.message,"err");}
+  },
+  viewAtt(id){
+    const a=attempts.find(x=>x.id===id),t=tests.find(x=>x.id===a?.testId);
+    if(!a){
+      toast("Спробу видалено — деталі недоступні","err");
+      return;
+    }
+    if(!t){
+      toast("Тест видалено — деталі недоступні","err");
+      return;
+    }
+    // Використовуємо snapshot питань зі спроби (незмінна версія на момент проходження)
+    // або поточні питання тесту якщо snapshot відсутній (старі спроби)
+    let qs=a.questionsSnapshot||t.questions||[];
+    if(!Array.isArray(qs)) qs=Object.values(qs); // RTDB конвертація
+    const am={};
+    (a.answers||[]).forEach(x=>{am[x.questionId]=x;});
+    const qh=qs.map((q,i)=>{
+      const ans=am[q.id]||{},cls=ans.correct?"ok":ans.partial?"pt":"no",ic=ans.correct?"✅":ans.partial?"⚠️":"❌";
+      let vStr="";
+      if(q.type==="single"||q.type==="multi"){const idx=Array.isArray(ans.value)?ans.value:[ans.value].filter(v=>v!==undefined);vStr=idx.map(i=>(q.options||[])[i]).filter(Boolean).join(", ")||"—";}
+      else vStr=ans.value||"—";
+      return`<div class="qr ${cls}"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:12px;color:var(--muted)">Питання ${i+1}</span><span>${ic}</span></div><div style="font-weight:500;margin-bottom:5px">${stripHtml(q.text)}</div><div style="font-size:13px;color:var(--muted)">Відповідь: <strong style="color:var(--text)">${esc(vStr)}</strong></div></div>`;
+    }).join("");
+    const suspicious=a.tabSwitches||a.copyAttempts||a.screenshots||(a.suspiciousEvents?.length);
+    const suspHtml=suspicious?`<div style="margin-top:12px;padding:12px 16px;background:linear-gradient(135deg,#be123c,#9f1239);border:1.5px solid rgba(244,63,94,.4);border-radius:12px;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-size:16px">⚠️</span>
+      <span style="color:white;font-weight:700;font-size:13px">Підозріла активність</span>
+      ${a.tabSwitches?`<span style="background:rgba(255,255,255,.2);color:white;padding:3px 10px;border-radius:20px;font-weight:600">Вкладки: ${a.tabSwitches}</span>`:""}
+      ${a.copyAttempts?`<span style="background:rgba(255,255,255,.2);color:white;padding:3px 10px;border-radius:20px;font-weight:600">Копіювання: ${a.copyAttempts}</span>`:""}
+      ${a.screenshots?`<span style="background:rgba(255,255,255,.2);color:white;padding:3px 10px;border-radius:20px;font-weight:600">📸 Скріншоти: ${a.screenshots}</span>`:""}
+    </div>`:"";
+    $("att-det").innerHTML=`<div class="dh"><div style="font-size:12px;opacity:.7;margin-bottom:3px">Результат тесту</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:20px;margin-bottom:2px">${esc(a.name)} ${esc(a.surname)}</div><div style="opacity:.7;margin-bottom:14px">${esc(t.title)} · ${timeAgo(a.createdAt)}</div><div style="display:flex;gap:22px"><div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:38px;letter-spacing:-2px">${a.grade12??"—"}<span style="font-size:18px;opacity:.6">/12</span></div><div style="opacity:.7;font-size:13px">Оцінка</div></div><div style="display:flex;flex-direction:column;gap:3px;justify-content:center"><div style="font-size:13px">✅ Правильних: <strong>${a.score?.correct??"—"}</strong></div><div style="font-size:13px">❌ Неправильних: <strong>${a.score?.incorrect??"—"}</strong></div><div style="font-size:13px">📊 Відсоток: <strong>${a.score?.percent??"—"}%</strong></div></div></div>${suspHtml}</div>${a.aiComment?`<div style="background:rgba(45,91,227,.04);border:1.5px solid rgba(45,91,227,.1);border-radius:13px;padding:14px 18px;margin-bottom:16px"><div style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--primary);font-weight:600;margin-bottom:7px">✦ AI Коментар</div><div style="font-size:14px;line-height:1.7;font-style:italic">${esc(a.aiComment)}</div></div>`:""}
+<button class="btn bs btn-sm" style="margin-bottom:14px;font-size:13px" onclick="G.personalAnalysis('${a.id}')">✦ Персональний розбір помилок</button>
+<div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;margin-bottom:10px">Відповіді</div>${qh||'<div style="color:var(--muted);font-size:14px">Відповіді недоступні</div>'}`;
+    openM("m-attempt");
+  },
+
+  async personalAnalysis(attId){
+    const a=attempts.find(x=>x.id===attId);
+    const t=tests.find(x=>x.id===a?.testId);
+    if(!a||!t) return;
+    const btn=document.querySelector(`button[onclick="G.personalAnalysis('${attId}')"]`);
+    if(btn){ btn.disabled=true; btn.textContent="⏳ Аналізую..."; }
+
+    const qs=a.questionsSnapshot||t.questions||[];
+    const wrongs=qs.filter((q,i)=>{
+      const ans=(a.answers||[]).find(x=>x.questionId===q.id);
+      return ans && !ans.correct && !ans.partial && !ans.pending;
+    });
+
+    if(!wrongs.length){
+      toast("Всі відповіді правильні — нема що розбирати! 🎉");
+      if(btn){btn.disabled=false;btn.textContent="✦ Персональний розбір помилок";}
+      return;
+    }
+
+    const details=wrongs.map((q,i)=>{
+      const ans=(a.answers||[]).find(x=>x.questionId===q.id);
+      let studentAns="не відповів";
+      if(q.type==="single"||q.type==="multi"){
+        const idx=Array.isArray(ans?.value)?ans.value:[ans?.value].filter(v=>v!=null);
+        studentAns=idx.map(i=>(q.options||[])[i]).filter(Boolean).join(", ")||"—";
+      } else studentAns=ans?.value||"—";
+      const correct=q.type==="text"?q.correct:(Array.isArray(q.correct)?q.correct.map(i=>(q.options||[])[i]).join(", "):q.correct);
+      return `${i+1}. Питання: "${q.text}"
+   Студент відповів: "${studentAns}"
+   Правильна відповідь: "${correct}"`;
+    }).join("\n\n");
+
+    try{
+      const GROQ_URL="https://api.groqcloud.com/openai/v1/chat/completions";
+      const GROQ_KEY="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";
+      const prompt=`Розбери помилки студента по кожному питанню окремо.
+
+Тест: "${t.title}"
+
+${details}
+
+Для кожної помилки пиши в такому форматі (без зірочок і markdown):
+Ти помилився у питанні про [тема]. Ти відповів: [відповідь]. Правильна відповідь: [правильно]. [Одне речення чому]
+
+Після всіх помилок — один рядок загальної поради.
+Відповідай тільки українською.`
+
+      const res=await fetch("https://api.groq.com/openai/v1/chat/completions",{
+        method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${GROQ_KEY}`},
+        body:JSON.stringify({model:"llama-3.3-70b-versatile",messages:[
+          {role:"system",content:"Відповідай ВИКЛЮЧНО українською мовою як доброзичливий викладач-репетитор."},
+          {role:"user",content:prompt}
+        ],max_tokens:800,temperature:0.4})
+      });
+      const d=await res.json();
+      const analysis=d.choices?.[0]?.message?.content||"";
+
+      // Показуємо в модалі
+      const box=document.getElementById("att-det");
+      if(box){
+        const div=document.createElement("div");
+        div.style.cssText="margin-top:16px;background:rgba(45,91,227,.04);border:1.5px solid rgba(45,91,227,.1);border-radius:13px;padding:16px 20px";
+        div.innerHTML=`<div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--primary);font-weight:600;margin-bottom:8px">✦ Розбір помилок</div><div style="font-size:14px;line-height:1.65;color:var(--text)">${esc(analysis)}</div>`;
+        box.appendChild(div);
+      }
+      toast("Розбір готовий!");
+    }catch(e){toast("Помилка AI: "+e.message,"err");}
+    if(btn){btn.disabled=false;btn.textContent="✦ Персональний розбір помилок";}
+  },
+
+  showStudents(lid){
+    const l=links.find(x=>x.id===lid),t=tests.find(x=>x.id===l?.testId),la=attempts.filter(a=>a.linkId===lid);
+    const base=location.origin+location.pathname.replace("index.html",""),url=`${base}test.html?link=${lid}`;
+    $("stud-det").innerHTML=`<div style="margin-bottom:18px"><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:19px;margin-bottom:3px">Студенти по посиланню</div><div style="font-size:13px;color:var(--muted)">${esc(t?.title||"—")} · ${l?.usedAttempts||0}/${l?.maxAttempts||0} спроб</div><div style="margin-top:8px;display:flex;align-items:center;gap:8px"><code style="font-size:12px;color:var(--primary);background:rgba(45,91,227,.06);padding:4px 10px;border-radius:7px">${url.replace(location.origin,"")}</code><button class="btn bs btn-sm" onclick="G.copyUrl('${url}')">Копіювати</button></div></div>${la.length?`<table class="tbl" style="border:1.5px solid var(--border);border-radius:13px;overflow:hidden"><thead><tr><th>Студент</th><th>Оцінка</th><th>Правильних</th><th>Статус</th><th>Дата</th><th></th></tr></thead><tbody>${la.map(a=>`<tr><td><strong>${esc(a.name)} ${esc(a.surname)}</strong></td><td>${a.grade12?`<span class="bdg ${grBdg(a.grade12)}">${a.grade12}/12</span>`:"—"}</td><td style="font-size:13px">${a.score?.correct??"—"}/${a.score?.total??"—"}</td><td><span class="bdg ${a.status==="completed"?"bg-g":a.status==="reviewing"?"bg-a":""}">
+  ${a.status==="completed"?"Завершено":a.status==="reviewing"?"⏳ Перевіряється":"В процесі"}
+</span></td><td style="font-size:12px;color:var(--muted)">${timeAgo(a.createdAt)}</td><td><div class="ra"><div class="ib" onclick="G.viewAtt('${a.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div></div></td></tr>`).join("")}</tbody></table>`:
+    `<div class="empty"><div class="ei">📭</div><div class="et">Ще немає спроб</div></div>`}`;
+    openM("m-students");
+  }
+};
+
+// NAV
+window.showSec = function(name){
+  ["dashboard","tests","attempts","links","analytics","notifications","gradebook","students","suspicious","online"].forEach(s=>{
+    document.getElementById(`sec-${s}`)?.classList.toggle("on",s===name);
+    document.getElementById(`ni-${s}`)?.classList.toggle("active",s===name);
+  });
+  if(name==="tests")          renderTests($("srch")?.value||"");
+  if(name==="attempts")       renderAttempts();
+  if(name==="links")          renderLinks();
+  if(name==="analytics")      G.initAnalytics();
+  if(name==="notifications")  G.renderNotifications();
+  if(name==="gradebook")      G.initGradebook();
+  if(name==="students")       G.initStudents();
+  if(name==="suspicious")     G.renderSuspicious();
+  if(name==="online")         { G.renderOnline(); G._onlineInterval=setInterval(G.renderOnline.bind(G),15000); }
+  else if(G._onlineInterval)  { clearInterval(G._onlineInterval); G._onlineInterval=null; }
+};
+
+// MODAL HELPERS
+function openM(id){document.getElementById(id)?.classList.add("on");}
+function closeM(id){document.getElementById(id)?.classList.remove("on");}
+window.openM=openM;window.closeM=closeM;
+
+function buildChips(){
+  const c=$("nt-chips");
+  const all=[...folders.map(f=>({id:f.id,name:f.name}))];
+  if(!all.length){c.innerHTML=`<span style="font-size:13px;color:var(--muted)">Немає папок — <span style="color:var(--primary);cursor:pointer" onclick="closeM('m-test');openM('m-folder')">створити папку</span></span>`;return;}
+  c.innerHTML=all.map(f=>`<span class="chip${_fid===f.id?" sel":""}" data-fid="${f.id}" onclick="selChip(this,'${f.id}')"">📁 ${esc(f.name)}</span>`).join("")+
+    `<span class="chip${!_fid?" sel":""}" onclick="selChip(this,'')">— Без папки</span>`;
+}
+window.selChip=(el,fid)=>{
+  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("sel"));
+  el.classList.add("sel");_fid=fid||null;
+};
+
+// Override openM for test modal
+const _origOpenM=openM;
+window.openM=function(id){
+  if(id==="m-test"){
+    _fid=null;
+    ["nt-n","nt-d","nt-tg"].forEach(i=>{const e=$(i);if(e)e.value="";});
+    $("nt-tm").value="10";
+    buildChips();
+    _origOpenM(id);
+    setTimeout(()=>$("nt-n").focus(),100);
+  } else {
+    _origOpenM(id);
+  }
+};
+
+// MODAL CLOSE
+document.querySelectorAll(".mo").forEach(o=>o.addEventListener("click",e=>{if(e.target===o)o.classList.remove("on");}));
+// Закриваємо кастомні дропдауни при кліку поза
+document.addEventListener("click",(e)=>{
+  if(!e.target.closest(".cd-wrap")){
+    document.querySelectorAll(".cd-menu.open").forEach(m=>m.classList.remove("open"));
+    document.querySelectorAll(".cd-btn.active").forEach(b=>{
+      if(b.closest(".cd-wrap")?.querySelector(".cd-menu select")?.value==="" ||
+         !b.closest(".cd-wrap")?.querySelector("select")?.value){
+        b.classList.remove("active");
+      }
+    });
+  }
+});
+document.querySelectorAll(".mcl").forEach(b=>b.addEventListener("click",()=>b.closest(".mo")?.classList.remove("on")));
+
+// FILTERS
+["ft","fst","fg","fgrp"].forEach(id=>$(id)?.addEventListener("change",renderAttempts));
+
+// SEARCH
+$("srch")?.addEventListener("input",function(){
+  const sec=document.querySelector(".sec.on")?.id?.replace("sec-","");
+  if(sec==="tests") renderTests(this.value);
+  if(sec==="attempts") renderAttempts();
+});
+
+// INIT
+loadAll().then(() => {
+  // Відновлюємо активну вкладку якщо прийшли з конструктора
+  const nav = sessionStorage.getItem("qf_nav");
+  if (nav) {
+    sessionStorage.removeItem("qf_nav");
+    showSec(nav);
+  }
+});
+</script>
+</body>
+</html>

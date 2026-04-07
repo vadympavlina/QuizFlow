@@ -1,0 +1,2881 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%230d9e85'/><stop offset='1' stop-color='%23077a67'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='8' y='6' width='16' height='20' rx='2' fill='white' opacity='.9'/><rect x='11' y='10' width='10' height='1.8' rx='.9' fill='%230d9e85'/><rect x='11' y='14' width='7' height='1.8' rx='.9' fill='%230d9e85'/><polyline points='10,20 13,23 20,17' fill='none' stroke='%230d9e85' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<title>QuizFlow — Тест</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f0f3fa;--primary:#2d5be3;--primary-light:#4d78ff;
+    --teal:#14d4b4;--rose:#f43f5e;--amber:#f59e0b;
+    --text:#0d1340;--text-muted:#6b7280;--light:#9ca3af;
+    --card:#ffffff;--border:rgba(45,91,227,0.1);
+    --shadow-sm:0 2px 8px rgba(45,91,227,.07);
+    --shadow-md:0 8px 32px rgba(45,91,227,.12);
+    --shadow-lg:0 20px 60px rgba(45,91,227,.16);
+    --grad:linear-gradient(135deg,#2d5be3,#1a3ab8);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+  .screen{min-height:100vh;display:none}
+  .screen.flex{display:flex}
+
+  /* LOADING */
+  #loadingScreen{align-items:center;justify-content:center;flex-direction:column;gap:16px}
+  .loader-spinner{width:40px;height:40px;border:3px solid rgba(45,91,227,0.15);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{font-size:14px;color:var(--text-muted)}
+
+  /* ── ENTRY ────────────────────────────────────────────────────────────────── */
+  #entryScreen{align-items:center;justify-content:center;padding:24px;
+    background:linear-gradient(160deg,#eef2fb 0%,#e4ebf8 50%,#dce6f5 100%);
+    position:relative;overflow:hidden}
+  #entryScreen::before{content:'';position:absolute;width:700px;height:700px;
+    background:radial-gradient(circle,rgba(45,91,227,.1),transparent 65%);
+    top:-200px;right:-200px;pointer-events:none;animation:bgPulse 8s ease-in-out infinite}
+  #entryScreen::after{content:'';position:absolute;width:500px;height:500px;
+    background:radial-gradient(circle,rgba(20,212,180,.07),transparent 65%);
+    bottom:-150px;left:-150px;pointer-events:none}
+  @keyframes bgPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+  @keyframes cardIn{from{opacity:0;transform:translateY(28px) scale(.97)}to{opacity:1;transform:none}}
+  .entry-card{background:white;border-radius:28px;padding:44px;width:100%;max-width:480px;
+    box-shadow:0 24px 80px rgba(45,91,227,.14),0 2px 8px rgba(45,91,227,.06);
+    position:relative;z-index:1;animation:cardIn .5s cubic-bezier(.34,1.56,.64,1) both}
+  .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+  .logo-mark{width:40px;height:40px;background:var(--grad);border-radius:12px;
+    display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;
+    font-weight:800;font-size:18px;color:white;box-shadow:0 4px 14px rgba(45,91,227,.4)}
+  .logo-name{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.3px}
+  .test-info-box{padding:20px;background:linear-gradient(135deg,rgba(45,91,227,.04),rgba(20,212,180,.03));
+    border-radius:18px;border:1.5px solid rgba(45,91,227,.1);margin-bottom:26px}
+  .test-info-title{font-family:'Syne',sans-serif;font-weight:700;font-size:21px;
+    letter-spacing:-.3px;margin-bottom:12px;line-height:1.25}
+  .test-info-meta{display:flex;gap:12px;flex-wrap:wrap}
+  .meta-item{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--text-muted);
+    background:rgba(45,91,227,.05);padding:4px 10px;border-radius:20px}
+  .meta-item svg{width:12px;height:12px;flex-shrink:0}
+  .field-group{margin-bottom:14px}
+  .field-label{font-size:11px;letter-spacing:.7px;text-transform:uppercase;
+    color:var(--text-muted);margin-bottom:7px;font-weight:600}
+  .field-input{width:100%;padding:14px 18px;border-radius:14px;border:2px solid var(--border);
+    font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);outline:none;
+    transition:border-color .2s,box-shadow .2s;background:#fafbff}
+  .field-input:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(45,91,227,.08);background:white}
+  .start-btn{width:100%;padding:16px;background:var(--grad);color:white;border:none;
+    border-radius:16px;font-family:'Syne',sans-serif;font-weight:700;font-size:16px;
+    cursor:pointer;transition:all .2s;box-shadow:0 8px 28px rgba(45,91,227,.35);margin-top:8px;
+    letter-spacing:.2px}
+  .start-btn:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(45,91,227,.45)}
+  .start-btn:active{transform:translateY(0)}
+  .start-btn:disabled{opacity:.6;transform:none;cursor:not-allowed}
+
+  /* ── TEST SCREEN ────────────────────────────────────────────────────────────── */
+  #testScreen{flex-direction:column;background:var(--bg)}
+  .test-topbar{display:flex;flex-direction:column;background:white;
+    border-bottom:1px solid rgba(45,91,227,.08);position:sticky;top:0;z-index:50;
+    box-shadow:0 2px 12px rgba(45,91,227,.06)}
+  .test-topbar-row1{display:flex;align-items:center;padding:11px 22px;gap:12px}
+  .test-logo{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;
+    display:flex;align-items:center;gap:8px;white-space:nowrap;color:var(--text)}
+  .test-logo .logo-mark{width:28px;height:28px;font-size:12px}
+  .test-timer{display:flex;align-items:center;gap:6px;padding:6px 14px;
+    background:rgba(45,91,227,.07);border-radius:20px;font-family:'Syne',sans-serif;
+    font-weight:700;font-size:13px;color:var(--primary);margin-left:auto;letter-spacing:.2px}
+  .test-timer.warn{background:rgba(244,63,94,.09);color:var(--rose);animation:timerWarn 1s ease infinite}
+  @keyframes timerWarn{0%,100%{opacity:1}50%{opacity:.7}}
+  .test-timer svg{width:14px;height:14px}
+  .q-navigator{display:flex;align-items:center;gap:5px;padding:9px 22px;
+    overflow-x:auto;flex-wrap:wrap;border-top:1px solid rgba(45,91,227,.05);background:#fafbff}
+  .q-dot{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+    font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer;
+    transition:all .18s;flex-shrink:0;border:1.5px solid var(--border);background:white;color:var(--light)}
+  .q-dot:hover{border-color:var(--primary);color:var(--primary);background:rgba(45,91,227,.04)}
+  .q-dot.current{background:var(--primary);border-color:var(--primary);color:white;
+    transform:scale(1.12);box-shadow:0 4px 12px rgba(45,91,227,.35)}
+  .q-dot.answered{background:rgba(45,91,227,.09);border-color:rgba(45,91,227,.28);color:var(--primary)}
+  .q-dot.answered.current{background:var(--primary);color:white}
+
+
+  /* Rich text у питанні */
+  .qf-rich b,.qf-rich strong{font-weight:800}
+  .qf-rich i,.qf-rich em{font-style:italic}
+  .qf-rich u{text-decoration:underline}
+  /* ── ПИТАННЯ ─────────────────────────────────────────────────────────────── */
+  .question-area{flex:1;display:flex;align-items:flex-start;justify-content:center;
+    padding:32px 20px 48px}
+  .question-card{width:100%;max-width:760px;animation:slideIn .3s cubic-bezier(.34,1.56,.64,1) both}
+  @keyframes slideIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+  .q-header{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+  .q-number{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;
+    background:rgba(45,91,227,.09);border-radius:20px;font-size:12px;color:var(--primary);
+    font-weight:700;letter-spacing:.3px}
+  .q-type-badge{padding:4px 10px;background:rgba(20,212,180,.1);color:#0b9e82;
+    border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.2px}
+  .q-text{font-family:'Syne',sans-serif;font-weight:700;font-size:22px;line-height:1.38;
+    letter-spacing:-.4px;margin-bottom:26px;color:var(--text)}
+  .q-options-label{font-size:12px;text-transform:uppercase;letter-spacing:.8px;
+    color:var(--light);font-weight:600;margin-bottom:12px}
+
+  /* ── ВАРІАНТИ ─────────────────────────────────────────────────────────────── */
+  .choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px}
+  .choice-item{padding:16px 18px;background:white;border:2px solid rgba(45,91,227,.1);
+    border-radius:16px;cursor:pointer;transition:all .18s;display:flex;align-items:center;
+    gap:12px;position:relative;overflow:hidden;box-shadow:var(--shadow-sm)}
+  .choice-item::before{content:'';position:absolute;inset:0;background:var(--primary);
+    opacity:0;transition:opacity .2s}
+  .choice-item:hover{border-color:rgba(45,91,227,.3);transform:translateY(-2px);
+    box-shadow:0 6px 20px rgba(45,91,227,.12)}
+  .choice-item.selected{border-color:var(--primary);background:rgba(45,91,227,.04);
+    box-shadow:0 4px 16px rgba(45,91,227,.16)}
+  .choice-item.selected .choice-marker{background:var(--primary);border-color:var(--primary);color:white}
+  .choice-marker{width:32px;height:32px;border-radius:10px;border:2px solid rgba(45,91,227,.18);
+    display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;
+    font-weight:800;font-size:12px;color:var(--primary);flex-shrink:0;transition:all .18s;
+    background:rgba(45,91,227,.06);letter-spacing:0}
+  .choice-text{font-size:14px;line-height:1.45;font-weight:500;color:var(--text)}
+
+  /* ── ТЕКСТОВА ВІДПОВІДЬ ───────────────────────────────────────────────────── */
+  .text-answer{width:100%;padding:16px 18px;background:white;border:2px solid rgba(45,91,227,.1);
+    border-radius:16px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);
+    outline:none;transition:all .2s;resize:vertical;min-height:56px;margin-bottom:28px;
+    line-height:1.55;box-shadow:var(--shadow-sm)}
+  .text-answer:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(45,91,227,.08),var(--shadow-sm)}
+  .text-answer::placeholder{color:rgba(107,114,128,.45)}
+
+  /* ── ЗІСТАВЛЕННЯ ──────────────────────────────────────────────────────────── */
+  .matching-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:10px 14px;
+    align-items:center;margin-bottom:28px}
+  .match-left{padding:13px 17px;background:white;border:2px solid rgba(45,91,227,.1);
+    border-radius:14px;font-size:14px;font-weight:500;box-shadow:var(--shadow-sm)}
+  .match-connector{width:28px;height:2px;background:rgba(45,91,227,.18);position:relative}
+  .match-connector::after{content:'→';position:absolute;right:-7px;top:-11px;
+    font-size:14px;color:rgba(45,91,227,.4)}
+  .match-select{padding:12px 14px;background:white;border:2px solid rgba(45,91,227,.1);
+    border-radius:14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);
+    outline:none;cursor:pointer;transition:border-color .2s;appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;
+    width:100%;box-shadow:var(--shadow-sm)}
+  .match-select:focus{border-color:var(--primary)}
+
+  /* ── ВПОРЯДКУВАННЯ ────────────────────────────────────────────────────────── */
+  .ordering-list{display:flex;flex-direction:column;gap:8px;margin-bottom:28px}
+  .order-item{display:flex;align-items:center;gap:12px;padding:14px 17px;background:white;
+    border:2px solid rgba(45,91,227,.1);border-radius:15px;cursor:grab;transition:all .2s;
+    user-select:none;box-shadow:var(--shadow-sm)}
+  .order-item:hover{border-color:rgba(45,91,227,.28);box-shadow:0 5px 18px rgba(45,91,227,.1)}
+  .order-item.dragging{opacity:.45;border-color:var(--primary);box-shadow:0 8px 28px rgba(45,91,227,.2)}
+  .order-handle{display:flex;flex-direction:column;gap:3.5px;flex-shrink:0;padding:2px}
+  .order-handle span{display:block;width:16px;height:2px;background:rgba(107,114,128,.35);border-radius:1px}
+  .order-num{width:28px;height:28px;border-radius:9px;background:rgba(45,91,227,.09);
+    display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;
+    font-weight:800;font-size:12px;color:var(--primary);flex-shrink:0}
+  .order-text{font-size:14px;flex:1;font-weight:500}
+
+  /* ── НАВІГАЦІЯ ─────────────────────────────────────────────────────────────── */
+  .q-nav{display:flex;gap:10px;align-items:center;padding-top:6px}
+  .q-nav-btn{display:flex;align-items:center;gap:8px;padding:13px 24px;border-radius:14px;
+    font-family:'Syne',sans-serif;font-size:14px;font-weight:600;cursor:pointer;
+    transition:all .2s;border:none;letter-spacing:.2px}
+  .q-nav-btn.prev{background:white;border:2px solid rgba(45,91,227,.12);color:var(--text-muted);
+    box-shadow:var(--shadow-sm)}
+  .q-nav-btn.prev:hover{border-color:var(--primary);color:var(--primary);
+    box-shadow:0 4px 16px rgba(45,91,227,.12)}
+  .q-nav-btn.next{background:var(--grad);color:white;
+    box-shadow:0 6px 22px rgba(45,91,227,.35);flex:1;justify-content:center}
+  .q-nav-btn.next:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(45,91,227,.45)}
+  .q-nav-btn.finish{background:linear-gradient(135deg,#14d4b4,#0d9e85);color:white;
+    box-shadow:0 6px 22px rgba(20,212,180,.35);flex:1;justify-content:center}
+  .q-nav-btn.finish:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(20,212,180,.45)}
+
+  /* ── PROCESSING ─────────────────────────────────────────────────────────────── */
+  #processingScreen{align-items:center;justify-content:center;flex-direction:column;
+    gap:20px;background:linear-gradient(160deg,#eef2fb,#e4ebf8)}
+  .processing-card{background:white;border-radius:28px;padding:52px 48px;text-align:center;
+    box-shadow:var(--shadow-lg);animation:cardIn .4s ease both;max-width:380px}
+  .processing-icon{font-size:52px;margin-bottom:18px;animation:pulse 1.6s ease infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+
+  /* ── RESULT ──────────────────────────────────────────────────────────────────── */
+  #resultScreen{align-items:center;justify-content:center;padding:36px 20px;
+    background:linear-gradient(160deg,#eef2fb 0%,#e4ebf8 100%)}
+  .result-card{width:100%;max-width:620px;animation:cardIn .5s cubic-bezier(.34,1.56,.64,1) both;
+    border-radius:28px;overflow:hidden;box-shadow:var(--shadow-lg)}
+  .result-header{background:linear-gradient(160deg,#2d5be3 0%,#1a3ab8 70%,#1530a0 100%);
+    padding:40px 36px;color:white;text-align:center;position:relative;overflow:hidden}
+  .result-header::before{content:'';position:absolute;width:350px;height:350px;border-radius:50%;
+    background:rgba(255,255,255,.07);top:-120px;right:-100px}
+  .result-header::after{content:'';position:absolute;width:200px;height:200px;border-radius:50%;
+    background:rgba(255,255,255,.04);bottom:-80px;left:-60px}
+  .result-emoji{font-size:52px;margin-bottom:16px;position:relative;z-index:1}
+  .result-student-name{font-size:13px;opacity:.75;margin-bottom:4px;letter-spacing:.3px;
+    position:relative;z-index:1}
+  .result-test-name{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;
+    letter-spacing:-.3px;margin-bottom:24px;position:relative;z-index:1;line-height:1.2}
+  .grade-big{display:inline-flex;align-items:baseline;gap:4px;
+    background:rgba(255,255,255,.13);padding:18px 44px;border-radius:22px;
+    backdrop-filter:blur(12px);border:1.5px solid rgba(255,255,255,.22);position:relative;z-index:1}
+  .grade-main{font-family:'DM Sans',sans-serif;font-weight:700;font-size:72px;line-height:1}
+  .grade-denom{font-family:'DM Sans',sans-serif;font-weight:400;font-size:26px;
+    opacity:.5;margin-bottom:7px;margin-left:2px}
+  .result-body{background:white;padding:30px 36px}
+  .result-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+  .result-stat{text-align:center;padding:16px 10px;background:rgba(45,91,227,.04);
+    border-radius:16px;border:1.5px solid rgba(45,91,227,.07)}
+  .result-stat-val{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:var(--primary)}
+  .result-stat-label{font-size:11px;color:var(--text-muted);margin-top:4px;
+    text-transform:uppercase;letter-spacing:.5px;font-weight:500}
+  .ai-comment-box{background:linear-gradient(135deg,rgba(45,91,227,.04),rgba(20,212,180,.03));
+    border:1.5px solid rgba(45,91,227,.1);border-radius:18px;padding:20px 24px;margin-bottom:22px}
+  .ai-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.6px;
+    text-transform:uppercase;color:var(--primary);font-weight:700;margin-bottom:10px}
+  .ai-badge::before{content:'✦';font-size:11px}
+  .ai-comment-text{font-size:15px;line-height:1.7;color:var(--text);font-style:italic}
+  .result-actions{display:flex;gap:10px}
+  .result-btn{flex:1;padding:14px;border-radius:15px;font-family:'Syne',sans-serif;
+    font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;border:none;
+    display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.2px}
+  .result-btn.primary{background:var(--grad);color:white;box-shadow:0 6px 22px rgba(45,91,227,.35)}
+  .result-btn.secondary{background:rgba(45,91,227,.07);color:var(--primary);
+    border:2px solid rgba(45,91,227,.12)}
+  .result-btn:hover{transform:translateY(-2px)}
+
+  /* ── ERROR ───────────────────────────────────────────────────────────────────── */
+  #errorScreen{align-items:center;justify-content:center;padding:24px;
+    background:linear-gradient(160deg,#eef2fb,#e4ebf8)}
+  .error-card{background:white;border-radius:28px;padding:52px 44px;text-align:center;
+    max-width:440px;box-shadow:var(--shadow-lg);animation:cardIn .4s ease both}
+  .error-icon{font-size:56px;margin-bottom:18px}
+  .error-title{font-family:'Syne',sans-serif;font-weight:700;font-size:23px;margin-bottom:10px;
+    letter-spacing:-.3px}
+  .error-msg{font-size:15px;color:var(--text-muted);line-height:1.65}
+
+  @media(max-width:680px){
+    /* Entry screen */
+    .entry-card{padding:28px 20px;margin:12px;border-radius:20px}
+    .test-info-box{padding:14px 16px}
+    .test-info-title{font-size:18px}
+    .field-input{font-size:16px}
+    .start-btn{font-size:15px;padding:14px}
+
+    /* Onboarding */
+    .ob-card{padding:28px 20px;margin:12px;border-radius:20px}
+    .ob-title{font-size:19px}
+    .ob-btn{font-size:15px;padding:14px}
+
+    /* Test screen */
+    .test-topbar-row1{padding:10px 14px;gap:8px}
+    .test-logo{font-size:15px}.test-logo .logo-mark{width:26px;height:26px;font-size:11px}
+    .test-timer{font-size:13px;padding:6px 11px}
+    .q-navigator{padding:8px 12px;gap:4px}
+    .q-dot{width:30px;height:30px;border-radius:8px;font-size:12px}
+    .question-area{padding:14px 14px 80px}
+    .question-card{padding:18px 16px;border-radius:16px}
+    .q-number{font-size:12px}
+    .q-text{font-size:17px;line-height:1.45}
+    .q-type-badge{font-size:10px}
+
+    /* Choices */
+    .choices-grid{grid-template-columns:1fr;gap:8px}
+    .choice-item{padding:12px 14px}
+    .choice-marker{width:28px;height:28px;font-size:13px}
+    .choice-text{font-size:14px}
+
+    /* Matching */
+    .matching-grid{grid-template-columns:1fr}
+    .match-connector{display:none}
+    .match-select{font-size:14px;padding:8px 10px}
+
+    /* Navigation buttons */
+    .q-nav{gap:8px;padding-top:14px}
+    .q-nav-btn{padding:12px 16px;font-size:14px}
+    .q-nav-btn.prev{flex-shrink:0;min-width:80px}
+
+    /* Result */
+    .result-card{margin:12px;border-radius:20px}
+    .result-header{padding:22px 18px}
+    .result-student-name{font-size:13px}
+    .result-test-name{font-size:16px}
+    .grade-big{padding:12px 28px}
+    .grade-main{font-size:58px}
+    .grade-denom{font-size:20px}
+    .result-body{padding:18px 16px}
+    .result-stats{grid-template-columns:repeat(3,1fr);gap:8px}
+    .result-stat{padding:10px 8px}
+    .result-stat-val{font-size:18px}
+    .result-stat-label{font-size:11px}
+    .result-actions{flex-direction:column;gap:8px}
+    .result-btn{padding:13px}
+
+    /* Processing */
+    .processing-card{padding:32px 20px;margin:12px}
+
+    /* Error */
+    .error-card{padding:32px 20px;margin:12px}
+
+    /* Unanswered modal */
+    .un-box{padding:24px 18px;border-radius:18px;margin:12px}
+    .un-q-item{padding:8px 10px}
+    .un-btn-finish,.un-btn-back{font-size:14px;padding:12px}
+  }
+
+  /* ONBOARDING */
+  #onboardingScreen{align-items:center;justify-content:center;padding:24px;background:linear-gradient(135deg,#f0f3fa,#e8edf8);position:relative;overflow:hidden}
+  #onboardingScreen::before{content:'';position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(45,91,227,0.08),transparent 70%);top:-150px;right:-150px;pointer-events:none}
+  .ob-card{background:white;border-radius:28px;padding:40px 36px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(45,91,227,0.12);position:relative;animation:cardIn .4s cubic-bezier(.34,1.56,.64,1)}
+  .ob-dots{display:flex;gap:7px;justify-content:center;margin-bottom:32px}
+  .ob-dot{width:8px;height:8px;border-radius:50%;background:rgba(45,91,227,.15);transition:all .3s}
+  .ob-dot.active{width:24px;border-radius:4px;background:var(--primary)}
+  .ob-icon{width:72px;height:72px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 20px;position:relative}
+  .ob-icon::after{content:'';position:absolute;inset:-6px;border-radius:24px;background:inherit;opacity:.15;z-index:-1}
+  .ob-step{display:none;animation:fadeSlide .35s ease}
+  .ob-step.active{display:block}
+  @keyframes fadeSlide{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+  .ob-title{font-family:'Syne',sans-serif;font-weight:700;font-size:22px;color:var(--text);text-align:center;margin-bottom:10px;letter-spacing:-.3px}
+  .ob-desc{font-size:15px;color:var(--text-muted);text-align:center;line-height:1.65;margin-bottom:28px}
+  .ob-tips{display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+  .ob-tip{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;background:rgba(45,91,227,.04);border-radius:12px;font-size:14px;line-height:1.5}
+  .ob-tip-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+  .ob-btn{width:100%;padding:15px;border-radius:15px;border:none;background:linear-gradient(135deg,#2d5be3,#1a3ab8);color:white;font-family:'Syne',sans-serif;font-weight:600;font-size:16px;cursor:pointer;transition:all .2s;box-shadow:0 6px 20px rgba(45,91,227,.3)}
+  .ob-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(45,91,227,.4)}
+  .ob-btn-skip{width:100%;padding:10px;background:none;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;margin-top:8px}
+  .ob-btn-skip:hover{color:var(--primary)}
+  .ob-progress{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .ob-progress-step{font-size:12px;color:var(--text-muted)}
+
+  /* UNANSWERED MODAL */
+  .un-modal{position:fixed;inset:0;background:rgba(10,15,46,.5);backdrop-filter:blur(6px);z-index:999;display:none;align-items:center;justify-content:center;padding:20px}
+  .un-modal.open{display:flex}
+  .un-box{background:white;border-radius:24px;padding:32px 28px;width:100%;max-width:400px;box-shadow:0 24px 80px rgba(0,0,0,.18);animation:cardIn .35s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes cardIn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
+  .un-q-list{display:flex;flex-direction:column;gap:6px;margin:16px 0 20px;max-height:200px;overflow-y:auto}
+  .un-q-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:rgba(244,63,94,.05);border:1.5px solid rgba(244,63,94,.15);border-radius:11px;cursor:pointer;transition:all .15s}
+  .un-q-item:hover{background:rgba(244,63,94,.1);border-color:rgba(244,63,94,.3)}
+  .un-q-num{width:26px;height:26px;border-radius:7px;background:rgba(244,63,94,.12);color:#be123c;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .un-q-text{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .un-actions{display:flex;flex-direction:column;gap:8px}
+  .un-btn-finish{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#2d5be3,#1a3ab8);color:white;font-family:'Syne',sans-serif;font-weight:600;font-size:15px;cursor:pointer;transition:all .2s}
+  .un-btn-finish:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(45,91,227,.35)}
+  .un-btn-back{width:100%;padding:12px;border-radius:14px;border:1.5px solid var(--border);background:white;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:15px;cursor:pointer;transition:all .15s}
+  .un-btn-back:hover{border-color:var(--primary);color:var(--primary)}
+
+  /* ─── ТЕМНА ТЕМА ─────────────────────────────────────────────────────────── */
+  [data-theme="dark"] {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --border: rgba(255,255,255,0.08);
+    --text: #f0f3fa;
+    --text-muted: #8b92a9;
+    --primary: #4d78ff;
+    --teal: #14d4b4;
+    --rose: #f43f5e;
+  }
+  /* ── Загальне ── */
+  [data-theme="dark"] body { background: var(--bg); color: var(--text); }
+
+  /* ── Топбар і навігатор ── */
+  [data-theme="dark"] .test-topbar { background: #13161f; border-color: rgba(255,255,255,.07); }
+  [data-theme="dark"] .q-navigator { border-color: rgba(255,255,255,.06); background: #13161f; }
+  [data-theme="dark"] .q-dot { background: #1e2235; border-color: rgba(255,255,255,.1); color: #8b92a9; }
+  [data-theme="dark"] .q-dot:hover { border-color: var(--primary); color: var(--primary); background: rgba(77,120,255,.1); }
+  [data-theme="dark"] .q-dot.answered { background: rgba(77,120,255,.12); border-color: rgba(77,120,255,.35); color: #7ea8ff; }
+  [data-theme="dark"] .q-dot.current { background: var(--primary); border-color: var(--primary); color: #fff; }
+  [data-theme="dark"] .test-timer { background: rgba(77,120,255,.12); color: #7ea8ff; }
+  [data-theme="dark"] .test-timer.warn { background: rgba(244,63,94,.15); color: #ff6b85; }
+  [data-theme="dark"] .theme-toggle { border-color: rgba(255,255,255,.1); color: #8b92a9; }
+  [data-theme="dark"] .theme-toggle:hover { border-color: var(--primary); color: var(--primary); }
+
+  /* ── Питання ── */
+  [data-theme="dark"] .question-area { background: #0f1117; }
+  [data-theme="dark"] .question-card { background: #1a1d27; }
+  [data-theme="dark"] .q-navigator { background: #13161f; }
+  [data-theme="dark"] #resultScreen,
+  [data-theme="dark"] #processingScreen,
+  [data-theme="dark"] #entryScreen,
+  [data-theme="dark"] #onboardingScreen,
+  [data-theme="dark"] #errorScreen { background: linear-gradient(160deg,#0d1020,#111428); }
+  [data-theme="dark"] .result-card,
+  [data-theme="dark"] .result-body { background: #1a1d27; }
+  [data-theme="dark"] .result-stat { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.07); }
+  [data-theme="dark"] .result-stat-val { color: #7ea8ff; }
+  [data-theme="dark"] .result-stat-label { color: #8b92a9; }
+  [data-theme="dark"] .ai-comment-box { background: rgba(77,120,255,.07); border-color: rgba(77,120,255,.16); }
+  [data-theme="dark"] .ai-comment-text { color: #c8d0e8; }
+  [data-theme="dark"] .result-btn.secondary { background: rgba(77,120,255,.1); border-color: rgba(77,120,255,.2); color: #7ea8ff; }
+  [data-theme="dark"] .processing-card,
+  [data-theme="dark"] .error-card { background: #1a1d27; border: 1.5px solid rgba(255,255,255,.07); box-shadow: 0 16px 60px rgba(0,0,0,.5); }
+  [data-theme="dark"] .error-msg { color: #8b92a9; }
+  [data-theme="dark"] .q-text { color: #e8ecf8; }
+  [data-theme="dark"] .q-number { color: #8b92a9; }
+  [data-theme="dark"] .q-type-badge { background: rgba(77,120,255,.15); color: #7ea8ff; }
+
+  /* ── Варіанти відповідей ── */
+  [data-theme="dark"] .choice-item { background: #1e2235; border-color: rgba(255,255,255,.1); color: #d0d7f0; }
+  [data-theme="dark"] .choice-item:hover { background: rgba(77,120,255,.15); border-color: rgba(77,120,255,.5); color: #fff; }
+  [data-theme="dark"] .choice-item.selected { background: rgba(77,120,255,.22); border-color: var(--primary); color: #fff; }
+  [data-theme="dark"] .choice-marker { background: rgba(255,255,255,.08); color: #8b92a9; }
+  [data-theme="dark"] .choice-item.selected .choice-marker { background: var(--primary); color: white; }
+
+  /* ── Кнопки навігації ── */
+  [data-theme="dark"] .q-nav-btn.prev { background: #1e2235; border-color: rgba(255,255,255,.1); color: #8b92a9; }
+  [data-theme="dark"] .q-nav-btn.prev:hover { border-color: rgba(255,255,255,.25); color: #d0d7f0; }
+
+  /* ── Поля вводу ── */
+  [data-theme="dark"] .field-input { background: #1e2235; border-color: rgba(255,255,255,.1); color: #e8ecf8; }
+  [data-theme="dark"] .field-input::placeholder { color: #4a5170; }
+  [data-theme="dark"] .field-input:focus { border-color: var(--primary); background: #22263a; }
+  [data-theme="dark"] textarea { background: #1e2235; border-color: rgba(255,255,255,.1); color: #e8ecf8; }
+  [data-theme="dark"] textarea:focus { border-color: var(--primary); }
+  [data-theme="dark"] input[type="text"],
+  [data-theme="dark"] input[type="number"] { background: #1e2235; border-color: rgba(255,255,255,.1); color: #e8ecf8; }
+
+  /* ── Карточки входу і онбордингу ── */
+  [data-theme="dark"] #entryScreen { background: linear-gradient(135deg,#0f1117,#141726); }
+  [data-theme="dark"] .entry-card { background: #1a1d27; border: 1.5px solid rgba(255,255,255,.08); box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  [data-theme="dark"] .test-info-box { background: rgba(77,120,255,.06); border-color: rgba(77,120,255,.15); }
+  [data-theme="dark"] .test-info-title { color: #e8ecf8; }
+  [data-theme="dark"] .meta-item { color: #8b92a9; }
+  [data-theme="dark"] .field-label { color: #8b92a9; }
+  [data-theme="dark"] #onboardingScreen { background: linear-gradient(135deg,#0f1117,#141726); }
+  [data-theme="dark"] .ob-card { background: #1a1d27; border: 1.5px solid rgba(255,255,255,.08); box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  [data-theme="dark"] .ob-title { color: #e8ecf8; }
+  [data-theme="dark"] .ob-desc { color: #8b92a9; }
+  [data-theme="dark"] .ob-tip { background: rgba(77,120,255,.07); border: 1px solid rgba(77,120,255,.12); color: #b0b8d8; }
+  [data-theme="dark"] .ob-btn-skip { color: #5a6078; }
+  [data-theme="dark"] .ob-btn-skip:hover { color: var(--primary); }
+
+  /* ── Обробка, помилка, результат (попапи на темному фоні) ── */
+  [data-theme="dark"] #processingScreen,
+  [data-theme="dark"] #errorScreen { background: #0f1117; }
+  [data-theme="dark"] .processing-card,
+  [data-theme="dark"] .error-card { background: #1a1d27; border: 1.5px solid rgba(255,255,255,.08); box-shadow: 0 16px 60px rgba(0,0,0,.5); color: #e8ecf8; }
+  [data-theme="dark"] .error-card h2,
+  [data-theme="dark"] .error-card p,
+  [data-theme="dark"] .error-card div { color: #b0b8d8; }
+
+  /* ── Результат ── */
+  [data-theme="dark"] .result-body { background: #1a1d27; }
+  [data-theme="dark"] .result-stat { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.08); }
+  [data-theme="dark"] .result-stat-val { color: #e8ecf8; }
+  [data-theme="dark"] .result-stat-label { color: #8b92a9; }
+  [data-theme="dark"] .ai-comment-box { background: rgba(77,120,255,.07); border-color: rgba(77,120,255,.18); }
+  [data-theme="dark"] .q-review-card { background: #1e2235; border-color: rgba(255,255,255,.08); }
+  [data-theme="dark"] .result-btn.secondary { background: #1e2235; border-color: rgba(255,255,255,.1); color: #d0d7f0; }
+
+  /* ── Модал пропущених питань ── */
+  [data-theme="dark"] .un-modal { background: rgba(0,0,0,.7); }
+  [data-theme="dark"] .un-box { background: #1a1d27; border: 1.5px solid rgba(255,255,255,.08); }
+  [data-theme="dark"] .un-q-item { background: rgba(244,63,94,.08); border-color: rgba(244,63,94,.2); }
+  [data-theme="dark"] .un-q-text { color: #d0d7f0; }
+  [data-theme="dark"] .un-btn-back { background: #1e2235; border-color: rgba(255,255,255,.1); color: #8b92a9; }
+
+  /* ── Підозріла активність (банер) ── */
+  [data-theme="dark"] #warningBanner { background: linear-gradient(90deg,#be123c,#9f1239) !important; color: white !important; }
+
+  /* ── Matching / Ordering ── */
+  [data-theme="dark"] .match-term { background: #1e2235; border-color: rgba(255,255,255,.1); color: #d0d7f0; }
+  [data-theme="dark"] .match-select { background: #1e2235; border-color: rgba(255,255,255,.1); color: #d0d7f0; }
+  [data-theme="dark"] .order-item { background: #1e2235; border-color: rgba(255,255,255,.1); color: #d0d7f0; }
+
+  /* Перемикач теми */
+  .theme-toggle { display:flex;align-items:center;gap:6px;cursor:pointer;padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--text-muted);font-size:13px;transition:all .2s }
+  .theme-toggle:hover { border-color:var(--primary);color:var(--primary) }
+  .theme-toggle-icon { font-size:15px }
+
+  /* ── КОЛЬОРОВІ ТЕМИ ──────────────────────────────────────────────────────── */
+  [data-color="green"]  { --primary:#0d9e85; --primary-light:#14d4b4; --grad:linear-gradient(135deg,#0d9e85,#0a7d6a); }
+  [data-color="purple"] { --primary:#9333ea; --primary-light:#a855f7; --grad:linear-gradient(135deg,#9333ea,#7e22ce); }
+  [data-color="orange"] { --primary:#ea7c00; --primary-light:#f59e0b; --grad:linear-gradient(135deg,#ea7c00,#b45309); }
+  [data-color="rose"]   { --primary:#e11d48; --primary-light:#f43f5e; --grad:linear-gradient(135deg,#e11d48,#be123c); }
+  [data-color="dark"]   {
+    --bg:#0f1117; --card:#1a1d27; --text:#f0f3fa; --text-muted:#8b92a9;
+    --border:rgba(255,255,255,.08); --primary:#4d78ff;
+    --grad:linear-gradient(135deg,#4d78ff,#2d5be3);
+  }
+  [data-color="dark"] body { background:#0f1117; color:#f0f3fa; }
+  [data-color="dark"] .entry-card,
+  [data-color="dark"] .question-card,
+  [data-color="dark"] .ob-card,
+  [data-color="dark"] .result-body,
+  [data-color="dark"] .processing-card,
+  [data-color="dark"] .error-card { background:#1a1d27; color:#f0f3fa; }
+  [data-color="dark"] .choice-item { background:#22263a; border-color:rgba(255,255,255,.1); color:#d0d7f0; }
+  [data-color="dark"] .test-topbar { background:#13161f; border-color:rgba(255,255,255,.07); }
+  [data-color="dark"] .q-navigator { background:#13161f; }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="screen flex" id="loadingScreen">
+  <div class="loader-spinner"></div>
+  <div class="loading-text">Завантаження тесту...</div>
+</div>
+
+<!-- ENTRY -->
+
+<!-- ONBOARDING -->
+<div class="screen" id="onboardingScreen" style="display:none">
+  <div class="ob-card">
+    <!-- Логотип -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:28px">
+      <div class="logo-mark" style="width:30px;height:30px;font-size:13px">Q</div>
+      <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:var(--text)">QuizFlow</span>
+    </div>
+
+    <!-- Прогрес-точки -->
+    <div class="ob-dots">
+      <div class="ob-dot active" id="ob-dot-0"></div>
+      <div class="ob-dot" id="ob-dot-1"></div>
+      <div class="ob-dot" id="ob-dot-2"></div>
+    </div>
+
+    <!-- КРОК 1 -->
+    <div class="ob-step active" id="ob-step-0">
+      <div class="ob-icon" style="background:rgba(45,91,227,.08)">👤</div>
+      <div class="ob-title">Введіть ваші дані</div>
+      <div class="ob-desc">Перш ніж розпочати, вкажіть своє ім'я та прізвище — вони з'являться у результатах</div>
+      <div class="ob-tips">
+        <div class="ob-tip"><span class="ob-tip-icon">✏️</span><span>Вказуйте справжні ім'я та прізвище, бо викладач бачить результати</span></div>
+        <div class="ob-tip"><span class="ob-tip-icon">🔒</span><span>Кожен студент може пройти тест лише один раз по цьому посиланню</span></div>
+      </div>
+      <button class="ob-btn" onclick="obNext()">Далі →</button>
+      <button class="ob-btn-skip" onclick="obSkip()">Пропустити</button>
+    </div>
+
+    <!-- КРОК 2 -->
+    <div class="ob-step" id="ob-step-1">
+      <div class="ob-icon" style="background:rgba(20,212,180,.08)">📋</div>
+      <div class="ob-title">Уважно відповідайте</div>
+      <div class="ob-desc">Переходьте між питаннями за допомогою кнопок або натисніть на номер питання зверху</div>
+      <div class="ob-tips">
+        <div class="ob-tip"><span class="ob-tip-icon">🔢</span><span>Натисніть на номер вгорі щоб швидко перейти до будь-якого питання</span></div>
+        <div class="ob-tip"><span class="ob-tip-icon">⏱</span><span>Стежте за таймером — час на проходження обмежений</span></div>
+        <div class="ob-tip"><span class="ob-tip-icon">✅</span><span>Ви можете повернутись і змінити відповідь до завершення</span></div>
+      </div>
+      <button class="ob-btn" onclick="obNext()">Далі →</button>
+      <button class="ob-btn-skip" onclick="obSkip()">Пропустити</button>
+    </div>
+
+    <!-- КРОК 3 -->
+    <div class="ob-step" id="ob-step-2">
+      <div class="ob-icon" style="background:rgba(245,158,11,.08)">📥</div>
+      <div class="ob-title">Завершіть та збережіть</div>
+      <div class="ob-desc">Після завершення тесту обов'язково завантажте результати собі</div>
+      <div class="ob-tips">
+        <div class="ob-tip"><span class="ob-tip-icon">✓</span><span>Натисніть «Завершити тест» коли відповіли на всі питання</span></div>
+        <div class="ob-tip"><span class="ob-tip-icon">📄</span><span>Після результатів натисніть <strong>«Завантажити»</strong> — збережеться HTML-файл з детальними відповідями та оцінкою</span></div>
+      </div>
+      <button class="ob-btn" onclick="obSkip()" style="background:linear-gradient(135deg,#14d4b4,#0d9e85);box-shadow:0 6px 20px rgba(20,212,180,.3)">Розпочати тест ✓</button>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="entryScreen">
+  <div class="entry-card">
+    <div class="logo-row">
+      <div class="logo-mark">Q</div>
+      <span class="logo-name">QuizFlow</span>
+    </div>
+    <div class="test-info-box">
+      <div class="test-info-title" id="infoTitle">—</div>
+      <div class="test-info-meta">
+        <div class="meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <span id="infoTime">—</span>
+        </div>
+        <div class="meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/></svg>
+          <span id="infoQuestions">—</span> питань
+        </div>
+        <div class="meta-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <span id="infoAttempts">—</span>
+        </div>
+        <div class="meta-item" id="infoGroupRow" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          <span id="infoGroup">—</span>
+        </div>
+      </div>
+    </div>
+    <div class="field-group">
+      <div class="field-label">Ім'я</div>
+      <input class="field-input" type="text" id="inputName" placeholder="Введіть ваше ім'я">
+    </div>
+    <div class="field-group">
+      <div class="field-label">Прізвище</div>
+      <input class="field-input" type="text" id="inputSurname" placeholder="Введіть ваше прізвище">
+    </div>
+    <button class="start-btn" id="startBtn">Розпочати тест →</button>
+  </div>
+</div>
+
+<!-- TEST -->
+<div class="screen" id="testScreen">
+  <div class="test-topbar">
+    <div class="test-topbar-row1">
+      <div class="test-logo"><div class="logo-mark">Q</div>QuizFlow</div>
+      <button class="theme-toggle" id="themeToggle" onclick="window.toggleTheme()" title="Змінити тему">
+        <span class="theme-toggle-icon" id="themeIcon">🌙</span>
+      </button>
+      <div class="test-timer" id="timer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <span id="timerValue">—</span>
+      </div>
+    </div>
+    <div class="q-navigator" id="qNavigator"></div>
+  </div>
+  <div class="question-area">
+    <div class="question-card" id="questionCard"></div>
+  </div>
+</div>
+
+<!-- PROCESSING -->
+<div class="screen" id="processingScreen">
+  <div class="processing-card">
+    <div class="processing-icon">✦</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;margin-bottom:8px">Обробка результатів</div>
+    <div style="font-size:14px;color:var(--text-muted)">Аналізуємо результати...</div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="resultScreen">
+  <div class="result-card">
+    <div class="result-header">
+      <div class="result-emoji" id="resultEmoji">🎉</div>
+      <div class="result-student-name" id="resultStudent"></div>
+      <div class="result-test-name" id="resultTestName"></div>
+      <div class="grade-big">
+        <span class="grade-main" id="resultGrade">—</span>
+        <span class="grade-denom">/12</span>
+      </div>
+    </div>
+    <div class="result-body">
+      <!-- Банер "перевіряється" для long відповідей -->
+      <div id="reviewingBox" style="display:none;margin-bottom:16px;padding:14px 18px;
+        background:rgba(245,158,11,.08);border:1.5px solid rgba(245,158,11,.25);border-radius:14px;
+        display:none;align-items:center;gap:12px">
+        <span style="font-size:22px">⏳</span>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;color:#b45309">
+            Тест на перевірці
+          </div>
+          <div style="font-size:13px;color:var(--text-muted);margin-top:2px">
+            Розгорнуті відповіді перевіряються викладачем вручну. Оцінка з'явиться пізніше.
+          </div>
+        </div>
+      </div>
+      <div class="result-stats">
+        <div class="result-stat"><div class="result-stat-val" id="statCorrect" style="color:var(--teal)">—</div><div class="result-stat-label">Правильних</div></div>
+        <div class="result-stat"><div class="result-stat-val" id="statWrong" style="color:var(--rose)">—</div><div class="result-stat-label">Неправильних</div></div>
+        <div class="result-stat"><div class="result-stat-val" id="statTime" style="color:var(--teal)">—</div><div class="result-stat-label">Витрачено</div></div>
+      </div>
+      <div class="ai-comment-box" id="aiCommentBox" style="display:none">
+        <div class="ai-badge">Коментар</div>
+        <div class="ai-comment-text" id="aiComment"></div>
+      </div>
+      <!-- Персональний розбір помилок -->
+      <div id="errorAnalysisBox" style="display:none;margin-bottom:18px;padding:16px 20px;
+        background:rgba(244,63,94,.04);border:1.5px solid rgba(244,63,94,.15);border-radius:16px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span style="font-size:16px">🔍</span>
+          <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--rose)">
+            Персональний розбір помилок
+          </span>
+        </div>
+        <div id="errorAnalysisText" style="font-size:14px;line-height:1.65;color:var(--text-muted);font-style:italic">
+          <span style="display:inline-block;width:16px;height:16px;border:2px solid var(--rose);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:8px"></span>
+          Аналізуємо помилки...
+        </div>
+      </div>
+
+      <div class="result-actions">
+        <button class="result-btn secondary" id="downloadBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Завантажити
+        </button>
+        <button class="result-btn primary" id="closeTestBtn">Закрити ✓</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ERROR -->
+<div class="screen" id="errorScreen">
+  <div class="error-card">
+    <div class="error-icon">🔒</div>
+    <div class="error-title">Доступ недоступний</div>
+    <div class="error-msg" id="errorMsg">Щось пішло не так. Зверніться до викладача.</div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, set, push, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// js/firebase.js — Firebase Realtime Database
+
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",
+  authDomain:        "quizflow-8a978.firebaseapp.com",
+  databaseURL:       "https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "quizflow-8a978",
+  storageBucket:     "quizflow-8a978.firebasestorage.app",
+  messagingSenderId: "206469794166",
+  appId:             "1:206469794166:web:55cd7007b429607acd5257"
+};
+
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+
+function snapToArray(snap) {
+  if (!snap.exists()) return [];
+  const val = snap.val();
+  return Object.entries(val).map(([id, data]) => ({ id, ...data }));
+}
+
+function nowTs() {
+  return Date.now();
+}
+
+// ─── ADMIN AUTH ───────────────────────────────────────────────────────────────
+
+async function getAdmin() {
+  const snap = await get(ref(db, "admin"));
+  return snap.exists() ? snap.val() : null;
+}
+
+async function checkLogin(login, password) {
+  const admin = await getAdmin();
+  if (!admin) return false;
+  return admin.login === login && admin.password === password;
+}
+
+// ─── TESTS ────────────────────────────────────────────────────────────────────
+
+async function getTests() {
+  const snap = await get(ref(db, "tests"));
+  if (!snap.exists()) return [];
+  const arr = snapToArray(snap);
+  return arr.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+}
+
+async function getTest(testId) {
+  const snap = await get(ref(db, `tests/${testId}`));
+  if (!snap.exists()) return null;
+  const data = snap.val();
+  // RTDB зберігає масиви як об'єкти {0:...,1:...} — конвертуємо назад
+  if (data.questions && !Array.isArray(data.questions)) {
+    data.questions = Object.values(data.questions);
+  }
+  if (!data.questions) data.questions = [];
+  return { id: testId, ...data };
+}
+
+async function createTest(data) {
+  const newRef = push(ref(db, "tests"));
+  await set(newRef, {
+    title:     data.title     || "Новий тест",
+    folder:    data.folder    || "",
+    tags:      data.tags      || [],
+    timeLimit: data.timeLimit || 600,
+    status:    "draft",
+    questions: [],
+    createdAt: nowTs()
+  });
+  return newRef.key;
+}
+
+async function saveTest(testId, data) {
+  await update(ref(db, `tests/${testId}`), data);
+}
+
+async function deleteTest(testId) {
+  await remove(ref(db, `tests/${testId}`));
+  const linksSnap = await get(ref(db, "links"));
+  if (linksSnap.exists()) {
+    const updates = {};
+    Object.entries(linksSnap.val()).forEach(([k, v]) => {
+      if (v.testId === testId) updates[k] = null;
+    });
+    if (Object.keys(updates).length) await update(ref(db, "links"), updates);
+  }
+}
+
+// ─── LINKS ────────────────────────────────────────────────────────────────────
+
+async function createLink(testId, maxAttempts) {
+  const newRef = push(ref(db, "links"));
+  await set(newRef, {
+    testId,
+    maxAttempts:  Number(maxAttempts) || 30,
+    usedAttempts: 0,
+    status:       "active",
+    createdAt:    nowTs()
+  });
+  return newRef.key;
+}
+
+async function getLink(linkId) {
+  const snap = await get(ref(db, `links/${linkId}`));
+  if (!snap.exists()) return null;
+  return { id: linkId, ...snap.val() };
+}
+
+async function getLinksByTest(testId) {
+  const snap = await get(ref(db, "links"));
+  if (!snap.exists()) return [];
+  return snapToArray(snap).filter(l => l.testId === testId);
+}
+
+async function updateLink(linkId, data) {
+  await update(ref(db, `links/${linkId}`), data);
+}
+
+async function deleteLink(linkId) {
+  await remove(ref(db, `links/${linkId}`));
+}
+
+async function incrementLinkUsage(linkId) {
+  const snap = await get(ref(db, `links/${linkId}/usedAttempts`));
+  const current = snap.exists() ? snap.val() : 0;
+  await set(ref(db, `links/${linkId}/usedAttempts`), current + 1);
+}
+
+// ─── ATTEMPTS ─────────────────────────────────────────────────────────────────
+
+async function createAttempt(data) {
+  const newRef = push(ref(db, "attempts"));
+  await set(newRef, {
+    testId:            data.testId,
+    linkId:            data.linkId,
+    name:              data.name,
+    surname:           data.surname,
+    answers:           data.answers            || [],
+    score:             data.score              ?? null,
+    grade12:           data.grade12            ?? null,
+    aiComment:         data.aiComment          ?? null,
+    status:            data.status             || "in_progress",
+    startedAt:         data.startedAt          || nowTs(),
+    finishedAt:        data.finishedAt         ?? null,
+    questionsSnapshot: data.questionsSnapshot  ?? null,
+    createdAt: nowTs()
+  });
+  return newRef.key;
+}
+
+async function updateAttempt(attemptId, data) {
+  await update(ref(db, `attempts/${attemptId}`), data);
+}
+
+async function getAttemptsByTest(testId) {
+  const snap = await get(ref(db, "attempts"));
+  if (!snap.exists()) return [];
+  return snapToArray(snap)
+    .filter(a => a.testId === testId)
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+}
+
+async function checkDuplicateAttempt(testId, name, surname) {
+  const snap = await get(ref(db, "attempts"));
+  if (!snap.exists()) return false;
+  return Object.values(snap.val()).some(a =>
+    a.testId === testId &&
+    a.name?.toLowerCase()    === name.toLowerCase() &&
+    a.surname?.toLowerCase() === surname.toLowerCase()
+  );
+}
+
+// js/ai.js — Groq API напряму з браузера (без Firebase Functions)
+
+const GROQ_API_KEY = "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";
+const GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions";
+const GROQ_MODEL   = "llama-3.3-70b-versatile";
+
+// ─── Базовий запит до Groq ────────────────────────────────────────────────────
+
+// Системний промпт - завжди українська мова
+const UA_SYSTEM = {
+  role: "system",
+  content: "Ти — розумний асистент викладача. ОБОВ'ЯЗКОВО відповідай ВИКЛЮЧНО українською мовою. " +
+           "Жодних інших мов, ієрогліфів, китайських символів або нерозпізнаного тексту. " +
+           "Якщо щось не знаєш українською — все одно пиши по-українськи."
+};
+
+async function callGroq(messages, maxTokens = 800, temperature = 0.5) {
+  // Завжди додаємо системний промпт українською
+  const allMessages = [UA_SYSTEM, ...messages];
+
+  const res = await fetch(GROQ_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type":  "application/json",
+      "Authorization": `Bearer ${GROQ_API_KEY}`
+    },
+    body: JSON.stringify({
+      model:       GROQ_MODEL,
+      messages:    allMessages,
+      max_tokens:  maxTokens,
+      temperature
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Groq error ${res.status}: ${err}`);
+  }
+
+  const data = await res.json();
+  const result = data.choices?.[0]?.message?.content || "";
+
+  // Перевіряємо чи немає нелатинських/некириличних блоків (китайські, японські тощо)
+  if (/[一-鿿぀-ヿ㐀-䶿]/.test(result)) {
+    console.warn("AI returned non-UA text, content may be mixed");
+  }
+
+  return result;
+}
+
+// ─── AI для студента: оцінка + коментар ──────────────────────────────────────
+
+async function getStudentAIComment({ testTitle, totalQuestions, correctCount, percent, answers, questions }) {
+  const pct = percent ?? Math.round((correctCount / totalQuestions) * 100);
+
+  // Формуємо детальний аналіз для AI
+  const detailedAnswers = (questions || []).map((q, i) => {
+    const ans = (answers || []).find(a => a.questionId === q.id);
+    const isCorrect = ans?.correct;
+    const isPartial = ans?.partial;
+    let studentAns = "", correctAns = "";
+    if (q.type === "single" || q.type === "multi") {
+      const opts = q.options || [];
+      const sidxs = Array.isArray(ans?.value) ? ans.value : [ans?.value].filter(v => v !== null && v !== undefined);
+      const cidxs = Array.isArray(q.correct) ? q.correct : [q.correct];
+      studentAns = sidxs.map(i => opts[i]).filter(Boolean).join(", ") || "—";
+      correctAns = cidxs.map(i => opts[i]).filter(Boolean).join(", ") || "—";
+    } else {
+      studentAns = String(ans?.value ?? "—");
+      correctAns = String(q.correct ?? "—");
+    }
+    const status = isCorrect ? "✓" : isPartial ? "~" : "✗";
+    return `${i+1}. [${status}] ${q.text}\n   Відповідь: ${studentAns}${!isCorrect ? ` (Правильно: ${correctAns})` : ""}`;
+  }).join("\n");
+
+  const prompt = `Ти — досвідчений викладач. Постав оцінку студенту за 12-бальною шкалою.
+
+Тест: "${testTitle}"
+Правильних відповідей: ${correctCount} з ${totalQuestions} (${pct}%)
+
+Відповіді студента (✓ правильно, ~ частково, ✗ неправильно):
+${detailedAnswers}
+
+Правила оцінювання:
+- Аналізуй КОЖНЕ питання — враховуй складність (теоретичне чи практичне, легке чи складне)
+- Правильна відповідь на складне питання цінується більше
+- Неправильна на просте питання — знижує оцінку більше
+- Шкала: 1-3 = незадовільно, 4-6 = задовільно, 7-9 = добре, 10-12 = відмінно
+- Якщо ВСІ відповіді неправильні — оцінка від 1 до 3, НЕ БІЛЬШЕ
+- Якщо більше половини правильних — мінімум 6
+- Якщо всі правильні — 11 або 12
+
+Напиши коментар студенту особисто (2-3 речення): що вдалось, що покращити.
+
+Відповідай ТІЛЬКИ JSON без markdown:
+{"grade": 7, "comment": "..."}`;
+
+  const raw = await callGroq([{ role: "user", content: prompt }], 500);
+
+  let result;
+  try {
+    result = JSON.parse(raw.replace(/```json|```/g, "").trim());
+  } catch {
+    result = { grade: percentToGrade(pct), comment: raw };
+  }
+
+  // Базова перевірка що оцінка в межах 1-12
+  result.grade = Math.min(12, Math.max(1, parseInt(result.grade) || 1));
+
+  // Захист від явно невірних оцінок: якщо всі неправильні — не більше 3
+  if (correctCount === 0 && result.grade > 3) result.grade = 2;
+  // Якщо всі правильні — не менше 10
+  if (correctCount === totalQuestions && result.grade < 10) result.grade = 10;
+
+  return result;
+}
+
+
+
+// ─── AI перефразування питання ────────────────────────────────────────────────
+
+async function rephraseQuestion(questionText, options = []) {
+  let prompt = `Перефразуй тестове питання ІНШИМИ словами, зберігаючи зміст.
+
+ПРАВИЛА:
+- Відповідай ТІЛЬКИ українською мовою
+- Зміни формулювання, але зміст і правильні відповіді — ті самі
+- JSON без markdown
+
+Питання: "${questionText}"`;
+
+  if (options.length > 0) {
+    prompt += `
+Варіанти: ${JSON.stringify(options)}
+Формат: {"question":"нове питання","options":["А","Б","В","Г"]}`;
+  } else {
+    prompt += `
+Формат: {"question":"нове питання"}`;
+  }
+
+  const raw = await callGroq([{ role: "user", content: prompt }], 400, 0.6);
+  try {
+    return JSON.parse(raw.replace(/```json|```/g, "").trim());
+  } catch {
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("Невірний формат");
+    return JSON.parse(match[0]);
+  }
+}
+
+// ─── AI генерація кількох питань ─────────────────────────────────────────────
+
+async function generateQuestions({ topic, difficulty, type, count = 5 }) {
+  const typeMap = {
+    mix:    "мікс типів: single choice, multiple choice, text",
+    single: "тільки одна правильна відповідь (single choice)",
+    multi:  "тільки кілька правильних відповідей (multiple choice)",
+    text:   "тільки коротка текстова відповідь"
+  };
+
+  const prompt = `Ти — викладач. Створи ${count} тестових питань українською мовою на тему "${topic}".
+Складність: ${difficulty}
+Тип: ${typeMap[type] || type}
+
+Відповідай ТІЛЬКИ масивом JSON без markdown:
+[
+  {"type":"single","text":"питання","options":["A","B","C","D"],"correct":[0]},
+  {"type":"multi","text":"питання","options":["A","B","C","D"],"correct":[1,2]},
+  {"type":"text","text":"питання","correct":"відповідь"}
+]`;
+
+  const raw = await callGroq([{ role: "user", content: prompt }], 2000);
+  return JSON.parse(raw.replace(/```json|```/g, "").trim());
+}
+
+// ─── Допоміжна функція оцінки ─────────────────────────────────────────────────
+
+function percentToGrade(percent) {
+  if (percent >= 95) return 12;
+  if (percent >= 88) return 11;
+  if (percent >= 80) return 10;
+  if (percent >= 72) return 9;
+  if (percent >= 64) return 8;
+  if (percent >= 56) return 7;
+  if (percent >= 48) return 6;
+  if (percent >= 40) return 5;
+  if (percent >= 30) return 4;
+  if (percent >= 20) return 3;
+  if (percent >= 10) return 2;
+  return 1;
+}
+
+// js/scoring.js — Підрахунок балів для всіх типів питань
+
+/**
+ * Перевіряє одну відповідь студента
+ * @param {Object} question - питання з конструктора
+ * @param {*} studentAnswer - відповідь студента
+ * @returns {{ correct: boolean, partial: boolean, points: number }}
+ */
+function checkAnswer(question, studentAnswer) {
+  if (studentAnswer === null || studentAnswer === undefined || studentAnswer === "") {
+    return { correct: false, partial: false, points: 0 };
+  }
+
+  switch (question.type) {
+
+    // ── Single choice ──────────────────────────────────────────────────────
+    case "single": {
+      const correct = Number(studentAnswer) === Number(question.correct?.[0] ?? question.correct);
+      return { correct, partial: false, points: correct ? 1 : 0 };
+    }
+
+    // ── Multiple choice ────────────────────────────────────────────────────
+    case "multi": {
+      const correctSet = new Set((question.correct || []).map(Number));
+      const studentSet = new Set((studentAnswer || []).map(Number));
+
+      const allCorrect = [...correctSet].every(i => studentSet.has(i)) &&
+                         [...studentSet].every(i => correctSet.has(i));
+      if (allCorrect) return { correct: true, partial: false, points: 1 };
+
+      // часткова оцінка: є хоча б одна правильна і жодна зайва
+      const hasCorrect = [...correctSet].some(i => studentSet.has(i));
+      const hasWrong   = [...studentSet].some(i => !correctSet.has(i));
+      const partial    = hasCorrect && !hasWrong;
+      return { correct: false, partial, points: partial ? 0.5 : 0 };
+    }
+
+    // ── Text (коротка відповідь) — нечітке порівняння ───────────────────────
+    case "text": {
+      const normalize = s => String(s).toLowerCase().trim().replace(/\s+/g, " ");
+      const student = normalize(studentAnswer || "");
+      const expected = normalize(question.correct || "");
+      if (!student) return { correct: false, partial: false, points: 0 };
+      // Точний збіг
+      if (student === expected) return { correct: true, partial: false, points: 1 };
+      // Перевіряємо чи відповідь містить ключове слово або навпаки
+      if (student.includes(expected) || expected.includes(student))
+        return { correct: true, partial: false, points: 1 };
+      // Часткова схожість: спільні слова
+      const sw = new Set(student.split(/\s+/));
+      const ew = new Set(expected.split(/\s+/));
+      const common = [...sw].filter(w => w.length > 2 && ew.has(w));
+      if (common.length > 0 && common.length >= Math.min(sw.size, ew.size) * 0.6)
+        return { correct: false, partial: true, points: 0.5 };
+      // Позначаємо для AI-перевірки (буде перевірено пізніше)
+      return { correct: false, partial: false, points: 0, needsAICheck: true,
+               studentAnswer: student, expectedAnswer: expected };
+    }
+
+    // ── Number ────────────────────────────────────────────────────────────
+    case "number": {
+      const correct = Number(studentAnswer) === Number(question.correct);
+      return { correct, partial: false, points: correct ? 1 : 0 };
+    }
+
+    // ── Matching ──────────────────────────────────────────────────────────
+    case "matching": {
+      const pairs = question.pairs || [];
+      let hits = 0;
+      // studentAnswer може бути об'єктом {0: val, 1: val} або масивом
+      const getVal = (i) => Array.isArray(studentAnswer)
+        ? studentAnswer[i]
+        : studentAnswer?.[i];
+
+      pairs.forEach((pair, i) => {
+        const correctIdx = pair.correct ?? pair.correctIndex;
+        if (String(getVal(i)) === String(correctIdx)) hits++;
+      });
+      const correct = hits === pairs.length;
+      const partial = !correct && hits > 0;
+      return { correct, partial, points: pairs.length ? hits / pairs.length : 0 };
+    }
+
+    // ── Ordering ──────────────────────────────────────────────────────────
+    case "ordering": {
+      const correct = JSON.stringify(studentAnswer) === JSON.stringify(question.items);
+      // часткова: рахуємо елементи на своїх місцях
+      let hits = 0;
+      (question.items || []).forEach((item, i) => {
+        if (studentAnswer[i] === item) hits++;
+      });
+      const partial = !correct && hits > 0;
+      return {
+        correct,
+        partial,
+        points: question.items?.length ? hits / question.items.length : 0
+      };
+    }
+
+    // ── Long text (не перевіряється автоматично) ───────────────────────────
+    case "long": {
+      const hasAnswer = String(studentAnswer).trim().length > 10;
+      return { correct: false, partial: hasAnswer, points: hasAnswer ? 0.5 : 0 };
+    }
+
+    default:
+      return { correct: false, partial: false, points: 0 };
+  }
+}
+
+/**
+ * Підраховує результат всього тесту
+ * @param {Array} questions
+ * @param {Object} answers — { questionId: studentAnswer }
+ * @returns {{ total, correct, incorrect, partial, score, maxScore, percent }}
+ */
+async function scoreTest(questions, answers) {
+  let correct = 0, incorrect = 0, partial = 0, score = 0;
+  const maxScore = questions.length;
+  const details = [];
+
+  // Спочатку перевіряємо всі питання синхронно
+  const prelimResults = questions.map(q => {
+    let studentAnswer;
+    if (Array.isArray(answers)) {
+      const found = answers.find(a => a.questionId === q.id);
+      studentAnswer = found?.value ?? null;
+    } else {
+      studentAnswer = answers[q.id] ?? null;
+    }
+    const result = checkAnswer(q, studentAnswer);
+    return { q, studentAnswer, result };
+  });
+
+  // AI-перевірка для текстових відповідей що потребують аналізу
+  const textChecks = prelimResults.filter(r => r.result.needsAICheck);
+
+  if (textChecks.length > 0) {
+    // Один запит до AI для всіх текстових відповідей
+    const checkList = textChecks.map((r, i) =>
+      `${i+1}. Питання: "${(r.q.text||"").replace(/<[^>]+>/g,"")}"\n   Правильна відповідь: "${r.result.expectedAnswer}"\n   Відповідь студента: "${r.result.studentAnswer}"`
+    ).join("\n\n");
+
+    const aiPrompt = `Перевір відповіді студента. Відповідай ТІЛЬКИ українською мовою.
+
+${checkList}
+
+Критерії оцінки:
+- "correct": відповідь правильна, близька за змістом, синонім, або інше правильне формулювання
+- "partial": частково правильна або приблизно схожа
+- "wrong": неправильна або не по темі
+
+Відповідай ТІЛЬКИ JSON масивом без markdown:
+[{"i":1,"result":"correct"},{"i":2,"result":"partial"},{"i":3,"result":"wrong"}]`;
+
+    try {
+      const raw = await callGroq([{ role: "user", content: aiPrompt }], 300);
+      const aiResults = JSON.parse(raw.replace(/```json|```/g, "").trim());
+      aiResults.forEach(ar => {
+        const idx = ar.i - 1;
+        if (idx >= 0 && idx < textChecks.length) {
+          if (ar.result === "correct") {
+            textChecks[idx].result = { correct: true, partial: false, points: 1 };
+          } else if (ar.result === "partial") {
+            textChecks[idx].result = { correct: false, partial: true, points: 0.5 };
+          }
+          // wrong залишається як є
+        }
+      });
+    } catch(e) {
+      console.warn("AI text check failed:", e.message);
+      // При помилці AI — перевіряємо ще раз з ширшим нечітким порівнянням
+    }
+  }
+
+  // Підраховуємо фінальний результат
+  prelimResults.forEach(({ q, result }) => {
+    if(result.pending){
+      // Розгорнуті відповіді не рахуємо автоматично — чекають перевірки
+      details.push({ questionId: q.id, ...result });
+      return;
+    }
+    score += result.points;
+    if (result.correct)      correct++;
+    else if (result.partial) partial++;
+    else                     incorrect++;
+    details.push({ questionId: q.id, ...result });
+  });
+
+  const pendingCount = details.filter(d=>d.pending).length;
+  const effectiveMax = maxScore - pendingCount;
+  const percent = effectiveMax > 0 ? Math.round((score / effectiveMax) * 100) : 0;
+  return { total: questions.length, correct, incorrect, partial, pending: pendingCount, score, maxScore: effectiveMax, percent, details };
+}
+
+// js/exporter.js — Генерація HTML-файлу результату для скачування
+
+function generateResultHTML({ student, test, attempt, questions }) {
+  const { name, surname } = student;
+  const date = new Date().toLocaleDateString("uk-UA", {
+    year: "numeric", month: "long", day: "numeric",
+    hour: "2-digit", minute: "2-digit"
+  });
+
+  const questionsHTML = (questions || []).map((q, idx) => {
+    const ans = attempt.answers?.find?.(a => a.questionId === q.id);
+    const studentAns = ans?.value;
+    const isCorrect  = ans?.correct;
+    const isPartial  = ans?.partial;
+
+    let answerDisplay = "";
+    let correctDisplay = "";
+
+    if (q.type === "single" || q.type === "multi") {
+      const opts = q.options || [];
+      const studentIdxs = Array.isArray(studentAns) ? studentAns : [studentAns];
+      const correctIdxs = Array.isArray(q.correct)  ? q.correct  : [q.correct];
+      answerDisplay  = studentIdxs.map(i => opts[i]).filter(Boolean).join(", ") || "—";
+      correctDisplay = correctIdxs.map(i => opts[i]).filter(Boolean).join(", ") || "—";
+    } else if (q.type === "matching") {
+      answerDisplay = (q.pairs || []).map((p, i) => {
+        // studentAns може бути об'єктом {0: val} або масивом
+        const raw = Array.isArray(studentAns) ? studentAns[i] : studentAns?.[i];
+        const chosen = raw !== undefined ? Number(raw) : undefined;
+        return `${p.left} → ${chosen !== undefined ? (p.options?.[chosen] ?? "?") : "—"}`;
+      }).join("; ");
+      correctDisplay = (q.pairs || []).map(p => `${p.left} → ${p.options?.[p.correct] ?? "?"}`).join("; ");
+    } else if (q.type === "ordering") {
+      answerDisplay  = Array.isArray(studentAns) ? studentAns.join(" → ") : "—";
+      correctDisplay = (q.items || []).join(" → ");
+    } else {
+      answerDisplay  = studentAns || "—";
+      correctDisplay = q.correct  || "—";
+    }
+
+    const statusColor = isCorrect ? "#0d9e85" : isPartial ? "#f59e0b" : "#f43f5e";
+    const statusText  = isCorrect ? "✓ Правильно" : isPartial ? "~ Частково" : "✗ Неправильно";
+
+    return `
+    <div class="question-block" style="border-left: 3px solid ${statusColor};">
+      <div class="q-meta">
+        <span class="q-num">Питання ${idx + 1}</span>
+        <span class="q-type">${getTypeName(q.type)}</span>
+        <span class="q-status" style="color:${statusColor}">${statusText}</span>
+      </div>
+      <div class="q-text">${q.text}</div>
+      <div class="q-answers">
+        <div class="answer-row student-answer">
+          <span class="answer-label">Ваша відповідь:</span>
+          <span class="answer-value">${answerDisplay}</span>
+        </div>
+        ${(q.type !== "long") ? `
+        <div class="answer-row correct-answer">
+          <span class="answer-label">Правильна відповідь:</span>
+          <span class="answer-value">${correctDisplay}</span>
+        </div>` : ""}
+      </div>
+    </div>`;
+  }).join("\n");
+
+  const gradeColor = attempt.grade12 >= 10 ? "#0d9e85" :
+                     attempt.grade12 >= 7  ? "#2d5be3" :
+                     attempt.grade12 >= 4  ? "#f59e0b" : "#f43f5e";
+
+  return `<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Результат — ${name} ${surname}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --primary: #2d5be3;
+    --bg: #f0f3fa;
+    --text: #0d1340;
+    --muted: #6b7280;
+    --border: rgba(45,91,227,0.1);
+    --card: #fff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 40px 24px;
+  }
+
+  .container { max-width: 760px; margin: 0 auto; }
+
+  /* HEADER */
+  .result-header {
+    background: linear-gradient(135deg, #2d5be3, #1a3ab8);
+    border-radius: 24px;
+    padding: 40px;
+    color: white;
+    margin-bottom: 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .result-header::before {
+    content: '';
+    position: absolute;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    top: -100px; right: -80px;
+  }
+
+  .logo-line {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 24px;
+  }
+
+  .student-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 32px;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+
+  .test-name {
+    font-size: 16px;
+    opacity: 0.8;
+    margin-bottom: 6px;
+  }
+
+  .result-date { font-size: 13px; opacity: 0.6; margin-bottom: 32px; }
+
+  .grade-big {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    background: rgba(255,255,255,0.12);
+    padding: 20px 48px;
+    border-radius: 24px;
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(255,255,255,0.2);
+  }
+
+  .grade-num {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 72px;
+    line-height: 1;
+    letter-spacing: 0;
+    color: ${gradeColor};
+  }
+
+  .grade-denom {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    font-size: 26px;
+    opacity: 0.55;
+    color: white;
+    margin-bottom: 6px;
+    margin-left: 4px;
+  }
+
+  /* STATS */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-box {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    color: var(--primary);
+  }
+
+  .stat-label { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* AI COMMENT */
+  .ai-box {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .ai-label {
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--primary);
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .ai-label::before { content: '✦'; }
+
+  .ai-text {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--text);
+    font-style: italic;
+  }
+
+  /* QUESTIONS */
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .question-block {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 12px;
+    border-left-width: 4px;
+    border-left-style: solid;
+    border-top: 1.5px solid var(--border);
+    border-right: 1.5px solid var(--border);
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .q-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .q-num {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.3px;
+  }
+
+  .q-type {
+    font-size: 11px;
+    padding: 2px 10px;
+    background: rgba(45,91,227,0.08);
+    color: var(--primary);
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  .q-status { margin-left: auto; font-size: 13px; font-weight: 600; }
+
+  .q-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 1.4;
+    margin-bottom: 14px;
+  }
+
+  .answer-row {
+    display: flex;
+    gap: 8px;
+    font-size: 14px;
+    margin-bottom: 6px;
+    align-items: flex-start;
+  }
+
+  .answer-label { color: var(--muted); font-weight: 500; white-space: nowrap; }
+  .student-answer .answer-value { color: var(--text); }
+  .correct-answer .answer-value { color: #0d9e85; font-weight: 500; }
+
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  @media print {
+    body { background: white; padding: 20px; }
+    .result-header { background: #0d1340 !important; -webkit-print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="result-header">
+    <div class="logo-line">QuizFlow · Результат тесту</div>
+    <div class="student-name">${name} ${surname}</div>
+    <div class="test-name">${test.title}</div>
+    <div class="result-date">${date}</div>
+    <div class="grade-big">
+      <span class="grade-num">${attempt.grade12}</span>
+      <span class="grade-denom">/12</span>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-val" style="color:#0d9e85">${attempt.score?.correct ?? 0}</div>
+      <div class="stat-label">Правильних</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" style="color:#f43f5e">${attempt.score?.incorrect ?? 0}</div>
+      <div class="stat-label">Неправильних</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val">${attempt.score?.percent ?? 0}%</div>
+      <div class="stat-label">Результат</div>
+    </div>
+  </div>
+
+  <div class="ai-box">
+    <div class="ai-label">Коментар</div>
+    <div class="ai-text">${attempt.aiComment || "—"}</div>
+  </div>
+
+  <div class="section-title">Детальні відповіді</div>
+
+  ${questionsHTML}
+
+  <div class="footer">
+    Сформовано у системі QuizFlow · ${date}
+  </div>
+
+</div>
+
+</html>`;
+}
+
+function getTypeName(type) {
+  const map = {
+    single: "Одна відповідь",
+    multi:  "Кілька відповідей",
+    text:   "Текстова відповідь",
+    number: "Числова відповідь",
+    matching: "Зіставлення",
+    ordering: "Впорядкування",
+    long:   "Розгорнута відповідь"
+  };
+  return map[type] || type;
+}
+
+function downloadHTML(html, filename) {
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = filename || "result.html";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// js/testRunner.js — Проходження тесту студентом
+
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let linkData    = null;
+let testData    = null;
+let currentQ    = 0;
+let answers     = {};   // { questionId: value }
+let timerSecs   = 0;
+let timerHandle = null;
+let startTime   = null;
+let attemptId   = null;
+let resultData  = null;
+let studentName    = "";   // ← зберігаємо в стані, не читаємо з DOM після перемикання
+let studentSurname = "";
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", async () => {
+  const params = new URLSearchParams(window.location.search);
+  const linkId = params.get("link");
+
+  // ── РЕЖИМ ПЕРЕГЛЯДУ ─────────────────────────────────────────────────────
+  const previewMode = new URLSearchParams(window.location.search).get("preview") === "1";
+  const previewTestId = new URLSearchParams(window.location.search).get("testId");
+
+  if(previewMode && previewTestId){
+    try{
+      testData = await getTest(previewTestId);
+      if(!testData) return showError("Тест не знайдено.");
+      // Показуємо банер що це режим перегляду
+      const banner = document.createElement("div");
+      banner.style.cssText="position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#2d5be3,#1a3ab8);color:white;text-align:center;padding:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500";
+      banner.innerHTML='👁 Режим перегляду — таймер і збереження результатів вимкнено. <a onclick="window.close()" style="color:rgba(255,255,255,.8);cursor:pointer;text-decoration:underline;margin-left:8px">Закрити</a>';
+      document.body.appendChild(banner);
+      document.body.style.paddingTop="40px";
+      // Запускаємо тест напряму без перевірок
+      fillTestInfoPreview();
+      showScreen("entryScreen");
+    }catch(e){ showError("Помилка: "+e.message); }
+    return;
+  }
+
+  if (!linkId) return showError("Невірне посилання. Зверніться до викладача.");
+
+  showScreen("loadingScreen");
+
+  try {
+    linkData = await getLink(linkId);
+    if (!linkData)                               return showError("Посилання не знайдено.");
+    if (linkData.status !== "active")            return showError("Доступ до тесту закрито.");
+    if (linkData.usedAttempts >= linkData.maxAttempts)
+                                                 return showError("Вичерпано ліміт спроб для цього посилання.");
+
+    testData = await getTest(linkData.testId);
+    if (!testData || !testData.questions?.length) return showError("Тест не знайдено або він порожній.");
+    if (testData.status === "draft")  return showError("Тест ще не опублікований. Зверніться до викладача.");
+    if (testData.status === "closed") return showError("Тест закрито. Зверніться до викладача.");
+
+    fillTestInfo();
+    obStart();
+  } catch (e) {
+    showError("Помилка завантаження: " + e.message);
+  }
+});
+
+const THEMES = {
+  default:  {grad:"linear-gradient(135deg,#2d5be3,#1a3ab8)",  primary:"#2d5be3"},
+  ocean:    {grad:"linear-gradient(135deg,#0891b2,#0e7490)",  primary:"#0891b2"},
+  forest:   {grad:"linear-gradient(135deg,#16a34a,#14532d)",  primary:"#16a34a"},
+  sunset:   {grad:"linear-gradient(135deg,#ea580c,#9a3412)",  primary:"#ea580c"},
+  midnight: {grad:"linear-gradient(135deg,#4338ca,#312e81)",  primary:"#6366f1"},
+};
+
+function applyTestTheme(theme){
+  const t = THEMES[theme] || THEMES.default;
+  document.documentElement.style.setProperty("--primary", t.primary);
+  document.documentElement.style.setProperty("--grad", t.grad);
+  document.documentElement.style.setProperty("--primary-light", t.primary);
+}
+
+function fillTestInfo() {
+  applyTestTheme(linkData?.theme || "default");
+  setEl("infoTitle",    testData.title);
+  setEl("infoQuestions", testData.questions.length);
+  const mins = Math.round((testData.timeLimit || 600) / 60);
+  setEl("infoTime",    mins + " хвилин");
+  setEl("infoAttempts", `${linkData.usedAttempts} / ${linkData.maxAttempts} спроб`);
+  if (linkData.group) {
+    const row = document.getElementById("infoGroupRow");
+    if (row) row.style.display = "flex";
+    setEl("infoGroup", "Група: " + linkData.group);
+  }
+
+  // Підтягуємо збережений прогрес — підставляємо ім'я і показуємо банер
+  const saved = loadSavedProgress();
+  if(saved && Object.keys(saved.answers||{}).length > 0 && saved.studentName){
+    // Заповнюємо поля імені автоматично
+    const nameEl = document.getElementById("inputName");
+    const surnameEl = document.getElementById("inputSurname");
+    if(nameEl) nameEl.value = saved.studentName;
+    if(surnameEl) surnameEl.value = saved.studentSurname || "";
+
+    // Показуємо банер-нагадування
+    const count = Object.keys(saved.answers).length;
+    const total = testData.questions.length;
+    const ago = saved.savedAt ? Math.round((Date.now()-saved.savedAt)/60000) : 0;
+    const agoStr = ago < 1 ? "щойно" : ago < 60 ? `${ago} хв тому` : `${Math.round(ago/60)} год тому`;
+
+    let banner = document.getElementById("restore-banner");
+    if(!banner){
+      banner = document.createElement("div");
+      banner.id = "restore-banner";
+      banner.style.cssText = "background:rgba(45,91,227,.07);border:1.5px solid rgba(45,91,227,.15);border-radius:14px;padding:14px 18px;margin-top:16px;font-size:14px;line-height:1.5;color:var(--text)";
+      const form = document.querySelector(".entry-card") || document.querySelector("#entryScreen");
+      const startBtn = document.getElementById("startBtn");
+      if(startBtn && startBtn.parentNode) startBtn.parentNode.insertBefore(banner, startBtn);
+    }
+    banner.innerHTML = `💾 <strong>Незавершений тест знайдено</strong> — ${count} з ${total} відповідей · ${agoStr}<br><span style="font-size:12px;color:var(--text-muted)">Натисніть "Розпочати" щоб продовжити</span>`;
+  }
+}
+
+// ─── START ────────────────────────────────────────────────────────────────────
+
+// ── Shuffle utility ──────────────────────────────────────────────────────────
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function applyShuffleSettings(questions, shuffleQ, shuffleA) {
+  let qs = shuffleQ ? shuffleArray(questions) : [...questions];
+  if (shuffleA) {
+    qs = qs.map(q => {
+      if ((q.type === "single" || q.type === "multi") && q.options?.length) {
+        // Перемішуємо варіанти і оновлюємо correct індекси
+        const indexed = q.options.map((opt, i) => ({ opt, origIdx: i }));
+        const shuffled = shuffleArray(indexed);
+        const newOptions = shuffled.map(x => x.opt);
+        const idxMap = {}; // старий індекс -> новий
+        shuffled.forEach((x, newI) => { idxMap[x.origIdx] = newI; });
+        const oldCorrect = Array.isArray(q.correct) ? q.correct : [q.correct];
+        const newCorrect = oldCorrect.map(i => idxMap[Number(i)]);
+        return { ...q, options: newOptions, correct: newCorrect, _idxMap: idxMap };
+      }
+      return q;
+    });
+  }
+  return qs;
+}
+
+document.getElementById("startBtn")?.addEventListener("click", startTest);
+
+async function startTest() {
+  const name    = document.getElementById("inputName")?.value.trim();
+  const surname = document.getElementById("inputSurname")?.value.trim();
+
+  if (!name) { highlight("inputName"); return; }
+  if (!surname) { highlight("inputSurname"); return; }
+
+  // зберігаємо в стані
+  studentName    = name;
+  studentSurname = surname;
+
+  // local duplicate check
+  const localKey = `test_${testData.id}_done`;
+  if (localStorage.getItem(localKey)) {
+    return showError("Ви вже проходили цей тест.");
+  }
+
+  // firestore duplicate check
+  showBtnLoading("startBtn", true);
+  const isDupe = await checkDuplicateAttempt(testData.id, name, surname);
+  if (isDupe) {
+    showBtnLoading("startBtn", false);
+    return showError(`${name} ${surname} вже проходив(ла) цей тест.`);
+  }
+  showBtnLoading("startBtn", false);
+
+  // reset state
+  currentQ  = 0;
+  answers   = {};
+  startTime = Date.now();
+
+  // Перевіряємо збережений прогрес
+  const saved = loadSavedProgress();
+  let restoringSession = false;
+  if(saved && Object.keys(saved.answers||{}).length > 0){
+    await new Promise(resolve => {
+      const count = Object.keys(saved.answers).length;
+      const total = testData.questions.length;
+      const ago = saved.savedAt ? Math.round((Date.now()-saved.savedAt)/60000) : 0;
+      const agoStr = ago < 1 ? "щойно" : ago < 60 ? `${ago} хв тому` : `${Math.round(ago/60)} год тому`;
+      const msgEl = document.getElementById("restoreMsg");
+      if(msgEl) msgEl.innerHTML = `Ви відповіли на <strong>${count} з ${total}</strong> питань<br><span style="font-size:12px;opacity:.7">Збережено: ${agoStr}</span>`;
+      const modal = document.getElementById("restoreModal");
+      if(modal) modal.style.display = "flex";
+      window._restoreConfirm = (doRestore) => {
+        if(modal) modal.style.display = "none";
+        if(doRestore){
+          answers   = saved.answers;
+          currentQ  = saved.currentQ || 0;
+          startTime = saved.startTime || Date.now();
+          // Відновлюємо існуючий attemptId — не створюємо нову спробу
+          if(saved.attemptId) {
+            attemptId = saved.attemptId;
+            restoringSession = true;
+          }
+        } else {
+          clearSavedProgress();
+        }
+        resolve();
+      };
+    });
+  }
+
+  // Застосовуємо перемішування якщо увімкнено для цього посилання
+  const doShuffleQ = linkData.shuffleQuestions === true;
+  const doShuffleA = linkData.shuffleAnswers   === true;
+  if (doShuffleQ || doShuffleA) {
+    testData = {
+      ...testData,
+      questions: applyShuffleSettings(testData.questions, doShuffleQ, doShuffleA)
+    };
+  }
+
+  // Створюємо спробу тільки якщо не відновлюємо існуючу
+  if(!restoringSession){
+    try {
+      attemptId = await createAttempt({
+        testId:        testData.id,
+        linkId:        linkData.id,
+        name, surname,
+        answers:       [],
+        score:         null,
+        grade12:       null,
+        aiComment:     null,
+        status:        "in_progress",
+        startedAt:     Date.now(),
+        questionsSnapshot: testData.questions
+      });
+    } catch (e) {
+      console.warn("Could not pre-create attempt:", e.message);
+    }
+  } else {
+    // Оновлюємо статус існуючої спроби
+    try {
+      await updateAttempt(attemptId, { status: "in_progress" });
+    } catch(e){ console.warn("Could not update attempt:", e.message); }
+  }
+
+  // Відраховуємо спробу при старті
+  if(!restoringSession){
+    try { await incrementLinkUsage(linkData.id); } catch(e){}
+  }
+
+  showScreen("testScreen");
+  renderQuestion();
+  startTimer();
+  startActivityMonitor();
+  // Автозбереження прогресу кожні 15 секунд
+  setInterval(saveProgressLocally, 15000);
+}
+
+// ─── TIMER ────────────────────────────────────────────────────────────────────
+function startTimer() {
+  timerSecs  = testData.timeLimit || 600;
+  updateTimerUI();
+
+  timerHandle = setInterval(() => {
+    timerSecs--;
+    updateTimerUI();
+    if (timerSecs <= 0) {
+      clearInterval(timerHandle);
+      finishTest(true);
+    }
+  }, 1000);
+}
+
+function updateTimerUI() {
+  const m = Math.floor(timerSecs / 60);
+  const s = timerSecs % 60;
+  const el = document.getElementById("timerValue");
+  if (el) el.textContent = `${m}:${s.toString().padStart(2, "0")}`;
+  const wrap = document.getElementById("timer");
+  if (wrap) wrap.classList.toggle("warn", timerSecs <= 60);
+}
+
+// ─── RENDER QUESTION ─────────────────────────────────────────────────────────
+function renderQuestion() {
+  const qs  = testData.questions;
+  const q   = qs[currentQ];
+  const pct = ((currentQ + 1) / qs.length * 100).toFixed(1);
+
+  // оновлюємо навігатор питань
+  renderQNavigator();
+
+  const card = document.getElementById("questionCard");
+  card.style.animation = "none";
+  void card.offsetHeight;
+  card.style.animation = "";
+
+  const isLast = currentQ === qs.length - 1;
+
+  card.innerHTML = `
+    <div class="q-header">
+      <span class="q-number">Питання ${currentQ + 1} / ${qs.length}</span>
+      <span class="q-type-badge">${getTypeName(q.type)}</span>
+    </div>
+    <div class="q-text qf-rich">${q.text||""}</div>
+    ${renderAnswerUI(q)}
+    <div class="q-nav">
+      ${currentQ > 0 ? `<button class="q-nav-btn prev" id="prevBtn">← Назад</button>` : ""}
+      <button class="q-nav-btn ${isLast ? "finish" : "next"}" id="nextBtn">
+        ${isLast ? "✓ Завершити тест" : "Далі →"}
+      </button>
+    </div>`;
+
+  document.getElementById("prevBtn")?.addEventListener("click", () => {
+    currentQ--;
+    renderQuestion();
+  });
+  document.getElementById("nextBtn")?.addEventListener("click", () => {
+    if (isLast) finishTest(false);
+    else { currentQ++; renderQuestion(); }
+  });
+
+  // restore saved answer
+  restoreAnswer(q);
+}
+
+function renderQNavigator() {
+  const nav = document.getElementById("qNavigator");
+  if (!nav || !testData?.questions) return;
+  const qs = testData.questions;
+  nav.innerHTML = qs.map((q, i) => {
+    const hasAnswer = answers[q.id] !== undefined && answers[q.id] !== null &&
+      !(Array.isArray(answers[q.id]) && answers[q.id].length === 0);
+    const isCurrent = i === currentQ;
+    let cls = "q-dot";
+    if (isCurrent) cls += " current";
+    else if (hasAnswer) cls += " answered";
+    return `<div class="${cls}" title="Питання ${i+1}" onclick="window.goToQuestion(${i})">${i+1}</div>`;
+  }).join("");
+}
+
+window.goToQuestion = (idx) => {
+  currentQ = idx;
+  renderQuestion();
+};
+
+function renderAnswerUI(q) {
+  switch (q.type) {
+
+    case "single":
+    case "multi": {
+      return `<div class="choices-grid">
+        ${(q.options || []).map((opt, i) => `
+          <div class="choice-item" data-idx="${i}" onclick="window.selectChoice(this, '${q.id}', ${i}, '${q.type}')">
+            <div class="choice-marker">${String.fromCharCode(65 + i)}</div>
+            <span class="choice-text">${escHtml(opt)}</span>
+          </div>`).join("")}
+      </div>`;
+    }
+
+    case "text": {
+      return `<input type="text" class="text-answer" id="ans_${q.id}"
+                placeholder="Ваша відповідь..."
+                oninput="window.saveTextAnswer('${q.id}', this.value)">`;
+    }
+
+    case "number": {
+      return `<input type="number" class="text-answer" id="ans_${q.id}"
+                placeholder="Введіть число..."
+                oninput="window.saveTextAnswer('${q.id}', this.value)">`;
+    }
+
+    case "long": {
+      return `<textarea class="text-answer" id="ans_${q.id}" rows="6"
+                placeholder="Розгорнута відповідь..."
+                oninput="window.saveTextAnswer('${q.id}', this.value)"></textarea>`;
+    }
+
+    case "matching": {
+      const pairs = q.pairs || [];
+      // shuffle right options for display
+      const rightOpts = pairs.map(p => p.options || []);
+      return `<div class="matching-grid">
+        ${pairs.map((pair, pi) => `
+          <div class="match-left">${escHtml(pair.left)}</div>
+          <div class="match-connector"></div>
+          <select class="match-select" onchange="window.saveMatchAnswer('${q.id}', ${pi}, this.value)">
+            <option value="">— оберіть —</option>
+            ${(pair.options || []).map((opt, oi) => `<option value="${oi}">${escHtml(opt)}</option>`).join("")}
+          </select>`).join("")}
+      </div>`;
+    }
+
+    case "ordering": {
+      const items = [...(answers[q.id] || q.items || [])];
+      return `<div class="ordering-list" id="orderList_${q.id}">
+        ${items.map((item, i) => `
+          <div class="order-item" draggable="true" data-item="${escHtml(item)}"
+               ondragstart="window.orderDragStart(event, '${q.id}')"
+               ondragover="window.orderDragOver(event)"
+               ondrop="window.orderDrop(event, '${q.id}')">
+            <div class="order-handle"><span></span><span></span><span></span></div>
+            <div class="order-num">${i + 1}</div>
+            <span class="order-text">${escHtml(item)}</span>
+          </div>`).join("")}
+      </div>`;
+    }
+
+    default:
+      return `<div style="color:var(--text-muted);font-size:14px">Тип питання: ${q.type}</div>`;
+  }
+}
+
+function restoreAnswer(q) {
+  const saved = answers[q.id];
+  if (saved === undefined || saved === null) return;
+
+  if (q.type === "single" || q.type === "multi") {
+    const savedArr = Array.isArray(saved) ? saved : [saved];
+    document.querySelectorAll(".choice-item").forEach(el => {
+      if (savedArr.includes(Number(el.dataset.idx))) el.classList.add("selected");
+    });
+  }
+  if (q.type === "text" || q.type === "number" || q.type === "long") {
+    const el = document.getElementById(`ans_${q.id}`);
+    if (el) el.value = saved;
+  }
+  if (q.type === "matching") {
+    // saved — об'єкт {0: val, 1: val} або масив
+    document.querySelectorAll(".match-select").forEach((sel, pi) => {
+      const val = Array.isArray(saved) ? saved[pi] : saved?.[pi];
+      if (val !== undefined && val !== null) sel.value = val;
+    });
+  }
+}
+
+// ─── ANSWER HANDLERS ─────────────────────────────────────────────────────────
+window.selectChoice = (el, qId, idx, type) => {
+  if (type === "single") {
+    document.querySelectorAll(".choice-item").forEach(c => c.classList.remove("selected"));
+    el.classList.add("selected");
+    answers[qId] = [idx];
+  } else {
+    el.classList.toggle("selected");
+    if (!answers[qId]) answers[qId] = [];
+    const pos = answers[qId].indexOf(idx);
+    if (pos === -1) answers[qId].push(idx);
+    else answers[qId].splice(pos, 1);
+  }
+};
+
+window.saveTextAnswer  = (qId, val) => { answers[qId] = val; };
+window.saveMatchAnswer = (qId, pi, val) => {
+  if (!answers[qId]) answers[qId] = {};
+  answers[qId][pi] = Number(val);
+};
+
+// ─── ORDERING DnD ─────────────────────────────────────────────────────────────
+let orderDragItem = null;
+window.orderDragStart = (e, qId) => {
+  orderDragItem = e.currentTarget;
+  e.currentTarget.classList.add("dragging");
+};
+window.orderDragOver  = (e) => e.preventDefault();
+window.orderDrop = (e, qId) => {
+  e.preventDefault();
+  const target = e.currentTarget;
+  if (!orderDragItem || orderDragItem === target) {
+    orderDragItem?.classList.remove("dragging");
+    orderDragItem = null;
+    return;
+  }
+  const list = document.getElementById(`orderList_${qId}`);
+  const allItems = [...list.querySelectorAll(".order-item")];
+  const srcIdx = allItems.indexOf(orderDragItem);
+  const tgtIdx = allItems.indexOf(target);
+
+  if (srcIdx < tgtIdx) list.insertBefore(orderDragItem, target.nextSibling);
+  else                  list.insertBefore(orderDragItem, target);
+
+  orderDragItem.classList.remove("dragging");
+
+  // оновлюємо відповідь
+  const newOrder = [...list.querySelectorAll(".order-item")].map(el => el.dataset.item);
+  answers[qId] = newOrder;
+
+  // перенумеровуємо
+  list.querySelectorAll(".order-num").forEach((el, i) => { el.textContent = i + 1; });
+  orderDragItem = null;
+};
+
+// ─── FINISH TEST ─────────────────────────────────────────────────────────────
+async function finishTest(timeUp = false) {
+  clearInterval(timerHandle);
+
+  if (!timeUp) {
+    const unansweredQs = testData.questions.filter(q => {
+      const a = answers[q.id];
+      if (a === null || a === undefined || a === "") return true;
+      if (Array.isArray(a) && a.length === 0) return true;
+      if (typeof a === "object" && !Array.isArray(a) && Object.keys(a).length === 0) return true;
+      return false;
+    });
+
+    if (unansweredQs.length > 0) {
+      // Відновлюємо таймер поки модал відкритий
+      timerHandle = setInterval(() => {
+        timerSecs--;
+        updateTimerUI();
+        if (timerSecs <= 0) {
+          clearInterval(timerHandle);
+          document.getElementById("unModal")?.classList.remove("open");
+          finishTest(true);
+        }
+      }, 1000);
+
+      // Показуємо кастомний модал
+      document.getElementById("unCount").textContent = unansweredQs.length;
+      document.getElementById("unList").innerHTML = unansweredQs.map(q => {
+        const idx = testData.questions.indexOf(q);
+        return `<div class="un-q-item" onclick="window._goToUnanswered(${idx})">
+          <div class="un-q-num">${idx + 1}</div>
+          <div class="un-q-text">${escHtml(q.text)}</div>
+        </div>`;
+      }).join("");
+
+      document.getElementById("unModal").classList.add("open");
+
+      // Обробники кнопок
+      return new Promise(resolve => {
+        window._confirmFinish = () => {
+          clearInterval(timerHandle);
+          document.getElementById("unModal").classList.remove("open");
+          resolve(true);
+        };
+        window._cancelFinish = () => {
+          document.getElementById("unModal").classList.remove("open");
+          resolve(false);
+        };
+        window._goToUnanswered = (idx) => {
+          clearInterval(timerHandle);
+          document.getElementById("unModal").classList.remove("open");
+          currentQ = idx;
+          renderQuestion();
+          // Відновлюємо таймер
+          timerHandle = setInterval(() => {
+            timerSecs--;
+            updateTimerUI();
+            if (timerSecs <= 0) { clearInterval(timerHandle); finishTest(true); }
+          }, 1000);
+          resolve(false);
+        };
+      }).then(confirmed => {
+        if (!confirmed) return;
+        return _doFinish();
+      });
+    }
+  }
+
+  return _doFinish();
+}
+
+async function _doFinish() {
+  stopActivityMonitor();
+  showScreen("processingScreen");
+
+  const name    = studentName;
+  const surname = studentSurname;
+  const formattedAnswers = testData.questions.map(q => ({
+    questionId: q.id,
+    value:      answers[q.id] ?? null
+  }));
+
+  // score (передаємо raw answers object)
+  const scoreResult = await scoreTest(testData.questions, answers);
+  const grade       = percentToGrade(scoreResult.percent);
+
+  // merge score details into formatted answers
+  scoreResult.details.forEach(d => {
+    const fa = formattedAnswers.find(a => a.questionId === d.questionId);
+    if (fa) { fa.correct = d.correct; fa.partial = d.partial; fa.points = d.points; }
+  });
+
+  // save attempt
+  try {
+    const formattedAnswersToSave = formattedAnswers;
+
+    if (attemptId) {
+      // Оновлюємо існуючу спробу (створену при старті)
+      await updateAttempt(attemptId, {
+        answers:     formattedAnswersToSave,
+        score:       scoreResult,
+        grade12:     null,
+        aiComment:   null,
+        status:      "in_progress",
+        startedAt:   startTime,
+        finishedAt:  Date.now()
+      });
+    } else {
+      // Якщо з якоїсь причини спроби ще немає — створюємо
+      attemptId = await createAttempt({
+        testId:    testData.id,
+        linkId:    linkData.id,
+        name, surname,
+        answers:   formattedAnswersToSave,
+        score:     scoreResult,
+        grade12:   null,
+        aiComment: null,
+        status:    "in_progress",
+        startedAt: startTime,
+        finishedAt: Date.now()
+      });
+    }
+
+    localStorage.setItem(`test_${testData.id}_done`, "true");
+
+    // get AI comment
+    let aiResult = { grade, comment: "" };
+    try {
+      aiResult = await getStudentAIComment({
+        testTitle:      testData.title,
+        totalQuestions: testData.questions.length,
+        correctCount:   scoreResult.correct,
+        percent:        scoreResult.percent,
+        answers:        formattedAnswers,
+        questions:      testData.questions
+      });
+    } catch (e) {
+      console.warn("AI failed:", e.message);
+      aiResult = { grade, comment: "" }; // AI недоступний — не показуємо блок
+    }
+
+    // Оновлюємо з фінальною оцінкою і статусом completed
+    await updateAttempt(attemptId, {
+      grade12:         aiResult.grade,
+      aiComment:       aiResult.comment || null,
+      status:          (scoreResult.pending > 0) ? "pending_review" : "completed",
+      suspiciousEvents: _suspiciousEvents.length > 0 ? _suspiciousEvents : null,
+      tabSwitches:     _tabSwitchCount || null,
+      copyAttempts:    _copyAttempts   || null,
+      screenshots:     _screenshotCount || null
+    });
+    clearSavedProgress();
+
+    // Синхронізуємо картку студента
+    await syncStudentCard({
+      name:      name,
+      surname:   surname,
+      grade12:   aiResult.grade,
+      testId:    testData.id,
+      testTitle: testData.title,
+      percent:   scoreResult.percent,
+      attemptId: attemptId,
+      group:     linkData?.group || ""
+    });
+
+    resultData = {
+      student:  { name, surname },
+      test:     testData,
+      attempt:  {
+        grade12:   aiResult.grade,
+        aiComment: aiResult.comment,
+        score:     scoreResult,
+        answers:   formattedAnswers
+      },
+      questions: testData.questions
+    };
+
+    showResult(scoreResult, aiResult);
+
+  } catch (e) {
+    showError("Помилка збереження: " + e.message);
+  }
+}
+
+
+
+// ─── PREVIEW MODE ─────────────────────────────────────────────────────────────
+function fillTestInfoPreview(){
+  setEl("infoTitle", testData.title);
+  setEl("infoQuestions", testData.questions.length);
+  setEl("infoTime", "Без ліміту (перегляд)");
+  setEl("infoAttempts", "Режим перегляду");
+  document.getElementById("startBtn")?.addEventListener("click", startPreview, {once:true});
+}
+
+function startPreview(){
+  currentQ = 0; answers = {}; startTime = Date.now();
+  // Застосовуємо перемішування якщо потрібно (ні)
+  showScreen("testScreen");
+  renderQuestion();
+  // Не запускаємо таймер і не зберігаємо результати
+  renderQNavigator();
+}
+
+// ─── ТЕМНА ТЕМА ──────────────────────────────────────────────────────────────
+const THEME_KEY = "qf_theme";
+(function initTheme(){
+  const saved = localStorage.getItem(THEME_KEY) || "light";
+  applyTheme(saved);
+})();
+
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  const icon = document.getElementById("themeIcon");
+  if(icon) icon.textContent = theme==="dark" ? "☀️" : "🌙";
+}
+
+window.toggleTheme = () => {
+  const current = document.documentElement.getAttribute("data-theme") || "light";
+  const next = current==="dark" ? "light" : "dark";
+  localStorage.setItem(THEME_KEY, next);
+  applyTheme(next);
+};
+
+// ─── ЗБЕРЕЖЕННЯ ПРОГРЕСУ ─────────────────────────────────────────────────────
+function saveProgressLocally(){
+  if(!testData || !linkData) return;
+  const key = `qf_progress_${linkData.id}`;
+  localStorage.setItem(key, JSON.stringify({
+    answers,
+    currentQ,
+    startTime,
+    attemptId,
+    studentName,
+    studentSurname,
+    savedAt: Date.now()
+  }));
+  // Зберігаємо поточне питання у Firebase для моніторингу онлайн
+  if(attemptId){
+    const total = testData?.questions?.length || 0;
+    update(ref(db, `attempts/${attemptId}`), {
+      currentQ: currentQ + 1,
+      totalQ: total,
+      lastSeen: Date.now()
+    }).catch(()=>{});
+  }
+}
+
+function loadSavedProgress(){
+  if(!linkData) return false;
+  const key = `qf_progress_${linkData.id}`;
+  const raw = localStorage.getItem(key);
+  if(!raw) return false;
+  try {
+    const data = JSON.parse(raw);
+    // Не відновлюємо якщо більше 24 годин
+    if(Date.now() - data.savedAt > 86400000){
+      localStorage.removeItem(key);
+      return false;
+    }
+    return data;
+  } catch{ return false; }
+}
+
+function clearSavedProgress(){
+  if(!linkData) return;
+  localStorage.removeItem(`qf_progress_${linkData.id}`);
+}
+
+// ─── ЛОГУВАННЯ ПІДОЗРІЛОЇ АКТИВНОСТІ ─────────────────────────────────────────
+let _suspiciousEvents = [];
+let _tabSwitchCount = 0;
+let _copyAttempts = 0;
+let _isTestActive = false;
+
+function startActivityMonitor(){
+  _isTestActive = true;
+  _tabSwitchCount = 0;
+  _copyAttempts = 0;
+  _suspiciousEvents = [];
+
+  // Відстеження переключення вкладок
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+  window.addEventListener("blur", handleWindowBlur);
+
+  // Блокування копіювання
+  document.addEventListener("copy",  handleCopyAttempt);
+  document.addEventListener("cut",   handleCopyAttempt);
+  document.addEventListener("keydown", handleKeyDown);
+}
+
+function stopActivityMonitor(){
+  _isTestActive = false;
+  document.removeEventListener("visibilitychange", handleVisibilityChange);
+  window.removeEventListener("blur", handleWindowBlur);
+  document.removeEventListener("copy",  handleCopyAttempt);
+  document.removeEventListener("cut",   handleCopyAttempt);
+  document.removeEventListener("keydown", handleKeyDown);
+}
+
+function handleVisibilityChange(){
+  if(!_isTestActive) return;
+  if(document.hidden){
+    _tabSwitchCount++;
+    logSuspicious("tab_hidden", `Відкрив іншу вкладку (${_tabSwitchCount} разів)`);
+    if(_tabSwitchCount === 2){
+      showWarningBanner("⚠️ Викладач бачить що ти переключаєш вкладки!");
+    }
+  }
+}
+
+function handleWindowBlur(){
+  if(!_isTestActive) return;
+  // Blur спрацьовує при Alt+Tab і кліку поза вікном
+  logSuspicious("window_blur", "Вийшов з вікна тесту");
+}
+
+function handleCopyAttempt(e){
+  if(!_isTestActive) return;
+  e.preventDefault();
+  _copyAttempts++;
+  logSuspicious("copy_attempt", `Спроба скопіювати текст (${_copyAttempts} разів)`);
+  showWarningBanner("🔒 Копіювання заблоковано під час тесту");
+}
+
+function handleKeyDown(e){
+  if(!_isTestActive) return;
+  // Ctrl+C, Ctrl+A, Ctrl+V, F12, Ctrl+Shift+I
+  if((e.ctrlKey||e.metaKey) && ["c","a","v","u"].includes(e.key.toLowerCase())){
+    if(e.key.toLowerCase()!=="v") { // дозволяємо вставку відповідей
+      e.preventDefault();
+      handleCopyAttempt(e);
+    }
+  }
+  if(e.key==="F12" || (e.ctrlKey && e.shiftKey && e.key==="I")){
+    e.preventDefault();
+    logSuspicious("devtools", "Спроба відкрити DevTools");
+  }
+  if(e.key==="PrintScreen"){
+    logSuspicious("screenshot", "Спроба зробити скріншот");
+    _screenshotCount = (_screenshotCount||0) + 1;
+    showWarningBanner("📸 Скріншот зафіксовано! Викладач отримав сповіщення.");
+    // Надсилаємо сповіщення в Firebase одразу
+    sendScreenshotNotification();
+  }
+}
+
+
+
+// ─── STUDENT CARD SYNC ───────────────────────────────────────────────────────
+async function syncStudentCard({ name, surname, grade12, testId, testTitle, percent, attemptId, group }){
+  try {
+    const key = `${surname.trim().toLowerCase()}_${name.trim().toLowerCase()}`;
+    const snap = await get(ref(db, "students"));
+    let existing = null;
+    let existingId = null;
+
+    if(snap.exists()){
+      Object.entries(snap.val()).forEach(([id, s]) => {
+        const sKey = `${(s.surname||"").trim().toLowerCase()}_${(s.name||"").trim().toLowerCase()}`;
+        if(sKey === key){ existing = s; existingId = id; }
+      });
+    }
+
+    const attemptEntry = {
+      attemptId: attemptId || null,
+      testId:    testId,
+      testTitle: testTitle || "",
+      grade:     grade12 || 0,
+      percent:   percent || 0,
+      group:     group || "",
+      date:      Date.now()
+    };
+
+    if(existing && existingId){
+      // Оновлюємо існуючу картку
+      const prevAttempts = Array.isArray(existing.attempts) ? existing.attempts : [];
+      const allAttempts = [...prevAttempts, attemptEntry];
+      const grades = allAttempts.map(a => a.grade).filter(g => g > 0);
+      const avgGrade = grades.length ? Math.round((grades.reduce((a,b)=>a+b,0)/grades.length)*10)/10 : 0;
+
+      // Оновлюємо групи
+      const groups = [...new Set([...(existing.groups||[]), ...(group?[group]:[])])];
+
+      await update(ref(db, `students/${existingId}`), {
+        attempts: allAttempts,
+        avgGrade,
+        groups,
+        lastSeen: Date.now()
+      });
+    } else {
+      // Створюємо нову картку
+      const newStudent = {
+        name:      name.trim(),
+        surname:   surname.trim(),
+        groups:    group ? [group] : [],
+        attempts:  [attemptEntry],
+        avgGrade:  grade12 || 0,
+        createdAt: Date.now(),
+        lastSeen:  Date.now()
+      };
+      const newRef = push(ref(db, "students"));
+      await set(newRef, { ...newStudent, id: newRef.key });
+    }
+  } catch(e){
+    console.warn("Student sync failed:", e.message);
+  }
+}
+
+// ─── SCREENSHOT DETECTION ─────────────────────────────────────────────────────
+let _screenshotCount = 0;
+let _lastScreenshotNotif = 0;
+
+async function sendScreenshotNotification(){
+  // Не спамимо — максимум 1 сповіщення кожні 10 секунд
+  const now = Date.now();
+  if(now - _lastScreenshotNotif < 10000) return;
+  _lastScreenshotNotif = now;
+
+  const name = (studentName||"") + " " + (studentSurname||"");
+  const testTitle = testData?.title || "тест";
+  const qNum = currentQ + 1;
+
+  const notif = {
+    icon: "📸",
+    title: `${name.trim()} зробив(ла) скріншот`,
+    desc: `${testTitle} · Питання ${qNum} · Всього скріншотів: ${_screenshotCount}`,
+    type: "screenshot",
+    isWarning: true,
+    attemptId: attemptId || null,
+    ts: now,
+    read: false
+  };
+
+  try {
+    const notifRef = push(ref(db, "notifications"));
+    await set(notifRef, { ...notif, id: notifRef.key });
+  } catch(e){
+    console.warn("Notif send failed:", e.message);
+  }
+}
+
+function logSuspicious(type, description){
+  _suspiciousEvents.push({ type, description, time: Date.now() });
+}
+
+let _warningTimeout = null;
+function showWarningBanner(msg){
+  let banner = document.getElementById("warningBanner");
+  if(!banner){
+    banner = document.createElement("div");
+    banner.id = "warningBanner";
+    banner.style.cssText = `
+      position:fixed;top:0;left:0;right:0;z-index:9999;
+      background:linear-gradient(90deg,#f43f5e,#be123c);
+      color:white;text-align:center;padding:12px 20px;
+      font-family:'Syne',sans-serif;font-weight:600;font-size:14px;
+      animation:warningSlide .3s ease;
+    `;
+    document.body.appendChild(banner);
+  }
+  banner.textContent = msg;
+  banner.style.display = "block";
+  clearTimeout(_warningTimeout);
+  _warningTimeout = setTimeout(()=>{ banner.style.display="none"; }, 4000);
+}
+
+// ─── SHOW RESULT ─────────────────────────────────────────────────────────────
+function showResult(scoreResult, aiResult) {
+  showScreen("resultScreen");
+
+  setEl("resultStudent",  `${studentName} ${studentSurname}`);
+  setEl("resultTestName", testData.title);
+
+  const hasLong = testData.questions.some(q => q.type === "long");
+
+  // Оцінка з кольором
+  const gradeEl = document.getElementById("resultGrade");
+  const gradeDenom = document.querySelector(".grade-denom");
+  if (gradeEl) {
+    if(hasLong){
+      gradeEl.textContent = "—";
+      gradeEl.style.color = "#9ca3af";
+      if(gradeDenom) gradeDenom.textContent = "перевіряється";
+      // Показуємо повідомлення про ручну перевірку
+      const reviewBox = document.getElementById("reviewingBox");
+      if(reviewBox) reviewBox.style.display = "";
+    } else {
+      gradeEl.textContent = aiResult.grade;
+      const gc = aiResult.grade >= 10 ? "#0d9e85" : aiResult.grade >= 7 ? "#2d5be3" : aiResult.grade >= 4 ? "#f59e0b" : "#f43f5e";
+      gradeEl.style.color = gc;
+      if(gradeDenom) gradeDenom.textContent = "/12";
+    }
+  }
+
+  setEl("statCorrect",    scoreResult.correct);
+  setEl("statWrong",      scoreResult.incorrect);
+  // AI коментар — показуємо блок тільки якщо є текст
+  const aiBox = document.getElementById("aiCommentBox");
+  const aiText = document.getElementById("aiComment");
+  if(aiResult.comment && aiResult.comment.trim() && aiResult.comment !== "Завантаження..."){
+    if(aiBox) aiBox.style.display = "";
+    if(aiText) aiText.textContent = aiResult.comment;
+  } else {
+    if(aiBox) aiBox.style.display = "none";
+  }
+
+  // time elapsed
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const m = Math.floor(elapsed / 60);
+  const s = elapsed % 60;
+  setEl("statTime", `${m}:${s.toString().padStart(2, "0")}`);
+
+  // emoji
+  const emoji = aiResult.grade >= 10 ? "🎉" : aiResult.grade >= 7 ? "👍" : "📚";
+  setEl("resultEmoji", emoji);
+
+  // Якщо є питання що перевіряються вручну — показуємо попередження
+  const pendingCount = scoreResult.pending || 0;
+  const pendingNotice = document.getElementById("pendingNotice");
+  if(pendingNotice){
+    if(pendingCount > 0){
+      pendingNotice.style.display = "";
+      pendingNotice.innerHTML = `⏳ <strong>${pendingCount} ${pendingCount===1?"питання":"питань"}</strong> з розгорнутою відповіддю очікують перевірки викладача. Оцінка може змінитись.`;
+    } else {
+      pendingNotice.style.display = "none";
+    }
+  }
+}
+
+
+async function generatePersonalErrorAnalysis(answers, questions, score){
+  const el = document.getElementById("errorAnalysisText");
+  if(!el) return;
+
+  const wrongItems = questions.map(q=>{
+    const ans = answers.find(a=>a.questionId===q.id);
+    if(!ans || ans.correct) return null;
+    let correctAns = "";
+    if(q.type==="single"||q.type==="multi"){
+      const idxs = Array.isArray(q.correct)?q.correct:[q.correct];
+      correctAns = idxs.map(i=>(q.options||[])[i]).filter(Boolean).join(", ");
+    } else { correctAns = String(q.correct||""); }
+    const studentAns = Array.isArray(ans.value)
+      ? ans.value.map(i=>(q.options||[])[i]).join(", ")
+      : String(ans.value||"(без відповіді)");
+    return `- Питання: "${q.text}"\n  Ваша відповідь: "${studentAns}"\n  Правильно: "${correctAns}"`;
+  }).filter(Boolean).slice(0,6).join("\n\n");
+
+  if(!wrongItems){ el.textContent = ""; return; }
+
+  try {
+    const prompt = `Студент допустив помилки в тесті "${testData.title}". Напиши персональний короткий розбір (3-4 речення) — що не так і що повторити. Тільки українська.\n\nПомилки:\n${wrongItems}`;
+    const raw = await callGroq([{role:"user", content:prompt}], 350, 0.4);
+    el.textContent = raw.trim();
+  } catch(e){
+    document.getElementById("errorAnalysisBox").style.display = "none";
+  }
+}
+
+// ─── DOWNLOAD ─────────────────────────────────────────────────────────────────
+document.getElementById("downloadBtn")?.addEventListener("click", () => {
+  if (!resultData) return;
+  const html = generateResultHTML(resultData);
+  const name = `${resultData.student.name}_${resultData.student.surname}_result.html`;
+  downloadHTML(html, name);
+});
+
+document.getElementById("closeTestBtn")?.addEventListener("click", () => {
+  // Спробуємо закрити вкладку, якщо не вдасться — показуємо повідомлення
+  try {
+    window.close();
+    // Якщо window.close() не спрацював (вкладка відкрита вручну), 
+    // перенаправляємо на порожню сторінку з повідомленням
+    setTimeout(() => {
+      document.body.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+          min-height:100vh;font-family:'DM Sans',sans-serif;background:#f0f3fa;gap:16px;text-align:center;padding:24px">
+          <div style="font-size:48px">✅</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;color:#0d1340">Тест завершено</div>
+          <div style="font-size:15px;color:#6b7280">Ви можете закрити цю вкладку</div>
+        </div>`;
+    }, 300);
+  } catch(e) {
+    document.body.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+        min-height:100vh;font-family:'DM Sans',sans-serif;background:#f0f3fa;gap:16px;text-align:center;padding:24px">
+        <div style="font-size:48px">✅</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;color:#0d1340">Тест завершено</div>
+        <div style="font-size:15px;color:#6b7280">Ви можете закрити цю вкладку</div>
+      </div>`;
+  }
+});
+
+// ─── SCREENS ─────────────────────────────────────────────────────────────────
+
+// ─── ONBOARDING ───────────────────────────────────────────────────────────────
+let _obStep = 0;
+const OB_KEY = "qf_ob_done"; // localStorage key
+
+function obStart() {
+  // Показуємо онбординг тільки якщо студент ще не бачив його
+  if (localStorage.getItem(OB_KEY)) {
+    showScreen("entryScreen");
+    return;
+  }
+  _obStep = 0;
+  obRender();
+  showScreen("onboardingScreen");
+}
+
+function obRender() {
+  document.querySelectorAll(".ob-step").forEach((el, i) => {
+    el.classList.toggle("active", i === _obStep);
+  });
+  document.querySelectorAll(".ob-dot").forEach((el, i) => {
+    el.classList.toggle("active", i === _obStep);
+  });
+}
+
+window.obNext = () => {
+  _obStep++;
+  if (_obStep >= 3) { obSkip(); return; }
+  obRender();
+};
+
+window.obSkip = () => {
+  localStorage.setItem(OB_KEY, "1");
+  showScreen("entryScreen");
+  document.getElementById("inputName")?.focus();
+};
+
+function showScreen(id) {
+  const screens = {
+    loadingScreen:       "flex",
+    onboardingScreen:    "flex",
+    entryScreen:         "flex",
+    testScreen:       "flex",
+    processingScreen: "flex",
+    resultScreen:     "flex",
+    errorScreen:      "flex"
+  };
+  Object.keys(screens).forEach(s => {
+    const el = document.getElementById(s);
+    if (el) el.style.display = s === id ? screens[s] : "none";
+  });
+}
+
+function showError(msg) {
+  const el = document.getElementById("errorMsg");
+  if (el) el.textContent = msg;
+  showScreen("errorScreen");
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function setEl(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function escHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+
+function highlight(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.borderColor = "var(--rose)";
+  el.focus();
+  el.addEventListener("input", () => el.style.borderColor = "", { once: true });
+}
+
+function showBtnLoading(id, state) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.disabled = state;
+  el.textContent = state ? "Перевірка..." : "Розпочати тест →";
+}
+</script>
+
+<!-- UNANSWERED QUESTIONS MODAL -->
+<!-- RESTORE PROGRESS MODAL -->
+<div class="un-modal" id="restoreModal" style="display:none">
+  <div class="un-box" style="max-width:380px;text-align:center">
+    <div style="font-size:42px;margin-bottom:12px">💾</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:19px;margin-bottom:8px">Незавершений тест</div>
+    <div style="font-size:14px;color:var(--text-muted);line-height:1.55;margin-bottom:24px" id="restoreMsg"></div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button onclick="window._restoreConfirm(true)"
+        style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#2d5be3,#1a3ab8);color:white;font-family:'Syne',sans-serif;font-weight:600;font-size:15px;cursor:pointer">
+        ▶ Продовжити з місця зупинки
+      </button>
+      <button onclick="window._restoreConfirm(false)"
+        style="width:100%;padding:12px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer">
+        Почати спочатку
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<div class="un-modal" id="unModal">
+  <div class="un-box">
+    <div style="text-align:center;margin-bottom:4px">
+      <div style="font-size:44px;margin-bottom:12px">📋</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:20px;margin-bottom:6px">Є питання без відповіді</div>
+      <div style="font-size:14px;color:var(--text-muted);line-height:1.5">Ви пропустили <strong id="unCount" style="color:var(--rose)">0</strong> питань. Натисніть на питання щоб повернутись до нього, або завершіть тест.</div>
+    </div>
+    <div class="un-q-list" id="unList"></div>
+    <div class="un-actions">
+      <button class="un-btn-finish" onclick="window._confirmFinish()">Все одно завершити</button>
+      <button class="un-btn-back" onclick="window._cancelFinish()">← Повернутись і відповісти</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
