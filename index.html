@@ -301,21 +301,32 @@ textarea.fi{resize:vertical;min-height:72px}
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input type="text" id="srch" placeholder="Пошук тестів..." oninput="renderTests(this.value)" autocomplete="off">
         </div>
+        <button class="btn bs" onclick="showSec('archive')" style="font-size:13px">📦 Архів <span id="nb-archive" style="background:rgba(107,114,128,.15);color:var(--muted);padding:1px 7px;border-radius:10px;font-size:11px;margin-left:3px">0</span></button>
         <button class="btn bs" onclick="openM('m-folder')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Нова папка</button>
         <button class="btn bp" onclick="openM('m-test')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Новий тест</button>
       </div>
     </div>
     <div id="tc"></div>
 
-    <!-- АРХІВ ТЕСТІВ -->
-    <div id="archive-section" style="margin-top:8px">
-      <div style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:12px 0"
-           onclick="G.toggleArchive()">
-        <span style="font-size:13px;color:var(--muted);font-weight:500">📦 Архів тестів</span>
-        <span id="archive-count" style="font-size:12px;color:var(--muted);background:rgba(107,114,128,.1);padding:2px 9px;border-radius:20px"></span>
-        <svg id="archive-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted);transition:transform .2s"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <!-- ARCHIVE -->
+  <div class="sec" id="sec-archive">
+    <div class="ph">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button onclick="showSec('tests')" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:13px;cursor:pointer;color:var(--muted)"
+            onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
+            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>Тести
+          </button>
+          <div class="pt">Архів тестів</div>
+        </div>
+        <div class="ps">Завершені та неактивні тести</div>
       </div>
-      <div id="archive-list" style="display:none"></div>
+    </div>
+    <div id="archive-body">
+      <div class="empty" style="padding:60px 20px"><div class="ei">📦</div><div class="et">Архів порожній</div></div>
     </div>
   </div>
 
@@ -692,9 +703,19 @@ textarea.fi{resize:vertical;min-height:72px}
 <!-- Нова папка -->
 <div class="mo" id="m-folder"><div class="mb" style="max-width:400px">
   <button class="mcl" onclick="closeM('m-folder')">×</button>
-  <div style="font-size:26px;margin-bottom:8px">📁</div>
   <div class="mtl">Нова папка</div><div class="msu">Назва для групування тестів</div>
   <div class="fl"><label>Назва *</label><input class="fi" id="nf-n" placeholder="Наприклад: Frontend" onkeydown="if(event.key==='Enter')G.submitFolder()"></div>
+  <div class="fl">
+    <label>Колір</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+      ${["#2d5be3","#0d9e85","#9333ea","#f59e0b","#f43f5e","#0ea5e9","#ec4899","#64748b","#10b981","#dc2626"].map(c=>
+        `<div onclick="G.selectFolderColor('${c}')" data-color="${c}"
+          style="width:28px;height:28px;border-radius:8px;background:${c};cursor:pointer;transition:all .15s;border:2.5px solid transparent"
+          title="${c}"></div>`
+      ).join("")}
+    </div>
+    <input type="hidden" id="nf-color" value="#2d5be3">
+  </div>
   <div class="ma"><button class="btn bs" onclick="closeM('m-folder')">Скасувати</button><button class="btn bp" onclick="G.submitFolder()">Створити →</button></div>
 </div></div>
 
@@ -1167,6 +1188,8 @@ function renderAll(){
   // Оновлюємо лічильник архіву
   const archiveCnt=document.getElementById("archive-count");
   if(archiveCnt) archiveCnt.textContent=tests.filter(t=>t.status==="archived").length||"";
+  const nbArchive=document.getElementById("nb-archive");
+  if(nbArchive) nbArchive.textContent=tests.filter(t=>t.status==="archived").length;
 }
 
 // STATS
@@ -1349,8 +1372,8 @@ window.renderTests = function(q=""){
   const folderGrid = folders.map(f=>{
     const fTests = lst.filter(t=>t.folderId===f.id);
     const cnt = fTests.length;
-    const colors = ["#2d5be3","#0d9e85","#9333ea","#f59e0b","#f43f5e","#0ea5e9"];
-    const col = colors[folders.indexOf(f)%colors.length];
+    const fallbacks = ["#2d5be3","#0d9e85","#9333ea","#f59e0b","#f43f5e","#0ea5e9"];
+    const col = f.color || fallbacks[folders.indexOf(f)%fallbacks.length];
     return `<div style="background:white;border:1.5px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;transition:all .2s;position:relative"
       onclick="G.setFF('${f.id}')"
       onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 36px rgba(0,0,0,.1)';this.style.borderColor='${col}44'"
@@ -1752,12 +1775,25 @@ window.G = {
     if(!n){$("nf-n").classList.add("er");return;}
     if(folders.some(f=>f.name===n)){toast(`Папка «${n}» вже існує`,"err");return;}
     try{
-      const id=await dbPush("folders",{name:n,createdAt:ts()});
-      folders.push({id,name:n,createdAt:ts()});
+      const color=$("nf-color")?.value||"#2d5be3";
+      const id=await dbPush("folders",{name:n,color,createdAt:ts()});
+      folders.push({id,name:n,color,createdAt:ts()});
       closeM("m-folder"); $("nf-n").value="";
+      $("nf-color").value="#2d5be3";
+      document.querySelectorAll("#m-folder [data-color]").forEach(el=>el.style.borderColor="transparent");
+      document.querySelector('#m-folder [data-color="#2d5be3"]')?.style && (document.querySelector('#m-folder [data-color="#2d5be3"]').style.borderColor="white");
       renderTests(); updateBadges(); toast(`Папку «${n}» створено`);
     }catch(e){toast("Помилка: "+e.message,"err");}
   },
+  selectFolderColor(color){
+    $("nf-color").value = color;
+    document.querySelectorAll("#m-folder [data-color]").forEach(el=>{
+      el.style.borderColor = el.dataset.color===color ? "white" : "transparent";
+      el.style.transform = el.dataset.color===color ? "scale(1.2)" : "";
+      el.style.boxShadow = el.dataset.color===color ? `0 2px 12px ${color}88` : "";
+    });
+  },
+
   confDelFolder(id,name){_pid=id;$("del-fn").textContent=name;openM("m-del-folder");},
   async doDelFolder(){
     const id=_pid;_pid=null;closeM("m-del-folder");
@@ -2332,6 +2368,52 @@ window.G = {
     openM("m-del-student");
   },
 
+
+
+  renderArchive(){
+    const body = document.getElementById("archive-body");
+    if(!body) return;
+    const archived = tests.filter(t=>t.status==="archived").sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    // Оновлюємо лічильник
+    const nb = document.getElementById("nb-archive");
+    if(nb) nb.textContent = archived.length;
+    if(!archived.length){
+      body.innerHTML=`<div class="empty" style="padding:60px 20px"><div class="ei">📦</div><div class="et">Архів порожній</div><p style="margin-top:6px;font-size:14px;color:var(--muted)">Сюди потрапляють тести зі статусом "Архівовано"</p></div>`;
+      return;
+    }
+    body.innerHTML=`<div class="card" style="padding:0;overflow:hidden">
+      <table class="tbl">
+        <thead><tr>
+          <th style="padding:13px 16px">Назва</th>
+          <th>Питань</th>
+          <th>Спроб</th>
+          <th>Архівовано</th>
+          <th></th>
+        </tr></thead>
+        <tbody>${archived.map(t=>{
+          const attCount=attempts.filter(a=>a.testId===t.id).length;
+          const dateStr=t.updatedAt?new Date(t.updatedAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short",year:"numeric"}):"—";
+          return`<tr>
+            <td style="padding:12px 16px">
+              <div style="font-weight:600;font-size:14px">${esc(t.title)}</div>
+              ${(t.tags||[]).length?`<div style="margin-top:3px">${t.tags.map(g=>`<span style="font-size:11px;background:rgba(45,91,227,.07);color:var(--primary);padding:1px 7px;border-radius:10px;margin-right:3px">${esc(g)}</span>`).join("")}</div>`:""}
+            </td>
+            <td style="color:var(--muted);font-size:13px">${t.questions?.length||0}</td>
+            <td style="color:var(--muted);font-size:13px">${attCount}</td>
+            <td style="font-size:12px;color:var(--muted)">${dateStr}</td>
+            <td><div class="ra">
+              <div class="ib" title="Відновити тест" onclick="G.restoreTest('${t.id}')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
+              </div>
+              <div class="ib d" title="Видалити назавжди" onclick="G.confDelTest('${t.id}','${esc(t.title)}')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+              </div>
+            </div></td>
+          </tr>`;
+        }).join("")}</tbody>
+      </table>
+    </div>`;
+  },
 
   renderSuspicious(){
     const body = document.getElementById("suspicious-body");
@@ -3018,7 +3100,7 @@ ${details}
 
 // NAV
 window.showSec = function(name){
-  ["dashboard","tests","attempts","links","analytics","notifications","gradebook","students","suspicious","online"].forEach(s=>{
+  ["dashboard","tests","attempts","links","analytics","notifications","gradebook","students","suspicious","online","archive"].forEach(s=>{
     document.getElementById(`sec-${s}`)?.classList.toggle("on",s===name);
     document.getElementById(`ni-${s}`)?.classList.toggle("active",s===name);
   });
@@ -3029,6 +3111,7 @@ window.showSec = function(name){
   if(name==="notifications")  G.renderNotifications();
   if(name==="gradebook")      G.initGradebook();
   if(name==="students")       G.initStudents();
+  if(name==="archive")        G.renderArchive();
   if(name==="suspicious")     G.renderSuspicious();
   if(name==="online")         { G.renderOnline(); G._onlineInterval=setInterval(G.renderOnline.bind(G),15000); }
   else if(G._onlineInterval)  { clearInterval(G._onlineInterval); G._onlineInterval=null; }
