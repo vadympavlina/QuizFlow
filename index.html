@@ -707,12 +707,17 @@ textarea.fi{resize:vertical;min-height:72px}
   <div class="fl"><label>Назва *</label><input class="fi" id="nf-n" placeholder="Наприклад: Frontend" onkeydown="if(event.key==='Enter')G.submitFolder()"></div>
   <div class="fl">
     <label>Колір</label>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
-      ${["#2d5be3","#0d9e85","#9333ea","#f59e0b","#f43f5e","#0ea5e9","#ec4899","#64748b","#10b981","#dc2626"].map(c=>
-        `<div onclick="G.selectFolderColor('${c}')" data-color="${c}"
-          style="width:28px;height:28px;border-radius:8px;background:${c};cursor:pointer;transition:all .15s;border:2.5px solid transparent"
-          title="${c}"></div>`
-      ).join("")}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+      <div onclick="G.selectFolderColor('#2d5be3')" data-color="#2d5be3" style="width:28px;height:28px;border-radius:8px;background:#2d5be3;cursor:pointer;transition:all .15s;border:2.5px solid white;box-shadow:0 2px 8px #2d5be388"></div>
+      <div onclick="G.selectFolderColor('#0d9e85')" data-color="#0d9e85" style="width:28px;height:28px;border-radius:8px;background:#0d9e85;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
+      <div onclick="G.selectFolderColor('#9333ea')" data-color="#9333ea" style="width:28px;height:28px;border-radius:8px;background:#9333ea;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
+      <div onclick="G.selectFolderColor('#f59e0b')" data-color="#f59e0b" style="width:28px;height:28px;border-radius:8px;background:#f59e0b;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
+      <div onclick="G.selectFolderColor('#f43f5e')" data-color="#f43f5e" style="width:28px;height:28px;border-radius:8px;background:#f43f5e;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
+      <div onclick="G.selectFolderColor('#0ea5e9')" data-color="#0ea5e9" style="width:28px;height:28px;border-radius:8px;background:#0ea5e9;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
+      <div onclick="G.selectFolderColor('#ec4899')" data-color="#ec4899" style="width:28px;height:28px;border-radius:8px;background:#ec4899;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
+      <div onclick="G.selectFolderColor('#10b981')" data-color="#10b981" style="width:28px;height:28px;border-radius:8px;background:#10b981;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
+      <div onclick="G.selectFolderColor('#dc2626')" data-color="#dc2626" style="width:28px;height:28px;border-radius:8px;background:#dc2626;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
+      <div onclick="G.selectFolderColor('#64748b')" data-color="#64748b" style="width:28px;height:28px;border-radius:8px;background:#64748b;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
     </div>
     <input type="hidden" id="nf-color" value="#2d5be3">
   </div>
