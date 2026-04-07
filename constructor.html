@@ -407,17 +407,9 @@
         <select id="aiDifficulty" style="display:none"><option value="легка">Легка</option><option value="середня" selected>Середня</option><option value="складна">Складна</option></select>
       </div>
       <div>
-        <div class="setting-label">Кількість</div>
-        <div class="con-cd-wrap" id="con-cd-count" style="display:block">
-          <button class="con-cd-btn" style="width:100%;justify-content:space-between" onclick="conToggleDrop('con-cd-count')">
-            <span id="con-cd-count-label">10 питань</span>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div class="con-cd-menu" id="con-cd-count-menu" style="width:100%">
-            ${["5","10","15","20","30","40","50"].map(n=>`<div class="con-cd-item${n==="10"?" con-cd-active":""}" onclick="conSelectAI('aiCount','con-cd-count','${n}','${n} питань')">${n} питань</div>`).join("")}
-          </div>
-        </div>
-        <select id="aiCount" style="display:none"><option value="5">5</option><option value="10" selected>10</option><option value="15">15</option><option value="20">20</option><option value="30">30</option><option value="40">40</option><option value="50">50</option></select>
+        <div class="setting-label">Кількість питань</div>
+        <input class="setting-input" type="number" id="aiCount" value="10" min="1" max="50"
+          style="text-align:center;font-family:'Syne',sans-serif;font-weight:700;font-size:16px">
       </div>
       <div>
         <div class="setting-label">Тип</div>

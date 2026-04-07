@@ -78,6 +78,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .bg-o{background:rgba(245,158,11,.1);color:#b45309;border:1.5px solid rgba(245,158,11,.2)}.bg-a{background:rgba(245,158,11,.1);color:#b45309}.bg-b{background:rgba(45,91,227,.1);color:var(--primary)}
 /* FOLDER FILTER TABS */
 .ftab{display:inline-flex;align-items:center;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);border:1.5px solid var(--border);background:#fff;transition:all .15s;user-select:none}
+/* Кнопки на папці при hover */
+[onmouseover*="folder-actions"]:hover .folder-actions,
+div[onclick*="setFF"]:hover .folder-actions{opacity:1 !important}
 .ftab:hover{border-color:rgba(45,91,227,.3);color:var(--primary)}
 .ftab-a{background:var(--primary);border-color:var(--primary);color:#fff}
 .ftab-a:hover{background:var(--primary-light);color:#fff;border-color:var(--primary-light)}
@@ -1277,84 +1280,132 @@ window.renderTests = function(q=""){
   let lst=tests.filter(t=>t.status!=="archived");
   if(q) lst=lst.filter(t=>t.title.toLowerCase().includes(q.toLowerCase())||(t.tags||[]).some(g=>g.toLowerCase().includes(q.toLowerCase())));
 
-  // ─── Вид: сітка папок ────────────────────────────────────────────────────
   const hasNoFolder=lst.some(t=>!t.folderId||!folders.find(f=>f.id===t.folderId));
   const noFolderTests=lst.filter(t=>!t.folderId||!folders.find(f=>f.id===t.folderId));
 
-  // Картки папок
-  const folderCards = folders.map(f=>{
-    const fTests = lst.filter(t=>t.folderId===f.id);
-    const isOpen = _fFilter===f.id;
-    const cnt = fTests.length;
-    const lb = cnt===0?"Порожня":cnt===1?"1 тест":cnt<5?`${cnt} тести`:`${cnt} тестів`;
-    return `<div style="background:white;border:1.5px solid ${isOpen?"var(--primary)":"var(--border)"};border-radius:16px;overflow:hidden;transition:all .2s">
-      <!-- Заголовок папки -->
-      <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;transition:background .15s;background:${isOpen?"rgba(45,91,227,.03)":"white"}"
-        onclick="G.setFF('${isOpen?"all":f.id}')">
-        <div style="width:38px;height:38px;border-radius:11px;background:${isOpen?"var(--primary)":"rgba(45,91,227,.08)"};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${isOpen?"white":"var(--primary)"}" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+  // Якщо обрана конкретна папка — показуємо тести всередині неї
+  if(_fFilter && _fFilter!=="all" && _fFilter!=="none"){
+    const folder = folders.find(f=>f.id===_fFilter);
+    const fTests = lst.filter(t=>t.folderId===_fFilter);
+    c.innerHTML=`
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+        <button onclick="G.setFF('all')" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);transition:all .15s"
+          onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          Назад
+        </button>
+        <div style="width:36px;height:36px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
         </div>
-        <div style="flex:1;min-width:0">
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(f.name)}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:1px">${lb}</div>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:17px">${esc(folder?.name||"Папка")}</div>
+          <div style="font-size:12px;color:var(--muted)">${fTests.length} тест${fTests.length===1?"":fTests.length<5?"и":"ів"}</div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <button onclick="event.stopPropagation();G.openTestInFolder('${f.id}')" title="Додати тест"
-            style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:white;color:var(--primary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s"
-            onmouseover="this.style.borderColor='var(--primary)';this.style.background='rgba(45,91,227,.05)'"
-            onmouseout="this.style.borderColor='var(--border)';this.style.background='white'">+</button>
-          <button onclick="event.stopPropagation();G.confDelFolder('${f.id}','${esc(f.name)}')" title="Видалити папку"
-            style="width:28px;height:28px;border-radius:8px;border:1.5px solid rgba(244,63,94,.2);background:rgba(244,63,94,.05);color:#be123c;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s"
-            onmouseover="this.style.background='rgba(244,63,94,.15)'"
-            onmouseout="this.style.background='rgba(244,63,94,.05)'">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-          </button>
-          <svg style="color:var(--muted);transition:transform .2s;transform:rotate(${isOpen?"0":"180deg"})" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 15 12 9 18 15"/></svg>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button onclick="G.openTestInFolder('${_fFilter}')" class="btn bp btn-sm" style="font-size:13px">+ Додати тест</button>
+          <button onclick="G.confDelFolder('${_fFilter}','${esc(folder?.name||"")}')" class="btn bd btn-sm" style="font-size:13px">Видалити папку</button>
         </div>
       </div>
-      <!-- Тести всередині папки -->
-      ${isOpen?`<div style="border-top:1px solid var(--border)">
-        ${fTests.length?`<table class="tbl" style="margin:0">
-          <thead><tr style="background:rgba(45,91,227,.02)"><th style="padding:10px 16px">Назва</th><th>Статус</th><th>Питань</th><th>Спроб</th><th></th></tr></thead>
-          <tbody>${fTests.map(t=>buildTestRow(t)).join("")}</tbody>
-        </table>`:`<div style="padding:20px;text-align:center;color:var(--muted);font-size:14px">Папка порожня — <span style="color:var(--primary);cursor:pointer" onclick="G.openTestInFolder('${f.id}')">додати тест</span></div>`}
-      </div>`:""}
-    </div>`;
-  }).join("");
-
-  // Тести без папки
-  const noFolderCard = hasNoFolder?`<div style="background:white;border:1.5px solid ${_fFilter==="none"?"var(--primary)":"var(--border)"};border-radius:16px;overflow:hidden;transition:all .2s">
-    <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;background:${_fFilter==="none"?"rgba(45,91,227,.03)":"white"}"
-      onclick="G.setFF('${_fFilter==="none"?"all":"none"}')">
-      <div style="width:38px;height:38px;border-radius:11px;background:rgba(107,114,128,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      </div>
-      <div style="flex:1">
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px">Без папки</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:1px">${noFolderTests.length} тест${noFolderTests.length===1?"":"ів"}</div>
-      </div>
-      <svg style="color:var(--muted);transition:transform .2s;transform:rotate(${_fFilter==="none"?"0":"180deg"})" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 15 12 9 18 15"/></svg>
-    </div>
-    ${_fFilter==="none"?`<div style="border-top:1px solid var(--border)"><table class="tbl" style="margin:0">
-      <thead><tr style="background:rgba(45,91,227,.02)"><th style="padding:10px 16px">Назва</th><th>Статус</th><th>Питань</th><th>Спроб</th><th></th></tr></thead>
-      <tbody>${noFolderTests.map(t=>buildTestRow(t)).join("")}</tbody>
-    </table></div>`:""}
-  </div>`:"";
-
-  const allExpanded = _fFilter==="all"?`<div style="background:white;border:1.5px solid var(--border);border-radius:16px;overflow:hidden"><table class="tbl" style="margin:0">
-    <thead><tr style="background:rgba(45,91,227,.02)"><th style="padding:10px 16px">Назва</th><th>Статус</th><th>Питань</th><th>Спроб</th><th></th></tr></thead>
-    <tbody>${lst.map(t=>buildTestRow(t)).join("")}</tbody>
-  </table></div>`:"";
-
-  if(!lst.length){
-    c.innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">${folderCards}${noFolderCard}</div><div class="empty" style="margin-top:16px"><div class="ei">🔍</div><div class="et">Тестів не знайдено</div></div>`;
+      ${fTests.length
+        ? `<div class="card" style="padding:0;overflow:hidden">
+            <table class="tbl">
+              <thead><tr><th style="padding:13px 16px">Назва</th><th>Статус</th><th>Питань</th><th>Спроб</th><th></th></tr></thead>
+              <tbody>${fTests.map(t=>buildTestRow(t)).join("")}</tbody>
+            </table>
+          </div>`
+        : `<div class="empty" style="padding:60px 20px">
+            <div class="ei">📂</div>
+            <div class="et">Папка порожня</div>
+            <p style="margin-top:8px;font-size:14px;color:var(--muted)">
+              <span style="color:var(--primary);cursor:pointer" onclick="G.openTestInFolder('${_fFilter}')">Додати перший тест →</span>
+            </p>
+          </div>`
+      }`;
     return;
   }
 
-  c.innerHTML=`<div style="display:flex;flex-direction:column;gap:10px">
-    ${folderCards}
-    ${noFolderCard}
-  </div>`;
+  if(_fFilter==="none"){
+    c.innerHTML=`
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+        <button onclick="G.setFF('all')" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);transition:all .15s"
+          onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          Назад
+        </button>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:17px">Без папки</div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="tbl">
+          <thead><tr><th style="padding:13px 16px">Назва</th><th>Статус</th><th>Питань</th><th>Спроб</th><th></th></tr></thead>
+          <tbody>${noFolderTests.map(t=>buildTestRow(t)).join("")}</tbody>
+        </table>
+      </div>`;
+    return;
+  }
+
+  // ─── Головний вид: сітка папок ───────────────────────────────────────────
+  const folderGrid = folders.map(f=>{
+    const fTests = lst.filter(t=>t.folderId===f.id);
+    const cnt = fTests.length;
+    const colors = ["#2d5be3","#0d9e85","#9333ea","#f59e0b","#f43f5e","#0ea5e9"];
+    const col = colors[folders.indexOf(f)%colors.length];
+    return `<div style="background:white;border:1.5px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;transition:all .2s;position:relative"
+      onclick="G.setFF('${f.id}')"
+      onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 36px rgba(0,0,0,.1)';this.style.borderColor='${col}44'"
+      onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'">
+      <!-- Кольоровий верх -->
+      <div style="height:80px;background:linear-gradient(135deg,${col}22,${col}0a);display:flex;align-items:center;justify-content:center;position:relative">
+        <div style="width:48px;height:48px;border-radius:14px;background:${col};display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px ${col}44">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+        </div>
+        <!-- Кнопки дій -->
+        <div style="position:absolute;top:8px;right:8px;display:flex;gap:4px;opacity:0;transition:opacity .2s" class="folder-actions">
+          <button onclick="event.stopPropagation();G.openTestInFolder('${f.id}')" title="Додати тест"
+            style="width:26px;height:26px;border-radius:8px;border:none;background:rgba(255,255,255,.9);color:${col};cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;backdrop-filter:blur(4px)">+</button>
+          <button onclick="event.stopPropagation();G.confDelFolder('${f.id}','${esc(f.name)}')" title="Видалити"
+            style="width:26px;height:26px;border-radius:8px;border:none;background:rgba(255,255,255,.9);color:#be123c;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+          </button>
+        </div>
+      </div>
+      <!-- Інфо -->
+      <div style="padding:14px 16px">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px">${esc(f.name)}</div>
+        <div style="font-size:12px;color:var(--muted)">${cnt===0?"Порожня":cnt===1?"1 тест":cnt<5?`${cnt} тести`:`${cnt} тестів`}</div>
+      </div>
+    </div>`;
+  }).join("");
+
+  const noFolderCard = hasNoFolder?`<div style="background:white;border:1.5px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;transition:all .2s"
+    onclick="G.setFF('none')"
+    onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 36px rgba(0,0,0,.1)'"
+    onmouseout="this.style.transform='';this.style.boxShadow=''">
+    <div style="height:80px;background:rgba(107,114,128,.05);display:flex;align-items:center;justify-content:center">
+      <div style="width:48px;height:48px;border-radius:14px;background:rgba(107,114,128,.12);display:flex;align-items:center;justify-content:center">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+    </div>
+    <div style="padding:14px 16px">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:3px">Без папки</div>
+      <div style="font-size:12px;color:var(--muted)">${noFolderTests.length} тест${noFolderTests.length===1?"":noFolderTests.length<5?"и":"ів"}</div>
+    </div>
+  </div>`:"";
+
+  if(!lst.length && !folders.length){
+    c.innerHTML=`<div class="empty"><div class="ei">🔍</div><div class="et">Нічого не знайдено</div></div>`;
+    return;
+  }
+
+  c.innerHTML=`
+    <style>
+      .folder-card:hover .folder-actions { opacity:1 !important; }
+    </style>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px">
+      ${folderGrid}
+      ${noFolderCard}
+    </div>`;
 }
 
 
