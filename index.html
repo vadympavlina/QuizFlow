@@ -986,8 +986,11 @@ const app = getApps().length?getApps()[0]:initializeApp(FC);
 const db  = getDatabase(app);
 
 // AUTH
-if (sessionStorage.getItem("qf_auth")!=="1") location.href="login.html";
-window.doLogout = ()=>{sessionStorage.removeItem("qf_auth");location.href="login.html";};
+const _sess=sessionStorage.getItem("qf_user");
+if(!_sess) location.href="login.html";
+const _user=JSON.parse(_sess);
+if(!_user||!_user.id) { sessionStorage.clear(); location.href="login.html"; }
+window.doLogout = ()=>{sessionStorage.clear();location.href="login.html";};
 
 // UTILS
 const $ = id => document.getElementById(id);
