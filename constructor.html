@@ -470,10 +470,7 @@ function nowTs() {
 
 // ─── ADMIN AUTH ───────────────────────────────────────────────────────────────
 
-async function getAdmin() {
-  const snap = await get(ref(db, "admin"));
-  return snap.exists() ? snap.val() : null;
-}
+// Auth через sessionStorage — getAdmin не потрібен
 
 async function checkLogin(login, password) {
   const admin = await getAdmin();
@@ -484,14 +481,14 @@ async function checkLogin(login, password) {
 // ─── TESTS ────────────────────────────────────────────────────────────────────
 
 async function getTests() {
-  const snap = await get(ref(db, "tests"));
+  const snap = await get(ref(db, tp("tests")));
   if (!snap.exists()) return [];
   const arr = snapToArray(snap);
   return arr.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 }
 
 async function getTest(testId) {
-  const snap = await get(ref(db, `tests/${testId}`));
+  const snap = await get(ref(db, tp(`tests/${testId}`)));
   if (!snap.exists()) return null;
   const data = snap.val();
   if (data.questions && !Array.isArray(data.questions)) {
@@ -502,7 +499,7 @@ async function getTest(testId) {
 }
 
 async function createTest(data) {
-  const newRef = push(ref(db, "tests"));
+  const newRef = push(ref(db, tp("tests")));
   await set(newRef, {
     title:     data.title     || "Новий тест",
     folder:    data.folder    || "",
@@ -516,18 +513,18 @@ async function createTest(data) {
 }
 
 async function saveTest(testId, data) {
-  await update(ref(db, `tests/${testId}`), data);
+  await update(ref(db, tp(`tests/${testId}`)), data);
 }
 
 async function deleteTest(testId) {
-  await remove(ref(db, `tests/${testId}`));
-  const linksSnap = await get(ref(db, "links"));
+  await remove(ref(db, tp(`tests/${testId}`)));
+  const linksSnap = await get(ref(db, tp("links")));
   if (linksSnap.exists()) {
     const updates = {};
     Object.entries(linksSnap.val()).forEach(([k, v]) => {
       if (v.testId === testId) updates[k] = null;
     });
-    if (Object.keys(updates).length) await update(ref(db, "links"), updates);
+    if (Object.keys(updates).length) await update(ref(db, tp("links")), updates);
   }
 }
 
@@ -553,14 +550,14 @@ window.previewTest = async () => {
 
   // Відкриваємо тест напряму через testId в режимі preview (без таймера і результатів)
   const base = window.location.origin + window.location.pathname.replace("constructor.html","");
-  const url = `${base}test.html?testId=${testId}&preview=1`;
+  const url = `${base}test.html?testId=${testId}&preview=1&t=${_uid}`;
   window.open(url, "_blank");
 };
 
 // ─── LINKS ────────────────────────────────────────────────────────────────────
 
 async function createLink(testId, maxAttempts) {
-  const newRef = push(ref(db, "links"));
+  const newRef = push(ref(db, tp("links")));
   await set(newRef, {
     testId,
     maxAttempts:  Number(maxAttempts) || 30,
@@ -572,35 +569,35 @@ async function createLink(testId, maxAttempts) {
 }
 
 async function getLink(linkId) {
-  const snap = await get(ref(db, `links/${linkId}`));
+  const snap = await get(ref(db, tp(`links/${linkId}`)));
   if (!snap.exists()) return null;
   return { id: linkId, ...snap.val() };
 }
 
 async function getLinksByTest(testId) {
-  const snap = await get(ref(db, "links"));
+  const snap = await get(ref(db, tp("links")));
   if (!snap.exists()) return [];
   return snapToArray(snap).filter(l => l.testId === testId);
 }
 
 async function updateLink(linkId, data) {
-  await update(ref(db, `links/${linkId}`), data);
+  await update(ref(db, tp(`links/${linkId}`)), data);
 }
 
 async function deleteLink(linkId) {
-  await remove(ref(db, `links/${linkId}`));
+  await remove(ref(db, tp(`links/${linkId}`)));
 }
 
 async function incrementLinkUsage(linkId) {
-  const snap = await get(ref(db, `links/${linkId}/usedAttempts`));
+  const snap = await get(ref(db, tp(`links/${linkId}/usedAttempts`)));
   const current = snap.exists() ? snap.val() : 0;
-  await set(ref(db, `links/${linkId}/usedAttempts`), current + 1);
+  await set(ref(db, tp(`links/${linkId}/usedAttempts`)), current + 1);
 }
 
 // ─── ATTEMPTS ─────────────────────────────────────────────────────────────────
 
 async function createAttempt(data) {
-  const newRef = push(ref(db, "attempts"));
+  const newRef = push(ref(db, tp("attempts")));
   await set(newRef, {
     testId:    data.testId,
     linkId:    data.linkId,
@@ -616,11 +613,11 @@ async function createAttempt(data) {
 }
 
 async function updateAttempt(attemptId, data) {
-  await update(ref(db, `attempts/${attemptId}`), data);
+  await update(ref(db, tp(`attempts/${attemptId}`)), data);
 }
 
 async function getAttemptsByTest(testId) {
-  const snap = await get(ref(db, "attempts"));
+  const snap = await get(ref(db, tp("attempts")));
   if (!snap.exists()) return [];
   return snapToArray(snap)
     .filter(a => a.testId === testId)
@@ -628,7 +625,7 @@ async function getAttemptsByTest(testId) {
 }
 
 async function checkDuplicateAttempt(testId, name, surname) {
-  const snap = await get(ref(db, "attempts"));
+  const snap = await get(ref(db, tp("attempts")));
   if (!snap.exists()) return false;
   return Object.values(snap.val()).some(a =>
     a.testId === testId &&
@@ -911,9 +908,9 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadSidebarCounts() {
   try {
     const [testsSnap, attSnap, linksSnap] = await Promise.all([
-      get(ref(db, "tests")),
-      get(ref(db, "attempts")),
-      get(ref(db, "links"))
+      get(ref(db, tp("tests"))),
+      get(ref(db, tp("attempts"))),
+      get(ref(db, tp("links")))
     ]);
     const tCount = testsSnap.exists() ? Object.keys(testsSnap.val()).length : 0;
     const aCount = attSnap.exists()   ? Object.keys(attSnap.val()).length   : 0;
@@ -1168,7 +1165,7 @@ async function loadTest() {
     // Завантажуємо тест і папки паралельно
     const [, foldersSnap] = await Promise.all([
       (async () => { testData = await getTest(testId); })(),
-      get(ref(db, "folders"))
+      get(ref(db, tp("folders")))
     ]);
 
     if (!testData) {
@@ -1839,7 +1836,7 @@ window.previewTest = async () => {
 
   // Відкриваємо тест напряму через testId в режимі preview (без таймера і результатів)
   const base = window.location.origin + window.location.pathname.replace("constructor.html","");
-  const url = `${base}test.html?testId=${testId}&preview=1`;
+  const url = `${base}test.html?testId=${testId}&preview=1&t=${_uid}`;
   window.open(url, "_blank");
 };
 

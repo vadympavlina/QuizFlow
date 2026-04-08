@@ -744,10 +744,7 @@ function nowTs() {
 
 // ─── ADMIN AUTH ───────────────────────────────────────────────────────────────
 
-async function getAdmin() {
-  const snap = await get(ref(db, "admin"));
-  return snap.exists() ? snap.val() : null;
-}
+// auth через teachers path
 
 async function checkLogin(login, password) {
   const admin = await getAdmin();
@@ -758,14 +755,14 @@ async function checkLogin(login, password) {
 // ─── TESTS ────────────────────────────────────────────────────────────────────
 
 async function getTests() {
-  const snap = await get(ref(db, "tests"));
+  const snap = await get(ref(db, tp("tests")));
   if (!snap.exists()) return [];
   const arr = snapToArray(snap);
   return arr.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 }
 
 async function getTest(testId) {
-  const snap = await get(ref(db, `tests/${testId}`));
+  const snap = await get(ref(db, tp(`tests/${testId}`)));
   if (!snap.exists()) return null;
   const data = snap.val();
   // RTDB зберігає масиви як об'єкти {0:...,1:...} — конвертуємо назад
@@ -777,7 +774,7 @@ async function getTest(testId) {
 }
 
 async function createTest(data) {
-  const newRef = push(ref(db, "tests"));
+  const newRef = push(ref(db, tp("tests")));
   await set(newRef, {
     title:     data.title     || "Новий тест",
     folder:    data.folder    || "",
@@ -791,25 +788,25 @@ async function createTest(data) {
 }
 
 async function saveTest(testId, data) {
-  await update(ref(db, `tests/${testId}`), data);
+  await update(ref(db, tp(`tests/${testId}`)), data);
 }
 
 async function deleteTest(testId) {
-  await remove(ref(db, `tests/${testId}`));
-  const linksSnap = await get(ref(db, "links"));
+  await remove(ref(db, tp(`tests/${testId}`)));
+  const linksSnap = await get(ref(db, tp("links")));
   if (linksSnap.exists()) {
     const updates = {};
     Object.entries(linksSnap.val()).forEach(([k, v]) => {
       if (v.testId === testId) updates[k] = null;
     });
-    if (Object.keys(updates).length) await update(ref(db, "links"), updates);
+    if (Object.keys(updates).length) await update(ref(db, tp("links")), updates);
   }
 }
 
 // ─── LINKS ────────────────────────────────────────────────────────────────────
 
 async function createLink(testId, maxAttempts) {
-  const newRef = push(ref(db, "links"));
+  const newRef = push(ref(db, tp("links")));
   await set(newRef, {
     testId,
     maxAttempts:  Number(maxAttempts) || 30,
@@ -821,35 +818,35 @@ async function createLink(testId, maxAttempts) {
 }
 
 async function getLink(linkId) {
-  const snap = await get(ref(db, `links/${linkId}`));
+  const snap = await get(ref(db, tp(`links/${linkId}`)));
   if (!snap.exists()) return null;
   return { id: linkId, ...snap.val() };
 }
 
 async function getLinksByTest(testId) {
-  const snap = await get(ref(db, "links"));
+  const snap = await get(ref(db, tp("links")));
   if (!snap.exists()) return [];
   return snapToArray(snap).filter(l => l.testId === testId);
 }
 
 async function updateLink(linkId, data) {
-  await update(ref(db, `links/${linkId}`), data);
+  await update(ref(db, tp(`links/${linkId}`)), data);
 }
 
 async function deleteLink(linkId) {
-  await remove(ref(db, `links/${linkId}`));
+  await remove(ref(db, tp(`links/${linkId}`)));
 }
 
 async function incrementLinkUsage(linkId) {
-  const snap = await get(ref(db, `links/${linkId}/usedAttempts`));
+  const snap = await get(ref(db, tp(`links/${linkId}/usedAttempts`)));
   const current = snap.exists() ? snap.val() : 0;
-  await set(ref(db, `links/${linkId}/usedAttempts`), current + 1);
+  await set(ref(db, tp(`links/${linkId}/usedAttempts`)), current + 1);
 }
 
 // ─── ATTEMPTS ─────────────────────────────────────────────────────────────────
 
 async function createAttempt(data) {
-  const newRef = push(ref(db, "attempts"));
+  const newRef = push(ref(db, tp("attempts")));
   await set(newRef, {
     testId:            data.testId,
     linkId:            data.linkId,
@@ -869,11 +866,11 @@ async function createAttempt(data) {
 }
 
 async function updateAttempt(attemptId, data) {
-  await update(ref(db, `attempts/${attemptId}`), data);
+  await update(ref(db, tp(`attempts/${attemptId}`)), data);
 }
 
 async function getAttemptsByTest(testId) {
-  const snap = await get(ref(db, "attempts"));
+  const snap = await get(ref(db, tp("attempts")));
   if (!snap.exists()) return [];
   return snapToArray(snap)
     .filter(a => a.testId === testId)
@@ -881,7 +878,7 @@ async function getAttemptsByTest(testId) {
 }
 
 async function checkDuplicateAttempt(testId, name, surname) {
-  const snap = await get(ref(db, "attempts"));
+  const snap = await get(ref(db, tp("attempts")));
   if (!snap.exists()) return false;
   return Object.values(snap.val()).some(a =>
     a.testId === testId &&
@@ -1678,11 +1675,20 @@ let previewMode = new URLSearchParams(window.location.search).get("preview") ===
 document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
   const linkId = params.get("link");
+  const teacherUid = params.get("t") || "";
+  const tp = path => teacherUid ? `teachers/${teacherUid}/${path}` : path;
 
   // ── РЕЖИМ ПЕРЕГЛЯДУ ─────────────────────────────────────────────────────
   const previewTestId = new URLSearchParams(window.location.search).get("testId");
+  const previewTeacherUid = new URLSearchParams(window.location.search).get("t") || "";
 
   if(previewMode && previewTestId){
+    // В preview режимі переовизначаємо tp для правильного шляху
+    if(previewTeacherUid) {
+      const _pt = previewTeacherUid;
+      // tp вже визначена вище з teacherUid з URL (?t=...)
+      // previewTeacherUid і teacherUid мають бути однакові
+    }
     try{
       testData = await getTest(previewTestId);
       if(!testData) return showError("Тест не знайдено.");
@@ -2402,7 +2408,7 @@ function saveProgressLocally(){
   // Зберігаємо поточне питання у Firebase для моніторингу онлайн
   if(attemptId){
     const total = testData?.questions?.length || 0;
-    update(ref(db, `attempts/${attemptId}`), {
+    update(ref(db, tp(`attempts/${attemptId}`)), {
       currentQ: currentQ + 1,
       totalQ: total,
       lastSeen: Date.now()
@@ -2515,7 +2521,7 @@ function handleKeyDown(e){
 async function syncStudentCard({ name, surname, grade12, testId, testTitle, percent, attemptId, group }){
   try {
     const key = `${surname.trim().toLowerCase()}_${name.trim().toLowerCase()}`;
-    const snap = await get(ref(db, "students"));
+    const snap = await get(ref(db, tp("students")));
     let existing = null;
     let existingId = null;
 
@@ -2546,7 +2552,7 @@ async function syncStudentCard({ name, surname, grade12, testId, testTitle, perc
       // Оновлюємо групи
       const groups = [...new Set([...(existing.groups||[]), ...(group?[group]:[])])];
 
-      await update(ref(db, `students/${existingId}`), {
+      await update(ref(db, tp(`students/${existingId}`)), {
         attempts: allAttempts,
         avgGrade,
         groups,
@@ -2563,7 +2569,7 @@ async function syncStudentCard({ name, surname, grade12, testId, testTitle, perc
         createdAt: Date.now(),
         lastSeen:  Date.now()
       };
-      const newRef = push(ref(db, "students"));
+      const newRef = push(ref(db, tp("students")));
       await set(newRef, { ...newStudent, id: newRef.key });
     }
   } catch(e){
@@ -2597,7 +2603,7 @@ async function sendScreenshotNotification(){
   };
 
   try {
-    const notifRef = push(ref(db, "notifications"));
+    const notifRef = push(ref(db, tp("notifications")));
     await set(notifRef, { ...notif, id: notifRef.key });
   } catch(e){
     console.warn("Notif send failed:", e.message);

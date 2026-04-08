@@ -1025,11 +1025,14 @@ const stripHtml = s => {
   tmp.innerHTML = s || "";
   return tmp.textContent || "";
 };
-const dbPush = async(path,val)=>{const r=push(ref(db,path));await set(r,val);return r.key;};
-const dbSet  = (path,val)=>set(ref(db,path),val);
-const dbUpd  = (path,val)=>update(ref(db,path),val);
-const dbDel  = path=>remove(ref(db,path));
-const dbGet  = path=>get(ref(db,path));
+// Шлях завжди через teachers/{uid}/...
+const _uid = _user.id;
+const tp = path => path.startsWith("teachers/") ? path : `teachers/${_uid}/${path}`;
+const dbPush = async(path,val)=>{const r=push(ref(db,tp(path)));await set(r,val);return r.key;};
+const dbSet  = (path,val)=>set(ref(db,tp(path)),val);
+const dbUpd  = (path,val)=>update(ref(db,tp(path)),val);
+const dbDel  = path=>remove(ref(db,tp(path)));
+const dbGet  = path=>get(ref(db,tp(path)));
 
 // STATE
 let folders=[], tests=[], links=[], attempts=[], _students=[];
@@ -1043,6 +1046,7 @@ async function loadAll(){
   ldr(true);
   try{
     const [fs,ts_,ls,as] = await Promise.all([dbGet("folders"),dbGet("tests"),dbGet("links"),dbGet("attempts")]);
+    console.log(`✅ Завантажено дані для ${_user.name} (${_uid})`);
     folders  = toArr(fs).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
     tests    = toArr(ts_).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
     links    = toArr(ls).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
@@ -1159,7 +1163,7 @@ function startRealtimeListeners(){
   _realtimeActive = true;
 
   // Підписка на спроби — оновлюється при будь-якій зміні
-  onValue(ref(db, "attempts"), (snap) => {
+  onValue(ref(db, tp("attempts")), (snap) => {
     const newAttempts = toArr(snap).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
 
     // Знаходимо нові завершені спроби для нотифікації
@@ -1190,7 +1194,7 @@ function startRealtimeListeners(){
 
   // Real-time підписка на сповіщення
   let _prevNotifCount = 0;
-  onValue(ref(db, "notifications"), (snap) => {
+  onValue(ref(db, tp("notifications")), (snap) => {
     const all = snap.exists()
       ? Object.entries(snap.val()).map(([id,v])=>({id,...v})).sort((a,b)=>(b.ts||0)-(a.ts||0))
       : [];
@@ -1207,7 +1211,7 @@ function startRealtimeListeners(){
   });
 
   // Підписка на посилання (щоб usedAttempts оновлювався)
-  onValue(ref(db, "links"), (snap) => {
+  onValue(ref(db, tp("links")), (snap) => {
     links = toArr(snap).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
     renderLinks();
     renderDashLinks();
@@ -1803,7 +1807,7 @@ window.renderLinks = function(){
     return;
   }
   tb.innerHTML=lst.map(l=>{
-    const t=tests.find(x=>x.id===l.testId),url=`${base}test.html?link=${l.id}`,pct=l.maxAttempts?Math.round(l.usedAttempts/l.maxAttempts*100):0,ia=l.status==="active";
+    const t=tests.find(x=>x.id===l.testId),url=`${base}test.html?link=${l.id}&t=${_uid}`,pct=l.maxAttempts?Math.round(l.usedAttempts/l.maxAttempts*100):0,ia=l.status==="active";
     return`<tr>
       <td>
         <div style="font-weight:500">${esc(t?.title||"—")}</div>
@@ -2147,7 +2151,7 @@ window.G = {
     const l=links.find(x=>x.id===linkId),t=tests.find(x=>x.id===l?.testId);
     if(!l)return;
     const base=location.origin+location.pathname.replace("index.html","");
-    const url=`${base}test.html?link=${linkId}`;
+    const url=`${base}test.html?link=${linkId}&t=${_uid}`;
     window._qrUrl=url;
     $("qr-title").textContent=t?.title||"—";
     $("qr-group").textContent=l.group?`Група: ${l.group}`:"";
@@ -3508,7 +3512,7 @@ ${details}
 
   showStudents(lid){
     const l=links.find(x=>x.id===lid),t=tests.find(x=>x.id===l?.testId),la=attempts.filter(a=>a.linkId===lid);
-    const base=location.origin+location.pathname.replace("index.html",""),url=`${base}test.html?link=${lid}`;
+    const base=location.origin+location.pathname.replace("index.html",""),url=`${base}test.html?link=${lid}&t=${_uid}`;
     $("stud-det").innerHTML=`<div style="margin-bottom:18px"><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:19px;margin-bottom:3px">Студенти по посиланню</div><div style="font-size:13px;color:var(--muted)">${esc(t?.title||"—")} · ${l?.usedAttempts||0}/${l?.maxAttempts||0} спроб</div><div style="margin-top:8px;display:flex;align-items:center;gap:8px"><code style="font-size:12px;color:var(--primary);background:rgba(45,91,227,.06);padding:4px 10px;border-radius:7px">${url.replace(location.origin,"")}</code><button class="btn bs btn-sm" onclick="G.copyUrl('${url}')">Копіювати</button></div></div>${la.length?`<table class="tbl" style="border:1.5px solid var(--border);border-radius:13px;overflow:hidden"><thead><tr><th>Студент</th><th>Оцінка</th><th>Правильних</th><th>Статус</th><th>Дата</th><th></th></tr></thead><tbody>${la.map(a=>`<tr><td><strong>${esc(a.name)} ${esc(a.surname)}</strong></td><td>${a.grade12?`<span class="bdg ${grBdg(a.grade12)}">${a.grade12}/12</span>`:"—"}</td><td style="font-size:13px">${a.score?.correct??"—"}/${a.score?.total??"—"}</td><td><span class="bdg ${a.status==="completed"?"bg-g":a.status==="pending_review"?"bg-a":""}">
   ${a.status==="completed"?"Завершено":a.status==="pending_review"?"⏳ Перевіряється":"В процесі"}
 </span></td><td style="font-size:12px;color:var(--muted)">${timeAgo(a.createdAt)}</td><td><div class="ra"><div class="ib" onclick="G.viewAtt('${a.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div></div></td></tr>`).join("")}</tbody></table>`:
