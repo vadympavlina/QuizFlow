@@ -1816,6 +1816,8 @@ function applyShuffleSettings(questions, shuffleQ, shuffleA) {
 document.getElementById("startBtn")?.addEventListener("click", startTest);
 
 async function startTest() {
+  // Блокуємо в режимі перегляду
+  if(previewMode) return;
   const name    = document.getElementById("inputName")?.value.trim();
   const surname = document.getElementById("inputSurname")?.value.trim();
 
