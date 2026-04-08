@@ -714,6 +714,13 @@
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, set, push, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
+// Глобальна tp — читає teacherUid з URL
+function tp(path){
+  const _tuid = new URLSearchParams(window.location.search).get("t") || "";
+  return _tuid ? `teachers/${_tuid}/${path}` : path;
+}
+
+
 // js/firebase.js — Firebase Realtime Database
 
 
@@ -1676,11 +1683,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
   const linkId = params.get("link");
   const teacherUid = params.get("t") || "";
-  const tp = path => teacherUid ? `teachers/${teacherUid}/${path}` : path;
+  // tp визначена глобально
 
   // ── РЕЖИМ ПЕРЕГЛЯДУ ─────────────────────────────────────────────────────
   const previewTestId = new URLSearchParams(window.location.search).get("testId");
   const previewTeacherUid = new URLSearchParams(window.location.search).get("t") || "";
+  // tp глобальна
 
   if(previewMode && previewTestId){
     // В preview режимі переовизначаємо tp для правильного шляху
