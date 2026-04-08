@@ -1396,9 +1396,16 @@ function buildTestRow(t){
       </div>
     </td>
     <td style="padding:14px 16px;white-space:nowrap">
-      <div style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:20px;background:${t.status==="active"?"rgba(20,212,180,.08)":t.status==="closed"?"rgba(244,63,94,.06)":"rgba(107,114,128,.06)"}">
-        <span class="sd ${s.dot}" style="flex-shrink:0"></span>
-        <span style="font-size:13px;font-weight:500;color:${t.status==="active"?"#0d9e85":t.status==="closed"?"#be123c":"var(--muted)"}">${s.label}</span>
+      <div style="position:relative;display:inline-block">
+        <button onclick="G.toggleTestStatus('${t.id}','${t.status}')"
+          style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:20px;border:1.5px solid ${t.status==="active"?"rgba(13,158,133,.2)":t.status==="closed"?"rgba(244,63,94,.15)":"rgba(107,114,128,.15)"};background:${t.status==="active"?"rgba(13,158,133,.07)":t.status==="closed"?"rgba(244,63,94,.05)":"rgba(107,114,128,.05)"};cursor:pointer;transition:all .15s"
+          title="Змінити статус"
+          onmouseover="this.style.opacity='.75'"
+          onmouseout="this.style.opacity='1'">
+          <span class="sd ${s.dot}" style="flex-shrink:0"></span>
+          <span style="font-size:13px;font-weight:500;color:${t.status==="active"?"#0d9e85":t.status==="closed"?"#be123c":"var(--muted)"}">${s.label}</span>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:${t.status==="active"?"#0d9e85":t.status==="closed"?"#be123c":"var(--muted)"}"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
       </div>
     </td>
     <td style="padding:14px 16px;white-space:nowrap">
@@ -1984,6 +1991,50 @@ window.G = {
     ldr(false);
   },
   // Links
+  toggleTestStatus(id, currentStatus){
+    // Прибираємо старі дропдауни
+    document.querySelectorAll(".status-dropdown").forEach(el=>el.remove());
+
+    const statuses = [
+      {val:"active",  label:"✅ Активний",  color:"#0d9e85"},
+      {val:"draft",   label:"📝 Чернетка",  color:"var(--muted)"},
+      {val:"closed",  label:"🔒 Закрито",   color:"#be123c"},
+    ].filter(s=>s.val!==currentStatus);
+
+    const btn = event.currentTarget;
+    const rect = btn.getBoundingClientRect();
+
+    const menu = document.createElement("div");
+    menu.className = "status-dropdown";
+    menu.style.cssText = `position:fixed;z-index:9999;top:${rect.bottom+6}px;left:${rect.left}px;background:white;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.12);padding:6px;min-width:160px`;
+
+    statuses.forEach(s=>{
+      const item = document.createElement("div");
+      item.style.cssText = "padding:9px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:"+s.color+";transition:background .1s";
+      item.textContent = s.label;
+      item.onmouseover = ()=>item.style.background="rgba(0,0,0,.04)";
+      item.onmouseout  = ()=>item.style.background="";
+      item.onclick = async ()=>{
+        menu.remove();
+        try{
+          await dbUpd(`tests/${id}`,{status:s.val,updatedAt:ts()});
+          tests=tests.map(t=>t.id===id?{...t,status:s.val}:t);
+          renderTests(document.getElementById("srch")?.value||"");
+          updateBadges();
+          toast(`Статус змінено → ${s.label.replace(/^.\s/,"")}`);
+        }catch(e){toast("Помилка: "+e.message,"err");}
+      };
+      menu.appendChild(item);
+    });
+
+    document.body.appendChild(menu);
+    // Закриваємо при кліку поза
+    setTimeout(()=>{
+      const close = e=>{ if(!menu.contains(e.target)&&e.target!==btn){menu.remove();document.removeEventListener("click",close);} };
+      document.addEventListener("click",close);
+    },0);
+  },
+
   qLink(tid){
     window._editLinkId=null;
     $("m-link-title").textContent="Нове посилання";
