@@ -1377,9 +1377,14 @@ function renderDashAtt(){
   if(!r.length){tb.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="ei">📭</div><div class="et">Ще немає спроб</div></div></td></tr>`;return;}
   tb.innerHTML=r.map(a=>{
     const t=tests.find(x=>x.id===a.testId);
-    return`<tr><td><strong>${esc(a.name)} ${esc(a.surname)}</strong></td><td style="color:var(--muted)">${esc(t?.title||"—")}</td><td>${a.grade12?`<span class="bdg ${grBdg(a.grade12)}">${a.grade12}/12</span>`:"—"}</td><td><span class="bdg ${a.status==="completed"?"bg-g":a.status==="reviewing"?"bg-a":""}">
-  ${a.status==="completed"?"Завершено":a.status==="reviewing"?"⏳ Перевіряється":"В процесі"}
-</span></td><td style="font-size:12px;color:var(--muted)">${timeAgo(a.createdAt)}</td></tr>`;
+    const gradeCell = a.status==="pending_review"
+      ? `<span class="bdg bg-a">⏳</span>`
+      : (a.grade12 ? `<span class="bdg ${grBdg(a.grade12)}">${a.grade12}/12</span>` : "—");
+    const statusCell = a.status==="completed"?"Завершено"
+      : a.status==="pending_review"?"⏳ Перевіряється"
+      : a.status==="in_progress"?"В процесі":"—";
+    const statusClass = a.status==="completed"?"bg-g":a.status==="pending_review"?"bg-a":a.status==="in_progress"?"bg-o":"";
+    return`<tr><td><strong>${esc(a.name)} ${esc(a.surname)}</strong></td><td style="color:var(--muted)">${esc(t?.title||"—")}</td><td>${gradeCell}</td><td><span class="bdg ${statusClass}">${statusCell}</span></td><td style="font-size:12px;color:var(--muted)">${timeAgo(a.createdAt)}</td></tr>`;
   }).join("");
 }
 function renderDashLinks(){
@@ -3486,8 +3491,8 @@ ${details}
   showStudents(lid){
     const l=links.find(x=>x.id===lid),t=tests.find(x=>x.id===l?.testId),la=attempts.filter(a=>a.linkId===lid);
     const base=location.origin+location.pathname.replace("index.html",""),url=`${base}test.html?link=${lid}`;
-    $("stud-det").innerHTML=`<div style="margin-bottom:18px"><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:19px;margin-bottom:3px">Студенти по посиланню</div><div style="font-size:13px;color:var(--muted)">${esc(t?.title||"—")} · ${l?.usedAttempts||0}/${l?.maxAttempts||0} спроб</div><div style="margin-top:8px;display:flex;align-items:center;gap:8px"><code style="font-size:12px;color:var(--primary);background:rgba(45,91,227,.06);padding:4px 10px;border-radius:7px">${url.replace(location.origin,"")}</code><button class="btn bs btn-sm" onclick="G.copyUrl('${url}')">Копіювати</button></div></div>${la.length?`<table class="tbl" style="border:1.5px solid var(--border);border-radius:13px;overflow:hidden"><thead><tr><th>Студент</th><th>Оцінка</th><th>Правильних</th><th>Статус</th><th>Дата</th><th></th></tr></thead><tbody>${la.map(a=>`<tr><td><strong>${esc(a.name)} ${esc(a.surname)}</strong></td><td>${a.grade12?`<span class="bdg ${grBdg(a.grade12)}">${a.grade12}/12</span>`:"—"}</td><td style="font-size:13px">${a.score?.correct??"—"}/${a.score?.total??"—"}</td><td><span class="bdg ${a.status==="completed"?"bg-g":a.status==="reviewing"?"bg-a":""}">
-  ${a.status==="completed"?"Завершено":a.status==="reviewing"?"⏳ Перевіряється":"В процесі"}
+    $("stud-det").innerHTML=`<div style="margin-bottom:18px"><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:19px;margin-bottom:3px">Студенти по посиланню</div><div style="font-size:13px;color:var(--muted)">${esc(t?.title||"—")} · ${l?.usedAttempts||0}/${l?.maxAttempts||0} спроб</div><div style="margin-top:8px;display:flex;align-items:center;gap:8px"><code style="font-size:12px;color:var(--primary);background:rgba(45,91,227,.06);padding:4px 10px;border-radius:7px">${url.replace(location.origin,"")}</code><button class="btn bs btn-sm" onclick="G.copyUrl('${url}')">Копіювати</button></div></div>${la.length?`<table class="tbl" style="border:1.5px solid var(--border);border-radius:13px;overflow:hidden"><thead><tr><th>Студент</th><th>Оцінка</th><th>Правильних</th><th>Статус</th><th>Дата</th><th></th></tr></thead><tbody>${la.map(a=>`<tr><td><strong>${esc(a.name)} ${esc(a.surname)}</strong></td><td>${a.grade12?`<span class="bdg ${grBdg(a.grade12)}">${a.grade12}/12</span>`:"—"}</td><td style="font-size:13px">${a.score?.correct??"—"}/${a.score?.total??"—"}</td><td><span class="bdg ${a.status==="completed"?"bg-g":a.status==="pending_review"?"bg-a":""}">
+  ${a.status==="completed"?"Завершено":a.status==="pending_review"?"⏳ Перевіряється":"В процесі"}
 </span></td><td style="font-size:12px;color:var(--muted)">${timeAgo(a.createdAt)}</td><td><div class="ra"><div class="ib" onclick="G.viewAtt('${a.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div></div></td></tr>`).join("")}</tbody></table>`:
     `<div class="empty"><div class="ei">📭</div><div class="et">Ще немає спроб</div></div>`}`;
     openM("m-students");

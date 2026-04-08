@@ -1190,10 +1190,10 @@ function checkAnswer(question, studentAnswer) {
       };
     }
 
-    // ── Long text (не перевіряється автоматично) ───────────────────────────
+    // ── Long text (не перевіряється автоматично — очікує оцінювання) ───────
     case "long": {
-      const hasAnswer = String(studentAnswer).trim().length > 10;
-      return { correct: false, partial: hasAnswer, points: hasAnswer ? 0.5 : 0 };
+      const hasAnswer = String(studentAnswer).trim().length > 0;
+      return { correct: false, partial: false, points: 0, pending: hasAnswer };
     }
 
     default:
@@ -1606,10 +1606,8 @@ function generateResultHTML({ student, test, attempt, questions }) {
     <div class="result-date">${date}</div>
     <div class="grade-big">
       ${attempt.status==="pending_review"
-        ? `<span class="grade-num" style="color:#f59e0b;font-size:48px">⏳</span>
-           <div style="font-size:14px;color:#92400e;margin-top:8px">Очікує оцінювання</div>`
-        : `<span class="grade-num">${attempt.grade12}</span>
-           <span class="grade-denom">/12</span>`
+        ? '<span class="grade-num" style="color:#f59e0b;font-size:48px">⏳</span><div style="font-size:14px;color:#92400e;margin-top:8px">Очікує оцінювання</div>'
+        : '<span class="grade-num">'+attempt.grade12+'</span><span class="grade-denom">/12</span>'
       }
     </div>
   </div>
@@ -1630,16 +1628,8 @@ function generateResultHTML({ student, test, attempt, questions }) {
   </div>
 
   ${attempt.status==="pending_review"
-    ? `<div style="background:#fffbeb;border:2px solid #fcd34d;border-radius:12px;padding:18px 20px;margin:20px 0;font-family:sans-serif">
-        <div style="font-weight:700;color:#92400e;margin-bottom:6px">⏳ Тест на перевірці</div>
-        <div style="font-size:14px;color:#92400e;line-height:1.5">Розгорнуті відповіді очікують оцінювання викладачем. Після перевірки оцінку буде виставлено.</div>
-      </div>`
-    : attempt.aiComment
-      ? `<div class="ai-box">
-          <div class="ai-label">Коментар</div>
-          <div class="ai-text">${attempt.aiComment}</div>
-        </div>`
-      : ""
+    ? '<div style="background:#fffbeb;border:2px solid #fcd34d;border-radius:12px;padding:18px 20px;margin:20px 0"><div style="font-weight:700;color:#92400e;margin-bottom:6px">⏳ Тест на перевірці</div><div style="font-size:14px;color:#92400e;line-height:1.5">Розгорнуті відповіді очікують оцінювання викладачем.</div></div>'
+    : (attempt.aiComment ? '<div class="ai-box"><div class="ai-label">Коментар</div><div class="ai-text">'+attempt.aiComment+'</div></div>' : "")
   }
 
   <div class="section-title">Детальні відповіді</div>
