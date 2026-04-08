@@ -3291,6 +3291,10 @@ window.G = {
 
   </div>
 `;
+    // Очищаємо side panel при відкритті нової спроби
+    G.closeAiPanel();
+    const sp=document.getElementById("ai-side-content");
+    if(sp) sp.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">⚡</div><div style="font-size:14px">Натисніть кнопку розбору</div></div>';
     openM("m-attempt");
   },
 
@@ -3343,17 +3347,27 @@ window.G = {
     try{
       const GROQ_URL="https://api.groqcloud.com/openai/v1/chat/completions";
       const GROQ_KEY="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";
-      const prompt=`Розбери помилки студента по кожному питанню окремо.
+      // Визначаємо стать студента по імені (типові українські закінчення)
+      const studentName = a.name || "";
+      const femaleEndings = ["а","я","і","ія","іна","ина","ія","ла","ра","са","та"];
+      const isFemale = femaleEndings.some(e => studentName.toLowerCase().endsWith(e));
+      const gender = isFemale ? "female" : "male";
+
+      const prompt=`Ти — досвідчений і добрий викладач. Напиши короткий персональний коментар для студента ${esc(a.name)} ${esc(a.surname)} про його помилки в тесті.
 
 Тест: "${t.title}"
 
+Помилки студента:
 ${details}
 
-Для кожної помилки пиши в такому форматі (без зірочок і markdown):
-Ти помилився у питанні про [тема]. Ти відповів: [відповідь]. Правильна відповідь: [правильно]. [Одне речення чому]
-
-Після всіх помилок — один рядок загальної поради.
-Відповідай тільки українською.`
+ВАЖЛИВО:
+- Звертайся до студента на "ти" з правильним родом: ${gender === "female" ? "жіночий рід (помилилась, відповіла, обрала тощо)" : "чоловічий рід (помилився, відповів, обрав тощо)"}
+- Пиши ОДИН суцільний текст — не списки, не нумерація, не окремі блоки
+- Коротко поясни кожну помилку: що правильно і чому — простими словами
+- Будь доброзичливим і підбадьорюючим
+- В кінці — одне речення загальної поради
+- Без зірочок, без markdown, без дефісів на початку рядків
+- Тільки українська мова`
 
       const res=await fetch("https://api.groq.com/openai/v1/chat/completions",{
         method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${GROQ_KEY}`},
@@ -3369,15 +3383,12 @@ ${details}
       const contentEl=document.getElementById("ai-side-content");
       if(contentEl){
         // Форматуємо текст — розбиваємо по реченнях
-        const lines=analysis.split("\n").filter(l=>l.trim());
-        const formatted=lines.map(line=>{
-          if(line.match(/^Ти помилився/)){
-            return `<div style="background:#f8faff;border:1.5px solid rgba(45,91,227,.1);border-radius:13px;padding:14px 16px;margin-bottom:12px">
-              <div style="font-size:14px;line-height:1.65;color:var(--text)">${esc(line)}</div></div>`;
-          }
-          return `<div style="font-size:14px;line-height:1.65;color:var(--muted);margin-bottom:8px;padding:0 4px">${esc(line)}</div>`;
-        }).join("");
-        contentEl.innerHTML=formatted||`<div style="font-size:14px;line-height:1.7;color:var(--text)">${esc(analysis)}</div>`;
+        // Єдиний текст з параграфами
+        const paragraphs = analysis.split("\n").filter(l=>l.trim());
+        const formatted = `<div style="font-size:15px;line-height:1.75;color:var(--text)">
+          ${paragraphs.map((p,i) => `<p style="margin:0 0 ${i<paragraphs.length-1?"14":"0"}px 0">${esc(p)}</p>`).join("")}
+        </div>`;
+        contentEl.innerHTML = formatted;
       }
       G.openAiPanel();
     }catch(e){toast("Помилка AI: "+e.message,"err");}
