@@ -2305,27 +2305,30 @@ async function _doFinish() {
 
     localStorage.setItem(`test_${testData.id}_done`, "true");
 
-    // get AI comment
-    let aiResult = { grade, comment: "" };
-    try {
-      aiResult = await getStudentAIComment({
-        testTitle:      testData.title,
-        totalQuestions: testData.questions.length,
-        correctCount:   scoreResult.correct,
-        percent:        scoreResult.percent,
-        answers:        formattedAnswers,
-        questions:      testData.questions
-      });
-    } catch (e) {
-      console.warn("AI failed:", e.message);
-      aiResult = { grade, comment: "" }; // AI недоступний — не показуємо блок
+    // get AI comment — тільки якщо немає питань на перевірку
+    const hasPendingQ = scoreResult.pending > 0;
+    let aiResult = { grade: hasPendingQ ? null : grade, comment: "" };
+    if(!hasPendingQ){
+      try {
+        aiResult = await getStudentAIComment({
+          testTitle:      testData.title,
+          totalQuestions: testData.questions.length,
+          correctCount:   scoreResult.correct,
+          percent:        scoreResult.percent,
+          answers:        formattedAnswers,
+          questions:      testData.questions
+        });
+      } catch (e) {
+        console.warn("AI failed:", e.message);
+        aiResult = { grade, comment: "" };
+      }
     }
 
-    // Оновлюємо з фінальною оцінкою і статусом completed
+    // Оновлюємо з фінальною оцінкою і статусом
     await updateAttempt(attemptId, {
-      grade12:         aiResult.grade,
-      aiComment:       aiResult.comment || null,
-      status:          (scoreResult.pending > 0) ? "pending_review" : "completed",
+      grade12:         hasPendingQ ? null : aiResult.grade,
+      aiComment:       hasPendingQ ? null : (aiResult.comment || null),
+      status:          hasPendingQ ? "pending_review" : "completed",
       suspiciousEvents: _suspiciousEvents.length > 0 ? _suspiciousEvents : null,
       tabSwitches:     _tabSwitchCount || null,
       copyAttempts:    _copyAttempts   || null,
@@ -2349,8 +2352,9 @@ async function _doFinish() {
       student:  { name, surname },
       test:     testData,
       attempt:  {
-        grade12:   aiResult.grade,
-        aiComment: aiResult.comment,
+        grade12:   hasPendingQ ? null : aiResult.grade,
+        aiComment: hasPendingQ ? null : aiResult.comment,
+        status:    hasPendingQ ? "pending_review" : "completed",
         score:     scoreResult,
         answers:   formattedAnswers
       },
