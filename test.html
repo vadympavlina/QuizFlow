@@ -655,16 +655,14 @@
     </div>
     <div class="result-body">
       <!-- Банер "перевіряється" для long відповідей -->
-      <div id="reviewingBox" style="display:none;margin-bottom:20px">
-        <div style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border:2px solid #fbbf24;border-radius:18px;padding:20px 22px;text-align:center">
-          <div style="font-size:36px;margin-bottom:10px">⏳</div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:#92400e;margin-bottom:6px">Тест на перевірці</div>
-          <div style="font-size:14px;color:#b45309;line-height:1.6">
-            Ваша розгорнута відповідь отримана і чекає на перевірку викладача.<br>
-            Оцінка з'явиться після перевірки.
-          </div>
-          <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(251,191,36,.4);font-size:13px;color:#b45309;font-weight:500">
-            📥 Збережіть результати та повідомте викладача
+      <div id="reviewingBox" style="display:none;margin-bottom:20px;width:100%">
+        <div style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border:2px solid #fbbf24;border-radius:18px;padding:22px 28px;display:flex;align-items:center;gap:16px">
+          <div style="font-size:32px;flex-shrink:0">⏳</div>
+          <div style="flex:1">
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:#92400e;margin-bottom:4px">Тест на перевірці</div>
+            <div style="font-size:14px;color:#b45309;line-height:1.55">
+              Розгорнута відповідь отримана і чекає на перевірку викладача. Оцінка з'явиться після перевірки.
+            </div>
           </div>
         </div>
       </div>
@@ -1597,12 +1595,9 @@ function generateResultHTML({ student, test, attempt, questions }) {
     <div class="student-name">${name} ${surname}</div>
     <div class="test-name">${test.title}</div>
     <div class="result-date">${date}</div>
-    <div class="grade-big">
-      ${attempt.status==="pending_review"
-        ? '<span class="grade-num" style="color:#f59e0b;font-size:48px">⏳</span><div style="font-size:14px;color:#92400e;margin-top:8px">Очікує оцінювання</div>'
-        : '<span class="grade-num">'+attempt.grade12+'</span><span class="grade-denom">/12</span>'
-      }
-    </div>
+    ${attempt.status==="pending_review" ? "" :
+      '<div class="grade-big"><span class="grade-num">'+attempt.grade12+'</span><span class="grade-denom">/12</span></div>'
+    }
   </div>
 
   <div class="stats-row">
