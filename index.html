@@ -3249,8 +3249,8 @@ window.G = {
     <div style="font-size:13px;opacity:.7;margin-bottom:16px">${esc(t.title)} · ${timeAgo(a.createdAt)}</div>
     <div style="display:flex;gap:28px;align-items:flex-end">
       <div>
-        <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:52px;line-height:1;letter-spacing:-2px">${a.grade12??"—"}<span style="font-size:20px;opacity:.5;font-weight:500">/12</span></div>
-        <div style="font-size:11px;opacity:.55;text-transform:uppercase;letter-spacing:.8px;margin-top:2px">Оцінка</div>
+        <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:52px;line-height:1;letter-spacing:-2px">${a.status==="pending_review"?"⏳":(a.grade12??"—")}<span style="font-size:20px;opacity:.5;font-weight:500">${a.status==="pending_review"?"":"/12"}</span></div>
+        <div style="font-size:11px;opacity:.55;text-transform:uppercase;letter-spacing:.8px;margin-top:2px">${a.status==="pending_review"?"На перевірці":"Оцінка"}</div>
       </div>
       <div style="display:flex;gap:20px;padding-bottom:6px">
         <div>
@@ -3273,6 +3273,26 @@ window.G = {
   <!-- Контент -->
   <div style="padding:20px 24px">
 
+    ${a.status==="pending_review"?`
+    <!-- Банер очікує оцінювання -->
+    <div style="background:rgba(245,158,11,.06);border:1.5px solid rgba(245,158,11,.25);border-radius:14px;padding:18px 20px;margin-bottom:18px;display:flex;align-items:flex-start;gap:14px">
+      <div style="font-size:28px;flex-shrink:0">⏳</div>
+      <div style="flex:1">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:#b45309;margin-bottom:4px">Тест на перевірці</div>
+        <div style="font-size:13px;color:#92400e;line-height:1.55">Розгорнуті відповіді ще не оцінені. Після перевірки викладачем буде виставлено фінальну оцінку.</div>
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Виставити оцінку:</div>
+          ${[1,2,3,4,5,6,7,8,9,10,11,12].map(n=>`<button onclick="G.gradeAttempt('${a.id}',${n})"
+            style="width:32px;height:32px;border-radius:8px;border:1.5px solid ${a.grade12===n?"var(--primary)":"var(--border)"};background:${a.grade12===n?"var(--primary)":"white"};color:${a.grade12===n?"white":"var(--text)"};font-size:13px;font-weight:600;cursor:pointer;transition:all .15s"
+            onmouseover="if(this.style.background==='white'||this.style.background==='')this.style.background='rgba(45,91,227,.06)'"
+            onmouseout="if(this.style.color!=='white')this.style.background='white'">${n}</button>`).join("")}
+          <button onclick="G.confirmGrade('${a.id}')" class="btn bp btn-sm" style="font-size:13px;padding:6px 16px">
+            Зберегти оцінку
+          </button>
+        </div>
+      </div>
+    </div>
+    `:`
     <!-- AI Коментар -->
     ${a.aiComment?`<div style="background:rgba(45,91,227,.04);border:1.5px solid rgba(45,91,227,.1);border-radius:14px;padding:16px 18px;margin-bottom:16px">
       <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--primary);font-weight:700;margin-bottom:8px">✦ Коментар</div>
@@ -3284,6 +3304,7 @@ window.G = {
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
       Персональний розбір помилок
     </button>
+    `}
 
     <!-- Відповіді -->
     <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Відповіді</div>
@@ -3296,6 +3317,42 @@ window.G = {
     const sp=document.getElementById("ai-side-content");
     if(sp) sp.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">⚡</div><div style="font-size:14px">Натисніть кнопку розбору</div></div>';
     openM("m-attempt");
+  },
+
+  _pendingGrade: null,
+
+  gradeAttempt(attId, grade){
+    // Візуально виділяємо обрану кнопку
+    this._pendingGrade = { attId, grade };
+    document.querySelectorAll(`button[onclick*="gradeAttempt('${attId}']`).forEach(btn=>{
+      const n = parseInt(btn.textContent);
+      btn.style.background = n===grade ? "var(--primary)" : "white";
+      btn.style.color = n===grade ? "white" : "var(--text)";
+      btn.style.borderColor = n===grade ? "var(--primary)" : "var(--border)";
+    });
+  },
+
+  async confirmGrade(attId){
+    if(!this._pendingGrade || this._pendingGrade.attId !== attId){
+      toast("Оберіть оцінку", "err"); return;
+    }
+    const { grade } = this._pendingGrade;
+    try{
+      await dbUpd(`attempts/${attId}`, {
+        grade12: grade,
+        status: "completed",
+        reviewedAt: ts()
+      });
+      // Оновлюємо локально
+      const idx = attempts.findIndex(x=>x.id===attId);
+      if(idx>=0) attempts[idx] = {...attempts[idx], grade12:grade, status:"completed"};
+      this._pendingGrade = null;
+      toast(`Оцінку ${grade}/12 виставлено ✅`);
+      closeM("m-attempt");
+      renderAttempts();
+      renderDashAtt();
+      updateBadges();
+    }catch(e){ toast("Помилка: "+e.message, "err"); }
   },
 
   openAiPanel(){

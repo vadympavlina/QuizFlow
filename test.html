@@ -655,17 +655,24 @@
     </div>
     <div class="result-body">
       <!-- Банер "перевіряється" для long відповідей -->
-      <div id="reviewingBox" style="display:none;margin-bottom:16px;padding:14px 18px;
-        background:rgba(245,158,11,.08);border:1.5px solid rgba(245,158,11,.25);border-radius:14px;
-        display:none;align-items:center;gap:12px">
-        <span style="font-size:22px">⏳</span>
-        <div>
-          <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;color:#b45309">
-            Тест на перевірці
+      <div id="reviewingBox" style="display:none;margin-bottom:20px;border-radius:18px;overflow:hidden;border:1.5px solid rgba(245,158,11,.25)">
+        <!-- Верх -->
+        <div style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.06));padding:18px 20px;display:flex;align-items:flex-start;gap:14px">
+          <span style="font-size:28px;flex-shrink:0">⏳</span>
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:#b45309;margin-bottom:4px">
+              Тест на перевірці
+            </div>
+            <div style="font-size:13px;color:#92400e;line-height:1.55">
+              Ваша розгорнута відповідь отримана і чекає на перевірку викладача.<br>
+              Оцінка та коментар з'являться після перевірки.
+            </div>
           </div>
-          <div style="font-size:13px;color:var(--text-muted);margin-top:2px">
-            Розгорнуті відповіді перевіряються викладачем вручну. Оцінка з'явиться пізніше.
-          </div>
+        </div>
+        <!-- Нижній рядок -->
+        <div style="background:rgba(245,158,11,.04);padding:12px 20px;border-top:1px solid rgba(245,158,11,.15);display:flex;align-items:center;gap:8px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013 5.73a2 2 0 012-2.18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L9.91 11a16 16 0 006.29 6.29l1.45-1.45a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+          <span style="font-size:12px;color:#b45309;font-weight:500">Збережіть результати та повідомте викладача</span>
         </div>
       </div>
       <div class="result-stats">
@@ -1598,8 +1605,12 @@ function generateResultHTML({ student, test, attempt, questions }) {
     <div class="test-name">${test.title}</div>
     <div class="result-date">${date}</div>
     <div class="grade-big">
-      <span class="grade-num">${attempt.grade12}</span>
-      <span class="grade-denom">/12</span>
+      ${attempt.status==="pending_review"
+        ? `<span class="grade-num" style="color:#f59e0b;font-size:48px">⏳</span>
+           <div style="font-size:14px;color:#92400e;margin-top:8px">Очікує оцінювання</div>`
+        : `<span class="grade-num">${attempt.grade12}</span>
+           <span class="grade-denom">/12</span>`
+      }
     </div>
   </div>
 
@@ -1618,10 +1629,18 @@ function generateResultHTML({ student, test, attempt, questions }) {
     </div>
   </div>
 
-  <div class="ai-box">
-    <div class="ai-label">Коментар</div>
-    <div class="ai-text">${attempt.aiComment || "—"}</div>
-  </div>
+  ${attempt.status==="pending_review"
+    ? `<div style="background:#fffbeb;border:2px solid #fcd34d;border-radius:12px;padding:18px 20px;margin:20px 0;font-family:sans-serif">
+        <div style="font-weight:700;color:#92400e;margin-bottom:6px">⏳ Тест на перевірці</div>
+        <div style="font-size:14px;color:#92400e;line-height:1.5">Розгорнуті відповіді очікують оцінювання викладачем. Після перевірки оцінку буде виставлено.</div>
+      </div>`
+    : attempt.aiComment
+      ? `<div class="ai-box">
+          <div class="ai-label">Коментар</div>
+          <div class="ai-text">${attempt.aiComment}</div>
+        </div>`
+      : ""
+  }
 
   <div class="section-title">Детальні відповіді</div>
 
@@ -2635,19 +2654,19 @@ function showResult(scoreResult, aiResult) {
   setEl("resultStudent",  `${studentName} ${studentSurname}`);
   setEl("resultTestName", testData.title);
 
-  const hasLong = testData.questions.some(q => q.type === "long");
+  const hasPending = scoreResult.pending > 0;
 
   // Оцінка з кольором
   const gradeEl = document.getElementById("resultGrade");
   const gradeDenom = document.querySelector(".grade-denom");
   if (gradeEl) {
-    if(hasLong){
+    if(hasPending){
       gradeEl.textContent = "—";
       gradeEl.style.color = "#9ca3af";
-      if(gradeDenom) gradeDenom.textContent = "перевіряється";
-      // Показуємо повідомлення про ручну перевірку
+      if(gradeDenom) gradeDenom.textContent = "";
+      // Банер очікування
       const reviewBox = document.getElementById("reviewingBox");
-      if(reviewBox) reviewBox.style.display = "";
+      if(reviewBox){ reviewBox.style.display = "flex"; }
     } else {
       gradeEl.textContent = aiResult.grade;
       const gc = aiResult.grade >= 10 ? "#0d9e85" : aiResult.grade >= 7 ? "#2d5be3" : aiResult.grade >= 4 ? "#f59e0b" : "#f43f5e";
@@ -2656,12 +2675,13 @@ function showResult(scoreResult, aiResult) {
     }
   }
 
-  setEl("statCorrect",    scoreResult.correct);
-  setEl("statWrong",      scoreResult.incorrect);
-  // AI коментар — показуємо блок тільки якщо є текст
+  setEl("statCorrect", scoreResult.correct);
+  setEl("statWrong",   scoreResult.incorrect);
+
+  // AI коментар — НЕ показуємо якщо є питання на перевірку
   const aiBox = document.getElementById("aiCommentBox");
   const aiText = document.getElementById("aiComment");
-  if(aiResult.comment && aiResult.comment.trim() && aiResult.comment !== "Завантаження..."){
+  if(!hasPending && aiResult.comment && aiResult.comment.trim()){
     if(aiBox) aiBox.style.display = "";
     if(aiText) aiText.textContent = aiResult.comment;
   } else {
@@ -2675,20 +2695,10 @@ function showResult(scoreResult, aiResult) {
   setEl("statTime", `${m}:${s.toString().padStart(2, "0")}`);
 
   // emoji
-  const emoji = aiResult.grade >= 10 ? "🎉" : aiResult.grade >= 7 ? "👍" : "📚";
+  const emoji = hasPending ? "⏳" : aiResult.grade >= 10 ? "🎉" : aiResult.grade >= 7 ? "👍" : "📚";
   setEl("resultEmoji", emoji);
 
-  // Якщо є питання що перевіряються вручну — показуємо попередження
-  const pendingCount = scoreResult.pending || 0;
-  const pendingNotice = document.getElementById("pendingNotice");
-  if(pendingNotice){
-    if(pendingCount > 0){
-      pendingNotice.style.display = "";
-      pendingNotice.innerHTML = `⏳ <strong>${pendingCount} ${pendingCount===1?"питання":"питань"}</strong> з розгорнутою відповіддю очікують перевірки викладача. Оцінка може змінитись.`;
-    } else {
-      pendingNotice.style.display = "none";
-    }
-  }
+  // pendingNotice вбудований в reviewingBox — нічого додаткового не треба
 }
 
 
