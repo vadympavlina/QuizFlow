@@ -108,10 +108,10 @@ div[onclick*="setFF"]:hover .folder-actions{opacity:1 !important}
 .fs:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(45,91,227,.08)}
 .fs:focus{border-color:var(--primary)}
 /* MODALS */
-.mo{position:fixed;inset:0;background:rgba(10,15,46,.5);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;padding:16px}
+.mo{position:fixed;inset:0;background:rgba(10,15,46,.55);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;padding:12px}
 .mo.on{opacity:1;pointer-events:all}
-.mb{background:#fff;border-radius:22px;padding:28px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.15);transform:translateY(20px);transition:transform .3s cubic-bezier(.34,1.56,.64,1);position:relative}
-.mo.on .mb{transform:translateY(0)}.mb.wd{max-width:700px}
+.mb{background:#fff;border-radius:22px;padding:24px;width:100%;max-width:500px;max-height:94vh;overflow-y:auto;overflow-x:hidden;box-shadow:0 24px 80px rgba(0,0,0,.18);transform:translateY(20px);transition:transform .3s cubic-bezier(.34,1.56,.64,1);position:relative}
+.mo.on .mb{transform:translateY(0)}.mb.wd{max-width:860px}
 .mtl{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;margin-bottom:3px}
 .msu{font-size:13px;color:var(--muted);margin-bottom:20px}
 .mcl{position:sticky;top:0;float:right;margin:-4px -4px 8px 8px;width:30px;height:30px;border-radius:9px;border:1.5px solid var(--border);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px;line-height:1;z-index:10;transition:all .15s}
@@ -778,9 +778,9 @@ textarea.fi{resize:vertical;min-height:72px}
 </div></div>
 
 <!-- STUDENT CARD MODAL -->
-<div class="mo" id="m-student"><div class="mb wd" style="max-width:680px">
-  <button class="mcl" onclick="closeM('m-student')">×</button>
-  <div id="m-student-body"></div>
+<div class="mo" id="m-student"><div class="mb wd" style="max-width:860px;padding:0;overflow:hidden;display:flex;flex-direction:column">
+  <button class="mcl" onclick="closeM('m-student')" style="position:absolute;top:14px;right:14px;z-index:10">×</button>
+  <div id="m-student-body" style="overflow-y:auto;overflow-x:hidden;flex:1;max-height:94vh"></div>
 </div></div>
 
 <!-- Нова папка -->
@@ -853,9 +853,9 @@ textarea.fi{resize:vertical;min-height:72px}
 </div></div>
 
 <!-- Деталі спроби -->
-<div class="mo" id="m-attempt"><div class="mb wd">
-  <button class="mcl" onclick="closeM('m-attempt')">×</button>
-  <div id="att-det"></div>
+<div class="mo" id="m-attempt"><div class="mb wd" style="max-width:860px;padding:0;overflow:hidden;display:flex;flex-direction:column">
+  <button class="mcl" onclick="closeM('m-attempt')" style="position:absolute;top:14px;right:14px;z-index:20">×</button>
+  <div id="att-det" style="overflow-y:auto;overflow-x:hidden;flex:1;max-height:94vh;padding:24px"></div>
 </div></div>
 
 <!-- Студенти по посиланню -->
@@ -2373,7 +2373,7 @@ window.G = {
     $("m-student-body").innerHTML=`
       <!-- Шапка -->
       <div style="background:linear-gradient(140deg,#2d5be3 0%,#1a3ab8 60%,#1530a0 100%);
-        border-radius:20px;padding:24px;margin:-1px -28px 0;position:relative;overflow:hidden;color:white">
+        border-radius:0;padding:24px 28px;position:relative;overflow:hidden;color:white">
         <!-- Декор -->
         <div style="position:absolute;width:240px;height:240px;border-radius:50%;
           background:rgba(255,255,255,.05);top:-80px;right:-60px"></div>
@@ -2409,7 +2409,8 @@ window.G = {
       </div>
 
       <!-- Метрики -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0">
+      <div style="padding:0 28px;margin-top:16px">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
         ${[
           {val:att.length, label:"Спроб", icon:"📝", bg:"rgba(45,91,227,.06)", col:"var(--primary)", border:"rgba(45,91,227,.12)"},
           {val:att.filter(a=>a.grade>=4).length, label:"Склав", icon:"✅", bg:"rgba(13,158,133,.06)", col:"#0d9e85", border:"rgba(13,158,133,.15)"},
@@ -2424,7 +2425,8 @@ window.G = {
         ).join("")}
       </div>
 
-      <!-- Таблиця -->
+      </div><!-- /padding wrapper -->
+      <div style="padding:0 28px">
       <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Всі спроби</div>
       ${att.length
         ? `<div style="border-radius:14px;border:1.5px solid var(--border);overflow:hidden">
@@ -2445,8 +2447,9 @@ window.G = {
             <div style="color:var(--muted);font-size:14px">Немає спроб</div>
           </div>`}
 
+      </div><!-- /padding wrapper -->
       <!-- Дії -->
-      <div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div style="margin:14px 28px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;padding-bottom:24px">
         <button class="btn bs btn-sm" onclick="G.openMergeModal('${s.id}')" style="font-size:13px">🔗 Об'єднати</button>
         <button class="btn bd btn-sm" onclick="G.deleteStudent('${s.id}')" style="font-size:13px">🗑 Видалити картку</button>
       </div>`;    openM("m-student");
@@ -3204,9 +3207,54 @@ window.G = {
       ${a.copyAttempts?`<span style="background:rgba(255,255,255,.2);color:white;padding:3px 10px;border-radius:20px;font-weight:600">Копіювання: ${a.copyAttempts}</span>`:""}
       ${a.screenshots?`<span style="background:rgba(255,255,255,.2);color:white;padding:3px 10px;border-radius:20px;font-weight:600">📸 Скріншоти: ${a.screenshots}</span>`:""}
     </div>`:"";
-    $("att-det").innerHTML=`<div class="dh"><div style="font-size:12px;opacity:.7;margin-bottom:3px">Результат тесту</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:20px;margin-bottom:2px">${esc(a.name)} ${esc(a.surname)}</div><div style="opacity:.7;margin-bottom:14px">${esc(t.title)} · ${timeAgo(a.createdAt)}</div><div style="display:flex;gap:22px"><div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:38px;letter-spacing:-2px">${a.grade12??"—"}<span style="font-size:18px;opacity:.6">/12</span></div><div style="opacity:.7;font-size:13px">Оцінка</div></div><div style="display:flex;flex-direction:column;gap:3px;justify-content:center"><div style="font-size:13px">✅ Правильних: <strong>${a.score?.correct??"—"}</strong></div><div style="font-size:13px">❌ Неправильних: <strong>${a.score?.incorrect??"—"}</strong></div><div style="font-size:13px">📊 Відсоток: <strong>${a.score?.percent??"—"}%</strong></div></div></div>${suspHtml}</div>${a.aiComment?`<div style="background:rgba(45,91,227,.04);border:1.5px solid rgba(45,91,227,.1);border-radius:13px;padding:14px 18px;margin-bottom:16px"><div style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--primary);font-weight:600;margin-bottom:7px">✦ AI Коментар</div><div style="font-size:14px;line-height:1.7;font-style:italic">${esc(a.aiComment)}</div></div>`:""}
-<button class="btn bs btn-sm" style="margin-bottom:14px;font-size:13px" onclick="G.personalAnalysis('${a.id}')">✦ Персональний розбір помилок</button>
-<div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;margin-bottom:10px">Відповіді</div>${qh||'<div style="color:var(--muted);font-size:14px">Відповіді недоступні</div>'}`;
+    $("att-det").innerHTML=`
+  <!-- Шапка -->
+  <div style="background:linear-gradient(140deg,#2d5be3,#1530a0);border-radius:0;padding:24px 28px;color:white;position:relative;overflow:hidden;flex-shrink:0">
+    <div style="position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.06);top:-50px;right:-30px;pointer-events:none"></div>
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;opacity:.55;margin-bottom:6px">Результат тесту</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;margin-bottom:4px">${esc(a.name)} ${esc(a.surname)}</div>
+    <div style="font-size:13px;opacity:.7;margin-bottom:16px">${esc(t.title)} · ${timeAgo(a.createdAt)}</div>
+    <div style="display:flex;gap:28px;align-items:flex-end">
+      <div>
+        <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:52px;line-height:1;letter-spacing:-2px">${a.grade12??"—"}<span style="font-size:20px;opacity:.5;font-weight:500">/12</span></div>
+        <div style="font-size:11px;opacity:.55;text-transform:uppercase;letter-spacing:.8px;margin-top:2px">Оцінка</div>
+      </div>
+      <div style="display:flex;gap:20px;padding-bottom:6px">
+        <div>
+          <div style="font-size:22px;font-weight:700">✅ ${a.score?.correct??"—"}</div>
+          <div style="font-size:11px;opacity:.55">Правильних</div>
+        </div>
+        <div>
+          <div style="font-size:22px;font-weight:700">❌ ${a.score?.incorrect??"—"}</div>
+          <div style="font-size:11px;opacity:.55">Неправильних</div>
+        </div>
+        <div>
+          <div style="font-size:22px;font-weight:700">📊 ${a.score?.percent??"—"}%</div>
+          <div style="font-size:11px;opacity:.55">Відсоток</div>
+        </div>
+      </div>
+    </div>
+    ${suspHtml}
+  </div>
+
+  <!-- Контент -->
+  <div style="padding:20px 24px">
+
+    <!-- AI Коментар -->
+    ${a.aiComment?`<div style="background:rgba(45,91,227,.04);border:1.5px solid rgba(45,91,227,.1);border-radius:14px;padding:16px 18px;margin-bottom:16px">
+      <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--primary);font-weight:700;margin-bottom:8px">✦ Коментар</div>
+      <div style="font-size:14px;line-height:1.65;font-style:italic;color:var(--text)">${esc(a.aiComment)}</div>
+    </div>`:""}
+
+    <!-- Кнопка персонального розбору -->
+    <button class="btn bs btn-sm" style="margin-bottom:18px;font-size:13px" onclick="G.personalAnalysis('${a.id}')">✦ Персональний розбір помилок</button>
+
+    <!-- Відповіді -->
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Відповіді</div>
+    ${qh||'<div style="color:var(--muted);font-size:14px;text-align:center;padding:20px">Відповіді недоступні</div>'}
+
+  </div>
+`;
     openM("m-attempt");
   },
 
