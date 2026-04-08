@@ -3284,22 +3284,29 @@ window.G = {
       <div style="font-size:28px;flex-shrink:0">⏳</div>
       <div style="flex:1">
         <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:#b45309;margin-bottom:4px">Тест на перевірці</div>
-        <div style="font-size:13px;color:#92400e;line-height:1.55">Розгорнуті відповіді ще не оцінені. Після перевірки викладачем буде виставлено фінальну оцінку.</div>
-        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">Виставити оцінку:</div>
-          ${[1,2,3,4,5,6,7,8,9,10,11,12].map(n=>{
-            const sel=a.grade12===n;
-            const bg=sel?"var(--primary)":"white";
-            const col=sel?"white":"var(--text)";
-            const brd=sel?"var(--primary)":"var(--border)";
-            return "<button onclick=\"G.gradeAttempt('" + a.id + "'," + n + ")\""
-              +" style=\"width:32px;height:32px;border-radius:8px;border:1.5px solid "+brd
-              +";background:"+bg+";color:"+col
-              +";font-size:13px;font-weight:600;cursor:pointer\">" + n + "</button>";
-          }).join("")}
-          <button onclick="G.confirmGrade('${a.id}')" class="btn bp btn-sm" style="font-size:13px;padding:6px 16px">
-            Зберегти оцінку
-          </button>
+        <div style="font-size:13px;color:#92400e;line-height:1.55">Розгорнуті відповіді ще не оцінені. Оберіть оцінку та збережіть.</div>
+        <div style="margin-top:16px">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Оберіть оцінку / 12</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px" id="grade-btns-${a.id}">
+            ${[1,2,3,4,5,6,7,8,9,10,11,12].map(n=>{
+              const sel=a.grade12===n;
+              const bg=sel?"var(--primary)":"white";
+              const col=sel?"white":"var(--text)";
+              const brd=sel?"var(--primary)":"var(--border)";
+              return "<button onclick=\"G.gradeAttempt('" + a.id + "'," + n + ")\""
+                +" style=\"width:36px;height:36px;border-radius:10px;border:1.5px solid "+brd
+                +";background:"+bg+";color:"+col
+                +";font-size:14px;font-weight:700;cursor:pointer;transition:all .15s\">" + n + "</button>";
+            }).join("")}
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="font-size:13px;color:var(--muted)">Обрано: <strong id="grade-selected-${a.id}" style="color:var(--primary);font-size:16px">${a.grade12||"—"}</strong></div>
+            <button onclick="G.confirmGrade('${a.id}')" style="padding:10px 22px;border-radius:12px;border:none;background:linear-gradient(135deg,#2d5be3,#1a3ab8);color:white;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(45,91,227,.3)"
+              onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 20px rgba(45,91,227,.4)'"
+              onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(45,91,227,.3)'">
+              ✓ Зберегти оцінку
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -3333,14 +3340,19 @@ window.G = {
   _pendingGrade: null,
 
   gradeAttempt(attId, grade){
-    // Візуально виділяємо обрану кнопку
     this._pendingGrade = { attId, grade };
-    document.querySelectorAll(`button[onclick*="gradeAttempt('${attId}']`).forEach(btn=>{
+    // Підсвічуємо кнопки
+    const container = document.getElementById("grade-btns-" + attId);
+    if(container) container.querySelectorAll("button").forEach(btn=>{
       const n = parseInt(btn.textContent);
       btn.style.background = n===grade ? "var(--primary)" : "white";
       btn.style.color = n===grade ? "white" : "var(--text)";
       btn.style.borderColor = n===grade ? "var(--primary)" : "var(--border)";
+      btn.style.transform = n===grade ? "scale(1.1)" : "";
     });
+    // Оновлюємо текст "Обрано"
+    const sel = document.getElementById("grade-selected-" + attId);
+    if(sel){ sel.textContent = grade; sel.style.color = "var(--primary)"; }
   },
 
   async confirmGrade(attId){

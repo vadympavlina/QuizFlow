@@ -655,24 +655,17 @@
     </div>
     <div class="result-body">
       <!-- Банер "перевіряється" для long відповідей -->
-      <div id="reviewingBox" style="display:none;margin-bottom:20px;border-radius:18px;overflow:hidden;border:1.5px solid rgba(245,158,11,.25)">
-        <!-- Верх -->
-        <div style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.06));padding:18px 20px;display:flex;align-items:flex-start;gap:14px">
-          <span style="font-size:28px;flex-shrink:0">⏳</span>
-          <div>
-            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:#b45309;margin-bottom:4px">
-              Тест на перевірці
-            </div>
-            <div style="font-size:13px;color:#92400e;line-height:1.55">
-              Ваша розгорнута відповідь отримана і чекає на перевірку викладача.<br>
-              Оцінка та коментар з'являться після перевірки.
-            </div>
+      <div id="reviewingBox" style="display:none;margin-bottom:20px">
+        <div style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border:2px solid #fbbf24;border-radius:18px;padding:20px 22px;text-align:center">
+          <div style="font-size:36px;margin-bottom:10px">⏳</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:#92400e;margin-bottom:6px">Тест на перевірці</div>
+          <div style="font-size:14px;color:#b45309;line-height:1.6">
+            Ваша розгорнута відповідь отримана і чекає на перевірку викладача.<br>
+            Оцінка з'явиться після перевірки.
           </div>
-        </div>
-        <!-- Нижній рядок -->
-        <div style="background:rgba(245,158,11,.04);padding:12px 20px;border-top:1px solid rgba(245,158,11,.15);display:flex;align-items:center;gap:8px">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013 5.73a2 2 0 012-2.18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L9.91 11a16 16 0 006.29 6.29l1.45-1.45a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-          <span style="font-size:12px;color:#b45309;font-weight:500">Збережіть результати та повідомте викладача</span>
+          <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(251,191,36,.4);font-size:13px;color:#b45309;font-weight:500">
+            📥 Збережіть результати та повідомте викладача
+          </div>
         </div>
       </div>
       <div class="result-stats">
