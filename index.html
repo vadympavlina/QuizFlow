@@ -3289,10 +3289,13 @@ window.G = {
           <div style="font-size:12px;color:var(--muted);margin-top:2px">Виставити оцінку:</div>
           ${[1,2,3,4,5,6,7,8,9,10,11,12].map(n=>{
             const sel=a.grade12===n;
-            return '<button onclick="G.gradeAttempt(''+a.id+'','+n+')" '
-              +'style="width:32px;height:32px;border-radius:8px;border:1.5px solid '+(sel?'var(--primary)':'var(--border)')
-              +';background:'+(sel?'var(--primary)':'white')+';color:'+(sel?'white':'var(--text)')
-              +';font-size:13px;font-weight:600;cursor:pointer;transition:all .15s">'+n+'</button>';
+            const bg=sel?"var(--primary)":"white";
+            const col=sel?"white":"var(--text)";
+            const brd=sel?"var(--primary)":"var(--border)";
+            return "<button onclick=\"G.gradeAttempt('" + a.id + "'," + n + ")\""
+              +" style=\"width:32px;height:32px;border-radius:8px;border:1.5px solid "+brd
+              +";background:"+bg+";color:"+col
+              +";font-size:13px;font-weight:600;cursor:pointer\">" + n + "</button>";
           }).join("")}
           <button onclick="G.confirmGrade('${a.id}')" class="btn bp btn-sm" style="font-size:13px;padding:6px 16px">
             Зберегти оцінку
