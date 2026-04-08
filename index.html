@@ -778,13 +778,13 @@ textarea.fi{resize:vertical;min-height:72px}
 </div></div>
 
 <!-- STUDENT CARD MODAL -->
-<div class="mo" id="m-student" style="align-items:flex-start;padding-top:32px">
-  <button onclick="closeM('m-student')"
-    style="position:fixed;top:16px;right:16px;width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,.15);backdrop-filter:blur(8px);color:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:301;transition:all .2s;line-height:1"
-    onmouseover="this.style.background='rgba(255,255,255,.3)'"
-    onmouseout="this.style.background='rgba(255,255,255,.15)'">×</button>
-  <div class="mb wd" style="max-width:860px;padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:calc(100vh - 48px)">
-    <div id="m-student-body" style="overflow-y:auto;overflow-x:hidden;flex:1"></div>
+<div class="mo" id="m-student">
+  <div class="mb wd" style="max-width:860px;padding:0;overflow:hidden;display:flex;flex-direction:column;position:relative">
+    <button onclick="closeM('m-student')"
+      style="position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;border:none;background:none;color:rgba(255,255,255,.7);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;line-height:1;transition:color .15s"
+      onmouseover="this.style.color='white'"
+      onmouseout="this.style.color='rgba(255,255,255,.7)'">×</button>
+    <div id="m-student-body" style="overflow-y:auto;overflow-x:hidden;flex:1;max-height:92vh"></div>
   </div>
 </div>
 
@@ -858,13 +858,13 @@ textarea.fi{resize:vertical;min-height:72px}
 </div></div>
 
 <!-- Деталі спроби -->
-<div class="mo" id="m-attempt" style="align-items:flex-start;padding-top:32px">
-  <button onclick="closeM('m-attempt')"
-    style="position:fixed;top:16px;right:16px;width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,.15);backdrop-filter:blur(8px);color:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:301;transition:all .2s;line-height:1"
-    onmouseover="this.style.background='rgba(255,255,255,.3)'"
-    onmouseout="this.style.background='rgba(255,255,255,.15)'">×</button>
-  <div class="mb wd" style="max-width:860px;padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:calc(100vh - 48px)">
-    <div id="att-det" style="overflow-y:auto;overflow-x:hidden;flex:1;padding:0"></div>
+<div class="mo" id="m-attempt">
+  <div class="mb wd" style="max-width:860px;padding:0;overflow:hidden;display:flex;flex-direction:column;position:relative">
+    <button onclick="closeM('m-attempt')"
+      style="position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;border:none;background:none;color:rgba(255,255,255,.7);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;line-height:1;transition:color .15s"
+      onmouseover="this.style.color='white'"
+      onmouseout="this.style.color='rgba(255,255,255,.7)'">×</button>
+    <div id="att-det" style="overflow-y:auto;overflow-x:hidden;flex:1;padding:0;max-height:92vh"></div>
   </div>
 </div>
 
