@@ -179,6 +179,7 @@ window.doLogin = async () => {
   try{
     const user = await findUser(login, pass);
     if(!user){ showError("Невірний логін або пароль"); setLoading("submitBtn","btnText",false); return; }
+    if(user.blocked === true){ showError("Акаунт заблоковано. Зверніться до адміністратора"); setLoading("submitBtn","btnText",false); return; }
     _currentUser = user;
     if(user.isFirstLogin){
       // Перший вхід — потрібна зміна пароля
