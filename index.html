@@ -2031,9 +2031,9 @@ window.G = {
     const tid=$("nl-t").value;
     if(!tid){toast("Оберіть тест","err");return;}
     try{
-      const id=await dbPush("links",{testId:tid,maxAttempts:mx,usedAttempts:0,status:"active",group,shuffleQuestions,shuffleAnswers,createdAt:ts()});
-      links.push({id,testId:tid,maxAttempts:mx,usedAttempts:0,status:"active",group,shuffleQuestions,shuffleAnswers,createdAt:ts()});
-      closeM("m-link");renderLinks();renderDashLinks();updateBadges();renderStats();toast("Посилання створено");
+      await dbPush("links",{testId:tid,maxAttempts:mx,usedAttempts:0,status:"active",group,shuffleQuestions,shuffleAnswers,createdAt:ts()});
+      // onValue сам оновить links[] — не додаємо вручну
+      closeM("m-link");toast("Посилання створено");
     }catch(e){toast("Помилка: "+e.message,"err");}
   },
   async togLink(id,st){
