@@ -3317,6 +3317,27 @@ window.G = {
     const t=tests.find(x=>x.id===a?.testId);
     if(!a||!t) return;
     const btn=document.querySelector(`button[onclick="G.personalAnalysis('${attId}')"]`);
+
+    // Якщо аналіз вже є — показуємо збережений
+    if(a.personalAnalysis){
+      const contentEl=document.getElementById("ai-side-content");
+      if(contentEl){
+        const paragraphs=a.personalAnalysis.split("\n").filter(l=>l.trim());
+        contentEl.innerHTML=`<div style="font-size:15px;line-height:1.75;color:var(--text)">
+          ${paragraphs.map((p,i)=>`<p style="margin:0 0 ${i<paragraphs.length-1?"14":"0"}px 0">${esc(p)}</p>`).join("")}
+        </div>`;
+      }
+      // Зберігаємо в Firebase
+      try{
+        await dbUpd(`attempts/${attId}`,{personalAnalysis:analysis});
+        // Оновлюємо локальний масив
+        const idx=attempts.findIndex(x=>x.id===attId);
+        if(idx>=0) attempts[idx]={...attempts[idx],personalAnalysis:analysis};
+      }catch(e){ console.warn("Save analysis failed:",e.message); }
+      G.openAiPanel();
+      return;
+    }
+
     if(btn){ btn.disabled=true; btn.textContent="⏳ Аналізую..."; }
 
     const qs=a.questionsSnapshot||t.questions||[];
@@ -3390,6 +3411,13 @@ ${details}
         </div>`;
         contentEl.innerHTML = formatted;
       }
+      // Зберігаємо в Firebase
+      try{
+        await dbUpd(`attempts/${attId}`,{personalAnalysis:analysis});
+        // Оновлюємо локальний масив
+        const idx=attempts.findIndex(x=>x.id===attId);
+        if(idx>=0) attempts[idx]={...attempts[idx],personalAnalysis:analysis};
+      }catch(e){ console.warn("Save analysis failed:",e.message); }
       G.openAiPanel();
     }catch(e){toast("Помилка AI: "+e.message,"err");}
     if(btn){btn.disabled=false;btn.textContent="✦ Персональний розбір помилок";}
