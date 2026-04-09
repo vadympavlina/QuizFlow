@@ -3293,10 +3293,16 @@ window.G = {
       if(!users.length){ list.innerHTML="<div style='color:var(--muted);font-size:14px;padding:12px 0'>Немає інших викладачів</div>"; return; }
       list.innerHTML = users.map(u=>{
         const initials=esc(u.name||u.login).slice(0,2).toUpperCase();
-        return "<label style='display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:all .15s' onclick="G._shareSelectedUid='"+u.id+"';document.querySelectorAll('#share-teachers-list label').forEach(l=>{l.style.borderColor='var(--border)';l.style.background=''});this.style.borderColor='var(--primary)';this.style.background='rgba(45,91,227,.04)'">"
-          +"<div style='width:36px;height:36px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-weight:700;font-size:13px;color:#fff;flex-shrink:0'>"+initials+"</div>"
-          +"<div><div style='font-weight:600;font-size:14px'>"+esc(u.name||u.login)+"</div><div style='font-size:12px;color:var(--muted);font-family:monospace'>@"+esc(u.login)+"</div></div>"
-          +"</label>";
+                const el=document.createElement("label");
+        el.style.cssText="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:all .15s";
+        el.addEventListener("click",()=>{
+          G._shareSelectedUid=u.id;
+          document.querySelectorAll("#share-teachers-list label").forEach(l=>{l.style.borderColor="var(--border)";l.style.background="";});
+          el.style.borderColor="var(--primary)";el.style.background="rgba(45,91,227,.04)";
+        });
+        el.innerHTML="<div style='width:36px;height:36px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-weight:700;font-size:13px;color:#fff;flex-shrink:0'>"+initials+"</div>"
+          +"<div><div style='font-weight:600;font-size:14px'>"+esc(u.name||u.login)+"</div><div style='font-size:12px;color:var(--muted);font-family:monospace'>@"+esc(u.login)+"</div></div>";
+        return el.outerHTML.replace("</label>","")+"</label>";
       }).join("");
     }catch(e){ list.innerHTML="<div style='color:#be123c;font-size:13px'>"+esc(e.message)+"</div>"; }
   },
