@@ -820,9 +820,11 @@ function percentToGrade(percent) {
 
 
 // ─── AUTH GUARD ───────────────────────────────────────────────────────────────
-if (sessionStorage.getItem("qf_auth") !== "1") {
-  window.location.href = "login.html";
-}
+const _sess = sessionStorage.getItem("qf_user");
+if(!_sess) { window.location.href = "login.html"; }
+const _user = _sess ? JSON.parse(_sess) : null;
+if(!_user || !_user.id) { sessionStorage.clear(); window.location.href = "login.html"; }
+const _uid = _user.id;
 
 
 // ─── CONSTRUCTOR CUSTOM DROPDOWNS ─────────────────────────────────────────────
