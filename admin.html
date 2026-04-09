@@ -140,6 +140,11 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
       Статистика
     </button>
 
+    <button class="ni" id="ni-settings" onclick="showSec('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Налаштування AI
+    </button>
+
     <div class="sb-sep">Аккаунт</div>
     <a class="ni" href="index.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -215,6 +220,97 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
       </div>
     </div>
 
+    <!-- SETTINGS -->
+    <div class="sec" id="sec-settings">
+      <div class="ph">
+        <div><div class="pt">Налаштування AI</div><div class="ps">Groq API та параметри штучного інтелекту</div></div>
+        <button class="btn bp" onclick="saveAISettings()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Зберегти
+        </button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+        <!-- API ключ -->
+        <div class="card" style="padding:24px;grid-column:1/-1">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+            <div style="width:42px;height:42px;border-radius:12px;background:rgba(45,91,227,.08);display:flex;align-items:center;justify-content:center;font-size:20px">🔑</div>
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px">Groq API Ключ</div>
+              <div style="font-size:13px;color:var(--muted)">Отримати на <a href="https://console.groq.com" target="_blank" style="color:var(--primary)">console.groq.com</a></div>
+            </div>
+          </div>
+          <div style="position:relative">
+            <input type="password" id="ai-api-key" placeholder="gsk_..." class="fi"
+              style="font-family:monospace;font-size:14px;padding-right:48px">
+            <button onclick="toggleKeyVisibility()" title="Показати/приховати"
+              style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);display:flex;align-items:center">
+              <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div style="margin-top:8px;font-size:12px;color:var(--muted)">⚠️ Ключ зберігається у Firebase — переконайтесь що правила бази захищені</div>
+        </div>
+
+        <!-- Модель -->
+        <div class="card" style="padding:24px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+            <div style="width:42px;height:42px;border-radius:12px;background:rgba(147,51,234,.08);display:flex;align-items:center;justify-content:center;font-size:20px">🤖</div>
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px">Модель</div>
+              <div style="font-size:13px;color:var(--muted)">Groq LLM модель</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px" id="model-options">
+            <label style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:all .15s"
+              onmouseover="this.style.borderColor='rgba(45,91,227,.3)'" onmouseout="if(!this.querySelector('input').checked)this.style.borderColor='var(--border)'">
+              <input type="radio" name="ai-model" value="llama-3.3-70b-versatile" style="margin-top:2px;accent-color:var(--primary)">
+              <div><div style="font-weight:600;font-size:14px">llama-3.3-70b-versatile</div><div style="font-size:12px;color:var(--muted)">Найточніша · рекомендована</div></div>
+            </label>
+            <label style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:all .15s"
+              onmouseover="this.style.borderColor='rgba(45,91,227,.3)'" onmouseout="if(!this.querySelector('input').checked)this.style.borderColor='var(--border)'">
+              <input type="radio" name="ai-model" value="llama-3.1-8b-instant" style="margin-top:2px;accent-color:var(--primary)">
+              <div><div style="font-weight:600;font-size:14px">llama-3.1-8b-instant</div><div style="font-size:12px;color:var(--muted)">Швидша · економніша</div></div>
+            </label>
+            <label style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:all .15s"
+              onmouseover="this.style.borderColor='rgba(45,91,227,.3)'" onmouseout="if(!this.querySelector('input').checked)this.style.borderColor='var(--border)'">
+              <input type="radio" name="ai-model" value="mixtral-8x7b-32768" style="margin-top:2px;accent-color:var(--primary)">
+              <div><div style="font-weight:600;font-size:14px">mixtral-8x7b-32768</div><div style="font-size:12px;color:var(--muted)">Великий контекст</div></div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Перемикачі -->
+        <div class="card" style="padding:24px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+            <div style="width:42px;height:42px;border-radius:12px;background:rgba(13,158,133,.08);display:flex;align-items:center;justify-content:center;font-size:20px">⚙️</div>
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px">Функції AI</div>
+              <div style="font-size:13px;color:var(--muted)">Вмк/Вимк окремі можливості</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+              <div><div style="font-weight:600;font-size:14px">AI коментарі студентам</div><div style="font-size:12px;color:var(--muted)">Коментар після проходження тесту</div></div>
+              <label class="toggle-sw"><input type="checkbox" id="ai-comments" checked><span class="toggle-sl"></span></label>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+              <div><div style="font-weight:600;font-size:14px">AI генерація питань</div><div style="font-size:12px;color:var(--muted)">В конструкторі тестів</div></div>
+              <label class="toggle-sw"><input type="checkbox" id="ai-generation" checked><span class="toggle-sl"></span></label>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0">
+              <div><div style="font-weight:600;font-size:14px">AI перевірка тексту</div><div style="font-size:12px;color:var(--muted)">Перевірка текстових відповідей</div></div>
+              <label class="toggle-sw"><input type="checkbox" id="ai-textcheck" checked><span class="toggle-sl"></span></label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Статус -->
+      <div id="ai-status" style="margin-top:16px;display:none"></div>
+    </div>
+
   </main>
 </div>
 
@@ -258,6 +354,68 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
     <div id="reset-actions" style="display:flex;flex-direction:column;gap:10px">
       <button onclick="doResetPassword()" style="padding:14px;border-radius:13px;border:none;background:var(--grad);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 4px 14px rgba(45,91,227,.3)">🔑 Згенерувати новий пароль</button>
       <button onclick="closeModal('m-reset')" style="padding:12px;border-radius:13px;border:1.5px solid var(--border);background:transparent;font-size:14px;cursor:pointer;color:var(--muted)">Скасувати</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI SETTINGS MODAL -->
+<div class="mo" id="m-ai">
+  <div class="mb" style="max-width:480px">
+    <button class="mcl" onclick="closeModal('m-ai')">×</button>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+      <div style="width:48px;height:48px;border-radius:14px;background:rgba(45,91,227,.08);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">✦</div>
+      <div>
+        <div class="mtl" style="margin-bottom:2px">AI налаштування</div>
+        <div style="font-size:13px;color:var(--muted)" id="ai-modal-sub">Викладач</div>
+      </div>
+    </div>
+
+    <!-- Індикатор — глобальні або індивідуальні -->
+    <div id="ai-modal-source" style="background:rgba(245,158,11,.06);border:1.5px solid rgba(245,158,11,.2);border-radius:12px;padding:10px 14px;font-size:13px;color:#b45309;margin-bottom:18px;display:none">
+      ℹ️ Встановлені індивідуальні налаштування (відрізняються від глобальних)
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px" id="ai-modal-toggles">
+      <!-- AI коментарі студентам -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:13px;border:1.5px solid var(--border);background:var(--bg)">
+        <div>
+          <div style="font-weight:600;font-size:14px">💬 AI коментарі студентам</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Автоматичний коментар після проходження тесту</div>
+        </div>
+        <label class="toggle-sw"><input type="checkbox" id="t-ai-comments"><span class="toggle-sl"></span></label>
+      </div>
+
+      <!-- Персональний розбір -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:13px;border:1.5px solid var(--border);background:var(--bg)">
+        <div>
+          <div style="font-weight:600;font-size:14px">🔍 Персональний розбір помилок</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Детальний аналіз помилок студента</div>
+        </div>
+        <label class="toggle-sw"><input type="checkbox" id="t-ai-analysis"><span class="toggle-sl"></span></label>
+      </div>
+
+      <!-- Генерація питань -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:13px;border:1.5px solid var(--border);background:var(--bg)">
+        <div>
+          <div style="font-weight:600;font-size:14px">⚡ Генерація питань</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">AI генерація питань в конструкторі тестів</div>
+        </div>
+        <label class="toggle-sw"><input type="checkbox" id="t-ai-generation"><span class="toggle-sl"></span></label>
+      </div>
+
+      <!-- Перевірка тексту -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:13px;border:1.5px solid var(--border);background:var(--bg)">
+        <div>
+          <div style="font-weight:600;font-size:14px">📝 Перевірка текстових відповідей</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">AI оцінка текстових і числових відповідей</div>
+        </div>
+        <label class="toggle-sw"><input type="checkbox" id="t-ai-textcheck"><span class="toggle-sl"></span></label>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button class="btn bs" onclick="resetTeacherAI()" style="flex:1;font-size:13px">↩ Скинути до глобальних</button>
+      <button class="btn bp" onclick="saveTeacherAI()" style="flex:1">Зберегти</button>
     </div>
   </div>
 </div>
@@ -401,6 +559,7 @@ function renderTeachers(){
         <div class="tc-actions">
           ${!isMe?`<button class="btn bs btn-sm" onclick="openResetModal('${u.id}','${esc(u.name||u.login)}')">🔑 Пароль</button>`:""}
           ${!isMe?`<button class="btn btn-sm ${isBlocked?"bg":"bd"}" onclick="openBlockModal('${u.id}','${esc(u.name||u.login)}',${isBlocked})">${isBlocked?"✅ Розблокувати":"🚫 Заблокувати"}</button>`:""}
+          <button class="btn bs btn-sm" onclick="openAIModal('${u.id}','${esc(u.name||u.login)}')">✦ AI</button>
           <button class="btn bs btn-sm" onclick="showSec('stats')">📊 Деталі</button>
         </div>
       </div>
@@ -525,11 +684,167 @@ document.querySelectorAll(".mo").forEach(m=>m.addEventListener("click",e=>{if(e.
 let _tt;
 function toast(msg){ const e=document.getElementById("toast"); e.textContent=msg; e.classList.add("show"); clearTimeout(_tt); _tt=setTimeout(()=>e.classList.remove("show"),3000); }
 
+// ─── AI Settings ─────────────────────────────────────────────────────────────
+async function loadAISettings(){
+  try{
+    const snap = await get(ref(db,"settings/ai"));
+    if(!snap.exists()) return;
+    const s = snap.val();
+    if(s.apiKey){
+      const inp = document.getElementById("ai-api-key");
+      if(inp) inp.value = s.apiKey;
+    }
+    if(s.model){
+      const radio = document.querySelector(`input[name="ai-model"][value="${s.model}"]`);
+      if(radio){
+        radio.checked = true;
+        radio.closest("label").style.borderColor = "var(--primary)";
+        radio.closest("label").style.background = "rgba(45,91,227,.03)";
+      }
+    }
+    const toggles = {
+      "ai-comments":  s.aiComments  !== false,
+      "ai-generation":s.aiGeneration!== false,
+      "ai-textcheck": s.aiTextCheck !== false
+    };
+    Object.entries(toggles).forEach(([id,val])=>{
+      const el=document.getElementById(id);
+      if(el) el.checked=val;
+    });
+  }catch(e){ console.warn("Load AI settings:", e.message); }
+}
+
+window.saveAISettings = async () => {
+  const apiKey   = document.getElementById("ai-api-key")?.value.trim();
+  const model    = document.querySelector('input[name="ai-model"]:checked')?.value;
+  const comments = document.getElementById("ai-comments")?.checked;
+  const generation= document.getElementById("ai-generation")?.checked;
+  const textcheck = document.getElementById("ai-textcheck")?.checked;
+
+  if(!apiKey){ toast("Введіть API ключ"); return; }
+
+  try{
+    await update(ref(db,"settings/ai"),{
+      apiKey, model: model||"llama-3.3-70b-versatile",
+      aiComments:comments, aiGeneration:generation, aiTextCheck:textcheck,
+      updatedAt: Date.now()
+    });
+    const status=document.getElementById("ai-status");
+    if(status){
+      status.style.display="";
+      status.innerHTML=`<div style="background:rgba(13,158,133,.08);border:1.5px solid rgba(13,158,133,.25);border-radius:14px;padding:14px 18px;color:#0d9e85;font-weight:500;font-size:14px">✅ Налаштування збережено</div>`;
+      setTimeout(()=>status.style.display="none",3000);
+    }
+    toast("Налаштування AI збережено ✅");
+  }catch(e){ toast("Помилка: "+e.message); }
+};
+
+window.toggleKeyVisibility = () => {
+  const inp=document.getElementById("ai-api-key");
+  const icon=document.getElementById("eye-icon");
+  if(!inp) return;
+  inp.type = inp.type==="password" ? "text" : "password";
+  icon.innerHTML = inp.type==="text"
+    ? '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
+    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+};
+
+// Підсвічування вибраної моделі
+document.querySelectorAll('input[name="ai-model"]').forEach(r=>{
+  r.addEventListener("change", ()=>{
+    document.querySelectorAll('input[name="ai-model"]').forEach(rb=>{
+      const lbl=rb.closest("label");
+      if(lbl){
+        lbl.style.borderColor=rb.checked?"var(--primary)":"var(--border)";
+        lbl.style.background=rb.checked?"rgba(45,91,227,.03)":"";
+      }
+    });
+  });
+});
+
+// ─── Teacher AI Settings ─────────────────────────────────────────────────────
+let _aiTeacherId = "";
+
+window.openAIModal = async (uid, name) => {
+  _aiTeacherId = uid;
+  document.getElementById("ai-modal-sub").textContent = name;
+
+  // Читаємо глобальні дефолти
+  let globalSettings = { aiComments:true, aiAnalysis:true, aiGeneration:true, aiTextCheck:true };
+  try{
+    const gSnap = await get(ref(db,"settings/ai"));
+    if(gSnap.exists()){
+      const g = gSnap.val();
+      globalSettings = {
+        aiComments:  g.aiComments  !== false,
+        aiAnalysis:  g.aiAnalysis  !== false,
+        aiGeneration:g.aiGeneration!== false,
+        aiTextCheck: g.aiTextCheck !== false
+      };
+    }
+  }catch{}
+
+  // Читаємо індивідуальні налаштування
+  let hasCustom = false;
+  let settings = { ...globalSettings };
+  try{
+    const tSnap = await get(ref(db,`users/${uid}/aiSettings`));
+    if(tSnap.exists()){
+      hasCustom = true;
+      const t = tSnap.val();
+      settings = {
+        aiComments:  t.aiComments  !== undefined ? t.aiComments  : globalSettings.aiComments,
+        aiAnalysis:  t.aiAnalysis  !== undefined ? t.aiAnalysis  : globalSettings.aiAnalysis,
+        aiGeneration:t.aiGeneration!== undefined ? t.aiGeneration: globalSettings.aiGeneration,
+        aiTextCheck: t.aiTextCheck !== undefined ? t.aiTextCheck : globalSettings.aiTextCheck
+      };
+    }
+  }catch{}
+
+  // Заповнюємо форму
+  document.getElementById("t-ai-comments").checked   = settings.aiComments;
+  document.getElementById("t-ai-analysis").checked   = settings.aiAnalysis;
+  document.getElementById("t-ai-generation").checked = settings.aiGeneration;
+  document.getElementById("t-ai-textcheck").checked  = settings.aiTextCheck;
+
+  // Показуємо індикатор
+  const sourceEl = document.getElementById("ai-modal-source");
+  if(sourceEl) sourceEl.style.display = hasCustom ? "" : "none";
+
+  openModal("m-ai");
+};
+
+window.saveTeacherAI = async () => {
+  const settings = {
+    aiComments:  document.getElementById("t-ai-comments").checked,
+    aiAnalysis:  document.getElementById("t-ai-analysis").checked,
+    aiGeneration:document.getElementById("t-ai-generation").checked,
+    aiTextCheck: document.getElementById("t-ai-textcheck").checked,
+    updatedAt:   Date.now()
+  };
+  try{
+    await update(ref(db,`users/${_aiTeacherId}/aiSettings`), settings);
+    document.getElementById("ai-modal-source").style.display = "";
+    closeModal("m-ai");
+    toast("Налаштування AI збережено ✅");
+  }catch(e){ toast("Помилка: "+e.message); }
+};
+
+window.resetTeacherAI = async () => {
+  try{
+    await update(ref(db,`users/${_aiTeacherId}`), { aiSettings: null });
+    document.getElementById("ai-modal-source").style.display = "none";
+    closeModal("m-ai");
+    toast("Скинуто до глобальних налаштувань");
+  }catch(e){ toast("Помилка: "+e.message); }
+};
+
 // ─── Logout ───────────────────────────────────────────────────────────────────
 window.doLogout = () => { sessionStorage.clear(); location.href="login.html"; };
 
 // Init
 loadAll();
+loadAISettings();
 </script>
 </body>
 </html>

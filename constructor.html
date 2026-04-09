@@ -467,6 +467,27 @@ const firebaseConfig = {
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
+// Завантажуємо налаштування AI одразу (глобальні + індивідуальні)
+(async()=>{
+  await loadAISettings(db);
+  // Читаємо індивідуальні налаштування викладача
+  try{
+    const _s = sessionStorage.getItem("qf_user");
+    const _u = _s ? JSON.parse(_s) : null;
+    if(_u?.id){
+      const { get:_g, ref:_r } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+      const tSnap = await _g(_r(db,`users/${_u.id}/aiSettings`));
+      if(tSnap.exists()){
+        const t = tSnap.val();
+        if(t.aiComments  !== undefined) window._AI_COMMENTS   = t.aiComments;
+        if(t.aiAnalysis  !== undefined) window._AI_ANALYSIS   = t.aiAnalysis;
+        if(t.aiGeneration!== undefined) window._AI_GENERATION = t.aiGeneration;
+        if(t.aiTextCheck !== undefined) window._AI_TEXTCHECK  = t.aiTextCheck;
+      }
+    }
+  }catch(e){ console.warn("Teacher AI settings:", e.message); }
+})();
+
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
 function snapToArray(snap) {
@@ -647,9 +668,29 @@ async function checkDuplicateAttempt(testId, name, surname) {
 
 // js/ai.js — Groq API напряму з браузера (без Firebase Functions)
 
-const GROQ_API_KEY = "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";
-const GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions";
-const GROQ_MODEL   = "llama-3.3-70b-versatile";
+let GROQ_API_KEY = "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";
+const GROQ_URL   = "https://api.groq.com/openai/v1/chat/completions";
+let GROQ_MODEL   = "llama-3.3-70b-versatile";
+let AI_ENABLED   = true; // вмк/вимк AI глобально
+
+// Завантажуємо налаштування AI з Firebase
+async function loadAISettings(db) {
+  try {
+    const { get, ref } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+    const snap = await get(ref(db, "settings/ai"));
+    if(snap.exists()){
+      const s = snap.val();
+      if(s.apiKey)   GROQ_API_KEY = s.apiKey;
+      if(s.model)    GROQ_MODEL   = s.model;
+      if(s.enabled !== undefined) AI_ENABLED = s.enabled !== false;
+      // Глобальні дефолти для функцій
+      window._AI_COMMENTS   = s.aiComments   !== false;
+      window._AI_ANALYSIS   = s.aiAnalysis   !== false;
+      window._AI_GENERATION = s.aiGeneration !== false;
+      window._AI_TEXTCHECK  = s.aiTextCheck  !== false;
+    }
+  } catch(e){ console.warn("AI settings load failed:", e.message); }
+}
 
 // ─── Базовий запит до Groq ────────────────────────────────────────────────────
 
@@ -1802,6 +1843,9 @@ window.openAiModal = () => {
 };
 
 window.runAiGenerate = async () => {
+  // Перевірка дозволу AI генерації
+  if(window._AI_GENERATION === false){ showToast("Генерацію питань вимкнено адміністратором", "error"); return; }
+
   const topic      = document.getElementById("aiTopic").value.trim();
   const desc       = document.getElementById("aiDesc")?.value.trim() || "";
   const difficulty = document.getElementById("aiDifficulty").value;

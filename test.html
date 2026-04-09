@@ -737,6 +737,27 @@ const firebaseConfig = {
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
+// Завантажуємо налаштування AI одразу (глобальні + індивідуальні)
+(async()=>{
+  await loadAISettings(db);
+  // Читаємо індивідуальні налаштування викладача
+  try{
+    const _s = sessionStorage.getItem("qf_user");
+    const _u = _s ? JSON.parse(_s) : null;
+    if(_u?.id){
+      const { get:_g, ref:_r } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+      const tSnap = await _g(_r(db,`users/${_u.id}/aiSettings`));
+      if(tSnap.exists()){
+        const t = tSnap.val();
+        if(t.aiComments  !== undefined) window._AI_COMMENTS   = t.aiComments;
+        if(t.aiAnalysis  !== undefined) window._AI_ANALYSIS   = t.aiAnalysis;
+        if(t.aiGeneration!== undefined) window._AI_GENERATION = t.aiGeneration;
+        if(t.aiTextCheck !== undefined) window._AI_TEXTCHECK  = t.aiTextCheck;
+      }
+    }
+  }catch(e){ console.warn("Teacher AI settings:", e.message); }
+})();
+
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
 function snapToArray(snap) {
@@ -896,9 +917,29 @@ async function checkDuplicateAttempt(testId, name, surname) {
 
 // js/ai.js — Groq API напряму з браузера (без Firebase Functions)
 
-const GROQ_API_KEY = "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";
-const GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions";
-const GROQ_MODEL   = "llama-3.3-70b-versatile";
+let GROQ_API_KEY = "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";
+const GROQ_URL   = "https://api.groq.com/openai/v1/chat/completions";
+let GROQ_MODEL   = "llama-3.3-70b-versatile";
+let AI_ENABLED   = true; // вмк/вимк AI глобально
+
+// Завантажуємо налаштування AI з Firebase
+async function loadAISettings(db) {
+  try {
+    const { get, ref } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+    const snap = await get(ref(db, "settings/ai"));
+    if(snap.exists()){
+      const s = snap.val();
+      if(s.apiKey)   GROQ_API_KEY = s.apiKey;
+      if(s.model)    GROQ_MODEL   = s.model;
+      if(s.enabled !== undefined) AI_ENABLED = s.enabled !== false;
+      // Глобальні дефолти для функцій
+      window._AI_COMMENTS   = s.aiComments   !== false;
+      window._AI_ANALYSIS   = s.aiAnalysis   !== false;
+      window._AI_GENERATION = s.aiGeneration !== false;
+      window._AI_TEXTCHECK  = s.aiTextCheck  !== false;
+    }
+  } catch(e){ console.warn("AI settings load failed:", e.message); }
+}
 
 // ─── Базовий запит до Groq ────────────────────────────────────────────────────
 
@@ -1222,8 +1263,9 @@ async function scoreTest(questions, answers) {
 
   // AI-перевірка для текстових відповідей що потребують аналізу
   const textChecks = prelimResults.filter(r => r.result.needsAICheck);
+  const aiTextAllowed = window._AI_TEXTCHECK !== false;
 
-  if (textChecks.length > 0) {
+  if (textChecks.length > 0 && aiTextAllowed) {
     // Один запит до AI для всіх текстових відповідей
     const checkList = textChecks.map((r, i) =>
       `${i+1}. Питання: "${(r.q.text||"").replace(/<[^>]+>/g,"")}"\n   Правильна відповідь: "${r.result.expectedAnswer}"\n   Відповідь студента: "${r.result.studentAnswer}"`
@@ -2300,7 +2342,9 @@ async function _doFinish() {
     // get AI comment — тільки якщо немає питань на перевірку
     const hasPendingQ = scoreResult.pending > 0;
     let aiResult = { grade: hasPendingQ ? null : grade, comment: "" };
-    if(!hasPendingQ){
+    // Перевіряємо чи AI коментарі дозволені для цього викладача
+    const aiCommentsAllowed = window._AI_COMMENTS !== false;
+    if(!hasPendingQ && aiCommentsAllowed){
       try {
         aiResult = await getStudentAIComment({
           testTitle:      testData.title,
@@ -2314,6 +2358,9 @@ async function _doFinish() {
         console.warn("AI failed:", e.message);
         aiResult = { grade, comment: "" };
       }
+    } else if(!hasPendingQ && !aiCommentsAllowed){
+      // AI вимкнено — ставимо оцінку без коментаря
+      aiResult = { grade, comment: "" };
     }
 
     // Оновлюємо з фінальною оцінкою і статусом
