@@ -1985,8 +1985,8 @@ window.renderLinks = function(){
           const statusLabel = expired ? "⏰ Закрите (авто)" : ia ? "Активне" : "Закрите";
           const statusClass = (expired || !ia) ? "bg-r" : "bg-g";
           const closeStr = l.closeAt ? new Date(l.closeAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}) : "";
-          return \`<span class="bdg \${statusClass}">\${statusLabel}</span>\${closeStr?\`<div style="font-size:11px;color:var(--muted);margin-top:3px">⏱ до \${closeStr}</div>\`:""}
-          \`;
+          return '<span class="bdg '+statusClass+'">\'+statusLabel+'</span>'
+            +(closeStr?'<div style="font-size:11px;color:var(--muted);margin-top:3px">⏱ до '+closeStr+'</div>':'')+'';
         })()}
       </td>
       <td><div class="ra">
