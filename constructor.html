@@ -208,6 +208,23 @@
 </style>
 </head>
 <body>
+<!-- MOBILE OVERLAY -->
+<div id="mobile-overlay" style="display:none;position:fixed;inset:0;background:#0d1340;z-index:9999;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center">
+  <div style="width:64px;height:64px;background:linear-gradient(135deg,#2d5be3,#1a3ab8);border-radius:18px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:28px;color:#fff;margin-bottom:28px;box-shadow:0 8px 28px rgba(45,91,227,.4)">Q</div>
+  <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:#fff;margin-bottom:12px;line-height:1.3">Мобільна версія недоступна</div>
+  <div style="font-size:15px;color:rgba(255,255,255,.55);line-height:1.7;max-width:280px">Для зручної роботи з QuizFlow використовуйте комп'ютер або ноутбук</div>
+  <div style="margin-top:32px;display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.25);font-size:13px">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    Мінімальна ширина: 1024px
+  </div>
+</div>
+<style>
+@media(max-width:1023px){
+  #mobile-overlay{display:flex!important}
+  body > *:not(#mobile-overlay){display:none!important}
+}
+</style>
+
 <div id="globalLoader"><div class="loader-spinner"></div><div style="font-size:14px;color:var(--text-muted)">Завантаження...</div></div>
 <div id="toast"></div>
 
