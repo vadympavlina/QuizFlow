@@ -431,8 +431,8 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
     </div>
 
     <div style="display:flex;gap:10px;margin-top:20px">
-      <button class="btn bs" onclick="resetTeacherAI()" style="flex:1;font-size:13px">↩ Скинути до глобальних</button>
-      <button class="btn bp" onclick="saveTeacherAI()" style="flex:1">Зберегти</button>
+      <button onclick="resetTeacherAI()" style="flex:1;padding:11px 16px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;color:var(--muted);transition:all .15s" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">↩ До глобальних</button>
+      <button onclick="saveTeacherAI()" style="flex:1;padding:11px 16px;border-radius:12px;border:none;background:var(--grad);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(45,91,227,.28);transition:all .15s" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">Зберегти</button>
     </div>
   </div>
 </div>
