@@ -438,6 +438,17 @@
 
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+// Глобальна tp — читає uid із сесії
+function tp(path){
+  try{
+    const _s=sessionStorage.getItem("qf_user");
+    const _u=_s?JSON.parse(_s):null;
+    const uid=_u?.id||"";
+    return uid ? `teachers/${uid}/${path}` : path;
+  }catch{ return path; }
+}
+
 import { getDatabase, ref, get, set, push, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // js/firebase.js — Firebase Realtime Database
