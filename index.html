@@ -2712,15 +2712,7 @@ window.G = {
         G._showAiPanel(text); return;
       }
 
-      const prompt=`Ти репетитор. Студент ${esc(a.name)} ${esc(a.surname)} отримав оцінку ${a.grade12}/12 за тест "${t?.title||""}".
-
-Помилкові відповіді:
-${wrongList.slice(0,8).join("
-
-")}
-
-Напиши короткий персональний розбір (5-8 речень): що студент не зрозумів, на що звернути увагу, як виправити знання. Звертайся до студента напряму.`;
-
+      const prompt = `Ти репетитор. Студент ${esc(a.name)} ${esc(a.surname)} отримав оцінку ${a.grade12}/12 за тест "${t?.title || ""}". Помилкові відповіді: ${wrongList.slice(0, 8).join("")}. Напиши короткий персональний розбір (5–8 речень): що студент не зрозумів, на що звернути увагу, як виправити знання. Звертайся до студента напряму.`;
       const res=await callGroq([{role:"user",content:prompt}],600,0.5);
       await dbUpd(`attempts/${attId}`,{personalAnalysis:res});
       a.personalAnalysis=res;
