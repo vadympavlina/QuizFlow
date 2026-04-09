@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/><circle cx='24' cy='22' r='5' fill='none' stroke='white' stroke-width='2.2'/><line x1='27.5' y1='25.5' x2='29.5' y2='27.5' stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>">
 <title>QuizFlow — Панель викладача</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js">
+
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f0f3fa;--sidebar:#0a0f2e;--primary:#2d5be3;--primary-light:#4d78ff;--glow:rgba(45,91,227,0.15);--teal:#14d4b4;--amber:#f59e0b;--rose:#f43f5e;--card:#fff;--border:rgba(45,91,227,0.08);--text:#0d1340;--muted:#6b7280;--light:#a0a8c0;--grad:linear-gradient(135deg,#2d5be3,#1a3ab8)}
@@ -3122,804 +3123,10 @@ window.G = {
 <tbody>${rowsHTML}</tbody></table>
 <div class="footer">QuizFlow — система тестування</div>
 
-<!-- ONBOARDING MODAL -->
-<div id="m-onboarding" style="position:fixed;inset:0;background:rgba(10,14,46,.65);backdrop-filter:blur(8px);z-index:500;display:none;align-items:center;justify-content:center;padding:16px">
-  <div style="background:#fff;border-radius:24px;width:100%;max-width:600px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.2);position:relative">
-    <!-- Прогрес лінія -->
-    <div style="height:4px;background:var(--border)"><div id="ob-progress" style="height:100%;background:var(--grad);transition:width .4s ease;border-radius:4px"></div></div>
-    <!-- Контент -->
-    <div id="ob-content" style="padding:40px 44px 32px"></div>
-    <!-- Навігація -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 44px 32px">
-      <button id="ob-prev" onclick="obNav(-1)" style="display:none;padding:10px 20px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s"
-        onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">← Назад</button>
-      <div style="display:flex;gap:6px;align-items:center" id="ob-dots"></div>
-      <button id="ob-next" onclick="obNav(1)" style="padding:11px 24px;border-radius:12px;border:none;background:var(--grad);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(45,91,227,.3);transition:all .2s"
-        onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">Далі →</button>
-    </div>
-  </div>
-</div>
-
-</body></html>`;
-      const blob=new Blob([html],{type:"text/html;charset=utf-8"});
-      const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=fname+".html";a.click();
-      toast("HTML звіт завантажено");
-    }
-  },
-
-
-  initAnalytics(){
-    fillSelects();
-    const testId=$("an-test")?.value;
-    if(testId) G.renderAnalytics();
-  },
-
-  renderAnalytics(){
-    const testId=$("an-test")?.value;
-    const groupF=$("an-group")?.value;
-    const body=$("analytics-body");
-    if(!body)return;
-
-    if(!testId){
-      body.innerHTML=`<div class="empty" style="padding:60px 20px"><div class="ei">📊</div><div class="et">Оберіть тест для перегляду статистики</div></div>`;
-      return;
-    }
-
-    const test=tests.find(t=>t.id===testId);
-    if(!test){body.innerHTML=`<div class="empty"><div class="ei">❌</div><div class="et">Тест не знайдено</div></div>`;return;}
-
-    const qs=test.questions||[];
-
-    // Фільтруємо спроби по тесту і групі
-    let ta=attempts.filter(a=>a.testId===testId && a.status==="completed");
-    if(groupF){
-      ta=ta.filter(a=>{
-        const l=links.find(x=>x.id===a.linkId);
-        return (l?.group||"")===groupF;
-      });
-    }
-
-    if(!ta.length){
-      body.innerHTML=`<div class="empty" style="padding:48px 20px"><div class="ei">📭</div><div class="et">Немає завершених спроб${groupF?` для групи «${esc(groupF)}»`:""}</div></div>`;
-      return;
-    }
-
-    // ── Метрики ──────────────────────────────────────────────────────────
-    const grades=ta.filter(a=>a.grade12).map(a=>a.grade12);
-    const avgGrade=grades.length?(grades.reduce((s,g)=>s+g,0)/grades.length).toFixed(1):"—";
-    const avgPct=ta.filter(a=>a.score).length?Math.round(ta.filter(a=>a.score).reduce((s,a)=>s+(a.score?.percent||0),0)/ta.filter(a=>a.score).length):0;
-    const passRate=Math.round(ta.filter(a=>(a.grade12||0)>=4).length/ta.length*100);
-
-    // ── Розподіл оцінок ──────────────────────────────────────────────────
-    const dist=Array.from({length:12},(_,i)=>({g:i+1,cnt:grades.filter(g=>g===i+1).length}));
-    const maxCnt=Math.max(...dist.map(d=>d.cnt),1);
-    const gc=g=>g>=10?"#0d9e85":g>=7?"#2d5be3":g>=4?"#f59e0b":"#f43f5e";
-    const barH=d=>d.cnt?Math.max(8,Math.round(d.cnt/maxCnt*100)):4;
-
-    const CHART_H = 90; // висота зони стовпців у px
-    const distBars = dist.map(d => {
-      const h = d.cnt ? Math.max(10, Math.round(d.cnt / maxCnt * CHART_H)) : 3;
-      const col = gc(d.g);
-      const opacity = d.cnt ? 1 : 0.12;
-      return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0">
-        <!-- Лічильник зверху -->
-        <div style="height:20px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:4px">
-          ${d.cnt
-            ? `<span style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:${col};line-height:1">${d.cnt}</span>`
-            : `<span style="font-size:10px;color:rgba(107,114,128,.3)">·</span>`}
-        </div>
-        <!-- Стовпець -->
-        <div style="width:100%;max-width:28px;border-radius:5px 5px 0 0;background:${col};height:${h}px;opacity:${opacity};transition:height .4s ease"></div>
-        <!-- Підпис оцінки -->
-        <div style="margin-top:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--muted);line-height:1">${d.g}</div>
-      </div>`;
-    }).join("");
-
-    // ── Найважчі питання ──────────────────────────────────────────────────
-    const qStats=qs.map((q,i)=>{
-      let wrong=0,total=0;
-      ta.forEach(a=>{
-        const ans=(a.answers||[]).find(x=>x.questionId===q.id);
-        if(ans){total++;if(!ans.correct&&!ans.partial)wrong++;}
-      });
-      return{q,i,wrong,total,errRate:total?Math.round(wrong/total*100):0};
-    }).filter(x=>x.total>0).sort((a,b)=>b.errRate-a.errRate);
-
-    const hardRows=qStats.slice(0,8).map((x,rank)=>`
-      <tr>
-        <td style="font-size:13px;padding:10px 12px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="width:22px;height:22px;border-radius:6px;background:${rank<3?"rgba(244,63,94,.1)":"rgba(45,91,227,.06)"};color:${rank<3?"var(--rose)":"var(--primary)"};font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${x.i+1}</span>
-            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px">${esc(x.q.text)}</span>
-          </div>
-        </td>
-        <td style="font-size:13px;color:var(--muted);padding:10px 12px">${x.wrong}/${x.total}</td>
-        <td style="padding:10px 12px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="flex:1;height:6px;background:rgba(45,91,227,.08);border-radius:3px;overflow:hidden;min-width:60px">
-              <div style="height:100%;width:${x.errRate}%;background:${x.errRate>60?"var(--rose)":x.errRate>30?"var(--amber)":"var(--teal)"};border-radius:3px"></div>
-            </div>
-            <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:${x.errRate>60?"var(--rose)":x.errRate>30?"var(--amber)":"var(--muted)"};width:34px;text-align:right">${x.errRate}%</span>
-          </div>
-        </td>
-      </tr>`).join("");
-
-    // ── Список студентів з оцінками ────────────────────────────────────
-    const sortedStudents=[...ta].sort((a,b)=>(b.grade12||0)-(a.grade12||0));
-// студенти рендеряться inline в body.innerHTML
-
-    body.innerHTML=`
-      <!-- Метрики -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
-        <div style="background:linear-gradient(135deg,#2d5be3,#1a3ab8);border-radius:14px;padding:16px;color:white;text-align:center">
-          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:34px">${avgGrade}</div>
-          <div style="font-size:12px;opacity:.75;margin-top:3px">Середня оцінка</div>
-        </div>
-        <div class="card" style="text-align:center;padding:16px">
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:34px;color:var(--primary)">${avgPct}%</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:3px">Середній % правильних</div>
-        </div>
-        <div class="card" style="text-align:center;padding:16px">
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:34px;color:${passRate>=50?"#0d9e85":"var(--rose)"}">${passRate}%</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:3px">Склали тест (≥4)</div>
-        </div>
-        <div class="card" style="text-align:center;padding:16px">
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:34px;color:var(--primary)">${ta.length}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:3px">Студентів</div>
-        </div>
-      </div>
-
-      <!-- Графік оцінок -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
-        <div class="card">
-          <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;margin-bottom:16px">📊 Розподіл оцінок</div>
-          <!-- Зона графіка: висота = лічильник(20) + бар(90) + підпис(18) + відступи -->
-          <div style="display:flex;align-items:flex-end;gap:3px;padding:0 2px;overflow:hidden">
-            ${distBars}
-          </div>
-          <!-- Легенда -->
-          <div style="display:flex;justify-content:center;gap:14px;margin-top:12px;flex-wrap:wrap">
-            ${[["#f43f5e","1–3"],["#f59e0b","4–6"],["#2d5be3","7–9"],["#0d9e85","10–12"]].map(([c,l])=>
-              `<div style="display:flex;align-items:center;gap:5px">
-                <div style="width:10px;height:10px;border-radius:3px;background:${c}"></div>
-                <span style="font-size:12px;color:var(--muted);font-family:'DM Sans',sans-serif">${l}</span>
-              </div>`
-            ).join("")}
-          </div>
-        </div>
-
-        <div class="card">
-          <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;margin-bottom:14px">🎯 Найважчі питання</div>
-          <table class="tbl" style="margin:-4px">
-            <thead><tr><th style="padding:4px 12px">Питання</th><th>Помилок</th><th>%</th></tr></thead>
-            <tbody>${hardRows||`<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:16px">Недостатньо даних</td></tr>`}</tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Топ студентів -->
-      ${sortedStudents.length >= 3 ? `
-      <div class="card" style="margin-bottom:16px">
-        <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;margin-bottom:16px">🏆 Топ студентів</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
-          ${sortedStudents.slice(0,3).map((a,i)=>{
-            const medals=["🥇","🥈","🥉"];
-            const bgs=["linear-gradient(135deg,#f59e0b,#d97706)","linear-gradient(135deg,#94a3b8,#64748b)","linear-gradient(135deg,#cd7c2f,#b45309)"];
-            const g=a.grade12||0;
-            return `<div style="background:${bgs[i]};border-radius:16px;padding:18px;color:white;text-align:center;position:relative">
-              <div style="font-size:28px;margin-bottom:8px">${medals[i]}</div>
-              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:4px">${esc(a.surname)} ${esc(a.name)}</div>
-              <div style="font-size:28px;font-weight:800;font-family:'DM Sans',sans-serif">${g}</div>
-              <div style="font-size:11px;opacity:.8">/12 балів</div>
-              <div style="font-size:11px;opacity:.75;margin-top:4px">${a.score?.percent??0}% правильних</div>
-            </div>`;
-          }).join("")}
-        </div>
-      </div>` : ""}
-
-      <!-- Студенти -->
-      <div class="card">
-        <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;margin-bottom:14px">👥 Результати студентів${groupF?` — ${esc(groupF)}`:""}</div>
-        <table class="tbl">
-          <thead><tr><th>#</th><th>Студент</th><th>Оцінка</th><th>Правильних</th><th>Результат</th><th></th></tr></thead>
-          <tbody>${sortedStudents.map((a,i)=>`
-      <tr>
-        <td style="padding:10px 12px;color:var(--muted);font-size:13px">${i+1}</td>
-        <td style="padding:10px 12px"><strong>${esc(a.name)} ${esc(a.surname)}</strong></td>
-        <td style="padding:10px 12px">${a.grade12?`<span class="bdg ${grBdg(a.grade12)}">${a.grade12}/12</span>`:"—"}</td>
-        <td style="font-size:13px;color:var(--muted);padding:10px 12px">${a.score?.correct??"—"}/${a.score?.total??"—"}</td>
-        <td style="font-size:13px;color:var(--muted);padding:10px 12px">${a.score?.percent??"—"}%</td>
-        <td style="padding:10px 12px"><span style="font-size:11px;cursor:pointer;color:var(--primary)" onclick="G.viewAtt('${a.id}')">деталі →</span></td>
-      </tr>`).join("")}</tbody>
-        </table>
-      </div>`;
-  },
-
-  showStats(testId){
-    const test = tests.find(t=>t.id===testId);
-    if(!test) return;
-    const ta = attempts.filter(a=>a.testId===testId && a.status==="completed");
-    // Для статистики використовуємо питання поточного тесту
-    // (для агрегованих даних snapshot не потрібен)
-    const qs = test.questions || [];
-
-    // ── Середня оцінка ────────────────────────────────────────────────────
-    const grades = ta.filter(a=>a.grade12).map(a=>a.grade12);
-    const avgGrade = grades.length ? (grades.reduce((s,g)=>s+g,0)/grades.length).toFixed(1) : "—";
-    const avgPct   = ta.filter(a=>a.score).length
-      ? Math.round(ta.reduce((s,a)=>s+(a.score?.percent||0),0)/ta.filter(a=>a.score).length) + "%"
-      : "—";
-
-    // ── Розподіл оцінок (1-12) ────────────────────────────────────────────
-    const gradeDist = Array.from({length:12},(_,i)=>({g:i+1, cnt:grades.filter(g=>g===i+1).length}));
-    const maxCnt = Math.max(...gradeDist.map(d=>d.cnt), 1);
-    const gradeBarColor = g => g>=10?"#0d9e85":g>=7?"#2d5be3":g>=4?"#f59e0b":"#f43f5e";
-
-    const SH = 80; // chart height
-    const distHTML = gradeDist.map(d=>{
-      const h = d.cnt ? Math.max(10, Math.round(d.cnt/maxCnt*SH)) : 3;
-      const col = gradeBarColor(d.g);
-      return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0">
-        <div style="height:18px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:4px">
-          ${d.cnt
-            ? `<span style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;color:${col};line-height:1">${d.cnt}</span>`
-            : `<span style="font-size:10px;color:rgba(107,114,128,.25)">·</span>`}
-        </div>
-        <div style="width:100%;max-width:26px;border-radius:4px 4px 0 0;background:${col};height:${h}px;opacity:${d.cnt?1:0.12};transition:height .3s"></div>
-        <div style="margin-top:5px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;color:var(--muted);line-height:1">${d.g}</div>
-      </div>`;
-    }).join("");
-
-    // ── Найважчі питання ──────────────────────────────────────────────────
-    const qStats = qs.map((q,i)=>{
-      let wrong=0, total=0;
-      ta.forEach(a=>{
-        const ans=(a.answers||[]).find(x=>x.questionId===q.id);
-        if(ans){ total++; if(!ans.correct && !ans.partial) wrong++; }
-      });
-      const errRate = total ? Math.round(wrong/total*100) : 0;
-      return {q, i, wrong, total, errRate};
-    }).filter(x=>x.total>0).sort((a,b)=>b.errRate-a.errRate);
-
-    const hardHTML = qStats.slice(0,5).map((x,rank)=>`
-      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:${rank===0?"rgba(244,63,94,.04)":"rgba(45,91,227,.02)"};border:1.5px solid ${rank===0?"rgba(244,63,94,.15)":"var(--border)"};border-radius:12px;margin-bottom:8px">
-        <div style="width:28px;height:28px;border-radius:8px;background:${rank===0?"var(--rose)":"rgba(45,91,227,.08)"};color:${rank===0?"white":"var(--primary)"};display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;flex-shrink:0">${x.i+1}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.q.text)}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">${x.wrong} з ${x.total} відповіли неправильно</div>
-        </div>
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:${x.errRate>60?"var(--rose)":x.errRate>30?"var(--amber)":"var(--muted)"};flex-shrink:0">${x.errRate}%</div>
-        <div style="width:50px">
-          <div style="height:5px;background:rgba(244,63,94,.12);border-radius:3px;overflow:hidden">
-            <div style="height:100%;width:${x.errRate}%;background:${x.errRate>60?"var(--rose)":x.errRate>30?"var(--amber)":"var(--teal)"};border-radius:3px"></div>
-          </div>
-        </div>
-      </div>`).join("") || `<div style="color:var(--muted);font-size:14px;text-align:center;padding:16px">Недостатньо даних</div>`;
-
-    $("stats-content").innerHTML = `
-      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:20px;margin-bottom:4px">${esc(test.title)}</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:22px">${ta.length} завершених спроб · ${qs.length} питань</div>
-
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px">
-        <div style="background:var(--grad,linear-gradient(135deg,#2d5be3,#1a3ab8));border-radius:14px;padding:18px;color:white;text-align:center">
-          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:36px;letter-spacing:-1px">${avgGrade}</div>
-          <div style="font-size:12px;opacity:.75;margin-top:4px">Середня оцінка</div>
-        </div>
-        <div style="background:rgba(45,91,227,.04);border:1.5px solid var(--border);border-radius:14px;padding:18px;text-align:center">
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:36px;color:var(--primary)">${avgPct}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">Середній результат</div>
-        </div>
-        <div style="background:rgba(45,91,227,.04);border:1.5px solid var(--border);border-radius:14px;padding:18px;text-align:center">
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:36px;color:var(--primary)">${ta.length}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">Завершили тест</div>
-        </div>
-      </div>
-
-      <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;margin-bottom:14px">Розподіл оцінок</div>
-      ${grades.length ? `<div style="background:rgba(45,91,227,.03);border:1.5px solid var(--border);border-radius:14px;padding:16px 20px;margin-bottom:22px">
-        <div style="display:flex;align-items:flex-end;gap:4px;height:90px">${distHTML}</div>
-        <div style="display:flex;justify-content:space-between;margin-top:8px">
-          <span style="font-size:11px;color:var(--muted)">🔴 Незадовільно (1–3)</span>
-          <span style="font-size:11px;color:var(--muted)">🟡 Задовільно (4–6)</span>
-          <span style="font-size:11px;color:var(--muted)">🔵 Добре (7–9)</span>
-          <span style="font-size:11px;color:var(--muted)">🟢 Відмінно (10–12)</span>
-        </div>
-      </div>` : `<div style="color:var(--muted);font-size:14px;margin-bottom:22px;padding:16px;background:rgba(45,91,227,.03);border-radius:12px;text-align:center">Немає завершених спроб</div>`}
-
-      <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;margin-bottom:14px">Найважчі питання</div>
-      ${hardHTML}
-    `;
-    openM("m-stats");
-  },
-  confDelAttempt(id,name){
-    _pid=id;
-    document.getElementById("del-att-name").textContent=name;
-    openM("m-del-attempt");
-  },
-  async doDelAttempt(){
-    const id=_pid;_pid=null;closeM("m-del-attempt");
-    try{
-      await dbDel(`attempts/${id}`);
-      attempts=attempts.filter(a=>a.id!==id);
-      renderAttempts();renderDashAtt();renderStats();updateBadges();
-      toast("Спробу видалено");
-    }catch(e){toast("Помилка: "+e.message,"err");}
-  },
-  viewAtt(id){
-    const a=attempts.find(x=>x.id===id),t=tests.find(x=>x.id===a?.testId);
-    if(!a){
-      toast("Спробу видалено — деталі недоступні","err");
-      return;
-    }
-    if(!t){
-      toast("Тест видалено — деталі недоступні","err");
-      return;
-    }
-    // Використовуємо snapshot питань зі спроби (незмінна версія на момент проходження)
-    // або поточні питання тесту якщо snapshot відсутній (старі спроби)
-    let qs=a.questionsSnapshot||t.questions||[];
-    if(!Array.isArray(qs)) qs=Object.values(qs); // RTDB конвертація
-    const am={};
-    (a.answers||[]).forEach(x=>{am[x.questionId]=x;});
-    const qh=qs.map((q,i)=>{
-      const ans=am[q.id]||{},cls=ans.correct?"ok":ans.partial?"pt":"no",ic=ans.correct?"✅":ans.partial?"⚠️":"❌";
-      let vStr="";
-      if(q.type==="single"||q.type==="multi"){const idx=Array.isArray(ans.value)?ans.value:[ans.value].filter(v=>v!==undefined);vStr=idx.map(i=>(q.options||[])[i]).filter(Boolean).join(", ")||"—";}
-      else vStr=ans.value||"—";
-      return`<div class="qr ${cls}"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:12px;color:var(--muted)">Питання ${i+1}</span><span>${ic}</span></div><div style="font-weight:500;margin-bottom:5px">${stripHtml(q.text)}</div><div style="font-size:13px;color:var(--muted)">Відповідь: <strong style="color:var(--text)">${esc(vStr)}</strong></div></div>`;
-    }).join("");
-    const suspicious=a.tabSwitches||a.copyAttempts||a.screenshots||(a.suspiciousEvents?.length);
-    const suspHtml=suspicious?`<div style="margin-top:12px;padding:12px 16px;background:linear-gradient(135deg,#be123c,#9f1239);border:1.5px solid rgba(244,63,94,.4);border-radius:12px;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <span style="font-size:16px">⚠️</span>
-      <span style="color:white;font-weight:700;font-size:13px">Підозріла активність</span>
-      ${a.tabSwitches?`<span style="background:rgba(255,255,255,.2);color:white;padding:3px 10px;border-radius:20px;font-weight:600">Вкладки: ${a.tabSwitches}</span>`:""}
-      ${a.copyAttempts?`<span style="background:rgba(255,255,255,.2);color:white;padding:3px 10px;border-radius:20px;font-weight:600">Копіювання: ${a.copyAttempts}</span>`:""}
-      ${a.screenshots?`<span style="background:rgba(255,255,255,.2);color:white;padding:3px 10px;border-radius:20px;font-weight:600">📸 Скріншоти: ${a.screenshots}</span>`:""}
-    </div>`:"";
-    $("att-det").innerHTML=`
-  <!-- Шапка -->
-  <div style="background:linear-gradient(140deg,#2d5be3,#1530a0);border-radius:0;padding:24px 28px;color:white;position:relative;overflow:hidden;flex-shrink:0">
-    <div style="position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.06);top:-50px;right:-30px;pointer-events:none"></div>
-    <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;opacity:.55;margin-bottom:6px">Результат тесту</div>
-    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;margin-bottom:4px">${esc(a.name)} ${esc(a.surname)}</div>
-    <div style="font-size:13px;opacity:.7;margin-bottom:16px">${esc(t.title)} · ${timeAgo(a.createdAt)}</div>
-    <div style="display:flex;gap:28px;align-items:flex-end">
-      <div>
-        <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:52px;line-height:1;letter-spacing:-2px">${a.status==="pending_review"?"⏳":(a.grade12??"—")}<span style="font-size:20px;opacity:.5;font-weight:500">${a.status==="pending_review"?"":"/12"}</span></div>
-        <div style="font-size:11px;opacity:.55;text-transform:uppercase;letter-spacing:.8px;margin-top:2px">${a.status==="pending_review"?"На перевірці":"Оцінка"}</div>
-      </div>
-      <div style="display:flex;gap:20px;padding-bottom:6px">
-        <div>
-          <div style="font-size:22px;font-weight:700">✅ ${a.score?.correct??"—"}</div>
-          <div style="font-size:11px;opacity:.55">Правильних</div>
-        </div>
-        <div>
-          <div style="font-size:22px;font-weight:700">❌ ${a.score?.incorrect??"—"}</div>
-          <div style="font-size:11px;opacity:.55">Неправильних</div>
-        </div>
-        <div>
-          <div style="font-size:22px;font-weight:700">📊 ${a.score?.percent??"—"}%</div>
-          <div style="font-size:11px;opacity:.55">Відсоток</div>
-        </div>
-      </div>
-    </div>
-    ${suspHtml}
-  </div>
-
-  <!-- Контент -->
-  <div style="padding:20px 24px">
-
-    ${a.status==="pending_review"?`
-    <!-- Банер очікує оцінювання -->
-    <div style="background:rgba(245,158,11,.06);border:1.5px solid rgba(245,158,11,.25);border-radius:14px;padding:18px 20px;margin-bottom:18px;display:flex;align-items:flex-start;gap:14px">
-      <div style="font-size:28px;flex-shrink:0">⏳</div>
-      <div style="flex:1">
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:#b45309;margin-bottom:4px">Тест на перевірці</div>
-        <div style="font-size:13px;color:#92400e;line-height:1.55">Розгорнуті відповіді ще не оцінені. Оберіть оцінку та збережіть.</div>
-        <div style="margin-top:16px">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Оберіть оцінку / 12</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px" id="grade-btns-${a.id}">
-            ${[1,2,3,4,5,6,7,8,9,10,11,12].map(n=>{
-              const sel=a.grade12===n;
-              const bg=sel?"var(--primary)":"white";
-              const col=sel?"white":"var(--text)";
-              const brd=sel?"var(--primary)":"var(--border)";
-              return "<button onclick=\"G.gradeAttempt('" + a.id + "'," + n + ")\""
-                +" style=\"width:36px;height:36px;border-radius:10px;border:1.5px solid "+brd
-                +";background:"+bg+";color:"+col
-                +";font-size:14px;font-weight:700;cursor:pointer;transition:all .15s\">" + n + "</button>";
-            }).join("")}
-          </div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <div style="font-size:13px;color:var(--muted)">Обрано: <strong id="grade-selected-${a.id}" style="color:var(--primary);font-size:16px">${a.grade12||"—"}</strong></div>
-            <button onclick="G.confirmGrade('${a.id}')" style="padding:10px 22px;border-radius:12px;border:none;background:linear-gradient(135deg,#2d5be3,#1a3ab8);color:white;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(45,91,227,.3)"
-              onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 20px rgba(45,91,227,.4)'"
-              onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(45,91,227,.3)'">
-              ✓ Зберегти оцінку
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    `:`
-    <!-- AI Коментар -->
-    ${a.aiComment?`<div style="background:rgba(45,91,227,.04);border:1.5px solid rgba(45,91,227,.1);border-radius:14px;padding:16px 18px;margin-bottom:16px">
-      <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--primary);font-weight:700;margin-bottom:8px">✦ Коментар</div>
-      <div style="font-size:14px;line-height:1.65;font-style:italic;color:var(--text)">${esc(a.aiComment)}</div>
-    </div>`:""}
-
-    <!-- Кнопка персонального розбору -->
-    <button class="btn bp btn-sm" style="margin-bottom:18px;font-size:13px;gap:6px" onclick="G.personalAnalysis('${a.id}')">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-      Персональний розбір помилок
-    </button>
-    `}
-
-    <!-- Відповіді -->
-    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Відповіді</div>
-    ${qh||'<div style="color:var(--muted);font-size:14px;text-align:center;padding:20px">Відповіді недоступні</div>'}
-
-  </div>
 `;
-    // Очищаємо side panel при відкритті нової спроби
-    G.closeAiPanel();
-    const sp=document.getElementById("ai-side-content");
-    if(sp) sp.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">⚡</div><div style="font-size:14px">Натисніть кнопку розбору</div></div>';
-    openM("m-attempt");
-  },
-
-  _pendingGrade: null,
-
-  gradeAttempt(attId, grade){
-    this._pendingGrade = { attId, grade };
-    // Підсвічуємо кнопки
-    const container = document.getElementById("grade-btns-" + attId);
-    if(container) container.querySelectorAll("button").forEach(btn=>{
-      const n = parseInt(btn.textContent);
-      btn.style.background = n===grade ? "var(--primary)" : "white";
-      btn.style.color = n===grade ? "white" : "var(--text)";
-      btn.style.borderColor = n===grade ? "var(--primary)" : "var(--border)";
-      btn.style.transform = n===grade ? "scale(1.1)" : "";
-    });
-    // Оновлюємо текст "Обрано"
-    const sel = document.getElementById("grade-selected-" + attId);
-    if(sel){ sel.textContent = grade; sel.style.color = "var(--primary)"; }
-  },
-
-  async confirmGrade(attId){
-    if(!this._pendingGrade || this._pendingGrade.attId !== attId){
-      toast("Оберіть оцінку", "err"); return;
-    }
-    const { grade } = this._pendingGrade;
-    try{
-      await dbUpd(`attempts/${attId}`, {
-        grade12: grade,
-        status: "completed",
-        reviewedAt: ts()
-      });
-      // Оновлюємо локально
-      const idx = attempts.findIndex(x=>x.id===attId);
-      if(idx>=0) attempts[idx] = {...attempts[idx], grade12:grade, status:"completed"};
-      this._pendingGrade = null;
-      toast(`Оцінку ${grade}/12 виставлено ✅`);
-      closeM("m-attempt");
-      renderAttempts();
-      renderDashAtt();
-      updateBadges();
-    }catch(e){ toast("Помилка: "+e.message, "err"); }
-  },
-
-  openAiPanel(){
-    const panel=document.getElementById("ai-side-panel");
-    const overlay=document.getElementById("ai-side-overlay");
-    if(panel){ panel.style.right="0"; }
-    if(overlay){ overlay.style.display="block"; }
-  },
-
-  closeAiPanel(){
-    const panel=document.getElementById("ai-side-panel");
-    const overlay=document.getElementById("ai-side-overlay");
-    if(panel){ panel.style.right="-480px"; }
-    if(overlay){ overlay.style.display="none"; }
-  },
-
-  async personalAnalysis(attId){
-    const a=attempts.find(x=>x.id===attId);
-    const t=tests.find(x=>x.id===a?.testId);
-    if(!a||!t) return;
-    const btn=document.querySelector(`button[onclick="G.personalAnalysis('${attId}')"]`);
-
-    // Якщо аналіз вже є — показуємо збережений
-    if(a.personalAnalysis){
-      const contentEl=document.getElementById("ai-side-content");
-      if(contentEl){
-        const paragraphs=a.personalAnalysis.split("\n").filter(l=>l.trim());
-        contentEl.innerHTML=`<div style="font-size:15px;line-height:1.75;color:var(--text)">
-          ${paragraphs.map((p,i)=>`<p style="margin:0 0 ${i<paragraphs.length-1?"14":"0"}px 0">${esc(p)}</p>`).join("")}
-        </div>`;
-      }
-      // Зберігаємо в Firebase
-      try{
-        await dbUpd(`attempts/${attId}`,{personalAnalysis:analysis});
-        // Оновлюємо локальний масив
-        const idx=attempts.findIndex(x=>x.id===attId);
-        if(idx>=0) attempts[idx]={...attempts[idx],personalAnalysis:analysis};
-      }catch(e){ console.warn("Save analysis failed:",e.message); }
-      G.openAiPanel();
-      return;
-    }
-
-    if(btn){ btn.disabled=true; btn.textContent="⏳ Аналізую..."; }
-
-    const qs=a.questionsSnapshot||t.questions||[];
-    const wrongs=qs.filter((q,i)=>{
-      const ans=(a.answers||[]).find(x=>x.questionId===q.id);
-      return ans && !ans.correct && !ans.partial && !ans.pending;
-    });
-
-    if(!wrongs.length){
-      toast("Всі відповіді правильні — нема що розбирати! 🎉");
-      if(btn){btn.disabled=false;btn.textContent="✦ Персональний розбір помилок";}
-      return;
-    }
-
-    const details=wrongs.map((q,i)=>{
-      const ans=(a.answers||[]).find(x=>x.questionId===q.id);
-      let studentAns="не відповів";
-      if(q.type==="single"||q.type==="multi"){
-        const idx=Array.isArray(ans?.value)?ans.value:[ans?.value].filter(v=>v!=null);
-        studentAns=idx.map(i=>(q.options||[])[i]).filter(Boolean).join(", ")||"—";
-      } else studentAns=ans?.value||"—";
-      const correct=q.type==="text"?q.correct:(Array.isArray(q.correct)?q.correct.map(i=>(q.options||[])[i]).join(", "):q.correct);
-      return `${i+1}. Питання: "${q.text}"
-   Студент відповів: "${studentAns}"
-   Правильна відповідь: "${correct}"`;
-    }).join("\n\n");
-
-    try{
-      const GROQ_URL="https://api.groqcloud.com/openai/v1/chat/completions";
-      const GROQ_KEY="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";
-      // Визначаємо стать студента по імені (типові українські закінчення)
-      const studentName = a.name || "";
-      const femaleEndings = ["а","я","і","ія","іна","ина","ія","ла","ра","са","та"];
-      const isFemale = femaleEndings.some(e => studentName.toLowerCase().endsWith(e));
-      const gender = isFemale ? "female" : "male";
-
-      const prompt=`Ти — досвідчений і добрий викладач. Напиши короткий персональний коментар для студента ${esc(a.name)} ${esc(a.surname)} про його помилки в тесті.
-
-Тест: "${t.title}"
-
-Помилки студента:
-${details}
-
-ВАЖЛИВО:
-- Звертайся до студента на "ти" з правильним родом: ${gender === "female" ? "жіночий рід (помилилась, відповіла, обрала тощо)" : "чоловічий рід (помилився, відповів, обрав тощо)"}
-- Пиши ОДИН суцільний текст — не списки, не нумерація, не окремі блоки
-- Коротко поясни кожну помилку: що правильно і чому — простими словами
-- Будь доброзичливим і підбадьорюючим
-- В кінці — одне речення загальної поради
-- Без зірочок, без markdown, без дефісів на початку рядків
-- Тільки українська мова`
-
-      const res=await fetch("https://api.groq.com/openai/v1/chat/completions",{
-        method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${GROQ_KEY}`},
-        body:JSON.stringify({model:"llama-3.3-70b-versatile",messages:[
-          {role:"system",content:"Відповідай ВИКЛЮЧНО українською мовою як доброзичливий викладач-репетитор."},
-          {role:"user",content:prompt}
-        ],max_tokens:800,temperature:0.4})
-      });
-      const d=await res.json();
-      const analysis=d.choices?.[0]?.message?.content||"";
-
-      // Показуємо в side panel
-      const contentEl=document.getElementById("ai-side-content");
-      if(contentEl){
-        // Форматуємо текст — розбиваємо по реченнях
-        // Єдиний текст з параграфами
-        const paragraphs = analysis.split("\n").filter(l=>l.trim());
-        const formatted = `<div style="font-size:15px;line-height:1.75;color:var(--text)">
-          ${paragraphs.map((p,i) => `<p style="margin:0 0 ${i<paragraphs.length-1?"14":"0"}px 0">${esc(p)}</p>`).join("")}
-        </div>`;
-        contentEl.innerHTML = formatted;
-      }
-      // Зберігаємо в Firebase
-      try{
-        await dbUpd(`attempts/${attId}`,{personalAnalysis:analysis});
-        // Оновлюємо локальний масив
-        const idx=attempts.findIndex(x=>x.id===attId);
-        if(idx>=0) attempts[idx]={...attempts[idx],personalAnalysis:analysis};
-      }catch(e){ console.warn("Save analysis failed:",e.message); }
-      G.openAiPanel();
-    }catch(e){toast("Помилка AI: "+e.message,"err");}
-    if(btn){btn.disabled=false;btn.textContent="✦ Персональний розбір помилок";}
-  },
-
-  showStudents(lid){
-    const l=links.find(x=>x.id===lid),t=tests.find(x=>x.id===l?.testId),la=attempts.filter(a=>a.linkId===lid);
-    const base=location.origin+location.pathname.replace("index.html",""),url=`${base}test.html?link=${lid}&t=${_uid}`;
-    $("stud-det").innerHTML=`<div style="margin-bottom:18px"><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:19px;margin-bottom:3px">Студенти по посиланню</div><div style="font-size:13px;color:var(--muted)">${esc(t?.title||"—")} · ${l?.usedAttempts||0}/${l?.maxAttempts||0} спроб</div><div style="margin-top:8px;display:flex;align-items:center;gap:8px"><code style="font-size:12px;color:var(--primary);background:rgba(45,91,227,.06);padding:4px 10px;border-radius:7px">${url.replace(location.origin,"")}</code><button class="btn bs btn-sm" onclick="G.copyUrl('${url}')">Копіювати</button></div></div>${la.length?`<table class="tbl" style="border:1.5px solid var(--border);border-radius:13px;overflow:hidden"><thead><tr><th>Студент</th><th>Оцінка</th><th>Правильних</th><th>Статус</th><th>Дата</th><th></th></tr></thead><tbody>${la.map(a=>`<tr><td><strong>${esc(a.name)} ${esc(a.surname)}</strong></td><td>${a.grade12?`<span class="bdg ${grBdg(a.grade12)}">${a.grade12}/12</span>`:"—"}</td><td style="font-size:13px">${a.score?.correct??"—"}/${a.score?.total??"—"}</td><td><span class="bdg ${a.status==="completed"?"bg-g":a.status==="pending_review"?"bg-a":""}">
-  ${a.status==="completed"?"Завершено":a.status==="pending_review"?"⏳ Перевіряється":"В процесі"}
-</span></td><td style="font-size:12px;color:var(--muted)">${timeAgo(a.createdAt)}</td><td><div class="ra"><div class="ib" onclick="G.viewAtt('${a.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div></div></td></tr>`).join("")}</tbody></table>`:
-    `<div class="empty"><div class="ei">📭</div><div class="et">Ще немає спроб</div></div>`}`;
-    openM("m-students");
-  }
-};
-
-// NAV
-window.showSec = function(name){
-  ["dashboard","tests","attempts","links","analytics","notifications","gradebook","students","suspicious","online","archive"].forEach(s=>{
-    document.getElementById(`sec-${s}`)?.classList.toggle("on",s===name);
-    document.getElementById(`ni-${s}`)?.classList.toggle("active",s===name);
-  });
-  if(name==="tests")          renderTests($("srch")?.value||"");
-  if(name==="attempts")       renderAttempts();
-  if(name==="links")          renderLinks();
-  if(name==="analytics")      G.initAnalytics();
-  if(name==="notifications")  G.renderNotifications();
-  if(name==="gradebook")      G.initGradebook();
-  if(name==="students")       G.initStudents();
-  if(name==="archive")        G.renderArchive();
-  if(name==="suspicious")     G.renderSuspicious();
-  if(name==="online")         { G.renderOnline(); G._onlineInterval=setInterval(G.renderOnline.bind(G),15000); }
-  else if(G._onlineInterval)  { clearInterval(G._onlineInterval); G._onlineInterval=null; }
-};
-
-// MODAL HELPERS
-function openM(id){document.getElementById(id)?.classList.add("on");}
-function closeM(id){document.getElementById(id)?.classList.remove("on");}
-window.openM=openM;window.closeM=closeM;
-
-function buildChips(){
-  const c=$("nt-chips");
-  const all=[...folders.map(f=>({id:f.id,name:f.name}))];
-  if(!all.length){c.innerHTML=`<span style="font-size:13px;color:var(--muted)">Немає папок — <span style="color:var(--primary);cursor:pointer" onclick="closeM('m-test');openM('m-folder')">створити папку</span></span>`;return;}
-  c.innerHTML=all.map(f=>`<span class="chip${_fid===f.id?" sel":""}" data-fid="${f.id}" onclick="selChip(this,'${f.id}')"">📁 ${esc(f.name)}</span>`).join("")+
-    `<span class="chip${!_fid?" sel":""}" onclick="selChip(this,'')">— Без папки</span>`;
 }
-window.selChip=(el,fid)=>{
-  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("sel"));
-  el.classList.add("sel");_fid=fid||null;
-};
-
-// Override openM for test modal
-const _origOpenM=openM;
-window.openM=function(id){
-  if(id==="m-test"){
-    _fid=null;
-    ["nt-n","nt-d","nt-tg"].forEach(i=>{const e=$(i);if(e)e.value="";});
-    $("nt-tm").value="10";
-    buildChips();
-    _origOpenM(id);
-    setTimeout(()=>$("nt-n").focus(),100);
-  } else {
-    _origOpenM(id);
-  }
-};
-
-// MODAL CLOSE
-document.querySelectorAll(".mo").forEach(o=>o.addEventListener("click",e=>{if(e.target===o)o.classList.remove("on");}));
-// Закриваємо кастомні дропдауни при кліку поза
-document.addEventListener("click",(e)=>{
-  if(!e.target.closest(".cd-wrap")){
-    document.querySelectorAll(".cd-menu.open").forEach(m=>m.classList.remove("open"));
-    document.querySelectorAll(".cd-btn.active").forEach(b=>{
-      if(b.closest(".cd-wrap")?.querySelector(".cd-menu select")?.value==="" ||
-         !b.closest(".cd-wrap")?.querySelector("select")?.value){
-        b.classList.remove("active");
-      }
-    });
-  }
-});
-document.querySelectorAll(".mcl").forEach(b=>b.addEventListener("click",()=>b.closest(".mo")?.classList.remove("on")));
-
-// FILTERS
-["ft","fst","fg","fgrp"].forEach(id=>$(id)?.addEventListener("change",renderAttempts));
-
-// SEARCH
-$("srch")?.addEventListener("input",function(){
-  const sec=document.querySelector(".sec.on")?.id?.replace("sec-","");
-  if(sec==="tests") renderTests(this.value);
-  if(sec==="attempts") renderAttempts();
-});
-
-// INIT
-loadAll().then(() => {
-  // Відновлюємо активну вкладку якщо прийшли з конструктора
-  const nav = sessionStorage.getItem("qf_nav");
-  if (nav) {
-    sessionStorage.removeItem("qf_nav");
-    showSec(nav);
-  }
-});
-</script>
-
-<!-- ONBOARDING MODAL -->
-<div id="m-onboarding" style="position:fixed;inset:0;background:rgba(10,14,46,.65);backdrop-filter:blur(8px);z-index:500;display:none;align-items:center;justify-content:center;padding:16px">
-  <div style="background:#fff;border-radius:24px;width:100%;max-width:600px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.2);position:relative">
-    <!-- Прогрес лінія -->
-    <div style="height:4px;background:var(--border)"><div id="ob-progress" style="height:100%;background:var(--grad);transition:width .4s ease;border-radius:4px"></div></div>
-    <!-- Контент -->
-    <div id="ob-content" style="padding:40px 44px 32px"></div>
-    <!-- Навігація -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 44px 32px">
-      <button id="ob-prev" onclick="obNav(-1)" style="display:none;padding:10px 20px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s"
-        onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
-        onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">← Назад</button>
-      <div style="display:flex;gap:6px;align-items:center" id="ob-dots"></div>
-      <button id="ob-next" onclick="obNav(1)" style="padding:11px 24px;border-radius:12px;border:none;background:var(--grad);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(45,91,227,.3);transition:all .2s"
-        onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">Далі →</button>
-    </div>
-  </div>
-</div>
-
-</body>
-</html>
-// ─── ONBOARDING ───────────────────────────────────────────────────────────────
-const OB_STEPS = [
-  {
-    icon: "👋",
-    title: "Ласкаво просимо до QuizFlow!",
-    text: "QuizFlow — платформа для створення тестів та відстеження результатів студентів. За кілька хвилин ви дізнаєтесь як нею користуватись.",
-    color: "#2d5be3"
-  },
-  {
-    icon: "📁",
-    title: "Папки та тести",
-    text: "Спочатку створіть <b>папку</b> — для організації тестів по темах або групах. Потім додайте тести всередину. Перейдіть у вкладку <b>Тести</b> → кнопка «Нова папка».",
-    color: "#9333ea"
-  },
-  {
-    icon: "✏️",
-    title: "Конструктор тестів",
-    text: "Натисніть на тест щоб відкрити <b>конструктор</b>. Тут можна додавати питання різних типів: одна відповідь, кілька відповідей, текстова відповідь, розгорнута, числова і впорядкування.",
-    color: "#0d9e85"
-  },
-  {
-    icon: "⚡",
-    title: "AI Генерація питань",
-    text: "В конструкторі натисніть <b>AI Генерація</b> — вкажіть тему, складність і кількість питань. ШІ автоматично згенерує готові питання з варіантами відповідей.",
-    color: "#f59e0b"
-  },
-  {
-    icon: "🔗",
-    title: "Посилання для студентів",
-    text: "Щоб відправити тест студентам — створіть <b>посилання</b>. Вкажіть групу, ліміт спроб. Скопіюйте посилання і відправте студентам — вони відкриють тест без реєстрації.",
-    color: "#2d5be3"
-  },
-  {
-    icon: "📊",
-    title: "Результати та оцінки",
-    text: "Всі спроби відображаються у вкладці <b>Спроби</b>. Натисніть «Переглянути» щоб побачити детальні відповіді, оцінку від ШІ та персональний розбір помилок.",
-    color: "#0d9e85"
-  },
-  {
-    icon: "👥",
-    title: "Картки студентів",
-    text: "Вкладка <b>Студенти</b> — автоматично накопичує картки з усіма спробами кожного студента. Можна об'єднати картки якщо студент вводив різні написання імені.",
-    color: "#9333ea"
-  },
-  {
-    icon: "⚠️",
-    title: "Моніторинг та безпека",
-    text: "<b>Онлайн зараз</b> — бачите хто проходить тест в реальному часі і на якому питанні. <b>Підозрілі</b> — спроби де були переключення вкладок, копіювання або скріншоти.",
-    color: "#f43f5e"
-  },
-  {
-    icon: "📓",
-    title: "Журнал оцінок",
-    text: "Вкладка <b>Журнал</b> — зручна таблиця всіх оцінок по групах та тестах. Можна експортувати в CSV або HTML для звітності.",
-    color: "#0ea5e9"
-  },
-  {
-    icon: "🎉",
-    title: "Все готово!",
-    text: "Ви знаєте основи QuizFlow. Якщо виникнуть питання — натисніть <b>Інструкція</b> в нижній частині меню щоб переглянути цей гайд ще раз. Успіхів!",
-    color: "#0d9e85"
-  }
-];
-
-let _obStep = 0;
+}
+}
 
 window.openOnboarding = () => {
   _obStep = 0;
@@ -3930,66 +3137,147 @@ window.openOnboarding = () => {
 window.obNav = (dir) => {
   _obStep = Math.max(0, Math.min(OB_STEPS.length - 1, _obStep + dir));
   renderObStep();
-  if(_obStep === OB_STEPS.length - 1){
-    // Останній крок — зберігаємо що онбординг пройдено
-    dbUpd("meta", { onboardingDone: true }).catch(()=>{});
-  }
+  if(_obStep === OB_STEPS.length - 1) dbUpd("meta", {onboardingDone:true}).catch(()=>{});
 };
+
+const OB_STEPS = [
+  {icon:"👋",title:"Ласкаво просимо до QuizFlow!",text:"QuizFlow — платформа для створення тестів та відстеження результатів студентів. За кілька хвилин ви дізнаєтесь як нею користуватись.",color:"#2d5be3"},
+  {icon:"📁",title:"Папки та тести",text:"Спочатку створіть <b>папку</b> для організації тестів по темах або групах. Перейдіть у вкладку <b>Тести</b> → кнопка «Нова папка».",color:"#9333ea"},
+  {icon:"✏️",title:"Конструктор тестів",text:"Натисніть на тест щоб відкрити <b>конструктор</b>. Є типи питань: одна відповідь, кілька, текстова, розгорнута, числова та впорядкування.",color:"#0d9e85"},
+  {icon:"⚡",title:"AI Генерація питань",text:"В конструкторі натисніть <b>AI Генерація</b> — вкажіть тему, складність і кількість. ШІ згенерує питання з варіантами відповідей.",color:"#f59e0b"},
+  {icon:"🔗",title:"Посилання для студентів",text:"Щоб відправити тест — створіть <b>посилання</b>. Вкажіть групу і ліміт спроб. Скопіюйте та відправте — студенти відкриють без реєстрації.",color:"#2d5be3"},
+  {icon:"📊",title:"Результати та оцінки",text:"Всі спроби у вкладці <b>Спроби</b>. Натисніть «Переглянути» щоб побачити відповіді, оцінку від ШІ та персональний розбір помилок.",color:"#0d9e85"},
+  {icon:"👥",title:"Картки студентів",text:"Вкладка <b>Студенти</b> накопичує картки з усіма спробами. Можна об'єднати картки якщо студент вводив різні написання імені.",color:"#9333ea"},
+  {icon:"⚠️",title:"Моніторинг та безпека",text:"<b>Онлайн зараз</b> — хто проходить тест і на якому питанні. <b>Підозрілі</b> — спроби де були переключення вкладок або копіювання.",color:"#f43f5e"},
+  {icon:"📓",title:"Журнал оцінок",text:"Вкладка <b>Журнал</b> — таблиця всіх оцінок по групах та тестах. Можна експортувати в CSV або HTML для звітності.",color:"#0ea5e9"},
+  {icon:"🎉",title:"Все готово!",text:"Ви знаєте основи QuizFlow. Натисніть <b>Інструкція</b> в меню щоб переглянути цей гайд ще раз. Успіхів!",color:"#0d9e85"}
+];
+let _obStep = 0;
 
 function renderObStep(){
   const step = OB_STEPS[_obStep];
   const total = OB_STEPS.length;
   const isLast = _obStep === total - 1;
-  const isFirst = _obStep === 0;
-
-  // Прогрес
   document.getElementById("ob-progress").style.width = (((_obStep+1)/total)*100)+"%";
+  document.getElementById("ob-dots").innerHTML = OB_STEPS.map((_,i) =>
+    '<div style="width:'+(i===_obStep?20:7)+'px;height:7px;border-radius:4px;background:'+(i===_obStep?'var(--primary)':'var(--border)')+';transition:all .3s"></div>'
+  ).join("");
+  document.getElementById("ob-content").innerHTML =
+    '<div style="width:64px;height:64px;border-radius:18px;background:'+step.color+'18;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:22px">'+step.icon+'</div>'
+    +'<div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Крок '+(_obStep+1)+' з '+total+'</div>'
+    +'<div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--text);margin-bottom:14px;line-height:1.25">'+step.title+'</div>'
+    +'<div style="font-size:15px;color:var(--muted);line-height:1.7">'+step.text+'</div>';
+  const prev = document.getElementById("ob-prev");
+  const next = document.getElementById("ob-next");
+  if(prev) prev.style.display = _obStep === 0 ? "none" : "";
+  if(next){
+    if(isLast){
+      next.textContent = "Розпочати роботу ✓";
+      next.style.background = "linear-gradient(135deg,#0d9e85,#077a67)";
+      next.onclick = () => { document.getElementById("m-onboarding").style.display = "none"; };
+    } else {
+      next.textContent = "Далі →";
+      next.style.background = "var(--grad)";
+      next.onclick = () => window.obNav(1);
+    }
+  }
+}
 
-  // Крапки
-  document.getElementById("ob-dots").innerHTML = OB_STEPS.map((_,i)=>
+async function checkOnboarding(){
+  try{
+    const snap = await dbGet("meta/onboardingDone");
+    if(!snap.exists() || snap.val() !== true) setTimeout(() => window.openOnboarding(), 1200);
+  }catch{}
+}
+
+document.getElementById("m-onboarding").addEventListener("click", function(e){
+  if(e.target === this) this.style.display = "none";
+});
+
+
+
+// ─── ONBOARDING ───────────────────────────────────────────────────────────────
+const OB_STEPS = [
+  {icon:"👋",title:"Ласкаво просимо до QuizFlow!",text:"QuizFlow — платформа для створення тестів та відстеження результатів студентів. За кілька хвилин ви дізнаєтесь як нею користуватись.",color:"#2d5be3"},
+  {icon:"📁",title:"Папки та тести",text:"Спочатку створіть <b>папку</b> для організації тестів по темах або групах. Перейдіть у вкладку <b>Тести</b> → кнопка «Нова папка». Потім додайте тести всередину.",color:"#9333ea"},
+  {icon:"✏️",title:"Конструктор тестів",text:"Натисніть на тест щоб відкрити <b>конструктор</b>. Тут є типи питань: одна відповідь, кілька відповідей, текстова, розгорнута, числова та впорядкування.",color:"#0d9e85"},
+  {icon:"⚡",title:"AI Генерація питань",text:"В конструкторі натисніть <b>AI Генерація</b> — вкажіть тему, складність і кількість питань. ШІ автоматично згенерує готові питання з варіантами відповідей.",color:"#f59e0b"},
+  {icon:"🔗",title:"Посилання для студентів",text:"Щоб відправити тест — створіть <b>посилання</b>. Вкажіть групу і ліміт спроб. Скопіюйте та відправте студентам — вони відкриють тест без реєстрації.",color:"#2d5be3"},
+  {icon:"📊",title:"Результати та оцінки",text:"Всі спроби у вкладці <b>Спроби</b>. Натисніть «Переглянути» щоб побачити відповіді, оцінку від ШІ та персональний розбір помилок.",color:"#0d9e85"},
+  {icon:"👥",title:"Картки студентів",text:"Вкладка <b>Студенти</b> накопичує картки з усіма спробами. Можна об'єднати картки якщо студент вводив різні написання імені.",color:"#9333ea"},
+  {icon:"⚠️",title:"Моніторинг та безпека",text:"<b>Онлайн зараз</b> — хто проходить тест і на якому питанні. <b>Підозрілі</b> — спроби де були переключення вкладок або копіювання.",color:"#f43f5e"},
+  {icon:"📓",title:"Журнал оцінок",text:"Вкладка <b>Журнал</b> — таблиця всіх оцінок по групах та тестах. Можна експортувати в CSV або HTML для звітності.",color:"#0ea5e9"},
+  {icon:"🎉",title:"Все готово!",text:"Ви знаєте основи QuizFlow. Натисніть <b>Інструкція</b> в меню щоб переглянути цей гайд ще раз. Успіхів!",color:"#0d9e85"}
+];
+let _obStep=0;
+
+window.openOnboarding=()=>{
+  _obStep=0;
+  document.getElementById("m-onboarding").style.display="flex";
+  renderObStep();
+};
+
+window.obNav=(dir)=>{
+  _obStep=Math.max(0,Math.min(OB_STEPS.length-1,_obStep+dir));
+  renderObStep();
+  if(_obStep===OB_STEPS.length-1) dbUpd("meta",{onboardingDone:true}).catch(()=>{});
+};
+
+function renderObStep(){
+  const step=OB_STEPS[_obStep];
+  const total=OB_STEPS.length;
+  const isLast=_obStep===total-1;
+  document.getElementById("ob-progress").style.width=(((_obStep+1)/total)*100)+"%";
+  document.getElementById("ob-dots").innerHTML=OB_STEPS.map((_,i)=>
     `<div style="width:${i===_obStep?20:7}px;height:7px;border-radius:4px;background:${i===_obStep?"var(--primary)":"var(--border)"};transition:all .3s"></div>`
   ).join("");
-
-  // Контент
-  document.getElementById("ob-content").innerHTML = `
+  document.getElementById("ob-content").innerHTML=`
     <div style="width:64px;height:64px;border-radius:18px;background:${step.color}18;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:22px">${step.icon}</div>
     <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Крок ${_obStep+1} з ${total}</div>
     <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--text);margin-bottom:14px;line-height:1.25">${step.title}</div>
     <div style="font-size:15px;color:var(--muted);line-height:1.7">${step.text}</div>
   `;
-
-  // Кнопки
-  const prev = document.getElementById("ob-prev");
-  const next = document.getElementById("ob-next");
-  prev.style.display = isFirst ? "none" : "";
-  next.textContent = isLast ? "Розпочати роботу ✓" : "Далі →";
-  if(isLast){
-    next.style.background = "linear-gradient(135deg,#0d9e85,#077a67)";
-    next.onclick = () => {
-      document.getElementById("m-onboarding").style.display = "none";
-    };
-  } else {
-    next.style.background = "var(--grad)";
-    next.onclick = () => obNav(1);
+  const prev=document.getElementById("ob-prev");
+  const next=document.getElementById("ob-next");
+  if(prev) prev.style.display=_obStep===0?"none":"";
+  if(next){
+    if(isLast){
+      next.textContent="Розпочати роботу ✓";
+      next.style.background="linear-gradient(135deg,#0d9e85,#077a67)";
+      next.onclick=()=>document.getElementById("m-onboarding").style.display="none";
+    } else {
+      next.textContent="Далі →";
+      next.style.background="var(--grad)";
+      next.onclick=()=>window.obNav(1);
+    }
   }
 }
 
-// Закриття по кліку на оверлей
-document.getElementById("m-onboarding").addEventListener("click", e=>{
-  if(e.target === document.getElementById("m-onboarding")){
-    document.getElementById("m-onboarding").style.display = "none";
-  }
-});
-
-// Перевірка після завантаження — показуємо якщо перший вхід
 async function checkOnboarding(){
   try{
-    const snap = await dbGet("meta/onboardingDone");
-    if(!snap.exists() || snap.val() !== true){
-      // Показуємо з затримкою щоб дашборд завантажився
-      setTimeout(()=>openOnboarding(), 1200);
-    }
+    const snap=await dbGet("meta/onboardingDone");
+    if(!snap.exists()||snap.val()!==true) setTimeout(()=>window.openOnboarding(),1200);
   }catch{}
 }
 
+document.getElementById("m-onboarding")?.addEventListener("click",e=>{
+  if(e.target===document.getElementById("m-onboarding"))
+    document.getElementById("m-onboarding").style.display="none";
+});
+</script>
+</script>
+<!-- ONBOARDING MODAL -->
+<div id="m-onboarding" style="position:fixed;inset:0;background:rgba(10,14,46,.65);backdrop-filter:blur(8px);z-index:500;display:none;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:24px;width:100%;max-width:600px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.2);position:relative">
+    <div style="height:4px;background:var(--border)"><div id="ob-progress" style="height:100%;background:var(--grad);transition:width .4s ease;border-radius:4px"></div></div>
+    <div id="ob-content" style="padding:40px 44px 32px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 44px 32px">
+      <button id="ob-prev" onclick="window.obNav(-1)" style="display:none;padding:10px 20px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted)">← Назад</button>
+      <div style="display:flex;gap:6px;align-items:center" id="ob-dots"></div>
+      <button id="ob-next" style="padding:11px 24px;border-radius:12px;border:none;background:var(--grad);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(45,91,227,.3)">Далі →</button>
+    </div>
+  </div>
+</div>
 
+</body>
+</html>
