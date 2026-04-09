@@ -1074,16 +1074,17 @@ window.doLogout = ()=>{sessionStorage.clear();location.href="login.html";};
 // ─── НАВІГАЦІЯ ────────────────────────────────────────────────────────────────
 function openM(id){
   const el=document.getElementById(id);
-  if(el){ el.style.display="flex"; el.style.opacity="1"; }
+  if(el){ el.style.display="flex"; el.classList.add("on"); }
 }
 function closeM(id){
   const el=document.getElementById(id);
-  if(el) el.style.display="none";
+  if(el){ el.classList.remove("on"); setTimeout(()=>{ if(!el.classList.contains("on")) el.style.display="none"; },200); }
 }
 // Закриття модалів кліком на оверлей
 document.addEventListener("click", e=>{
   if(e.target.classList.contains("mo")){
-    e.target.style.display="none";
+    e.target.classList.remove("on");
+    setTimeout(()=>{ if(!e.target.classList.contains("on")) e.target.style.display="none"; },200);
   }
 });
 window.openM = openM;
