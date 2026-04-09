@@ -3333,7 +3333,124 @@ window.G = {
       toast("Тест надіслано ✅");
     }catch(e){ errEl.textContent="Помилка: "+e.message; btn.disabled=false; btn.textContent="Поділитись →"; }
   }
-}
+,
+
+  renderAnalytics(){
+    const testId = document.getElementById("an-test")?.value || "";
+    const groupF = document.getElementById("an-group")?.value || "";
+    const body   = document.getElementById("analytics-body");
+    if(!body) return;
+
+    // Фільтруємо спроби
+    let att = attempts.filter(a => a.status === "completed" || a.status === "pending_review");
+    if(testId)  att = att.filter(a => a.testId === testId);
+    if(groupF){ att = att.filter(a => { const l=links.find(x=>x.id===a.linkId); return (l?.group||"") === groupF; }); }
+
+    if(!att.length){
+      body.innerHTML = `<div class="empty" style="padding:80px 20px"><div class="ei">📊</div><div class="et">Немає даних для відображення</div><div class="es">Оберіть тест або змініть фільтри</div></div>`;
+      return;
+    }
+
+    const completed = att.filter(a=>a.status==="completed");
+    const grades    = completed.map(a=>a.grade12).filter(g=>g!=null);
+    const avgGrade  = grades.length ? (grades.reduce((s,g)=>s+g,0)/grades.length).toFixed(1) : "—";
+    const maxGrade  = grades.length ? Math.max(...grades) : "—";
+    const minGrade  = grades.length ? Math.min(...grades) : "—";
+    const passCount = grades.filter(g=>g>=4).length;
+    const failCount = grades.filter(g=>g<4).length;
+    const passRate  = grades.length ? Math.round(passCount/grades.length*100) : 0;
+
+    // Розподіл оцінок 1-12
+    const dist = Array.from({length:12},(_,i)=>({grade:i+1,count:grades.filter(g=>g===i+1).length}));
+    const maxCount = Math.max(...dist.map(d=>d.count),1);
+
+    // Кольори для оцінок
+    const gradeColor = g => g>=10?"#0d9e85":g>=7?"#2d5be3":g>=4?"#f59e0b":"#f43f5e";
+
+    body.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px">
+      <div style="background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:20px 22px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600;margin-bottom:10px">Всього спроб</div>
+        <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:38px;line-height:1;letter-spacing:-1px;color:var(--primary)">${att.length}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px">${completed.length} завершено · ${att.length-completed.length} на перевірці</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:20px 22px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600;margin-bottom:10px">Середня оцінка</div>
+        <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:38px;line-height:1;letter-spacing:-1px;color:${avgGrade!=="—"?gradeColor(parseFloat(avgGrade)):"var(--muted)"}">${avgGrade}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px">мін: ${minGrade} · макс: ${maxGrade}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:20px 22px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600;margin-bottom:10px">Здали (≥4)</div>
+        <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:38px;line-height:1;letter-spacing:-1px;color:#0d9e85">${passCount}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px">${passRate}% від завершених</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:20px 22px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600;margin-bottom:10px">Не здали (&lt;4)</div>
+        <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:38px;line-height:1;letter-spacing:-1px;color:#f43f5e">${failCount}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px">${grades.length?100-passRate:0}% від завершених</div>
+      </div>
+    </div>
+
+    <!-- Розподіл оцінок -->
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:24px;margin-bottom:20px">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:20px">Розподіл оцінок</div>
+      <div style="display:flex;align-items:flex-end;gap:6px;height:140px">
+        ${dist.map(d=>{
+          const h = d.count ? Math.max(8, Math.round(d.count/maxCount*120)) : 0;
+          const col = gradeColor(d.grade);
+          return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px">
+            <div style="font-size:11px;font-weight:700;color:${d.count?col:"var(--muted)"}">${d.count||""}</div>
+            <div style="width:100%;background:${d.count?"rgba(45,91,227,.06)":"var(--border)"};border-radius:6px 6px 0 0;height:120px;display:flex;align-items:flex-end">
+              <div style="width:100%;background:${col};border-radius:6px 6px 0 0;height:${h}px;transition:height .4s ease;opacity:${d.count?1:0}"></div>
+            </div>
+            <div style="font-size:11px;color:var(--muted);font-weight:600">${d.grade}</div>
+          </div>`;
+        }).join("")}
+      </div>
+      <div style="display:flex;gap:16px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)"><div style="width:10px;height:10px;border-radius:3px;background:#0d9e85"></div>Відмінно (10-12)</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)"><div style="width:10px;height:10px;border-radius:3px;background:#2d5be3"></div>Добре (7-9)</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)"><div style="width:10px;height:10px;border-radius:3px;background:#f59e0b"></div>Задовільно (4-6)</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)"><div style="width:10px;height:10px;border-radius:3px;background:#f43f5e"></div>Незадовільно (1-3)</div>
+      </div>
+    </div>
+
+    <!-- Топ студентів -->
+    ${completed.length ? `
+    <div style="background:#fff;border:1.5px solid var(--border);border-radius:18px;overflow:hidden">
+      <div style="padding:18px 22px;border-bottom:1px solid var(--border);font-family:'Syne',sans-serif;font-weight:700;font-size:15px">Результати студентів</div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:rgba(45,91,227,.02)">
+          <th style="padding:10px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;text-align:left;border-bottom:1.5px solid var(--border)">#</th>
+          <th style="padding:10px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;text-align:left;border-bottom:1.5px solid var(--border)">Студент</th>
+          <th style="padding:10px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;text-align:left;border-bottom:1.5px solid var(--border)">Оцінка</th>
+          <th style="padding:10px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;text-align:left;border-bottom:1.5px solid var(--border)">%</th>
+          <th style="padding:10px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;text-align:left;border-bottom:1.5px solid var(--border)">Група</th>
+          <th style="padding:10px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;text-align:left;border-bottom:1.5px solid var(--border)">Дата</th>
+        </tr></thead>
+        <tbody>
+          ${[...completed].sort((a,b)=>(b.grade12||0)-(a.grade12||0)).map((a,i)=>{
+            const g=a.grade12||0;
+            const l=links.find(x=>x.id===a.linkId);
+            const dateStr=a.createdAt?new Date(a.createdAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"—";
+            const bdgClass=g>=10?"bg-g":g>=7?"bg-b":g>=4?"bg-a":"bg-r";
+            return `<tr style="border-bottom:1px solid rgba(229,232,240,.5)">
+              <td style="padding:12px 16px;font-size:13px;color:var(--muted);font-weight:600">${i+1}</td>
+              <td style="padding:12px 16px">
+                <div style="font-weight:600;font-size:14px">${esc(a.surname)} ${esc(a.name)}</div>
+              </td>
+              <td style="padding:12px 16px"><span class="bdg ${bdgClass}">${g}/12</span></td>
+              <td style="padding:12px 16px;font-size:14px;font-weight:600">${a.score?.percent??0}%</td>
+              <td style="padding:12px 16px;font-size:13px;color:var(--muted)">${esc(l?.group||"—")}</td>
+              <td style="padding:12px 16px;font-size:12px;color:var(--muted)">${dateStr}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>
+    ` : ""}
+    `;
+  }}
 
 window.openOnboarding = () => {
   _obStep = 0;
