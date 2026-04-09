@@ -2714,7 +2714,63 @@ window.G = {
     </div>`;
   },
 
-  renderSuspicious(filterTest, filterDate){
+  toggleSuspDrop(type){
+    const testMenu=document.getElementById("susp-test-menu");
+    const dateMenu=document.getElementById("susp-date-menu");
+    if(type==="test"){
+      const isOpen=testMenu.style.display!=="none";
+      testMenu.style.display=isOpen?"none":"block";
+      if(dateMenu) dateMenu.style.display="none";
+    } else {
+      const isOpen=dateMenu.style.display!=="none";
+      dateMenu.style.display=isOpen?"none":"block";
+      if(testMenu) testMenu.style.display="none";
+    }
+  },
+  setSuspTest(id, label){
+    const inp=document.getElementById("susp-filter-test");
+    if(inp) inp.value=id;
+    const lbl=document.getElementById("susp-test-label");
+    if(lbl) lbl.textContent=label;
+    const menu=document.getElementById("susp-test-menu");
+    if(menu) menu.style.display="none";
+    const btn=document.getElementById("susp-test-btn");
+    if(btn) btn.style.borderColor=id?"var(--primary)":"var(--border)";
+    if(btn) btn.style.color=id?"var(--primary)":"var(--text)";
+    const rst=document.getElementById("susp-reset-btn");
+    const dateVal=document.getElementById("susp-filter-date")?.value||"";
+    if(rst) rst.style.display=(id||dateVal)?"":"none";
+    G.renderSuspicious();
+  },
+  setSuspDate(val){
+    const lbl=document.getElementById("susp-date-label");
+    if(lbl) lbl.textContent=val?new Date(val+"T00:00:00").toLocaleDateString("uk-UA",{day:"numeric",month:"short",year:"numeric"}):"Будь-яка дата";
+    const btn=document.getElementById("susp-date-btn");
+    if(btn) btn.style.borderColor=val?"var(--primary)":"var(--border)";
+    if(btn) btn.style.color=val?"var(--primary)":"var(--text)";
+    const menu=document.getElementById("susp-date-menu");
+    if(menu) menu.style.display="none";
+    const rst=document.getElementById("susp-reset-btn");
+    const testVal=document.getElementById("susp-filter-test")?.value||"";
+    if(rst) rst.style.display=(val||testVal)?"":"none";
+    G.renderSuspicious();
+  },
+  resetSuspFilters(){
+    const inp=document.getElementById("susp-filter-test");
+    if(inp) inp.value="";
+    const dateInp=document.getElementById("susp-filter-date");
+    if(dateInp) dateInp.value="";
+    G.setSuspTest("","📋 Всі тести");
+    const lbl=document.getElementById("susp-date-label");
+    if(lbl) lbl.textContent="Будь-яка дата";
+    const btn=document.getElementById("susp-date-btn");
+    if(btn){ btn.style.borderColor="var(--border)"; btn.style.color="var(--text)"; }
+    const rst=document.getElementById("susp-reset-btn");
+    if(rst) rst.style.display="none";
+    G.renderSuspicious();
+  },
+
+    renderSuspicious(filterTest, filterDate){
     const body = document.getElementById("suspicious-body");
     if(!body) return;
 
@@ -2745,22 +2801,70 @@ window.G = {
     if(secHead && !document.getElementById("susp-filters")){
       const filtersDiv=document.createElement("div");
       filtersDiv.id="susp-filters";
-      filtersDiv.style.cssText="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px";
+      filtersDiv.style.cssText="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:20px";
       filtersDiv.innerHTML=`
-        <select id="susp-filter-test" onchange="G.renderSuspicious()" style="padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;background:#fff;color:var(--text);outline:none">
-          <option value="">Всі тести</option>
-          ${tests.filter(t=>t.status!=="archived").map(t=>`<option value="${t.id}" ${fTest===t.id?"selected":""}>${esc(t.title)}</option>`).join("")}
-        </select>
-        <input type="date" id="susp-filter-date" onchange="G.renderSuspicious()" value="${fDate}"
-          style="padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;background:#fff;color:var(--text);outline:none">
-        <button onclick="document.getElementById('susp-filter-test').value='';document.getElementById('susp-filter-date').value='';G.renderSuspicious()"
-          class="btn bs btn-sm">✕ Скинути</button>
+        <!-- Кастомний дропдаун тесту -->
+        <div style="position:relative" id="susp-test-wrap">
+          <button onclick="G.toggleSuspDrop('test')"
+            style="display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;transition:all .15s;min-width:180px;justify-content:space-between"
+            onmouseover="this.style.borderColor='rgba(45,91,227,.35)'" onmouseout="this.style.borderColor='var(--border)'" id="susp-test-btn">
+            <span id="susp-test-label">📋 Всі тести</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div id="susp-test-menu" style="display:none;position:absolute;top:calc(100% + 6px);left:0;min-width:240px;background:#fff;border:1.5px solid var(--border);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.1);z-index:100;padding:6px;max-height:240px;overflow-y:auto">
+            <div onclick="G.setSuspTest('','📋 Всі тести')" style="padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:500;transition:background .1s"
+              onmouseover="this.style.background='rgba(45,91,227,.05)'" onmouseout="this.style.background=''">📋 Всі тести</div>
+            ${tests.filter(t=>t.status!=="archived").map(t=>`
+              <div onclick="G.setSuspTest('${t.id}','${esc(t.title)}')" style="padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;transition:background .1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
+                onmouseover="this.style.background='rgba(45,91,227,.05)'" onmouseout="this.style.background=''">${esc(t.title)}</div>`).join("")}
+          </div>
+        </div>
+
+        <!-- Кастомний вибір дати -->
+        <div style="position:relative" id="susp-date-wrap">
+          <button onclick="G.toggleSuspDrop('date')"
+            style="display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;transition:all .15s"
+            onmouseover="this.style.borderColor='rgba(45,91,227,.35)'" onmouseout="this.style.borderColor='var(--border)'" id="susp-date-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span id="susp-date-label">Будь-яка дата</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div id="susp-date-menu" style="display:none;position:absolute;top:calc(100% + 6px);left:0;background:#fff;border:1.5px solid var(--border);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.1);z-index:100;padding:12px">
+            <input type="date" id="susp-filter-date"
+              style="padding:9px 14px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;color:var(--text);outline:none;background:#fff;font-family:'DM Sans',sans-serif;cursor:pointer;width:180px"
+              onchange="G.setSuspDate(this.value)"
+              onfocus="this.style.borderColor='var(--primary)';this.style.boxShadow='0 0 0 3px rgba(45,91,227,.08)'"
+              onblur="this.style.borderColor='var(--border)';this.style.boxShadow=''">
+          </div>
+        </div>
+
+        <!-- Кнопка скинути (показується тільки якщо є фільтри) -->
+        <button id="susp-reset-btn" onclick="G.resetSuspFilters()" style="display:none;padding:9px 14px;border-radius:12px;border:1.5px solid rgba(244,63,94,.25);background:rgba(244,63,94,.05);color:#be123c;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s"
+          onmouseover="this.style.background='rgba(244,63,94,.1)'" onmouseout="this.style.background='rgba(244,63,94,.05)'">
+          ✕ Скинути фільтри
+        </button>
+
+        <!-- Лічильник результатів -->
+        <div id="susp-count-label" style="margin-left:auto;font-size:13px;color:var(--muted)"></div>
       `;
+      // Ховаємо меню при кліку поза
+      document.addEventListener("click", e=>{
+        if(!e.target.closest("#susp-test-wrap")) document.getElementById("susp-test-menu").style.display="none";
+        if(!e.target.closest("#susp-date-wrap")) document.getElementById("susp-date-menu").style.display="none";
+      });
+      // Прихована input для збереження значення
+      const hiddenTest=document.createElement("input");
+      hiddenTest.type="hidden"; hiddenTest.id="susp-filter-test"; hiddenTest.value="";
+      filtersDiv.appendChild(hiddenTest);
       body.parentNode.insertBefore(filtersDiv, body);
     } else if(document.getElementById("susp-filters")){
-      // Оновлюємо тести в дропдауні
-      const sel=document.getElementById("susp-filter-test");
-      if(sel) sel.innerHTML=`<option value="">Всі тести</option>${tests.filter(t=>t.status!=="archived").map(t=>`<option value="${t.id}" ${sel.value===t.id?"selected":""}>${esc(t.title)}</option>`).join("")}`;
+      // Оновлюємо список тестів в меню
+      const menu=document.getElementById("susp-test-menu");
+      if(menu){
+        const curVal=document.getElementById("susp-filter-test")?.value||"";
+        menu.innerHTML=`<div onclick="G.setSuspTest('','📋 Всі тести')" style="padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:500;transition:background .1s" onmouseover="this.style.background='rgba(45,91,227,.05)'" onmouseout="this.style.background=''">📋 Всі тести</div>`
+          +tests.filter(t=>t.status!=="archived").map(t=>`<div onclick="G.setSuspTest('${t.id}','${esc(t.title)}')" style="padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;transition:background .1s" onmouseover="this.style.background='rgba(45,91,227,.05)'" onmouseout="this.style.background=''">${esc(t.title)}</div>`).join("");
+      }
     }
 
     if(!scored.length){
@@ -2768,6 +2872,8 @@ window.G = {
       return;
     }
 
+    const countLbl=document.getElementById("susp-count-label");
+    if(countLbl) countLbl.textContent=`Знайдено: ${scored.length}`;
     body.innerHTML = scored.map(a => {
       const t = tests.find(x=>x.id===a.testId);
       const l = links.find(x=>x.id===a.linkId);
