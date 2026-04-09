@@ -2595,11 +2595,13 @@ window.G = {
           </div>`;
         }).join("");
       } else if(q.type==="text"||q.type==="number"){
-        const ua=userAns!=null?String(userAns):"—";
-        ansHtml=`<div style="padding:10px 14px;background:rgba(45,91,227,.04);border:1.5px solid rgba(45,91,227,.15);border-radius:10px;font-size:14px;color:var(--text)">${esc(ua)}</div>`;
+        const raw=userAns;
+        const ua=(raw!=null&&raw!==""&&typeof raw!=="object")?String(raw):null;
+        ansHtml=`<div style="padding:10px 14px;background:${ua?"rgba(45,91,227,.04)":"rgba(107,114,128,.05)"};border:1.5px solid ${ua?"rgba(45,91,227,.15)":"var(--border)"};border-radius:10px;font-size:14px;color:${ua?"var(--text)":"var(--muted)"}${ua?"":";font-style:italic"}">${ua?esc(ua):"Немає відповіді"}</div>`;
       } else if(q.type==="long"){
-        const ua=userAns!=null?String(userAns):"—";
-        ansHtml=`<div style="padding:12px 14px;background:rgba(45,91,227,.04);border:1.5px solid rgba(45,91,227,.15);border-radius:10px;font-size:14px;color:var(--text);white-space:pre-wrap;line-height:1.6">${esc(ua)}</div>`;
+        const raw=userAns;
+        const ua=(raw!=null&&raw!==""&&typeof raw!=="object")?String(raw).trim():null;
+        ansHtml=`<div style="padding:12px 14px;background:${ua?"rgba(45,91,227,.04)":"rgba(107,114,128,.05)"};border:1.5px solid ${ua?"rgba(45,91,227,.15)":"var(--border)"};border-radius:10px;font-size:14px;color:${ua?"var(--text)":"var(--muted)"};white-space:pre-wrap;line-height:1.6${ua?"":";font-style:italic"}">${ua?esc(ua):"Немає відповіді"}</div>`;
       } else if(q.type==="order"){
         const ua=Array.isArray(userAns)?userAns:[];
         ansHtml=ua.map((item,j)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);margin-bottom:5px">
@@ -2645,11 +2647,19 @@ window.G = {
         </div>
       </div>
 
-      <!-- AI коментар -->
-      ${a.aiComment?`<div style="margin:16px 20px 0;padding:14px 16px;background:rgba(45,91,227,.05);border:1.5px solid rgba(45,91,227,.15);border-radius:14px;font-size:14px;color:var(--text);line-height:1.7">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--primary);font-weight:600;margin-bottom:6px">✦ AI Коментар</div>
-        ${esc(a.aiComment)}
-      </div>`:""}
+      <!-- Кнопки AI -->
+      <div style="margin:16px 20px 0;display:flex;gap:10px;flex-wrap:wrap">
+        ${a.aiComment?`<div style="flex:1;min-width:200px;padding:14px 16px;background:rgba(45,91,227,.05);border:1.5px solid rgba(45,91,227,.15);border-radius:14px;font-size:14px;color:var(--text);line-height:1.7">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--primary);font-weight:600;margin-bottom:6px">✦ AI Коментар</div>
+          ${esc(a.aiComment)}
+        </div>`:""}
+        <button onclick="G.personalAnalysis('${a.id}')"
+          style="display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:12px;border:none;background:linear-gradient(135deg,#2d5be3,#1530a0);color:#fff;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;box-shadow:0 4px 14px rgba(45,91,227,.3);transition:all .2s;align-self:flex-start"
+          onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          ✦ Персональний розбір
+        </button>
+      </div>
 
       <!-- Питання -->
       <div style="padding:16px 20px 24px">
@@ -2658,6 +2668,78 @@ window.G = {
       </div>`;
 
     openM("m-attempt");
+  },
+
+    async personalAnalysis(attId){
+    if(window._AI_ANALYSIS===false){ toast("Персональний аналіз вимкнено адміністратором","err"); return; }
+    const a=attempts.find(x=>x.id===attId);
+    if(!a){ toast("Спробу не знайдено","err"); return; }
+
+    // Якщо вже є збережений аналіз — показуємо
+    if(a.personalAnalysis){
+      G._showAiPanel(a.personalAnalysis); return;
+    }
+
+    // Відкриваємо панель з лоадером
+    document.getElementById("ai-side-content").innerHTML=`
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--muted)">
+        <div style="font-size:32px;margin-bottom:10px">⏳</div>
+        <div style="font-size:14px">Аналізую помилки...</div>
+      </div>`;
+    document.getElementById("ai-side-panel").style.right="0";
+    document.getElementById("ai-side-overlay").style.display="block";
+
+    try{
+      const t=tests.find(x=>x.id===a.testId);
+      const qs=Array.isArray(a.questionsSnapshot)?a.questionsSnapshot:(t?.questions||[]);
+      const ans=Array.isArray(a.answers)?a.answers:[];
+
+      const wrongList=qs.map((q,i)=>{
+        const ua=ans[i];
+        let wrong=false;
+        if(q.type==="single") wrong=ua!==q.correct;
+        else if(q.type==="multi") wrong=JSON.stringify(ua)!==JSON.stringify(q.correct);
+        else if(q.type==="number") wrong=parseFloat(ua)!==parseFloat(q.correct);
+        return wrong?`Питання: "${q.text||q.question}"
+Відповідь студента: "${ua!=null?ua:"—"}"
+Правильна відповідь: "${Array.isArray(q.correct)?q.correct.join(", "):q.correct}"`:null;
+      }).filter(Boolean);
+
+      if(!wrongList.length){
+        const text="✅ Студент відповів правильно на всі питання! Відмінна робота.";
+        await dbUpd(`attempts/${attId}`,{personalAnalysis:text});
+        a.personalAnalysis=text;
+        G._showAiPanel(text); return;
+      }
+
+      const prompt=`Ти репетитор. Студент ${esc(a.name)} ${esc(a.surname)} отримав оцінку ${a.grade12}/12 за тест "${t?.title||""}".
+
+Помилкові відповіді:
+${wrongList.slice(0,8).join("
+
+")}
+
+Напиши короткий персональний розбір (5-8 речень): що студент не зрозумів, на що звернути увагу, як виправити знання. Звертайся до студента напряму.`;
+
+      const res=await callGroq([{role:"user",content:prompt}],600,0.5);
+      await dbUpd(`attempts/${attId}`,{personalAnalysis:res});
+      a.personalAnalysis=res;
+      G._showAiPanel(res);
+    }catch(e){
+      document.getElementById("ai-side-content").innerHTML=`<div style="color:#be123c;padding:16px;font-size:14px">Помилка: ${esc(e.message)}</div>`;
+    }
+  },
+
+  _showAiPanel(text){
+    document.getElementById("ai-side-content").innerHTML=`
+      <div style="font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap">${esc(text)}</div>`;
+    document.getElementById("ai-side-panel").style.right="0";
+    document.getElementById("ai-side-overlay").style.display="block";
+  },
+
+  closeAiPanel(){
+    document.getElementById("ai-side-panel").style.right="-480px";
+    document.getElementById("ai-side-overlay").style.display="none";
   },
 
     openStudentCard(id){
