@@ -1224,6 +1224,18 @@ function startRealtimeListeners(){
 
   // Real-time підписка на сповіщення
   let _prevNotifCount = 0;
+  // Слухаємо зміни в meta (suspReadCount) для синхронізації між пристроями
+  onValue(ref(db, tp("meta/suspReadCount")), (snap) => {
+    const suspRead = snap.exists() ? (snap.val()||0) : 0;
+    const suspCount = attempts.filter(a=>
+      (a.tabSwitches||0)*2+(a.copyAttempts||0)*3+(a.screenshots||0)*5>0
+      &&(a.status==="completed"||a.status==="pending_review")
+    ).length;
+    const suspNew = Math.max(0, suspCount - suspRead);
+    const nbS=$("nb-suspicious");
+    if(nbS){ nbS.textContent=suspNew; nbS.style.display=suspNew>0?"":"none"; }
+  });
+
   onValue(ref(db, tp("notifications")), (snap) => {
     const all = snap.exists()
       ? Object.entries(snap.val()).map(([id,v])=>({id,...v})).sort((a,b)=>(b.ts||0)-(a.ts||0))
@@ -1363,6 +1375,21 @@ function updateBadges(){
   $("nb-t").textContent=tests.length;
   $("nb-a").textContent=attempts.length;
   $("nb-l").textContent=links.filter(l=>l.status==="active").length;
+  // Підозрілі
+  const suspCount = attempts.filter(a=>(a.tabSwitches||0)*2+(a.copyAttempts||0)*3+(a.screenshots||0)*5>0&&(a.status==="completed"||a.status==="pending_review")).length;
+  // Підозрілі — порівнюємо з збереженим в Firebase
+  dbGet("meta/suspReadCount").then(snap=>{
+    const suspRead = snap.exists() ? (snap.val()||0) : 0;
+    const suspNew = Math.max(0, suspCount - suspRead);
+    const nbS=$("nb-suspicious");
+    if(nbS){ nbS.textContent=suspNew; nbS.style.display=suspNew>0?"":"none"; }
+  }).catch(()=>{
+    const nbS=$("nb-suspicious");
+    if(nbS){ nbS.textContent=suspCount; nbS.style.display=suspCount>0?"":"none"; }
+  });
+  // Архів
+  const nbArc=document.getElementById("nb-archive");
+  if(nbArc) nbArc.textContent=tests.filter(t=>t.status==="archived").length;
 }
 
 // DASHBOARD
@@ -2687,26 +2714,57 @@ window.G = {
     </div>`;
   },
 
-  renderSuspicious(){
+  renderSuspicious(filterTest, filterDate){
     const body = document.getElementById("suspicious-body");
     if(!body) return;
 
-    // Рахуємо рівень підозрілості
-    const scored = attempts
+    // Скидаємо каунтер — помічаємо скільки є зараз "прочитано"
+    const allScored = attempts
       .filter(a => a.status === "completed" || a.status === "pending_review")
-      .map(a => {
-        const score = (a.tabSwitches||0)*2 + (a.copyAttempts||0)*3 + (a.screenshots||0)*5;
-        return { ...a, suspScore: score };
-      })
-      .filter(a => a.suspScore > 0)
-      .sort((a,b) => b.suspScore - a.suspScore);
+      .map(a => { const score=(a.tabSwitches||0)*2+(a.copyAttempts||0)*3+(a.screenshots||0)*5; return{...a,suspScore:score}; })
+      .filter(a => a.suspScore > 0);
+    // Зберігаємо в Firebase — синхронізується між пристроями
+    dbUpd("meta", { suspReadCount: allScored.length }).catch(()=>{});
+    const badge=$("nb-suspicious");
+    if(badge){ badge.textContent="0"; badge.style.display="none"; }
 
-    // Оновлюємо бейдж
-    const badge = $("nb-suspicious");
-    if(badge){ badge.textContent = scored.length; badge.style.display = scored.length ? "" : "none"; }
+    // Фільтри
+    const fTest = filterTest || document.getElementById("susp-filter-test")?.value || "";
+    const fDate = filterDate || document.getElementById("susp-filter-date")?.value || "";
+    let scored = [...allScored];
+    if(fTest) scored = scored.filter(a=>a.testId===fTest);
+    if(fDate){
+      const d=new Date(fDate); d.setHours(0,0,0,0);
+      const d2=new Date(fDate); d2.setHours(23,59,59,999);
+      scored=scored.filter(a=>a.createdAt>=d.getTime()&&a.createdAt<=d2.getTime());
+    }
+    scored.sort((a,b)=>b.suspScore-a.suspScore);
+
+    // Заголовок з фільтрами
+    const secHead = document.querySelector("#sec-suspicious .ph");
+    if(secHead && !document.getElementById("susp-filters")){
+      const filtersDiv=document.createElement("div");
+      filtersDiv.id="susp-filters";
+      filtersDiv.style.cssText="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px";
+      filtersDiv.innerHTML=`
+        <select id="susp-filter-test" onchange="G.renderSuspicious()" style="padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;background:#fff;color:var(--text);outline:none">
+          <option value="">Всі тести</option>
+          ${tests.filter(t=>t.status!=="archived").map(t=>`<option value="${t.id}" ${fTest===t.id?"selected":""}>${esc(t.title)}</option>`).join("")}
+        </select>
+        <input type="date" id="susp-filter-date" onchange="G.renderSuspicious()" value="${fDate}"
+          style="padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;background:#fff;color:var(--text);outline:none">
+        <button onclick="document.getElementById('susp-filter-test').value='';document.getElementById('susp-filter-date').value='';G.renderSuspicious()"
+          class="btn bs btn-sm">✕ Скинути</button>
+      `;
+      body.parentNode.insertBefore(filtersDiv, body);
+    } else if(document.getElementById("susp-filters")){
+      // Оновлюємо тести в дропдауні
+      const sel=document.getElementById("susp-filter-test");
+      if(sel) sel.innerHTML=`<option value="">Всі тести</option>${tests.filter(t=>t.status!=="archived").map(t=>`<option value="${t.id}" ${sel.value===t.id?"selected":""}>${esc(t.title)}</option>`).join("")}`;
+    }
 
     if(!scored.length){
-      body.innerHTML=`<div class="empty" style="padding:60px 20px"><div class="ei">✅</div><div class="et">Підозрілих спроб не виявлено</div></div>`;
+      body.innerHTML=`<div class="empty" style="padding:60px 20px"><div class="ei">✅</div><div class="et">${fTest||fDate?"Нічого не знайдено за фільтром":"Підозрілих спроб не виявлено"}</div></div>`;
       return;
     }
 
