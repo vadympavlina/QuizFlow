@@ -1,22 +1,56 @@
 {
   "rules": {
-    "admin": {
+    "users": {
       ".read": true,
-      ".write": false
+      "$userId": {
+        ".write": "data.child('login').val() === newData.child('login').val() || !data.exists()",
+        "aiSettings": {
+          ".read": true,
+          ".write": true
+        }
+      }
     },
-    "tests": {
+    "settings": {
       ".read": true,
-      ".write": true
+      "ai": {
+        ".read": true,
+        ".write": true
+      }
     },
-    "links": {
-      ".read": true,
-      ".write": true,
-      ".indexOn": ["testId"]
-    },
-    "attempts": {
-      ".read": true,
-      ".write": true,
-      ".indexOn": ["testId"]
+    "teachers": {
+      "$teacherId": {
+        "tests": {
+          ".read": true,
+          ".write": true,
+          ".indexOn": ["folderId","status"]
+        },
+        "links": {
+          ".read": true,
+          ".write": true,
+          ".indexOn": ["testId","status"]
+        },
+        "attempts": {
+          ".read": true,
+          ".write": true,
+          ".indexOn": ["testId","linkId","status"]
+        },
+        "folders": {
+          ".read": true,
+          ".write": true
+        },
+        "students": {
+          ".read": true,
+          ".write": true
+        },
+        "notifications": {
+          ".read": true,
+          ".write": true
+        },
+        "meta": {
+          ".read": true,
+          ".write": true
+        }
+      }
     }
   }
 }

@@ -947,6 +947,26 @@ textarea.fi{resize:vertical;min-height:72px}
   </div>
 </div></div>
 
+
+<!-- SHARE TEST MODAL -->
+<div class="mo" id="m-share">
+  <div class="mb" style="max-width:440px">
+    <button class="mcl" onclick="closeM('m-share')">×</button>
+    <div style="font-size:28px;margin-bottom:10px">🔗</div>
+    <div class="mtl">Поділитись тестом</div>
+    <div class="msu" id="share-test-name">Тест</div>
+    <div class="fl">
+      <label>Оберіть викладача</label>
+      <div id="share-teachers-list" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;padding:2px"></div>
+    </div>
+    <div id="share-err" style="color:#be123c;font-size:13px;min-height:18px;margin-bottom:8px"></div>
+    <div class="ma">
+      <button class="btn bs" onclick="closeM('m-share')">Скасувати</button>
+      <button class="btn bp" onclick="G.doShareTest()" id="share-btn">Поділитись →</button>
+    </div>
+  </div>
+</div>
+
 <!-- Деталі спроби -->
 <div class="mo" id="m-attempt">
   <div class="mb wd" style="max-width:860px;padding:0;overflow:hidden;display:flex;flex-direction:column;position:relative">
@@ -1648,6 +1668,9 @@ function buildTestRow(t){
         </div>
         <div class="ib" title="Спроби" onclick="showSec('attempts');$('ft').value='${t.id}';G.rAttempts()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="ib" title="Поділитись" onclick="G.openShareModal('${t.id}','${esc(t.title)}')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         </div>
         <div class="ib d" title="Видалити" onclick="G.confDelTest('${t.id}','${esc(t.title)}')">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
@@ -3246,6 +3269,64 @@ window.G = {
 `;
 }
 }
+
+,
+  // ─── SHARE TEST ──────────────────────────────────────────────────────────────
+  _shareTestId: null,
+  _shareSelectedUid: null,
+
+  async openShareModal(testId, testTitle){
+    G._shareTestId = testId;
+    G._shareSelectedUid = null;
+    document.getElementById("share-test-name").textContent = testTitle;
+    document.getElementById("share-err").textContent = "";
+    const btn=document.getElementById("share-btn");
+    btn.disabled=false; btn.textContent="Поділитись →";
+    const list = document.getElementById("share-teachers-list");
+    list.innerHTML = '<div style="color:var(--muted);font-size:14px;text-align:center;padding:20px">Завантаження...</div>';
+    openM("m-share");
+    try{
+      const {get:_g, ref:_r} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+      const snap = await _g(_r(db,"users"));
+      if(!snap.exists()){ list.innerHTML="<div style='color:var(--muted);font-size:14px'>Немає викладачів</div>"; return; }
+      const users = Object.entries(snap.val()).map(([id,u])=>({id,...u})).filter(u=>u.id!==_uid&&!u.blocked);
+      if(!users.length){ list.innerHTML="<div style='color:var(--muted);font-size:14px;padding:12px 0'>Немає інших викладачів</div>"; return; }
+      list.innerHTML = users.map(u=>{
+        const initials=esc(u.name||u.login).slice(0,2).toUpperCase();
+        return "<label style='display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:all .15s' onclick="G._shareSelectedUid='"+u.id+"';document.querySelectorAll('#share-teachers-list label').forEach(l=>{l.style.borderColor='var(--border)';l.style.background=''});this.style.borderColor='var(--primary)';this.style.background='rgba(45,91,227,.04)'">"
+          +"<div style='width:36px;height:36px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-weight:700;font-size:13px;color:#fff;flex-shrink:0'>"+initials+"</div>"
+          +"<div><div style='font-weight:600;font-size:14px'>"+esc(u.name||u.login)+"</div><div style='font-size:12px;color:var(--muted);font-family:monospace'>@"+esc(u.login)+"</div></div>"
+          +"</label>";
+      }).join("");
+    }catch(e){ list.innerHTML="<div style='color:#be123c;font-size:13px'>"+esc(e.message)+"</div>"; }
+  },
+
+  async doShareTest(){
+    const errEl=document.getElementById("share-err");
+    if(!G._shareSelectedUid){ errEl.textContent="Оберіть викладача"; return; }
+    const test=tests.find(t=>t.id===G._shareTestId);
+    if(!test) return;
+    const btn=document.getElementById("share-btn");
+    btn.disabled=true; btn.textContent="⏳ Надсилаю...";
+    try{
+      const {push:_p,ref:_r,set:_s}=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+      const newRef=_p(_r(db,"teachers/"+G._shareSelectedUid+"/tests"));
+      await _s(newRef,{
+        title:test.title, description:test.description||"",
+        questions:test.questions||[], timeLimit:test.timeLimit||600,
+        status:"draft", folderId:null, tags:test.tags||[],
+        sharedFrom:_user.name||_user.login, sharedAt:ts(), createdAt:ts()
+      });
+      const nRef=_p(_r(db,"teachers/"+G._shareSelectedUid+"/notifications"));
+      await _s(nRef,{
+        icon:"🔗",
+        msg:"<strong>"+esc(_user.name||_user.login)+"</strong> поділився тестом «"+esc(test.title)+"»",
+        color:"#2d5be3", read:false, ts:ts()
+      });
+      closeM("m-share");
+      toast("Тест надіслано ✅");
+    }catch(e){ errEl.textContent="Помилка: "+e.message; btn.disabled=false; btn.textContent="Поділитись →"; }
+  }
 }
 
 window.openOnboarding = () => {
