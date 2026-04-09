@@ -289,17 +289,26 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
               <div style="font-size:13px;color:var(--muted)">Вмк/Вимк окремі можливості</div>
             </div>
           </div>
-          <div style="display:flex;flex-direction:column;gap:14px">
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
-              <div><div style="font-weight:600;font-size:14px">AI коментарі студентам</div><div style="font-size:12px;color:var(--muted)">Коментар після проходження тесту</div></div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div class="feat-row">
+              <div style="display:flex;align-items:center">
+                <div class="feat-icon" style="background:rgba(45,91,227,.08)">💬</div>
+                <div><div style="font-weight:600;font-size:14px">AI коментарі студентам</div><div style="font-size:12px;color:var(--muted)">Коментар після проходження тесту</div></div>
+              </div>
               <label class="toggle-sw"><input type="checkbox" id="ai-comments" checked><span class="toggle-sl"></span></label>
             </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
-              <div><div style="font-weight:600;font-size:14px">AI генерація питань</div><div style="font-size:12px;color:var(--muted)">В конструкторі тестів</div></div>
+            <div class="feat-row">
+              <div style="display:flex;align-items:center">
+                <div class="feat-icon" style="background:rgba(245,158,11,.08)">⚡</div>
+                <div><div style="font-weight:600;font-size:14px">AI генерація питань</div><div style="font-size:12px;color:var(--muted)">В конструкторі тестів</div></div>
+              </div>
               <label class="toggle-sw"><input type="checkbox" id="ai-generation" checked><span class="toggle-sl"></span></label>
             </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0">
-              <div><div style="font-weight:600;font-size:14px">AI перевірка тексту</div><div style="font-size:12px;color:var(--muted)">Перевірка текстових відповідей</div></div>
+            <div class="feat-row">
+              <div style="display:flex;align-items:center">
+                <div class="feat-icon" style="background:rgba(13,158,133,.08)">📝</div>
+                <div><div style="font-weight:600;font-size:14px">AI перевірка тексту</div><div style="font-size:12px;color:var(--muted)">Перевірка текстових відповідей</div></div>
+              </div>
               <label class="toggle-sw"><input type="checkbox" id="ai-textcheck" checked><span class="toggle-sl"></span></label>
             </div>
           </div>
@@ -362,52 +371,49 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 <div class="mo" id="m-ai">
   <div class="mb" style="max-width:480px">
     <button class="mcl" onclick="closeModal('m-ai')">×</button>
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
-      <div style="width:48px;height:48px;border-radius:14px;background:rgba(45,91,227,.08);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">✦</div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+      <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,rgba(45,91,227,.12),rgba(45,91,227,.06));display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;border:1.5px solid rgba(45,91,227,.12)">✦</div>
       <div>
-        <div class="mtl" style="margin-bottom:2px">AI налаштування</div>
-        <div style="font-size:13px;color:var(--muted)" id="ai-modal-sub">Викладач</div>
+        <div class="mtl" style="margin-bottom:3px">AI налаштування</div>
+        <div style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span id="ai-modal-sub">Викладач</span>
+        </div>
       </div>
     </div>
 
-    <!-- Індикатор — глобальні або індивідуальні -->
-    <div id="ai-modal-source" style="background:rgba(245,158,11,.06);border:1.5px solid rgba(245,158,11,.2);border-radius:12px;padding:10px 14px;font-size:13px;color:#b45309;margin-bottom:18px;display:none">
-      ℹ️ Встановлені індивідуальні налаштування (відрізняються від глобальних)
+    <!-- Індикатор — індивідуальні налаштування -->
+    <div id="ai-modal-source" style="background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(245,158,11,.04));border:1.5px solid rgba(245,158,11,.25);border-radius:12px;padding:10px 14px;font-size:13px;color:#b45309;margin-bottom:16px;display:none;align-items:center;gap:8px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Встановлені індивідуальні налаштування
     </div>
 
-    <div style="display:flex;flex-direction:column;gap:12px" id="ai-modal-toggles">
-      <!-- AI коментарі студентам -->
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:13px;border:1.5px solid var(--border);background:var(--bg)">
-        <div>
-          <div style="font-weight:600;font-size:14px">💬 AI коментарі студентам</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">Автоматичний коментар після проходження тесту</div>
+    <div style="display:flex;flex-direction:column;gap:9px" id="ai-modal-toggles">
+      <div class="feat-row">
+        <div style="display:flex;align-items:center">
+          <div class="feat-icon" style="background:rgba(45,91,227,.08)">💬</div>
+          <div><div style="font-weight:600;font-size:14px">AI коментарі студентам</div><div style="font-size:12px;color:var(--muted);margin-top:1px">Коментар після проходження тесту</div></div>
         </div>
         <label class="toggle-sw"><input type="checkbox" id="t-ai-comments"><span class="toggle-sl"></span></label>
       </div>
-
-      <!-- Персональний розбір -->
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:13px;border:1.5px solid var(--border);background:var(--bg)">
-        <div>
-          <div style="font-weight:600;font-size:14px">🔍 Персональний розбір помилок</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">Детальний аналіз помилок студента</div>
+      <div class="feat-row">
+        <div style="display:flex;align-items:center">
+          <div class="feat-icon" style="background:rgba(147,51,234,.08)">🔍</div>
+          <div><div style="font-weight:600;font-size:14px">Персональний розбір помилок</div><div style="font-size:12px;color:var(--muted);margin-top:1px">Детальний аналіз помилок студента</div></div>
         </div>
         <label class="toggle-sw"><input type="checkbox" id="t-ai-analysis"><span class="toggle-sl"></span></label>
       </div>
-
-      <!-- Генерація питань -->
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:13px;border:1.5px solid var(--border);background:var(--bg)">
-        <div>
-          <div style="font-weight:600;font-size:14px">⚡ Генерація питань</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">AI генерація питань в конструкторі тестів</div>
+      <div class="feat-row">
+        <div style="display:flex;align-items:center">
+          <div class="feat-icon" style="background:rgba(245,158,11,.08)">⚡</div>
+          <div><div style="font-weight:600;font-size:14px">Генерація питань</div><div style="font-size:12px;color:var(--muted);margin-top:1px">AI генерація в конструкторі тестів</div></div>
         </div>
         <label class="toggle-sw"><input type="checkbox" id="t-ai-generation"><span class="toggle-sl"></span></label>
       </div>
-
-      <!-- Перевірка тексту -->
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:13px;border:1.5px solid var(--border);background:var(--bg)">
-        <div>
-          <div style="font-weight:600;font-size:14px">📝 Перевірка текстових відповідей</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">AI оцінка текстових і числових відповідей</div>
+      <div class="feat-row">
+        <div style="display:flex;align-items:center">
+          <div class="feat-icon" style="background:rgba(13,158,133,.08)">📝</div>
+          <div><div style="font-weight:600;font-size:14px">Перевірка текстових відповідей</div><div style="font-size:12px;color:var(--muted);margin-top:1px">AI оцінка текстових і числових відповідей</div></div>
         </div>
         <label class="toggle-sw"><input type="checkbox" id="t-ai-textcheck"><span class="toggle-sl"></span></label>
       </div>
@@ -809,7 +815,7 @@ window.openAIModal = async (uid, name) => {
 
   // Показуємо індикатор
   const sourceEl = document.getElementById("ai-modal-source");
-  if(sourceEl) sourceEl.style.display = hasCustom ? "" : "none";
+  if(sourceEl) sourceEl.style.display = hasCustom ? "flex" : "none";
 
   openModal("m-ai");
 };
@@ -824,7 +830,7 @@ window.saveTeacherAI = async () => {
   };
   try{
     await update(ref(db,`users/${_aiTeacherId}/aiSettings`), settings);
-    document.getElementById("ai-modal-source").style.display = "";
+    document.getElementById("ai-modal-source").style.display = "flex";
     closeModal("m-ai");
     toast("Налаштування AI збережено ✅");
   }catch(e){ toast("Помилка: "+e.message); }
