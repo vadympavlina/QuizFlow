@@ -921,6 +921,11 @@ textarea.fi{resize:vertical;min-height:72px}
     <input class="fi" type="number" id="nl-m" value="30" min="1">
     <div style="font-size:12px;color:var(--muted);margin-top:4px">Скільки студентів можуть пройти по цьому посиланню</div>
   </div>
+  <div class="fl">
+    <label>Дата закриття <span style="font-weight:400;font-size:11px;color:var(--muted)">(необов'язково)</span></label>
+    <input class="fi" type="datetime-local" id="nl-close" style="cursor:pointer">
+    <div style="font-size:12px;color:var(--muted);margin-top:4px">Посилання автоматично закриється в цей час</div>
+  </div>
 
 
   <div class="fl">
@@ -1940,6 +1945,11 @@ window.renderAttempts = function(resetPage=false){
 window.renderLinks = function(){
   const tb=$("lnk-tbl");
   const base=location.origin+location.pathname.replace("index.html","");
+  // Автоматично закриваємо прострочені посилання
+  const now=Date.now();
+  links.filter(l=>l.closeAt && now>l.closeAt && l.status==="active").forEach(async l=>{
+    try{ await dbUpd(`links/${l.id}`,{status:"closed"}); l.status="closed"; }catch{}
+  });
 
   // Фільтр пошуку
   const q = $("lnk-srch")?.value?.toLowerCase() || "";
@@ -1968,7 +1978,17 @@ window.renderLinks = function(){
         <div style="font-size:13px;margin-bottom:3px">${l.usedAttempts} / ${l.maxAttempts}</div>
         <div class="pb" style="width:90px"><div class="pf" style="width:${pct}%"></div></div>
       </td>
-      <td><span class="bdg ${ia?"bg-g":"bg-r"}">${ia?"Активне":"Закрите"}</span></td>
+      <td>
+        ${(()=>{
+          const now=Date.now();
+          const expired = l.closeAt && now > l.closeAt;
+          const statusLabel = expired ? "⏰ Закрите (авто)" : ia ? "Активне" : "Закрите";
+          const statusClass = (expired || !ia) ? "bg-r" : "bg-g";
+          const closeStr = l.closeAt ? new Date(l.closeAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}) : "";
+          return \`<span class="bdg \${statusClass}">\${statusLabel}</span>\${closeStr?\`<div style="font-size:11px;color:var(--muted);margin-top:3px">⏱ до \${closeStr}</div>\`:""}
+          \`;
+        })()}
+      </td>
       <td><div class="ra">
         <div class="ib" title="QR-код" onclick="G.showQR('${l.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 14v3M14 17h3"/></svg></div>
         <div class="ib" title="Студенти" onclick="G.showStudents('${l.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
@@ -2256,7 +2276,7 @@ window.G = {
     $("nl-m").value=l.maxAttempts||30; $("nl-g").value=l.group||"";
     $("nl-sq").checked=l.shuffleQuestions||false;
     $("nl-sa").checked=l.shuffleAnswers||false;
-    const themeVal=l.theme||"";
+    if($("nl-close")){if(l.closeAt){const d=new Date(l.closeAt),pad=n=>String(n).padStart(2,"0");$("nl-close").value=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;} else{$("nl-close").value="";}}
     openM("m-link");
   },
   async submitLink(){
@@ -2265,8 +2285,10 @@ window.G = {
     const shuffleAnswers  =$("nl-sa")?.checked||false;
     if(editId){
       try{
-        await dbUpd(`links/${editId}`,{maxAttempts:mx,group,shuffleQuestions,shuffleAnswers});
-        links=links.map(l=>l.id===editId?{...l,maxAttempts:mx,group,shuffleQuestions,shuffleAnswers}:l);
+        const closeAtVal2 = $("nl-close")?.value;
+        const closeAt2 = closeAtVal2 ? new Date(closeAtVal2).getTime() : null;
+        await dbUpd(`links/${editId}`,{maxAttempts:mx,group,shuffleQuestions,shuffleAnswers,closeAt:closeAt2});
+        links=links.map(l=>l.id===editId?{...l,maxAttempts:mx,group,shuffleQuestions,shuffleAnswers,closeAt:closeAt2}:l);
         closeM("m-link");renderLinks();toast("Збережено");
       }catch(e){toast("Помилка: "+e.message,"err");}
       return;
@@ -2274,7 +2296,9 @@ window.G = {
     const tid=$("nl-t").value;
     if(!tid){toast("Оберіть тест","err");return;}
     try{
-      await dbPush("links",{testId:tid,maxAttempts:mx,usedAttempts:0,status:"active",group,shuffleQuestions,shuffleAnswers,createdAt:ts()});
+      const closeAtVal = $("nl-close")?.value;
+      const closeAt = closeAtVal ? new Date(closeAtVal).getTime() : null;
+      await dbPush("links",{testId:tid,maxAttempts:mx,usedAttempts:0,status:"active",group,shuffleQuestions,shuffleAnswers,closeAt,createdAt:ts()});
       // onValue сам оновить links[] — не додаємо вручну
       closeM("m-link");toast("Посилання створено");
     }catch(e){toast("Помилка: "+e.message,"err");}

@@ -1763,6 +1763,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     linkData = await getLink(linkId);
     if (!linkData)                               return showError("Посилання не знайдено.");
     if (linkData.status !== "active")            return showError("Доступ до тесту закрито.");
+    if (linkData.closeAt && Date.now() > linkData.closeAt) return showError("Час доступу до тесту вийшов. Посилання автоматично закрито.");
     if (linkData.usedAttempts >= linkData.maxAttempts)
                                                  return showError("Вичерпано ліміт спроб для цього посилання.");
 
