@@ -1034,6 +1034,26 @@ const sbRole=document.getElementById("sb-role");
 if(sbRole) sbRole.textContent=_user.role==="admin"?"Адміністратор":"Викладач";
 window.doLogout = ()=>{sessionStorage.clear();location.href="login.html";};
 
+// ─── НАВІГАЦІЯ ────────────────────────────────────────────────────────────────
+function showSec(name){
+  document.querySelectorAll(".sec").forEach(s=>s.classList.remove("on"));
+  document.querySelectorAll(".ni").forEach(n=>n.classList.remove("active"));
+  const sec=document.getElementById("sec-"+name);
+  if(sec) sec.classList.add("on");
+  const ni=document.getElementById("ni-"+name);
+  if(ni) ni.classList.add("active");
+  // Рендеримо секцію при відкритті
+  if(name==="suspicious")     G.renderSuspicious();
+  else if(name==="online")    G.renderOnline();
+  else if(name==="notifications") G.renderNotifications();
+  else if(name==="gradebook") G.renderGradebook && G.renderGradebook();
+  else if(name==="analytics") G.renderAnalytics && G.renderAnalytics();
+  else if(name==="archive")   G.renderArchive && G.renderArchive();
+  // Зберігаємо для відновлення після редиректу
+  sessionStorage.setItem("qf_nav", name);
+}
+window.showSec = showSec;
+
 // UTILS
 const $ = id => document.getElementById(id);
 const esc = s => String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
