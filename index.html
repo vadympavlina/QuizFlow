@@ -265,6 +265,14 @@ textarea.fi{resize:vertical;min-height:72px}
       Адмін-панель
     </div>
   </a>
+  <!-- Кнопка інструкції — під блоком імені -->
+  <button onclick="openOnboarding()" style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;background:none;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.4);font-size:12px;font-weight:500;cursor:pointer;width:100%;transition:all .15s;margin-bottom:6px"
+    onmouseover="this.style.background='rgba(255,255,255,.06)';this.style.color='rgba(255,255,255,.7)'"
+    onmouseout="this.style.background='none';this.style.color='rgba(255,255,255,.4)'">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    Інструкція до платформи
+  </button>
+
   <div class="sb-foot">
     <div class="ava" id="sb-ava">ВЧ</div>
     <div><div class="sb-name" id="sb-teacher-name">Викладач</div><div class="sb-role" id="sb-role">Викладач</div></div>
@@ -1084,6 +1092,8 @@ async function loadAll(){
     renderAll();
     // Запускаємо real-time підписку на спроби після першого завантаження
     if(!_realtimeActive) startRealtimeListeners();
+    // Онбординг — показуємо якщо ще не пройдено
+    checkOnboarding();
   }catch(e){toast("Помилка завантаження: "+e.message,"err");}
   ldr(false);
 }
@@ -3111,6 +3121,26 @@ window.G = {
 <table><thead><tr><th>Студент</th>${thHTML}</tr></thead>
 <tbody>${rowsHTML}</tbody></table>
 <div class="footer">QuizFlow — система тестування</div>
+
+<!-- ONBOARDING MODAL -->
+<div id="m-onboarding" style="position:fixed;inset:0;background:rgba(10,14,46,.65);backdrop-filter:blur(8px);z-index:500;display:none;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:24px;width:100%;max-width:600px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.2);position:relative">
+    <!-- Прогрес лінія -->
+    <div style="height:4px;background:var(--border)"><div id="ob-progress" style="height:100%;background:var(--grad);transition:width .4s ease;border-radius:4px"></div></div>
+    <!-- Контент -->
+    <div id="ob-content" style="padding:40px 44px 32px"></div>
+    <!-- Навігація -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 44px 32px">
+      <button id="ob-prev" onclick="obNav(-1)" style="display:none;padding:10px 20px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s"
+        onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">← Назад</button>
+      <div style="display:flex;gap:6px;align-items:center" id="ob-dots"></div>
+      <button id="ob-next" onclick="obNav(1)" style="padding:11px 24px;border-radius:12px;border:none;background:var(--grad);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(45,91,227,.3);transition:all .2s"
+        onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">Далі →</button>
+    </div>
+  </div>
+</div>
+
 </body></html>`;
       const blob=new Blob([html],{type:"text/html;charset=utf-8"});
       const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=fname+".html";a.click();
@@ -3803,5 +3833,163 @@ loadAll().then(() => {
   }
 });
 </script>
+
+<!-- ONBOARDING MODAL -->
+<div id="m-onboarding" style="position:fixed;inset:0;background:rgba(10,14,46,.65);backdrop-filter:blur(8px);z-index:500;display:none;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:24px;width:100%;max-width:600px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.2);position:relative">
+    <!-- Прогрес лінія -->
+    <div style="height:4px;background:var(--border)"><div id="ob-progress" style="height:100%;background:var(--grad);transition:width .4s ease;border-radius:4px"></div></div>
+    <!-- Контент -->
+    <div id="ob-content" style="padding:40px 44px 32px"></div>
+    <!-- Навігація -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 44px 32px">
+      <button id="ob-prev" onclick="obNav(-1)" style="display:none;padding:10px 20px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s"
+        onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">← Назад</button>
+      <div style="display:flex;gap:6px;align-items:center" id="ob-dots"></div>
+      <button id="ob-next" onclick="obNav(1)" style="padding:11px 24px;border-radius:12px;border:none;background:var(--grad);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(45,91,227,.3);transition:all .2s"
+        onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">Далі →</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
+// ─── ONBOARDING ───────────────────────────────────────────────────────────────
+const OB_STEPS = [
+  {
+    icon: "👋",
+    title: "Ласкаво просимо до QuizFlow!",
+    text: "QuizFlow — платформа для створення тестів та відстеження результатів студентів. За кілька хвилин ви дізнаєтесь як нею користуватись.",
+    color: "#2d5be3"
+  },
+  {
+    icon: "📁",
+    title: "Папки та тести",
+    text: "Спочатку створіть <b>папку</b> — для організації тестів по темах або групах. Потім додайте тести всередину. Перейдіть у вкладку <b>Тести</b> → кнопка «Нова папка».",
+    color: "#9333ea"
+  },
+  {
+    icon: "✏️",
+    title: "Конструктор тестів",
+    text: "Натисніть на тест щоб відкрити <b>конструктор</b>. Тут можна додавати питання різних типів: одна відповідь, кілька відповідей, текстова відповідь, розгорнута, числова і впорядкування.",
+    color: "#0d9e85"
+  },
+  {
+    icon: "⚡",
+    title: "AI Генерація питань",
+    text: "В конструкторі натисніть <b>AI Генерація</b> — вкажіть тему, складність і кількість питань. ШІ автоматично згенерує готові питання з варіантами відповідей.",
+    color: "#f59e0b"
+  },
+  {
+    icon: "🔗",
+    title: "Посилання для студентів",
+    text: "Щоб відправити тест студентам — створіть <b>посилання</b>. Вкажіть групу, ліміт спроб. Скопіюйте посилання і відправте студентам — вони відкриють тест без реєстрації.",
+    color: "#2d5be3"
+  },
+  {
+    icon: "📊",
+    title: "Результати та оцінки",
+    text: "Всі спроби відображаються у вкладці <b>Спроби</b>. Натисніть «Переглянути» щоб побачити детальні відповіді, оцінку від ШІ та персональний розбір помилок.",
+    color: "#0d9e85"
+  },
+  {
+    icon: "👥",
+    title: "Картки студентів",
+    text: "Вкладка <b>Студенти</b> — автоматично накопичує картки з усіма спробами кожного студента. Можна об'єднати картки якщо студент вводив різні написання імені.",
+    color: "#9333ea"
+  },
+  {
+    icon: "⚠️",
+    title: "Моніторинг та безпека",
+    text: "<b>Онлайн зараз</b> — бачите хто проходить тест в реальному часі і на якому питанні. <b>Підозрілі</b> — спроби де були переключення вкладок, копіювання або скріншоти.",
+    color: "#f43f5e"
+  },
+  {
+    icon: "📓",
+    title: "Журнал оцінок",
+    text: "Вкладка <b>Журнал</b> — зручна таблиця всіх оцінок по групах та тестах. Можна експортувати в CSV або HTML для звітності.",
+    color: "#0ea5e9"
+  },
+  {
+    icon: "🎉",
+    title: "Все готово!",
+    text: "Ви знаєте основи QuizFlow. Якщо виникнуть питання — натисніть <b>Інструкція</b> в нижній частині меню щоб переглянути цей гайд ще раз. Успіхів!",
+    color: "#0d9e85"
+  }
+];
+
+let _obStep = 0;
+
+window.openOnboarding = () => {
+  _obStep = 0;
+  document.getElementById("m-onboarding").style.display = "flex";
+  renderObStep();
+};
+
+window.obNav = (dir) => {
+  _obStep = Math.max(0, Math.min(OB_STEPS.length - 1, _obStep + dir));
+  renderObStep();
+  if(_obStep === OB_STEPS.length - 1){
+    // Останній крок — зберігаємо що онбординг пройдено
+    dbUpd("meta", { onboardingDone: true }).catch(()=>{});
+  }
+};
+
+function renderObStep(){
+  const step = OB_STEPS[_obStep];
+  const total = OB_STEPS.length;
+  const isLast = _obStep === total - 1;
+  const isFirst = _obStep === 0;
+
+  // Прогрес
+  document.getElementById("ob-progress").style.width = (((_obStep+1)/total)*100)+"%";
+
+  // Крапки
+  document.getElementById("ob-dots").innerHTML = OB_STEPS.map((_,i)=>
+    `<div style="width:${i===_obStep?20:7}px;height:7px;border-radius:4px;background:${i===_obStep?"var(--primary)":"var(--border)"};transition:all .3s"></div>`
+  ).join("");
+
+  // Контент
+  document.getElementById("ob-content").innerHTML = `
+    <div style="width:64px;height:64px;border-radius:18px;background:${step.color}18;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:22px">${step.icon}</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Крок ${_obStep+1} з ${total}</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--text);margin-bottom:14px;line-height:1.25">${step.title}</div>
+    <div style="font-size:15px;color:var(--muted);line-height:1.7">${step.text}</div>
+  `;
+
+  // Кнопки
+  const prev = document.getElementById("ob-prev");
+  const next = document.getElementById("ob-next");
+  prev.style.display = isFirst ? "none" : "";
+  next.textContent = isLast ? "Розпочати роботу ✓" : "Далі →";
+  if(isLast){
+    next.style.background = "linear-gradient(135deg,#0d9e85,#077a67)";
+    next.onclick = () => {
+      document.getElementById("m-onboarding").style.display = "none";
+    };
+  } else {
+    next.style.background = "var(--grad)";
+    next.onclick = () => obNav(1);
+  }
+}
+
+// Закриття по кліку на оверлей
+document.getElementById("m-onboarding").addEventListener("click", e=>{
+  if(e.target === document.getElementById("m-onboarding")){
+    document.getElementById("m-onboarding").style.display = "none";
+  }
+});
+
+// Перевірка після завантаження — показуємо якщо перший вхід
+async function checkOnboarding(){
+  try{
+    const snap = await dbGet("meta/onboardingDone");
+    if(!snap.exists() || snap.val() !== true){
+      // Показуємо з затримкою щоб дашборд завантажився
+      setTimeout(()=>openOnboarding(), 1200);
+    }
+  }catch{}
+}
+
+
