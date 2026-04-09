@@ -208,7 +208,7 @@ window.doChangePass = async () => {
     _currentUser.password = p1;
     _currentUser.isFirstLogin = false;
     saveSession(_currentUser);
-    window.location.href = "index.html";
+    window.location.href = "onboarding.html";
   }catch(e){ showError2("Помилка: " + e.message); setLoading("changeBtn","changeBtnText",false); }
 };
 

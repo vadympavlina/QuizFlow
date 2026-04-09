@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/></svg>">
+<title>QuizFlow — Знайомство</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--primary:#2d5be3;--grad:linear-gradient(135deg,#2d5be3,#1a3ab8);--text:#0d1340;--muted:#6b7280;--border:#e5e8f0;--bg:#f0f3fa}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"DM Sans",sans-serif;background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden}
+  body::before{content:"";position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(45,91,227,.07),transparent 70%);top:-150px;right:-150px;pointer-events:none}
+  body::after{content:"";position:absolute;width:400px;height:400px;background:radial-gradient(circle,rgba(20,212,180,.05),transparent 70%);bottom:-100px;left:-100px;pointer-events:none}
+  .card{background:#fff;border-radius:24px;width:100%;max-width:580px;overflow:hidden;box-shadow:0 24px 80px rgba(45,91,227,.12);position:relative;z-index:1;animation:cardIn .4s cubic-bezier(.34,1.56,.64,1) both}
+  @keyframes cardIn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
+  .progress-bar{height:4px;background:var(--border)}
+  .progress-fill{height:100%;background:var(--grad);transition:width .4s ease;border-radius:4px}
+  .content{padding:44px 48px 32px}
+  .step-icon{width:68px;height:68px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:24px}
+  .step-num{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:600;margin-bottom:10px}
+  .step-title{font-family:"Syne",sans-serif;font-weight:800;font-size:24px;color:var(--text);margin-bottom:14px;line-height:1.2}
+  .step-text{font-size:15px;color:var(--muted);line-height:1.75}
+  .step-text b{color:var(--text);font-weight:600}
+  .footer{display:flex;align-items:center;justify-content:space-between;padding:24px 48px 36px}
+  .dots{display:flex;gap:6px;align-items:center}
+  .dot{height:7px;border-radius:4px;background:var(--border);transition:all .3s}
+  .dot.active{background:var(--primary)}
+  .btn-prev{padding:10px 22px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s;font-family:"DM Sans",sans-serif}
+  .btn-prev:hover{border-color:var(--primary);color:var(--primary)}
+  .btn-next{padding:12px 28px;border-radius:12px;border:none;background:var(--grad);color:#fff;font-family:"Syne",sans-serif;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 4px 16px rgba(45,91,227,.3);transition:all .2s}
+  .btn-next:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(45,91,227,.4)}
+  .skip-link{position:absolute;top:20px;right:20px;font-size:13px;color:var(--muted);cursor:pointer;padding:6px 12px;border-radius:8px;transition:all .15s;text-decoration:none;background:none;border:none}
+  .skip-link:hover{background:rgba(0,0,0,.04);color:var(--text)}
+  @keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+  .content{animation:slideIn .25s ease}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+  <button class="skip-link" onclick="finish()">Пропустити →</button>
+
+  <div class="content" id="content"></div>
+
+  <div class="footer">
+    <button class="btn-prev" id="btn-prev" onclick="nav(-1)" style="visibility:hidden">← Назад</button>
+    <div class="dots" id="dots"></div>
+    <button class="btn-next" id="btn-next" onclick="nav(1)">Далі →</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, update, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const cfg = {
+  apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",
+  authDomain:"quizflow-8a978.firebaseapp.com",
+  databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"quizflow-8a978"
+};
+const app = getApps().length ? getApps()[0] : initializeApp(cfg);
+const db  = getDatabase(app);
+
+// Перевірка сесії
+const sess = sessionStorage.getItem("qf_user");
+if(!sess){ location.href = "login.html"; throw ""; }
+const user = JSON.parse(sess);
+if(!user?.id){ location.href = "login.html"; throw ""; }
+
+const STEPS = [
+  {
+    icon:"👋", color:"#2d5be3",
+    title:"Ласкаво просимо до QuizFlow!",
+    text:"QuizFlow — платформа для створення тестів та відстеження результатів студентів. За кілька хвилин ви дізнаєтесь як нею користуватись."
+  },
+  {
+    icon:"📁", color:"#9333ea",
+    title:"Папки та тести",
+    text:"Спочатку створіть <b>папку</b> для організації тестів по темах або групах. Перейдіть у вкладку <b>Тести</b> → кнопка «Нова папка». Потім додайте тести всередину."
+  },
+  {
+    icon:"✏️", color:"#0d9e85",
+    title:"Конструктор тестів",
+    text:"Натисніть на тест щоб відкрити <b>конструктор</b>. Є типи питань: одна відповідь, кілька відповідей, текстова, розгорнута, числова та впорядкування."
+  },
+  {
+    icon:"⚡", color:"#f59e0b",
+    title:"AI Генерація питань",
+    text:"В конструкторі натисніть <b>AI Генерація</b> — вкажіть тему, складність і кількість питань. ШІ автоматично згенерує готові питання з варіантами відповідей."
+  },
+  {
+    icon:"🔗", color:"#2d5be3",
+    title:"Посилання для студентів",
+    text:"Щоб відправити тест студентам — створіть <b>посилання</b>. Вкажіть групу і ліміт спроб. Скопіюйте та відправте — студенти відкриють без реєстрації."
+  },
+  {
+    icon:"📊", color:"#0d9e85",
+    title:"Результати та оцінки",
+    text:"Всі спроби у вкладці <b>Спроби</b>. Натисніть «Переглянути» щоб побачити детальні відповіді, оцінку від ШІ та персональний розбір помилок."
+  },
+  {
+    icon:"👥", color:"#9333ea",
+    title:"Картки студентів",
+    text:"Вкладка <b>Студенти</b> автоматично накопичує картки з усіма спробами кожного студента. Можна об'єднати дублікати якщо студент вводив різні написання."
+  },
+  {
+    icon:"⚠️", color:"#f43f5e",
+    title:"Моніторинг та безпека",
+    text:"<b>Онлайн зараз</b> — бачите хто проходить тест і на якому питанні. <b>Підозрілі</b> — спроби де були переключення вкладок, копіювання або скріншоти."
+  },
+  {
+    icon:"📓", color:"#0ea5e9",
+    title:"Журнал оцінок",
+    text:"Вкладка <b>Журнал</b> — зручна таблиця всіх оцінок по групах та тестах. Можна експортувати в CSV або HTML для звітності та друку."
+  },
+  {
+    icon:"🎉", color:"#0d9e85",
+    title:"Все готово!",
+    text:"Ви знаєте основи QuizFlow. Натисніть <b>Інструкція</b> в нижній частині меню щоб переглянути цей гайд ще раз у будь-який момент. Успіхів!"
+  }
+];
+
+let step = 0;
+
+function render(){
+  const s = STEPS[step];
+  const total = STEPS.length;
+  const isLast = step === total - 1;
+  const isFirst = step === 0;
+
+  document.getElementById("progress").style.width = ((step+1)/total*100) + "%";
+
+  // Крапки
+  document.getElementById("dots").innerHTML = STEPS.map((_,i) =>
+    `<div class="dot${i===step?" active":""}" style="width:${i===step?22:7}px"></div>`
+  ).join("");
+
+  // Контент — перезаписуємо і перезапускаємо анімацію
+  const contentEl = document.getElementById("content");
+  contentEl.style.animation = "none";
+  contentEl.offsetHeight; // reflow
+  contentEl.style.animation = "";
+
+  contentEl.innerHTML = `
+    <div class="step-icon" style="background:${s.color}15">${s.icon}</div>
+    <div class="step-num">Крок ${step+1} з ${total}</div>
+    <div class="step-title">${s.title}</div>
+    <div class="step-text">${s.text}</div>
+  `;
+
+  // Кнопки
+  const prev = document.getElementById("btn-prev");
+  const next = document.getElementById("btn-next");
+  prev.style.visibility = isFirst ? "hidden" : "visible";
+  if(isLast){
+    next.textContent = "Розпочати роботу ✓";
+    next.style.background = "linear-gradient(135deg,#0d9e85,#077a67)";
+    next.style.boxShadow = "0 4px 16px rgba(13,158,133,.3)";
+  } else {
+    next.textContent = "Далі →";
+    next.style.background = "var(--grad)";
+    next.style.boxShadow = "0 4px 16px rgba(45,91,227,.3)";
+  }
+}
+
+window.nav = (dir) => {
+  step = Math.max(0, Math.min(STEPS.length-1, step+dir));
+  render();
+  if(step === STEPS.length-1) finish(false); // зберігаємо але не редіректимо
+};
+
+window.finish = async (redirect=true) => {
+  try{
+    await update(ref(db, `teachers/${user.id}/meta`), { onboardingDone: true });
+  }catch(e){ console.warn(e); }
+  if(redirect) location.href = "index.html";
+};
+
+// Перехоплюємо btn-next на останньому кроці
+document.getElementById("btn-next").addEventListener("click", () => {
+  if(step === STEPS.length-1){ window.finish(true); }
+});
+
+render();
+</script>
+</body>
+</html>
