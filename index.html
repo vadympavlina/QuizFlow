@@ -1123,6 +1123,7 @@ function showSec(name){
   else if(name==="notifications") G.renderNotifications();
   else if(name==="gradebook") G.renderGradebook && G.renderGradebook();
   else if(name==="analytics") G.renderAnalytics && G.renderAnalytics();
+  else if(name==="students")  G.initStudents && G.initStudents();
   else if(name==="archive")   G.renderArchive && G.renderArchive();
   // Зберігаємо для відновлення після редиректу
   sessionStorage.setItem("qf_nav", name);
