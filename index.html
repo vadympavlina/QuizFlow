@@ -1093,7 +1093,7 @@ async function loadAll(){
     // Запускаємо real-time підписку на спроби після першого завантаження
     if(!_realtimeActive) startRealtimeListeners();
     // Онбординг — показуємо якщо ще не пройдено
-    checkOnboarding();
+    setTimeout(()=>{ if(typeof checkOnboarding==="function") checkOnboarding(); },100);
   }catch(e){toast("Помилка завантаження: "+e.message,"err");}
   ldr(false);
 }
