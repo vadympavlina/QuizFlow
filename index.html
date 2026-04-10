@@ -486,60 +486,8 @@ textarea.fi{resize:vertical;min-height:72px}
           <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600">Здали (≥4)</div>
         </div>
 
-      </div><div style="display:flex;flex-direction:column;gap:14px">
-
-        <!-- Потребують перевірки -->
-        <div onclick="showSec('attempts')" style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:16px 20px;cursor:pointer;transition:all .2s;flex:1"
-          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(0,0,0,.07)';this.style.borderColor='rgba(245,158,11,.35)'"
-          onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-            <div style="width:30px;height:30px;border-radius:9px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            </div>
-            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:28px;color:#f59e0b;line-height:1" id="s-pending">—</div>
-          </div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600">На перевірці</div>
-        </div>
-
-        <!-- Відсоток успішності -->
-        <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:16px 20px;transition:all .2s;flex:1"
-          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(0,0,0,.07)'"
-          onmouseout="this.style.transform='';this.style.boxShadow=''">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-            <div style="width:30px;height:30px;border-radius:9px;background:rgba(13,158,133,.1);display:flex;align-items:center;justify-content:center">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0d9e85" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:28px;color:#0d9e85;line-height:1" id="s-passrate">—</div>
-          </div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600">% Здали (≥4)</div>
-        </div>
-
-      </div><div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:20px 22px;transition:all .2s"
-        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(0,0,0,.07)'"
-        onmouseout="this.style.transform='';this.style.boxShadow=''">
-        <!-- На перевірці -->
-        <div onclick="showSec('attempts')" style="display:flex;flex-direction:column;gap:10px;cursor:pointer;padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:10px">
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <div style="width:30px;height:30px;border-radius:9px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            </div>
-            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:30px;color:#f59e0b;line-height:1" id="s-pending">—</div>
-          </div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600">На перевірці</div>
-        </div>
-        <!-- % Здали -->
-        <div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-            <div style="width:30px;height:30px;border-radius:9px;background:rgba(13,158,133,.1);display:flex;align-items:center;justify-content:center">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0d9e85" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:30px;color:#0d9e85;line-height:1" id="s-passrate">—</div>
-          </div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600">% Здали (≥4)</div>
-        </div>
       </div>
     </div>
-
     <!-- Нижній блок -->
     <div style="display:grid;grid-template-columns:1fr 300px;gap:16px">
 
