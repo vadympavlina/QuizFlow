@@ -1065,6 +1065,7 @@ if(sbAva) sbAva.textContent=(_user.name||_user.login||"?").slice(0,2).toUpperCas
 const sbRole=document.getElementById("sb-role");
 if(sbRole) sbRole.textContent=_user.role==="admin"?"Адміністратор":"Викладач";
 window.doLogout = ()=>{sessionStorage.clear();location.href="login.html";};
+window.$ = id => document.getElementById(id);
 
 // ─── НАВІГАЦІЯ ────────────────────────────────────────────────────────────────
 function openM(id){
@@ -2019,6 +2020,24 @@ window.renderLinks = function(){
 
 
 // G — global actions
+// ─── GROQ для AI аналізу ──────────────────────────────────────────────────────
+async function callGroq(messages, maxTokens=800, temp=0.5){
+  try{
+    const snap=await get(ref(db,"settings/ai"));
+    let key="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";
+    let model="llama-3.3-70b-versatile";
+    if(snap.exists()){ const s=snap.val(); if(s.apiKey)key=s.apiKey; if(s.model)model=s.model; }
+    const res=await fetch("https://api.groq.com/openai/v1/chat/completions",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
+      body:JSON.stringify({model,messages:[{role:"system",content:"Відповідай виключно українською мовою."},...messages],max_tokens:maxTokens,temperature:temp})
+    });
+    const d=await res.json();
+    if(d.error) throw new Error(d.error.message);
+    return d.choices?.[0]?.message?.content||"";
+  }catch(e){throw e;}
+}
+
 window.G = {
   // Folders
   setFF(v){ _fFilter=v; renderTests(document.getElementById("srch")?.value||""); },
@@ -2272,6 +2291,10 @@ window.G = {
     $("cd-nl-t").style.display="block";
     $("nl-submit-btn").textContent="Створити →";
     $("nl-t").value=tid; $("nl-m").value="30"; $("nl-g").value="";
+    // Оновлюємо label кастомного дропдауну
+    const selT=tests.find(x=>x.id===tid);
+    if(selT&&$("cd-nl-t-label")) $("cd-nl-t-label").textContent=selT.title;
+    else if($("cd-nl-t-label")) $("cd-nl-t-label").textContent="Оберіть тест...";
     $("nl-sq").checked=false; $("nl-sa").checked=false;
     // Оновлюємо кастомний дропдаун
     const selTest=tests.find(t=>t.id===tid);
@@ -2586,9 +2609,9 @@ window.G = {
         ansHtml=(q.options||[]).map((o,j)=>{
           const correct=Array.isArray(q.correct)?q.correct.includes(j):q.correct===j;
           const chosen=Array.isArray(userAns)?userAns.includes(j):userAns===j;
-          const bg=correct?"rgba(13,158,133,.08)":chosen&&!correct?"rgba(244,63,94,.07)":"";
-          const border=correct?"1.5px solid rgba(13,158,133,.3)":chosen&&!correct?"1.5px solid rgba(244,63,94,.25)":"1.5px solid var(--border)";
-          const icon=correct?"✅":chosen&&!correct?"❌":"";
+          const bg=chosen&&correct?"rgba(13,158,133,.08)":chosen&&!correct?"rgba(244,63,94,.07)":correct?"rgba(13,158,133,.04)":"";
+          const border=chosen&&correct?"1.5px solid rgba(13,158,133,.3)":chosen&&!correct?"1.5px solid rgba(244,63,94,.25)":correct?"1.5px solid rgba(13,158,133,.2)":"1.5px solid var(--border)";
+          const icon=chosen&&correct?"✅":chosen&&!correct?"❌":correct?"☑️":"";
           return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:${bg};border:${border};margin-bottom:6px">
             <span style="font-size:13px;flex:1">${esc(o)}</span>
             ${icon?`<span style="font-size:13px">${icon}</span>`:""}
@@ -2653,10 +2676,7 @@ window.G = {
           <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--primary);font-weight:600;margin-bottom:6px">✦ AI Коментар</div>
           ${esc(a.aiComment)}
         </div>`:""}
-        <button onclick="G.personalAnalysis('${a.id}')"
-          style="display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:12px;border:none;background:linear-gradient(135deg,#2d5be3,#1530a0);color:#fff;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;box-shadow:0 4px 14px rgba(45,91,227,.3);transition:all .2s;align-self:flex-start"
-          onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <button class="btn bp btn-sm" onclick="G.personalAnalysis('${a.id}')" style="align-self:flex-start;gap:6px">
           ✦ Персональний розбір
         </button>
       </div>
@@ -3597,6 +3617,29 @@ window.G = {
     </div>
     ` : ""}
     `;
+  },
+
+  showStats(testId){
+    showSec("analytics");
+    const sel=document.getElementById("an-test");
+    if(sel){ sel.value=testId; }
+    const lbl=document.getElementById("cd-an-test-label");
+    const t=tests.find(x=>x.id===testId);
+    if(lbl&&t) lbl.textContent=t.title;
+    window.G.renderAnalytics&&window.G.renderAnalytics();
+  },
+
+  showStudents(linkId){
+    showSec("students");
+    // Фільтруємо студентів по групі посилання
+    const l=links.find(x=>x.id===linkId);
+    if(l?.group){
+      const sel=document.getElementById("st-group");
+      if(sel) sel.value=l.group;
+      const lbl=document.getElementById("cd-st-group-label");
+      if(lbl) lbl.textContent=l.group;
+    }
+    window.G.initStudents&&window.G.initStudents();
   }}
 
 window.openOnboarding = () => {
