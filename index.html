@@ -983,54 +983,85 @@ textarea.fi{resize:vertical;min-height:72px}
 </div></div>
 
 <!-- Нове посилання -->
-<div class="mo" id="m-link"><div class="mb" style="max-width:460px">
-  <button class="mcl" onclick="closeM('m-link')">×</button>
-  <div style="font-size:26px;margin-bottom:8px">🔗</div>
-  <div class="mtl" id="m-link-title">Нове посилання</div>
-  <div class="msu" id="m-link-sub">Для студентів на тест</div>
-  <div class="fl" id="m-link-test-wrap">
-    <label>Тест *</label>
-    <div class="cd-wrap" id="cd-nl-t" style="display:block">
-      <button class="cd-btn" style="width:100%;justify-content:space-between;padding:11px 14px;border-radius:11px" onclick="G.toggleDrop('cd-nl-t')">
-        <span class="cd-label" id="cd-nl-t-label" style="font-size:14px">Оберіть тест...</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="cd-menu" id="cd-nl-t-menu" style="width:100%"></div>
-    </div>
-    <select class="fi" id="nl-t" style="display:none"></select>
-  </div>
-  <div class="fl"><label>Назва групи <span style="font-weight:400;font-size:11px;color:var(--muted)">(необов'язково)</span></label>
-    <input class="fi" id="nl-g" placeholder="Наприклад: ПК-21, Потік А, Іспит...">
-  </div>
-  <div class="fl"><label>Ліміт спроб</label>
-    <input class="fi" type="number" id="nl-m" value="30" min="1">
-    <div style="font-size:12px;color:var(--muted);margin-top:4px">Скільки студентів можуть пройти по цьому посиланню</div>
-  </div>
-  <div class="fl">
-    <label>Дата закриття <span style="font-weight:400;font-size:11px;color:var(--muted)">(необов'язково)</span></label>
-    <input class="fi" type="datetime-local" id="nl-close" style="cursor:pointer">
-    <div style="font-size:12px;color:var(--muted);margin-top:4px">Посилання автоматично закриється в цей час</div>
-  </div>
+<div class="mo" id="m-link">
+  <div class="mb" style="max-width:500px;padding:0;overflow:hidden">
+    <button onclick="closeM('m-link')"
+      style="position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;line-height:1;transition:all .15s"
+      onmouseover="this.style.background='rgba(255,255,255,.25)'"
+      onmouseout="this.style.background='rgba(255,255,255,.15)'">×</button>
 
+    <!-- Шапка -->
+    <div style="background:linear-gradient(135deg,#1e2d6b,#0d1340);padding:24px 28px 20px;position:relative;overflow:hidden">
+      <div style="position:absolute;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.04);top:-60px;right:-40px"></div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="width:44px;height:44px;border-radius:13px;background:rgba(45,91,227,.5);border:1.5px solid rgba(45,91,227,.6);display:flex;align-items:center;justify-content:center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        </div>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff" id="m-link-title">Нове посилання</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:2px" id="m-link-sub">Для студентів на тест</div>
+        </div>
+      </div>
+    </div>
 
-  <div class="fl">
-    <label style="margin-bottom:10px">Перемішування</label>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:400;text-transform:none;letter-spacing:0">
-        <input type="checkbox" id="nl-sq" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer">
-        Перемішувати питання
-      </label>
-      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:400;text-transform:none;letter-spacing:0">
-        <input type="checkbox" id="nl-sa" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer">
-        Перемішувати варіанти відповідей
-      </label>
+    <!-- Тіло -->
+    <div style="padding:22px 28px 24px;display:flex;flex-direction:column;gap:16px">
+
+      <!-- Тест -->
+      <div id="m-link-test-wrap" class="fl" style="margin:0">
+        <label>Тест *</label>
+        <div class="cd-wrap" id="cd-nl-t" style="display:block">
+          <button class="cd-btn" style="width:100%;justify-content:space-between;padding:11px 14px;border-radius:11px" onclick="G.toggleDrop('cd-nl-t')">
+            <span class="cd-label" id="cd-nl-t-label" style="font-size:14px">Оберіть тест...</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="cd-menu" id="cd-nl-t-menu" style="width:100%"></div>
+        </div>
+        <select class="fi" id="nl-t" style="display:none"></select>
+      </div>
+
+      <!-- Група + Ліміт в ряд -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="fl" style="margin:0">
+          <label>Назва групи <span style="font-weight:400;font-size:11px;color:var(--muted);text-transform:none;letter-spacing:0">(необов'язково)</span></label>
+          <input class="fi" id="nl-g" placeholder="ПК-21, Потік А...">
+        </div>
+        <div class="fl" style="margin:0">
+          <label>Ліміт спроб</label>
+          <input class="fi" type="number" id="nl-m" value="30" min="1">
+        </div>
+      </div>
+
+      <!-- Дата закриття -->
+      <div class="fl" style="margin:0">
+        <label>Дата закриття <span style="font-weight:400;font-size:11px;color:var(--muted);text-transform:none;letter-spacing:0">(необов'язково)</span></label>
+        <input class="fi" type="datetime-local" id="nl-close" style="cursor:pointer">
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">Посилання автоматично закриється в цей час</div>
+      </div>
+
+      <!-- Перемішування -->
+      <div style="background:rgba(45,91,227,.04);border:1.5px solid rgba(45,91,227,.1);border-radius:12px;padding:14px 16px">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Перемішування</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:400">
+            <input type="checkbox" id="nl-sq" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer">
+            Перемішувати питання
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:400">
+            <input type="checkbox" id="nl-sa" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer">
+            Перемішувати варіанти відповідей
+          </label>
+        </div>
+      </div>
+
+      <!-- Кнопки -->
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn bs" onclick="closeM('m-link')" style="flex:1">Скасувати</button>
+        <button class="btn bp" id="nl-submit-btn" onclick="G.submitLink()" style="flex:2">Створити →</button>
+      </div>
     </div>
   </div>
-  <div class="ma">
-    <button class="btn bs" onclick="closeM('m-link')">Скасувати</button>
-    <button class="btn bp" id="nl-submit-btn" onclick="G.submitLink()">Створити →</button>
-  </div>
-</div></div>
+</div>
 
 
 <!-- SHARE TEST MODAL -->
@@ -1109,20 +1140,49 @@ textarea.fi{resize:vertical;min-height:72px}
 </div></div>
 
 <!-- QR-код посилання -->
-<div class="mo" id="m-qr"><div class="mb" style="max-width:360px;text-align:center">
-  <button class="mcl" onclick="closeM('m-qr')">×</button>
-  <div style="font-size:24px;margin-bottom:8px">📱</div>
-  <div class="mtl" id="qr-title" style="margin-bottom:4px"></div>
-  <div style="font-size:13px;color:var(--muted);margin-bottom:18px" id="qr-group"></div>
-  <div style="background:#fff;padding:16px;border-radius:16px;border:1.5px solid var(--border);display:inline-block;margin-bottom:16px">
-    <div id="qr-canvas"></div>
+<div class="mo" id="m-qr">
+  <div class="mb" style="max-width:380px;padding:0;overflow:hidden;text-align:center">
+    <button onclick="closeM('m-qr')"
+      style="position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;line-height:1;transition:all .15s"
+      onmouseover="this.style.background='rgba(255,255,255,.25)'"
+      onmouseout="this.style.background='rgba(255,255,255,.15)'">×</button>
+
+    <!-- Шапка -->
+    <div style="background:linear-gradient(135deg,#1e2d6b,#0d1340);padding:22px 24px 18px;position:relative;overflow:hidden">
+      <div style="position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.04);top:-40px;right:-30px"></div>
+      <div style="width:46px;height:46px;border-radius:13px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 14v3M14 17h3"/></svg>
+      </div>
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:#fff;margin-bottom:3px" id="qr-title"></div>
+      <div style="font-size:13px;color:rgba(255,255,255,.5)" id="qr-group"></div>
+    </div>
+
+    <!-- QR код -->
+    <div style="padding:24px 24px 16px">
+      <div style="background:#fff;padding:18px;border-radius:18px;border:1.5px solid var(--border);display:inline-flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.06);margin-bottom:16px">
+        <div id="qr-canvas"></div>
+      </div>
+
+      <!-- URL -->
+      <div style="display:flex;align-items:center;gap:8px;background:rgba(45,91,227,.04);border:1.5px solid rgba(45,91,227,.1);border-radius:12px;padding:10px 14px;margin-bottom:18px;text-align:left">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="flex-shrink:0"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        <div style="font-size:11px;color:var(--muted);word-break:break-all;line-height:1.5" id="qr-url-text"></div>
+      </div>
+
+      <!-- Кнопки -->
+      <div style="display:flex;gap:8px">
+        <button class="btn bs" style="flex:1;justify-content:center;gap:6px" onclick="G.copyUrl(window._qrUrl)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Копіювати
+        </button>
+        <button class="btn bp" style="flex:1;justify-content:center;gap:6px" onclick="G.downloadQR()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Завантажити
+        </button>
+      </div>
+    </div>
   </div>
-  <div style="font-size:12px;color:var(--muted);background:rgba(45,91,227,.04);border-radius:10px;padding:8px 12px;margin-bottom:16px;word-break:break-all" id="qr-url-text"></div>
-  <div style="display:flex;gap:8px">
-    <button class="btn bs" style="flex:1;justify-content:center" onclick="G.copyUrl(window._qrUrl)">📋 Копіювати</button>
-    <button class="btn bp" style="flex:1;justify-content:center" onclick="G.downloadQR()">⬇ Завантажити</button>
-  </div>
-</div></div>
+</div>
 
 <!-- Видалення спроби -->
 <div class="mo" id="m-del-attempt"><div class="mb" style="max-width:380px;text-align:center">
