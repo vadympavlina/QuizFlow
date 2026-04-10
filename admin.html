@@ -1128,13 +1128,13 @@ async function loadNews(){
 
     list.innerHTML = items.map(n=>{
       const dateStr = n.createdAt ? new Date(n.createdAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short",year:"numeric"}) : "—";
-      const preview = (n.text||"").slice(0,120)+(n.text?.length>120?"...":"");
+      // preview не показуємо — тільки назва і дата
       return `<div style="background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:20px 22px;margin-bottom:14px;transition:all .2s">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:8px">
           <div style="flex:1;min-width:0">
             ${n.pinned?`<span class="bdg bg-a" style="margin-bottom:6px;display:inline-block">📌 Закріплено</span><br>`:""}
             <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:4px">${esc(n.title||"")}</div>
-            <div style="font-size:13px;color:var(--muted);line-height:1.6">${esc(preview)}</div>
+            <div style="font-size:12px;color:var(--muted);font-style:italic;margin-top:4px">Натисніть «Редагувати» щоб переглянути вміст</div>
           </div>
           <div style="display:flex;gap:8px;flex-shrink:0">
             <button class="btn bs btn-sm" onclick="window.openNewsModal('${n.id}')">✏️ Редагувати</button>
