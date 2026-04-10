@@ -2310,10 +2310,12 @@ async function _doFinish() {
 
   const name    = studentName;
   const surname = studentSurname;
-  const formattedAnswers = testData.questions.map(q => ({
-    questionId: q.id,
-    value:      answers[q.id] ?? null
-  }));
+  const formattedAnswers = testData.questions.map(q => {
+    let val = answers[q.id] ?? null;
+    // Серіалізуємо об'єкти (matching) в зрозумілий формат
+    // null/undefined — зберігаємо як null (немає відповіді)
+    return { questionId: q.id, value: val };
+  });
 
   // score (передаємо raw answers object)
   const scoreResult = await scoreTest(testData.questions, answers);

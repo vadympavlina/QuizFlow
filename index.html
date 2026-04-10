@@ -2612,7 +2612,10 @@ window.G = {
     const gc=a.grade12>=10?"bg-g":a.grade12>=7?"bg-b":a.grade12>=4?"bg-a":"bg-r";
 
     const qHtml=qs.map((q,i)=>{
-      const userAns=ans[i];
+      // Підтримка обох форматів: {questionId, value} і просто value
+      const rawAns=ans[i];
+      const userAns=(rawAns!==null&&rawAns!==undefined&&typeof rawAns==="object"&&!Array.isArray(rawAns)&&"value" in rawAns)
+        ? rawAns.value : rawAns;
       let ansHtml="";
       if(q.type==="single"||q.type==="multi"){
         ansHtml=(q.options||[]).map((o,j)=>{
@@ -2730,14 +2733,26 @@ window.G = {
       const ans=Array.isArray(a.answers)?a.answers:[];
 
       const wrongList=qs.map((q,i)=>{
-        const ua=ans[i];
+        const rawAns=ans[i];
+        const ua=(rawAns!==null&&rawAns!==undefined&&typeof rawAns==="object"&&!Array.isArray(rawAns)&&"value" in rawAns)
+          ? rawAns.value : rawAns;
+        // Пропускаємо питання без відповіді
+        if(ua===null||ua===undefined||ua==="") return null;
         let wrong=false;
-        if(q.type==="single") wrong=ua!==q.correct;
-        else if(q.type==="multi") wrong=JSON.stringify(ua)!==JSON.stringify(q.correct);
+        if(q.type==="single") wrong=ua!==q.correct&&String(ua)!==String(q.correct);
+        else if(q.type==="multi"){
+          const uaArr=Array.isArray(ua)?ua:[];
+          const cArr=Array.isArray(q.correct)?q.correct:[];
+          wrong=JSON.stringify([...uaArr].sort())!==JSON.stringify([...cArr].sort());
+        }
         else if(q.type==="number") wrong=parseFloat(ua)!==parseFloat(q.correct);
-        return wrong?`Питання: "${q.text||q.question}"
-Відповідь студента: "${ua!=null?ua:"—"}"
-Правильна відповідь: "${Array.isArray(q.correct)?q.correct.join(", "):q.correct}"`:null;
+        else if(q.type==="text") wrong=true; // текст завжди включаємо для AI аналізу
+        else return null; // long/order — пропускаємо
+        const uaStr=Array.isArray(ua)?ua.join(", "):String(ua);
+        const corrStr=Array.isArray(q.correct)?q.correct.join(", "):String(q.correct||"");
+        return wrong?`Питання: "${(q.text||q.question||"").replace(/<[^>]+>/g,"")}"
+Відповідь студента: "${uaStr}"
+Правильна відповідь: "${corrStr}"`:null;
       }).filter(Boolean);
 
       if(!wrongList.length){
