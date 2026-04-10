@@ -2861,6 +2861,32 @@ window.G = {
         </div>
       </div>
 
+      <!-- Ручне виставлення оцінки — одразу після шапки -->
+      ${a.status==="pending_review"?`
+      <div style="margin:16px 20px 0;padding:18px 20px;background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(245,158,11,.02));border:2px solid rgba(245,158,11,.3);border-radius:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:32px;height:32px;border-radius:9px;background:rgba(245,158,11,.15);display:flex;align-items:center;justify-content:center">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#92400e">Виставте оцінку</div>
+              <div style="font-size:12px;color:var(--muted)">Спроба містить розгорнуті відповіді</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${Array.from({length:12},(_,i)=>i+1).map(g=>{
+            const col=g>=10?"#0d9e85":g>=7?"#2d5be3":g>=4?"#f59e0b":"#f43f5e";
+            const bg=g>=10?"rgba(13,158,133,.1)":g>=7?"rgba(45,91,227,.1)":g>=4?"rgba(245,158,11,.1)":"rgba(244,63,94,.1)";
+            return `<button onclick="G.setManualGrade('${a.id}',${g})"
+              style="width:40px;height:40px;border-radius:10px;border:1.5px solid ${col}44;background:${bg};color:${col};font-weight:800;font-size:15px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif"
+              onmouseover="this.style.background='${col}';this.style.color='#fff';this.style.transform='scale(1.08)'"
+              onmouseout="this.style.background='${bg}';this.style.color='${col}';this.style.transform=''">${g}</button>`;
+          }).join("")}
+        </div>
+      </div>`:""}
+
       <!-- AI секція -->
       <div style="margin:16px 20px 0;background:rgba(45,91,227,.03);border:1.5px solid rgba(45,91,227,.12);border-radius:16px;overflow:hidden">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(45,91,227,.08)">
@@ -4026,6 +4052,26 @@ window.G = {
     const sel = document.getElementById(selId);
     if(sel) sel.value = value;
     G.renderGradebook && G.renderGradebook();
+  },
+
+  async setManualGrade(attId, grade){
+    const a=attempts.find(x=>x.id===attId);
+    if(!a) return;
+    const btn=document.querySelector(`[onclick="G.setManualGrade('${attId}',${grade})"]`);
+    // Підсвічуємо вибрану кнопку
+    document.querySelectorAll(`[onclick^="G.setManualGrade('${attId}'"]`).forEach(b=>{
+      b.style.outline="none";
+    });
+    if(btn){ btn.style.outline="3px solid #2d5be3"; btn.style.outlineOffset="2px"; }
+    ldr(true);
+    try{
+      await dbUpd(`attempts/${attId}`,{grade12:grade,status:"completed"});
+      a.grade12=grade; a.status="completed";
+      renderAll();
+      closeM("m-attempt");
+      toast(`Оцінка ${grade}/12 виставлена ✅`);
+    }catch(e){ toast("Помилка: "+e.message,"err"); }
+    finally{ ldr(false); }
   }}
 
 window.openOnboarding = () => {
