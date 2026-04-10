@@ -502,7 +502,12 @@ textarea.fi{resize:vertical;min-height:72px}
 
   <!-- ATTEMPTS -->
   <div class="sec" id="sec-attempts">
-    <div class="ph"><div><div class="pt">Спроби</div><div class="ps">Всі проходження тестів студентами</div></div></div>
+    <div class="ph">
+      <div><div class="pt">Спроби</div><div class="ps" id="att-count-label">Всі проходження тестів студентами</div></div>
+      <div class="bg" style="align-items:center;gap:8px">
+        <button class="btn bs btn-sm" onclick="$('att-srch').value='';G.selectDrop('cd-ft','','Всі тести');G.selectDrop('cd-fgrp','','Всі групи');G.selectDrop('cd-fst','','Всі статуси');G.selectDrop('cd-fg','','Будь-яка оцінка');renderAttempts(true)" style="font-size:12px;color:var(--muted)">✕ Скинути</button>
+      </div>
+    </div>
 
     <!-- Кастомні фільтри -->
     <div class="flt" style="gap:8px;flex-wrap:wrap;align-items:center">
@@ -1140,6 +1145,7 @@ function showSec(name){
   else if(name==="gradebook") G.initGradebook && G.initGradebook();
   else if(name==="analytics") G.renderAnalytics && G.renderAnalytics();
   else if(name==="students")  G.initStudents && G.initStudents();
+  else if(name==="attempts")  { fillSelects && fillSelects(); renderAttempts && renderAttempts(); }
   else if(name==="news")      renderNews && renderNews();
   else if(name==="archive")   G.renderArchive && G.renderArchive();
   // Зберігаємо для відновлення після редиректу
@@ -1934,7 +1940,13 @@ window.renderAttempts = function(resetPage=false){
     });
   }
   const tb=$("att-tbl");
-  if(!lst.length){tb.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="ei">📭</div><div class="et">Немає спроб</div></div></td></tr>`;return;}
+  const countLabel=document.getElementById("att-count-label");
+  if(countLabel) countLabel.textContent=`${lst.length} спроб${lst.length===1?"а":lst.length<5?"и":""}`;
+  if(!lst.length){
+    if(countLabel) countLabel.textContent="Всі проходження тестів студентами";
+    tb.innerHTML=`<tr><td colspan="9"><div class="empty"><div class="ei">📭</div><div class="et">Немає спроб</div></div></td></tr>`;
+    return;
+  }
   // Застосовуємо сортування
   const sf=_attSort.field, sd=_attSort.dir;
   if(sf) lst=[...lst].sort((a,b)=>{
@@ -1981,16 +1993,25 @@ window.renderAttempts = function(resetPage=false){
     if(a.finishedAt&&a.startedAt&&a.finishedAt>a.startedAt) el2=fmtTime((a.finishedAt-a.startedAt)/1000);
     const group=l?.group||"";
     const dateStr=a.createdAt?new Date(a.createdAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"—";
-    return`<tr>
-      <td><strong>${esc(a.name)} ${esc(a.surname)}</strong></td>
-      <td style="color:var(--muted)">${esc(t?.title||"—")}</td>
-      <td>${group?`<span class="bdg bg-b" style="font-size:11px">${esc(group)}</span>`:'<span style="color:var(--light);font-size:12px">—</span>'}</td>
-      <td>${a.grade12?`<span class="bdg ${grBdg(a.grade12)}">${a.grade12}/12</span>`:"—"}</td>
-      <td style="font-size:13px">${c}/${tot}</td>
-      <td style="font-size:13px;color:var(--muted)">${el2}</td>
-      <td><span class="bdg ${a.status==="completed"?"bg-g":a.status==="pending_review"?"bg-a":a.status==="in_progress"?"bg-o":""}">${a.status==="completed"?"Завершено":a.status==="pending_review"?"⏳ Перевіряється":a.status==="in_progress"?"В процесі":"В процесі"}</span></td>
-      <td style="font-size:12px;color:var(--muted)">${dateStr}</td>
-      <td><div class="ra">
+    const gradeColor=a.grade12>=10?"#0d9e85":a.grade12>=7?"#2d5be3":a.grade12>=4?"#f59e0b":a.grade12!=null?"#f43f5e":"var(--muted)";
+    const gradeBg=a.grade12>=10?"rgba(13,158,133,.1)":a.grade12>=7?"rgba(45,91,227,.1)":a.grade12>=4?"rgba(245,158,11,.1)":a.grade12!=null?"rgba(244,63,94,.1)":"var(--bg)";
+    return`<tr style="border-top:1px solid rgba(229,232,240,.5);transition:background .1s"
+      onmouseover="this.style.background='rgba(45,91,227,.02)'" onmouseout="this.style.background=''">
+      <td style="padding:12px 16px">
+        <div style="font-weight:600;font-size:14px">${esc(a.surname)} ${esc(a.name)}</div>
+      </td>
+      <td style="padding:12px 16px;max-width:180px">
+        <div style="font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(t?.title||'')}">${esc(t?.title||"—")}</div>
+      </td>
+      <td style="padding:12px 16px">${group?`<span class="bdg bg-b" style="font-size:11px">${esc(group)}</span>`:'<span style="color:var(--light);font-size:12px">—</span>'}</td>
+      <td style="padding:12px 16px">
+        ${a.grade12!=null?`<div style="display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:28px;border-radius:9px;background:${gradeBg};color:${gradeColor};font-weight:700;font-size:14px;padding:0 8px">${a.grade12}/12</div>`:'<span style="color:var(--muted)">—</span>'}
+      </td>
+      <td style="padding:12px 16px;font-size:13px;color:var(--muted)">${c}/${tot}</td>
+      <td style="padding:12px 16px;font-size:13px;color:var(--muted)">${el2}</td>
+      <td style="padding:12px 16px"><span class="bdg ${a.status==="completed"?"bg-g":a.status==="pending_review"?"bg-a":"bg-o"}" style="font-size:11px">${a.status==="completed"?"Завершено":a.status==="pending_review"?"⏳ Перевіряється":"В процесі"}</span></td>
+      <td style="padding:12px 16px;font-size:12px;color:var(--muted);white-space:nowrap">${dateStr}</td>
+      <td style="padding:12px 16px"><div class="ra">
         <div class="ib" title="Переглянути" onclick="G.viewAtt('${a.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div class="ib d" title="Видалити" onclick="G.confDelAttempt('${a.id}','${esc(a.name)} ${esc(a.surname)}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></div>
       </div></td>
