@@ -17,6 +17,10 @@
         ".write": true
       }
     },
+    "news": {
+      ".read": true,
+      ".write": "auth != null"
+    },
     "teachers": {
       "$teacherId": {
         "tests": {

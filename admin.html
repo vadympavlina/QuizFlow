@@ -168,6 +168,10 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
       Статистика
     </button>
 
+    <button class="ni" id="ni-news" onclick="showSec('news')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/></svg>
+      Новини
+    </button>
     <button class="ni" id="ni-settings" onclick="showSec('settings')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
       Налаштування AI
@@ -346,6 +350,20 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 
       <!-- Статус -->
       <div id="ai-status" style="margin-top:16px;display:none"></div>
+    </div>
+
+    <!-- NEWS -->
+    <div class="sec" id="sec-news">
+      <div class="ph">
+        <div><div class="pt">Новини</div><div class="ps">Розсилка повідомлень всім викладачам</div></div>
+        <button class="btn bp" onclick="openNewsModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Нова новина
+        </button>
+      </div>
+      <div id="news-admin-list">
+        <div class="empty"><div class="empty-icon">📰</div><div class="empty-text">Завантаження...</div></div>
+      </div>
     </div>
 
   </main>
@@ -873,12 +891,160 @@ window.resetTeacherAI = async () => {
   }catch(e){ toast("Помилка: "+e.message); }
 };
 
+// ─── NEWS ────────────────────────────────────────────────────────────────────
+let _editNewsId = null;
+
+window.openNewsModal = (id) => {
+  _editNewsId = id || null;
+  document.getElementById("news-modal-title").textContent = id ? "Редагувати новину" : "Нова новина";
+  document.getElementById("news-save-btn").textContent = id ? "Зберегти" : "Опублікувати →";
+  document.getElementById("news-modal-err").textContent = "";
+  if(id){
+    const {get:_g,ref:_r}=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+  }
+  if(!id){
+    document.getElementById("news-title-inp").value = "";
+    document.getElementById("news-text-inp").value = "";
+    document.getElementById("news-pinned").checked = false;
+  }
+  openModal("m-news");
+  setTimeout(()=>document.getElementById("news-title-inp").focus(), 100);
+};
+
+window.openNewsModal = async (id) => {
+  _editNewsId = id || null;
+  document.getElementById("news-modal-title").textContent = id ? "Редагувати новину" : "Нова новина";
+  document.getElementById("news-save-btn").textContent = id ? "Зберегти" : "Опублікувати →";
+  document.getElementById("news-modal-err").textContent = "";
+  document.getElementById("news-title-inp").value = "";
+  document.getElementById("news-text-inp").value = "";
+  document.getElementById("news-pinned").checked = false;
+  if(id){
+    try{
+      const snap = await get(ref(db,"news/"+id));
+      if(snap.exists()){
+        const n = snap.val();
+        document.getElementById("news-title-inp").value = n.title||"";
+        document.getElementById("news-text-inp").value = n.text||"";
+        document.getElementById("news-pinned").checked = !!n.pinned;
+      }
+    }catch(e){ console.warn(e); }
+  }
+  openModal("m-news");
+  setTimeout(()=>document.getElementById("news-title-inp").focus(), 100);
+};
+
+window.saveNews = async () => {
+  const title = document.getElementById("news-title-inp").value.trim();
+  const text  = document.getElementById("news-text-inp").value.trim();
+  const pinned= document.getElementById("news-pinned").checked;
+  const errEl = document.getElementById("news-modal-err");
+  if(!title){ errEl.textContent="Введіть заголовок"; return; }
+  if(!text){  errEl.textContent="Введіть текст"; return; }
+  const btn = document.getElementById("news-save-btn");
+  btn.disabled=true; btn.textContent="⏳ Зберігаю...";
+  try{
+    const data = { title, text, pinned, updatedAt: Date.now() };
+    if(_editNewsId){
+      await update(ref(db,"news/"+_editNewsId), data);
+    } else {
+      data.createdAt = Date.now();
+      data.authorId  = _user.id;
+      const nr = push(ref(db,"news"));
+      await set(nr, data);
+    }
+    closeModal("m-news");
+    toast(_editNewsId ? "Новину оновлено ✅" : "Новину опубліковано ✅");
+    loadNews();
+  }catch(e){
+    errEl.textContent="Помилка: "+e.message;
+    btn.disabled=false;
+    btn.textContent=_editNewsId?"Зберегти":"Опублікувати →";
+  }
+};
+
+window.deleteNews = async (id) => {
+  if(!confirm("Видалити новину?")) return;
+  try{
+    await remove(ref(db,"news/"+id));
+    toast("Новину видалено");
+    loadNews();
+  }catch(e){ toast("Помилка: "+e.message); }
+};
+
+async function loadNews(){
+  const list = document.getElementById("news-admin-list");
+  if(!list) return;
+  try{
+    const snap = await get(ref(db,"news"));
+    if(!snap.exists()){
+      list.innerHTML=`<div class="empty"><div class="empty-icon">📰</div><div class="empty-text">Новин ще немає</div><div style="font-size:14px;color:var(--muted);margin-top:6px">Натисніть «Нова новина» щоб створити першу</div></div>`;
+      return;
+    }
+    const items = Object.entries(snap.val())
+      .map(([id,v])=>({id,...v}))
+      .sort((a,b)=>{ if(a.pinned&&!b.pinned)return -1; if(!a.pinned&&b.pinned)return 1; return (b.createdAt||0)-(a.createdAt||0); });
+
+    list.innerHTML = items.map(n=>{
+      const dateStr = n.createdAt ? new Date(n.createdAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short",year:"numeric"}) : "—";
+      const preview = (n.text||"").slice(0,120)+(n.text?.length>120?"...":"");
+      return `<div style="background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:20px 22px;margin-bottom:14px;transition:all .2s">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:8px">
+          <div style="flex:1;min-width:0">
+            ${n.pinned?`<span class="bdg bg-a" style="margin-bottom:6px;display:inline-block">📌 Закріплено</span><br>`:""}
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:4px">${esc(n.title||"")}</div>
+            <div style="font-size:13px;color:var(--muted);line-height:1.6">${esc(preview)}</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0">
+            <button class="btn bs btn-sm" onclick="window.openNewsModal('${n.id}')">✏️ Редагувати</button>
+            <button class="btn bd btn-sm" onclick="window.deleteNews('${n.id}')">🗑</button>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--light);margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">${dateStr}</div>
+      </div>`;
+    }).join("");
+  }catch(e){
+    list.innerHTML=`<div style="color:#be123c;font-size:14px;padding:20px">Помилка: ${esc(e.message)}</div>`;
+  }
+}
+
 // ─── Logout ───────────────────────────────────────────────────────────────────
 window.doLogout = () => { sessionStorage.clear(); location.href="login.html"; };
 
 // Init
 loadAll();
 loadAISettings();
+loadNews();
 </script>
+
+<!-- NEWS MODAL -->
+<div class="mo" id="m-news">
+  <div class="mb" style="max-width:560px">
+    <button class="mcl" onclick="closeModal('m-news')">×</button>
+    <div style="font-size:28px;margin-bottom:10px">📰</div>
+    <div class="mtl" id="news-modal-title">Нова новина</div>
+    <div class="msu">Буде надіслана всім викладачам системи</div>
+    <div class="fl">
+      <label>Заголовок *</label>
+      <input class="fi" id="news-title-inp" placeholder="Наприклад: Оновлення платформи">
+    </div>
+    <div class="fl">
+      <label>Текст повідомлення *</label>
+      <textarea class="fi" id="news-text-inp" rows="6" placeholder="Введіть текст новини..." style="resize:vertical;line-height:1.6"></textarea>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:500">
+        <input type="checkbox" id="news-pinned" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer">
+        📌 Закріпити новину вгорі
+      </label>
+    </div>
+    <div id="news-modal-err" style="color:#be123c;font-size:13px;min-height:18px;margin-bottom:8px"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn bs" onclick="closeModal('m-news')" style="flex:1">Скасувати</button>
+      <button class="btn bp" onclick="saveNews()" style="flex:1" id="news-save-btn">Опублікувати →</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
