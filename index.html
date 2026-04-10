@@ -3411,54 +3411,115 @@ window.G = {
     if(testF)  att=att.filter(a=>a.testId===testF);
 
     if(!att.length){
-      body.innerHTML=`<div class="empty" style="padding:60px 20px"><div class="ei">📋</div><div class="et">Немає завершених спроб</div></div>`;
+      body.innerHTML=`<div class="empty" style="padding:80px 20px"><div class="ei">📋</div><div class="et">Немає завершених спроб</div><div class="es">Оберіть групу або тест для перегляду</div></div>`;
       return;
     }
 
-    // Унікальні студенти і тести
+    // Студенти — беремо найкращу оцінку по кожному тесту
     const studentMap={};
     att.forEach(a=>{
-      const key=`${a.surname}|${a.name}`;
+      const key=`${a.surname}|||${a.name}`;
       if(!studentMap[key]) studentMap[key]={name:a.name,surname:a.surname,attempts:{}};
-      if(!studentMap[key].attempts[a.testId] || (a.grade12 > (studentMap[key].attempts[a.testId]?.grade||0)))
+      const prev=studentMap[key].attempts[a.testId];
+      if(!prev || (a.grade12!=null && (prev.grade==null || a.grade12>prev.grade)))
         studentMap[key].attempts[a.testId]={grade:a.grade12,status:a.status,id:a.id};
     });
 
-    const usedTestIds=testF ? [testF] : [...new Set(att.map(a=>a.testId))];
+    const usedTestIds=testF?[testF]:[...new Set(att.map(a=>a.testId))];
     const usedTests=usedTestIds.map(id=>tests.find(t=>t.id===id)).filter(Boolean);
     const students=Object.values(studentMap).sort((a,b)=>a.surname.localeCompare(b.surname,"uk"));
 
-    const thCells=usedTests.map(t=>`<th style="padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;text-align:center" title="${esc(t.title)}">${esc(t.title.substring(0,20))}${t.title.length>20?"…":""}</th>`).join("");
+    // Статистика по тестах (для підсумкового рядка)
+    const testStats=usedTests.map(t=>{
+      const grades=students.map(s=>s.attempts[t.id]?.grade).filter(g=>g!=null);
+      const avg=grades.length?Math.round(grades.reduce((s,g)=>s+g,0)/grades.length*10)/10:null;
+      const pass=grades.filter(g=>g>=4).length;
+      return {avg,pass,total:grades.length};
+    });
 
-    const rows=students.map(s=>{
+    const gradeColor=g=>g>=10?"#0d9e85":g>=7?"#2d5be3":g>=4?"#f59e0b":"#f43f5e";
+    const gradeBg=g=>g>=10?"rgba(13,158,133,.1)":g>=7?"rgba(45,91,227,.1)":g>=4?"rgba(245,158,11,.1)":"rgba(244,63,94,.1)";
+
+    const thCells=usedTests.map((t,i)=>{
+      const st=testStats[i];
+      return `<th style="padding:10px 12px;font-size:12px;font-weight:600;text-align:center;min-width:110px;max-width:150px;color:var(--text)">
+        <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px" title="${esc(t.title)}">${esc(t.title.length>18?t.title.substring(0,18)+"…":t.title)}</div>
+        ${st.avg!=null?`<div style="font-size:10px;color:var(--muted);font-weight:400">${st.pass}/${st.total} здали · ø${st.avg}</div>`:""}
+      </th>`;
+    }).join("");
+
+    const rows=students.map((s,si)=>{
       const cells=usedTests.map(t=>{
-        const att_=s.attempts[t.id];
-        if(!att_) return `<td style="padding:10px 14px;text-align:center;color:var(--light)">—</td>`;
-        if(att_.status==="pending_review") return `<td style="padding:10px 14px;text-align:center"><span title="Очікує перевірки" style="font-size:16px">⏳</span></td>`;
-        const g=att_.grade||0;
-        const cl=g>=10?"bg-g":g>=6?"bg-b":"bg-r";
-        return `<td style="padding:10px 14px;text-align:center;cursor:pointer" onclick="G.viewAtt('${att_.id}')"><span class="bdg ${cl}" style="font-size:12px">${g}/12</span></td>`;
+        const a_=s.attempts[t.id];
+        if(!a_) return `<td style="padding:10px 12px;text-align:center"><span style="color:var(--border);font-size:18px">·</span></td>`;
+        if(a_.status==="pending_review") return `<td style="padding:10px 12px;text-align:center"><span style="font-size:13px" title="Очікує перевірки">⏳</span></td>`;
+        const g=a_.grade!=null?a_.grade:0;
+        return `<td style="padding:8px 12px;text-align:center;cursor:pointer" onclick="G.viewAtt('${a_.id}')">
+          <div style="display:inline-flex;align-items:center;justify-content:center;width:38px;height:28px;border-radius:8px;background:${gradeBg(g)};color:${gradeColor(g)};font-weight:700;font-size:13px;transition:all .15s"
+            onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform=''">${g}</div>
+        </td>`;
       }).join("");
-      return `<tr style="border-top:1px solid var(--border)">
-        <td style="padding:11px 16px;white-space:nowrap;font-weight:500">${esc(s.surname)} ${esc(s.name)}</td>
+
+      // Середня оцінка студента
+      const grds=usedTests.map(t=>s.attempts[t.id]?.grade).filter(g=>g!=null);
+      const avg=grds.length?Math.round(grds.reduce((s,g)=>s+g,0)/grds.length*10)/10:null;
+      const avgCol=avg!=null?gradeColor(avg):"var(--muted)";
+
+      return `<tr style="border-top:1px solid rgba(229,232,240,.6);transition:background .1s" onmouseover="this.style.background='rgba(45,91,227,.02)'" onmouseout="this.style.background=''">
+        <td style="padding:12px 16px;white-space:nowrap">
+          <div style="font-weight:600;font-size:14px">${esc(s.surname)} ${esc(s.name)}</div>
+        </td>
         ${cells}
+        <td style="padding:12px 16px;text-align:center">
+          ${avg!=null?`<div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:16px;color:${avgCol}">${avg}</div><div style="font-size:10px;color:var(--muted)">середня</div>`:`<span style="color:var(--border)">—</span>`}
+        </td>
       </tr>`;
     }).join("");
 
     body.innerHTML=`
-      <div class="card" style="overflow-x:auto">
-        <table class="tbl" style="min-width:400px">
-          <thead><tr style="background:rgba(45,91,227,.03)">
-            <th style="padding:10px 16px;text-align:left;min-width:160px">Студент</th>
-            ${thCells}
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
+      <!-- Метрики -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+        <div style="background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:16px 20px">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Студентів</div>
+          <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:32px;color:var(--primary);line-height:1">${students.length}</div>
+        </div>
+        <div style="background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:16px 20px">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Тестів</div>
+          <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:32px;color:#9333ea;line-height:1">${usedTests.length}</div>
+        </div>
+        <div style="background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:16px 20px">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Спроб всього</div>
+          <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:32px;color:#f59e0b;line-height:1">${att.length}</div>
+        </div>
+        <div style="background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:16px 20px">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Здали (≥4)</div>
+          <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:32px;color:#0d9e85;line-height:1">${att.filter(a=>a.grade12>=4).length}</div>
+        </div>
       </div>
-      <div style="font-size:12px;color:var(--muted);margin-top:10px">⏳ — очікує перевірки · Натисніть на оцінку щоб переглянути деталі</div>`;
+
+      <!-- Таблиця -->
+      <div style="background:#fff;border:1.5px solid var(--border);border-radius:18px;overflow:hidden">
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;min-width:500px">
+            <thead>
+              <tr style="background:rgba(45,91,227,.03)">
+                <th style="padding:12px 16px;font-size:12px;font-weight:700;text-align:left;color:var(--text);min-width:180px;border-bottom:1.5px solid var(--border)">Студент</th>
+                ${thCells.replace(/border-bottom:[^;]+;/g,'')} <!-- fix double border -->
+                <th style="padding:12px 16px;font-size:12px;font-weight:700;text-align:center;color:var(--text);border-bottom:1.5px solid var(--border);min-width:80px">Середня</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:10px;display:flex;align-items:center;gap:12px">
+        <span>⏳ — очікує перевірки</span>
+        <span>· — не проходив</span>
+        <span>Натисніть на оцінку щоб переглянути деталі</span>
+      </div>`;
   },
 
-    async exportGradebook(format='csv'){
+  async exportGradebook(format='csv'){
     const groupF=document.getElementById("gb-group")?.value||"";
     const testF=document.getElementById("gb-test")?.value||"";
     let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
@@ -3468,61 +3529,83 @@ window.G = {
 
     const studentMap={};
     att.forEach(a=>{
-      const key=`${a.surname}|${a.name}`;
+      const key=`${a.surname}|||${a.name}`;
       if(!studentMap[key]) studentMap[key]={name:a.name,surname:a.surname,attempts:{}};
-      studentMap[key].attempts[a.testId]=a.grade12||"⏳";
+      const prev=studentMap[key].attempts[a.testId];
+      if(!prev||(a.grade12!=null&&(prev===null||a.grade12>prev)))
+        studentMap[key].attempts[a.testId]=a.grade12;
     });
     const usedTestIds=testF?[testF]:[...new Set(att.map(a=>a.testId))];
     const usedTests=usedTestIds.map(id=>tests.find(t=>t.id===id)).filter(Boolean);
     const students=Object.values(studentMap).sort((a,b)=>a.surname.localeCompare(b.surname,"uk"));
     const dateStr=new Date().toLocaleDateString("uk-UA");
-    const fname=`Журнал_${groupF||"всі"}_${dateStr}`;
+    const fname="Журнал_"+(groupF||"всі")+"_"+dateStr;
 
     if(format==="csv"){
-      const header=["Прізвище","Ім'я",...usedTests.map(t=>t.title)].join(",");
-      const rows=students.map(s=>{
-        const grades=usedTests.map(t=>s.attempts[t.id]||"");
-        return [s.surname,s.name,...grades].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",");
+      const header=["Прізвище","Ім'я",...usedTests.map(t=>t.title),"Середня"].join(",");
+      const csvRows=students.map(s=>{
+        const grades=usedTests.map(t=>s.attempts[t.id]!=null?s.attempts[t.id]:"");
+        const nums=grades.filter(g=>g!=="");
+        const avg=nums.length?(nums.reduce((a,b)=>a+b,0)/nums.length).toFixed(1):"";
+        return [s.surname,s.name,...grades,avg].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",");
       });
-      const csv="﻿"+header+"\n"+rows.join("\n");
+      const csv="﻿"+header+"
+"+csvRows.join("
+");
       const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
-      const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=fname+".csv";a.click();
-      toast("CSV завантажено");
+      const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=fname+".csv";document.body.appendChild(a);a.click();document.body.removeChild(a);
+      toast("CSV завантажено ✅");
     } else {
-      // HTML звіт
       const thHTML=usedTests.map(t=>`<th>${esc(t.title)}</th>`).join("");
       const rowsHTML=students.map(s=>{
         const cells=usedTests.map(t=>{
           const g=s.attempts[t.id];
-          if(!g||g==="⏳") return `<td style="text-align:center;color:#999">⏳</td>`;
-          const col=g>=10?"#0d9e85":g>=6?"#2d5be3":g>=4?"#f59e0b":"#f43f5e";
+          if(g==null) return `<td style="text-align:center;color:#9ca3af">—</td>`;
+          const col=g>=10?"#0d9e85":g>=7?"#2d5be3":g>=4?"#f59e0b":"#f43f5e";
           return `<td style="text-align:center;font-weight:700;color:${col}">${g}/12</td>`;
         }).join("");
-        return `<tr><td>${esc(s.surname)} ${esc(s.name)}</td>${cells}</tr>`;
+        const nums=usedTests.map(t=>s.attempts[t.id]).filter(g=>g!=null);
+        const avg=nums.length?(nums.reduce((a,b)=>a+b,0)/nums.length).toFixed(1):"—";
+        return `<tr><td>${esc(s.surname)} ${esc(s.name)}</td>${cells}<td style="text-align:center;font-weight:700">${avg}</td></tr>`;
       }).join("");
 
       const html=`<!DOCTYPE html><html lang="uk"><head><meta charset="UTF-8">
 <title>Журнал оцінок — ${esc(groupF||"Всі групи")} — ${dateStr}</title>
 <style>
-  body{font-family:'Arial',sans-serif;padding:32px;background:#f5f7fa;color:#0d1340}
-  h1{font-size:22px;margin-bottom:4px}
-  .meta{font-size:13px;color:#6b7280;margin-bottom:24px}
-  table{width:100%;border-collapse:collapse;background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)}
-  th{background:#2d5be3;color:white;padding:12px 16px;font-size:12px;text-transform:uppercase;letter-spacing:.5px;text-align:left}
-  td{padding:11px 16px;border-bottom:1px solid #e5e7eb;font-size:14px}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Arial',sans-serif;padding:40px;background:#f5f7fa;color:#0d1340}
+  h1{font-size:24px;font-weight:700;margin-bottom:4px}
+  .meta{font-size:13px;color:#6b7280;margin-bottom:28px}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px}
+  .stat-card{background:white;border-radius:12px;padding:16px 20px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .stat-n{font-size:28px;font-weight:900;line-height:1}
+  .stat-l{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;margin-top:4px}
+  table{width:100%;border-collapse:collapse;background:white;border-radius:14px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.08)}
+  th{background:#1e2d6b;color:white;padding:13px 16px;font-size:12px;text-transform:uppercase;letter-spacing:.5px;text-align:left}
+  th:not(:first-child){text-align:center}
+  td{padding:12px 16px;border-bottom:1px solid #e5e7eb;font-size:14px}
+  td:not(:first-child){text-align:center}
   tr:last-child td{border-bottom:none}
-  tr:hover td{background:#f0f3fa}
-  .footer{margin-top:16px;font-size:12px;color:#9ca3af;text-align:center}
+  tr:nth-child(even) td{background:#f9faff}
+  .footer{margin-top:20px;font-size:12px;color:#9ca3af;text-align:center}
 </style></head><body>
 <h1>Журнал оцінок${groupF?" — "+esc(groupF):""}</h1>
-<div class="meta">Сформовано ${dateStr} · ${students.length} студентів · QuizFlow</div>
-<table><thead><tr><th>Студент</th>${thHTML}</tr></thead>
+<div class="meta">Сформовано ${dateStr} · ${students.length} студентів · ${usedTests.length} тестів · QuizFlow</div>
+<div class="stats">
+  <div class="stat-card"><div class="stat-n" style="color:#2d5be3">${students.length}</div><div class="stat-l">Студентів</div></div>
+  <div class="stat-card"><div class="stat-n" style="color:#0d9e85">${att.filter(a=>a.grade12>=4).length}</div><div class="stat-l">Склали (≥4)</div></div>
+  <div class="stat-card"><div class="stat-n" style="color:#f59e0b">${att.length}</div><div class="stat-l">Всього спроб</div></div>
+</div>
+<table><thead><tr><th>Студент</th>${thHTML}<th>Середня</th></tr></thead>
 <tbody>${rowsHTML}</tbody></table>
-<div class="footer">QuizFlow — система тестування</div>
+<div class="footer">QuizFlow — система тестування · ${dateStr}</div>
+</body></html>`;
 
-`;
-}
-}
+      const blob=new Blob([html],{type:"text/html;charset=utf-8"});
+      const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=fname+".html";document.body.appendChild(a);a.click();document.body.removeChild(a);
+      toast("HTML завантажено ✅");
+    }
+  }
 
 ,
   // ─── SHARE TEST ──────────────────────────────────────────────────────────────
