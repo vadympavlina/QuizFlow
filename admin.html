@@ -894,21 +894,63 @@ window.resetTeacherAI = async () => {
 // ─── NEWS ────────────────────────────────────────────────────────────────────
 let _editNewsId = null;
 
+// ─── EDITOR HELPERS ──────────────────────────────────────────────────────────
+window.newsFormat = (cmd) => {
+  const editor = document.getElementById("news-editor");
+  editor.focus();
+  if(cmd==="bold")      document.execCommand("bold");
+  else if(cmd==="italic")    document.execCommand("italic");
+  else if(cmd==="underline") document.execCommand("underline");
+  else if(cmd==="h"){
+    const sel=window.getSelection();
+    if(sel.rangeCount){
+      const range=sel.getRangeAt(0);
+      const block=document.createElement("h3");
+      block.appendChild(range.extractContents());
+      range.insertNode(block);
+    }
+  }
+  else if(cmd==="bullet") document.execCommand("insertUnorderedList");
+  else if(cmd==="link"){
+    const url=prompt("Введіть URL посилання:");
+    if(url) document.execCommand("createLink",false,url);
+  }
+  updateNewsCharCount();
+};
+
+window.updateNewsCharCount = () => {
+  const editor=document.getElementById("news-editor");
+  const cnt=document.getElementById("news-char-count");
+  if(editor&&cnt) cnt.textContent=(editor.innerText||"").length+" симв.";
+};
+
+window.newsEditorKeydown = (e) => {
+  if(e.ctrlKey&&e.key==="b"){ e.preventDefault(); newsFormat("bold"); }
+  if(e.ctrlKey&&e.key==="i"){ e.preventDefault(); newsFormat("italic"); }
+};
+
+let _deleteNewsId = null;
+
 window.openNewsModal = async (id) => {
   _editNewsId = id || null;
   document.getElementById("news-modal-title").textContent = id ? "Редагувати новину" : "Нова новина";
   document.getElementById("news-save-btn").textContent = id ? "Зберегти" : "Опублікувати →";
   document.getElementById("news-modal-err").textContent = "";
   document.getElementById("news-title-inp").value = "";
-  document.getElementById("news-text-inp").value = "";
+  document.getElementById("news-editor").innerHTML = "";
   document.getElementById("news-pinned").checked = false;
+  document.getElementById("news-char-count").textContent = "0 симв.";
   if(id){
     try{
       const snap = await get(ref(db,"news/"+id));
       if(snap.exists()){
         const n = snap.val();
         document.getElementById("news-title-inp").value = n.title||"";
-        document.getElementById("news-text-inp").value = n.text||"";
+        // Якщо HTML — вставляємо як HTML, якщо plain text — як текст
+        const editor = document.getElementById("news-editor");
+        if((n.text||"").includes("<")) editor.innerHTML = n.text||"";
+        else editor.innerText = n.text||"";
+        updateNewsCharCount();
         document.getElementById("news-pinned").checked = !!n.pinned;
       }
     }catch(e){ console.warn(e); }
@@ -919,11 +961,13 @@ window.openNewsModal = async (id) => {
 
 window.saveNews = async () => {
   const title = document.getElementById("news-title-inp").value.trim();
-  const text  = document.getElementById("news-text-inp").value.trim();
+  const editor = document.getElementById("news-editor");
+  const text = (editor.innerHTML||"").trim();
+  const textPlain = (editor.innerText||"").trim();
   const pinned= document.getElementById("news-pinned").checked;
   const errEl = document.getElementById("news-modal-err");
   if(!title){ errEl.textContent="Введіть заголовок"; return; }
-  if(!text){  errEl.textContent="Введіть текст"; return; }
+  if(!textPlain){ errEl.textContent="Введіть текст"; return; }
   const btn = document.getElementById("news-save-btn");
   btn.disabled=true; btn.textContent="⏳ Зберігаю...";
   try{
@@ -946,11 +990,18 @@ window.saveNews = async () => {
   }
 };
 
-window.deleteNews = async (id) => {
-  if(!confirm("Видалити новину?")) return;
+window.deleteNews = (id) => {
+  _deleteNewsId = id;
+  openModal("m-news-del");
+};
+
+window.confirmDeleteNews = async () => {
+  if(!_deleteNewsId) return;
   try{
-    await remove(ref(db,"news/"+id));
+    await remove(ref(db,"news/"+_deleteNewsId));
+    closeModal("m-news-del");
     toast("Новину видалено");
+    _deleteNewsId = null;
     loadNews();
   }catch(e){ toast("Помилка: "+e.message); }
 };
@@ -1002,18 +1053,55 @@ loadNews();
 
 <!-- NEWS MODAL -->
 <div class="mo" id="m-news">
-  <div class="mb" style="max-width:560px">
+  <div class="mb" style="max-width:620px">
     <button class="mcl" onclick="closeModal('m-news')">×</button>
-    <div style="font-size:28px;margin-bottom:10px">📰</div>
-    <div class="mtl" id="news-modal-title">Нова новина</div>
-    <div class="msu">Буде надіслана всім викладачам системи</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+      <div style="width:44px;height:44px;border-radius:12px;background:rgba(45,91,227,.08);display:flex;align-items:center;justify-content:center;font-size:20px">📰</div>
+      <div>
+        <div class="mtl" id="news-modal-title" style="margin-bottom:2px">Нова новина</div>
+        <div style="font-size:13px;color:var(--muted)">Буде надіслана всім викладачам</div>
+      </div>
+    </div>
     <div class="fl">
       <label>Заголовок *</label>
       <input class="fi" id="news-title-inp" placeholder="Наприклад: Оновлення платформи">
     </div>
     <div class="fl">
       <label>Текст повідомлення *</label>
-      <textarea class="fi" id="news-text-inp" rows="6" placeholder="Введіть текст новини..." style="resize:vertical;line-height:1.6"></textarea>
+      <!-- Панель форматування -->
+      <div style="display:flex;gap:4px;padding:8px 10px;background:var(--bg);border:1.5px solid var(--border);border-bottom:none;border-radius:12px 12px 0 0">
+        <button type="button" onclick="newsFormat('bold')" title="Жирний (Ctrl+B)"
+          style="width:30px;height:30px;border:none;background:none;border-radius:7px;cursor:pointer;font-weight:700;font-size:14px;color:var(--text);transition:all .15s"
+          onmouseover="this.style.background='rgba(45,91,227,.08)'" onmouseout="this.style.background='none'"><b>B</b></button>
+        <button type="button" onclick="newsFormat('italic')" title="Курсив (Ctrl+I)"
+          style="width:30px;height:30px;border:none;background:none;border-radius:7px;cursor:pointer;font-size:14px;color:var(--text);transition:all .15s"
+          onmouseover="this.style.background='rgba(45,91,227,.08)'" onmouseout="this.style.background='none'"><i>I</i></button>
+        <button type="button" onclick="newsFormat('underline')" title="Підкреслений"
+          style="width:30px;height:30px;border:none;background:none;border-radius:7px;cursor:pointer;font-size:14px;color:var(--text);transition:all .15s;text-decoration:underline"
+          onmouseover="this.style.background='rgba(45,91,227,.08)'" onmouseout="this.style.background='none'">U</button>
+        <div style="width:1px;background:var(--border);margin:4px 4px"></div>
+        <button type="button" onclick="newsFormat('h')" title="Заголовок"
+          style="width:30px;height:30px;border:none;background:none;border-radius:7px;cursor:pointer;font-size:12px;font-weight:700;color:var(--text);transition:all .15s"
+          onmouseover="this.style.background='rgba(45,91,227,.08)'" onmouseout="this.style.background='none'">H</button>
+        <button type="button" onclick="newsFormat('bullet')" title="Список"
+          style="width:30px;height:30px;border:none;background:none;border-radius:7px;cursor:pointer;font-size:14px;color:var(--text);transition:all .15s"
+          onmouseover="this.style.background='rgba(45,91,227,.08)'" onmouseout="this.style.background='none'">•</button>
+        <div style="width:1px;background:var(--border);margin:4px 4px"></div>
+        <button type="button" onclick="newsFormat('link')" title="Посилання"
+          style="width:30px;height:30px;border:none;background:none;border-radius:7px;cursor:pointer;font-size:14px;color:var(--text);transition:all .15s"
+          onmouseover="this.style.background='rgba(45,91,227,.08)'" onmouseout="this.style.background='none'">🔗</button>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+          <span id="news-char-count" style="font-size:11px;color:var(--muted)">0 симв.</span>
+        </div>
+      </div>
+      <!-- Редактор -->
+      <div id="news-editor"
+        contenteditable="true"
+        data-placeholder="Введіть текст новини..."
+        style="min-height:160px;max-height:320px;overflow-y:auto;padding:14px 16px;border:1.5px solid var(--border);border-top:none;border-radius:0 0 12px 12px;font-size:14px;line-height:1.75;color:var(--text);outline:none;font-family:'DM Sans',sans-serif;background:#fff"
+        oninput="updateNewsCharCount()"
+        onkeydown="newsEditorKeydown(event)"></div>
+      <textarea id="news-text-inp" style="display:none"></textarea>
     </div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:500">
@@ -1025,6 +1113,20 @@ loadNews();
     <div style="display:flex;gap:10px">
       <button class="btn bs" onclick="closeModal('m-news')" style="flex:1">Скасувати</button>
       <button class="btn bp" onclick="saveNews()" style="flex:1" id="news-save-btn">Опублікувати →</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEWS DELETE MODAL -->
+<div class="mo" id="m-news-del">
+  <div class="mb" style="max-width:380px;text-align:center;padding:36px 32px">
+    <button class="mcl" onclick="closeModal('m-news-del')">×</button>
+    <div style="font-size:44px;margin-bottom:14px">🗑️</div>
+    <div class="mtl">Видалити новину?</div>
+    <div style="font-size:14px;color:var(--muted);margin:8px 0 24px">Новина зникне для всіх викладачів.<br>Цю дію не можна скасувати.</div>
+    <div style="display:flex;gap:10px">
+      <button class="btn bs" onclick="closeModal('m-news-del')" style="flex:1">Скасувати</button>
+      <button onclick="confirmDeleteNews()" style="flex:1;padding:12px;border-radius:13px;border:none;background:linear-gradient(135deg,#f43f5e,#be123c);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer">Видалити</button>
     </div>
   </div>
 </div>
