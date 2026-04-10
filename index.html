@@ -2450,9 +2450,13 @@ window.G = {
       return groupHtml+`
       <div class="notif-item${isWarn?" unread-warn":""}" style="background:${isWarn?"rgba(244,63,94,.04)":"#fff"}">
         <div class="notif-icon" style="background:${isWarn?"rgba(244,63,94,.1)":"rgba(45,91,227,.07)"}">${n.icon||"🔔"}</div>
-        <div class="notif-body">
-          <div class="notif-title">${esc(n.title||"")}</div>
-          <div class="notif-desc">${esc(n.desc||"")}</div>
+        <div class="notif-body" style="flex:1;min-width:0">
+          <div class="notif-title">${n.title?n.title:""}</div>
+          <div class="notif-desc">${n.msg||n.desc||""}</div>
+          ${n.sharedTestId?`<div onclick="G.openSharedTest('${n.sharedTestId}')" style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Відкрити тест
+          </div>`:""}
           <div class="notif-time">${time}</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
@@ -2475,6 +2479,23 @@ window.G = {
     btn?.classList.toggle("active", !!value);
     btn?.classList.remove("open");
     G.renderNotifications();
+  },
+
+  openSharedTest(testId){
+    // Переходимо на вкладку тестів і знаходимо тест
+    showSec("tests");
+    setTimeout(()=>{
+      const t=tests.find(x=>x.id===testId);
+      if(t){
+        // Якщо тест в папці — відкриваємо папку
+        if(t.folderId){ window.setFolderFilter&&setFolderFilter(t.folderId); }
+        // Підсвічуємо тест
+        const row=document.querySelector(`[data-test-id="${testId}"]`);
+        if(row){ row.scrollIntoView({behavior:"smooth",block:"center"}); row.style.background="rgba(45,91,227,.06)"; setTimeout(()=>row.style.background="",2000); }
+      } else {
+        toast("Тест не знайдено — можливо ще не завантажився");
+      }
+    },300);
   },
 
   async delNotif(id){
@@ -3558,8 +3579,10 @@ window.G = {
       await _s(nRef,{
         icon:"🔗",
         title:"Новий тест від "+senderName,
-        msg:"<strong>"+senderName+"</strong> поділився тестом «"+testName+"»",
-        color:"#2d5be3", read:false, ts:ts()
+        msg:"<strong>"+senderName+"</strong> поділився тестом «<strong>"+testName+"</strong>»",
+        color:"#2d5be3", read:false, ts:ts(),
+        sharedTestId: newRef.key,
+        actionLabel: "Відкрити тест →"
       });
       closeM("m-share");
       toast("Тест надіслано ✅");
