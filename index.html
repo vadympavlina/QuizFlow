@@ -932,10 +932,10 @@ textarea.fi{resize:vertical;min-height:72px}
     <div class="msu" id="share-test-name">Тест</div>
     <div class="fl">
       <label>Оберіть викладача</label>
-      <div class="sbox" style="margin-bottom:10px">
+      <div class="sbox" style="margin-bottom:10px;width:100%;max-width:100%">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" id="share-srch" placeholder="Пошук викладача..." autocomplete="off"
-          oninput="G._filterShareTeachers(this.value)">
+          oninput="G._filterShareTeachers(this.value)" style="width:100%">
       </div>
       <div id="share-teachers-list" style="display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;padding:2px"></div>
     </div>
@@ -1541,15 +1541,19 @@ function renderDashAtt(){
     } else { banner.style.display="none"; }
   }
 
-  // Блок підозрілих
+  // Блок підозрілих — показуємо тільки нові (не прочитані)
   const suspBlock=document.getElementById("dash-suspicious-block");
   if(suspBlock){
-    const susp=attempts.filter(a=>(a.tabSwitches||0)+(a.copyAttempts||0)+(a.screenshots||0)>0);
-    if(susp.length){
-      suspBlock.style.display="block";
-      const txt=document.getElementById("dash-suspicious-text");
-      if(txt) txt.textContent=`${susp.length} спроб${susp.length===1?"а":"у"} з підозрілою активністю`;
-    } else { suspBlock.style.display="none"; }
+    dbGet("meta/suspReadCount").then(snap=>{
+      const suspRead=snap.exists()?(snap.val()||0):0;
+      const suspAll=attempts.filter(a=>(a.tabSwitches||0)*2+(a.copyAttempts||0)*3+(a.screenshots||0)*5>0&&(a.status==="completed"||a.status==="pending_review")).length;
+      const suspNew=Math.max(0,suspAll-suspRead);
+      if(suspNew>0){
+        suspBlock.style.display="block";
+        const txt=document.getElementById("dash-suspicious-text");
+        if(txt) txt.textContent=`${suspNew} нов${suspNew===1?"а":"их"} підозріл${suspNew===1?"а":"их"} спроб${suspNew===1?"а":""}`;
+      } else { suspBlock.style.display="none"; }
+    }).catch(()=>{ suspBlock.style.display="none"; });
   }
 
   const tb=$("d-att"), r=attempts.slice(0,8);
@@ -2675,15 +2679,21 @@ window.G = {
         </div>
       </div>
 
-      <!-- Кнопки AI -->
-      <div style="margin:16px 20px 0;display:flex;gap:10px;flex-wrap:wrap">
-        ${a.aiComment?`<div style="flex:1;min-width:200px;padding:14px 16px;background:rgba(45,91,227,.05);border:1.5px solid rgba(45,91,227,.15);border-radius:14px;font-size:14px;color:var(--text);line-height:1.7">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--primary);font-weight:600;margin-bottom:6px">✦ AI Коментар</div>
-          ${esc(a.aiComment)}
-        </div>`:""}
-        <button class="btn bp btn-sm" onclick="G.personalAnalysis('${a.id}')" style="align-self:flex-start;gap:6px">
-          ✦ Персональний розбір
-        </button>
+      <!-- AI секція -->
+      <div style="margin:16px 20px 0;background:rgba(45,91,227,.03);border:1.5px solid rgba(45,91,227,.12);border-radius:16px;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(45,91,227,.08)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span style="font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--primary);font-weight:700">ШІ Аналіз</span>
+          </div>
+          <button onclick="G.personalAnalysis('${a.id}')" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9px;border:1.5px solid rgba(45,91,227,.25);background:#fff;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;transition:all .15s"
+            onmouseover="this.style.background='rgba(45,91,227,.06)'" onmouseout="this.style.background='#fff'">
+            ✦ Персональний розбір
+          </button>
+        </div>
+        ${a.aiComment
+          ?`<div style="padding:14px 16px;font-size:14px;color:var(--text);line-height:1.75">${esc(a.aiComment)}</div>`
+          :`<div style="padding:12px 16px;font-size:13px;color:var(--muted);font-style:italic">Коментар згенерується автоматично після перевірки спроби</div>`}
       </div>
 
       <!-- Питання -->
@@ -3528,9 +3538,12 @@ window.G = {
         sharedFrom:_user.name||_user.login, sharedAt:ts(), createdAt:ts()
       });
       const nRef=_p(_r(db,"teachers/"+G._shareSelectedUid+"/notifications"));
+      const senderName=esc(_user.name||_user.login);
+      const testName=esc(test.title);
       await _s(nRef,{
         icon:"🔗",
-        msg:"<strong>"+esc(_user.name||_user.login)+"</strong> поділився тестом «"+esc(test.title)+"»",
+        title:"Новий тест від "+senderName,
+        msg:"<strong>"+senderName+"</strong> поділився тестом «"+testName+"»",
         color:"#2d5be3", read:false, ts:ts()
       });
       closeM("m-share");
