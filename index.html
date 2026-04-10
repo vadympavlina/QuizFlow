@@ -458,15 +458,85 @@ textarea.fi{resize:vertical;min-height:72px}
         <div style="margin-top:4px;font-size:12px;color:var(--light)">Використано: <span id="dash-used-lbl">—</span></div>
       </div>
 
-      <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:20px 22px;transition:all .2s"
+      <div style="display:flex;flex-direction:column;gap:14px">
+
+        <!-- Блок: Потребують перевірки -->
+        <div onclick="showSec('attempts')" style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:16px 20px;cursor:pointer;transition:all .2s;flex:1"
+          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(0,0,0,.07)';this.style.borderColor='rgba(245,158,11,.35)'"
+          onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="width:30px;height:30px;border-radius:9px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:28px;color:#f59e0b;line-height:1" id="s-pending">—</div>
+          </div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600">На перевірці</div>
+        </div>
+
+        <!-- Блок: Відсоток успішності -->
+        <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:16px 20px;transition:all .2s;flex:1"
+          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(0,0,0,.07)'"
+          onmouseout="this.style.transform='';this.style.boxShadow=''">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="width:30px;height:30px;border-radius:9px;background:rgba(13,158,133,.1);display:flex;align-items:center;justify-content:center">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0d9e85" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:28px;color:#0d9e85;line-height:1" id="s-passrate">—</div>
+          </div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600">Здали (≥4)</div>
+        </div>
+
+      </div><div style="display:flex;flex-direction:column;gap:14px">
+
+        <!-- Потребують перевірки -->
+        <div onclick="showSec('attempts')" style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:16px 20px;cursor:pointer;transition:all .2s;flex:1"
+          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(0,0,0,.07)';this.style.borderColor='rgba(245,158,11,.35)'"
+          onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="width:30px;height:30px;border-radius:9px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:28px;color:#f59e0b;line-height:1" id="s-pending">—</div>
+          </div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600">На перевірці</div>
+        </div>
+
+        <!-- Відсоток успішності -->
+        <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:16px 20px;transition:all .2s;flex:1"
+          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(0,0,0,.07)'"
+          onmouseout="this.style.transform='';this.style.boxShadow=''">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="width:30px;height:30px;border-radius:9px;background:rgba(13,158,133,.1);display:flex;align-items:center;justify-content:center">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0d9e85" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:28px;color:#0d9e85;line-height:1" id="s-passrate">—</div>
+          </div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600">% Здали (≥4)</div>
+        </div>
+
+      </div><div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:20px 22px;transition:all .2s"
         onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(0,0,0,.07)'"
         onmouseout="this.style.transform='';this.style.boxShadow=''">
-        <div style="width:36px;height:36px;border-radius:10px;background:rgba(245,158,11,.08);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <!-- На перевірці -->
+        <div onclick="showSec('attempts')" style="display:flex;flex-direction:column;gap:10px;cursor:pointer;padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="width:30px;height:30px;border-radius:9px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:30px;color:#f59e0b;line-height:1" id="s-pending">—</div>
+          </div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600">На перевірці</div>
         </div>
-        <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:42px;line-height:1;letter-spacing:-1.5px" id="s-g">—</div>
-        <div style="margin-top:8px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:600">Середня оцінка</div>
-        <div style="margin-top:4px;font-size:12px;color:var(--light)">З 12 балів</div>
+        <!-- % Здали -->
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="width:30px;height:30px;border-radius:9px;background:rgba(13,158,133,.1);display:flex;align-items:center;justify-content:center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0d9e85" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:30px;color:#0d9e85;line-height:1" id="s-passrate">—</div>
+          </div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600">% Здали (≥4)</div>
+        </div>
       </div>
     </div>
 
@@ -1677,10 +1747,13 @@ function renderAll(){
 function renderStats(){
   const al = links.filter(l=>l.status==="active").length;
   const cp = attempts.filter(a=>a.status==="completed");
-  const gs = cp.filter(a=>a.grade12).map(a=>a.grade12);
-  const av = gs.length?(gs.reduce((s,g)=>s+g,0)/gs.length).toFixed(1):"—";
-  $("s-t").textContent=tests.length; $("s-a").textContent=attempts.length;
-  $("s-l").textContent=al; $("s-g").textContent=av;
+  const pending = attempts.filter(a=>a.status==="pending_review").length;
+  const passRate = cp.length ? Math.round(cp.filter(a=>a.grade12>=4).length/cp.length*100) : 0;
+  $("s-t").textContent=tests.length;
+  $("s-a").textContent=attempts.length;
+  $("s-l").textContent=al;
+  const spEl=$("s-pending"); if(spEl) spEl.textContent=pending;
+  const srEl=$("s-passrate"); if(srEl) srEl.textContent=cp.length?passRate+"%":"—";
 }
 function updateBadges(){
   $("nb-t").textContent=tests.length;
@@ -1721,12 +1794,6 @@ function renderDashAtt(){
   const usedLbl=$("dash-used-lbl"); if(usedLbl) usedLbl.textContent=totalUsed;
 
   // Колір середньої оцінки
-  const grEl=$("s-g");
-  if(grEl && grEl.textContent!=="—"){
-    const g=parseFloat(grEl.textContent);
-    grEl.style.color=g>=10?"#0d9e85":g>=6?"#2d5be3":g>=4?"#f59e0b":"#f43f5e";
-  }
-
   // Онлайн банер
   const online=attempts.filter(a=>a.status==="in_progress");
   const banner=document.getElementById("dash-online-banner");
