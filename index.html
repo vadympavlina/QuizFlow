@@ -458,15 +458,85 @@ textarea.fi{resize:vertical;min-height:72px}
         <div style="margin-top:4px;font-size:12px;color:var(--light)">Використано: <span id="dash-used-lbl">—</span></div>
       </div>
 
-      <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:20px 22px;transition:all .2s"
+      <div style="display:flex;flex-direction:column;gap:14px">
+
+        <!-- Блок: Потребують перевірки -->
+        <div onclick="showSec('attempts')" style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:16px 20px;cursor:pointer;transition:all .2s;flex:1"
+          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(0,0,0,.07)';this.style.borderColor='rgba(245,158,11,.35)'"
+          onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="width:30px;height:30px;border-radius:9px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:28px;color:#f59e0b;line-height:1" id="s-pending">—</div>
+          </div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600">На перевірці</div>
+        </div>
+
+        <!-- Блок: Відсоток успішності -->
+        <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:16px 20px;transition:all .2s;flex:1"
+          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(0,0,0,.07)'"
+          onmouseout="this.style.transform='';this.style.boxShadow=''">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="width:30px;height:30px;border-radius:9px;background:rgba(13,158,133,.1);display:flex;align-items:center;justify-content:center">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0d9e85" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:28px;color:#0d9e85;line-height:1" id="s-passrate">—</div>
+          </div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600">Здали (≥4)</div>
+        </div>
+
+      </div><div style="display:flex;flex-direction:column;gap:14px">
+
+        <!-- Потребують перевірки -->
+        <div onclick="showSec('attempts')" style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:16px 20px;cursor:pointer;transition:all .2s;flex:1"
+          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(0,0,0,.07)';this.style.borderColor='rgba(245,158,11,.35)'"
+          onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="width:30px;height:30px;border-radius:9px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:28px;color:#f59e0b;line-height:1" id="s-pending">—</div>
+          </div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600">На перевірці</div>
+        </div>
+
+        <!-- Відсоток успішності -->
+        <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:16px 20px;transition:all .2s;flex:1"
+          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(0,0,0,.07)'"
+          onmouseout="this.style.transform='';this.style.boxShadow=''">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="width:30px;height:30px;border-radius:9px;background:rgba(13,158,133,.1);display:flex;align-items:center;justify-content:center">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0d9e85" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:28px;color:#0d9e85;line-height:1" id="s-passrate">—</div>
+          </div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600">% Здали (≥4)</div>
+        </div>
+
+      </div><div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:20px 22px;transition:all .2s"
         onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(0,0,0,.07)'"
         onmouseout="this.style.transform='';this.style.boxShadow=''">
-        <div style="width:36px;height:36px;border-radius:10px;background:rgba(245,158,11,.08);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <!-- На перевірці -->
+        <div onclick="showSec('attempts')" style="display:flex;flex-direction:column;gap:10px;cursor:pointer;padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="width:30px;height:30px;border-radius:9px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:30px;color:#f59e0b;line-height:1" id="s-pending">—</div>
+          </div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600">На перевірці</div>
         </div>
-        <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:42px;line-height:1;letter-spacing:-1.5px" id="s-g">—</div>
-        <div style="margin-top:8px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:600">Середня оцінка</div>
-        <div style="margin-top:4px;font-size:12px;color:var(--light)">З 12 балів</div>
+        <!-- % Здали -->
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="width:30px;height:30px;border-radius:9px;background:rgba(13,158,133,.1);display:flex;align-items:center;justify-content:center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0d9e85" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:30px;color:#0d9e85;line-height:1" id="s-passrate">—</div>
+          </div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600">% Здали (≥4)</div>
+        </div>
       </div>
     </div>
 
@@ -983,54 +1053,85 @@ textarea.fi{resize:vertical;min-height:72px}
 </div></div>
 
 <!-- Нове посилання -->
-<div class="mo" id="m-link"><div class="mb" style="max-width:460px">
-  <button class="mcl" onclick="closeM('m-link')">×</button>
-  <div style="font-size:26px;margin-bottom:8px">🔗</div>
-  <div class="mtl" id="m-link-title">Нове посилання</div>
-  <div class="msu" id="m-link-sub">Для студентів на тест</div>
-  <div class="fl" id="m-link-test-wrap">
-    <label>Тест *</label>
-    <div class="cd-wrap" id="cd-nl-t" style="display:block">
-      <button class="cd-btn" style="width:100%;justify-content:space-between;padding:11px 14px;border-radius:11px" onclick="G.toggleDrop('cd-nl-t')">
-        <span class="cd-label" id="cd-nl-t-label" style="font-size:14px">Оберіть тест...</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="cd-menu" id="cd-nl-t-menu" style="width:100%"></div>
-    </div>
-    <select class="fi" id="nl-t" style="display:none"></select>
-  </div>
-  <div class="fl"><label>Назва групи <span style="font-weight:400;font-size:11px;color:var(--muted)">(необов'язково)</span></label>
-    <input class="fi" id="nl-g" placeholder="Наприклад: ПК-21, Потік А, Іспит...">
-  </div>
-  <div class="fl"><label>Ліміт спроб</label>
-    <input class="fi" type="number" id="nl-m" value="30" min="1">
-    <div style="font-size:12px;color:var(--muted);margin-top:4px">Скільки студентів можуть пройти по цьому посиланню</div>
-  </div>
-  <div class="fl">
-    <label>Дата закриття <span style="font-weight:400;font-size:11px;color:var(--muted)">(необов'язково)</span></label>
-    <input class="fi" type="datetime-local" id="nl-close" style="cursor:pointer">
-    <div style="font-size:12px;color:var(--muted);margin-top:4px">Посилання автоматично закриється в цей час</div>
-  </div>
+<div class="mo" id="m-link">
+  <div class="mb" style="max-width:500px;padding:0;overflow:hidden">
+    <button onclick="closeM('m-link')"
+      style="position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;line-height:1;transition:all .15s"
+      onmouseover="this.style.background='rgba(255,255,255,.25)'"
+      onmouseout="this.style.background='rgba(255,255,255,.15)'">×</button>
 
+    <!-- Шапка -->
+    <div style="background:linear-gradient(135deg,#1e2d6b,#0d1340);padding:24px 28px 20px;position:relative;overflow:hidden">
+      <div style="position:absolute;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.04);top:-60px;right:-40px"></div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="width:44px;height:44px;border-radius:13px;background:rgba(45,91,227,.5);border:1.5px solid rgba(45,91,227,.6);display:flex;align-items:center;justify-content:center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        </div>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff" id="m-link-title">Нове посилання</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:2px" id="m-link-sub">Для студентів на тест</div>
+        </div>
+      </div>
+    </div>
 
-  <div class="fl">
-    <label style="margin-bottom:10px">Перемішування</label>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:400;text-transform:none;letter-spacing:0">
-        <input type="checkbox" id="nl-sq" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer">
-        Перемішувати питання
-      </label>
-      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:400;text-transform:none;letter-spacing:0">
-        <input type="checkbox" id="nl-sa" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer">
-        Перемішувати варіанти відповідей
-      </label>
+    <!-- Тіло -->
+    <div style="padding:22px 28px 24px;display:flex;flex-direction:column;gap:16px">
+
+      <!-- Тест -->
+      <div id="m-link-test-wrap" class="fl" style="margin:0">
+        <label>Тест *</label>
+        <div class="cd-wrap" id="cd-nl-t" style="display:block">
+          <button class="cd-btn" style="width:100%;justify-content:space-between;padding:11px 14px;border-radius:11px" onclick="G.toggleDrop('cd-nl-t')">
+            <span class="cd-label" id="cd-nl-t-label" style="font-size:14px">Оберіть тест...</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="cd-menu" id="cd-nl-t-menu" style="width:100%"></div>
+        </div>
+        <select class="fi" id="nl-t" style="display:none"></select>
+      </div>
+
+      <!-- Група + Ліміт в ряд -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="fl" style="margin:0">
+          <label>Назва групи <span style="font-weight:400;font-size:11px;color:var(--muted);text-transform:none;letter-spacing:0">(необов'язково)</span></label>
+          <input class="fi" id="nl-g" placeholder="ПК-21, Потік А...">
+        </div>
+        <div class="fl" style="margin:0">
+          <label>Ліміт спроб</label>
+          <input class="fi" type="number" id="nl-m" value="30" min="1">
+        </div>
+      </div>
+
+      <!-- Дата закриття -->
+      <div class="fl" style="margin:0">
+        <label>Дата закриття <span style="font-weight:400;font-size:11px;color:var(--muted);text-transform:none;letter-spacing:0">(необов'язково)</span></label>
+        <input class="fi" type="datetime-local" id="nl-close" style="cursor:pointer">
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">Посилання автоматично закриється в цей час</div>
+      </div>
+
+      <!-- Перемішування -->
+      <div style="background:rgba(45,91,227,.04);border:1.5px solid rgba(45,91,227,.1);border-radius:12px;padding:14px 16px">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Перемішування</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:400">
+            <input type="checkbox" id="nl-sq" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer">
+            Перемішувати питання
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:400">
+            <input type="checkbox" id="nl-sa" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer">
+            Перемішувати варіанти відповідей
+          </label>
+        </div>
+      </div>
+
+      <!-- Кнопки -->
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn bs" onclick="closeM('m-link')" style="flex:1">Скасувати</button>
+        <button class="btn bp" id="nl-submit-btn" onclick="G.submitLink()" style="flex:2">Створити →</button>
+      </div>
     </div>
   </div>
-  <div class="ma">
-    <button class="btn bs" onclick="closeM('m-link')">Скасувати</button>
-    <button class="btn bp" id="nl-submit-btn" onclick="G.submitLink()">Створити →</button>
-  </div>
-</div></div>
+</div>
 
 
 <!-- SHARE TEST MODAL -->
@@ -1109,20 +1210,49 @@ textarea.fi{resize:vertical;min-height:72px}
 </div></div>
 
 <!-- QR-код посилання -->
-<div class="mo" id="m-qr"><div class="mb" style="max-width:360px;text-align:center">
-  <button class="mcl" onclick="closeM('m-qr')">×</button>
-  <div style="font-size:24px;margin-bottom:8px">📱</div>
-  <div class="mtl" id="qr-title" style="margin-bottom:4px"></div>
-  <div style="font-size:13px;color:var(--muted);margin-bottom:18px" id="qr-group"></div>
-  <div style="background:#fff;padding:16px;border-radius:16px;border:1.5px solid var(--border);display:inline-block;margin-bottom:16px">
-    <div id="qr-canvas"></div>
+<div class="mo" id="m-qr">
+  <div class="mb" style="max-width:380px;padding:0;overflow:hidden;text-align:center">
+    <button onclick="closeM('m-qr')"
+      style="position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;line-height:1;transition:all .15s"
+      onmouseover="this.style.background='rgba(255,255,255,.25)'"
+      onmouseout="this.style.background='rgba(255,255,255,.15)'">×</button>
+
+    <!-- Шапка -->
+    <div style="background:linear-gradient(135deg,#1e2d6b,#0d1340);padding:22px 24px 18px;position:relative;overflow:hidden">
+      <div style="position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.04);top:-40px;right:-30px"></div>
+      <div style="width:46px;height:46px;border-radius:13px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 14v3M14 17h3"/></svg>
+      </div>
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:#fff;margin-bottom:3px" id="qr-title"></div>
+      <div style="font-size:13px;color:rgba(255,255,255,.5)" id="qr-group"></div>
+    </div>
+
+    <!-- QR код -->
+    <div style="padding:24px 24px 16px">
+      <div style="background:#fff;padding:18px;border-radius:18px;border:1.5px solid var(--border);display:inline-flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.06);margin-bottom:16px">
+        <div id="qr-canvas"></div>
+      </div>
+
+      <!-- URL -->
+      <div style="display:flex;align-items:center;gap:8px;background:rgba(45,91,227,.04);border:1.5px solid rgba(45,91,227,.1);border-radius:12px;padding:10px 14px;margin-bottom:18px;text-align:left">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="flex-shrink:0"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        <div style="font-size:11px;color:var(--muted);word-break:break-all;line-height:1.5" id="qr-url-text"></div>
+      </div>
+
+      <!-- Кнопки -->
+      <div style="display:flex;gap:8px">
+        <button class="btn bs" style="flex:1;justify-content:center;gap:6px" onclick="G.copyUrl(window._qrUrl)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Копіювати
+        </button>
+        <button class="btn bp" style="flex:1;justify-content:center;gap:6px" onclick="G.downloadQR()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Завантажити
+        </button>
+      </div>
+    </div>
   </div>
-  <div style="font-size:12px;color:var(--muted);background:rgba(45,91,227,.04);border-radius:10px;padding:8px 12px;margin-bottom:16px;word-break:break-all" id="qr-url-text"></div>
-  <div style="display:flex;gap:8px">
-    <button class="btn bs" style="flex:1;justify-content:center" onclick="G.copyUrl(window._qrUrl)">📋 Копіювати</button>
-    <button class="btn bp" style="flex:1;justify-content:center" onclick="G.downloadQR()">⬇ Завантажити</button>
-  </div>
-</div></div>
+</div>
 
 <!-- Видалення спроби -->
 <div class="mo" id="m-del-attempt"><div class="mb" style="max-width:380px;text-align:center">
@@ -1617,10 +1747,13 @@ function renderAll(){
 function renderStats(){
   const al = links.filter(l=>l.status==="active").length;
   const cp = attempts.filter(a=>a.status==="completed");
-  const gs = cp.filter(a=>a.grade12).map(a=>a.grade12);
-  const av = gs.length?(gs.reduce((s,g)=>s+g,0)/gs.length).toFixed(1):"—";
-  $("s-t").textContent=tests.length; $("s-a").textContent=attempts.length;
-  $("s-l").textContent=al; $("s-g").textContent=av;
+  const pending = attempts.filter(a=>a.status==="pending_review").length;
+  const passRate = cp.length ? Math.round(cp.filter(a=>a.grade12>=4).length/cp.length*100) : 0;
+  $("s-t").textContent=tests.length;
+  $("s-a").textContent=attempts.length;
+  $("s-l").textContent=al;
+  const spEl=$("s-pending"); if(spEl) spEl.textContent=pending;
+  const srEl=$("s-passrate"); if(srEl) srEl.textContent=cp.length?passRate+"%":"—";
 }
 function updateBadges(){
   $("nb-t").textContent=tests.length;
@@ -1661,12 +1794,6 @@ function renderDashAtt(){
   const usedLbl=$("dash-used-lbl"); if(usedLbl) usedLbl.textContent=totalUsed;
 
   // Колір середньої оцінки
-  const grEl=$("s-g");
-  if(grEl && grEl.textContent!=="—"){
-    const g=parseFloat(grEl.textContent);
-    grEl.style.color=g>=10?"#0d9e85":g>=6?"#2d5be3":g>=4?"#f59e0b":"#f43f5e";
-  }
-
   // Онлайн банер
   const online=attempts.filter(a=>a.status==="in_progress");
   const banner=document.getElementById("dash-online-banner");
@@ -2751,10 +2878,10 @@ window.G = {
           return `<div style="flex:1;background:rgba(45,91,227,.06);border-radius:3px;height:32px;display:flex;align-items:flex-end;overflow:hidden"><div style="width:100%;background:${c};height:${pct}%;border-radius:3px;transition:height .4s"></div></div>`;
         }).join("");
 
-        return `<div onclick="G.openStudentCard('${s.id}')" style="background:#fff;border:1.5px solid var(--border);border-radius:20px;overflow:hidden;cursor:pointer;transition:all .2s"
+        return `<div onclick="G.openStudentCard('${s.id}')" style="background:#fff;border:1.5px solid var(--border);border-radius:20px;overflow:hidden;cursor:pointer;transition:all .2s;display:flex;flex-direction:column"
           onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 36px rgba(45,91,227,.12)';this.style.borderColor='rgba(45,91,227,.25)'"
           onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'">
-          <div style="padding:20px 20px 16px;display:flex;align-items:flex-start;gap:14px">
+          <div style="padding:20px 20px 16px;display:flex;align-items:flex-start;gap:14px;flex:1">
             <div style="width:46px;height:46px;border-radius:13px;background:${gcLight};display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:${gc};flex-shrink:0;border:1.5px solid ${gc}22">${initials}</div>
             <div style="flex:1;min-width:0">
               <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(s.surname)} ${esc(s.name)}</div>
@@ -2768,7 +2895,7 @@ window.G = {
             </div>
           </div>
           ${att.length>=2?`<div style="display:flex;gap:3px;padding:0 20px;height:32px;margin-bottom:14px">${bars}</div>`:""}
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-top:1px solid var(--border);background:rgba(45,91,227,.015)">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-top:1px solid var(--border);background:rgba(45,91,227,.015);margin-top:auto">
             <div style="display:flex;align-items:center;gap:14px">
               <span style="font-size:12px;color:var(--muted)"><strong style="color:var(--text)">${att.length}</strong> спроб</span>
               ${att.length?`<span style="font-size:12px;color:var(--muted)"><strong style="color:${passRate>=70?"#0d9e85":"var(--text)"}">${passRate}%</strong> здав</span>`:""}
@@ -2847,8 +2974,8 @@ window.G = {
         <div style="font-size:14px;opacity:.65;margin-bottom:16px">${esc(t?.title||"—")} · ${esc(l?.group||"—")} · ${dateStr}</div>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
           <div style="background:rgba(255,255,255,.1);border-radius:12px;padding:10px 16px;text-align:center">
-            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:28px;line-height:1">${a.grade12!=null?a.grade12:"—"}</div>
-            <div style="font-size:10px;opacity:.6;margin-top:2px">/ 12 ОЦІНКА</div>
+            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:28px;line-height:1">${a.status==="pending_review"?"⏳":a.grade12!=null?a.grade12:"—"}</div>
+            <div style="font-size:10px;opacity:.6;margin-top:2px">${a.status==="pending_review"?"ПЕРЕВІРЯЄТЬСЯ":"/ 12 ОЦІНКА"}</div>
           </div>
           <div style="background:rgba(255,255,255,.07);border-radius:12px;padding:10px 16px;text-align:center">
             <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:28px;line-height:1">${a.score?.percent||0}%</div>
@@ -2860,6 +2987,32 @@ window.G = {
           </div>
         </div>
       </div>
+
+      <!-- Ручне виставлення оцінки — одразу після шапки -->
+      ${a.status==="pending_review"?`
+      <div style="margin:16px 20px 0;padding:18px 20px;background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(245,158,11,.02));border:2px solid rgba(245,158,11,.3);border-radius:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:32px;height:32px;border-radius:9px;background:rgba(245,158,11,.15);display:flex;align-items:center;justify-content:center">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#92400e">Виставте оцінку</div>
+              <div style="font-size:12px;color:var(--muted)">Спроба містить розгорнуті відповіді</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${Array.from({length:12},(_,i)=>i+1).map(g=>{
+            const col=g>=10?"#0d9e85":g>=7?"#2d5be3":g>=4?"#f59e0b":"#f43f5e";
+            const bg=g>=10?"rgba(13,158,133,.1)":g>=7?"rgba(45,91,227,.1)":g>=4?"rgba(245,158,11,.1)":"rgba(244,63,94,.1)";
+            return `<button onclick="G.setManualGrade('${a.id}',${g})"
+              style="width:40px;height:40px;border-radius:10px;border:1.5px solid ${col}44;background:${bg};color:${col};font-weight:800;font-size:15px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif"
+              onmouseover="this.style.background='${col}';this.style.color='#fff';this.style.transform='scale(1.08)'"
+              onmouseout="this.style.background='${bg}';this.style.color='${col}';this.style.transform=''">${g}</button>`;
+          }).join("")}
+        </div>
+      </div>`:""}
 
       <!-- AI секція -->
       <div style="margin:16px 20px 0;background:rgba(45,91,227,.03);border:1.5px solid rgba(45,91,227,.12);border-radius:16px;overflow:hidden">
@@ -3504,21 +3657,29 @@ window.G = {
   },
 
   initGradebook(){
+    window._gbTestF = window._gbTestF!==undefined ? window._gbTestF : "";
+    window._gbGrpF  = window._gbGrpF!==undefined  ? window._gbGrpF  : "";
     // Заповнюємо тести
+    const curTestF=window._gbTestF||"";
+    const curGrpF=window._gbGrpF||"";
     const gbTestMenu=document.getElementById("cd-gb-test-menu");
     if(gbTestMenu){
-      gbTestMenu.innerHTML=`<div class="cd-item cd-active" data-val="" onclick="G.selectGbFilter('test','','Всі тести')">Всі тести</div>`+
+      gbTestMenu.innerHTML=`<div class="cd-item${!curTestF?" cd-active":""}" data-val="" onclick="G.selectGbFilter('test','','Всі тести')">Всі тести</div>`+
         tests.filter(t=>t.status!=="archived").map(t=>
-          `<div class="cd-item" data-val="${t.id}" onclick="G.selectGbFilter('test','${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
+          `<div class="cd-item${curTestF===t.id?" cd-active":""}" data-val="${t.id}" onclick="G.selectGbFilter('test','${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
         ).join("");
+      const lbl=document.getElementById("cd-gb-test-label");
+      if(lbl&&curTestF){const t=tests.find(x=>x.id===curTestF);if(t)lbl.textContent=t.title;}
     }
     // Заповнюємо групи
     const groups=[...new Set(links.map(l=>l.group).filter(Boolean))].sort();
     const gbGrpMenu=document.getElementById("cd-gb-group-menu");
     if(gbGrpMenu){
-      gbGrpMenu.innerHTML=`<div class="cd-item cd-active" data-val="" onclick="G.selectGbFilter('group','','Всі групи')">Всі групи</div>`+
-        groups.map(g=>`<div class="cd-item" data-val="${esc(g)}" onclick="G.selectGbFilter('group','${esc(g)}','${esc(g)}')">${esc(g)}</div>`
+      gbGrpMenu.innerHTML=`<div class="cd-item${!curGrpF?" cd-active":""}" data-val="" onclick="G.selectGbFilter('group','','Всі групи')">Всі групи</div>`+
+        groups.map(g=>`<div class="cd-item${curGrpF===g?" cd-active":""}" data-val="${esc(g)}" onclick="G.selectGbFilter('group','${esc(g)}','${esc(g)}')">${esc(g)}</div>`
         ).join("");
+      const lbl2=document.getElementById("cd-gb-group-label");
+      if(lbl2&&curGrpF)lbl2.textContent=curGrpF;
     }
     G.renderGradebook();
   },
@@ -3530,21 +3691,27 @@ window.G = {
     if(lbl) lbl.textContent=label;
     const menu=document.getElementById(wrap+"-menu");
     menu?.querySelectorAll(".cd-item").forEach(el=>{
-      el.classList.toggle("cd-active", el.dataset.val===value);
+      el.classList.toggle("cd-active", el.dataset.val===value||(!value&&el.dataset.val===""));
     });
     menu?.classList.remove("open");
     const btn=document.querySelector(`#${wrap} .cd-btn`);
     btn?.classList.toggle("active", !!value);
+    // Зберігаємо в select і в window змінній
     const sel=document.getElementById(selId);
     if(sel) sel.value=value;
+    if(field==="test") window._gbTestF=value;
+    else window._gbGrpF=value;
     G.renderGradebook();
   },
 
   renderGradebook(){
     const body=document.getElementById("gradebook-body");
     if(!body) return;
-    const groupF=document.getElementById("gb-group")?.value||"";
-    const testF=document.getElementById("gb-test")?.value||"";
+    // Читаємо активний елемент з меню (найнадійніший спосіб)
+    const activeTestEl=document.querySelector("#cd-gb-test-menu .cd-item.cd-active");
+    const activeGrpEl=document.querySelector("#cd-gb-group-menu .cd-item.cd-active");
+    const testF=activeTestEl?.dataset?.val||"";
+    const groupF=activeGrpEl?.dataset?.val||"";
 
     let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
     if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
@@ -3660,8 +3827,11 @@ window.G = {
   },
 
   async exportGradebook(format='csv'){
-    const groupF=document.getElementById("gb-group")?.value||"";
-    const testF=document.getElementById("gb-test")?.value||"";
+    // Читаємо активний елемент з меню (найнадійніший спосіб)
+    const activeTestEl=document.querySelector("#cd-gb-test-menu .cd-item.cd-active");
+    const activeGrpEl=document.querySelector("#cd-gb-group-menu .cd-item.cd-active");
+    const testF=activeTestEl?.dataset?.val||"";
+    const groupF=activeGrpEl?.dataset?.val||"";
     let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
     if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
     if(testF)  att=att.filter(a=>a.testId===testF);
@@ -3985,6 +4155,67 @@ window.G = {
       if(lbl) lbl.textContent=l.group;
     }
     window.G.initStudents&&window.G.initStudents();
+  },
+
+  // ── Attempt deletion ──────────────────────────────────────────────────────
+  confDelAttempt(id, name){
+    window._delAttId = id;
+    const el = document.getElementById("del-att-name");
+    if(el) el.textContent = name;
+    openM("m-del-attempt");
+  },
+
+  async doDelAttempt(){
+    const id = window._delAttId;
+    if(!id) return;
+    window._delAttId = null;
+    closeM("m-del-attempt");
+    ldr(true);
+    try{
+      await dbDel(`attempts/${id}`);
+      attempts = attempts.filter(a => a.id !== id);
+      renderAll();
+      toast("Спробу видалено");
+    }catch(e){ toast("Помилка: "+e.message,"err"); }
+    finally{ ldr(false); }
+  },
+
+  // ── Gradebook filter ──────────────────────────────────────────────────────
+  selectGbFilter(field, value, label){
+    const wrap = field==="test" ? "cd-gb-test" : "cd-gb-group";
+    const selId = field==="test" ? "gb-test" : "gb-group";
+    const lbl = document.getElementById(wrap+"-label");
+    if(lbl) lbl.textContent = label;
+    const menu = document.getElementById(wrap+"-menu");
+    menu?.querySelectorAll(".cd-item").forEach(el=>{
+      el.classList.toggle("cd-active", el.dataset.val===value);
+    });
+    menu?.classList.remove("open");
+    const btn = document.querySelector(`#${wrap} .cd-btn`);
+    btn?.classList.toggle("active", !!value);
+    const sel = document.getElementById(selId);
+    if(sel) sel.value = value;
+    G.renderGradebook && G.renderGradebook();
+  },
+
+  async setManualGrade(attId, grade){
+    const a=attempts.find(x=>x.id===attId);
+    if(!a) return;
+    const btn=document.querySelector(`[onclick="G.setManualGrade('${attId}',${grade})"]`);
+    // Підсвічуємо вибрану кнопку
+    document.querySelectorAll(`[onclick^="G.setManualGrade('${attId}'"]`).forEach(b=>{
+      b.style.outline="none";
+    });
+    if(btn){ btn.style.outline="3px solid #2d5be3"; btn.style.outlineOffset="2px"; }
+    ldr(true);
+    try{
+      await dbUpd(`attempts/${attId}`,{grade12:grade,status:"completed"});
+      a.grade12=grade; a.status="completed";
+      renderAll();
+      closeM("m-attempt");
+      toast(`Оцінка ${grade}/12 виставлена ✅`);
+    }catch(e){ toast("Помилка: "+e.message,"err"); }
+    finally{ ldr(false); }
   }}
 
 window.openOnboarding = () => {
@@ -4104,7 +4335,7 @@ function renderDashNews(){
         <div style="font-weight:600;font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(n.title||"")}</div>
         <div style="font-size:11px;color:var(--muted);flex-shrink:0">${dateStr}</div>
       </div>
-      <div style="font-size:12px;color:var(--muted);${!isRead?"padding-left:15px":""}">${esc(preview)}</div>
+      <div style="font-size:12px;color:var(--muted);font-style:italic;${!isRead?"padding-left:15px":""}">Натисніть щоб прочитати →</div>
     </div>`;
   }).join("");
 }
@@ -4133,7 +4364,7 @@ function renderNews(){
         </div>
         <div style="font-size:12px;color:var(--muted);flex-shrink:0">${dateStr}</div>
       </div>
-      <div style="font-size:14px;color:var(--muted);line-height:1.6">${esc(preview)}</div>
+      <div style="font-size:13px;color:var(--muted);font-style:italic">Натисніть щоб прочитати повністю →</div>
     </div>`;
   }).join("");
 }
