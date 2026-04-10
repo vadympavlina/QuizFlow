@@ -3549,9 +3549,7 @@ window.G = {
         const avg=nums.length?(nums.reduce((a,b)=>a+b,0)/nums.length).toFixed(1):"";
         return [s.surname,s.name,...grades,avg].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",");
       });
-      const csv="﻿"+header+"
-"+csvRows.join("
-");
+      const csv="\uFEFF"+header+"\n"+csvRows.join("\n");
       const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
       const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=fname+".csv";document.body.appendChild(a);a.click();document.body.removeChild(a);
       toast("CSV завантажено ✅");
