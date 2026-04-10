@@ -21,10 +21,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 /* SIDEBAR */
 .sb{width:220px;background:var(--sidebar);display:flex;flex-direction:column;padding:18px 10px;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:width .25s cubic-bezier(.4,0,.2,1)}
 .sb.collapsed{width:60px}
-.sb.collapsed .logo-t,.sb.collapsed .ni-label,.sb.collapsed .nb,.sb.collapsed .nav-sec,.sb.collapsed .sb-texts,.sb.collapsed .sb-bottom-labels{display:none!important}
-.sb.collapsed .ni{justify-content:center;padding:10px}
-.sb.collapsed .logo{justify-content:center;padding-left:0;padding-right:0}
-.sb.collapsed .sb-foot-inner{justify-content:center}
+.sb.collapsed .logo-t,.sb.collapsed .ni-label,.sb.collapsed .nav-sec,.sb.collapsed .sb-texts,.sb.collapsed .sb-bottom-labels{display:none!important}
+.sb.collapsed .nb{display:none!important}
+.sb.collapsed .ni{justify-content:center;padding:10px;gap:0}
+.sb.collapsed .logo{justify-content:center;padding-left:0;padding-right:0;gap:0}
+.sb.collapsed #sb-toggle{display:none!important}
+.sb.collapsed #sb-toggle-collapsed{display:flex!important}
+.sb.collapsed .sb-foot-inner{justify-content:center;gap:0;padding:8px 0;background:none;border:none}
+.sb.collapsed .ava{margin:0 auto}
 .logo{display:flex;align-items:center;gap:10px;padding:0 6px 22px}
 .logo-i{width:34px;height:34px;background:var(--grad);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:#fff;flex-shrink:0}
 .logo-t{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:#fff;white-space:nowrap;overflow:hidden}
@@ -272,6 +276,13 @@ textarea.fi{resize:vertical;min-height:72px}
       <svg id="sb-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
   </div>
+  <!-- Toggle кнопка для collapsed стану (окремо під лого) -->
+  <button id="sb-toggle-collapsed" onclick="toggleSidebar()" title="Розгорнути меню"
+    style="display:none;width:36px;height:36px;border-radius:10px;border:none;background:rgba(255,255,255,.08);cursor:pointer;color:rgba(255,255,255,.5);align-items:center;justify-content:center;transition:all .15s;margin:0 auto 16px"
+    onmouseover="this.style.background='rgba(255,255,255,.14)';this.style.color='#fff'"
+    onmouseout="this.style.background='rgba(255,255,255,.08)';this.style.color='rgba(255,255,255,.5)'">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
 
   <!-- Навігація -->
   <div class="nav-sec">Головне</div>
@@ -366,7 +377,7 @@ textarea.fi{resize:vertical;min-height:72px}
     </button>
 
     <!-- Викладач + вихід -->
-    <div style="display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);overflow:hidden" class="sb-foot-inner">
+    <div style="display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07)" class="sb-foot-inner">
       <div class="ava" id="sb-ava" style="flex-shrink:0">ВЧ</div>
       <div class="sb-texts" style="flex:1;min-width:0">
         <div class="sb-name" id="sb-teacher-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Викладач</div>
