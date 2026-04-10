@@ -1168,22 +1168,38 @@ function checkAnswer(question, studentAnswer) {
     case "text": {
       const normalize = s => String(s).toLowerCase().trim().replace(/\s+/g, " ");
       const student = normalize(studentAnswer || "");
-      const expected = normalize(question.correct || "");
+      const rawExpected = String(question.correct || "");
       if (!student) return { correct: false, partial: false, points: 0 };
-      // Точний збіг
-      if (student === expected) return { correct: true, partial: false, points: 1 };
-      // Перевіряємо чи відповідь містить ключове слово або навпаки
-      if (student.includes(expected) || expected.includes(student))
-        return { correct: true, partial: false, points: 1 };
-      // Часткова схожість: спільні слова
+
+      // Розбиваємо правильну відповідь на варіанти (через "або", "/", ",")
+      const variants = rawExpected.split(/\s*(?:або|or|\||\/|,)\s*/i)
+        .map(v => normalize(v)).filter(Boolean);
+
+      // Перевіряємо кожен варіант
+      for (const v of variants) {
+        if (!v) continue;
+        // Точний збіг
+        if (student === v) return { correct: true, partial: false, points: 1 };
+        // includes тільки якщо довжини відповідей близькі (не більше 2х різниця)
+        const ratio = Math.max(student.length, v.length) / Math.max(1, Math.min(student.length, v.length));
+        if (ratio <= 2.5) {
+          if (student.includes(v) || v.includes(student))
+            return { correct: true, partial: false, points: 1 };
+        }
+      }
+
+      // Часткова схожість зі спільними словами
       const sw = new Set(student.split(/\s+/));
-      const ew = new Set(expected.split(/\s+/));
-      const common = [...sw].filter(w => w.length > 2 && ew.has(w));
-      if (common.length > 0 && common.length >= Math.min(sw.size, ew.size) * 0.6)
-        return { correct: false, partial: true, points: 0.5 };
-      // Позначаємо для AI-перевірки (буде перевірено пізніше)
+      for (const v of variants) {
+        const ew = new Set(v.split(/\s+/));
+        const common = [...sw].filter(w => w.length > 2 && ew.has(w));
+        if (common.length > 0 && common.length >= Math.min(sw.size, ew.size) * 0.5)
+          return { correct: false, partial: true, points: 0.5 };
+      }
+
+      // Позначаємо для AI-перевірки
       return { correct: false, partial: false, points: 0, needsAICheck: true,
-               studentAnswer: student, expectedAnswer: expected };
+               studentAnswer: student, expectedAnswer: rawExpected };
     }
 
     // ── Number ────────────────────────────────────────────────────────────
@@ -1271,16 +1287,18 @@ async function scoreTest(questions, answers) {
       `${i+1}. Питання: "${(r.q.text||"").replace(/<[^>]+>/g,"")}"\n   Правильна відповідь: "${r.result.expectedAnswer}"\n   Відповідь студента: "${r.result.studentAnswer}"`
     ).join("\n\n");
 
-    const aiPrompt = `Перевір відповіді студента. Відповідай ТІЛЬКИ українською мовою.
+    const aiPrompt = `Ти перевіряєш відповіді студентів. Відповідай ТІЛЬКИ українською мовою.
 
 ${checkList}
 
-Критерії оцінки:
-- "correct": відповідь правильна, близька за змістом, синонім, або інше правильне формулювання
-- "partial": частково правильна або приблизно схожа
-- "wrong": неправильна або не по темі
+Правила оцінки:
+- "correct": відповідь правильна, навіть якщо написана інакше (синонім, переклад, скорочення, інша форма слова, часткова назва). Якщо правильна відповідь містить "або" — перевіряй кожен варіант окремо.
+- "partial": відповідь наближена, але не повна або неточна
+- "wrong": відповідь неправильна або не стосується питання
 
-Відповідай ТІЛЬКИ JSON масивом без markdown:
+Приклад: якщо правильна відповідь "Material або Матеріал", а студент написав "матеріали" — це "correct" (та сама концепція).
+
+Відповідай ТІЛЬКИ JSON масивом без markdown, пояснень і коментарів:
 [{"i":1,"result":"correct"},{"i":2,"result":"partial"},{"i":3,"result":"wrong"}]`;
 
     try {
