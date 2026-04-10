@@ -3391,7 +3391,7 @@ window.G = {
     if(inp) inp.value="";
     const dateInp=document.getElementById("susp-filter-date");
     if(dateInp) dateInp.value="";
-    G.setSuspTest("","📋 Всі тести");
+    G.setSuspTest("","Всі тести");
     const lbl=document.getElementById("susp-date-label");
     if(lbl) lbl.textContent="Будь-яка дата";
     const btn=document.getElementById("susp-date-btn");
@@ -3439,12 +3439,12 @@ window.G = {
           <button onclick="G.toggleSuspDrop('test')"
             style="display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;transition:all .15s;min-width:180px;justify-content:space-between"
             onmouseover="this.style.borderColor='rgba(45,91,227,.35)'" onmouseout="this.style.borderColor='var(--border)'" id="susp-test-btn">
-            <span id="susp-test-label">📋 Всі тести</span>
+            <span id="susp-test-label">Всі тести</span>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div id="susp-test-menu" style="display:none;position:absolute;top:calc(100% + 6px);left:0;min-width:240px;background:#fff;border:1.5px solid var(--border);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.1);z-index:100;padding:6px;max-height:240px;overflow-y:auto">
-            <div onclick="G.setSuspTest('','📋 Всі тести')" style="padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:500;transition:background .1s"
-              onmouseover="this.style.background='rgba(45,91,227,.05)'" onmouseout="this.style.background=''">📋 Всі тести</div>
+            <div onclick="G.setSuspTest('','Всі тести')" style="padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:500;transition:background .1s"
+              onmouseover="this.style.background='rgba(45,91,227,.05)'" onmouseout="this.style.background=''">Всі тести</div>
             ${tests.filter(t=>t.status!=="archived").map(t=>`
               <div onclick="G.setSuspTest('${t.id}','${esc(t.title)}')" style="padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;transition:background .1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
                 onmouseover="this.style.background='rgba(45,91,227,.05)'" onmouseout="this.style.background=''">${esc(t.title)}</div>`).join("")}
@@ -3478,11 +3478,16 @@ window.G = {
         <!-- Лічильник результатів -->
         <div id="susp-count-label" style="margin-left:auto;font-size:13px;color:var(--muted)"></div>
       `;
-      // Ховаємо меню при кліку поза
-      document.addEventListener("click", e=>{
-        if(!e.target.closest("#susp-test-wrap")) document.getElementById("susp-test-menu").style.display="none";
-        if(!e.target.closest("#susp-date-wrap")) document.getElementById("susp-date-menu").style.display="none";
-      });
+      // Ховаємо меню при кліку поза (тільки один раз)
+      if(!window._suspClickListenerAdded){
+        window._suspClickListenerAdded=true;
+        document.addEventListener("click", e=>{
+          const tm=document.getElementById("susp-test-menu");
+          const dm=document.getElementById("susp-date-menu");
+          if(tm && !e.target.closest("#susp-test-wrap")) tm.style.display="none";
+          if(dm && !e.target.closest("#susp-date-wrap")) dm.style.display="none";
+        });
+      }
       // Прихована input для збереження значення
       const hiddenTest=document.createElement("input");
       hiddenTest.type="hidden"; hiddenTest.id="susp-filter-test"; hiddenTest.value="";
@@ -3493,21 +3498,10 @@ window.G = {
       const menu=document.getElementById("susp-test-menu");
       if(menu){
         const curVal=document.getElementById("susp-filter-test")?.value||"";
-        menu.innerHTML=`<div onclick="G.setSuspTest('','📋 Всі тести')" style="padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:500;transition:background .1s" onmouseover="this.style.background='rgba(45,91,227,.05)'" onmouseout="this.style.background=''">📋 Всі тести</div>`
+        menu.innerHTML=`<div onclick="G.setSuspTest('','Всі тести')" style="padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:500;transition:background .1s" onmouseover="this.style.background='rgba(45,91,227,.05)'" onmouseout="this.style.background=''">Всі тести</div>`
           +tests.filter(t=>t.status!=="archived").map(t=>`<div onclick="G.setSuspTest('${t.id}','${esc(t.title)}')" style="padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;transition:background .1s" onmouseover="this.style.background='rgba(45,91,227,.05)'" onmouseout="this.style.background=''">${esc(t.title)}</div>`).join("");
       }
     }
-
-    if(!scored.length){
-      body.innerHTML=`<div class="empty" style="padding:60px 20px"><div class="ei">✅</div><div class="et">${fTest||fDate?"Нічого не знайдено за фільтром":"Підозрілих спроб не виявлено"}</div></div>`;
-      return;
-    }
-
-    const countLbl=document.getElementById("susp-count-label");
-    if(countLbl) countLbl.textContent=`Знайдено: ${scored.length}`;
-    const totalBadge=document.getElementById("susp-total-badge");
-    if(totalBadge){ totalBadge.textContent=`⚠️ ${scored.length} підозрілих`; totalBadge.style.display=scored.length?"":"none"; }
-
 
     if(!scored.length){
       body.innerHTML=`<div class="empty" style="padding:80px 20px"><div class="ei">✅</div><div class="et">${fTest||fDate?"Нічого не знайдено":"Підозрілих спроб немає"}</div><div class="es">Студенти проходили тест без порушень</div></div>`;
@@ -3537,7 +3531,7 @@ window.G = {
           const dateStr=a.createdAt?new Date(a.createdAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"—";
           const tags=[];
           if(a.tabSwitches>0)  tags.push(`<span style="background:rgba(245,158,11,.1);color:#b45309;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap">🔄 ${a.tabSwitches}</span>`);
-          if(a.copyAttempts>0) tags.push(`<span style="background:rgba(244,63,94,.09);color:#be123c;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap">📋 ${a.copyAttempts}</span>`);
+          if(a.copyAttempts>0) tags.push(`<span style="background:rgba(244,63,94,.09);color:#be123c;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap">${a.copyAttempts}</span>`);
           if(a.screenshots>0)  tags.push(`<span style="background:rgba(147,51,234,.09);color:#7e22ce;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap">📸 ${a.screenshots}</span>`);
           return `<tr style="border-top:1px solid rgba(229,232,240,.5);transition:background .1s" onmouseover="this.style.background='rgba(244,63,94,.02)'" onmouseout="this.style.background=''">
             <td style="padding:11px 16px">
