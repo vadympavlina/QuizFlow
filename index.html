@@ -932,7 +932,12 @@ textarea.fi{resize:vertical;min-height:72px}
     <div class="msu" id="share-test-name">Тест</div>
     <div class="fl">
       <label>Оберіть викладача</label>
-      <div id="share-teachers-list" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;padding:2px"></div>
+      <div class="sbox" style="margin-bottom:10px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="share-srch" placeholder="Пошук викладача..." autocomplete="off"
+          oninput="G._filterShareTeachers(this.value)">
+      </div>
+      <div id="share-teachers-list" style="display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;padding:2px"></div>
     </div>
     <div id="share-err" style="color:#be123c;font-size:13px;min-height:18px;margin-bottom:8px"></div>
     <div class="ma">
@@ -3442,35 +3447,67 @@ window.G = {
   _shareTestId: null,
   _shareSelectedUid: null,
 
+  _shareUsers: [],
+
+  _renderShareList(query=""){
+    const list=document.getElementById("share-teachers-list");
+    if(!list) return;
+    const q=query.toLowerCase().trim();
+    const filtered=q
+      ? G._shareUsers.filter(u=>(u.name||u.login).toLowerCase().includes(q)||u.login.toLowerCase().includes(q))
+      : G._shareUsers;
+
+    if(!filtered.length){
+      list.innerHTML="<div style='color:var(--muted);font-size:13px;text-align:center;padding:16px'>Нікого не знайдено</div>";
+      return;
+    }
+
+    list.innerHTML=filtered.map(u=>{
+      const initials=(u.name||u.login).slice(0,2).toUpperCase();
+      const isSelected=G._shareSelectedUid===u.id;
+      return `<div data-uid="${u.id}" onclick="G._selectShareTeacher('${u.id}')"
+        style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid ${isSelected?"var(--primary)":"var(--border)"};background:${isSelected?"rgba(45,91,227,.05)":""};cursor:pointer;transition:all .15s"
+        onmouseover="if('${u.id}'!==G._shareSelectedUid)this.style.borderColor='rgba(45,91,227,.3)'"
+        onmouseout="if('${u.id}'!==G._shareSelectedUid)this.style.borderColor='var(--border)'">
+        <div style="width:36px;height:36px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-weight:700;font-size:13px;color:#fff;flex-shrink:0">${initials}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:14px">${esc(u.name||u.login)}</div>
+          <div style="font-size:12px;color:var(--muted);font-family:monospace">@${esc(u.login)}</div>
+        </div>
+        ${isSelected?`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`:""}
+      </div>`;
+    }).join("");
+  },
+
+  _selectShareTeacher(uid){
+    G._shareSelectedUid=uid;
+    G._renderShareList(document.getElementById("share-srch")?.value||"");
+  },
+
+  _filterShareTeachers(q){
+    G._renderShareList(q);
+  },
+
   async openShareModal(testId, testTitle){
     G._shareTestId = testId;
     G._shareSelectedUid = null;
+    G._shareUsers = [];
     document.getElementById("share-test-name").textContent = testTitle;
     document.getElementById("share-err").textContent = "";
+    const srch=document.getElementById("share-srch");
+    if(srch) srch.value="";
     const btn=document.getElementById("share-btn");
     btn.disabled=false; btn.textContent="Поділитись →";
-    const list = document.getElementById("share-teachers-list");
-    list.innerHTML = '<div style="color:var(--muted);font-size:14px;text-align:center;padding:20px">Завантаження...</div>';
+    const list=document.getElementById("share-teachers-list");
+    list.innerHTML="<div style='color:var(--muted);font-size:14px;text-align:center;padding:20px'>Завантаження...</div>";
     openM("m-share");
     try{
-      const {get:_g, ref:_r} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
-      const snap = await _g(_r(db,"users"));
+      const {get:_g,ref:_r}=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+      const snap=await _g(_r(db,"users"));
       if(!snap.exists()){ list.innerHTML="<div style='color:var(--muted);font-size:14px'>Немає викладачів</div>"; return; }
-      const users = Object.entries(snap.val()).map(([id,u])=>({id,...u})).filter(u=>u.id!==_uid&&!u.blocked);
-      if(!users.length){ list.innerHTML="<div style='color:var(--muted);font-size:14px;padding:12px 0'>Немає інших викладачів</div>"; return; }
-      list.innerHTML = users.map(u=>{
-        const initials=esc(u.name||u.login).slice(0,2).toUpperCase();
-                const el=document.createElement("label");
-        el.style.cssText="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:all .15s";
-        el.addEventListener("click",()=>{
-          G._shareSelectedUid=u.id;
-          document.querySelectorAll("#share-teachers-list label").forEach(l=>{l.style.borderColor="var(--border)";l.style.background="";});
-          el.style.borderColor="var(--primary)";el.style.background="rgba(45,91,227,.04)";
-        });
-        el.innerHTML="<div style='width:36px;height:36px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-weight:700;font-size:13px;color:#fff;flex-shrink:0'>"+initials+"</div>"
-          +"<div><div style='font-weight:600;font-size:14px'>"+esc(u.name||u.login)+"</div><div style='font-size:12px;color:var(--muted);font-family:monospace'>@"+esc(u.login)+"</div></div>";
-        return el.outerHTML.replace("</label>","")+"</label>";
-      }).join("");
+      G._shareUsers=Object.entries(snap.val()).map(([id,u])=>({id,...u})).filter(u=>u.id!==_uid&&!u.blocked);
+      if(!G._shareUsers.length){ list.innerHTML="<div style='color:var(--muted);font-size:14px;padding:12px 0'>Немає інших викладачів</div>"; return; }
+      G._renderShareList();
     }catch(e){ list.innerHTML="<div style='color:#be123c;font-size:13px'>"+esc(e.message)+"</div>"; }
   },
 
