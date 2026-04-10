@@ -3530,6 +3530,8 @@ window.G = {
   },
 
   initGradebook(){
+    if(window._gbTestF===undefined) window._gbTestF="";
+    if(window._gbGrpF===undefined) window._gbGrpF="";
     // Заповнюємо тести
     const gbTestMenu=document.getElementById("cd-gb-test-menu");
     if(gbTestMenu){
@@ -3556,21 +3558,24 @@ window.G = {
     if(lbl) lbl.textContent=label;
     const menu=document.getElementById(wrap+"-menu");
     menu?.querySelectorAll(".cd-item").forEach(el=>{
-      el.classList.toggle("cd-active", el.dataset.val===value);
+      el.classList.toggle("cd-active", el.dataset.val===value||(!value&&el.dataset.val===""));
     });
     menu?.classList.remove("open");
     const btn=document.querySelector(`#${wrap} .cd-btn`);
     btn?.classList.toggle("active", !!value);
+    // Зберігаємо в select і в window змінній
     const sel=document.getElementById(selId);
     if(sel) sel.value=value;
+    if(field==="test") window._gbTestF=value;
+    else window._gbGrpF=value;
     G.renderGradebook();
   },
 
   renderGradebook(){
     const body=document.getElementById("gradebook-body");
     if(!body) return;
-    const groupF=document.getElementById("gb-group")?.value||"";
-    const testF=document.getElementById("gb-test")?.value||"";
+    const groupF=window._gbGrpF||document.getElementById("gb-group")?.value||"";
+    const testF=window._gbTestF||document.getElementById("gb-test")?.value||"";
 
     let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
     if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
@@ -3686,8 +3691,8 @@ window.G = {
   },
 
   async exportGradebook(format='csv'){
-    const groupF=document.getElementById("gb-group")?.value||"";
-    const testF=document.getElementById("gb-test")?.value||"";
+    const groupF=window._gbGrpF||document.getElementById("gb-group")?.value||"";
+    const testF=window._gbTestF||document.getElementById("gb-test")?.value||"";
     let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
     if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
     if(testF)  att=att.filter(a=>a.testId===testF);
