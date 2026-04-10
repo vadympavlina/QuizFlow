@@ -3530,23 +3530,29 @@ window.G = {
   },
 
   initGradebook(){
-    if(window._gbTestF===undefined) window._gbTestF="";
-    if(window._gbGrpF===undefined) window._gbGrpF="";
+    window._gbTestF = window._gbTestF!==undefined ? window._gbTestF : "";
+    window._gbGrpF  = window._gbGrpF!==undefined  ? window._gbGrpF  : "";
     // Заповнюємо тести
+    const curTestF=window._gbTestF||"";
+    const curGrpF=window._gbGrpF||"";
     const gbTestMenu=document.getElementById("cd-gb-test-menu");
     if(gbTestMenu){
-      gbTestMenu.innerHTML=`<div class="cd-item cd-active" data-val="" onclick="G.selectGbFilter('test','','Всі тести')">Всі тести</div>`+
+      gbTestMenu.innerHTML=`<div class="cd-item${!curTestF?" cd-active":""}" data-val="" onclick="G.selectGbFilter('test','','Всі тести')">Всі тести</div>`+
         tests.filter(t=>t.status!=="archived").map(t=>
-          `<div class="cd-item" data-val="${t.id}" onclick="G.selectGbFilter('test','${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
+          `<div class="cd-item${curTestF===t.id?" cd-active":""}" data-val="${t.id}" onclick="G.selectGbFilter('test','${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
         ).join("");
+      const lbl=document.getElementById("cd-gb-test-label");
+      if(lbl&&curTestF){const t=tests.find(x=>x.id===curTestF);if(t)lbl.textContent=t.title;}
     }
     // Заповнюємо групи
     const groups=[...new Set(links.map(l=>l.group).filter(Boolean))].sort();
     const gbGrpMenu=document.getElementById("cd-gb-group-menu");
     if(gbGrpMenu){
-      gbGrpMenu.innerHTML=`<div class="cd-item cd-active" data-val="" onclick="G.selectGbFilter('group','','Всі групи')">Всі групи</div>`+
-        groups.map(g=>`<div class="cd-item" data-val="${esc(g)}" onclick="G.selectGbFilter('group','${esc(g)}','${esc(g)}')">${esc(g)}</div>`
+      gbGrpMenu.innerHTML=`<div class="cd-item${!curGrpF?" cd-active":""}" data-val="" onclick="G.selectGbFilter('group','','Всі групи')">Всі групи</div>`+
+        groups.map(g=>`<div class="cd-item${curGrpF===g?" cd-active":""}" data-val="${esc(g)}" onclick="G.selectGbFilter('group','${esc(g)}','${esc(g)}')">${esc(g)}</div>`
         ).join("");
+      const lbl2=document.getElementById("cd-gb-group-label");
+      if(lbl2&&curGrpF)lbl2.textContent=curGrpF;
     }
     G.renderGradebook();
   },
@@ -3574,8 +3580,11 @@ window.G = {
   renderGradebook(){
     const body=document.getElementById("gradebook-body");
     if(!body) return;
-    const groupF=window._gbGrpF||document.getElementById("gb-group")?.value||"";
-    const testF=window._gbTestF||document.getElementById("gb-test")?.value||"";
+    // Читаємо активний елемент з меню (найнадійніший спосіб)
+    const activeTestEl=document.querySelector("#cd-gb-test-menu .cd-item.cd-active");
+    const activeGrpEl=document.querySelector("#cd-gb-group-menu .cd-item.cd-active");
+    const testF=activeTestEl?.dataset?.val||"";
+    const groupF=activeGrpEl?.dataset?.val||"";
 
     let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
     if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
@@ -3691,8 +3700,11 @@ window.G = {
   },
 
   async exportGradebook(format='csv'){
-    const groupF=window._gbGrpF||document.getElementById("gb-group")?.value||"";
-    const testF=window._gbTestF||document.getElementById("gb-test")?.value||"";
+    // Читаємо активний елемент з меню (найнадійніший спосіб)
+    const activeTestEl=document.querySelector("#cd-gb-test-menu .cd-item.cd-active");
+    const activeGrpEl=document.querySelector("#cd-gb-group-menu .cd-item.cd-active");
+    const testF=activeTestEl?.dataset?.val||"";
+    const groupF=activeGrpEl?.dataset?.val||"";
     let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
     if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
     if(testF)  att=att.filter(a=>a.testId===testF);
