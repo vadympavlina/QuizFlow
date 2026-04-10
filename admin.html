@@ -895,10 +895,12 @@ window.resetTeacherAI = async () => {
 let _editNewsId = null;
 
 // ─── EDITOR HELPERS ──────────────────────────────────────────────────────────
+let _savedRange = null;
+
 window.newsFormat = (cmd) => {
   const editor = document.getElementById("news-editor");
   editor.focus();
-  if(cmd==="bold")      document.execCommand("bold");
+  if(cmd==="bold")       document.execCommand("bold");
   else if(cmd==="italic")    document.execCommand("italic");
   else if(cmd==="underline") document.execCommand("underline");
   else if(cmd==="h"){
@@ -908,14 +910,69 @@ window.newsFormat = (cmd) => {
       const block=document.createElement("h3");
       block.appendChild(range.extractContents());
       range.insertNode(block);
+      // Переміщуємо курсор після заголовку
+      const br=document.createElement("br");
+      block.after(br);
+      range.setStartAfter(br);
+      sel.removeAllRanges();
+      sel.addRange(range);
     }
   }
   else if(cmd==="bullet") document.execCommand("insertUnorderedList");
-  else if(cmd==="link"){
-    const url=prompt("Введіть URL посилання:");
-    if(url) document.execCommand("createLink",false,url);
-  }
   updateNewsCharCount();
+};
+
+window.openLinkModal = () => {
+  // Зберігаємо поточне виділення
+  const sel=window.getSelection();
+  if(sel.rangeCount) _savedRange=sel.getRangeAt(0).cloneRange();
+  const selText=sel.toString().trim();
+  document.getElementById("link-text-inp").value=selText||"";
+  document.getElementById("link-url-inp").value="";
+  document.getElementById("link-modal-err").textContent="";
+  openModal("m-link-insert");
+  setTimeout(()=>{
+    const inp=document.getElementById(selText?"link-url-inp":"link-text-inp");
+    inp?.focus();
+  },100);
+};
+
+window.insertLink = () => {
+  const text=document.getElementById("link-text-inp").value.trim();
+  const url=document.getElementById("link-url-inp").value.trim();
+  const errEl=document.getElementById("link-modal-err");
+  if(!url){ errEl.textContent="Введіть URL"; return; }
+  if(!url.startsWith("http")){ errEl.textContent='URL має починатись з "https://"'; return; }
+  const editor=document.getElementById("news-editor");
+  editor.focus();
+  // Відновлюємо збережене виділення
+  if(_savedRange){
+    const sel=window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(_savedRange);
+  }
+  const linkEl=document.createElement("a");
+  linkEl.href=url;
+  linkEl.target="_blank";
+  linkEl.rel="noopener";
+  linkEl.textContent=text||url;
+  linkEl.style.color="var(--primary)";
+  linkEl.style.textDecoration="underline";
+  if(_savedRange){
+    _savedRange.deleteContents();
+    _savedRange.insertNode(linkEl);
+    // Курсор після посилання
+    const range=document.createRange();
+    range.setStartAfter(linkEl);
+    const sel=window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  } else {
+    document.execCommand("insertHTML",false,linkEl.outerHTML);
+  }
+  _savedRange=null;
+  updateNewsCharCount();
+  closeModal("m-link-insert");
 };
 
 window.updateNewsCharCount = () => {
@@ -1087,7 +1144,7 @@ loadNews();
           style="width:30px;height:30px;border:none;background:none;border-radius:7px;cursor:pointer;font-size:14px;color:var(--text);transition:all .15s"
           onmouseover="this.style.background='rgba(45,91,227,.08)'" onmouseout="this.style.background='none'">•</button>
         <div style="width:1px;background:var(--border);margin:4px 4px"></div>
-        <button type="button" onclick="newsFormat('link')" title="Посилання"
+        <button type="button" onclick="openLinkModal()" title="Вставити посилання"
           style="width:30px;height:30px;border:none;background:none;border-radius:7px;cursor:pointer;font-size:14px;color:var(--text);transition:all .15s"
           onmouseover="this.style.background='rgba(45,91,227,.08)'" onmouseout="this.style.background='none'">🔗</button>
         <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
@@ -1127,6 +1184,31 @@ loadNews();
     <div style="display:flex;gap:10px">
       <button class="btn bs" onclick="closeModal('m-news-del')" style="flex:1">Скасувати</button>
       <button onclick="confirmDeleteNews()" style="flex:1;padding:12px;border-radius:13px;border:none;background:linear-gradient(135deg,#f43f5e,#be123c);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer">Видалити</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- LINK INSERT MODAL -->
+<div class="mo" id="m-link-insert" style="z-index:500">
+  <div class="mb" style="max-width:400px">
+    <button class="mcl" onclick="closeModal('m-link-insert')">×</button>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+      <div style="width:40px;height:40px;border-radius:11px;background:rgba(45,91,227,.08);display:flex;align-items:center;justify-content:center;font-size:18px">🔗</div>
+      <div class="mtl" style="margin:0">Вставити посилання</div>
+    </div>
+    <div class="fl">
+      <label>Текст посилання</label>
+      <input class="fi" id="link-text-inp" placeholder="Наприклад: Детальніше тут">
+    </div>
+    <div class="fl">
+      <label>URL *</label>
+      <input class="fi" id="link-url-inp" placeholder="https://..." type="url">
+    </div>
+    <div id="link-modal-err" style="color:#be123c;font-size:13px;min-height:16px;margin-bottom:8px"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn bs" onclick="closeModal('m-link-insert')" style="flex:1">Скасувати</button>
+      <button class="btn bp" onclick="insertLink()" style="flex:1">Вставити →</button>
     </div>
   </div>
 </div>
