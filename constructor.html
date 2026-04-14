@@ -1484,26 +1484,37 @@ window.aiCheckQuestion = async function(idx) {
         ? q.correct.map(i => q.options[i]).join(", ")
         : String(q.correct ?? "");
 
+    // Тема: беремо з останньої AI генерації, або з назви тесту як запасний варіант
+    const topic = window._lastAiTopic || document.getElementById("testTitle")?.value?.trim() || "загальна тема";
+
+    // Контекст: кілька інших питань щоб ШІ розумів про що тест
+    const otherQs = testData.questions
+      .filter((_, i) => i !== idx && testData.questions[i]?.text?.trim())
+      .slice(0, 3)
+      .map(oq => `- "${oq.text.replace(/<[^>]+>/g,"").substring(0,80)}"`)
+      .join("\n");
+
     const checkPrompt = `Перевір тестове питання на фактичну точність.
+
+Тема тесту: "${topic}"
+${otherQs ? `Інші питання цього тесту для контексту:\n${otherQs}` : ""}
 
 Питання: "${q.text.replace(/<[^>]+>/g,"")}"
 Правильна відповідь: "${correctAns}"
-${q.options ? `Варіанти: ${q.options.join(", ")}` : ""}
+${q.options ? `Всі варіанти: ${q.options.join(", ")}` : ""}
 
 Визнач:
-1. Чи є питання фактично правильним?
-2. Чи правильна відповідь об'єктивно вірна?
+- "ok": питання і відповідь фактично правильні
+- "wrong": є фактична помилка — опиши що саме і яка правильна відповідь
 
-Якщо все правильно — {"status":"ok"}
-Якщо є помилка — {"status":"wrong","issue":"опис проблеми","fix":"виправлена правильна відповідь"}
+Відповідай ТІЛЬКИ JSON:
+{"status":"ok"} або {"status":"wrong","issue":"опис помилки","fix":"правильна відповідь"}`;
 
-Відповідай ТІЛЬКИ JSON без markdown.`;
-
-    const raw = await callGroq([{ role: "user", content: checkPrompt }], 400, 0.1);
+    const raw = await callGroq([{ role: "user", content: checkPrompt }], 300, 0.1);
     const result = JSON.parse(raw.replace(/```json|```/g, "").trim());
 
     if (result.status === "ok") {
-      showToast("✅ Питання перевірено — все точно!");
+      showToast("✅ Питання точне!");
       if (btn) {
         btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0d9e85" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Точне`;
         btn.style.color = "#0d9e85";
@@ -1511,34 +1522,37 @@ ${q.options ? `Варіанти: ${q.options.join(", ")}` : ""}
         btn.disabled = false;
       }
     } else {
-      // Є помилка — перегенеровуємо це питання
       if (btn) {
-        btn.innerHTML = `<div style="width:11px;height:11px;border:2px solid rgba(244,63,94,.3);border-top-color:#be123c;border-radius:50%;animation:spin .7s linear infinite;display:inline-block"></div> Перегенеровую...`;
+        btn.innerHTML = `<div style="width:11px;height:11px;border:2px solid rgba(244,63,94,.3);border-top-color:#be123c;border-radius:50%;animation:spin .7s linear infinite;display:inline-block"></div> Замінюю...`;
       }
-      showToast(`⚠️ Знайдено помилку: ${result.issue || "невірна відповідь"}. Перегенеровую...`);
+      showToast(`⚠️ ${result.issue || "Невірна відповідь"}. Генерую нове...`);
 
-      // Генеруємо нове питання
-      const topic = testData.title || "загальна тема";
-      const regenPrompt = `Склади 1 тестове питання на тему "${topic}" замість цього (яке містило помилку: ${result.issue || "невірна відповідь"}).
+      // Генеруємо нове питання СУВОРО по темі тесту, з контекстом існуючих питань
+      const regenPrompt = `Склади 1 тестове питання.
 
-Тип: ${q.type === "single" ? "single choice" : q.type === "multi" ? "multiple choice" : "text"}
-Складність: середня
+Тема: "${topic}"
+${otherQs ? `Інші питання цього тесту (для розуміння контексту):\n${otherQs}` : ""}
 
-ОБОВ'ЯЗКОВО: питання і відповіді — фактично точні, перевірені.
+Вимоги:
+- Питання СТРОГО по темі "${topic}"
+- Тип: ${q.type}
+- Відповідь фактично точна і перевірена
+- Не повторювати вже існуючі питання
+${q.type === "single" || q.type === "multi" ? "- 4 варіанти відповідей, correct = масив індексів (з 0)" : "- correct = коротка точна відповідь"}
 
-Формат JSON (один об'єкт, не масив):
-{"type":"${q.type}","text":"Питання?","options":["А","Б","В","Г"],"correct":[0]}`;
+JSON (один об'єкт, не масив):
+${q.type === "text" ? '{"type":"text","text":"Питання?","correct":"відповідь"}' : '{"type":"' + q.type + '","text":"Питання?","options":["А","Б","В","Г"],"correct":[0]}'}`;
 
       const rawNew = await callGroq([{ role: "user", content: regenPrompt }], 500, 0.2);
       let newQ = JSON.parse(rawNew.replace(/```json|```/g, "").trim());
       if (Array.isArray(newQ)) newQ = newQ[0];
 
-      newQ.id = q.id; // зберігаємо id
+      newQ.id = q.id;
       testData.questions[idx] = { ...newQ };
       markDirty();
       renderQuestionList();
       renderEditor();
-      showToast("✅ Питання замінено на перевірене!");
+      showToast("✅ Замінено! Перевір нове питання.");
     }
   } catch (e) {
     showToast("Помилка перевірки: " + e.message, "error");
@@ -2012,6 +2026,8 @@ window.runAiGenerate = async () => {
   btn.innerHTML = `<div style="width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;display:inline-block;margin-right:8px"></div>Генерую ${count} питань...`;
 
   try {
+    window._lastAiTopic = topic; // зберігаємо тему для повторної генерації
+    window._lastAiType  = type;
     const questions = await generateQuestions({ topic, desc, difficulty, type, count });
     btn.innerHTML = `<div style="width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;display:inline-block;margin-right:8px"></div>Перевіряю точність...`;
     questions.forEach(q => window.addQuestion({ ...q, id: genId() }));
