@@ -1818,8 +1818,8 @@ function fillTestInfo() {
   applyTestTheme(linkData?.theme || "default");
   setEl("infoTitle",    testData.title);
   setEl("infoQuestions", testData.questions.length);
-  const mins = Math.round((testData.timeLimit || 600) / 60);
-  setEl("infoTime",    mins + " хвилин");
+  const mins = testData.timeLimit ? Math.round(testData.timeLimit / 60) : 0;
+  setEl("infoTime", mins > 0 ? mins + " хвилин" : "Без обмежень");
   setEl("infoAttempts", `${linkData.usedAttempts} / ${linkData.maxAttempts} спроб`);
   if (linkData.group) {
     const row = document.getElementById("infoGroupRow");
@@ -2005,7 +2005,13 @@ async function startTest() {
 
 // ─── TIMER ────────────────────────────────────────────────────────────────────
 function startTimer() {
-  timerSecs  = testData.timeLimit || 600;
+  // timeLimit = 0 означає "без обмежень" — таймер не запускаємо
+  if (!testData.timeLimit || testData.timeLimit === 0) {
+    const timerEl = document.getElementById("timer");
+    if (timerEl) timerEl.style.display = "none";
+    return;
+  }
+  timerSecs = testData.timeLimit;
   updateTimerUI();
 
   timerHandle = setInterval(() => {
