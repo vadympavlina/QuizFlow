@@ -3530,9 +3530,9 @@ window.G = {
           const lvlL=score>=10?"Висока":score>=5?"Середня":"Низька";
           const dateStr=a.createdAt?new Date(a.createdAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"—";
           const tags=[];
-          if(a.tabSwitches>0)  tags.push(`<span style="background:rgba(245,158,11,.1);color:#b45309;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap">🔄 ${a.tabSwitches}</span>`);
-          if(a.copyAttempts>0) tags.push(`<span style="background:rgba(244,63,94,.09);color:#be123c;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap">${a.copyAttempts}</span>`);
-          if(a.screenshots>0)  tags.push(`<span style="background:rgba(147,51,234,.09);color:#7e22ce;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap">📸 ${a.screenshots}</span>`);
+          if(a.tabSwitches>0)  tags.push(`<span title="Переключень між вкладками: ${a.tabSwitches}" style="background:rgba(245,158,11,.1);color:#b45309;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;cursor:default">🔄 ${a.tabSwitches}</span>`);
+          if(a.copyAttempts>0) tags.push(`<span title="Спроб скопіювати текст: ${a.copyAttempts}" style="background:rgba(244,63,94,.09);color:#be123c;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;cursor:default">📋 ${a.copyAttempts}</span>`);
+          if(a.screenshots>0)  tags.push(`<span title="Спроб зробити скріншот: ${a.screenshots}" style="background:rgba(147,51,234,.09);color:#7e22ce;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;cursor:default">📸 ${a.screenshots}</span>`);
           return `<tr style="border-top:1px solid rgba(229,232,240,.5);transition:background .1s" onmouseover="this.style.background='rgba(244,63,94,.02)'" onmouseout="this.style.background=''">
             <td style="padding:11px 16px">
               <div style="font-weight:600;font-size:14px">${esc(a.surname)} ${esc(a.name)}</div>
