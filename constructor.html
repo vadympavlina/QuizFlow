@@ -1430,32 +1430,39 @@ function renderFolderChips() {
   const container = document.getElementById("folderChipsPanel");
   if (!container) return;
   const folders = window._allFolders || [];
-  if (!folders.length) {
-    container.innerHTML = `<span style="font-size:12px;color:var(--text-light)">Немає папок</span>`;
-    return;
-  }
-  container.innerHTML = [
-    { id: null, name: "Без папки" },
-    ...folders
-  ].map(f => {
-    const sel = window._selectedFolderId === f.id;
-    return `<span
-      onclick="window.selectFolderInConstructor('${f.id||""}')"
-      style="display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:20px;
-             border:1.5px solid ${sel?"var(--primary)":"var(--border)"};
-             background:${sel?"rgba(45,91,227,.08)":"white"};
-             color:${sel?"var(--primary)":"var(--text-muted)"};
-             font-size:12px;font-weight:500;cursor:pointer;transition:all .15s">
-      ${f.id?"📁":""}${f.name}
-    </span>`;
-  }).join("");
+  const sel = folders.find(f => f.id === window._selectedFolderId);
+  const label = sel ? `📁 ${sel.name}` : "Без папки";
+
+  container.innerHTML = `
+    <div class="con-cd-wrap" id="folder-cd-wrap" style="display:block">
+      <button class="con-cd-btn" style="width:100%;justify-content:space-between" onclick="conToggleDrop('folder-cd-wrap')">
+        <span id="folder-cd-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px">${label}</span>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="con-cd-menu" id="folder-cd-menu" style="width:100%;max-height:200px;overflow-y:auto">
+        <div class="con-cd-item ${!sel?"con-cd-active":""}" onclick="window.selectFolderInConstructor('')">
+          <span style="margin-right:6px;opacity:.5">✕</span> Без папки
+        </div>
+        ${folders.map(f => {
+          const isSel = window._selectedFolderId === f.id;
+          return `<div class="con-cd-item ${isSel?"con-cd-active":""}" onclick="window.selectFolderInConstructor('${f.id}')">
+            <span style="margin-right:6px">📁</span>${f.name}
+          </div>`;
+        }).join("")}
+      </div>
+    </div>`;
 }
 
 window.selectFolderInConstructor = (fid) => {
   window._selectedFolderId = fid || null;
+  const menu = document.getElementById("folder-cd-menu");
+  if (menu) menu.classList.remove("open");
+  const btn = document.querySelector("#folder-cd-wrap .con-cd-btn");
+  if (btn) btn.classList.remove("open");
   renderFolderChips();
   markDirty();
 };
+
 
 // ─── QUESTION LIST ────────────────────────────────────────────────────────────
 function renderQuestionList() {
