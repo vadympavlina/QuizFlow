@@ -1439,7 +1439,7 @@ function renderFolderChips() {
         <span id="folder-cd-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px">${label}</span>
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
-      <div class="con-cd-menu" id="folder-cd-menu" style="width:100%;max-height:200px;overflow-y:auto">
+      <div class="con-cd-menu" id="folder-cd-wrap-menu" style="width:100%;max-height:200px;overflow-y:auto">
         <div class="con-cd-item ${!sel?"con-cd-active":""}" onclick="window.selectFolderInConstructor('')">
           <span style="margin-right:6px;opacity:.5">✕</span> Без папки
         </div>
@@ -1455,7 +1455,7 @@ function renderFolderChips() {
 
 window.selectFolderInConstructor = (fid) => {
   window._selectedFolderId = fid || null;
-  const menu = document.getElementById("folder-cd-menu");
+  const menu = document.getElementById("folder-cd-wrap-menu");
   if (menu) menu.classList.remove("open");
   const btn = document.querySelector("#folder-cd-wrap .con-cd-btn");
   if (btn) btn.classList.remove("open");
