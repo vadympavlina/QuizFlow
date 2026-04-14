@@ -827,7 +827,7 @@ async function generateQuestions({ topic, desc = "", difficulty, type, count = 1
 Додаткові вимоги від викладача: ${desc}` : "";
   const maxTokens = Math.max(2500, count * 220);
 
-  const prompt = `Ти — досвідчений викладач. Склади рівно ${count} унікальних тестових питань.
+  const prompt = `Ти — досвідчений викладач і експерт зі своєї теми. Склади рівно ${count} унікальних тестових питань.
 
 Тема: "${topic}"${descPart}
 Складність: ${difficulty}
@@ -835,17 +835,19 @@ async function generateQuestions({ topic, desc = "", difficulty, type, count = 1
 
 ОБОВ'ЯЗКОВІ ПРАВИЛА:
 1. Всі питання та відповіді — ТІЛЬКИ українською мовою
-2. Кожне питання повинно бути УНІКАЛЬНИМ — жодних повторень навіть схожих формулювань
-3. Варіанти відповідей — правдоподібні, не очевидні
-4. Питань рівно ${count} — не більше, не менше
-5. Для single/multi: 4 варіанти, correct = масив індексів (з 0)
-6. Для text: correct = рядок-відповідь
-7. JSON без markdown, без пояснень — тільки масив
+2. Кожне питання повинно бути УНІКАЛЬНИМ
+3. ФАКТИЧНА ТОЧНІСТЬ — найважливіша вимога. Перевір кожен факт перед тим як написати
+4. Правильна відповідь ЗАВЖДИ має бути об'єктивно правильною — без помилок
+5. Неправильні варіанти — правдоподібні, але однозначно хибні
+6. Питань рівно ${count} — не більше, не менше
+7. Для single/multi: 4 варіанти, correct = масив індексів (з 0)
+8. Для text: correct = рядок-відповідь (коротко і точно)
+9. JSON без markdown, без пояснень — тільки масив
 
 Формат:
 [{"type":"single","text":"Питання?","options":["А","Б","В","Г"],"correct":[0]},{"type":"multi","text":"Питання?","options":["А","Б","В","Г"],"correct":[1,2]},{"type":"text","text":"Питання?","correct":"відповідь"}]`;
 
-  const raw = await callGroq([{ role: "user", content: prompt }], maxTokens, 0.6);
+  const raw = await callGroq([{ role: "user", content: prompt }], maxTokens, 0.3);
   let parsed;
   try {
     parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
@@ -865,7 +867,53 @@ async function generateQuestions({ topic, desc = "", difficulty, type, count = 1
     return true;
   });
 
-  return unique;
+  // ── Крок 2: Самоперевірка фактичної точності ─────────────────────────────
+  const validated = await validateQuestions(unique, topic);
+  return validated;
+}
+
+async function validateQuestions(questions, topic) {
+  if (!questions.length) return questions;
+
+  const qList = questions.map((q, i) =>
+    `${i+1}. Питання: "${q.text}"\n   Правильна відповідь: "${Array.isArray(q.correct) ? q.options?.[q.correct[0]] ?? q.correct.join(", ") : q.correct}"`
+  ).join("\n\n");
+
+  const validPrompt = `Перевір ці тестові питання по темі "${topic}" на фактичну точність.
+
+${qList}
+
+Для КОЖНОГО питання визнач:
+- "ok" — питання і правильна відповідь фактично вірні
+- "fix" — є фактична помилка, вкажи правильну відповідь
+
+Відповідай ТІЛЬКИ JSON масивом без markdown:
+[{"i":1,"status":"ok"},{"i":2,"status":"fix","correct":"правильна відповідь"},{"i":3,"status":"ok"}]`;
+
+  try {
+    const raw = await callGroq([{ role: "user", content: validPrompt }], 1000, 0.1);
+    const checks = JSON.parse(raw.replace(/```json|```/g, "").trim());
+
+    checks.forEach(ch => {
+      const idx = ch.i - 1;
+      if (idx < 0 || idx >= questions.length) return;
+      if (ch.status === "fix" && ch.correct) {
+        const q = questions[idx];
+        if (q.type === "text") {
+          q.correct = ch.correct;
+        } else if (q.type === "single" || q.type === "multi") {
+          // Додаємо виправлену відповідь як перший варіант і позначаємо правильною
+          q.options = [ch.correct, ...(q.options || []).filter(o => o !== ch.correct).slice(0, 3)];
+          q.correct = [0];
+        }
+      }
+    });
+  } catch (e) {
+    console.warn("Валідація питань не вдалась:", e.message);
+    // Якщо валідація не вдалась — повертаємо оригінал
+  }
+
+  return questions;
 }
 
 // ─── Допоміжна функція оцінки ─────────────────────────────────────────────────
@@ -1877,6 +1925,7 @@ window.runAiGenerate = async () => {
 
   try {
     const questions = await generateQuestions({ topic, desc, difficulty, type, count });
+    btn.innerHTML = `<div style="width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;display:inline-block;margin-right:8px"></div>Перевіряю точність...`;
     questions.forEach(q => window.addQuestion({ ...q, id: genId() }));
     document.getElementById("aiModal").classList.remove("open");
     showToast(`✅ Додано ${questions.length} питань!`);
