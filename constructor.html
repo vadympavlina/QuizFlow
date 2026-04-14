@@ -1467,6 +1467,88 @@ window.qDrop      = (idx) => {
 };
 
 // ─── EDITOR ───────────────────────────────────────────────────────────────────
+window.aiCheckQuestion = async function(idx) {
+  const q = testData.questions[idx];
+  if (!q || !q.text?.trim()) { showToast("Питання порожнє", "error"); return; }
+
+  const btn = document.getElementById(`ai-check-btn-${idx}`);
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<div style="width:11px;height:11px;border:2px solid rgba(45,91,227,.3);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;display:inline-block"></div> Перевіряю...`;
+  }
+
+  try {
+    const correctAns = q.type === "text" || q.type === "number"
+      ? q.correct
+      : Array.isArray(q.correct) && q.options
+        ? q.correct.map(i => q.options[i]).join(", ")
+        : String(q.correct ?? "");
+
+    const checkPrompt = `Перевір тестове питання на фактичну точність.
+
+Питання: "${q.text.replace(/<[^>]+>/g,"")}"
+Правильна відповідь: "${correctAns}"
+${q.options ? `Варіанти: ${q.options.join(", ")}` : ""}
+
+Визнач:
+1. Чи є питання фактично правильним?
+2. Чи правильна відповідь об'єктивно вірна?
+
+Якщо все правильно — {"status":"ok"}
+Якщо є помилка — {"status":"wrong","issue":"опис проблеми","fix":"виправлена правильна відповідь"}
+
+Відповідай ТІЛЬКИ JSON без markdown.`;
+
+    const raw = await callGroq([{ role: "user", content: checkPrompt }], 400, 0.1);
+    const result = JSON.parse(raw.replace(/```json|```/g, "").trim());
+
+    if (result.status === "ok") {
+      showToast("✅ Питання перевірено — все точно!");
+      if (btn) {
+        btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0d9e85" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Точне`;
+        btn.style.color = "#0d9e85";
+        btn.style.borderColor = "rgba(13,158,133,.3)";
+        btn.disabled = false;
+      }
+    } else {
+      // Є помилка — перегенеровуємо це питання
+      if (btn) {
+        btn.innerHTML = `<div style="width:11px;height:11px;border:2px solid rgba(244,63,94,.3);border-top-color:#be123c;border-radius:50%;animation:spin .7s linear infinite;display:inline-block"></div> Перегенеровую...`;
+      }
+      showToast(`⚠️ Знайдено помилку: ${result.issue || "невірна відповідь"}. Перегенеровую...`);
+
+      // Генеруємо нове питання
+      const topic = testData.title || "загальна тема";
+      const regenPrompt = `Склади 1 тестове питання на тему "${topic}" замість цього (яке містило помилку: ${result.issue || "невірна відповідь"}).
+
+Тип: ${q.type === "single" ? "single choice" : q.type === "multi" ? "multiple choice" : "text"}
+Складність: середня
+
+ОБОВ'ЯЗКОВО: питання і відповіді — фактично точні, перевірені.
+
+Формат JSON (один об'єкт, не масив):
+{"type":"${q.type}","text":"Питання?","options":["А","Б","В","Г"],"correct":[0]}`;
+
+      const rawNew = await callGroq([{ role: "user", content: regenPrompt }], 500, 0.2);
+      let newQ = JSON.parse(rawNew.replace(/```json|```/g, "").trim());
+      if (Array.isArray(newQ)) newQ = newQ[0];
+
+      newQ.id = q.id; // зберігаємо id
+      testData.questions[idx] = { ...newQ };
+      markDirty();
+      renderQuestionList();
+      renderEditor();
+      showToast("✅ Питання замінено на перевірене!");
+    }
+  } catch (e) {
+    showToast("Помилка перевірки: " + e.message, "error");
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Перевірити`;
+    }
+  }
+};
+
 function renderEditor() {
   const q = testData.questions[activeQIndex];
   if (!q) return showEmptyEditor();
@@ -1522,6 +1604,12 @@ function renderEditor() {
         </div>
 
         <div class="editor-actions-row">
+          <button id="ai-check-btn-${activeQIndex}" title="Перевірити точність питання через ШІ" onclick="window.aiCheckQuestion(${activeQIndex})"
+            style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:9px;border:1.5px solid rgba(45,91,227,.25);background:#fff;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;transition:all .15s"
+            onmouseover="this.style.background='rgba(45,91,227,.06)'" onmouseout="this.style.background='#fff'">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Перевірити
+          </button>
           <div class="icon-btn-sm" title="Дублювати" onclick="window.duplicateQuestion(${activeQIndex})">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
           </div>
