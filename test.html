@@ -1287,22 +1287,24 @@ async function scoreTest(questions, answers) {
       `${i+1}. Питання: "${(r.q.text||"").replace(/<[^>]+>/g,"")}"\n   Правильна відповідь: "${r.result.expectedAnswer}"\n   Відповідь студента: "${r.result.studentAnswer}"`
     ).join("\n\n");
 
-    const aiPrompt = `Ти перевіряєш відповіді студентів. Відповідай ТІЛЬКИ українською мовою.
+    const aiPrompt = `Перевір відповіді студента. Відповідай ТІЛЬКИ українською мовою.
 
 ${checkList}
 
-Правила оцінки:
-- "correct": відповідь правильна, навіть якщо написана інакше (синонім, переклад, скорочення, інша форма слова, часткова назва). Якщо правильна відповідь містить "або" — перевіряй кожен варіант окремо.
-- "partial": відповідь наближена, але не повна або неточна
-- "wrong": відповідь неправильна або не стосується питання
+Правила:
+- "correct": відповідь правильна по суті, навіть якщо написана інакше (синонім, скорочення, відмінок, переклад, часткова назва). Якщо правильна відповідь містить "або" / "/" — будь-який з варіантів є правильним.
+- "partial": відповідь частково правильна або наближена, але неповна чи неточна.
+- "wrong": відповідь неправильна, порожня або не стосується питання.
 
-Приклад: якщо правильна відповідь "Material або Матеріал", а студент написав "матеріали" — це "correct" (та сама концепція).
+Важливо: будь ліберальним — якщо студент показав розуміння теми, навіть іншими словами, це "correct".
 
-Відповідай ТІЛЬКИ JSON масивом без markdown, пояснень і коментарів:
+Приклад: правильна відповідь "HTML або HyperText Markup Language", студент написав "html" — це "correct".
+
+Відповідь: ТІЛЬКИ JSON масив, без markdown, без пояснень:
 [{"i":1,"result":"correct"},{"i":2,"result":"partial"},{"i":3,"result":"wrong"}]`;
 
     try {
-      const raw = await callGroq([{ role: "user", content: aiPrompt }], 300);
+      const raw = await callGroq([{ role: "user", content: aiPrompt }], 600);
       const aiResults = JSON.parse(raw.replace(/```json|```/g, "").trim());
       aiResults.forEach(ar => {
         const idx = ar.i - 1;
@@ -2787,8 +2789,8 @@ async function generatePersonalErrorAnalysis(answers, questions, score){
   if(!wrongItems){ el.textContent = ""; return; }
 
   try {
-    const prompt = `Студент допустив помилки в тесті "${testData.title}". Напиши персональний короткий розбір (3-4 речення) — що не так і що повторити. Тільки українська.\n\nПомилки:\n${wrongItems}`;
-    const raw = await callGroq([{role:"user", content:prompt}], 350, 0.4);
+    const prompt = `Студент допустив помилки в тесті "${testData.title}". Напиши короткий персональний розбір (3-4 речення) українською: що саме не так і що конкретно повторити. Звертайся до студента напряму, по-доброму.\n\nПомилки:\n${wrongItems}`;
+    const raw = await callGroq([{role:"user", content:prompt}], 400, 0.5);
     el.textContent = raw.trim();
   } catch(e){
     document.getElementById("errorAnalysisBox").style.display = "none";

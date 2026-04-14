@@ -2264,6 +2264,7 @@ window.renderLinks = function(){
 // G — global actions
 // ─── GROQ для AI аналізу ──────────────────────────────────────────────────────
 async function callGroq(messages, maxTokens=800, temp=0.5){
+  const UA_SYSTEM={role:"system",content:"Ти — розумний асистент викладача. ОБОВ\'ЯЗКОВО відповідай ВИКЛЮЧНО українською мовою. Жодних інших мов, ієрогліфів або нерозпізнаного тексту. Якщо щось не знаєш українською — все одно пиши по-українськи."};
   try{
     const snap=await get(ref(db,"settings/ai"));
     let key="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";
@@ -2272,7 +2273,7 @@ async function callGroq(messages, maxTokens=800, temp=0.5){
     const res=await fetch("https://api.groq.com/openai/v1/chat/completions",{
       method:"POST",
       headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
-      body:JSON.stringify({model,messages:[{role:"system",content:"Відповідай виключно українською мовою."},...messages],max_tokens:maxTokens,temperature:temp})
+      body:JSON.stringify({model,messages:[UA_SYSTEM,...messages],max_tokens:maxTokens,temperature:temp})
     });
     const d=await res.json();
     if(d.error) throw new Error(d.error.message);
@@ -3042,7 +3043,14 @@ window.G = {
         G._showAiPanel(text); return;
       }
 
-      const prompt = `Ти репетитор. Студент ${esc(a.name)} ${esc(a.surname)} отримав оцінку ${a.grade12}/12 за тест "${t?.title || ""}". Помилкові відповіді: ${wrongList.slice(0, 8).join("")}. Напиши короткий персональний розбір (5–8 речень): що студент не зрозумів, на що звернути увагу, як виправити знання. Звертайся до студента напряму.`;
+      const prompt = `Ти репетитор. Студент ${esc(a.name)} ${esc(a.surname)} отримав оцінку ${a.grade12}/12 за тест "${t?.title || ""}". Помилки студента:
+${wrongList.slice(0, 8).join("\n\n")}
+
+Напиши персональний розбір для ${esc(a.name)} (4–6 речень):
+- що саме не зрозуміло
+- на які теми звернути увагу
+- конкретна порада як виправити
+Звертайся до студента напряму, по-доброму і конструктивно.`;
       const res=await callGroq([{role:"user",content:prompt}],600,0.5);
       await dbUpd(`attempts/${attId}`,{personalAnalysis:res});
       a.personalAnalysis=res;
