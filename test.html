@@ -198,49 +198,52 @@
   .processing-icon{font-size:52px;margin-bottom:18px;animation:pulse 1.6s ease infinite}
   @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
 
-  /* ── RESULT ──────────────────────────────────────────────────────────────────── */
-  #resultScreen{align-items:center;justify-content:center;padding:36px 20px;
+  /* ── RESULT ───────────────────────────────────────────────────────────────── */
+  #resultScreen{align-items:center;justify-content:center;padding:32px 20px;
     background:linear-gradient(160deg,#eef2fb 0%,#e4ebf8 100%)}
-  .result-card{width:100%;max-width:620px;animation:cardIn .5s cubic-bezier(.34,1.56,.64,1) both;
-    border-radius:28px;overflow:hidden;box-shadow:var(--shadow-lg)}
-  .result-header{background:linear-gradient(160deg,#2d5be3 0%,#1a3ab8 70%,#1530a0 100%);
-    padding:40px 36px;color:white;text-align:center;position:relative;overflow:hidden}
-  .result-header::before{content:'';position:absolute;width:350px;height:350px;border-radius:50%;
-    background:rgba(255,255,255,.07);top:-120px;right:-100px}
-  .result-header::after{content:'';position:absolute;width:200px;height:200px;border-radius:50%;
-    background:rgba(255,255,255,.04);bottom:-80px;left:-60px}
-  .result-emoji{font-size:52px;margin-bottom:16px;position:relative;z-index:1}
-  .result-student-name{font-size:13px;opacity:.75;margin-bottom:4px;letter-spacing:.3px;
-    position:relative;z-index:1}
-  .result-test-name{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;
-    letter-spacing:-.3px;margin-bottom:24px;position:relative;z-index:1;line-height:1.2}
-  .grade-big{display:inline-flex;align-items:baseline;gap:4px;
-    background:rgba(255,255,255,.13);padding:18px 44px;border-radius:22px;
-    backdrop-filter:blur(12px);border:1.5px solid rgba(255,255,255,.22);position:relative;z-index:1}
-  .grade-main{font-family:'DM Sans',sans-serif;font-weight:700;font-size:72px;line-height:1}
-  .grade-denom{font-family:'DM Sans',sans-serif;font-weight:400;font-size:26px;
-    opacity:.5;margin-bottom:7px;margin-left:2px}
-  .result-body{background:white;padding:30px 36px}
-  .result-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
-  .result-stat{text-align:center;padding:16px 10px;background:rgba(45,91,227,.04);
-    border-radius:16px;border:1.5px solid rgba(45,91,227,.07)}
-  .result-stat-val{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:var(--primary)}
-  .result-stat-label{font-size:11px;color:var(--text-muted);margin-top:4px;
-    text-transform:uppercase;letter-spacing:.5px;font-weight:500}
-  .ai-comment-box{background:linear-gradient(135deg,rgba(45,91,227,.04),rgba(20,212,180,.03));
-    border:1.5px solid rgba(45,91,227,.1);border-radius:18px;padding:20px 24px;margin-bottom:22px}
-  .ai-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.6px;
-    text-transform:uppercase;color:var(--primary);font-weight:700;margin-bottom:10px}
-  .ai-badge::before{content:'✦';font-size:11px}
-  .ai-comment-text{font-size:15px;line-height:1.7;color:var(--text);font-style:italic}
-  .result-actions{display:flex;gap:10px}
-  .result-btn{flex:1;padding:14px;border-radius:15px;font-family:'Syne',sans-serif;
+  .result-card{width:100%;max-width:600px;animation:cardIn .45s cubic-bezier(.34,1.56,.64,1) both;
+    border-radius:24px;overflow:hidden;box-shadow:0 24px 80px rgba(13,19,64,.18)}
+  .result-header{background:linear-gradient(150deg,#1e2d6b 0%,#0d1340 100%);
+    padding:36px 32px;color:white;text-align:center;position:relative;overflow:hidden}
+  .result-header::before{content:'';position:absolute;width:280px;height:280px;border-radius:50%;
+    background:rgba(45,91,227,.2);top:-100px;right:-80px}
+  .result-header::after{content:'';position:absolute;width:160px;height:160px;border-radius:50%;
+    background:rgba(255,255,255,.04);bottom:-60px;left:-40px}
+  .result-emoji{font-size:44px;margin-bottom:12px;position:relative;z-index:1}
+  .result-student-name{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:3px;
+    position:relative;z-index:1;letter-spacing:.3px}
+  .result-test-name{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;
+    color:white;margin-bottom:20px;position:relative;z-index:1;line-height:1.3;
+    max-width:380px;margin-left:auto;margin-right:auto}
+  .grade-big{display:inline-flex;align-items:baseline;gap:3px;
+    background:rgba(255,255,255,.1);padding:14px 40px;border-radius:18px;
+    border:1.5px solid rgba(255,255,255,.18);position:relative;z-index:1}
+  .grade-main{font-family:'DM Sans',sans-serif;font-weight:900;font-size:68px;
+    line-height:1;color:white!important}
+  .grade-denom{font-family:'DM Sans',sans-serif;font-weight:400;font-size:24px;
+    color:rgba(255,255,255,.5);margin-bottom:6px;margin-left:2px}
+  .result-body{background:white;padding:26px 30px}
+  .result-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+  .result-stat{text-align:center;padding:14px 8px;background:rgba(45,91,227,.03);
+    border-radius:14px;border:1.5px solid var(--border)}
+  .result-stat-val{font-family:'DM Sans',sans-serif;font-weight:900;font-size:24px}
+  .result-stat-label{font-size:10px;color:var(--text-muted);margin-top:3px;
+    text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+  .ai-comment-box{background:rgba(45,91,227,.03);border:1.5px solid var(--border);
+    border-radius:16px;padding:16px 20px;margin-bottom:18px}
+  .ai-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;letter-spacing:.8px;
+    text-transform:uppercase;color:var(--primary);font-weight:700;margin-bottom:8px}
+  .ai-badge::before{content:'✦';font-size:10px}
+  .ai-comment-text{font-size:14px;line-height:1.7;color:var(--text)}
+  .result-actions{display:flex;gap:8px;margin-top:4px}
+  .result-btn{flex:1;padding:13px;border-radius:13px;font-family:'Syne',sans-serif;
     font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;border:none;
-    display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.2px}
-  .result-btn.primary{background:var(--grad);color:white;box-shadow:0 6px 22px rgba(45,91,227,.35)}
-  .result-btn.secondary{background:rgba(45,91,227,.07);color:var(--primary);
-    border:2px solid rgba(45,91,227,.12)}
-  .result-btn:hover{transform:translateY(-2px)}
+    display:flex;align-items:center;justify-content:center;gap:7px}
+  .result-btn.primary{background:linear-gradient(135deg,#2d5be3,#1a3ab8);color:white;
+    box-shadow:0 4px 18px rgba(45,91,227,.35)}
+  .result-btn.secondary{background:rgba(45,91,227,.06);color:var(--primary);
+    border:1.5px solid rgba(45,91,227,.15)}
+  .result-btn:hover{transform:translateY(-1px)}
 
   /* ── ERROR ───────────────────────────────────────────────────────────────────── */
   #errorScreen{align-items:center;justify-content:center;padding:24px;
@@ -644,6 +647,8 @@
 <!-- RESULT -->
 <div class="screen" id="resultScreen">
   <div class="result-card">
+
+    <!-- Шапка з оцінкою -->
     <div class="result-header">
       <div class="result-emoji" id="resultEmoji">🎉</div>
       <div class="result-student-name" id="resultStudent"></div>
@@ -653,50 +658,67 @@
         <span class="grade-denom">/12</span>
       </div>
     </div>
+
+    <!-- Тіло результату -->
     <div class="result-body">
-      <!-- Банер "перевіряється" для long відповідей -->
-      <div id="reviewingBox" style="display:none;margin-bottom:20px;width:100%">
-        <div style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border:2px solid #fbbf24;border-radius:18px;padding:22px 28px;display:flex;align-items:center;gap:16px">
-          <div style="font-size:32px;flex-shrink:0">⏳</div>
-          <div style="flex:1">
-            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:#92400e;margin-bottom:4px">Тест на перевірці</div>
-            <div style="font-size:14px;color:#b45309;line-height:1.55">
-              Розгорнута відповідь отримана і чекає на перевірку викладача. Оцінка з'явиться після перевірки.
-            </div>
+
+      <!-- Банер "на перевірці" -->
+      <div id="reviewingBox" style="display:none;margin-bottom:18px">
+        <div style="background:rgba(245,158,11,.06);border:1.5px solid rgba(245,158,11,.3);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:12px">
+          <span style="font-size:24px;flex-shrink:0">⏳</span>
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#b45309;margin-bottom:3px">Очікує перевірки</div>
+            <div style="font-size:13px;color:#b45309;opacity:.85;line-height:1.5">Розгорнуті відповіді чекають на оцінювання викладача</div>
           </div>
         </div>
       </div>
+
+      <!-- Статистика -->
       <div class="result-stats">
-        <div class="result-stat"><div class="result-stat-val" id="statCorrect" style="color:var(--teal)">—</div><div class="result-stat-label">Правильних</div></div>
-        <div class="result-stat"><div class="result-stat-val" id="statWrong" style="color:var(--rose)">—</div><div class="result-stat-label">Неправильних</div></div>
-        <div class="result-stat"><div class="result-stat-val" id="statTime" style="color:var(--teal)">—</div><div class="result-stat-label">Витрачено</div></div>
+        <div class="result-stat">
+          <div class="result-stat-val" id="statCorrect" style="color:#0d9e85">—</div>
+          <div class="result-stat-label">Правильних</div>
+        </div>
+        <div class="result-stat">
+          <div class="result-stat-val" id="statWrong" style="color:#f43f5e">—</div>
+          <div class="result-stat-label">Неправильних</div>
+        </div>
+        <div class="result-stat">
+          <div class="result-stat-val" id="statTime" style="color:var(--primary)">—</div>
+          <div class="result-stat-label">Витрачено</div>
+        </div>
       </div>
+
+      <!-- AI коментар -->
       <div class="ai-comment-box" id="aiCommentBox" style="display:none">
-        <div class="ai-badge">Коментар</div>
+        <div class="ai-badge">AI Коментар</div>
         <div class="ai-comment-text" id="aiComment"></div>
       </div>
+
       <!-- Персональний розбір помилок -->
-      <div id="errorAnalysisBox" style="display:none;margin-bottom:18px;padding:16px 20px;
-        background:rgba(244,63,94,.04);border:1.5px solid rgba(244,63,94,.15);border-radius:16px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <span style="font-size:16px">🔍</span>
-          <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--rose)">
-            Персональний розбір помилок
-          </span>
+      <div id="errorAnalysisBox" style="display:none;margin-bottom:16px;padding:14px 18px;background:rgba(244,63,94,.04);border:1.5px solid rgba(244,63,94,.15);border-radius:14px">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:#f43f5e;text-transform:uppercase;letter-spacing:.5px">Розбір помилок</span>
         </div>
-        <div id="errorAnalysisText" style="font-size:14px;line-height:1.65;color:var(--text-muted);font-style:italic">
-          <span style="display:inline-block;width:16px;height:16px;border:2px solid var(--rose);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:8px"></span>
+        <div id="errorAnalysisText" style="font-size:13px;line-height:1.65;color:var(--text-muted)">
+          <span style="display:inline-block;width:14px;height:14px;border:2px solid #f43f5e;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:6px"></span>
           Аналізуємо помилки...
         </div>
       </div>
 
+      <!-- Кнопки -->
       <div class="result-actions">
         <button class="result-btn secondary" id="downloadBtn">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Завантажити
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Зберегти результат
         </button>
-        <button class="result-btn primary" id="closeTestBtn">Закрити ✓</button>
+        <button class="result-btn primary" id="closeTestBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Закрити
+        </button>
       </div>
+
     </div>
   </div>
 </div>
@@ -1352,14 +1374,14 @@ function generateResultHTML({ student, test, attempt, questions }) {
     hour: "2-digit", minute: "2-digit"
   });
 
+  // Будуємо HTML відповідей
   const questionsHTML = (questions || []).map((q, idx) => {
     const ans = attempt.answers?.find?.(a => a.questionId === q.id);
     const studentAns = ans?.value;
     const isCorrect  = ans?.correct;
     const isPartial  = ans?.partial;
 
-    let answerDisplay = "";
-    let correctDisplay = "";
+    let answerDisplay = "", correctDisplay = "";
 
     if (q.type === "single" || q.type === "multi") {
       const opts = q.options || [];
@@ -1369,7 +1391,6 @@ function generateResultHTML({ student, test, attempt, questions }) {
       correctDisplay = correctIdxs.map(i => opts[i]).filter(Boolean).join(", ") || "—";
     } else if (q.type === "matching") {
       answerDisplay = (q.pairs || []).map((p, i) => {
-        // studentAns може бути об'єктом {0: val} або масивом
         const raw = Array.isArray(studentAns) ? studentAns[i] : studentAns?.[i];
         const chosen = raw !== undefined ? Number(raw) : undefined;
         return `${p.left} → ${chosen !== undefined ? (p.options?.[chosen] ?? "?") : "—"}`;
@@ -1385,32 +1406,33 @@ function generateResultHTML({ student, test, attempt, questions }) {
 
     const statusColor = isCorrect ? "#0d9e85" : isPartial ? "#f59e0b" : "#f43f5e";
     const statusText  = isCorrect ? "✓ Правильно" : isPartial ? "~ Частково" : "✗ Неправильно";
+    const statusBg    = isCorrect ? "rgba(13,158,133,.07)" : isPartial ? "rgba(245,158,11,.07)" : "rgba(244,63,94,.07)";
+    const qText = (q.text || "").replace(/<[^>]+>/g, "");
 
     return `
-    <div class="question-block" style="border-left: 3px solid ${statusColor};">
-      <div class="q-meta">
-        <span class="q-num">Питання ${idx + 1}</span>
-        <span class="q-type">${getTypeName(q.type)}</span>
-        <span class="q-status" style="color:${statusColor}">${statusText}</span>
+    <div style="background:white;border-radius:14px;border:1.5px solid #e5e7eb;border-left:3px solid ${statusColor};padding:18px 20px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="font-size:11px;font-weight:600;color:#6b7280;letter-spacing:.3px">Питання ${idx + 1}</span>
+        <span style="font-size:11px;padding:2px 8px;background:rgba(45,91,227,.08);color:#2d5be3;border-radius:20px;font-weight:500">${getTypeName(q.type)}</span>
+        <span style="margin-left:auto;font-size:12px;font-weight:700;color:${statusColor};background:${statusBg};padding:2px 10px;border-radius:20px">${statusText}</span>
       </div>
-      <div class="q-text">${q.text}</div>
-      <div class="q-answers">
-        <div class="answer-row student-answer">
-          <span class="answer-label">Ваша відповідь:</span>
-          <span class="answer-value">${answerDisplay}</span>
+      <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:15px;color:#0d1340;margin-bottom:12px;line-height:1.4">${qText}</div>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          <span style="color:#6b7280;font-weight:500;white-space:nowrap;min-width:120px">Ваша відповідь:</span>
+          <span style="color:#0d1340">${answerDisplay}</span>
         </div>
-        ${(q.type !== "long") ? `
-        <div class="answer-row correct-answer">
-          <span class="answer-label">Правильна відповідь:</span>
-          <span class="answer-value">${correctDisplay}</span>
+        ${q.type !== "long" ? `
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          <span style="color:#6b7280;font-weight:500;white-space:nowrap;min-width:120px">Правильна:</span>
+          <span style="color:#0d9e85;font-weight:500">${correctDisplay}</span>
         </div>` : ""}
       </div>
     </div>`;
   }).join("\n");
 
-  const gradeColor = attempt.grade12 >= 10 ? "#0d9e85" :
-                     attempt.grade12 >= 7  ? "#2d5be3" :
-                     attempt.grade12 >= 4  ? "#f59e0b" : "#f43f5e";
+  const gradeNum = attempt.grade12 || "—";
+  const hasPending = attempt.status === "pending_review";
 
   return `<!DOCTYPE html>
 <html lang="uk">
@@ -1418,286 +1440,92 @@ function generateResultHTML({ student, test, attempt, questions }) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Результат — ${name} ${surname}</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:#f0f3fa;color:#0d1340;padding:40px 20px;min-height:100vh}
+  .wrap{max-width:680px;margin:0 auto}
 
-  :root {
-    --primary: #2d5be3;
-    --bg: #f0f3fa;
-    --text: #0d1340;
-    --muted: #6b7280;
-    --border: rgba(45,91,227,0.1);
-    --card: #fff;
-  }
+  /* Шапка */
+  .header{background:linear-gradient(150deg,#1e2d6b,#0d1340);border-radius:20px;padding:36px 40px;color:white;text-align:center;margin-bottom:20px;position:relative;overflow:hidden}
+  .header::before{content:'';position:absolute;width:260px;height:260px;border-radius:50%;background:rgba(45,91,227,.2);top:-80px;right:-60px}
+  .logo{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:20px;position:relative;z-index:1}
+  .sname{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:white;margin-bottom:4px;position:relative;z-index:1}
+  .tname{font-size:14px;color:rgba(255,255,255,.65);margin-bottom:20px;position:relative;z-index:1}
+  .grade-box{display:inline-flex;align-items:baseline;gap:3px;background:rgba(255,255,255,.1);padding:12px 36px;border-radius:16px;border:1.5px solid rgba(255,255,255,.18);position:relative;z-index:1}
+  .grade-n{font-family:'DM Sans',sans-serif;font-weight:900;font-size:60px;line-height:1;color:white}
+  .grade-d{font-family:'DM Sans',sans-serif;font-weight:400;font-size:22px;color:rgba(255,255,255,.45);margin-bottom:5px;margin-left:2px}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  /* Картки */
+  .card{background:white;border-radius:16px;border:1.5px solid rgba(45,91,227,.1);padding:22px 26px;margin-bottom:16px}
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    padding: 40px 24px;
-  }
+  /* Статистика */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+  .stat{text-align:center;padding:16px 8px;background:rgba(45,91,227,.03);border-radius:12px;border:1.5px solid rgba(45,91,227,.08)}
+  .stat-v{font-family:'DM Sans',sans-serif;font-weight:900;font-size:26px}
+  .stat-l{font-size:11px;color:#6b7280;margin-top:3px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
 
-  .container { max-width: 760px; margin: 0 auto; }
+  /* AI коментар */
+  .ai-label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:#2d5be3;font-weight:700;margin-bottom:8px}
+  .ai-label::before{content:'✦ '}
+  .ai-text{font-size:14px;line-height:1.7;color:#0d1340}
 
-  /* HEADER */
-  .result-header {
-    background: linear-gradient(135deg, #2d5be3, #1a3ab8);
-    border-radius: 24px;
-    padding: 40px;
-    color: white;
-    margin-bottom: 24px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
+  /* На перевірці */
+  .pending-box{background:rgba(245,158,11,.06);border:1.5px solid rgba(245,158,11,.3);border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px}
 
-  .result-header::before {
-    content: '';
-    position: absolute;
-    width: 300px; height: 300px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.06);
-    top: -100px; right: -80px;
-  }
+  /* Секція заголовок */
+  .sec-title{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:14px;padding-bottom:10px;border-bottom:1.5px solid rgba(45,91,227,.1)}
 
-  .logo-line {
-    font-family: 'Syne', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    opacity: 0.7;
-    margin-bottom: 24px;
-  }
+  /* Дата */
+  .date-line{font-size:12px;color:rgba(255,255,255,.45);margin-top:14px;position:relative;z-index:1}
 
-  .student-name {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 32px;
-    letter-spacing: -0.5px;
-    margin-bottom: 6px;
-  }
-
-  .test-name {
-    font-size: 16px;
-    opacity: 0.8;
-    margin-bottom: 6px;
-  }
-
-  .result-date { font-size: 13px; opacity: 0.6; margin-bottom: 32px; }
-
-  .grade-big {
-    display: inline-flex;
-    align-items: center;
-    gap: 0;
-    background: rgba(255,255,255,0.12);
-    padding: 20px 48px;
-    border-radius: 24px;
-    backdrop-filter: blur(12px);
-    border: 1.5px solid rgba(255,255,255,0.2);
-  }
-
-  .grade-num {
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 700;
-    font-size: 72px;
-    line-height: 1;
-    letter-spacing: 0;
-    color: ${gradeColor};
-  }
-
-  .grade-denom {
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 400;
-    font-size: 26px;
-    opacity: 0.55;
-    color: white;
-    margin-bottom: 6px;
-    margin-left: 4px;
-  }
-
-  /* STATS */
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-
-  .stat-box {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: 16px;
-    padding: 20px;
-    text-align: center;
-  }
-
-  .stat-val {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 28px;
-    color: var(--primary);
-  }
-
-  .stat-label { font-size: 13px; color: var(--muted); margin-top: 4px; }
-
-  /* AI COMMENT */
-  .ai-box {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 24px;
-  }
-
-  .ai-label {
-    font-size: 11px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--primary);
-    font-weight: 600;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .ai-label::before { content: '✦'; }
-
-  .ai-text {
-    font-size: 16px;
-    line-height: 1.7;
-    color: var(--text);
-    font-style: italic;
-  }
-
-  /* QUESTIONS */
-  .section-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 18px;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1.5px solid var(--border);
-  }
-
-  .question-block {
-    background: var(--card);
-    border-radius: 16px;
-    padding: 20px 24px;
-    margin-bottom: 12px;
-    border-left-width: 4px;
-    border-left-style: solid;
-    border-top: 1.5px solid var(--border);
-    border-right: 1.5px solid var(--border);
-    border-bottom: 1.5px solid var(--border);
-  }
-
-  .q-meta {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-  }
-
-  .q-num {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--muted);
-    letter-spacing: 0.3px;
-  }
-
-  .q-type {
-    font-size: 11px;
-    padding: 2px 10px;
-    background: rgba(45,91,227,0.08);
-    color: var(--primary);
-    border-radius: 20px;
-    font-weight: 500;
-  }
-
-  .q-status { margin-left: auto; font-size: 13px; font-weight: 600; }
-
-  .q-text {
-    font-family: 'Syne', sans-serif;
-    font-weight: 600;
-    font-size: 16px;
-    line-height: 1.4;
-    margin-bottom: 14px;
-  }
-
-  .answer-row {
-    display: flex;
-    gap: 8px;
-    font-size: 14px;
-    margin-bottom: 6px;
-    align-items: flex-start;
-  }
-
-  .answer-label { color: var(--muted); font-weight: 500; white-space: nowrap; }
-  .student-answer .answer-value { color: var(--text); }
-  .correct-answer .answer-value { color: #0d9e85; font-weight: 500; }
-
-  .footer {
-    text-align: center;
-    margin-top: 40px;
-    font-size: 13px;
-    color: var(--muted);
-  }
-
-  @media print {
-    body { background: white; padding: 20px; }
-    .result-header { background: #0d1340 !important; -webkit-print-color-adjust: exact; }
-  }
+  .footer{text-align:center;margin-top:28px;font-size:12px;color:#9ca3af}
 </style>
 </head>
 <body>
-<div class="container">
+<div class="wrap">
 
-  <div class="result-header">
-    <div class="logo-line">QuizFlow · Результат тесту</div>
-    <div class="student-name">${name} ${surname}</div>
-    <div class="test-name">${test.title}</div>
-    <div class="result-date">${date}</div>
-    ${attempt.status==="pending_review" ? "" :
-      '<div class="grade-big"><span class="grade-num">'+attempt.grade12+'</span><span class="grade-denom">/12</span></div>'
+  <div class="header">
+    <div class="logo">QuizFlow · Результат тесту</div>
+    <div class="sname">${name} ${surname}</div>
+    <div class="tname">${test.title}</div>
+    ${hasPending
+      ? '<div style="display:inline-block;background:rgba(245,158,11,.2);border:1.5px solid rgba(245,158,11,.4);border-radius:12px;padding:10px 20px;font-size:14px;color:#fbbf24;position:relative;z-index:1">⏳ Очікує перевірки</div>'
+      : `<div class="grade-box"><span class="grade-n">${gradeNum}</span><span class="grade-d">/12</span></div>`
     }
+    <div class="date-line">${date}</div>
   </div>
 
-  <div class="stats-row">
-    <div class="stat-box">
-      <div class="stat-val" style="color:#0d9e85">${attempt.score?.correct ?? 0}</div>
-      <div class="stat-label">Правильних</div>
+  ${hasPending ? `
+  <div class="pending-box">
+    <span style="font-size:22px">⏳</span>
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#b45309;margin-bottom:2px">Очікує перевірки</div>
+      <div style="font-size:13px;color:#b45309;opacity:.85">Розгорнуті відповіді чекають на оцінювання викладача</div>
     </div>
-    <div class="stat-box">
-      <div class="stat-val" style="color:#f43f5e">${attempt.score?.incorrect ?? 0}</div>
-      <div class="stat-label">Неправильних</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-val">${attempt.score?.percent ?? 0}%</div>
-      <div class="stat-label">Результат</div>
-    </div>
+  </div>` : ""}
+
+  <div class="stats">
+    <div class="stat"><div class="stat-v" style="color:#0d9e85">${attempt.score?.correct ?? 0}</div><div class="stat-l">Правильних</div></div>
+    <div class="stat"><div class="stat-v" style="color:#f43f5e">${attempt.score?.incorrect ?? 0}</div><div class="stat-l">Неправильних</div></div>
+    <div class="stat"><div class="stat-v" style="color:#2d5be3">${attempt.score?.percent ?? 0}%</div><div class="stat-l">Результат</div></div>
   </div>
 
-  ${attempt.status==="pending_review"
-    ? '<div style="background:#fffbeb;border:2px solid #fcd34d;border-radius:12px;padding:18px 20px;margin:20px 0"><div style="font-weight:700;color:#92400e;margin-bottom:6px">⏳ Тест на перевірці</div><div style="font-size:14px;color:#92400e;line-height:1.5">Розгорнуті відповіді очікують оцінювання викладачем.</div></div>'
-    : (attempt.aiComment ? '<div class="ai-box"><div class="ai-label">Коментар</div><div class="ai-text">'+attempt.aiComment+'</div></div>' : "")
-  }
+  ${!hasPending && attempt.aiComment ? `
+  <div class="card">
+    <div class="ai-label">AI Коментар</div>
+    <div class="ai-text">${attempt.aiComment}</div>
+  </div>` : ""}
 
-  <div class="section-title">Детальні відповіді</div>
-
+  <div class="sec-title">Детальні відповіді</div>
   ${questionsHTML}
 
-  <div class="footer">
-    Сформовано у системі QuizFlow · ${date}
-  </div>
-
+  <div class="footer">Сформовано у системі QuizFlow · ${date}</div>
 </div>
-
+</body>
 </html>`;
 }
+
 
 function getTypeName(type) {
   const map = {
@@ -2741,8 +2569,7 @@ function showResult(scoreResult, aiResult) {
       if(reviewBox){ reviewBox.style.display = "flex"; }
     } else {
       gradeEl.textContent = aiResult.grade;
-      const gc = aiResult.grade >= 10 ? "#0d9e85" : aiResult.grade >= 7 ? "#2d5be3" : aiResult.grade >= 4 ? "#f59e0b" : "#f43f5e";
-      gradeEl.style.color = gc;
+      gradeEl.style.color = "white"; // оцінка завжди біла на темному фоні
       if(gradeDenom) gradeDenom.textContent = "/12";
     }
   }
