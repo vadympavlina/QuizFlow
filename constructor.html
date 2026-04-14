@@ -43,7 +43,8 @@
   .btn-primary:hover{transform:translateY(-1px)}
   .con-layout{display:flex;flex:1;height:calc(100vh - 65px);overflow:hidden}
   .q-list-panel{width:240px;border-right:1.5px solid var(--border);background:white;display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
-  .q-list-header{padding:14px 14px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .q-list-header{padding:14px 14px 12px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .q-list-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px}
   .q-list-title{font-family:'Syne',sans-serif;font-weight:600;font-size:14px}
   .q-count{font-size:12px;color:var(--text-muted)}
   .q-list{padding:10px;flex:1}
@@ -58,7 +59,7 @@
   .q-list-info{flex:1;min-width:0}
   .q-list-text{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .q-list-type{font-size:11px;color:var(--text-muted);margin-top:2px}
-  .q-add-btn{margin:10px;padding:11px;border-radius:12px;border:2px dashed rgba(45,91,227,0.2);text-align:center;font-size:13px;color:var(--primary);cursor:pointer;transition:all 0.2s;font-weight:500}
+  .q-add-btn{margin:8px;padding:10px;border-radius:11px;border:1.5px dashed rgba(45,91,227,0.2);text-align:center;font-size:13px;color:var(--primary);cursor:pointer;transition:all 0.2s;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px}
   .q-add-btn:hover{border-color:var(--primary);background:rgba(45,91,227,0.04)}
   .editor-panel{flex:1;padding:22px 24px;overflow-y:auto;background:var(--bg)}
   .editor-card{background:white;border-radius:18px;border:1.5px solid var(--border);padding:24px 26px;margin-bottom:14px;animation:fadeUp 0.25s ease both}
@@ -131,9 +132,9 @@
   .add-option-btn:hover{border-color:var(--primary);background:rgba(45,91,227,0.04)}
   .order-num{width:28px;height:28px;border-radius:8px;background:rgba(45,91,227,0.08);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--primary);flex-shrink:0}
   .matching-editor-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;padding:14px;background:rgba(45,91,227,0.02);border-radius:14px;border:1.5px solid var(--border)}
-  .settings-panel{width:230px;border-left:1.5px solid var(--border);background:white;padding:18px 16px;overflow-y:auto;flex-shrink:0}
+  .settings-panel{width:220px;border-left:1.5px solid var(--border);background:white;padding:16px 14px;overflow-y:auto;flex-shrink:0}
   .settings-title{font-family:'Syne',sans-serif;font-weight:600;font-size:13px;margin-bottom:14px}
-  .setting-field{margin-bottom:14px}
+  .setting-field{margin-bottom:12px}
   .setting-label{font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;font-weight:500}
   .setting-input{width:100%;padding:9px 12px;border-radius:11px;border:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color 0.2s;background:white}
   .setting-input:focus{border-color:var(--primary)}
@@ -360,11 +361,20 @@
     <!-- Questions List -->
     <div class="q-list-panel">
       <div class="q-list-header">
-        <span class="q-list-title">Питання</span>
-        <span class="q-count" id="questionCount">0 шт.</span>
+        <div>
+          <div class="q-list-title">Питання</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:1px"><span id="questionCount">0</span> питань</div>
+        </div>
+        <button onclick="window.addQuestion()" title="Додати питання"
+          style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--primary);transition:all .15s;font-size:16px;line-height:1"
+          onmouseover="this.style.background='rgba(45,91,227,.06)';this.style.borderColor='var(--primary)'"
+          onmouseout="this.style.background='white';this.style.borderColor='var(--border)'">+</button>
       </div>
       <div class="q-list" id="questionList"></div>
-      <div class="q-add-btn" onclick="window.addQuestion()">+ Додати питання</div>
+      <div class="q-add-btn" onclick="window.addQuestion()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Додати питання
+      </div>
     </div>
 
     <!-- Editor -->
@@ -375,49 +385,64 @@
     <!-- Settings -->
     <div class="settings-panel">
 
-      <!-- Налаштування -->
-      <div class="settings-section">
-        <div class="settings-title">⚙️ Налаштування</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);font-weight:600;margin-bottom:16px">Налаштування</div>
 
-        <div class="setting-field">
-          <div class="setting-label">Папка</div>
-          <div id="folderChipsPanel" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px"></div>
-          <div style="font-size:11px;color:var(--text-light)">Без папки або оберіть</div>
+      <!-- Папка -->
+      <div class="setting-field">
+        <div class="setting-label">Папка</div>
+        <div id="folderChipsPanel" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:3px;min-height:24px"></div>
+        <div style="font-size:11px;color:var(--text-light)">Без папки або оберіть</div>
+      </div>
+
+      <!-- Теги -->
+      <div class="setting-field">
+        <div class="setting-label">Теги</div>
+        <input class="setting-input" type="text" id="tagsInput" placeholder="html, css, js">
+      </div>
+
+      <!-- Ліміт часу -->
+      <div class="setting-field" style="padding:12px;background:rgba(45,91,227,.03);border-radius:12px;border:1.5px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div class="setting-label" style="margin:0">Ліміт часу</div>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;color:var(--text-muted)">
+            <div id="noTimerToggle" onclick="window.toggleNoTimer()"
+              style="width:30px;height:16px;border-radius:20px;background:var(--border);cursor:pointer;position:relative;transition:background .2s;flex-shrink:0">
+              <div id="noTimerThumb"
+                style="width:12px;height:12px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div>
+            </div>
+            Без обмежень
+          </label>
         </div>
-
-        <div class="setting-field">
-          <div class="setting-label">Теги</div>
-          <input class="setting-input" type="text" id="tagsInput" placeholder="html, css, js">
-        </div>
-
-        <!-- Ліміт часу з тоглом "без обмежень" -->
-        <div class="setting-field">
-          <div class="setting-label" style="display:flex;align-items:center;justify-content:space-between">
-            Ліміт часу
-            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;font-weight:500;color:var(--text-muted);text-transform:none;letter-spacing:0">
-              <div id="noTimerToggle" onclick="window.toggleNoTimer()"
-                style="width:30px;height:16px;border-radius:20px;background:var(--border);cursor:pointer;position:relative;transition:background .2s;flex-shrink:0">
-                <div id="noTimerThumb"
-                  style="width:12px;height:12px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div>
-              </div>
-              Без обмежень
-            </label>
-          </div>
-          <div id="timeLimitWrap">
-            <input class="setting-input" type="number" id="testTimeLimit" value="10" min="0" max="300" style="margin-top:6px">
-            <div style="font-size:11px;color:var(--text-light);margin-top:3px">хвилин (0 = без обмежень)</div>
+        <div id="timeLimitWrap">
+          <div style="display:flex;align-items:center;gap:8px">
+            <input class="setting-input" type="number" id="testTimeLimit" value="10" min="0" max="300" style="width:70px;text-align:center;font-weight:600;font-family:'Syne',sans-serif">
+            <span style="font-size:12px;color:var(--text-muted)">хвилин</span>
           </div>
         </div>
       </div>
 
-      <!-- Посилання -->
-      <div>
-        <div class="settings-title">🔗 Посилання</div>
-        <div id="linksList"></div>
-        <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
-          <input type="number" id="newLinkMax" value="30" min="1" class="setting-input" style="width:70px">
-          <button class="new-link-btn" onclick="window.createNewLink()">+ Нове</button>
+      <!-- Роздільник -->
+      <div style="margin:18px 0;height:1px;background:var(--border)"></div>
+
+      <!-- Інформація -->
+      <div style="background:rgba(45,91,227,.03);border-radius:12px;border:1.5px solid var(--border);padding:12px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);font-weight:600;margin-bottom:10px">Інфо</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;font-size:12px">
+            <span style="color:var(--text-muted)">Питань</span>
+            <span id="info-q-count" style="font-weight:600;color:var(--text)">0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px">
+            <span style="color:var(--text-muted)">Тип питань</span>
+            <span id="info-q-types" style="font-weight:600;color:var(--text);text-align:right;max-width:100px;font-size:11px">—</span>
+          </div>
         </div>
+      </div>
+
+      <!-- Приховані поля для сумісності з існуючим кодом -->
+      <div style="display:none">
+        <div id="linksList"></div>
+        <input type="number" id="newLinkMax" value="30" min="1">
       </div>
 
     </div>
@@ -1438,7 +1463,15 @@ function renderQuestionList() {
   const count  = document.getElementById("questionCount");
   const qs     = testData.questions;
 
-  if (count) count.textContent = `${qs.length} шт.`;
+  if (count) count.textContent = qs.length;
+  // Оновлюємо інфо-блок
+  const infoCount = document.getElementById("info-q-count");
+  const infoTypes = document.getElementById("info-q-types");
+  if(infoCount) infoCount.textContent = qs.length;
+  if(infoTypes){
+    const types = [...new Set(qs.map(q=>({single:"Одна відп.",multi:"Кілька відп.",text:"Текст",number:"Число",long:"Розгорнута",matching:"Зіставлення",ordering:"Порядок"})[q.type]||q.type))];
+    infoTypes.textContent = types.length ? types.join(", ") : "—";
+  }
 
   list.innerHTML = qs.map((q, i) => `
     <div class="q-list-item ${i === activeQIndex ? "active" : ""}"
