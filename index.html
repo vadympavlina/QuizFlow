@@ -2289,8 +2289,11 @@ async function callGroq(messages, maxTokens=800, temp=0.5){
           generationConfig:{maxOutputTokens:maxTokens, temperature:temp}
         })
       });
-      const d = await res.json();
-      if(d.error) throw new Error(d.error.message||JSON.stringify(d.error));
+      const raw = await res.text();
+      let d;
+      try{ d = JSON.parse(raw); }
+      catch(e){ throw new Error("Gemini: невалідна відповідь — " + raw.substring(0,200)); }
+      if(d.error) throw new Error("Gemini: " + (d.error.message||JSON.stringify(d.error)));
       return d.candidates?.[0]?.content?.parts?.[0]?.text || "";
     } else {
       const key   = s.groqApiKey || s.apiKey || "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";
