@@ -333,7 +333,7 @@
       <option value="closed">Закритий</option>
     </select>
     <div style="display:flex;gap:6px;flex-shrink:0">
-      <button class="btn btn-ghost" onclick="window.openAiModal()" style="gap:6px;font-size:13px">
+      <button data-ai-btn="generation" class="btn btn-ghost" onclick="window.openAiModal()" style="gap:6px;font-size:13px">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>AI
       </button>
       <button class="btn btn-ghost" onclick="window.openExcelModal()" style="gap:6px;font-size:13px">
@@ -763,6 +763,13 @@ async function loadAISettings(db) {
       window._AI_TEXTCHECK  = s.aiTextCheck  !== false;
     }
   } catch(e){ console.warn("AI settings load failed:", e.message); }
+  // Застосовуємо видимість кнопок після завантаження
+  applyAIVisibility();
+}
+
+function applyAIVisibility(){
+  const aiBtn = document.querySelector('[data-ai-btn="generation"]');
+  if(aiBtn) aiBtn.style.display = window._AI_GENERATION === false ? 'none' : '';
 }
 
 // ─── Базовий запит до Groq ────────────────────────────────────────────────────

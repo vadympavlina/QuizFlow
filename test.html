@@ -2663,7 +2663,7 @@ function showResult(scoreResult, aiResult) {
   // AI коментар — НЕ показуємо якщо є питання на перевірку
   const aiBox = document.getElementById("aiCommentBox");
   const aiText = document.getElementById("aiComment");
-  if(!hasPending && aiResult.comment && aiResult.comment.trim()){
+  if(!hasPending && aiResult.comment && aiResult.comment.trim() && window._AI_COMMENTS !== false){
     if(aiBox) aiBox.style.display = "";
     if(aiText) aiText.textContent = aiResult.comment;
   } else {

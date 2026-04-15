@@ -1389,6 +1389,26 @@ let _fid=null, _pid=null;
 let _realtimeActive = false;
 
 async function loadAll(){
+  // Завантажуємо AI налаштування
+  try{
+    const aiSnap = await get(ref(db,"settings/ai"));
+    if(aiSnap.exists()){
+      const s=aiSnap.val();
+      window._AI_COMMENTS   = s.aiComments   !== false;
+      window._AI_ANALYSIS   = s.aiAnalysis   !== false;
+      window._AI_GENERATION = s.aiGeneration !== false;
+      window._AI_TEXTCHECK  = s.aiTextCheck  !== false;
+    }
+    // Перевіряємо індивідуальні налаштування викладача
+    const tSnap = await get(ref(db,`users/${_uid}/aiSettings`));
+    if(tSnap.exists()){
+      const t=tSnap.val();
+      if(t.aiComments  !== undefined) window._AI_COMMENTS   = t.aiComments;
+      if(t.aiAnalysis  !== undefined) window._AI_ANALYSIS   = t.aiAnalysis;
+      if(t.aiGeneration!== undefined) window._AI_GENERATION = t.aiGeneration;
+      if(t.aiTextCheck !== undefined) window._AI_TEXTCHECK  = t.aiTextCheck;
+    }
+  }catch(e){ console.warn("AI settings:", e.message); }
   // Перевіряємо чи не заблоковано при кожному завантаженні
   try{
     const {get:_get, ref:_ref} = await Promise.resolve({get, ref});
@@ -3031,7 +3051,9 @@ window.G = {
         out+='<div style="display:flex;align-items:center;gap:7px">';
         out+='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="'+aiColor+'" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
         out+='<span style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:'+aiColor+';font-weight:700">ШІ Аналіз</span></div>';
-        if(canAnalyse){
+        if(window._AI_ANALYSIS===false){
+          out+='<span style="font-size:11px;color:var(--muted);font-style:italic">вимкнено</span>';
+        } else if(canAnalyse){
           out+='<button data-aid="'+a.id+'" onclick="G.personalAnalysis(this.dataset.aid)" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:8px;border:1.5px solid rgba(45,91,227,.2);background:#fff;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer">✦ Розбір</button>';
         } else {
           out+='<span style="font-size:11px;color:var(--muted);font-style:italic">'+(hasGrade?'оцініть відповіді':'виставте оцінку')+'</span>';
