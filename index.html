@@ -3094,7 +3094,7 @@ window.G = {
         const qText=(q.text||q.question||"").replace(/<[^>]+>/g,"").substring(0,80);
         const uaStr=idxToText(uaN, opts);
         const corrStr=idxToText(Array.isArray(q.correct)?q.correct:q.correct, opts);
-        return wrong?("- "+qText+": ""+uaStr+"" (правильно: ""+corrStr+"")"):null;
+        return wrong?("- "+qText+": \""+uaStr+"\" (правильно: \""+corrStr+"\")"):null;
       }).filter(Boolean);
 
       // Перевіряємо score щоб не показати "все правильно" помилково
