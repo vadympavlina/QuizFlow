@@ -2264,6 +2264,34 @@ window.renderLinks = function(){
 // G — global actions
 // ─── GROQ для AI аналізу ──────────────────────────────────────────────────────
 // ─── AI виклик: підтримує Groq і Google AI Studio ──────────────────────────
+// Виклик Google AI Studio (Gemini)
+async function callGemini(messages, maxTokens=800, temp=0.5){
+  try{
+    const snap=await get(ref(db,"settings/ai"));
+    const s=snap.exists()?snap.val():{};
+    const key=s.geminiApiKey||s.apiKey||"";
+    const model=s.geminiModel||"gemini-2.5-flash";
+    if(!key) throw new Error("Відсутній Gemini API ключ");
+    const UA="Ти — розумний асистент викладача. Відповідай ВИКЛЮЧНО українською мовою.";
+    const url="https://generativelanguage.googleapis.com/v1beta/models/"+model+":generateContent?key="+key;
+    const contents=messages.map(m=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]}));
+    const res=await fetch(url,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        systemInstruction:{parts:[{text:UA}]},
+        contents,
+        generationConfig:{maxOutputTokens:maxTokens,temperature:temp}
+      })
+    });
+    const raw=await res.text();
+    let d;
+    try{ d=JSON.parse(raw); }catch(e){ throw new Error("Gemini: невалідна відповідь"); }
+    if(d.error) throw new Error(d.error.message||"Gemini error");
+    return d.candidates?.[0]?.content?.parts?.[0]?.text||"";
+  }catch(e){throw e;}
+}
+
 async function callGroq(messages, maxTokens=800, temp=0.5){
   const UA = "Ти — розумний асистент викладача. ОБОВ\'ЯЗКОВО відповідай ВИКЛЮЧНО українською мовою. Жодних інших мов. Якщо щось не знаєш українською — все одно пиши по-українськи.";
   try{
@@ -2999,21 +3027,33 @@ window.G = {
       </div>`:""}
 
       <!-- AI секція -->
-      <div style="margin:16px 20px 0;background:rgba(45,91,227,.03);border:1.5px solid rgba(45,91,227,.12);border-radius:16px;overflow:hidden">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(45,91,227,.08)">
-          <div style="display:flex;align-items:center;gap:8px">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <span style="font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--primary);font-weight:700">ШІ Аналіз</span>
+      ${(()=>{
+        const longIdxs = qs.map((q,qi)=>qi).filter(qi=>qs[qi].type==="long");
+        const allLongGraded = longIdxs.length === 0 || longIdxs.every(qi => a.score?.details?.[qi]?.longResult);
+        const hasGrade = a.grade12 != null;
+        const canAnalyse = allLongGraded && hasGrade;
+        const hint = !hasGrade ? "Спочатку виставте оцінку" : !allLongGraded ? "Оцініть всі відкриті відповіді" : "";
+        return `<div style="margin:16px 20px 0;background:rgba(45,91,227,.03);border:1.5px solid rgba(45,91,227,.12);border-radius:16px;overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px${a.aiComment||a.personalAnalysis?";border-bottom:1px solid rgba(45,91,227,.08)":""}">
+            <div style="display:flex;align-items:center;gap:8px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${canAnalyse?"var(--primary)":"var(--muted)"}" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span style="font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:${canAnalyse?"var(--primary)":"var(--muted)"};font-weight:700">ШІ Аналіз</span>
+            </div>
+            ${canAnalyse
+              ? `<button onclick="G.personalAnalysis('${a.id}')" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9px;border:1.5px solid rgba(45,91,227,.25);background:#fff;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;transition:all .15s" onmouseover="this.style.background='rgba(45,91,227,.06)'" onmouseout="this.style.background='#fff'">✦ Розбір</button>`
+              : `<span style="font-size:11px;color:var(--muted);font-style:italic">${hint}</span>`
+            }
           </div>
-          <button onclick="G.personalAnalysis('${a.id}')" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9px;border:1.5px solid rgba(45,91,227,.25);background:#fff;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;transition:all .15s"
-            onmouseover="this.style.background='rgba(45,91,227,.06)'" onmouseout="this.style.background='#fff'">
-            ✦ Персональний розбір
-          </button>
-        </div>
-        ${a.aiComment
-          ?`<div style="padding:14px 16px;font-size:14px;color:var(--text);line-height:1.75">${esc(a.aiComment)}</div>`
-          :`<div style="padding:12px 16px;font-size:13px;color:var(--muted);font-style:italic">Коментар згенерується автоматично після перевірки спроби</div>`}
-      </div>
+          ${a.aiComment
+            ? `<div style="padding:14px 16px;font-size:14px;color:var(--text);line-height:1.75">${esc(a.aiComment)}</div>`
+            : a.personalAnalysis
+              ? `<div style="padding:14px 16px;font-size:14px;color:var(--text);line-height:1.75">${esc(a.personalAnalysis)}</div>`
+              : canAnalyse
+                ? `<div style="padding:12px 16px;font-size:12px;color:var(--muted);font-style:italic">Натисніть "Розбір" для персонального аналізу</div>`
+                : ``
+          }
+        </div>`;
+      })()}
 
       <!-- Питання -->
       <div style="padding:16px 20px 24px">
@@ -3078,11 +3118,26 @@ window.G = {
         G._showAiPanel(text); return;
       }
 
-      const prompt = `Ти репетитор. Студент ${esc(a.name)} ${esc(a.surname)} отримав оцінку ${a.grade12}/12 за тест "${t?.title || ""}". Помилкові відповіді: ${wrongList.slice(0, 8).join("")}. Напиши короткий персональний розбір (5–8 речень): що студент не зрозумів, на що звернути увагу, як виправити знання. Звертайся до студента напряму.`;
-      const res=await callGroq([{role:"user",content:prompt}],600,0.5);
-      await dbUpd(`attempts/${attId}`,{personalAnalysis:res});
-      a.personalAnalysis=res;
-      G._showAiPanel(res);
+      const isFem = /[аяієї]$/i.test(a.name||'') && !/Дмитро|Микола|Ілля/.test(a.name||'');
+      const mistakesPart = wrongList.slice(0,6).join('\n---\n');
+      const analysisPrompt = 'Ти викладач. Напиши персональний коментар для ' + (a.name||'') + ' ' + (a.surname||'')
+        + ' (оцінка ' + (a.grade12||'—') + '/12, тест: ' + (t?.title||'') + ').\n'
+        + 'Помилки:\n' + mistakesPart + '\n\n'
+        + 'Вимоги: до 600 символів, на "ти", стать — ' + (isFem?'вона':'він') + '. '
+        + '3-4 речення, без списків. Конкретно що не зрозуміло і що повторити.';
+
+      // Спочатку Gemini, якщо не вийде — Groq
+      let res;
+      try {
+        res = await callGemini([{role:'user',content:analysisPrompt}], 400, 0.35);
+      } catch(geminiErr) {
+        console.warn('Gemini failed, fallback to Groq:', geminiErr.message);
+        res = await callGroq([{role:'user',content:analysisPrompt}], 400, 0.35);
+      }
+      const trimmed = res.trim().length > 600 ? res.trim().substring(0,597)+'...' : res.trim();
+      await dbUpd(`attempts/${attId}`,{personalAnalysis:trimmed});
+      a.personalAnalysis=trimmed;
+      G._showAiPanel(trimmed);
     }catch(e){
       document.getElementById("ai-side-content").innerHTML=`<div style="color:#be123c;padding:16px;font-size:14px">Помилка: ${esc(e.message)}</div>`;
     }
