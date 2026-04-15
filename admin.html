@@ -330,11 +330,18 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
             </div>
             <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Модель Groq</div>
             <div style="display:flex;flex-direction:column;gap:6px">
-              ${[["llama-3.3-70b-versatile","Найточніша · рекомендована"],["llama-3.1-8b-instant","Швидша · економніша"],["mixtral-8x7b-32768","Великий контекст"]].map(([v,d])=>`
+              <label class="model-lbl" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--primary);background:rgba(45,91,227,.03);cursor:pointer">
+                <input type="radio" name="ai-groq-model" value="llama-3.3-70b-versatile" checked style="margin-top:2px;accent-color:var(--primary)">
+                <div><div style="font-weight:600;font-size:13px">llama-3.3-70b-versatile</div><div style="font-size:11px;color:var(--muted)">Найточніша · рекомендована</div></div>
+              </label>
               <label class="model-lbl" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--border);cursor:pointer">
-                <input type="radio" name="ai-groq-model" value="${v}" ${v==="llama-3.3-70b-versatile"?"checked":""} style="margin-top:2px;accent-color:var(--primary)">
-                <div><div style="font-weight:600;font-size:13px">${v}</div><div style="font-size:11px;color:var(--muted)">${d}</div></div>
-              </label>`).join("")}
+                <input type="radio" name="ai-groq-model" value="llama-3.1-8b-instant" style="margin-top:2px;accent-color:var(--primary)">
+                <div><div style="font-weight:600;font-size:13px">llama-3.1-8b-instant</div><div style="font-size:11px;color:var(--muted)">Швидша · економніша</div></div>
+              </label>
+              <label class="model-lbl" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--border);cursor:pointer">
+                <input type="radio" name="ai-groq-model" value="mixtral-8x7b-32768" style="margin-top:2px;accent-color:var(--primary)">
+                <div><div style="font-weight:600;font-size:13px">mixtral-8x7b-32768</div><div style="font-size:11px;color:var(--muted)">Великий контекст</div></div>
+              </label>
             </div>
           </div>
 
@@ -350,11 +357,18 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
             <div style="margin-bottom:12px;font-size:12px;color:var(--muted)">Отримати ключ: <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--primary)">aistudio.google.com/apikey</a></div>
             <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Модель Gemini</div>
             <div style="display:flex;flex-direction:column;gap:6px">
-              ${[["gemini-2.0-flash","Найшвидша · рекомендована"],["gemini-2.0-flash-lite","Легка · безкоштовна"],["gemini-1.5-pro","Найточніша · більший контекст"]].map(([v,d])=>`
               <label class="model-lbl" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--border);cursor:pointer">
-                <input type="radio" name="ai-gemini-model" value="${v}" ${v==="gemini-2.0-flash"?"checked":""} style="margin-top:2px;accent-color:var(--primary)">
-                <div><div style="font-weight:600;font-size:13px">${v}</div><div style="font-size:11px;color:var(--muted)">${d}</div></div>
-              </label>`).join("")}
+                <input type="radio" name="ai-gemini-model" value="gemini-2.0-flash" checked style="margin-top:2px;accent-color:var(--primary)">
+                <div><div style="font-weight:600;font-size:13px">gemini-2.0-flash</div><div style="font-size:11px;color:var(--muted)">Найшвидша · рекомендована</div></div>
+              </label>
+              <label class="model-lbl" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--border);cursor:pointer">
+                <input type="radio" name="ai-gemini-model" value="gemini-2.0-flash-lite" style="margin-top:2px;accent-color:var(--primary)">
+                <div><div style="font-weight:600;font-size:13px">gemini-2.0-flash-lite</div><div style="font-size:11px;color:var(--muted)">Легка · безкоштовна</div></div>
+              </label>
+              <label class="model-lbl" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--border);cursor:pointer">
+                <input type="radio" name="ai-gemini-model" value="gemini-1.5-pro" style="margin-top:2px;accent-color:var(--primary)">
+                <div><div style="font-weight:600;font-size:13px">gemini-1.5-pro</div><div style="font-size:11px;color:var(--muted)">Найточніша · більший контекст</div></div>
+              </label>
             </div>
           </div>
 
