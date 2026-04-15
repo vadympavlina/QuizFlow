@@ -30,10 +30,10 @@
   .sidebar-user-name{font-size:13px;font-weight:500;color:white}
   .sidebar-user-role{font-size:11px;color:rgba(255,255,255,0.4);margin-top:1px}
   .main{margin-left:0;flex:1;display:flex;flex-direction:column;max-width:100vw;height:100vh;overflow:hidden}
-  .con-topbar{display:flex;align-items:center;gap:10px;padding:12px 20px;background:white;border-bottom:1.5px solid var(--border);position:sticky;top:0;z-index:50}
+  .con-topbar{display:flex;align-items:center;gap:12px;padding:14px 24px;background:white;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;flex-wrap:wrap}
   .back-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;color:var(--text-muted);cursor:pointer;transition:all 0.2s;background:white;text-decoration:none}
   .back-btn:hover{border-color:var(--primary);color:var(--primary)}
-  .test-name-input{padding:9px 14px;border-radius:11px;border:1.5px solid var(--border);font-family:'Syne',sans-serif;font-size:15px;font-weight:600;color:var(--text);outline:none;transition:border-color 0.2s;background:white}
+  .test-name-input{padding:10px 16px;border-radius:12px;border:1.5px solid var(--border);font-family:'Syne',sans-serif;font-size:16px;font-weight:600;color:var(--text);outline:none;transition:border-color 0.2s;min-width:200px;flex:1;max-width:360px}
   .test-name-input:focus{border-color:var(--primary)}
   .status-select{padding:9px 14px;border-radius:11px;border:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;cursor:pointer;background:white}
   .btn{display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s;border:none}
@@ -42,13 +42,12 @@
   .btn-primary{background:var(--gradient);color:white;box-shadow:0 4px 16px var(--primary-glow)}
   .btn-primary:hover{transform:translateY(-1px)}
   .con-layout{display:flex;flex:1;height:calc(100vh - 65px);overflow:hidden}
-  .q-list-panel{width:240px;border-right:1.5px solid var(--border);background:white;display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
-  .q-list-header{padding:14px 14px 12px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-  .q-list-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px}
+  .q-list-panel{width:260px;border-right:1px solid var(--border);background:white;display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+  .q-list-header{padding:18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
   .q-list-title{font-family:'Syne',sans-serif;font-weight:600;font-size:14px}
   .q-count{font-size:12px;color:var(--text-muted)}
   .q-list{padding:10px;flex:1}
-  .q-list-item{display:flex;align-items:center;gap:8px;padding:10px 10px;border-radius:11px;cursor:pointer;transition:all 0.18s;margin-bottom:2px;border:1.5px solid transparent}
+  .q-list-item{display:flex;align-items:center;gap:10px;padding:11px;border-radius:12px;cursor:pointer;transition:all 0.2s;margin-bottom:3px;border:1.5px solid transparent}
   .q-list-item:hover{background:rgba(45,91,227,0.04)}
   .q-list-item.active{background:rgba(45,91,227,0.06);border-color:rgba(45,91,227,0.15)}
   .q-drag-handle{display:flex;flex-direction:column;gap:2.5px;cursor:grab;flex-shrink:0;opacity:0.3;transition:opacity 0.2s}
@@ -59,10 +58,10 @@
   .q-list-info{flex:1;min-width:0}
   .q-list-text{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .q-list-type{font-size:11px;color:var(--text-muted);margin-top:2px}
-  .q-add-btn{margin:8px;padding:10px;border-radius:11px;border:1.5px dashed rgba(45,91,227,0.2);text-align:center;font-size:13px;color:var(--primary);cursor:pointer;transition:all 0.2s;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px}
+  .q-add-btn{margin:10px;padding:11px;border-radius:12px;border:2px dashed rgba(45,91,227,0.2);text-align:center;font-size:13px;color:var(--primary);cursor:pointer;transition:all 0.2s;font-weight:500}
   .q-add-btn:hover{border-color:var(--primary);background:rgba(45,91,227,0.04)}
-  .editor-panel{flex:1;padding:22px 24px;overflow-y:auto;background:var(--bg)}
-  .editor-card{background:white;border-radius:18px;border:1.5px solid var(--border);padding:24px 26px;margin-bottom:14px;animation:fadeUp 0.25s ease both}
+  .editor-panel{flex:1;padding:28px;overflow-y:auto}
+  .editor-card{background:white;border-radius:20px;border:1.5px solid var(--border);padding:28px;margin-bottom:16px;animation:fadeUp 0.3s ease both}
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   .editor-row{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
   .editor-q-num{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text-muted)}
@@ -132,9 +131,9 @@
   .add-option-btn:hover{border-color:var(--primary);background:rgba(45,91,227,0.04)}
   .order-num{width:28px;height:28px;border-radius:8px;background:rgba(45,91,227,0.08);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--primary);flex-shrink:0}
   .matching-editor-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;padding:14px;background:rgba(45,91,227,0.02);border-radius:14px;border:1.5px solid var(--border)}
-  .settings-panel{width:220px;border-left:1.5px solid var(--border);background:white;padding:16px 14px;overflow-y:auto;flex-shrink:0}
+  .settings-panel{width:240px;border-left:1px solid var(--border);background:white;padding:22px;overflow-y:auto;flex-shrink:0}
   .settings-title{font-family:'Syne',sans-serif;font-weight:600;font-size:13px;margin-bottom:14px}
-  .setting-field{margin-bottom:12px}
+  .setting-field{margin-bottom:14px}
   .setting-label{font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;font-weight:500}
   .setting-input{width:100%;padding:9px 12px;border-radius:11px;border:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color 0.2s;background:white}
   .setting-input:focus{border-color:var(--primary)}
@@ -310,16 +309,9 @@
 
 <div class="main">
   <div class="con-topbar">
-    <a class="back-btn" onclick="window.navGuard('')">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-      Назад
-    </a>
-
-    <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
-      <input class="test-name-input" type="text" id="testTitle" placeholder="Назва тесту..." style="flex:1;min-width:0">
-      <div id="dirtyIndicator" title="Є незбережені зміни" style="width:8px;height:8px;border-radius:50%;background:var(--amber);display:none;flex-shrink:0"></div>
-    </div>
-
+    <button class="back-btn" onclick="window.navGuard('')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>Назад</button>
+    <input class="test-name-input" type="text" id="testTitle" placeholder="Назва тесту...">
+    <div id="dirtyIndicator" title="Є незбережені зміни"></div>
     <div class="con-cd-wrap" id="con-cd-status">
       <button class="con-cd-btn" onclick="conToggleDrop('con-cd-status')">
         <span id="con-cd-status-label">📝 Чернетка</span>
@@ -336,45 +328,27 @@
       <option value="active">Активний</option>
       <option value="closed">Закритий</option>
     </select>
-
-    <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
-      <button data-ai="generation" class="btn btn-ghost" onclick="window.openAiModal()" style="gap:6px;font-size:13px">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        AI
-      </button>
-      <button class="btn btn-ghost" onclick="window.openExcelModal()" style="gap:6px;font-size:13px">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        Імпорт
-      </button>
-      <button class="btn btn-ghost" onclick="window.previewTest()" style="gap:6px;font-size:13px">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        Перегляд
-      </button>
-      <button class="btn btn-primary" id="saveBtn" onclick="window.saveTest()" style="font-size:13px">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        Зберегти
-      </button>
-    </div>
+    <button class="btn btn-ghost" onclick="window.openAiModal()">✦ AI Генерація</button>
+    <button class="btn btn-ghost" onclick="window.openExcelModal()">📥 Імпорт Excel</button>
+    <button class="btn btn-ghost" onclick="window.previewTest()" title="Переглянути як студент" style="gap:6px">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Перегляд
+    </button>
+    <button class="btn btn-primary" id="saveBtn" onclick="window.saveTest()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Зберегти
+    </button>
   </div>
 
   <div class="con-layout">
     <!-- Questions List -->
     <div class="q-list-panel">
       <div class="q-list-header">
-        <div>
-          <div class="q-list-title">Питання</div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:1px"><span id="questionCount">0</span> питань</div>
-        </div>
-        <button onclick="window.addQuestion()" title="Додати питання"
-          style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--primary);transition:all .15s;font-size:16px;line-height:1"
-          onmouseover="this.style.background='rgba(45,91,227,.06)';this.style.borderColor='var(--primary)'"
-          onmouseout="this.style.background='white';this.style.borderColor='var(--border)'">+</button>
+        <span class="q-list-title">Питання</span>
+        <span class="q-count" id="questionCount">0 шт.</span>
       </div>
       <div class="q-list" id="questionList"></div>
-      <div class="q-add-btn" onclick="window.addQuestion()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Додати питання
-      </div>
+      <div class="q-add-btn" onclick="window.addQuestion()">+ Додати питання</div>
     </div>
 
     <!-- Editor -->
@@ -384,67 +358,31 @@
 
     <!-- Settings -->
     <div class="settings-panel">
-
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);font-weight:600;margin-bottom:16px">Налаштування</div>
-
-      <!-- Папка -->
-      <div class="setting-field">
-        <div class="setting-label">Папка</div>
-        <div id="folderChipsPanel" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:3px;min-height:24px"></div>
-        <div style="font-size:11px;color:var(--text-light)">Без папки або оберіть</div>
-      </div>
-
-      <!-- Теги -->
-      <div class="setting-field">
-        <div class="setting-label">Теги</div>
-        <input class="setting-input" type="text" id="tagsInput" placeholder="html, css, js">
-      </div>
-
-      <!-- Ліміт часу -->
-      <div class="setting-field" style="padding:12px;background:rgba(45,91,227,.03);border-radius:12px;border:1.5px solid var(--border)">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div class="setting-label" style="margin:0">Ліміт часу</div>
-          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;color:var(--text-muted)">
-            <div id="noTimerToggle" onclick="window.toggleNoTimer()"
-              style="width:30px;height:16px;border-radius:20px;background:var(--border);cursor:pointer;position:relative;transition:background .2s;flex-shrink:0">
-              <div id="noTimerThumb"
-                style="width:12px;height:12px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div>
-            </div>
-            Без обмежень
-          </label>
+      <div class="settings-section">
+        <div class="settings-title">⚙️ Налаштування</div>
+        <div class="setting-field">
+          <div class="setting-label">Папка</div>
+          <div id="folderChipsPanel" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px"></div>
+          <div style="font-size:11px;color:var(--text-light)">Оберіть або залиш без папки</div>
         </div>
-        <div id="timeLimitWrap">
-          <div style="display:flex;align-items:center;gap:8px">
-            <input class="setting-input" type="number" id="testTimeLimit" value="10" min="0" max="300" style="width:70px;text-align:center;font-weight:600;font-family:'Syne',sans-serif">
-            <span style="font-size:12px;color:var(--text-muted)">хвилин</span>
-          </div>
+        <div class="setting-field">
+          <div class="setting-label">Теги (через кому)</div>
+          <input class="setting-input" type="text" id="tagsInput" placeholder="html, css, js">
+        </div>
+        <div class="setting-field">
+          <div class="setting-label">Ліміт часу (хвилин)</div>
+          <input class="setting-input" type="number" id="testTimeLimit" value="10" min="1" max="300">
         </div>
       </div>
 
-      <!-- Роздільник -->
-      <div style="margin:18px 0;height:1px;background:var(--border)"></div>
-
-      <!-- Інформація -->
-      <div style="background:rgba(45,91,227,.03);border-radius:12px;border:1.5px solid var(--border);padding:12px">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);font-weight:600;margin-bottom:10px">Інфо</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <div style="display:flex;justify-content:space-between;font-size:12px">
-            <span style="color:var(--text-muted)">Питань</span>
-            <span id="info-q-count" style="font-weight:600;color:var(--text)">0</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:12px">
-            <span style="color:var(--text-muted)">Тип питань</span>
-            <span id="info-q-types" style="font-weight:600;color:var(--text);text-align:right;max-width:100px;font-size:11px">—</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Приховані поля для сумісності з існуючим кодом -->
-      <div style="display:none">
+      <div>
+        <div class="settings-title">🔗 Посилання</div>
         <div id="linksList"></div>
-        <input type="number" id="newLinkMax" value="30" min="1">
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+          <input type="number" id="newLinkMax" value="30" min="1" class="setting-input" style="width:70px">
+          <button class="new-link-btn" onclick="window.createNewLink()">+ Нове посилання</button>
+        </div>
       </div>
-
     </div>
   </div>
 </div>
@@ -549,7 +487,6 @@ const db  = getDatabase(app);
 // Завантажуємо налаштування AI одразу (глобальні + індивідуальні)
 (async()=>{
   await loadAISettings(db);
-  applyAIVisibility();
   // Читаємо індивідуальні налаштування викладача
   try{
     const _s = sessionStorage.getItem("qf_user");
@@ -651,7 +588,7 @@ window.previewTest = async () => {
     await saveTest(testId, {
       title:     document.getElementById("testTitle")?.value.trim()||"",
       folderId:  window._selectedFolderId ?? testData.folderId ?? null,
-      timeLimit: (()=>{ const v=Number(document.getElementById("testTimeLimit")?.value); return v===0?0:(v||10)*60; })(),
+      timeLimit: (Number(document.getElementById("testTimeLimit")?.value)||10)*60,
       status:    document.getElementById("testStatus")?.value||"draft",
       tags,
       questions: testData.questions
@@ -754,21 +691,29 @@ let GROQ_MODEL   = "llama-3.3-70b-versatile";
 let AI_ENABLED   = true; // вмк/вимк AI глобально
 
 // Завантажуємо налаштування AI з Firebase
+let AI_PROVIDER  = "groq"; // "groq" або "gemini"
+let GEMINI_KEY   = "";
+let GEMINI_MODEL = "gemini-2.0-flash";
+
 async function loadAISettings(db) {
   try {
     const { get, ref } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
     const snap = await get(ref(db, "settings/ai"));
     if(snap.exists()){
       const s = snap.val();
-      if(s.apiKey)   GROQ_API_KEY = s.apiKey;
-      if(s.model)    GROQ_MODEL   = s.model;
+      AI_PROVIDER = s.provider || "groq";
+      if(AI_PROVIDER === "gemini"){
+        GEMINI_KEY   = s.geminiApiKey || s.apiKey || "";
+        GEMINI_MODEL = s.geminiModel  || s.model  || "gemini-2.0-flash";
+      } else {
+        if(s.groqApiKey || s.apiKey) GROQ_API_KEY = s.groqApiKey || s.apiKey;
+        if(s.groqModel  || s.model ) GROQ_MODEL   = s.groqModel  || s.model;
+      }
       if(s.enabled !== undefined) AI_ENABLED = s.enabled !== false;
-      // Глобальні дефолти для функцій
       window._AI_COMMENTS   = s.aiComments   !== false;
       window._AI_ANALYSIS   = s.aiAnalysis   !== false;
       window._AI_GENERATION = s.aiGeneration !== false;
       window._AI_TEXTCHECK  = s.aiTextCheck  !== false;
-      applyAIVisibility();
     }
   } catch(e){ console.warn("AI settings load failed:", e.message); }
 }
@@ -783,45 +728,38 @@ const UA_SYSTEM = {
            "Якщо щось не знаєш українською — все одно пиши по-українськи."
 };
 
-// Виклик AI — підтримує Groq і Google AI Studio (Gemini)
-async function callGroq(messages, maxTokens=800, temp=0.5){
-  const UA_SYSTEM={role:"system",content:"Ти — розумний асистент викладача. ОБОВ\'ЯЗКОВО відповідай ВИКЛЮЧНО українською мовою. Жодних інших мов, ієрогліфів або нерозпізнаного тексту. Якщо щось не знаєш українською — все одно пиши по-українськи."};
-  try{
-    const snap=await get(ref(db,"settings/ai"));
-    const s=snap.exists()?snap.val():{};
-    const key=s.apiKey||"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";
-    const model=s.model||"llama-3.3-70b-versatile";
-    const provider=s.provider||"groq";
+async function callGroq(messages, maxTokens = 800, temperature = 0.5) {
+  const allMessages = [UA_SYSTEM, ...messages];
 
-    if(provider==="gemini"){
-      // Google AI Studio (Gemini) — окремий формат
-      const url=`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
-      const sysText=UA_SYSTEM.content;
-      const contents=messages.map(m=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]}));
-      const res=await fetch(url,{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          systemInstruction:{parts:[{text:sysText}]},
-          contents,
-          generationConfig:{maxOutputTokens:maxTokens,temperature:temp}
-        })
-      });
-      const d=await res.json();
-      if(d.error) throw new Error(d.error.message||JSON.stringify(d.error));
-      return d.candidates?.[0]?.content?.parts?.[0]?.text||"";
-    } else {
-      // Groq (OpenAI-compatible)
-      const res=await fetch("https://api.groq.com/openai/v1/chat/completions",{
-        method:"POST",
-        headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
-        body:JSON.stringify({model,messages:[UA_SYSTEM,...messages],max_tokens:maxTokens,temperature:temp})
-      });
-      const d=await res.json();
-      if(d.error) throw new Error(d.error.message);
-      return d.choices?.[0]?.message?.content||"";
-    }
-  }catch(e){throw e;}
+  if(AI_PROVIDER === "gemini"){
+    if(!GEMINI_KEY) throw new Error("Відсутній Gemini API ключ");
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`;
+    const contents = messages.map(m=>({
+      role: m.role==="assistant" ? "model" : "user",
+      parts:[{text: m.content}]
+    }));
+    const res = await fetch(url,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        systemInstruction:{parts:[{text:UA_SYSTEM.content}]},
+        contents,
+        generationConfig:{maxOutputTokens:maxTokens, temperature}
+      })
+    });
+    const d = await res.json();
+    if(d.error) throw new Error(d.error.message||JSON.stringify(d.error));
+    return d.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  }
+
+  const res = await fetch(GROQ_URL, {
+    method: "POST",
+    headers: {"Content-Type":"application/json","Authorization":`Bearer ${GROQ_API_KEY}`},
+    body: JSON.stringify({model:GROQ_MODEL, messages:allMessages, max_tokens:maxTokens, temperature})
+  });
+  if (!res.ok) { const err = await res.text(); throw new Error(`Groq error ${res.status}: ${err}`); }
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || "";
 }
 
 // ─── AI для студента: оцінка + коментар ──────────────────────────────────────
@@ -898,7 +836,7 @@ async function generateQuestions({ topic, desc = "", difficulty, type, count = 1
 Додаткові вимоги від викладача: ${desc}` : "";
   const maxTokens = Math.max(2500, count * 220);
 
-  const prompt = `Ти — досвідчений викладач і експерт зі своєї теми. Склади рівно ${count} унікальних тестових питань.
+  const prompt = `Ти — досвідчений викладач. Склади рівно ${count} унікальних тестових питань.
 
 Тема: "${topic}"${descPart}
 Складність: ${difficulty}
@@ -906,19 +844,17 @@ async function generateQuestions({ topic, desc = "", difficulty, type, count = 1
 
 ОБОВ'ЯЗКОВІ ПРАВИЛА:
 1. Всі питання та відповіді — ТІЛЬКИ українською мовою
-2. Кожне питання повинно бути УНІКАЛЬНИМ
-3. ФАКТИЧНА ТОЧНІСТЬ — найважливіша вимога. Перевір кожен факт перед тим як написати
-4. Правильна відповідь ЗАВЖДИ має бути об'єктивно правильною — без помилок
-5. Неправильні варіанти — правдоподібні, але однозначно хибні
-6. Питань рівно ${count} — не більше, не менше
-7. Для single/multi: 4 варіанти, correct = масив індексів (з 0)
-8. Для text: correct = рядок-відповідь (коротко і точно)
-9. JSON без markdown, без пояснень — тільки масив
+2. Кожне питання повинно бути УНІКАЛЬНИМ — жодних повторень навіть схожих формулювань
+3. Варіанти відповідей — правдоподібні, не очевидні
+4. Питань рівно ${count} — не більше, не менше
+5. Для single/multi: 4 варіанти, correct = масив індексів (з 0)
+6. Для text: correct = рядок-відповідь
+7. JSON без markdown, без пояснень — тільки масив
 
 Формат:
 [{"type":"single","text":"Питання?","options":["А","Б","В","Г"],"correct":[0]},{"type":"multi","text":"Питання?","options":["А","Б","В","Г"],"correct":[1,2]},{"type":"text","text":"Питання?","correct":"відповідь"}]`;
 
-  const raw = await callGroq([{ role: "user", content: prompt }], maxTokens, 0.3);
+  const raw = await callGroq([{ role: "user", content: prompt }], maxTokens, 0.6);
   let parsed;
   try {
     parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
@@ -938,53 +874,7 @@ async function generateQuestions({ topic, desc = "", difficulty, type, count = 1
     return true;
   });
 
-  // ── Крок 2: Самоперевірка фактичної точності ─────────────────────────────
-  const validated = await validateQuestions(unique, topic);
-  return validated;
-}
-
-async function validateQuestions(questions, topic) {
-  if (!questions.length) return questions;
-
-  const qList = questions.map((q, i) =>
-    `${i+1}. Питання: "${q.text}"\n   Правильна відповідь: "${Array.isArray(q.correct) ? q.options?.[q.correct[0]] ?? q.correct.join(", ") : q.correct}"`
-  ).join("\n\n");
-
-  const validPrompt = `Перевір ці тестові питання по темі "${topic}" на фактичну точність.
-
-${qList}
-
-Для КОЖНОГО питання визнач:
-- "ok" — питання і правильна відповідь фактично вірні
-- "fix" — є фактична помилка, вкажи правильну відповідь
-
-Відповідай ТІЛЬКИ JSON масивом без markdown:
-[{"i":1,"status":"ok"},{"i":2,"status":"fix","correct":"правильна відповідь"},{"i":3,"status":"ok"}]`;
-
-  try {
-    const raw = await callGroq([{ role: "user", content: validPrompt }], 1000, 0.1);
-    const checks = JSON.parse(raw.replace(/```json|```/g, "").trim());
-
-    checks.forEach(ch => {
-      const idx = ch.i - 1;
-      if (idx < 0 || idx >= questions.length) return;
-      if (ch.status === "fix" && ch.correct) {
-        const q = questions[idx];
-        if (q.type === "text") {
-          q.correct = ch.correct;
-        } else if (q.type === "single" || q.type === "multi") {
-          // Додаємо виправлену відповідь як перший варіант і позначаємо правильною
-          q.options = [ch.correct, ...(q.options || []).filter(o => o !== ch.correct).slice(0, 3)];
-          q.correct = [0];
-        }
-      }
-    });
-  } catch (e) {
-    console.warn("Валідація питань не вдалась:", e.message);
-    // Якщо валідація не вдалась — повертаємо оригінал
-  }
-
-  return questions;
+  return unique;
 }
 
 // ─── Допоміжна функція оцінки ─────────────────────────────────────────────────
@@ -1006,46 +896,6 @@ function percentToGrade(percent) {
 
 // js/constructor.js — Конструктор тестів
 
-
-// ─── NO TIMER TOGGLE ────────────────────────────────────────────────────────
-window.toggleNoTimer = function(){
-  const input = document.getElementById("testTimeLimit");
-  const wrap  = document.getElementById("timeLimitWrap");
-  const toggle= document.getElementById("noTimerToggle");
-  const thumb = document.getElementById("noTimerThumb");
-  const isOn  = toggle.dataset.on === "1";
-  if(isOn){
-    // вимикаємо — відновлюємо поле
-    toggle.dataset.on = "0";
-    toggle.style.background = "var(--border)";
-    thumb.style.left = "2px";
-    wrap.style.opacity = "1";
-    wrap.style.pointerEvents = "";
-    if(!input.value || input.value === "0") input.value = "10";
-  } else {
-    // вмикаємо — ховаємо поле і ставимо 0
-    toggle.dataset.on = "1";
-    toggle.style.background = "var(--primary)";
-    thumb.style.left = "14px";
-    wrap.style.opacity = "0.4";
-    wrap.style.pointerEvents = "none";
-    input.value = "0";
-  }
-  markDirty();
-};
-
-// Синхронізуємо стан тоглу при завантаженні
-window.syncNoTimerToggle = function(){
-  const val = parseInt(document.getElementById("testTimeLimit")?.value || "10");
-  if(val === 0){
-    const toggle = document.getElementById("noTimerToggle");
-    const thumb  = document.getElementById("noTimerThumb");
-    const wrap   = document.getElementById("timeLimitWrap");
-    if(toggle){ toggle.dataset.on="1"; toggle.style.background="var(--primary)"; }
-    if(thumb)  thumb.style.left = "14px";
-    if(wrap)  { wrap.style.opacity="0.4"; wrap.style.pointerEvents="none"; }
-  }
-};
 
 // ─── AUTH GUARD ───────────────────────────────────────────────────────────────
 const _sess = sessionStorage.getItem("qf_user");
@@ -1413,8 +1263,7 @@ async function loadTest() {
     if (!Array.isArray(testData.questions)) testData.questions = [];
 
     document.getElementById("testTitle").value     = testData.title || "";
-    document.getElementById("testTimeLimit").value = testData.timeLimit === 0 ? 0 : Math.round((testData.timeLimit || 600) / 60);
-    window.syncNoTimerToggle && window.syncNoTimerToggle();
+    document.getElementById("testTimeLimit").value = Math.round((testData.timeLimit || 600) / 60);
     document.getElementById("testStatus").value    = testData.status || "draft";
     document.getElementById("tagsInput").value     = (testData.tags || []).join(", ");
 
@@ -1439,39 +1288,32 @@ function renderFolderChips() {
   const container = document.getElementById("folderChipsPanel");
   if (!container) return;
   const folders = window._allFolders || [];
-  const sel = folders.find(f => f.id === window._selectedFolderId);
-  const label = sel ? `📁 ${sel.name}` : "Без папки";
-
-  container.innerHTML = `
-    <div class="con-cd-wrap" id="folder-cd-wrap" style="display:block">
-      <button class="con-cd-btn" style="width:100%;justify-content:space-between" onclick="conToggleDrop('folder-cd-wrap')">
-        <span id="folder-cd-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px">${label}</span>
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="con-cd-menu" id="folder-cd-wrap-menu" style="width:100%;max-height:200px;overflow-y:auto">
-        <div class="con-cd-item ${!sel?"con-cd-active":""}" onclick="window.selectFolderInConstructor('')">
-          <span style="margin-right:6px;opacity:.5">✕</span> Без папки
-        </div>
-        ${folders.map(f => {
-          const isSel = window._selectedFolderId === f.id;
-          return `<div class="con-cd-item ${isSel?"con-cd-active":""}" onclick="window.selectFolderInConstructor('${f.id}')">
-            <span style="margin-right:6px">📁</span>${f.name}
-          </div>`;
-        }).join("")}
-      </div>
-    </div>`;
+  if (!folders.length) {
+    container.innerHTML = `<span style="font-size:12px;color:var(--text-light)">Немає папок</span>`;
+    return;
+  }
+  container.innerHTML = [
+    { id: null, name: "Без папки" },
+    ...folders
+  ].map(f => {
+    const sel = window._selectedFolderId === f.id;
+    return `<span
+      onclick="window.selectFolderInConstructor('${f.id||""}')"
+      style="display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:20px;
+             border:1.5px solid ${sel?"var(--primary)":"var(--border)"};
+             background:${sel?"rgba(45,91,227,.08)":"white"};
+             color:${sel?"var(--primary)":"var(--text-muted)"};
+             font-size:12px;font-weight:500;cursor:pointer;transition:all .15s">
+      ${f.id?"📁":""}${f.name}
+    </span>`;
+  }).join("");
 }
 
 window.selectFolderInConstructor = (fid) => {
   window._selectedFolderId = fid || null;
-  const menu = document.getElementById("folder-cd-wrap-menu");
-  if (menu) menu.classList.remove("open");
-  const btn = document.querySelector("#folder-cd-wrap .con-cd-btn");
-  if (btn) btn.classList.remove("open");
   renderFolderChips();
   markDirty();
 };
-
 
 // ─── QUESTION LIST ────────────────────────────────────────────────────────────
 function renderQuestionList() {
@@ -1479,15 +1321,7 @@ function renderQuestionList() {
   const count  = document.getElementById("questionCount");
   const qs     = testData.questions;
 
-  if (count) count.textContent = qs.length;
-  // Оновлюємо інфо-блок
-  const infoCount = document.getElementById("info-q-count");
-  const infoTypes = document.getElementById("info-q-types");
-  if(infoCount) infoCount.textContent = qs.length;
-  if(infoTypes){
-    const types = [...new Set(qs.map(q=>({single:"Одна відп.",multi:"Кілька відп.",text:"Текст",number:"Число",long:"Розгорнута",matching:"Зіставлення",ordering:"Порядок"})[q.type]||q.type))];
-    infoTypes.textContent = types.length ? types.join(", ") : "—";
-  }
+  if (count) count.textContent = `${qs.length} шт.`;
 
   list.innerHTML = qs.map((q, i) => `
     <div class="q-list-item ${i === activeQIndex ? "active" : ""}"
@@ -1594,102 +1428,6 @@ window.qDrop      = (idx) => {
 };
 
 // ─── EDITOR ───────────────────────────────────────────────────────────────────
-window.aiCheckQuestion = async function(idx) {
-  const q = testData.questions[idx];
-  if (!q || !q.text?.trim()) { showToast("Питання порожнє", "error"); return; }
-
-  const btn = document.getElementById(`ai-check-btn-${idx}`);
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = `<div style="width:11px;height:11px;border:2px solid rgba(45,91,227,.3);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;display:inline-block"></div> Перевіряю...`;
-  }
-
-  try {
-    const correctAns = q.type === "text" || q.type === "number"
-      ? q.correct
-      : Array.isArray(q.correct) && q.options
-        ? q.correct.map(i => q.options[i]).join(", ")
-        : String(q.correct ?? "");
-
-    // Тема: беремо з останньої AI генерації, або з назви тесту як запасний варіант
-    const topic = window._lastAiTopic || document.getElementById("testTitle")?.value?.trim() || "загальна тема";
-
-    // Контекст: кілька інших питань щоб ШІ розумів про що тест
-    const otherQs = testData.questions
-      .filter((_, i) => i !== idx && testData.questions[i]?.text?.trim())
-      .slice(0, 3)
-      .map(oq => `- "${oq.text.replace(/<[^>]+>/g,"").substring(0,80)}"`)
-      .join("\n");
-
-    const checkPrompt = `Перевір тестове питання на фактичну точність.
-
-Тема тесту: "${topic}"
-${otherQs ? `Інші питання цього тесту для контексту:\n${otherQs}` : ""}
-
-Питання: "${q.text.replace(/<[^>]+>/g,"")}"
-Правильна відповідь: "${correctAns}"
-${q.options ? `Всі варіанти: ${q.options.join(", ")}` : ""}
-
-Визнач:
-- "ok": питання і відповідь фактично правильні
-- "wrong": є фактична помилка — опиши що саме і яка правильна відповідь
-
-Відповідай ТІЛЬКИ JSON:
-{"status":"ok"} або {"status":"wrong","issue":"опис помилки","fix":"правильна відповідь"}`;
-
-    const raw = await callGroq([{ role: "user", content: checkPrompt }], 300, 0.1);
-    const result = JSON.parse(raw.replace(/```json|```/g, "").trim());
-
-    if (result.status === "ok") {
-      showToast("✅ Питання точне!");
-      if (btn) {
-        btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0d9e85" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Точне`;
-        btn.style.color = "#0d9e85";
-        btn.style.borderColor = "rgba(13,158,133,.3)";
-        btn.disabled = false;
-      }
-    } else {
-      if (btn) {
-        btn.innerHTML = `<div style="width:11px;height:11px;border:2px solid rgba(244,63,94,.3);border-top-color:#be123c;border-radius:50%;animation:spin .7s linear infinite;display:inline-block"></div> Замінюю...`;
-      }
-      showToast(`⚠️ ${result.issue || "Невірна відповідь"}. Генерую нове...`);
-
-      // Генеруємо нове питання СУВОРО по темі тесту, з контекстом існуючих питань
-      const regenPrompt = `Склади 1 тестове питання.
-
-Тема: "${topic}"
-${otherQs ? `Інші питання цього тесту (для розуміння контексту):\n${otherQs}` : ""}
-
-Вимоги:
-- Питання СТРОГО по темі "${topic}"
-- Тип: ${q.type}
-- Відповідь фактично точна і перевірена
-- Не повторювати вже існуючі питання
-${q.type === "single" || q.type === "multi" ? "- 4 варіанти відповідей, correct = масив індексів (з 0)" : "- correct = коротка точна відповідь"}
-
-JSON (один об'єкт, не масив):
-${q.type === "text" ? '{"type":"text","text":"Питання?","correct":"відповідь"}' : '{"type":"' + q.type + '","text":"Питання?","options":["А","Б","В","Г"],"correct":[0]}'}`;
-
-      const rawNew = await callGroq([{ role: "user", content: regenPrompt }], 500, 0.2);
-      let newQ = JSON.parse(rawNew.replace(/```json|```/g, "").trim());
-      if (Array.isArray(newQ)) newQ = newQ[0];
-
-      newQ.id = q.id;
-      testData.questions[idx] = { ...newQ };
-      markDirty();
-      renderQuestionList();
-      renderEditor();
-      showToast("✅ Замінено! Перевір нове питання.");
-    }
-  } catch (e) {
-    showToast("Помилка перевірки: " + e.message, "error");
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Перевірити`;
-    }
-  }
-};
-
 function renderEditor() {
   const q = testData.questions[activeQIndex];
   if (!q) return showEmptyEditor();
@@ -1745,12 +1483,6 @@ function renderEditor() {
         </div>
 
         <div class="editor-actions-row">
-          <button id="ai-check-btn-${activeQIndex}" title="Перевірити точність питання через ШІ" onclick="window.aiCheckQuestion(${activeQIndex})"
-            style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:9px;border:1.5px solid rgba(45,91,227,.25);background:#fff;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;transition:all .15s"
-            onmouseover="this.style.background='rgba(45,91,227,.06)'" onmouseout="this.style.background='#fff'">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            Перевірити
-          </button>
           <div class="icon-btn-sm" title="Дублювати" onclick="window.duplicateQuestion(${activeQIndex})">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
           </div>
@@ -1806,8 +1538,8 @@ function renderEditor() {
       </div>
 
       <div class="ai-row">
-        <button data-ai="rephrase" class="ai-btn ai-rephrase" onclick="window.aiRephrase()">✦ Перефразувати</button>
-        <button data-ai="generation" class="ai-btn ai-generate" onclick="window.openAiModal()">⚡ AI генерація</button>
+        <button class="ai-btn ai-rephrase" onclick="window.aiRephrase()">✦ Перефразувати</button>
+        <button class="ai-btn ai-generate" onclick="window.openAiModal()">⚡ AI генерація</button>
       </div>
 
       ${answerSection}
@@ -2153,10 +1885,7 @@ window.runAiGenerate = async () => {
   btn.innerHTML = `<div style="width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;display:inline-block;margin-right:8px"></div>Генерую ${count} питань...`;
 
   try {
-    window._lastAiTopic = topic; // зберігаємо тему для повторної генерації
-    window._lastAiType  = type;
     const questions = await generateQuestions({ topic, desc, difficulty, type, count });
-    btn.innerHTML = `<div style="width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;display:inline-block;margin-right:8px"></div>Перевіряю точність...`;
     questions.forEach(q => window.addQuestion({ ...q, id: genId() }));
     document.getElementById("aiModal").classList.remove("open");
     showToast(`✅ Додано ${questions.length} питань!`);
@@ -2179,7 +1908,7 @@ window.previewTest = async () => {
     await saveTest(testId, {
       title:     document.getElementById("testTitle")?.value.trim()||"",
       folderId:  window._selectedFolderId ?? testData.folderId ?? null,
-      timeLimit: (()=>{ const v=Number(document.getElementById("testTimeLimit")?.value); return v===0?0:(v||10)*60; })(),
+      timeLimit: (Number(document.getElementById("testTimeLimit")?.value)||10)*60,
       status:    document.getElementById("testStatus")?.value||"draft",
       tags,
       questions: testData.questions
