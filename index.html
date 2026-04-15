@@ -3080,14 +3080,8 @@ window.G = {
       }).filter(Boolean);
       const allItems=[...wrongList.slice(0,6),...longAnswers.slice(0,2)];
 
-      const prompt = `Ти викладач. Напиши персональний коментар студенту ${a.name} ${a.surname} (оцінка ${a.grade12||"—"}/12, тест "${t?.title||""}").
-${allItems.length?`
-Помилки та відкриті відповіді:
-${allItems.join("
-
-")}`:""}
-
-Вимоги: звертайся на "ти", враховуй стать (${isFemale?"вона":"він"}), суворо до 600 символів, 3-4 речення суцільного тексту без списків. Конкретно: що не зрозуміло і що повторити.`;
+      const promptExtra = allItems.length ? "\nПомилки та відкриті відповіді:\n" + allItems.join("\n---\n") : "";
+      const prompt = "Ти викладач. Напиши персональний коментар студенту " + a.name + " " + a.surname + " (оцінка " + (a.grade12||"—") + "/12, тест \"" + (t?.title||"") + "\")." + promptExtra + "\n\nВимоги: звертайся на \"ти\", враховуй стать (" + (isFemale?"вона":"він") + "), суворо до 600 символів, 3-4 речення суцільного тексту без списків. Конкретно: що не зрозуміло і що повторити.";
       const res=await callGroq([{role:"user",content:prompt}],350,0.35);
       const trimmed=res.trim().length>600?res.trim().substring(0,597)+"...":res.trim();
       await dbUpd(`attempts/${attId}`,{personalAnalysis:trimmed});
