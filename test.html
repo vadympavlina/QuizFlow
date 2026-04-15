@@ -925,7 +925,7 @@ let AI_ENABLED   = true; // вмк/вимк AI глобально
 // Завантажуємо налаштування AI з Firebase
 let AI_PROVIDER_T  = "groq";
 let GEMINI_KEY_T   = "";
-let GEMINI_MODEL_T = "gemini-2.0-flash";
+let GEMINI_MODEL_T = "gemini-2.5-flash";
 
 async function loadAISettings(db) {
   try {
@@ -935,7 +935,7 @@ async function loadAISettings(db) {
       AI_PROVIDER_T = s.provider || "groq";
       if(AI_PROVIDER_T === "gemini"){
         GEMINI_KEY_T   = s.geminiApiKey || s.apiKey || "";
-        GEMINI_MODEL_T = s.geminiModel  || s.model  || "gemini-2.0-flash";
+        GEMINI_MODEL_T = s.geminiModel  || s.model  || "gemini-2.5-flash";
       } else {
         if(s.groqApiKey || s.apiKey) GROQ_API_KEY = s.groqApiKey || s.apiKey;
         if(s.groqModel  || s.model ) GROQ_MODEL   = s.groqModel  || s.model;

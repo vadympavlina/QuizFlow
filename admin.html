@@ -358,12 +358,12 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
             <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Модель Gemini</div>
             <div style="display:flex;flex-direction:column;gap:6px">
               <label class="model-lbl" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--border);cursor:pointer">
-                <input type="radio" name="ai-gemini-model" value="gemini-2.0-flash" checked style="margin-top:2px;accent-color:var(--primary)">
-                <div><div style="font-weight:600;font-size:13px">gemini-2.0-flash</div><div style="font-size:11px;color:var(--muted)">Найшвидша · рекомендована</div></div>
+                <input type="radio" name="ai-gemini-model" value="gemini-2.5-flash" checked style="margin-top:2px;accent-color:var(--primary)">
+                <div><div style="font-weight:600;font-size:13px">gemini-2.5-flash</div><div style="font-size:11px;color:var(--muted)">Найшвидша · рекомендована</div></div>
               </label>
               <label class="model-lbl" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--border);cursor:pointer">
-                <input type="radio" name="ai-gemini-model" value="gemini-2.0-flash-lite" style="margin-top:2px;accent-color:var(--primary)">
-                <div><div style="font-weight:600;font-size:13px">gemini-2.0-flash-lite</div><div style="font-size:11px;color:var(--muted)">Легка · безкоштовна</div></div>
+                <input type="radio" name="ai-gemini-model" value="gemini-2.5-flash-lite" style="margin-top:2px;accent-color:var(--primary)">
+                <div><div style="font-weight:600;font-size:13px">gemini-2.5-flash-lite</div><div style="font-size:11px;color:var(--muted)">Легша · швидша</div></div>
               </label>
               <label class="model-lbl" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--border);cursor:pointer">
                 <input type="radio" name="ai-gemini-model" value="gemini-1.5-pro" style="margin-top:2px;accent-color:var(--primary)">
@@ -846,7 +846,7 @@ window.saveAISettings = async () => {
   const groqKey    = document.getElementById("ai-groq-key")?.value.trim();
   const geminiKey  = document.getElementById("ai-gemini-key")?.value.trim();
   const groqModel  = document.querySelector('input[name="ai-groq-model"]:checked')?.value || "llama-3.3-70b-versatile";
-  const geminiModel= document.querySelector('input[name="ai-gemini-model"]:checked')?.value || "gemini-2.0-flash";
+  const geminiModel= document.querySelector('input[name="ai-gemini-model"]:checked')?.value || "gemini-2.5-flash";
   const comments   = document.getElementById("ai-comments")?.checked;
   const generation = document.getElementById("ai-generation")?.checked;
   const textcheck  = document.getElementById("ai-textcheck")?.checked;
