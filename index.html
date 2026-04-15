@@ -2926,7 +2926,31 @@ window.G = {
       } else if(q.type==="long"){
         const raw=userAns;
         const ua=(raw!=null&&raw!==""&&typeof raw!=="object")?String(raw).trim():null;
-        ansHtml=`<div style="padding:12px 14px;background:${ua?"rgba(45,91,227,.04)":"rgba(107,114,128,.05)"};border:1.5px solid ${ua?"rgba(45,91,227,.15)":"var(--border)"};border-radius:10px;font-size:14px;color:${ua?"var(--text)":"var(--muted)"};white-space:pre-wrap;line-height:1.6${ua?"":";font-style:italic"}">${ua?esc(ua):"Немає відповіді"}</div>`;
+        const det=a.score?.details?.[i];
+        const lr=det?.longResult||"";
+        const locked=a.grade12!=null; // заблоковано якщо є загальна оцінка
+        const badge=lr==="correct"
+          ?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#0d9e85;background:rgba(13,158,133,.08);padding:2px 8px;border-radius:20px;margin-bottom:6px">✓ Правильно · 1б</span>`
+          :lr==="partial"
+          ?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#b45309;background:rgba(245,158,11,.08);padding:2px 8px;border-radius:20px;margin-bottom:6px">~ Частково · 0.5б</span>`
+          :lr==="wrong"
+          ?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#be123c;background:rgba(244,63,94,.07);padding:2px 8px;border-radius:20px;margin-bottom:6px">✗ Неправильно · 0б</span>`
+          :`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#b45309;background:rgba(245,158,11,.06);padding:2px 8px;border-radius:20px;margin-bottom:6px">⏳ Очікує оцінки</span>`;
+        const cC=lr==="correct"?"#0d9e85":"rgba(13,158,133,.3)";
+        const bgC=lr==="correct"?"rgba(13,158,133,.15)":"rgba(13,158,133,.06)";
+        const cP=lr==="partial"?"#b45309":"rgba(245,158,11,.3)";
+        const bgP=lr==="partial"?"rgba(245,158,11,.15)":"rgba(245,158,11,.06)";
+        const cW=lr==="wrong"?"#be123c":"rgba(244,63,94,.2)";
+        const bgW=lr==="wrong"?"rgba(244,63,94,.14)":"rgba(244,63,94,.05)";
+        const gradeAttr=`data-aid="${a.id}" data-qi="${i}"`;
+        const btns=locked
+          ?""
+          :`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+            <button ${gradeAttr} data-res="correct" onclick="G.setLongAnswer(this.dataset.aid,+this.dataset.qi,this.dataset.res)" style="padding:5px 11px;border-radius:8px;border:1.5px solid ${cC};background:${bgC};color:#0d9e85;font-size:12px;font-weight:600;cursor:pointer">✓ Правильно</button>
+            <button ${gradeAttr} data-res="partial" onclick="G.setLongAnswer(this.dataset.aid,+this.dataset.qi,this.dataset.res)" style="padding:5px 11px;border-radius:8px;border:1.5px solid ${cP};background:${bgP};color:#b45309;font-size:12px;font-weight:600;cursor:pointer">~ Частково</button>
+            <button ${gradeAttr} data-res="wrong" onclick="G.setLongAnswer(this.dataset.aid,+this.dataset.qi,this.dataset.res)" style="padding:5px 11px;border-radius:8px;border:1.5px solid ${cW};background:${bgW};color:#be123c;font-size:12px;font-weight:600;cursor:pointer">✗ Неправильно</button>
+          </div>`;
+        ansHtml=`${badge}<div style="padding:12px 14px;background:${ua?"rgba(45,91,227,.04)":"rgba(107,114,128,.05)"};border:1.5px solid ${ua?"rgba(45,91,227,.15)":"var(--border)"};border-radius:10px;font-size:14px;color:${ua?"var(--text)":"var(--muted)"};white-space:pre-wrap;line-height:1.6${ua?"":";font-style:italic"}">${ua?esc(ua):"Немає відповіді"}</div>${btns}`;
       } else if(q.type==="order"){
         const ua=Array.isArray(userAns)?userAns:[];
         ansHtml=ua.map((item,j)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);margin-bottom:5px">
@@ -2978,76 +3002,44 @@ window.G = {
         const allLongGraded=longIdxs.length===0||longIdxs.every(qi=>a.score?.details?.[qi]?.longResult);
         const hasGrade=a.grade12!=null;
         const canAnalyse=allLongGraded&&hasGrade;
-        window._viewAttId=a.id;
-
         let out="";
 
-        // Відкриті питання
-        if(longIdxs.length){
-          out+='<div style="margin:16px 20px 0;padding:14px 18px;background:rgba(245,158,11,.05);border:1.5px solid rgba(245,158,11,.2);border-radius:14px">';
-          out+='<div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#b45309;font-weight:700;margin-bottom:10px">Оцініть відкриті відповіді</div>';
-          longIdxs.forEach(qi=>{
-            const r=ans[qi];
-            const ua=(r!=null&&r!==undefined&&typeof r==="object"&&!Array.isArray(r)&&"value" in r)?r.value:r;
-            const uaText=(ua!=null&&ua!==""&&typeof ua!=="object")?String(ua).trim():"";
-            const lr=a.score?.details?.[qi]?.longResult||"";
-            const qText=(qs[qi].text||"").replace(/<[^>]+>/g,"").substring(0,70);
-            const cC=lr==="correct"?"#0d9e85":"rgba(13,158,133,.3)";
-            const bgC=lr==="correct"?"rgba(13,158,133,.15)":"rgba(13,158,133,.06)";
-            const cP=lr==="partial"?"#b45309":"rgba(245,158,11,.3)";
-            const bgP=lr==="partial"?"rgba(245,158,11,.15)":"rgba(245,158,11,.06)";
-            const cW=lr==="wrong"?"#be123c":"rgba(244,63,94,.2)";
-            const bgW=lr==="wrong"?"rgba(244,63,94,.14)":"rgba(244,63,94,.05)";
-            out+="<div style='margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(245,158,11,.1)'>";
-            out+="<div style='font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px'>"+(qi+1)+". "+esc(qText)+"</div>";
-            if(uaText) out+="<div style='font-size:12px;color:var(--muted);margin-bottom:7px;padding:7px 10px;background:white;border-radius:8px;border:1px solid var(--border)'>"+esc(uaText.substring(0,200))+"</div>";
-            else out+="<div style='font-size:12px;color:var(--muted);font-style:italic;margin-bottom:7px'>(без відповіді)</div>";
-            out+="<div style='display:flex;gap:6px;flex-wrap:wrap'>";
-            out+="<button data-aid='"+a.id+"' data-qi='"+qi+"' data-res='correct' onclick='G.setLongAnswer(this.dataset.aid,+this.dataset.qi,this.dataset.res)' style='padding:4px 10px;border-radius:7px;border:1.5px solid "+cC+";background:"+bgC+";color:#0d9e85;font-size:12px;font-weight:600;cursor:pointer'>✓ Правильно (1б)</button>";
-            out+="<button data-aid='"+a.id+"' data-qi='"+qi+"' data-res='partial' onclick='G.setLongAnswer(this.dataset.aid,+this.dataset.qi,this.dataset.res)' style='padding:4px 10px;border-radius:7px;border:1.5px solid "+cP+";background:"+bgP+";color:#b45309;font-size:12px;font-weight:600;cursor:pointer'>~ Частково (0.5б)</button>";
-            out+="<button data-aid='"+a.id+"' data-qi='"+qi+"' data-res='wrong' onclick='G.setLongAnswer(this.dataset.aid,+this.dataset.qi,this.dataset.res)' style='padding:4px 10px;border-radius:7px;border:1.5px solid "+cW+";background:"+bgW+";color:#be123c;font-size:12px;font-weight:600;cursor:pointer'>✗ Неправильно (0б)</button>";
-            out+="</div></div>";
-          });
-          out+="</div>";
-        }
-
-        // Загальна оцінка
+        // Загальна оцінка — показується тільки для pending_review і якщо всі відкриті оцінені
         if(a.status==="pending_review"){
-          const borderCol=allLongGraded?"rgba(45,91,227,.2)":"var(--border)";
-          const bgCol=allLongGraded?"rgba(45,91,227,.04)":"rgba(107,114,128,.04)";
-          const labelCol=allLongGraded?"var(--primary)":"var(--muted)";
-          const label=allLongGraded?"Загальна оцінка":"Спочатку оцініть відкриті відповіді";
-          out+="<div style='margin:16px 20px 0;padding:14px 18px;background:"+bgCol+";border:1.5px solid "+borderCol+";border-radius:14px'>";
-          out+="<div style='font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:"+labelCol+";font-weight:700;margin-bottom:8px'>"+label+"</div>";
           if(allLongGraded){
-            out+="<div style='display:flex;gap:5px;flex-wrap:wrap'>";
+            out+='<div style="margin:16px 20px 0;padding:14px 18px;background:rgba(45,91,227,.04);border:1.5px solid rgba(45,91,227,.18);border-radius:14px">';
+            out+='<div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--primary);font-weight:700;margin-bottom:8px">Загальна оцінка</div>';
+            out+='<div style="display:flex;gap:5px;flex-wrap:wrap">';
             for(let g=1;g<=12;g++){
               const col=g>=10?"#0d9e85":g>=7?"#2d5be3":g>=4?"#f59e0b":"#f43f5e";
               const bg=g>=10?"rgba(13,158,133,.08)":g>=7?"rgba(45,91,227,.08)":g>=4?"rgba(245,158,11,.08)":"rgba(244,63,94,.08)";
-              const sel=a.grade12===g?"outline:2px solid "+col+";outline-offset:2px;":"";
+              const sel=a.grade12===g?'outline:2px solid '+col+';outline-offset:2px;':'';
               out+='<button data-aid="'+a.id+'" data-g="'+g+'" onclick="G.setManualGrade(this.dataset.aid,+this.dataset.g)" style="width:36px;height:36px;border-radius:9px;border:1.5px solid '+col+'44;background:'+bg+';color:'+col+';font-weight:800;font-size:14px;cursor:pointer;'+sel+'">'+g+'</button>';
             }
-            out+="</div>";
+            out+="</div></div>";
+          } else {
+            out+='<div style="margin:16px 20px 0;padding:12px 16px;background:rgba(245,158,11,.05);border:1.5px solid rgba(245,158,11,.2);border-radius:14px;font-size:13px;color:#b45309">';
+            out+='⏳ Оцініть всі відкриті відповіді нижче, щоб виставити загальну оцінку</div>';
           }
-          out+="</div>";
         }
 
         // AI секція
-        const aiColor=canAnalyse?"var(--primary)":"var(--muted)";
-        const hasBorder=a.aiComment||a.personalAnalysis?";border-bottom:1px solid rgba(45,91,227,.08)":"";
-        out+="<div style='margin:16px 20px 0;background:rgba(45,91,227,.02);border:1.5px solid rgba(45,91,227,.1);border-radius:14px;overflow:hidden'>";
-        out+="<div style='display:flex;align-items:center;justify-content:space-between;padding:11px 15px"+hasBorder+"'>";
-        out+="<div style='display:flex;align-items:center;gap:7px'><svg width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='"+aiColor+"' stroke-width='2'><polygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/></svg>";
-        out+="<span style='font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:"+aiColor+";font-weight:700'>ШІ Аналіз</span></div>";
+        const aiColor=canAnalyse?'var(--primary)':'var(--muted)';
+        const hasBorder=a.aiComment||a.personalAnalysis?';border-bottom:1px solid rgba(45,91,227,.08)':'';
+        out+='<div style="margin:16px 20px 0;background:rgba(45,91,227,.02);border:1.5px solid rgba(45,91,227,.1);border-radius:14px;overflow:hidden">';
+        out+='<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 15px'+hasBorder+'">';
+        out+='<div style="display:flex;align-items:center;gap:7px">';
+        out+='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="'+aiColor+'" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+        out+='<span style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:'+aiColor+';font-weight:700">ШІ Аналіз</span></div>';
         if(canAnalyse){
           out+='<button data-aid="'+a.id+'" onclick="G.personalAnalysis(this.dataset.aid)" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:8px;border:1.5px solid rgba(45,91,227,.2);background:#fff;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer">✦ Розбір</button>';
         } else {
-          out+="<span style='font-size:11px;color:var(--muted);font-style:italic'>"+(hasGrade?"оцініть відповіді":"виставте оцінку")+"</span>";
+          out+='<span style="font-size:11px;color:var(--muted);font-style:italic">'+(hasGrade?'оцініть відповіді':'виставте оцінку')+'</span>';
         }
-        out+="</div>";
-        if(a.aiComment) out+="<div style='padding:12px 15px;font-size:13px;color:var(--text);line-height:1.7'>"+esc(a.aiComment)+"</div>";
-        else if(a.personalAnalysis) out+="<div style='padding:12px 15px;font-size:13px;color:var(--text);line-height:1.7'>"+esc(a.personalAnalysis)+"</div>";
-        out+="</div>";
+        out+='</div>';
+        if(a.aiComment) out+='<div style="padding:12px 15px;font-size:13px;color:var(--text);line-height:1.7">'+esc(a.aiComment)+'</div>';
+        else if(a.personalAnalysis) out+='<div style="padding:12px 15px;font-size:13px;color:var(--text);line-height:1.7">'+esc(a.personalAnalysis)+'</div>';
+        out+='</div>';
 
         return out;
       })()}
