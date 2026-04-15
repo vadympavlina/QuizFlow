@@ -951,34 +951,6 @@ const UA_SYSTEM = {
            "Якщо щось не знаєш українською — все одно пиши по-українськи."
 };
 
-// Google AI Studio (Gemini) — для test.html
-async function callGeminiT(messages, maxTokens=800, temperature=0.5){
-  try{
-    const snap=await get(ref(db,"settings/ai"));
-    const s=snap.exists()?snap.val():{};
-    const key=s.geminiApiKey||s.apiKey||"";
-    const model=s.geminiModel||"gemini-2.5-flash";
-    if(!key) throw new Error("Відсутній Gemini API ключ");
-    const UA=UA_SYSTEM.content;
-    const url="https://generativelanguage.googleapis.com/v1beta/models/"+model+":generateContent?key="+key;
-    const contents=messages.map(m=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]}));
-    const res=await fetch(url,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        systemInstruction:{parts:[{text:UA}]},
-        contents,
-        generationConfig:{maxOutputTokens:maxTokens,temperature}
-      })
-    });
-    const raw=await res.text();
-    let d;
-    try{ d=JSON.parse(raw); }catch(e){ throw new Error("Gemini: невалідна відповідь"); }
-    if(d.error) throw new Error(d.error.message||"Gemini error");
-    return d.candidates?.[0]?.content?.parts?.[0]?.text||"";
-  }catch(e){throw e;}
-}
-
 async function callGroq(messages, maxTokens = 800, temperature = 0.5) {
   // Завжди додаємо системний промпт українською
   const allMessages = [UA_SYSTEM, ...messages];
@@ -1065,33 +1037,27 @@ async function getStudentAIComment({ testTitle, totalQuestions, correctCount, pe
     + ' Що конкретно не зрозуміло і що повторити. Без загальних фраз.'
     + '\n\nВідповідай ТІЛЬКИ у форматі JSON без markdown: {"grade": 7, "comment": "..."}';
 
-  // Спочатку Gemini, якщо не вийде — Groq
-  let raw;
-  try {
-    raw = await callGeminiT([{ role: "user", content: prompt }], 500);
-  } catch(gErr) {
-    console.warn("Gemini fallback to Groq:", gErr.message);
-    raw = await callGroq([{ role: "user", content: prompt }], 500);
-  }
+  const raw = await callGroq([{ role: "user", content: prompt }], 500);
 
   let result;
   try {
     let jsonStr = raw.replace(/```json/gi, '').replace(/```/gi, '').trim();
-    const start = jsonStr.indexOf('{');
-    const end = jsonStr.lastIndexOf('}');
-    if (start >= 0 && end > start) jsonStr = jsonStr.slice(start, end + 1);
+    const jStart = jsonStr.indexOf('{');
+    const jEnd = jsonStr.lastIndexOf('}');
+    if (jStart >= 0 && jEnd > jStart) jsonStr = jsonStr.slice(jStart, jEnd + 1);
     result = JSON.parse(jsonStr);
-    if (typeof result.grade !== 'number') result.grade = percentToGrade(pct);
+    // Якщо comment порожній — беремо весь текст як коментар
     if (typeof result.comment !== 'string' || !result.comment.trim()) {
-      // Якщо коментар порожній — беремо весь raw текст
-      result.comment = raw.replace(/```json[\s\S]*?```/g,'').replace(/[{}"]/g,'').replace(/grade\s*:\s*\d+/,'').replace(/comment\s*:\s*/,'').trim().substring(0,600);
+      result.comment = raw.replace(/[{}"]/g,'').replace(/grade\s*:\s*\d+,?/g,'').replace(/comment\s*:\s*/g,'').replace(/```[\s\S]*?```/g,'').trim().substring(0,600);
     }
-  } catch (parseErr) {
-    // Не вдалось розпарсити JSON — використовуємо raw як коментар
-    const gm = raw.match(/"grade"\s*:\s*(\d+)/);
+    if (typeof result.grade !== 'number') result.grade = percentToGrade(pct);
+  } catch (_pe) {
+    // Не вдалось розпарсити JSON — весь raw використовуємо як коментар
+    const gradeM = raw.match(/"grade"\s*:\s*(\d+)/);
+    const cleanComment = raw.replace(/[{}"]/g,'').replace(/grade\s*:\s*\d+,?/g,'').replace(/comment\s*:\s*/g,'').replace(/```[\s\S]*?```/g,'').trim();
     result = {
-      grade: gm ? parseInt(gm[1]) : percentToGrade(pct),
-      comment: raw.replace(/```json[\s\S]*?```/g,'').replace(/["{}]/g,'').replace(/grade\s*:\s*\d+[,\s]*/,'').replace(/comment\s*:\s*/,'').trim().substring(0,600) || ''
+      grade: gradeM ? parseInt(gradeM[1]) : percentToGrade(pct),
+      comment: cleanComment.substring(0, 600) || ''
     };
   }
 

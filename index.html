@@ -2264,34 +2264,6 @@ window.renderLinks = function(){
 // G — global actions
 // ─── GROQ для AI аналізу ──────────────────────────────────────────────────────
 // ─── AI виклик: підтримує Groq і Google AI Studio ──────────────────────────
-// Виклик Google AI Studio (Gemini)
-async function callGemini(messages, maxTokens=800, temp=0.5){
-  try{
-    const snap=await get(ref(db,"settings/ai"));
-    const s=snap.exists()?snap.val():{};
-    const key=s.geminiApiKey||s.apiKey||"";
-    const model=s.geminiModel||"gemini-2.5-flash";
-    if(!key) throw new Error("Відсутній Gemini API ключ");
-    const UA="Ти — розумний асистент викладача. Відповідай ВИКЛЮЧНО українською мовою.";
-    const url="https://generativelanguage.googleapis.com/v1beta/models/"+model+":generateContent?key="+key;
-    const contents=messages.map(m=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]}));
-    const res=await fetch(url,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        systemInstruction:{parts:[{text:UA}]},
-        contents,
-        generationConfig:{maxOutputTokens:maxTokens,temperature:temp}
-      })
-    });
-    const raw=await res.text();
-    let d;
-    try{ d=JSON.parse(raw); }catch(e){ throw new Error("Gemini: невалідна відповідь"); }
-    if(d.error) throw new Error(d.error.message||"Gemini error");
-    return d.candidates?.[0]?.content?.parts?.[0]?.text||"";
-  }catch(e){throw e;}
-}
-
 async function callGroq(messages, maxTokens=800, temp=0.5){
   const UA = "Ти — розумний асистент викладача. ОБОВ\'ЯЗКОВО відповідай ВИКЛЮЧНО українською мовою. Жодних інших мов. Якщо щось не знаєш українською — все одно пиши по-українськи.";
   try{
@@ -2954,7 +2926,21 @@ window.G = {
       } else if(q.type==="long"){
         const raw=userAns;
         const ua=(raw!=null&&raw!==""&&typeof raw!=="object")?String(raw).trim():null;
-        ansHtml=`<div style="padding:12px 14px;background:${ua?"rgba(45,91,227,.04)":"rgba(107,114,128,.05)"};border:1.5px solid ${ua?"rgba(45,91,227,.15)":"var(--border)"};border-radius:10px;font-size:14px;color:${ua?"var(--text)":"var(--muted)"};white-space:pre-wrap;line-height:1.6${ua?"":";font-style:italic"}">${ua?esc(ua):"Немає відповіді"}</div>`;
+        const det=a.score?.details?.[i];
+        const lr=det?.longResult||"";
+        const lrBadge=lr==="correct"
+          ?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#0d9e85;background:rgba(13,158,133,.08);padding:2px 9px;border-radius:20px;margin-bottom:6px">✓ Правильно (1б)</span>`
+          :lr==="partial"
+          ?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#b45309;background:rgba(245,158,11,.08);padding:2px 9px;border-radius:20px;margin-bottom:6px">~ Частково (0.5б)</span>`
+          :lr==="wrong"
+          ?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#be123c;background:rgba(244,63,94,.07);padding:2px 9px;border-radius:20px;margin-bottom:6px">✗ Неправильно (0б)</span>`
+          :`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#b45309;background:rgba(245,158,11,.06);padding:2px 9px;border-radius:20px;margin-bottom:6px">⏳ Очікує перевірки</span>`;
+        const gradeBtns=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+          <button onclick="G.setLongAnswer('${a.id}',${i},'correct')" style="padding:5px 11px;border-radius:8px;border:1.5px solid ${lr==='correct'?'#0d9e85':'rgba(13,158,133,.3)'};background:${lr==='correct'?'rgba(13,158,133,.15)':'rgba(13,158,133,.06)'};color:#0d9e85;font-size:12px;font-weight:600;cursor:pointer">✓ Правильно</button>
+          <button onclick="G.setLongAnswer('${a.id}',${i},'partial')" style="padding:5px 11px;border-radius:8px;border:1.5px solid ${lr==='partial'?'#b45309':'rgba(245,158,11,.3)'};background:${lr==='partial'?'rgba(245,158,11,.15)':'rgba(245,158,11,.06)'};color:#b45309;font-size:12px;font-weight:600;cursor:pointer">~ Частково</button>
+          <button onclick="G.setLongAnswer('${a.id}',${i},'wrong')" style="padding:5px 11px;border-radius:8px;border:1.5px solid ${lr==='wrong'?'#be123c':'rgba(244,63,94,.25)'};background:${lr==='wrong'?'rgba(244,63,94,.14)':'rgba(244,63,94,.05)'};color:#be123c;font-size:12px;font-weight:600;cursor:pointer">✗ Неправильно</button>
+        </div>`;
+        ansHtml=`${lrBadge}<div style="padding:12px 14px;background:${ua?"rgba(45,91,227,.04)":"rgba(107,114,128,.05)"};border:1.5px solid ${ua?"rgba(45,91,227,.15)":"var(--border)"};border-radius:10px;font-size:14px;color:${ua?"var(--text)":"var(--muted)"};white-space:pre-wrap;line-height:1.6${ua?"":";font-style:italic"}">${ua?esc(ua):"Немає відповіді"}</div>${gradeBtns}`;
       } else if(q.type==="order"){
         const ua=Array.isArray(userAns)?userAns:[];
         ansHtml=ua.map((item,j)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);margin-bottom:5px">
@@ -3027,33 +3013,21 @@ window.G = {
       </div>`:""}
 
       <!-- AI секція -->
-      ${(()=>{
-        const longIdxs = qs.map((q,qi)=>qi).filter(qi=>qs[qi].type==="long");
-        const allLongGraded = longIdxs.length === 0 || longIdxs.every(qi => a.score?.details?.[qi]?.longResult);
-        const hasGrade = a.grade12 != null;
-        const canAnalyse = allLongGraded && hasGrade;
-        const hint = !hasGrade ? "Спочатку виставте оцінку" : !allLongGraded ? "Оцініть всі відкриті відповіді" : "";
-        return `<div style="margin:16px 20px 0;background:rgba(45,91,227,.03);border:1.5px solid rgba(45,91,227,.12);border-radius:16px;overflow:hidden">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px${a.aiComment||a.personalAnalysis?";border-bottom:1px solid rgba(45,91,227,.08)":""}">
-            <div style="display:flex;align-items:center;gap:8px">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${canAnalyse?"var(--primary)":"var(--muted)"}" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <span style="font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:${canAnalyse?"var(--primary)":"var(--muted)"};font-weight:700">ШІ Аналіз</span>
-            </div>
-            ${canAnalyse
-              ? `<button onclick="G.personalAnalysis('${a.id}')" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9px;border:1.5px solid rgba(45,91,227,.25);background:#fff;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;transition:all .15s" onmouseover="this.style.background='rgba(45,91,227,.06)'" onmouseout="this.style.background='#fff'">✦ Розбір</button>`
-              : `<span style="font-size:11px;color:var(--muted);font-style:italic">${hint}</span>`
-            }
+      <div style="margin:16px 20px 0;background:rgba(45,91,227,.03);border:1.5px solid rgba(45,91,227,.12);border-radius:16px;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(45,91,227,.08)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span style="font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--primary);font-weight:700">ШІ Аналіз</span>
           </div>
-          ${a.aiComment
-            ? `<div style="padding:14px 16px;font-size:14px;color:var(--text);line-height:1.75">${esc(a.aiComment)}</div>`
-            : a.personalAnalysis
-              ? `<div style="padding:14px 16px;font-size:14px;color:var(--text);line-height:1.75">${esc(a.personalAnalysis)}</div>`
-              : canAnalyse
-                ? `<div style="padding:12px 16px;font-size:12px;color:var(--muted);font-style:italic">Натисніть "Розбір" для персонального аналізу</div>`
-                : ``
-          }
-        </div>`;
-      })()}
+          <button onclick="G.personalAnalysis('${a.id}')" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9px;border:1.5px solid rgba(45,91,227,.25);background:#fff;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;transition:all .15s"
+            onmouseover="this.style.background='rgba(45,91,227,.06)'" onmouseout="this.style.background='#fff'">
+            ✦ Персональний розбір
+          </button>
+        </div>
+        ${a.aiComment
+          ?`<div style="padding:14px 16px;font-size:14px;color:var(--text);line-height:1.75">${esc(a.aiComment)}</div>`
+          :`<div style="padding:12px 16px;font-size:13px;color:var(--muted);font-style:italic">Коментар згенерується автоматично після перевірки спроби</div>`}
+      </div>
 
       <!-- Питання -->
       <div style="padding:16px 20px 24px">
@@ -3118,26 +3092,11 @@ window.G = {
         G._showAiPanel(text); return;
       }
 
-      const isFem = /[аяієї]$/i.test(a.name||'') && !/Дмитро|Микола|Ілля/.test(a.name||'');
-      const mistakesPart = wrongList.slice(0,6).join('\n---\n');
-      const analysisPrompt = 'Ти викладач. Напиши персональний коментар для ' + (a.name||'') + ' ' + (a.surname||'')
-        + ' (оцінка ' + (a.grade12||'—') + '/12, тест: ' + (t?.title||'') + ').\n'
-        + 'Помилки:\n' + mistakesPart + '\n\n'
-        + 'Вимоги: до 600 символів, на "ти", стать — ' + (isFem?'вона':'він') + '. '
-        + '3-4 речення, без списків. Конкретно що не зрозуміло і що повторити.';
-
-      // Спочатку Gemini, якщо не вийде — Groq
-      let res;
-      try {
-        res = await callGemini([{role:'user',content:analysisPrompt}], 400, 0.35);
-      } catch(geminiErr) {
-        console.warn('Gemini failed, fallback to Groq:', geminiErr.message);
-        res = await callGroq([{role:'user',content:analysisPrompt}], 400, 0.35);
-      }
-      const trimmed = res.trim().length > 600 ? res.trim().substring(0,597)+'...' : res.trim();
-      await dbUpd(`attempts/${attId}`,{personalAnalysis:trimmed});
-      a.personalAnalysis=trimmed;
-      G._showAiPanel(trimmed);
+      const prompt = `Ти репетитор. Студент ${esc(a.name)} ${esc(a.surname)} отримав оцінку ${a.grade12}/12 за тест "${t?.title || ""}". Помилкові відповіді: ${wrongList.slice(0, 8).join("")}. Напиши короткий персональний розбір (5–8 речень): що студент не зрозумів, на що звернути увагу, як виправити знання. Звертайся до студента напряму.`;
+      const res=await callGroq([{role:"user",content:prompt}],600,0.5);
+      await dbUpd(`attempts/${attId}`,{personalAnalysis:res});
+      a.personalAnalysis=res;
+      G._showAiPanel(res);
     }catch(e){
       document.getElementById("ai-side-content").innerHTML=`<div style="color:#be123c;padding:16px;font-size:14px">Помилка: ${esc(e.message)}</div>`;
     }
@@ -4238,6 +4197,22 @@ window.G = {
     const sel = document.getElementById(selId);
     if(sel) sel.value = value;
     G.renderGradebook && G.renderGradebook();
+  },
+
+  async setLongAnswer(attId, qIdx, result){
+    const a=attempts.find(x=>x.id===attId);
+    if(!a) return;
+    const pts=result==="correct"?1:result==="partial"?0.5:0;
+    const details=a.score?.details?[...a.score.details]:[];
+    while(details.length<=qIdx) details.push({});
+    details[qIdx]={...(details[qIdx]||{}), longResult:result, points:pts};
+    try{
+      await dbUpd(`attempts/${attId}`,{"score/details":details});
+      if(!a.score) a.score={};
+      a.score.details=details;
+      G.viewAtt(attId);
+      closeM("m-attempt"); openM("m-attempt");
+    }catch(e){ toast("Помилка: "+e.message,"err"); }
   },
 
   async setManualGrade(attId, grade){
