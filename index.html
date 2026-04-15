@@ -3041,8 +3041,8 @@ window.G = {
         const rawAns=ans[i];
         const ua=(rawAns!==null&&rawAns!==undefined&&typeof rawAns==="object"&&!Array.isArray(rawAns)&&"value" in rawAns)
           ? rawAns.value : rawAns;
-        // Пропускаємо питання без відповіді
         if(ua===null||ua===undefined||ua==="") return null;
+        if(q.type==="long") return null; // long обробляється окремо нижче
         let wrong=false;
         if(q.type==="single") wrong=ua!==q.correct&&String(ua)!==String(q.correct);
         else if(q.type==="multi"){
@@ -3051,37 +3051,38 @@ window.G = {
           wrong=JSON.stringify([...uaArr].sort())!==JSON.stringify([...cArr].sort());
         }
         else if(q.type==="number") wrong=parseFloat(ua)!==parseFloat(q.correct);
-        else if(q.type==="text") wrong=true; // текст завжди включаємо для AI аналізу
-        else return null; // long/order — пропускаємо
+        else if(q.type==="text") wrong=true;
+        else return null;
         const uaStr=Array.isArray(ua)?ua.join(", "):String(ua);
         const corrStr=Array.isArray(q.correct)?q.correct.join(", "):String(q.correct||"");
-        return wrong?`Питання: "${(q.text||q.question||"").replace(/<[^>]+>/g,"")}"
-Відповідь студента: "${uaStr}"
-Правильна відповідь: "${corrStr}"`:null;
+        return wrong?`Помилка: "${(q.text||q.question||"").replace(/<[^>]+>/g,"").substring(0,100)}"\nВідповів: "${uaStr}" (правильно: "${corrStr}")`:null;
       }).filter(Boolean);
 
-      if(!wrongList.length){
+      // Стать для правильного звертання
+      const isFemale=(a.name||"").match(/[аяі]$/i)&&!(a.name||"").match(/Дмитро|Микола|Ілля/i);
+
+      // Відкриті питання — включаємо тільки ті що не правильні
+      const longItems=qs.map((q,i)=>{
+        if(q.type!=="long") return null;
+        const rawAns=ans[i];
+        const ua=(rawAns!=null&&rawAns!==""&&typeof rawAns!=="object")?String(rawAns).trim():null;
+        const det=a.score?.details?.[i];
+        const lr=det?.longResult;
+        if(lr==="correct") return null; // правильне — не включаємо в розбір помилок
+        const statusLabel=lr==="partial"?"~ Частково (0.5 б)":lr==="wrong"?"✗ Неправильно (0 б)":"на перевірці";
+        return `Відкрите питання: "${(q.text||"").replace(/<[^>]+>/g,"").substring(0,100)}"\nВідповідь студента: "${ua?ua.substring(0,200):"(не відповів)"}"\nОцінка: ${statusLabel}`;
+      }).filter(Boolean);
+
+      const allItems=[...wrongList.slice(0,6),...longItems.slice(0,3)];
+
+      if(!allItems.length){
         const text="✅ Студент відповів правильно на всі питання! Відмінна робота.";
         await dbUpd(`attempts/${attId}`,{personalAnalysis:text});
         a.personalAnalysis=text;
         G._showAiPanel(text); return;
       }
 
-      // Стать для правильного звертання
-      const isFemale=(a.name||"").match(/[аяі]$/i)&&!(a.name||"").match(/Дмитро|Микола|Ілля/i);
-      const longAnswers=qs.map((q,i)=>{
-        if(q.type!=="long") return null;
-        const rawAns=ans[i];
-        const ua=(rawAns!=null&&rawAns!==""&&typeof rawAns!=="object")?String(rawAns).trim():null;
-        const det=a.score?.details?.[i];
-        const status=det?.longResult||"на перевірці";
-        return `Відкрите питання: "${(q.text||"").replace(/<[^>]+>/g,"").substring(0,100)}"
-Відповідь студента: "${ua?ua.substring(0,200):"(не відповів)"}"
-Статус: ${status}`;
-      }).filter(Boolean);
-      const allItems=[...wrongList.slice(0,6),...longAnswers.slice(0,2)];
-
-      const promptExtra = allItems.length ? "\nПомилки та відкриті відповіді:\n" + allItems.join("\n---\n") : "";
+      const promptExtra = "\\nДеталі:\\n" + allItems.join("\\n---\\n");
       const prompt = "Ти викладач. Напиши персональний коментар студенту " + a.name + " " + a.surname + " (оцінка " + (a.grade12||"—") + "/12, тест \"" + (t?.title||"") + "\")." + promptExtra + "\n\nВимоги: звертайся на \"ти\", враховуй стать (" + (isFemale?"вона":"він") + "), суворо до 600 символів, 3-4 речення суцільного тексту без списків. Конкретно: що не зрозуміло і що повторити.";
       const res=await callGroq([{role:"user",content:prompt}],350,0.35);
       const trimmed=res.trim().length>600?res.trim().substring(0,597)+"...":res.trim();
