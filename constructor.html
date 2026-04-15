@@ -30,10 +30,10 @@
   .sidebar-user-name{font-size:13px;font-weight:500;color:white}
   .sidebar-user-role{font-size:11px;color:rgba(255,255,255,0.4);margin-top:1px}
   .main{margin-left:0;flex:1;display:flex;flex-direction:column;max-width:100vw;height:100vh;overflow:hidden}
-  .con-topbar{display:flex;align-items:center;gap:10px;padding:12px 20px;background:white;border-bottom:1.5px solid var(--border);position:sticky;top:0;z-index:50}
+  .con-topbar{display:flex;align-items:center;gap:12px;padding:14px 24px;background:white;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;flex-wrap:wrap}
   .back-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:1.5px solid var(--border);font-size:13px;color:var(--text-muted);cursor:pointer;transition:all 0.2s;background:white;text-decoration:none}
   .back-btn:hover{border-color:var(--primary);color:var(--primary)}
-  .test-name-input{padding:9px 14px;border-radius:11px;border:1.5px solid var(--border);font-family:'Syne',sans-serif;font-size:15px;font-weight:600;color:var(--text);outline:none;transition:border-color 0.2s;background:white}
+  .test-name-input{padding:10px 16px;border-radius:12px;border:1.5px solid var(--border);font-family:'Syne',sans-serif;font-size:16px;font-weight:600;color:var(--text);outline:none;transition:border-color 0.2s;min-width:200px;flex:1;max-width:360px}
   .test-name-input:focus{border-color:var(--primary)}
   .status-select{padding:9px 14px;border-radius:11px;border:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;cursor:pointer;background:white}
   .btn{display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s;border:none}
@@ -42,8 +42,8 @@
   .btn-primary{background:var(--gradient);color:white;box-shadow:0 4px 16px var(--primary-glow)}
   .btn-primary:hover{transform:translateY(-1px)}
   .con-layout{display:flex;flex:1;height:calc(100vh - 65px);overflow:hidden}
-  .q-list-panel{width:240px;border-right:1.5px solid var(--border);background:white;display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
-  .q-list-header{padding:14px 14px 12px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .q-list-panel{width:260px;border-right:1px solid var(--border);background:white;display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+  .q-list-header{padding:18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
   .q-list-title{font-family:'Syne',sans-serif;font-weight:600;font-size:14px}
   .q-count{font-size:12px;color:var(--text-muted)}
   .q-list{padding:10px;flex:1}
@@ -58,10 +58,10 @@
   .q-list-info{flex:1;min-width:0}
   .q-list-text{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .q-list-type{font-size:11px;color:var(--text-muted);margin-top:2px}
-  .q-add-btn{margin:8px;padding:10px;border-radius:11px;border:1.5px dashed rgba(45,91,227,0.2);text-align:center;font-size:13px;color:var(--primary);cursor:pointer;transition:all 0.2s;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px}
+  .q-add-btn{margin:10px;padding:11px;border-radius:12px;border:2px dashed rgba(45,91,227,0.2);text-align:center;font-size:13px;color:var(--primary);cursor:pointer;transition:all 0.2s;font-weight:500}
   .q-add-btn:hover{border-color:var(--primary);background:rgba(45,91,227,0.04)}
-  .editor-panel{flex:1;padding:22px 24px;overflow-y:auto;background:var(--bg)}
-  .editor-card{background:white;border-radius:18px;border:1.5px solid var(--border);padding:24px 26px;margin-bottom:14px;animation:fadeUp 0.25s ease both}
+  .editor-panel{flex:1;padding:28px;overflow-y:auto}
+  .editor-card{background:white;border-radius:20px;border:1.5px solid var(--border);padding:28px;margin-bottom:16px;animation:fadeUp 0.3s ease both}
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   .editor-row{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
   .editor-q-num{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text-muted)}
@@ -131,7 +131,7 @@
   .add-option-btn:hover{border-color:var(--primary);background:rgba(45,91,227,0.04)}
   .order-num{width:28px;height:28px;border-radius:8px;background:rgba(45,91,227,0.08);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--primary);flex-shrink:0}
   .matching-editor-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;padding:14px;background:rgba(45,91,227,0.02);border-radius:14px;border:1.5px solid var(--border)}
-  .settings-panel{width:220px;border-left:1.5px solid var(--border);background:white;padding:16px 14px;overflow-y:auto;flex-shrink:0}
+  .settings-panel{width:240px;border-left:1px solid var(--border);background:white;padding:22px;overflow-y:auto;flex-shrink:0}
   .settings-title{font-family:'Syne',sans-serif;font-weight:600;font-size:13px;margin-bottom:14px}
   .setting-field{margin-bottom:14px}
   .setting-label{font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;font-weight:500}
@@ -309,13 +309,9 @@
 
 <div class="main">
   <div class="con-topbar">
-    <a class="back-btn" onclick="window.navGuard('')">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>Назад
-    </a>
-    <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
-      <input class="test-name-input" type="text" id="testTitle" placeholder="Назва тесту..." style="flex:1;min-width:0">
-      <div id="dirtyIndicator" title="Є незбережені зміни" style="width:8px;height:8px;border-radius:50%;background:var(--amber);display:none;flex-shrink:0"></div>
-    </div>
+    <button class="back-btn" onclick="window.navGuard('')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>Назад</button>
+    <input class="test-name-input" type="text" id="testTitle" placeholder="Назва тесту...">
+    <div id="dirtyIndicator" title="Є незбережені зміни"></div>
     <div class="con-cd-wrap" id="con-cd-status">
       <button class="con-cd-btn" onclick="conToggleDrop('con-cd-status')">
         <span id="con-cd-status-label">📝 Чернетка</span>
@@ -332,40 +328,27 @@
       <option value="active">Активний</option>
       <option value="closed">Закритий</option>
     </select>
-    <div style="display:flex;gap:6px;flex-shrink:0">
-      <button class="btn btn-ghost" onclick="window.openAiModal()" style="gap:6px;font-size:13px">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>AI
-      </button>
-      <button class="btn btn-ghost" onclick="window.openExcelModal()" style="gap:6px;font-size:13px">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Імпорт
-      </button>
-      <button class="btn btn-ghost" onclick="window.previewTest()" style="gap:6px;font-size:13px">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Перегляд
-      </button>
-      <button class="btn btn-primary" id="saveBtn" onclick="window.saveTest()" style="font-size:13px">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Зберегти
-      </button>
-    </div>
+    <button class="btn btn-ghost" onclick="window.openAiModal()">✦ AI Генерація</button>
+    <button class="btn btn-ghost" onclick="window.openExcelModal()">📥 Імпорт Excel</button>
+    <button class="btn btn-ghost" onclick="window.previewTest()" title="Переглянути як студент" style="gap:6px">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Перегляд
+    </button>
+    <button class="btn btn-primary" id="saveBtn" onclick="window.saveTest()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Зберегти
+    </button>
   </div>
 
   <div class="con-layout">
     <!-- Questions List -->
     <div class="q-list-panel">
       <div class="q-list-header">
-        <div>
-          <div class="q-list-title">Питання</div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:1px"><span id="questionCount">0</span> шт.</div>
-        </div>
-        <button onclick="window.addQuestion()" title="Додати"
-          style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:16px;line-height:1;transition:all .15s"
-          onmouseover="this.style.background='rgba(45,91,227,.06)';this.style.borderColor='var(--primary)'"
-          onmouseout="this.style.background='white';this.style.borderColor='var(--border)'">+</button>
+        <span class="q-list-title">Питання</span>
+        <span class="q-count" id="questionCount">0 шт.</span>
       </div>
       <div class="q-list" id="questionList"></div>
-      <div class="q-add-btn" onclick="window.addQuestion()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Додати питання
-      </div>
+      <div class="q-add-btn" onclick="window.addQuestion()">+ Додати питання</div>
     </div>
 
     <!-- Editor -->
@@ -375,60 +358,30 @@
 
     <!-- Settings -->
     <div class="settings-panel">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);font-weight:600;margin-bottom:16px">Налаштування</div>
-
-      <!-- Папка з пошуком -->
-      <div class="setting-field">
-        <div class="setting-label">Папка</div>
-        <div id="folderChipsPanel"></div>
-      </div>
-
-      <!-- Теги -->
-      <div class="setting-field">
-        <div class="setting-label">Теги</div>
-        <input class="setting-input" type="text" id="tagsInput" placeholder="html, css, js">
-      </div>
-
-      <!-- Ліміт часу -->
-      <div class="setting-field" style="padding:12px;background:rgba(45,91,227,.03);border-radius:12px;border:1.5px solid var(--border)">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div class="setting-label" style="margin:0">Ліміт часу</div>
-          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;color:var(--text-muted)">
-            <div id="noTimerToggle" onclick="window.toggleNoTimer()"
-              style="width:30px;height:16px;border-radius:20px;background:var(--border);cursor:pointer;position:relative;transition:background .2s;flex-shrink:0">
-              <div id="noTimerThumb"
-                style="width:12px;height:12px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div>
-            </div>
-            Без обмежень
-          </label>
+      <div class="settings-section">
+        <div class="settings-title">⚙️ Налаштування</div>
+        <div class="setting-field">
+          <div class="setting-label">Папка</div>
+          <div id="folderChipsPanel" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px"></div>
+          <div style="font-size:11px;color:var(--text-light)">Оберіть або залиш без папки</div>
         </div>
-        <div id="timeLimitWrap">
-          <div style="display:flex;align-items:center;gap:8px">
-            <input class="setting-input" type="number" id="testTimeLimit" value="10" min="0" max="300" style="width:70px;text-align:center;font-weight:600;font-family:'Syne',sans-serif">
-            <span style="font-size:12px;color:var(--text-muted)">хвилин</span>
-          </div>
+        <div class="setting-field">
+          <div class="setting-label">Теги (через кому)</div>
+          <input class="setting-input" type="text" id="tagsInput" placeholder="html, css, js">
+        </div>
+        <div class="setting-field">
+          <div class="setting-label">Ліміт часу (хвилин)</div>
+          <input class="setting-input" type="number" id="testTimeLimit" value="10" min="1" max="300">
         </div>
       </div>
 
-      <!-- Інфо -->
-      <div style="margin-top:14px;padding:12px;background:rgba(45,91,227,.03);border-radius:12px;border:1.5px solid var(--border)">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);font-weight:600;margin-bottom:8px">Інфо</div>
-        <div style="display:flex;flex-direction:column;gap:6px">
-          <div style="display:flex;justify-content:space-between;font-size:12px">
-            <span style="color:var(--text-muted)">Питань</span>
-            <span id="info-q-count" style="font-weight:600">0</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:12px">
-            <span style="color:var(--text-muted)">Типи</span>
-            <span id="info-q-types" style="font-weight:600;font-size:11px;text-align:right;max-width:110px">—</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Приховані елементи для сумісності -->
-      <div style="display:none">
+      <div>
+        <div class="settings-title">🔗 Посилання</div>
         <div id="linksList"></div>
-        <input type="number" id="newLinkMax" value="30" min="1">
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+          <input type="number" id="newLinkMax" value="30" min="1" class="setting-input" style="width:70px">
+          <button class="new-link-btn" onclick="window.createNewLink()">+ Нове посилання</button>
+        </div>
       </div>
     </div>
   </div>
@@ -635,7 +588,7 @@ window.previewTest = async () => {
     await saveTest(testId, {
       title:     document.getElementById("testTitle")?.value.trim()||"",
       folderId:  window._selectedFolderId ?? testData.folderId ?? null,
-      timeLimit: (()=>{ const v=Number(document.getElementById("testTimeLimit")?.value); return v===0?0:(v||10)*60; })(),
+      timeLimit: (v=>v===0?0:v||10)*60)(Number(document.getElementById("testTimeLimit")?.value)),
       status:    document.getElementById("testStatus")?.value||"draft",
       tags,
       questions: testData.questions
@@ -738,25 +691,16 @@ let GROQ_MODEL   = "llama-3.3-70b-versatile";
 let AI_ENABLED   = true; // вмк/вимк AI глобально
 
 // Завантажуємо налаштування AI з Firebase
-let AI_PROVIDER  = "groq"; // "groq" або "gemini"
-let GEMINI_KEY   = "";
-let GEMINI_MODEL = "gemini-2.5-flash";
-
 async function loadAISettings(db) {
   try {
     const { get, ref } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
     const snap = await get(ref(db, "settings/ai"));
     if(snap.exists()){
       const s = snap.val();
-      AI_PROVIDER = s.provider || "groq";
-      if(AI_PROVIDER === "gemini"){
-        GEMINI_KEY   = s.geminiApiKey || s.apiKey || "";
-        GEMINI_MODEL = s.geminiModel  || s.model  || "gemini-2.5-flash";
-      } else {
-        if(s.groqApiKey || s.apiKey) GROQ_API_KEY = s.groqApiKey || s.apiKey;
-        if(s.groqModel  || s.model ) GROQ_MODEL   = s.groqModel  || s.model;
-      }
+      if(s.apiKey)   GROQ_API_KEY = s.apiKey;
+      if(s.model)    GROQ_MODEL   = s.model;
       if(s.enabled !== undefined) AI_ENABLED = s.enabled !== false;
+      // Глобальні дефолти для функцій
       window._AI_COMMENTS   = s.aiComments   !== false;
       window._AI_ANALYSIS   = s.aiAnalysis   !== false;
       window._AI_GENERATION = s.aiGeneration !== false;
@@ -776,40 +720,37 @@ const UA_SYSTEM = {
 };
 
 async function callGroq(messages, maxTokens = 800, temperature = 0.5) {
+  // Завжди додаємо системний промпт українською
   const allMessages = [UA_SYSTEM, ...messages];
-
-  if(AI_PROVIDER === "gemini"){
-    if(!GEMINI_KEY) throw new Error("Відсутній Gemini API ключ");
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`;
-    const contents = messages.map(m=>({
-      role: m.role==="assistant" ? "model" : "user",
-      parts:[{text: m.content}]
-    }));
-    const res = await fetch(url,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({
-        systemInstruction:{parts:[{text:UA_SYSTEM.content}]},
-        contents,
-        generationConfig:{maxOutputTokens:maxTokens, temperature:temperature}
-      })
-    });
-    const raw = await res.text();
-    let d;
-    try{ d = JSON.parse(raw); }
-    catch(e){ throw new Error("Gemini: невалідна відповідь — " + raw.substring(0,200)); }
-    if(d.error) throw new Error("Gemini: " + (d.error.message||JSON.stringify(d.error)));
-    return d.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  }
 
   const res = await fetch(GROQ_URL, {
     method: "POST",
-    headers: {"Content-Type":"application/json","Authorization":`Bearer ${GROQ_API_KEY}`},
-    body: JSON.stringify({model:GROQ_MODEL, messages:allMessages, max_tokens:maxTokens, temperature})
+    headers: {
+      "Content-Type":  "application/json",
+      "Authorization": `Bearer ${GROQ_API_KEY}`
+    },
+    body: JSON.stringify({
+      model:       GROQ_MODEL,
+      messages:    allMessages,
+      max_tokens:  maxTokens,
+      temperature
+    })
   });
-  if (!res.ok) { const err = await res.text(); throw new Error(`Groq error ${res.status}: ${err}`); }
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Groq error ${res.status}: ${err}`);
+  }
+
   const data = await res.json();
-  return data.choices?.[0]?.message?.content || "";
+  const result = data.choices?.[0]?.message?.content || "";
+
+  // Перевіряємо чи немає нелатинських/некириличних блоків (китайські, японські тощо)
+  if (/[一-鿿぀-ヿ㐀-䶿]/.test(result)) {
+    console.warn("AI returned non-UA text, content may be mixed");
+  }
+
+  return result;
 }
 
 // ─── AI для студента: оцінка + коментар ──────────────────────────────────────
@@ -864,10 +805,7 @@ async function rephraseQuestion(questionText, options = []) {
 
   const raw = await callGroq([{ role: "user", content: prompt }], 400, 0.6);
   try {
-    const cleaned=raw.replace(/```json\s*/gi,"").replace(/```\s*/gi,"").trim();
-    const si=cleaned.indexOf("{"),ei=cleaned.lastIndexOf("}");
-    if(si!==-1&&ei>si) return JSON.parse(cleaned.substring(si,ei+1));
-    throw new Error("invalid");
+    return JSON.parse(raw.replace(/```json|```/g, "").trim());
   } catch {
     const match = raw.match(/\{[\s\S]*\}/);
     if (!match) throw new Error("Невірний формат відповіді");
@@ -876,26 +814,6 @@ async function rephraseQuestion(questionText, options = []) {
 }
 
 // ─── AI генерація кількох питань ─────────────────────────────────────────────
-
-// Надійний парсер JSON з відповіді AI (прибирає markdown і зайвий текст)
-function extractJSON(text){
-  const OB=String.fromCharCode(123); // {
-  const CB=String.fromCharCode(125); // }
-  let s=text.replace(new RegExp("<thinking>[\\s\\S]*?<\\/thinking>","gi"),"")
-            .replace(/`+json\s*/gi,"").replace(/`+\s*$/gm,"").trim();
-  const si=s.indexOf("[");
-  if(si<0) throw new Error("Масив не знайдено");
-  s=s.substring(si);
-  try{ return JSON.parse(s); }catch(e1){}
-  let p=s.lastIndexOf("]");
-  while(p>0){
-    try{ return JSON.parse(s.substring(0,p+1)); }catch(e2){}
-    p=s.lastIndexOf("]",p-1);
-  }
-  const li=s.lastIndexOf(CB);
-  if(li>0) try{ return JSON.parse(s.substring(0,li+1)+"]"); }catch(e3){}
-  throw new Error("Спробуйте зменшити кількість питань");
-}
 
 async function generateQuestions({ topic, desc = "", difficulty, type, count = 10 }) {
   const typeMap = {
@@ -907,7 +825,7 @@ async function generateQuestions({ topic, desc = "", difficulty, type, count = 1
 
   const descPart = desc ? `
 Додаткові вимоги від викладача: ${desc}` : "";
-  const maxTokens = Math.max(4000, count * 350); // Gemini потребує більше токенів
+  const maxTokens = Math.max(2500, count * 220);
 
   const prompt = `Ти — досвідчений викладач. Склади рівно ${count} унікальних тестових питань.
 
@@ -927,12 +845,15 @@ async function generateQuestions({ topic, desc = "", difficulty, type, count = 1
 Формат:
 [{"type":"single","text":"Питання?","options":["А","Б","В","Г"],"correct":[0]},{"type":"multi","text":"Питання?","options":["А","Б","В","Г"],"correct":[1,2]},{"type":"text","text":"Питання?","correct":"відповідь"}]`;
 
-  const raw = await callGroq([{ role: "user", content: prompt }], maxTokens, 0.3);
+  const raw = await callGroq([{ role: "user", content: prompt }], maxTokens, 0.6);
   let parsed;
   try {
-    parsed = extractJSON(raw);
-  } catch(e) {
-    throw new Error("AI не повернув коректний JSON: " + e.message);
+    parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
+  } catch {
+    // Якщо парсинг не вдався - пробуємо знайти масив у відповіді
+    const match = raw.match(/\[[\s\S]*\]/);
+    if (!match) throw new Error("AI не повернув коректний JSON");
+    parsed = JSON.parse(match[0]);
   }
 
   // Фільтруємо дублікати за текстом питання
@@ -966,37 +887,6 @@ function percentToGrade(percent) {
 
 // js/constructor.js — Конструктор тестів
 
-
-// ─── TIME TOGGLE ─────────────────────────────────────────────────────────────
-window.toggleNoTimer = function(){
-  const input  = document.getElementById("testTimeLimit");
-  const wrap   = document.getElementById("timeLimitWrap");
-  const toggle = document.getElementById("noTimerToggle");
-  const thumb  = document.getElementById("noTimerThumb");
-  const isOn   = toggle.dataset.on === "1";
-  if(isOn){
-    toggle.dataset.on = "0"; toggle.style.background = "var(--border)";
-    thumb.style.left = "2px"; wrap.style.opacity = "1"; wrap.style.pointerEvents = "";
-    if(!input.value || input.value === "0") input.value = "10";
-  } else {
-    toggle.dataset.on = "1"; toggle.style.background = "var(--primary)";
-    thumb.style.left = "14px"; wrap.style.opacity = "0.4"; wrap.style.pointerEvents = "none";
-    input.value = "0";
-  }
-  markDirty();
-};
-
-window.syncNoTimerToggle = function(){
-  const val = parseInt(document.getElementById("testTimeLimit")?.value||"10");
-  if(val === 0){
-    const toggle = document.getElementById("noTimerToggle");
-    const thumb  = document.getElementById("noTimerThumb");
-    const wrap   = document.getElementById("timeLimitWrap");
-    if(toggle){ toggle.dataset.on="1"; toggle.style.background="var(--primary)"; }
-    if(thumb) thumb.style.left = "14px";
-    if(wrap){  wrap.style.opacity="0.4"; wrap.style.pointerEvents="none"; }
-  }
-};
 
 // ─── AUTH GUARD ───────────────────────────────────────────────────────────────
 const _sess = sessionStorage.getItem("qf_user");
@@ -1365,7 +1255,6 @@ async function loadTest() {
 
     document.getElementById("testTitle").value     = testData.title || "";
     document.getElementById("testTimeLimit").value = testData.timeLimit === 0 ? 0 : Math.round((testData.timeLimit || 600) / 60);
-    window.syncNoTimerToggle && window.syncNoTimerToggle();
     document.getElementById("testStatus").value    = testData.status || "draft";
     document.getElementById("tagsInput").value     = (testData.tags || []).join(", ");
 
@@ -1390,50 +1279,29 @@ function renderFolderChips() {
   const container = document.getElementById("folderChipsPanel");
   if (!container) return;
   const folders = window._allFolders || [];
-  const sel = folders.find(f => f.id === window._selectedFolderId);
-  const label = sel ? "📁 " + sel.name : "Без папки";
-
-  container.innerHTML = `
-    <div class="con-cd-wrap" id="folder-cd-wrap" style="display:block">
-      <button class="con-cd-btn" style="width:100%;justify-content:space-between" onclick="conToggleDrop('folder-cd-wrap')">
-        <span id="folder-cd-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:${sel?"var(--primary)":"var(--text-muted)"}">${label}</span>
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="con-cd-menu" id="folder-cd-wrap-menu" style="width:100%;max-height:220px;overflow:hidden;display:none">
-        <div style="padding:6px 8px 4px">
-          <input id="folder-search" type="text" placeholder="Пошук папки..." autocomplete="off"
-            style="width:100%;padding:6px 10px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;outline:none;font-family:'DM Sans',sans-serif"
-            oninput="filterFolderSearch(this.value)" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
-        </div>
-        <div id="folder-list" style="overflow-y:auto;max-height:160px;padding:4px 0">
-          <div class="con-cd-item${!sel?" con-cd-active":""}" onclick="window.selectFolderInConstructor('')">
-            <span style="margin-right:4px;opacity:.5">✕</span> Без папки
-          </div>
-          ${folders.map(f => {
-            const isSel = window._selectedFolderId === f.id;
-            return `<div class="con-cd-item${isSel?" con-cd-active":""}" data-id="${f.id}" data-name="${f.name.toLowerCase()}" onclick="window.selectFolderInConstructor('${f.id}')">
-              <span style="margin-right:4px">📁</span>${f.name}
-            </div>`;
-          }).join("")}
-        </div>
-      </div>
-    </div>`;
+  if (!folders.length) {
+    container.innerHTML = `<span style="font-size:12px;color:var(--text-light)">Немає папок</span>`;
+    return;
+  }
+  container.innerHTML = [
+    { id: null, name: "Без папки" },
+    ...folders
+  ].map(f => {
+    const sel = window._selectedFolderId === f.id;
+    return `<span
+      onclick="window.selectFolderInConstructor('${f.id||""}')"
+      style="display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:20px;
+             border:1.5px solid ${sel?"var(--primary)":"var(--border)"};
+             background:${sel?"rgba(45,91,227,.08)":"white"};
+             color:${sel?"var(--primary)":"var(--text-muted)"};
+             font-size:12px;font-weight:500;cursor:pointer;transition:all .15s">
+      ${f.id?"📁":""}${f.name}
+    </span>`;
+  }).join("");
 }
-
-window.filterFolderSearch = function(q) {
-  const items = document.querySelectorAll("#folder-list .con-cd-item[data-id]");
-  const lq = q.toLowerCase();
-  items.forEach(el => {
-    el.style.display = el.dataset.name?.includes(lq) ? "" : "none";
-  });
-};
 
 window.selectFolderInConstructor = (fid) => {
   window._selectedFolderId = fid || null;
-  const menu = document.getElementById("folder-cd-wrap-menu");
-  const btn = document.querySelector("#folder-cd-wrap .con-cd-btn");
-  if(menu) menu.classList.remove("open"); if(menu) menu.style.display="none";
-  if(btn) btn.classList.remove("open");
   renderFolderChips();
   markDirty();
 };
@@ -1444,14 +1312,7 @@ function renderQuestionList() {
   const count  = document.getElementById("questionCount");
   const qs     = testData.questions;
 
-  if (count) count.textContent = qs.length;
-  const infoCount = document.getElementById("info-q-count");
-  const infoTypes = document.getElementById("info-q-types");
-  if(infoCount) infoCount.textContent = qs.length;
-  if(infoTypes){
-    const types=[...new Set(qs.map(q=>({single:"Одна",multi:"Кілька",text:"Текст",number:"Число",long:"Розгорнута",matching:"Зіставлення",ordering:"Порядок"})[q.type]||q.type))];
-    infoTypes.textContent=types.length?types.join(", "):"—";
-  }
+  if (count) count.textContent = `${qs.length} шт.`;
 
   list.innerHTML = qs.map((q, i) => `
     <div class="q-list-item ${i === activeQIndex ? "active" : ""}"
@@ -1956,7 +1817,7 @@ window.saveTest = async () => {
     await saveTest(testId, {
       title:     document.getElementById("testTitle").value.trim(),
       folderId:  window._selectedFolderId ?? testData.folderId ?? null,
-      timeLimit: (Number(document.getElementById("testTimeLimit").value) || 10) * 60,
+      timeLimit: (v=>v===0?0:v||10)*60)(Number(document.getElementById("testTimeLimit").value)),
       status:    document.getElementById("testStatus").value,
       tags,
       questions: testData.questions
@@ -2038,7 +1899,7 @@ window.previewTest = async () => {
     await saveTest(testId, {
       title:     document.getElementById("testTitle")?.value.trim()||"",
       folderId:  window._selectedFolderId ?? testData.folderId ?? null,
-      timeLimit: (()=>{ const v=Number(document.getElementById("testTimeLimit")?.value); return v===0?0:(v||10)*60; })(),
+      timeLimit: (v=>v===0?0:v||10)*60)(Number(document.getElementById("testTimeLimit")?.value)),
       status:    document.getElementById("testStatus")?.value||"draft",
       tags,
       questions: testData.questions
@@ -2119,7 +1980,7 @@ function autosave(){
     localStorage.setItem(getAutosaveKey(), JSON.stringify({
       title:     document.getElementById("testTitle")?.value||"",
       folderId:  window._selectedFolderId ?? testData?.folderId ?? null,
-      timeLimit: document.getElementById("testTimeLimit")?.value||"10",
+      timeLimit: (v=>v===0?0:v||10)(Number(document.getElementById("testTimeLimit")?.value)),
       status:    document.getElementById("testStatus")?.value||"draft",
       questions: testData?.questions||[],
       savedAt:   Date.now()
