@@ -1047,9 +1047,21 @@ ${detailedAnswers}
 
   let result;
   try {
-    result = JSON.parse(raw.replace(/```json|```/g, "").trim());
+    // Витягуємо JSON об'єкт з відповіді (прибираємо markdown і зайвий текст)
+    let s = raw.replace(/```json\s*/gi,"").replace(/```\s*/gi,"").trim();
+    const si = s.indexOf("{"), ei = s.lastIndexOf("}");
+    if(si !== -1 && ei > si) s = s.substring(si, ei+1);
+    result = JSON.parse(s);
+    // Якщо comment не рядок — конвертуємо
+    if(typeof result.comment !== "string") result.comment = String(result.comment||"");
   } catch {
-    result = { grade: percentToGrade(pct), comment: raw };
+    // Якщо JSON не розпарсився — витягуємо оцінку регексом і текст як є
+    const gradeMatch = raw.match(/"grade"\s*:\s*(\d+)/);
+    const commentMatch = raw.match(/"comment"\s*:\s*"([^"]+)/);
+    result = {
+      grade: gradeMatch ? parseInt(gradeMatch[1]) : percentToGrade(pct),
+      comment: commentMatch ? commentMatch[1] : ""
+    };
   }
 
   // Базова перевірка що оцінка в межах 1-12
@@ -1694,7 +1706,7 @@ function generateResultHTML({ student, test, attempt, questions }) {
 
   ${attempt.status==="pending_review"
     ? '<div style="background:#fffbeb;border:2px solid #fcd34d;border-radius:12px;padding:18px 20px;margin:20px 0"><div style="font-weight:700;color:#92400e;margin-bottom:6px">⏳ Тест на перевірці</div><div style="font-size:14px;color:#92400e;line-height:1.5">Розгорнуті відповіді очікують оцінювання викладачем.</div></div>'
-    : (attempt.aiComment ? '<div class="ai-box"><div class="ai-label">Коментар</div><div class="ai-text">'+attempt.aiComment+'</div></div>' : "")
+    : (attempt.aiComment ? '<div class="ai-box"><div class="ai-label">Коментар</div><div class="ai-text">'+safeComment(attempt.aiComment)+'</div></div>' : "")
   }
 
   <div class="section-title">Детальні відповіді</div>
@@ -1708,6 +1720,16 @@ function generateResultHTML({ student, test, attempt, questions }) {
 </div>
 
 </html>`;
+}
+
+function safeComment(text){
+  if(!text) return "";
+  const t = text.trim();
+  const OB = String.fromCharCode(123);
+  if(t.charAt(0) === OB){
+    try{ const o=JSON.parse(t); if(o.comment) return o.comment; }catch(_){}
+  }
+  return text;
 }
 
 function getTypeName(type) {
@@ -2766,7 +2788,12 @@ function showResult(scoreResult, aiResult) {
   const aiText = document.getElementById("aiComment");
   if(!hasPending && aiResult.comment && aiResult.comment.trim()){
     if(aiBox) aiBox.style.display = "";
-    if(aiText) aiText.textContent = aiResult.comment;
+    let displayComment = aiResult.comment || "";
+    // Захист: якщо AI повернув JSON замість тексту
+    const _OB=String.fromCharCode(123); if(displayComment.trim().charAt(0)===_OB){
+      try{ const o=JSON.parse(displayComment); if(o.comment) displayComment=o.comment; }catch(_){}
+    }
+    if(aiText) aiText.textContent = displayComment;
   } else {
     if(aiBox) aiBox.style.display = "none";
   }
