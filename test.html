@@ -900,6 +900,7 @@ async function createAttempt(data) {
   await set(newRef, {
     testId:            data.testId,
     linkId:            data.linkId,
+    group:             data.group             ?? null,
     name:              data.name,
     surname:           data.surname,
     answers:           data.answers            || [],
@@ -1799,6 +1800,7 @@ async function startTest() {
       attemptId = await createAttempt({
         testId:        testData.id,
         linkId:        linkData.id,
+        group:         linkData.group || null,  // зберігаємо групу прямо в спробі
         name, surname,
         answers:       [],
         score:         null,

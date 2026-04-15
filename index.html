@@ -2038,7 +2038,7 @@ window.fillSelects = function(){
   }
   $("nl-t").innerHTML=tests.map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
   // Групи з посилань
-  const groups=[...new Set(links.map(l=>l.group).filter(Boolean))].sort();
+  const groups=[...new Set([...links.map(l=>l.group),...attempts.map(a=>a.group)].filter(Boolean))].sort();
   $("fgrp").innerHTML=`<option value="">Всі групи</option>`+groups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join("");
   // Кастомний дропдаун груп
   const grpMenu=document.getElementById("cd-fgrp-menu");
@@ -2105,12 +2105,12 @@ window.renderAttempts = function(resetPage=false){
   if(gF==="high") lst=lst.filter(a=>(a.grade12||0)>=10);
   if(gF==="mid")  lst=lst.filter(a=>(a.grade12||0)>=6&&(a.grade12||0)<10);
   if(gF==="low")  lst=lst.filter(a=>(a.grade12||0)>0&&(a.grade12||0)<6);
-  if(grpF) lst=lst.filter(a=>{ const l=links.find(x=>x.id===a.linkId); return (l?.group||"")===grpF; });
+  if(grpF) lst=lst.filter(a=>{ const aGrp=a.group||(links.find(x=>x.id===a.linkId)?.group||""); return aGrp===grpF; });
   if(q){
     lst=lst.filter(a=>{
       const fullName=`${a.name} ${a.surname}`.toLowerCase();
       const testTitle=(tests.find(t=>t.id===a.testId)?.title||"").toLowerCase();
-      const group=(links.find(l=>l.id===a.linkId)?.group||"").toLowerCase();
+      const group=(a.group||(links.find(l=>l.id===a.linkId)?.group)||"").toLowerCase();
       return fullName.includes(q)||testTitle.includes(q)||group.includes(q)||
              a.name.toLowerCase().includes(q)||a.surname.toLowerCase().includes(q);
     });
@@ -2167,7 +2167,7 @@ window.renderAttempts = function(resetPage=false){
     const c=a.score?.correct??"—",tot=a.score?.total??"—";
     let el2="—";
     if(a.finishedAt&&a.startedAt&&a.finishedAt>a.startedAt) el2=fmtTime((a.finishedAt-a.startedAt)/1000);
-    const group=l?.group||"";
+    const group=a.group||(l?.group)||"";
     const dateStr=a.createdAt?new Date(a.createdAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"—";
     const gradeColor=a.grade12>=10?"#0d9e85":a.grade12>=7?"#2d5be3":a.grade12>=4?"#f59e0b":a.grade12!=null?"#f43f5e":"var(--muted)";
     const gradeBg=a.grade12>=10?"rgba(13,158,133,.1)":a.grade12>=7?"rgba(45,91,227,.1)":a.grade12>=4?"rgba(245,158,11,.1)":a.grade12!=null?"rgba(244,63,94,.1)":"var(--bg)";
@@ -2264,7 +2264,6 @@ window.renderLinks = function(){
 // G — global actions
 // ─── GROQ для AI аналізу ──────────────────────────────────────────────────────
 async function callGroq(messages, maxTokens=800, temp=0.5){
-  const UA_SYSTEM={role:"system",content:"Ти — розумний асистент викладача. ОБОВ\'ЯЗКОВО відповідай ВИКЛЮЧНО українською мовою. Жодних інших мов, ієрогліфів або нерозпізнаного тексту. Якщо щось не знаєш українською — все одно пиши по-українськи."};
   try{
     const snap=await get(ref(db,"settings/ai"));
     let key="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";
@@ -2273,7 +2272,7 @@ async function callGroq(messages, maxTokens=800, temp=0.5){
     const res=await fetch("https://api.groq.com/openai/v1/chat/completions",{
       method:"POST",
       headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
-      body:JSON.stringify({model,messages:[UA_SYSTEM,...messages],max_tokens:maxTokens,temperature:temp})
+      body:JSON.stringify({model,messages:[{role:"system",content:"Відповідай виключно українською мовою."},...messages],max_tokens:maxTokens,temperature:temp})
     });
     const d=await res.json();
     if(d.error) throw new Error(d.error.message);
@@ -3043,14 +3042,7 @@ window.G = {
         G._showAiPanel(text); return;
       }
 
-      const prompt = `Ти репетитор. Студент ${esc(a.name)} ${esc(a.surname)} отримав оцінку ${a.grade12}/12 за тест "${t?.title || ""}". Помилки студента:
-${wrongList.slice(0, 8).join("\n\n")}
-
-Напиши персональний розбір для ${esc(a.name)} (4–6 речень):
-- що саме не зрозуміло
-- на які теми звернути увагу
-- конкретна порада як виправити
-Звертайся до студента напряму, по-доброму і конструктивно.`;
+      const prompt = `Ти репетитор. Студент ${esc(a.name)} ${esc(a.surname)} отримав оцінку ${a.grade12}/12 за тест "${t?.title || ""}". Помилкові відповіді: ${wrongList.slice(0, 8).join("")}. Напиши короткий персональний розбір (5–8 речень): що студент не зрозумів, на що звернути увагу, як виправити знання. Звертайся до студента напряму.`;
       const res=await callGroq([{role:"user",content:prompt}],600,0.5);
       await dbUpd(`attempts/${attId}`,{personalAnalysis:res});
       a.personalAnalysis=res;
@@ -3631,7 +3623,7 @@ ${wrongList.slice(0, 8).join("\n\n")}
       if(lbl&&curTestF){const t=tests.find(x=>x.id===curTestF);if(t)lbl.textContent=t.title;}
     }
     // Заповнюємо групи
-    const groups=[...new Set(links.map(l=>l.group).filter(Boolean))].sort();
+    const groups=[...new Set([...links.map(l=>l.group),...attempts.map(a=>a.group)].filter(Boolean))].sort();
     const gbGrpMenu=document.getElementById("cd-gb-group-menu");
     if(gbGrpMenu){
       gbGrpMenu.innerHTML=`<div class="cd-item${!curGrpF?" cd-active":""}" data-val="" onclick="G.selectGbFilter('group','','Всі групи')">Всі групи</div>`+
@@ -3673,7 +3665,7 @@ ${wrongList.slice(0, 8).join("\n\n")}
     const groupF=activeGrpEl?.dataset?.val||"";
 
     let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
-    if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
+    if(groupF) att=att.filter(a=>{const aGrp=a.group||(links.find(x=>x.id===a.linkId)?.group||"");return aGrp===groupF;});
     if(testF)  att=att.filter(a=>a.testId===testF);
 
     if(!att.length){
@@ -3792,7 +3784,7 @@ ${wrongList.slice(0, 8).join("\n\n")}
     const testF=activeTestEl?.dataset?.val||"";
     const groupF=activeGrpEl?.dataset?.val||"";
     let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
-    if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
+    if(groupF) att=att.filter(a=>{const aGrp=a.group||(links.find(x=>x.id===a.linkId)?.group||"");return aGrp===groupF;});
     if(testF)  att=att.filter(a=>a.testId===testF);
     if(!att.length){toast("Немає даних для експорту","err");return;}
 
@@ -3985,7 +3977,7 @@ ${wrongList.slice(0, 8).join("\n\n")}
     // Фільтруємо спроби
     let att = attempts.filter(a => a.status === "completed" || a.status === "pending_review");
     if(testId)  att = att.filter(a => a.testId === testId);
-    if(groupF){ att = att.filter(a => { const l=links.find(x=>x.id===a.linkId); return (l?.group||"") === groupF; }); }
+    if(groupF){ att = att.filter(a => { const aGrp=a.group||(links.find(x=>x.id===a.linkId)?.group||""); return aGrp === groupF; }); }
 
     if(!att.length){
       body.innerHTML = `<div class="empty" style="padding:80px 20px"><div class="ei">📊</div><div class="et">Немає даних для відображення</div><div class="es">Оберіть тест або змініть фільтри</div></div>`;
