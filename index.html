@@ -2263,58 +2263,22 @@ window.renderLinks = function(){
 
 // G — global actions
 // ─── GROQ для AI аналізу ──────────────────────────────────────────────────────
-// ─── AI виклик: підтримує Groq і Google AI Studio ──────────────────────────
 async function callGroq(messages, maxTokens=800, temp=0.5){
-  const UA = "Ти — розумний асистент викладача. ОБОВ\'ЯЗКОВО відповідай ВИКЛЮЧНО українською мовою. Жодних інших мов. Якщо щось не знаєш українською — все одно пиши по-українськи.";
   try{
-    const snap = await get(ref(db,"settings/ai"));
-    const s = snap.exists() ? snap.val() : {};
-    const provider = s.provider || "groq";
-
-    if(provider === "gemini"){
-      const key   = s.geminiApiKey || s.apiKey || "";
-      const model = s.geminiModel  || s.model  || "gemini-2.0-flash";
-      if(!key) throw new Error("Відсутній Gemini API ключ");
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
-      const contents = messages.map(m=>({
-        role: m.role==="assistant" ? "model" : "user",
-        parts:[{text: m.content}]
-      }));
-      const res = await fetch(url,{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({
-          systemInstruction:{parts:[{text:UA}]},
-          contents,
-          generationConfig:{maxOutputTokens:maxTokens, temperature:temp}
-        })
-      });
-      const raw = await res.text();
-      let d;
-      try{ d = JSON.parse(raw); }
-      catch(e){ throw new Error("Gemini: невалідна відповідь — " + raw.substring(0,200)); }
-      if(d.error) throw new Error("Gemini: " + (d.error.message||JSON.stringify(d.error)));
-      return d.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    } else {
-      const key   = s.groqApiKey || s.apiKey || "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";
-      const model = s.groqModel  || s.model  || "llama-3.3-70b-versatile";
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions",{
-        method:"POST",
-        headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
-        body: JSON.stringify({
-          model,
-          messages:[{role:"system",content:UA},...messages],
-          max_tokens:maxTokens,
-          temperature:temp
-        })
-      });
-      const d = await res.json();
-      if(d.error) throw new Error(d.error.message);
-      return d.choices?.[0]?.message?.content || "";
-    }
+    const snap=await get(ref(db,"settings/ai"));
+    let key="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";
+    let model="llama-3.3-70b-versatile";
+    if(snap.exists()){ const s=snap.val(); if(s.apiKey)key=s.apiKey; if(s.model)model=s.model; }
+    const res=await fetch("https://api.groq.com/openai/v1/chat/completions",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
+      body:JSON.stringify({model,messages:[{role:"system",content:"Відповідай виключно українською мовою."},...messages],max_tokens:maxTokens,temperature:temp})
+    });
+    const d=await res.json();
+    if(d.error) throw new Error(d.error.message);
+    return d.choices?.[0]?.message?.content||"";
   }catch(e){throw e;}
 }
-
 
 window.G = {
   // Folders
@@ -2999,35 +2963,24 @@ window.G = {
       </div>`:""}
 
       <!-- AI секція -->
-      ${(()=>{
-        const _hasLong = qs.some(q=>q.type==="long");
-        const _longQs = qs.map((q,qi)=>({q,qi})).filter(x=>x.q.type==="long");
-        const _allGraded = _longQs.length===0 || _longQs.every(x=>a.score?.details?.[x.qi]?.longResult);
-        const _hasGrade = a.grade12!=null;
-        const _canAnalyse = !_hasLong || (_allGraded && _hasGrade);
-        const _OB = String.fromCharCode(123);
-        const safeStr = t => { if(!t) return ""; const s=String(t); if(s.trim().charAt(0)===_OB){ try{ const o=JSON.parse(s); if(o.comment) return o.comment; }catch(_){} } return s; };
-        return `<div style="margin:16px 20px 0;background:rgba(45,91,227,.02);border:1.5px solid rgba(45,91,227,.1);border-radius:16px;overflow:hidden">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px">
-            <div style="display:flex;align-items:center;gap:7px">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${_canAnalyse?"var(--primary)":"var(--muted)"}" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <span style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:${_canAnalyse?"var(--primary)":"var(--muted)"};font-weight:700">ШІ Аналіз</span>
-            </div>
-            ${_canAnalyse
-              ? `<button onclick="G.personalAnalysis('${a.id}')" style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;border:1.5px solid rgba(45,91,227,.2);background:#fff;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;transition:all .15s" onmouseover="this.style.background='rgba(45,91,227,.06)'" onmouseout="this.style.background='#fff'">✦ Розбір</button>`
-              : `<span style="font-size:11px;color:var(--muted);font-style:italic">оцініть відповіді та виставте оцінку</span>`
-            }
+      <div style="margin:16px 20px 0;background:rgba(45,91,227,.03);border:1.5px solid rgba(45,91,227,.12);border-radius:16px;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(45,91,227,.08)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span style="font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--primary);font-weight:700">ШІ Аналіз</span>
           </div>
-          ${a.aiComment
-            ? `<div style="padding:12px 16px;font-size:13px;color:var(--text);line-height:1.7;border-top:1px solid rgba(45,91,227,.06)">${esc(safeStr(a.aiComment))}</div>`
-            : a.personalAnalysis
-              ? `<div style="padding:12px 16px;font-size:13px;color:var(--text);line-height:1.7;border-top:1px solid rgba(45,91,227,.06)">${esc(safeStr(a.personalAnalysis))}</div>`
-              : _canAnalyse
-                ? `<div style="padding:10px 16px;font-size:12px;color:var(--muted);font-style:italic;border-top:1px solid rgba(45,91,227,.06)">Натисніть "Розбір" для персонального аналізу</div>`
-                : `<div style="padding:10px 16px;font-size:12px;color:var(--muted);font-style:italic;border-top:1px solid rgba(45,91,227,.06)">Доступно після оцінки всіх відкритих відповідей</div>`
-          }
-        </div>`;
-      })()}
+          <button onclick="G.personalAnalysis('${a.id}')" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9px;border:1.5px solid rgba(45,91,227,.25);background:#fff;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;transition:all .15s"
+            onmouseover="this.style.background='rgba(45,91,227,.06)'" onmouseout="this.style.background='#fff'">
+            ✦ Персональний розбір
+          </button>
+        </div>
+        ${(()=>{
+          const _c=a.aiComment||a.personalAnalysis||"";
+          if(!_c) return `<div style="padding:10px 16px;font-size:12px;color:var(--muted);font-style:italic;border-top:1px solid rgba(45,91,227,.06)">Натисніть "Розбір" для персонального аналізу</div>`;
+          let _t=_c; if(_t.trim().charAt(0)===String.fromCharCode(123)){try{const _o=JSON.parse(_t);if(_o.comment)_t=_o.comment;}catch(_){}}
+          return `<div style="padding:12px 16px;font-size:13px;color:var(--text);line-height:1.7;border-top:1px solid rgba(45,91,227,.08)">${esc(_t)}</div>`;
+        })()}
+      </div>
 
       <!-- Питання -->
       <div style="padding:16px 20px 24px">
@@ -3092,8 +3045,15 @@ window.G = {
         G._showAiPanel(text); return;
       }
 
-      const prompt = `Ти репетитор. Студент ${esc(a.name)} ${esc(a.surname)} отримав оцінку ${a.grade12}/12 за тест "${t?.title || ""}". Помилкові відповіді: ${wrongList.slice(0, 8).join("")}. Напиши короткий персональний розбір (5–8 речень): що студент не зрозумів, на що звернути увагу, як виправити знання. Звертайся до студента напряму.`;
-      const res=await callGroq([{role:"user",content:prompt}],600,0.5);
+      const isFemale=(a.name||"").match(/[аяієї]$/i)&&!(a.name||"").match(/Дмитро|Микола|Ілля|Кузьма/i);
+      const wrongPart=wrongList.slice(0,6).join("\n---\n");
+      const prompt="Ти викладач. Напиши персональний коментар студенту "+(a.name||"")+" "+(a.surname||"")
+        +" (оцінка "+(a.grade12||"—")+"/12, тест \""+((t?.title)||"")+"\").\n"
+        +"Помилки:\n"+wrongPart+"\n\n"
+        +"Вимоги: звертайся на \"ти\", враховуй стать ("+(isFemale?"вона":"він")+"), "
+        +"суворо до 600 символів, 3-4 речення без списків. "
+        +"Конкретно: що не зрозуміло і що повторити.";
+      const res=await callGroq([{role:"user",content:prompt}],400,0.35);
       await dbUpd(`attempts/${attId}`,{personalAnalysis:res});
       a.personalAnalysis=res;
       G._showAiPanel(res);
@@ -3102,9 +3062,17 @@ window.G = {
     }
   },
 
-  _showAiPanel(text){
+  _showAiPanel(rawText){
+    let text = rawText||"";
+    // Якщо AI повернув JSON — витягуємо comment
+    if(text.trim().charAt(0)===String.fromCharCode(123)){
+      try{ const o=JSON.parse(text); if(o.comment) text=o.comment; }catch(_){}
+    }
     document.getElementById("ai-side-content").innerHTML=`
-      <div style="font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap">${esc(text)}</div>`;
+      <div style="font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap;padding:2px 0">${esc(text)}</div>
+      <div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--border)">
+        <button onclick="G.closeAiPanel()" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Закрити</button>
+      </div>`;
     document.getElementById("ai-side-panel").style.right="0";
     document.getElementById("ai-side-overlay").style.display="block";
   },

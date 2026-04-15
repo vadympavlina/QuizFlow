@@ -923,23 +923,16 @@ let GROQ_MODEL   = "llama-3.3-70b-versatile";
 let AI_ENABLED   = true; // вмк/вимк AI глобально
 
 // Завантажуємо налаштування AI з Firebase
-let AI_PROVIDER_T  = "groq";
-let GEMINI_KEY_T   = "";
-let GEMINI_MODEL_T = "gemini-2.5-flash";
-
 async function loadAISettings(db) {
   try {
+    const { get, ref } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
     const snap = await get(ref(db, "settings/ai"));
     if(snap.exists()){
       const s = snap.val();
-      AI_PROVIDER_T = s.provider || "groq";
-      if(AI_PROVIDER_T === "gemini"){
-        GEMINI_KEY_T   = s.geminiApiKey || s.apiKey || "";
-        GEMINI_MODEL_T = s.geminiModel  || s.model  || "gemini-2.5-flash";
-      } else {
-        if(s.groqApiKey || s.apiKey) GROQ_API_KEY = s.groqApiKey || s.apiKey;
-        if(s.groqModel  || s.model ) GROQ_MODEL   = s.groqModel  || s.model;
-      }
+      if(s.apiKey)   GROQ_API_KEY = s.apiKey;
+      if(s.model)    GROQ_MODEL   = s.model;
+      if(s.enabled !== undefined) AI_ENABLED = s.enabled !== false;
+      // Глобальні дефолти для функцій
       window._AI_COMMENTS   = s.aiComments   !== false;
       window._AI_ANALYSIS   = s.aiAnalysis   !== false;
       window._AI_GENERATION = s.aiGeneration !== false;
@@ -959,41 +952,37 @@ const UA_SYSTEM = {
 };
 
 async function callGroq(messages, maxTokens = 800, temperature = 0.5) {
+  // Завжди додаємо системний промпт українською
   const allMessages = [UA_SYSTEM, ...messages];
-
-  if(AI_PROVIDER_T === "gemini"){
-    if(!GEMINI_KEY_T) throw new Error("Відсутній Gemini API ключ");
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL_T}:generateContent?key=${GEMINI_KEY_T}`;
-    const contents = messages.map(m=>({
-      role: m.role==="assistant" ? "model" : "user",
-      parts:[{text: m.content}]
-    }));
-    const res = await fetch(url,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({
-        systemInstruction:{parts:[{text:UA_SYSTEM.content}]},
-        contents,
-        generationConfig:{maxOutputTokens:maxTokens, temperature:temperature}
-      })
-    });
-    const raw = await res.text();
-    let d;
-    try{ d = JSON.parse(raw); }
-    catch(e){ throw new Error("Gemini: невалідна відповідь — " + raw.substring(0,200)); }
-    if(d.error) throw new Error("Gemini: " + (d.error.message||JSON.stringify(d.error)));
-    return d.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  }
 
   const res = await fetch(GROQ_URL, {
     method: "POST",
-    headers: {"Content-Type":"application/json","Authorization":`Bearer ${GROQ_API_KEY}`},
-    body: JSON.stringify({model:GROQ_MODEL, messages:allMessages, max_tokens:maxTokens, temperature})
+    headers: {
+      "Content-Type":  "application/json",
+      "Authorization": `Bearer ${GROQ_API_KEY}`
+    },
+    body: JSON.stringify({
+      model:       GROQ_MODEL,
+      messages:    allMessages,
+      max_tokens:  maxTokens,
+      temperature
+    })
   });
-  if(!res.ok){ const err = await res.text(); throw new Error(`Error ${res.status}: ${err}`); }
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Groq error ${res.status}: ${err}`);
+  }
+
   const data = await res.json();
-  if(data.error) throw new Error(data.error.message);
-  return data.choices?.[0]?.message?.content || "";
+  const result = data.choices?.[0]?.message?.content || "";
+
+  // Перевіряємо чи немає нелатинських/некириличних блоків (китайські, японські тощо)
+  if (/[一-鿿぀-ヿ㐀-䶿]/.test(result)) {
+    console.warn("AI returned non-UA text, content may be mixed");
+  }
+
+  return result;
 }
 
 // ─── AI для студента: оцінка + коментар ──────────────────────────────────────
@@ -1021,52 +1010,42 @@ async function getStudentAIComment({ testTitle, totalQuestions, correctCount, pe
     return `${i+1}. [${status}] ${q.text}\n   Відповідь: ${studentAns}${!isCorrect ? ` (Правильно: ${correctAns})` : ""}`;
   }).join("\n");
 
-  // Визначаємо стать за іменем
   const nm = (studentName||"").trim();
-  const isFemale = /[аяіьця]$/i.test(nm) && !/Дмитро|Микола|Ілля/i.test(nm);
-  const nameStr = nm ? nm + " " + (studentSurname||"").trim() : "Студент";
+  const isFem = /[аяієї]$/i.test(nm) && !/Дмитро|Микола|Ілля/i.test(nm);
+  const nameStr = nm ? (nm+" "+(studentSurname||"").trim()).trim() : "Студент";
 
-  // Помилки для промпту
-  const wrongItems = (questions||[]).map((q,i)=>{
-    const ans = (answers||[]).find(a=>a.questionId===q.id);
-    if(!ans || ans.correct) return null;
-    let sAns="",cAns="";
-    if(q.type==="single"||q.type==="multi"){
-      const opts=q.options||[];
-      const sidxs=Array.isArray(ans.value)?ans.value:[ans.value].filter(v=>v!=null);
-      const cidxs=Array.isArray(q.correct)?q.correct:[q.correct];
-      sAns=sidxs.map(i=>opts[i]).filter(Boolean).join(", ")||"—";
-      cAns=cidxs.map(i=>opts[i]).filter(Boolean).join(", ")||"—";
-    } else { sAns=String(ans.value??"—"); cAns=String(q.correct??"—"); }
-    const qText=(q.text||"").replace(/<[^>]+>/g,"").substring(0,80);
-    return "- "+qText+": відповів "+sAns+" (правильно: "+cAns+")";
-  }).filter(Boolean).slice(0,5).join("\n");
+  const wrongLines = (questions||[]).map((q,i)=>{
+    const ans=(answers||[]).find(a=>a.questionId===q.id);
+    if(!ans||ans.correct) return null;
+    const opts=q.options||[];
+    const sa=Array.isArray(ans.value)?ans.value.map(j=>opts[j]).filter(Boolean).join(", "):String(ans.value??"—");
+    const ca=Array.isArray(q.correct)?q.correct.map(j=>opts[j]).filter(Boolean).join(", "):String(q.correct??"—");
+    const qt=(q.text||"").replace(/<[^>]+>/g,"").substring(0,70);
+    return "- "+qt+": \""+sa+"\" (правильно: \""+ca+"\")";
+  }).filter(Boolean).slice(0,5);
 
-  const prompt = "Ти викладач. Напиши короткий персональний коментар студенту "+nameStr
-    +" ("+pct+"% правильних, тест \""+testTitle+"\")."
-    +(wrongItems ? "\nПомилки:\n"+wrongItems : "")
-    +"\n\nВимоги: до 600 символів, звертайся на \"ти\", враховуй стать ("+(isFemale?"вона":"він")+")."
-    +" Коротко: що вдалось, що повторити. Без списків. Тільки текст."
-    +"\n\nВідповідай ТІЛЬКИ JSON: {\"grade\": N, \"comment\": \"...\"}";
+  const prompt = "Ти викладач. Постав оцінку і напиши коментар студенту "+nameStr
+    +" за тест \""+testTitle+"\" ("+pct+"% правильних)."
+    +(wrongLines.length?"\nПомилки:\n"+wrongLines.join("\n"):"")
+    +"\n\nКоментар: до 600 символів, на \"ти\", стать "+(isFem?"вона":"він")+". "
+    +"Конкретно що не так і що повторити. Без загальних фраз."
+    +"\n\nВідповідай ТІЛЬКИ JSON: {\"grade\":N,\"comment\":\"...\"}";
 
-  const raw = await callGroq([{ role: "user", content: prompt }], 500);
+  const raw = await callGroq([{ role: "user", content: prompt }], 400);
 
   let result;
   try {
-    // Витягуємо JSON об'єкт з відповіді (прибираємо markdown і зайвий текст)
-    let s = raw.replace(/```json\s*/gi,"").replace(/```\s*/gi,"").trim();
-    const si = s.indexOf("{"), ei = s.lastIndexOf("}");
-    if(si !== -1 && ei > si) s = s.substring(si, ei+1);
-    result = JSON.parse(s);
-    // Якщо comment не рядок — конвертуємо
-    if(typeof result.comment !== "string") result.comment = String(result.comment||"");
+    let s=raw.replace(/`+json\s*/gi,"").replace(/`+/gi,"").trim();
+    const si=s.indexOf(String.fromCharCode(123)), ei=s.lastIndexOf(String.fromCharCode(125));
+    if(si>=0&&ei>si) s=s.substring(si,ei+1);
+    result=JSON.parse(s);
+    if(typeof result.comment!=="string") result.comment=String(result.comment||"");
   } catch {
-    // Якщо JSON не розпарсився — витягуємо оцінку регексом і текст як є
-    const gradeMatch = raw.match(/"grade"\s*:\s*(\d+)/);
-    const commentMatch = raw.match(/"comment"\s*:\s*"([^"]+)/);
-    result = {
-      grade: gradeMatch ? parseInt(gradeMatch[1]) : percentToGrade(pct),
-      comment: commentMatch ? commentMatch[1] : ""
+    const gm=raw.match(/"grade"\s*:\s*(\d+)/);
+    const cm=raw.match(/"comment"\s*:\s*"([\s\S]{10,600})"/);
+    result={
+      grade: gm?parseInt(gm[1]):percentToGrade(pct),
+      comment: cm?cm[1]:""
     };
   }
 
@@ -1712,7 +1691,7 @@ function generateResultHTML({ student, test, attempt, questions }) {
 
   ${attempt.status==="pending_review"
     ? '<div style="background:#fffbeb;border:2px solid #fcd34d;border-radius:12px;padding:18px 20px;margin:20px 0"><div style="font-weight:700;color:#92400e;margin-bottom:6px">⏳ Тест на перевірці</div><div style="font-size:14px;color:#92400e;line-height:1.5">Розгорнуті відповіді очікують оцінювання викладачем.</div></div>'
-    : (attempt.aiComment ? '<div class="ai-box"><div class="ai-label">Коментар</div><div class="ai-text">'+safeComment(attempt.aiComment)+'</div></div>' : "")
+    : (attempt.aiComment ? '<div class="ai-box"><div class="ai-label">Коментар</div><div class="ai-text">'+attempt.aiComment+'</div></div>' : "")
   }
 
   <div class="section-title">Детальні відповіді</div>
@@ -1726,16 +1705,6 @@ function generateResultHTML({ student, test, attempt, questions }) {
 </div>
 
 </html>`;
-}
-
-function safeComment(text){
-  if(!text) return "";
-  const t = text.trim();
-  const OB = String.fromCharCode(123);
-  if(t.charAt(0) === OB){
-    try{ const o=JSON.parse(t); if(o.comment) return o.comment; }catch(_){}
-  }
-  return text;
 }
 
 function getTypeName(type) {
@@ -2795,12 +2764,9 @@ function showResult(scoreResult, aiResult) {
   const aiText = document.getElementById("aiComment");
   if(!hasPending && aiResult.comment && aiResult.comment.trim()){
     if(aiBox) aiBox.style.display = "";
-    let displayComment = aiResult.comment || "";
-    // Захист: якщо AI повернув JSON замість тексту
-    const _OB=String.fromCharCode(123); if(displayComment.trim().charAt(0)===_OB){
-      try{ const o=JSON.parse(displayComment); if(o.comment) displayComment=o.comment; }catch(_){}
-    }
-    if(aiText) aiText.textContent = displayComment;
+    let _disp=aiResult.comment||"";
+    if(_disp.trim().charAt(0)===String.fromCharCode(123)){try{const _o=JSON.parse(_disp);if(_o.comment)_disp=_o.comment;}catch(_){}}
+    if(aiText) aiText.textContent = _disp;
   } else {
     if(aiBox) aiBox.style.display = "none";
   }
