@@ -1405,9 +1405,10 @@ function generateResultHTML({ student, test, attempt, questions }) {
       correctDisplay = q.correct  || "—";
     }
 
-    const statusColor = isCorrect ? "#0d9e85" : isPartial ? "#f59e0b" : "#f43f5e";
-    const statusText  = isCorrect ? "✓ Правильно" : isPartial ? "~ Частково" : "✗ Неправильно";
-    const statusBg    = isCorrect ? "rgba(13,158,133,.07)" : isPartial ? "rgba(245,158,11,.07)" : "rgba(244,63,94,.07)";
+    const isPending   = q.type === "long" && !isCorrect && !isPartial;
+    const statusColor = isPending ? "#b45309" : isCorrect ? "#0d9e85" : isPartial ? "#f59e0b" : "#f43f5e";
+    const statusText  = isPending ? "⏳ Очікує перевірки" : isCorrect ? "✓ Правильно" : isPartial ? "~ Частково" : "✗ Неправильно";
+    const statusBg    = isPending ? "rgba(245,158,11,.07)" : isCorrect ? "rgba(13,158,133,.07)" : isPartial ? "rgba(245,158,11,.07)" : "rgba(244,63,94,.07)";
     const qText = (q.text || "").replace(/<[^>]+>/g, "");
 
     return `

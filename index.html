@@ -2977,22 +2977,29 @@ window.G = {
       <!-- AI секція -->
       ${(()=>{
         const hasLong = qs.some(q=>q.type==="long");
+        const longQs = qs.map((q,i)=>({q,i})).filter(x=>x.q.type==="long");
+        const allLongGraded = longQs.length===0 || longQs.every(x=>a.score?.details?.[x.i]?.longResult);
+        const hasGrade = a.grade12!=null && a.status==="completed";
+        const canAnalyse = !hasLong || (allLongGraded && hasGrade);
+        const showComment = !hasLong && a.aiComment;
         return `<div style="margin:16px 20px 0;background:rgba(45,91,227,.02);border:1.5px solid rgba(45,91,227,.1);border-radius:16px;overflow:hidden">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px${!hasLong&&a.aiComment?";border-bottom:1px solid rgba(45,91,227,.08)":""}">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px${showComment?";border-bottom:1px solid rgba(45,91,227,.08)":""}">
             <div style="display:flex;align-items:center;gap:7px">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              <span style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--primary);font-weight:700">ШІ Аналіз</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${canAnalyse?"var(--primary)":"var(--muted)"}" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:${canAnalyse?"var(--primary)":"var(--muted)"};font-weight:700">ШІ Аналіз</span>
             </div>
-            <button onclick="G.personalAnalysis('${a.id}')" style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;border:1.5px solid rgba(45,91,227,.2);background:#fff;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;transition:all .15s"
-              onmouseover="this.style.background='rgba(45,91,227,.06)'" onmouseout="this.style.background='#fff'">
-              ✦ Розбір
-            </button>
+            ${canAnalyse
+              ? `<button onclick="G.personalAnalysis('${a.id}')" style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;border:1.5px solid rgba(45,91,227,.2);background:#fff;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;transition:all .15s" onmouseover="this.style.background='rgba(45,91,227,.06)'" onmouseout="this.style.background='#fff'">✦ Розбір</button>`
+              : `<span style="font-size:11px;color:var(--muted);font-style:italic">${!hasGrade?"спочатку оцініть":"оцініть всі відповіді"}</span>`
+            }
           </div>
-          ${hasLong
-            ? `<div style="padding:10px 16px;font-size:12px;color:var(--muted);font-style:italic;border-top:1px solid rgba(45,91,227,.06)">Тест містить відкриті відповіді — AI аналіз доступний після перевірки</div>`
-            : a.aiComment
-              ? `<div style="padding:12px 16px;font-size:13px;color:var(--text);line-height:1.7">${esc(a.aiComment)}</div>`
-              : `<div style="padding:10px 16px;font-size:12px;color:var(--muted);font-style:italic;border-top:1px solid rgba(45,91,227,.06)">Коментар згенерується автоматично після перевірки</div>`
+          ${showComment
+            ? `<div style="padding:12px 16px;font-size:13px;color:var(--text);line-height:1.7">${esc(a.aiComment)}</div>`
+            : !canAnalyse
+              ? `<div style="padding:10px 16px;font-size:12px;color:var(--muted);font-style:italic;border-top:1px solid rgba(45,91,227,.06)">Кнопка з'явиться після оцінки ${!hasGrade?"та виставлення оцінки":""}</div>`
+              : a.aiComment
+                ? `<div style="padding:12px 16px;font-size:13px;color:var(--text);line-height:1.7">${esc(a.aiComment)}</div>`
+                : `<div style="padding:10px 16px;font-size:12px;color:var(--muted);font-style:italic;border-top:1px solid rgba(45,91,227,.06)">Натисніть "Розбір" для AI аналізу</div>`
           }
         </div>`;
       })()}
@@ -4191,18 +4198,15 @@ window.G = {
   async setLongAnswer(attId, qIdx, result){
     const a=attempts.find(x=>x.id===attId);
     if(!a) return;
-    // Зберігаємо результат відкритого питання в score.details
+    // Бали: correct=1, partial=0.5, wrong=0
+    const pts = result==="correct" ? 1 : result==="partial" ? 0.5 : 0;
     const details = a.score?.details ? [...a.score.details] : [];
     while(details.length<=qIdx) details.push({});
-    details[qIdx] = {...(details[qIdx]||{}), longResult: result};
+    details[qIdx] = {...(details[qIdx]||{}), longResult: result, points: pts};
     try{
       await dbUpd(`attempts/${attId}`,{"score/details": details});
       if(!a.score) a.score={};
       a.score.details = details;
-      // Оновлюємо відображення кнопок — підсвічуємо вибраний
-      const btnMap = {"correct":"✓ Правильно","partial":"~ Частково","wrong":"✗ Неправильно"};
-      const colMap = {"correct":"#0d9e85","partial":"#b45309","wrong":"#be123c"};
-      // Перерендерюємо вікно спроби
       G.viewAtt(attId);
       closeM("m-attempt"); openM("m-attempt");
     }catch(e){ toast("Помилка: "+e.message,"err"); }
