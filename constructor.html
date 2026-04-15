@@ -588,7 +588,7 @@ window.previewTest = async () => {
     await saveTest(testId, {
       title:     document.getElementById("testTitle")?.value.trim()||"",
       folderId:  window._selectedFolderId ?? testData.folderId ?? null,
-      timeLimit: (v=>v===0?0:v||10)*60)(Number(document.getElementById("testTimeLimit")?.value)),
+      timeLimit: ((v)=>v===0?0:(v||10))(Number(document.getElementById("testTimeLimit")?.value||"0"))*60,
       status:    document.getElementById("testStatus")?.value||"draft",
       tags,
       questions: testData.questions
@@ -1817,7 +1817,7 @@ window.saveTest = async () => {
     await saveTest(testId, {
       title:     document.getElementById("testTitle").value.trim(),
       folderId:  window._selectedFolderId ?? testData.folderId ?? null,
-      timeLimit: (v=>v===0?0:v||10)*60)(Number(document.getElementById("testTimeLimit").value)),
+      timeLimit: ((v)=>v===0?0:(v||10))(Number(document.getElementById("testTimeLimit").value||"0"))*60,
       status:    document.getElementById("testStatus").value,
       tags,
       questions: testData.questions
@@ -1899,7 +1899,7 @@ window.previewTest = async () => {
     await saveTest(testId, {
       title:     document.getElementById("testTitle")?.value.trim()||"",
       folderId:  window._selectedFolderId ?? testData.folderId ?? null,
-      timeLimit: (v=>v===0?0:v||10)*60)(Number(document.getElementById("testTimeLimit")?.value)),
+      timeLimit: ((v)=>v===0?0:(v||10))(Number(document.getElementById("testTimeLimit")?.value||"0"))*60,
       status:    document.getElementById("testStatus")?.value||"draft",
       tags,
       questions: testData.questions
@@ -1980,7 +1980,7 @@ function autosave(){
     localStorage.setItem(getAutosaveKey(), JSON.stringify({
       title:     document.getElementById("testTitle")?.value||"",
       folderId:  window._selectedFolderId ?? testData?.folderId ?? null,
-      timeLimit: (v=>v===0?0:v||10)(Number(document.getElementById("testTimeLimit")?.value)),
+      timeLimit: ((v)=>v===0?0:(v||10))(Number(document.getElementById("testTimeLimit")?.value||"0")),
       status:    document.getElementById("testStatus")?.value||"draft",
       questions: testData?.questions||[],
       savedAt:   Date.now()
