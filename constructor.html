@@ -338,7 +338,7 @@
     </select>
 
     <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
-      <button class="btn btn-ghost" onclick="window.openAiModal()" style="gap:6px;font-size:13px">
+      <button data-ai="generation" class="btn btn-ghost" onclick="window.openAiModal()" style="gap:6px;font-size:13px">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         AI
       </button>
@@ -549,6 +549,7 @@ const db  = getDatabase(app);
 // Завантажуємо налаштування AI одразу (глобальні + індивідуальні)
 (async()=>{
   await loadAISettings(db);
+  applyAIVisibility();
   // Читаємо індивідуальні налаштування викладача
   try{
     const _s = sessionStorage.getItem("qf_user");
@@ -767,6 +768,7 @@ async function loadAISettings(db) {
       window._AI_ANALYSIS   = s.aiAnalysis   !== false;
       window._AI_GENERATION = s.aiGeneration !== false;
       window._AI_TEXTCHECK  = s.aiTextCheck  !== false;
+      applyAIVisibility();
     }
   } catch(e){ console.warn("AI settings load failed:", e.message); }
 }
@@ -781,38 +783,45 @@ const UA_SYSTEM = {
            "Якщо щось не знаєш українською — все одно пиши по-українськи."
 };
 
-async function callGroq(messages, maxTokens = 800, temperature = 0.5) {
-  // Завжди додаємо системний промпт українською
-  const allMessages = [UA_SYSTEM, ...messages];
+// Виклик AI — підтримує Groq і Google AI Studio (Gemini)
+async function callGroq(messages, maxTokens=800, temp=0.5){
+  const UA_SYSTEM={role:"system",content:"Ти — розумний асистент викладача. ОБОВ\'ЯЗКОВО відповідай ВИКЛЮЧНО українською мовою. Жодних інших мов, ієрогліфів або нерозпізнаного тексту. Якщо щось не знаєш українською — все одно пиши по-українськи."};
+  try{
+    const snap=await get(ref(db,"settings/ai"));
+    const s=snap.exists()?snap.val():{};
+    const key=s.apiKey||"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";
+    const model=s.model||"llama-3.3-70b-versatile";
+    const provider=s.provider||"groq";
 
-  const res = await fetch(GROQ_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type":  "application/json",
-      "Authorization": `Bearer ${GROQ_API_KEY}`
-    },
-    body: JSON.stringify({
-      model:       GROQ_MODEL,
-      messages:    allMessages,
-      max_tokens:  maxTokens,
-      temperature
-    })
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Groq error ${res.status}: ${err}`);
-  }
-
-  const data = await res.json();
-  const result = data.choices?.[0]?.message?.content || "";
-
-  // Перевіряємо чи немає нелатинських/некириличних блоків (китайські, японські тощо)
-  if (/[一-鿿぀-ヿ㐀-䶿]/.test(result)) {
-    console.warn("AI returned non-UA text, content may be mixed");
-  }
-
-  return result;
+    if(provider==="gemini"){
+      // Google AI Studio (Gemini) — окремий формат
+      const url=`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+      const sysText=UA_SYSTEM.content;
+      const contents=messages.map(m=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]}));
+      const res=await fetch(url,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          systemInstruction:{parts:[{text:sysText}]},
+          contents,
+          generationConfig:{maxOutputTokens:maxTokens,temperature:temp}
+        })
+      });
+      const d=await res.json();
+      if(d.error) throw new Error(d.error.message||JSON.stringify(d.error));
+      return d.candidates?.[0]?.content?.parts?.[0]?.text||"";
+    } else {
+      // Groq (OpenAI-compatible)
+      const res=await fetch("https://api.groq.com/openai/v1/chat/completions",{
+        method:"POST",
+        headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
+        body:JSON.stringify({model,messages:[UA_SYSTEM,...messages],max_tokens:maxTokens,temperature:temp})
+      });
+      const d=await res.json();
+      if(d.error) throw new Error(d.error.message);
+      return d.choices?.[0]?.message?.content||"";
+    }
+  }catch(e){throw e;}
 }
 
 // ─── AI для студента: оцінка + коментар ──────────────────────────────────────
@@ -1797,8 +1806,8 @@ function renderEditor() {
       </div>
 
       <div class="ai-row">
-        <button class="ai-btn ai-rephrase" onclick="window.aiRephrase()">✦ Перефразувати</button>
-        <button class="ai-btn ai-generate" onclick="window.openAiModal()">⚡ AI генерація</button>
+        <button data-ai="rephrase" class="ai-btn ai-rephrase" onclick="window.aiRephrase()">✦ Перефразувати</button>
+        <button data-ai="generation" class="ai-btn ai-generate" onclick="window.openAiModal()">⚡ AI генерація</button>
       </div>
 
       ${answerSection}
