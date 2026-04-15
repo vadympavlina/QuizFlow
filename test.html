@@ -998,7 +998,7 @@ async function callGroq(messages, maxTokens = 800, temperature = 0.5) {
 
 // ─── AI для студента: оцінка + коментар ──────────────────────────────────────
 
-async function getStudentAIComment({ testTitle, totalQuestions, correctCount, percent, answers, questions }) {
+async function getStudentAIComment({ testTitle, totalQuestions, correctCount, percent, answers, questions, studentName, studentSurname }) {
   const pct = percent ?? Math.round((correctCount / totalQuestions) * 100);
 
   // Формуємо детальний аналіз для AI
@@ -1021,27 +1021,33 @@ async function getStudentAIComment({ testTitle, totalQuestions, correctCount, pe
     return `${i+1}. [${status}] ${q.text}\n   Відповідь: ${studentAns}${!isCorrect ? ` (Правильно: ${correctAns})` : ""}`;
   }).join("\n");
 
-  const prompt = `Ти — досвідчений викладач. Постав оцінку студенту за 12-бальною шкалою.
+  // Визначаємо стать за іменем
+  const nm = (studentName||"").trim();
+  const isFemale = /[аяіьця]$/i.test(nm) && !/Дмитро|Микола|Ілля/i.test(nm);
+  const nameStr = nm ? nm + " " + (studentSurname||"").trim() : "Студент";
 
-Тест: "${testTitle}"
-Правильних відповідей: ${correctCount} з ${totalQuestions} (${pct}%)
+  // Помилки для промпту
+  const wrongItems = (questions||[]).map((q,i)=>{
+    const ans = (answers||[]).find(a=>a.questionId===q.id);
+    if(!ans || ans.correct) return null;
+    let sAns="",cAns="";
+    if(q.type==="single"||q.type==="multi"){
+      const opts=q.options||[];
+      const sidxs=Array.isArray(ans.value)?ans.value:[ans.value].filter(v=>v!=null);
+      const cidxs=Array.isArray(q.correct)?q.correct:[q.correct];
+      sAns=sidxs.map(i=>opts[i]).filter(Boolean).join(", ")||"—";
+      cAns=cidxs.map(i=>opts[i]).filter(Boolean).join(", ")||"—";
+    } else { sAns=String(ans.value??"—"); cAns=String(q.correct??"—"); }
+    const qText=(q.text||"").replace(/<[^>]+>/g,"").substring(0,80);
+    return "- "+qText+": відповів "+sAns+" (правильно: "+cAns+")";
+  }).filter(Boolean).slice(0,5).join("\n");
 
-Відповіді студента (✓ правильно, ~ частково, ✗ неправильно):
-${detailedAnswers}
-
-Правила оцінювання:
-- Аналізуй КОЖНЕ питання — враховуй складність (теоретичне чи практичне, легке чи складне)
-- Правильна відповідь на складне питання цінується більше
-- Неправильна на просте питання — знижує оцінку більше
-- Шкала: 1-3 = незадовільно, 4-6 = задовільно, 7-9 = добре, 10-12 = відмінно
-- Якщо ВСІ відповіді неправильні — оцінка від 1 до 3, НЕ БІЛЬШЕ
-- Якщо більше половини правильних — мінімум 6
-- Якщо всі правильні — 11 або 12
-
-Напиши коментар студенту особисто (2-3 речення): що вдалось, що покращити.
-
-Відповідай ТІЛЬКИ JSON без markdown:
-{"grade": 7, "comment": "..."}`;
+  const prompt = "Ти викладач. Напиши короткий персональний коментар студенту "+nameStr
+    +" ("+pct+"% правильних, тест \""+testTitle+"\")."
+    +(wrongItems ? "\nПомилки:\n"+wrongItems : "")
+    +"\n\nВимоги: до 600 символів, звертайся на \"ти\", враховуй стать ("+(isFemale?"вона":"він")+")."
+    +" Коротко: що вдалось, що повторити. Без списків. Тільки текст."
+    +"\n\nВідповідай ТІЛЬКИ JSON: {\"grade\": N, \"comment\": \"...\"}";
 
   const raw = await callGroq([{ role: "user", content: prompt }], 500);
 
@@ -2414,7 +2420,9 @@ async function _doFinish() {
           correctCount:   scoreResult.correct,
           percent:        scoreResult.percent,
           answers:        formattedAnswers,
-          questions:      testData.questions
+          questions:      testData.questions,
+          studentName:    name,
+          studentSurname: surname
         });
       } catch (e) {
         console.warn("AI failed:", e.message);
@@ -2774,8 +2782,7 @@ function showResult(scoreResult, aiResult) {
       if(reviewBox){ reviewBox.style.display = "flex"; }
     } else {
       gradeEl.textContent = aiResult.grade;
-      const gc = aiResult.grade >= 10 ? "#0d9e85" : aiResult.grade >= 7 ? "#2d5be3" : aiResult.grade >= 4 ? "#f59e0b" : "#f43f5e";
-      gradeEl.style.color = gc;
+      gradeEl.style.color = "white";
       if(gradeDenom) gradeDenom.textContent = "/12";
     }
   }

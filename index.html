@@ -2999,21 +2999,35 @@ window.G = {
       </div>`:""}
 
       <!-- AI секція -->
-      <div style="margin:16px 20px 0;background:rgba(45,91,227,.03);border:1.5px solid rgba(45,91,227,.12);border-radius:16px;overflow:hidden">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(45,91,227,.08)">
-          <div style="display:flex;align-items:center;gap:8px">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <span style="font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--primary);font-weight:700">ШІ Аналіз</span>
+      ${(()=>{
+        const _hasLong = qs.some(q=>q.type==="long");
+        const _longQs = qs.map((q,qi)=>({q,qi})).filter(x=>x.q.type==="long");
+        const _allGraded = _longQs.length===0 || _longQs.every(x=>a.score?.details?.[x.qi]?.longResult);
+        const _hasGrade = a.grade12!=null;
+        const _canAnalyse = !_hasLong || (_allGraded && _hasGrade);
+        const _OB = String.fromCharCode(123);
+        const safeStr = t => { if(!t) return ""; const s=String(t); if(s.trim().charAt(0)===_OB){ try{ const o=JSON.parse(s); if(o.comment) return o.comment; }catch(_){} } return s; };
+        return `<div style="margin:16px 20px 0;background:rgba(45,91,227,.02);border:1.5px solid rgba(45,91,227,.1);border-radius:16px;overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px">
+            <div style="display:flex;align-items:center;gap:7px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${_canAnalyse?"var(--primary)":"var(--muted)"}" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:${_canAnalyse?"var(--primary)":"var(--muted)"};font-weight:700">ШІ Аналіз</span>
+            </div>
+            ${_canAnalyse
+              ? `<button onclick="G.personalAnalysis('${a.id}')" style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;border:1.5px solid rgba(45,91,227,.2);background:#fff;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;transition:all .15s" onmouseover="this.style.background='rgba(45,91,227,.06)'" onmouseout="this.style.background='#fff'">✦ Розбір</button>`
+              : `<span style="font-size:11px;color:var(--muted);font-style:italic">оцініть відповіді та виставте оцінку</span>`
+            }
           </div>
-          <button onclick="G.personalAnalysis('${a.id}')" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9px;border:1.5px solid rgba(45,91,227,.25);background:#fff;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;transition:all .15s"
-            onmouseover="this.style.background='rgba(45,91,227,.06)'" onmouseout="this.style.background='#fff'">
-            ✦ Персональний розбір
-          </button>
-        </div>
-        ${a.aiComment
-          ?`<div style="padding:14px 16px;font-size:14px;color:var(--text);line-height:1.75">${esc(a.aiComment)}</div>`
-          :`<div style="padding:12px 16px;font-size:13px;color:var(--muted);font-style:italic">Коментар згенерується автоматично після перевірки спроби</div>`}
-      </div>
+          ${a.aiComment
+            ? `<div style="padding:12px 16px;font-size:13px;color:var(--text);line-height:1.7;border-top:1px solid rgba(45,91,227,.06)">${esc(safeStr(a.aiComment))}</div>`
+            : a.personalAnalysis
+              ? `<div style="padding:12px 16px;font-size:13px;color:var(--text);line-height:1.7;border-top:1px solid rgba(45,91,227,.06)">${esc(safeStr(a.personalAnalysis))}</div>`
+              : _canAnalyse
+                ? `<div style="padding:10px 16px;font-size:12px;color:var(--muted);font-style:italic;border-top:1px solid rgba(45,91,227,.06)">Натисніть "Розбір" для персонального аналізу</div>`
+                : `<div style="padding:10px 16px;font-size:12px;color:var(--muted);font-style:italic;border-top:1px solid rgba(45,91,227,.06)">Доступно після оцінки всіх відкритих відповідей</div>`
+          }
+        </div>`;
+      })()}
 
       <!-- Питання -->
       <div style="padding:16px 20px 24px">
