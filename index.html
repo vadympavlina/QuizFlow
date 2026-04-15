@@ -2905,7 +2905,16 @@ window.G = {
           :longStatus==="wrong"
           ?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#be123c;background:rgba(244,63,94,.08);padding:2px 8px;border-radius:20px;margin-bottom:6px">✗ Неправильно</span>`
           :`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#b45309;background:rgba(245,158,11,.06);padding:2px 8px;border-radius:20px;margin-bottom:6px">⏳ Очікує перевірки</span>`;
-        ansHtml=`${a.status==="pending_review"||longStatus?statusBadge:""}<div style="padding:12px 14px;background:${ua?"rgba(45,91,227,.03)":"rgba(107,114,128,.04)"};border:1.5px solid ${ua?"rgba(45,91,227,.12)":"var(--border)"};border-radius:10px;font-size:13px;color:${ua?"var(--text)":"var(--muted)"};white-space:pre-wrap;line-height:1.65${ua?"":";font-style:italic"}">${ua?esc(ua):"Немає відповіді"}</div>`;
+        const longBtns = a.status==="pending_review" ? `
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+            <button onclick="G.setLongAnswer('${a.id}',${i},'correct')"
+              style="padding:5px 11px;border-radius:8px;border:1.5px solid ${longStatus==='correct'?'#0d9e85':'rgba(13,158,133,.3)'};background:${longStatus==='correct'?'rgba(13,158,133,.15)':'rgba(13,158,133,.06)'};color:#0d9e85;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s">✓ Правильно</button>
+            <button onclick="G.setLongAnswer('${a.id}',${i},'partial')"
+              style="padding:5px 11px;border-radius:8px;border:1.5px solid ${longStatus==='partial'?'#b45309':'rgba(245,158,11,.3)'};background:${longStatus==='partial'?'rgba(245,158,11,.15)':'rgba(245,158,11,.06)'};color:#b45309;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s">~ Частково</button>
+            <button onclick="G.setLongAnswer('${a.id}',${i},'wrong')"
+              style="padding:5px 11px;border-radius:8px;border:1.5px solid ${longStatus==='wrong'?'#be123c':'rgba(244,63,94,.25)'};background:${longStatus==='wrong'?'rgba(244,63,94,.14)':'rgba(244,63,94,.05)'};color:#be123c;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s">✗ Неправильно</button>
+          </div>` : "";
+        ansHtml=`${longStatus||a.status==="pending_review"?statusBadge:""}<div style="padding:12px 14px;background:${ua?"rgba(45,91,227,.03)":"rgba(107,114,128,.04)"};border:1.5px solid ${ua?"rgba(45,91,227,.12)":"var(--border)"};border-radius:10px;font-size:13px;color:${ua?"var(--text)":"var(--muted)"};white-space:pre-wrap;line-height:1.65${ua?"":";font-style:italic"}">${ua?esc(ua):"Немає відповіді"}</div>${longBtns}`;
       } else if(q.type==="order"){
         const ua=Array.isArray(userAns)?userAns:[];
         ansHtml=ua.map((item,j)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);margin-bottom:5px">
@@ -2958,21 +2967,6 @@ window.G = {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:#b45309">Очікує перевірки</div>
         </div>
-
-        <!-- Оцінка відкритих питань -->
-        ${qs.some(q=>q.type==="long")?`
-        <div style="margin-bottom:14px;padding:12px 14px;background:white;border-radius:11px;border:1.5px solid var(--border)">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:10px">Відкриті відповіді</div>
-          ${qs.map((q,qi)=>q.type==="long"?`
-          <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">
-            <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:7px;line-height:1.4">${qi+1}. ${esc((q.text||"").replace(/<[^>]+>/g,"").substring(0,80))}</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap">
-              <button onclick="G.setLongAnswer('${a.id}',${qi},'correct')" style="padding:5px 11px;border-radius:8px;border:1.5px solid rgba(13,158,133,.3);background:rgba(13,158,133,.07);color:#0d9e85;font-size:12px;font-weight:600;cursor:pointer">✓ Правильно</button>
-              <button onclick="G.setLongAnswer('${a.id}',${qi},'partial')" style="padding:5px 11px;border-radius:8px;border:1.5px solid rgba(245,158,11,.3);background:rgba(245,158,11,.07);color:#b45309;font-size:12px;font-weight:600;cursor:pointer">~ Частково</button>
-              <button onclick="G.setLongAnswer('${a.id}',${qi},'wrong')" style="padding:5px 11px;border-radius:8px;border:1.5px solid rgba(244,63,94,.25);background:rgba(244,63,94,.06);color:#be123c;font-size:12px;font-weight:600;cursor:pointer">✗ Неправильно</button>
-            </div>
-          </div>`:"").join("")}
-        </div>`:""}
 
         <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Загальна оцінка</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap">
