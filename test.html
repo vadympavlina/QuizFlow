@@ -1010,38 +1010,52 @@ async function getStudentAIComment({ testTitle, totalQuestions, correctCount, pe
     return `${i+1}. [${status}] ${q.text}\n   Відповідь: ${studentAns}${!isCorrect ? ` (Правильно: ${correctAns})` : ""}`;
   }).join("\n");
 
-  const _nm=(studentName||"").trim();
-  const _sf=/[аяієї]$/i.test(_nm)&&!/Дмитро|Микола|Ілля/.test(_nm);
-  const _full=_nm?(_nm+" "+(studentSurname||"").trim()).trim():"Студент";
+  // Визначаємо ім'я та стать
+  const sName = (studentName || '').trim();
+  const sSurname = (studentSurname || '').trim();
+  const fullName = sName ? (sName + ' ' + sSurname).trim() : 'Студент';
+  const female = /[аяієї]$/i.test(sName) && !/Дмитро|Микола|Ілля/.test(sName);
 
-  const _wrongs=(questions||[]).map((q,i)=>{
-    const ans=(answers||[]).find(a=>a.questionId===q.id);
-    if(!ans||ans.correct) return null;
-    const opts=q.options||[];
-    const sa=Array.isArray(ans.value)?ans.value.map(j=>opts[j]).filter(Boolean).join(", "):String(ans.value??"—");
-    const ca=Array.isArray(q.correct)?q.correct.map(j=>opts[j]).filter(Boolean).join(", "):String(q.correct??"—");
-    return "- "+(q.text||"").replace(/<[^>]+>/g,"").substring(0,70)+": "+sa+" (правильно: "+ca+")";
-  }).filter(Boolean).slice(0,5);
+  // Список помилок
+  const mistakeLines = (questions || []).map((q, qi) => {
+    const ans = (answers || []).find(a => a.questionId === q.id);
+    if (!ans || ans.correct) return null;
+    const opts = q.options || [];
+    const sa = Array.isArray(ans.value) ? ans.value.map(j => opts[j]).filter(Boolean).join(', ') : String(ans.value ?? '—');
+    const ca = Array.isArray(q.correct) ? q.correct.map(j => opts[j]).filter(Boolean).join(', ') : String(q.correct ?? '—');
+    const qt = (q.text || '').replace(/<[^>]+>/g, '').substring(0, 70);
+    return qi + 1 + '. ' + qt + ' — відповів: ' + sa + ' (правильно: ' + ca + ')';
+  }).filter(Boolean).slice(0, 5);
 
-  const prompt="Ти викладач. Постав оцінку і напиши коментар для "+_full
-    +" (тест: "+testTitle+", "+pct+"% правильних)."
-    +(_wrongs.length?"\nПомилки:\n"+_wrongs.join("\n"):"")
-    +"\n\nВимоги: коментар до 600 символів, на ти, стать "+(_sf?"вона":"він")+". Що не так і що повторити."
-    +"\n\nJSON відповідь: {grade:N, comment:рядок}";
+  const mistakeStr = mistakeLines.length ? '\nПомилки:\n' + mistakeLines.join('\n') : '';
 
-  const raw = await callGroq([{ role: "user", content: prompt }], 400);
+  const prompt = 'Ти викладач. Постав оцінку за 12-бальною шкалою та напиши персональний коментар студенту '
+    + fullName + ' (тест: ' + testTitle + ', ' + pct + '% правильних).'
+    + mistakeStr
+    + '\n\nПравила оцінювання: 0% = 1-2, до 50% = 3-5, до 75% = 6-8, до 90% = 9-10, 100% = 11-12.'
+    + '\nКоментар: до 600 символів, звертайся на ти, стать — ' + (female ? 'вона' : 'він') + '.'
+    + ' Що конкретно не зрозуміло і що повторити. Без загальних фраз.'
+    + '\n\nВідповідай ТІЛЬКИ у форматі JSON без markdown: {"grade": 7, "comment": "..."}';
+
+  const raw = await callGroq([{ role: "user", content: prompt }], 500);
 
   let result;
   try {
-    let _s=raw.replace(/```json/gi,"").replace(/```/g,"").trim();
-    const _si=_s.indexOf("{"); const _ei=_s.lastIndexOf("}");
-    if(_si>=0&&_ei>_si) _s=_s.slice(_si,_ei+1);
-    result=JSON.parse(_s);
-    if(typeof result.comment!=="string") result.comment="";
-  } catch (_e2) {
-    const _gm=raw.match(/"grade"\s*:\s*(\d+)/);
-    const _cm=raw.match(/"comment"\s*:\s*"([^"]{10,})"/);
-    result={grade:_gm?parseInt(_gm[1]):percentToGrade(pct), comment:_cm?_cm[1]:""};
+    let jsonStr = raw.replace(/```json/gi, '').replace(/```/gi, '').trim();
+    // Витягуємо тільки JSON об'єкт
+    const start = jsonStr.indexOf('{');
+    const end = jsonStr.lastIndexOf('}');
+    if (start >= 0 && end > start) jsonStr = jsonStr.slice(start, end + 1);
+    result = JSON.parse(jsonStr);
+    if (typeof result.comment !== 'string') result.comment = '';
+  } catch (parseErr) {
+    // Запасний варіант: витягуємо через regex
+    const gm = raw.match(/"grade"\s*:\s*(\d+)/);
+    const cm = raw.match(/"comment"\s*:\s*"([\s\S]+?)"/);
+    result = {
+      grade: gm ? parseInt(gm[1]) : percentToGrade(pct),
+      comment: cm ? cm[1] : ''
+    };
   }
 
   // Базова перевірка що оцінка в межах 1-12
@@ -2759,9 +2773,7 @@ function showResult(scoreResult, aiResult) {
   const aiText = document.getElementById("aiComment");
   if(!hasPending && aiResult.comment && aiResult.comment.trim()){
     if(aiBox) aiBox.style.display = "";
-    let _dc=aiResult.comment||"";
-    if(_dc.trim()[0]===String.fromCharCode(123)){try{const _o=JSON.parse(_dc);if(_o.comment)_dc=_o.comment;}catch(_e3){}}
-    if(aiText) aiText.textContent=_dc;
+    if(aiText) aiText.textContent = aiResult.comment;
   } else {
     if(aiBox) aiBox.style.display = "none";
   }

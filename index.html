@@ -3042,14 +3042,13 @@ window.G = {
         G._showAiPanel(text); return;
       }
 
-      const _fem=(a.name||"").match(/[аяієї]$/i)&&!(a.name||"").match(/Дмитро|Микола|Ілля/i);
-      const _wrongs=wrongList.slice(0,6).join("\n---\n");
-      const prompt="Ти викладач. Напиши персональний коментар студенту "+(a.name||"")+" "+(a.surname||"")
-        +" (оцінка "+(a.grade12||"—")+"/12, тест: "+((t?.title)||"")+").\n"
-        +"Помилки:\n"+_wrongs+"\n\n"
-        +"Вимоги: до 600 символів, на ти, стать "+(_fem?"вона":"він")+". 3-4 речення, без списків. "
-        +"Конкретно що не зрозуміло і що повторити.";
-      const res=await callGroq([{role:"user",content:prompt}],400,0.35);
+      const isFem=(a.name||'').match(/[аяієї]$/i)&&!(a.name||'').match(/Дмитро|Микола|Ілля/i);
+      const wrongStr=wrongList.slice(0,6).join('\n---\n');
+      const prompt='Ти викладач. Напиши персональний коментар студенту '+(a.name||'')+' '+(a.surname||'')
+        +' (оцінка '+(a.grade12||'—')+'/12, тест: '+((t&&t.title)||'')+').\n'
+        +'Помилки:\n'+wrongStr+'\n\n'
+        +'Вимоги: до 600 символів, на ти, стать '+(isFem?'вона':'він')+'. 3-4 речення без списків. Конкретно що не зрозуміло і що повторити.';
+      const res=await callGroq([{role:'user',content:prompt}],400,0.35);
       await dbUpd(`attempts/${attId}`,{personalAnalysis:res});
       a.personalAnalysis=res;
       G._showAiPanel(res);
@@ -3061,7 +3060,7 @@ window.G = {
   _showAiPanel(text){
     document.getElementById("ai-side-content").innerHTML=`
       <div style="font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap">${esc(text)}</div>
-      <div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--border)">
+      <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
         <button onclick="G.closeAiPanel()" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Закрити</button>
       </div>`;
     document.getElementById("ai-side-panel").style.right="0";
