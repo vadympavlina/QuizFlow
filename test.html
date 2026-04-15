@@ -1010,43 +1010,38 @@ async function getStudentAIComment({ testTitle, totalQuestions, correctCount, pe
     return `${i+1}. [${status}] ${q.text}\n   Відповідь: ${studentAns}${!isCorrect ? ` (Правильно: ${correctAns})` : ""}`;
   }).join("\n");
 
-  const nm = (studentName||"").trim();
-  const isFem = /[аяієї]$/i.test(nm) && !/Дмитро|Микола|Ілля/i.test(nm);
-  const nameStr = nm ? (nm+" "+(studentSurname||"").trim()).trim() : "Студент";
+  const _nm=(studentName||"").trim();
+  const _sf=/[аяієї]$/i.test(_nm)&&!/Дмитро|Микола|Ілля/.test(_nm);
+  const _full=_nm?(_nm+" "+(studentSurname||"").trim()).trim():"Студент";
 
-  const wrongLines = (questions||[]).map((q,i)=>{
+  const _wrongs=(questions||[]).map((q,i)=>{
     const ans=(answers||[]).find(a=>a.questionId===q.id);
     if(!ans||ans.correct) return null;
     const opts=q.options||[];
     const sa=Array.isArray(ans.value)?ans.value.map(j=>opts[j]).filter(Boolean).join(", "):String(ans.value??"—");
     const ca=Array.isArray(q.correct)?q.correct.map(j=>opts[j]).filter(Boolean).join(", "):String(q.correct??"—");
-    const qt=(q.text||"").replace(/<[^>]+>/g,"").substring(0,70);
-    return "- "+qt+": \""+sa+"\" (правильно: \""+ca+"\")";
+    return "- "+(q.text||"").replace(/<[^>]+>/g,"").substring(0,70)+": "+sa+" (правильно: "+ca+")";
   }).filter(Boolean).slice(0,5);
 
-  const prompt = "Ти викладач. Постав оцінку і напиши коментар студенту "+nameStr
-    +" за тест \""+testTitle+"\" ("+pct+"% правильних)."
-    +(wrongLines.length?"\nПомилки:\n"+wrongLines.join("\n"):"")
-    +"\n\nКоментар: до 600 символів, на \"ти\", стать "+(isFem?"вона":"він")+". "
-    +"Конкретно що не так і що повторити. Без загальних фраз."
-    +"\n\nВідповідай ТІЛЬКИ JSON: {\"grade\":N,\"comment\":\"...\"}";
+  const prompt="Ти викладач. Постав оцінку і напиши коментар для "+_full
+    +" (тест: "+testTitle+", "+pct+"% правильних)."
+    +(_wrongs.length?"\nПомилки:\n"+_wrongs.join("\n"):"")
+    +"\n\nВимоги: коментар до 600 символів, на ти, стать "+(_sf?"вона":"він")+". Що не так і що повторити."
+    +"\n\nJSON відповідь: {grade:N, comment:рядок}";
 
   const raw = await callGroq([{ role: "user", content: prompt }], 400);
 
   let result;
   try {
-    let s=raw.replace(/`+json\s*/gi,"").replace(/`+/gi,"").trim();
-    const si=s.indexOf(String.fromCharCode(123)), ei=s.lastIndexOf(String.fromCharCode(125));
-    if(si>=0&&ei>si) s=s.substring(si,ei+1);
-    result=JSON.parse(s);
-    if(typeof result.comment!=="string") result.comment=String(result.comment||"");
-  } catch {
-    const gm=raw.match(/"grade"\s*:\s*(\d+)/);
-    const cm=raw.match(/"comment"\s*:\s*"([\s\S]{10,600})"/);
-    result={
-      grade: gm?parseInt(gm[1]):percentToGrade(pct),
-      comment: cm?cm[1]:""
-    };
+    let _s=raw.replace(/```json/gi,"").replace(/```/g,"").trim();
+    const _si=_s.indexOf("{"); const _ei=_s.lastIndexOf("}");
+    if(_si>=0&&_ei>_si) _s=_s.slice(_si,_ei+1);
+    result=JSON.parse(_s);
+    if(typeof result.comment!=="string") result.comment="";
+  } catch (_e2) {
+    const _gm=raw.match(/"grade"\s*:\s*(\d+)/);
+    const _cm=raw.match(/"comment"\s*:\s*"([^"]{10,})"/);
+    result={grade:_gm?parseInt(_gm[1]):percentToGrade(pct), comment:_cm?_cm[1]:""};
   }
 
   // Базова перевірка що оцінка в межах 1-12
@@ -2764,9 +2759,9 @@ function showResult(scoreResult, aiResult) {
   const aiText = document.getElementById("aiComment");
   if(!hasPending && aiResult.comment && aiResult.comment.trim()){
     if(aiBox) aiBox.style.display = "";
-    let _disp=aiResult.comment||"";
-    if(_disp.trim().charAt(0)===String.fromCharCode(123)){try{const _o=JSON.parse(_disp);if(_o.comment)_disp=_o.comment;}catch(_){}}
-    if(aiText) aiText.textContent = _disp;
+    let _dc=aiResult.comment||"";
+    if(_dc.trim()[0]===String.fromCharCode(123)){try{const _o=JSON.parse(_dc);if(_o.comment)_dc=_o.comment;}catch(_e3){}}
+    if(aiText) aiText.textContent=_dc;
   } else {
     if(aiBox) aiBox.style.display = "none";
   }
