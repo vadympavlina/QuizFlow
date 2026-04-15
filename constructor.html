@@ -1956,7 +1956,7 @@ window.saveTest = async () => {
     await saveTest(testId, {
       title:     document.getElementById("testTitle").value.trim(),
       folderId:  window._selectedFolderId ?? testData.folderId ?? null,
-      timeLimit: (Number(document.getElementById("testTimeLimit").value) || 10) * 60,
+      timeLimit: (()=>{ const v=Number(document.getElementById("testTimeLimit").value); return v===0?0:(v||10)*60; })(),
       status:    document.getElementById("testStatus").value,
       tags,
       questions: testData.questions
@@ -2119,7 +2119,7 @@ function autosave(){
     localStorage.setItem(getAutosaveKey(), JSON.stringify({
       title:     document.getElementById("testTitle")?.value||"",
       folderId:  window._selectedFolderId ?? testData?.folderId ?? null,
-      timeLimit: document.getElementById("testTimeLimit")?.value||"10",
+      timeLimit: (()=>{ const v=Number(document.getElementById("testTimeLimit")?.value); return v===0?0:(v||10)*60; })(),
       status:    document.getElementById("testStatus")?.value||"draft",
       questions: testData?.questions||[],
       savedAt:   Date.now()
