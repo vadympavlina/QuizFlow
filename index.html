@@ -905,32 +905,27 @@ textarea.fi{resize:vertical;min-height:72px}
 </div></div>
 
 <!-- AI РОЗБІР — SIDE PANEL -->
-<div id="ai-side-panel" style="position:fixed;top:0;right:-500px;width:460px;height:100vh;background:white;z-index:400;box-shadow:-4px 0 40px rgba(13,19,64,.14);transition:right .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column">
-  <!-- Шапка -->
-  <div style="background:linear-gradient(150deg,#1e2d6b,#0d1340);padding:20px 22px;flex-shrink:0">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <div style="display:flex;align-items:center;gap:7px">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        <span style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.5);font-weight:600">ШІ Аналіз</span>
-      </div>
-      <button onclick="G.closeAiPanel()"
-        style="width:28px;height:28px;border:none;background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:all .15s;line-height:1"
-        onmouseover="this.style.background='rgba(255,255,255,.2)';this.style.color='white'"
-        onmouseout="this.style.background='rgba(255,255,255,.1)';this.style.color='rgba(255,255,255,.6)'">×</button>
+<div id="ai-side-panel" style="position:fixed;top:0;right:-480px;width:460px;height:100vh;background:white;z-index:400;box-shadow:-8px 0 40px rgba(0,0,0,.18);transition:right .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;border-radius:20px 0 0 20px">
+  <!-- Заголовок -->
+  <div style="background:linear-gradient(135deg,#2d5be3,#1530a0);padding:22px 24px;border-radius:20px 0 0 0;flex-shrink:0">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.6)">AI Аналіз</div>
+      <button onclick="G.closeAiPanel()" style="width:28px;height:28px;border:none;background:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:color .15s;border-radius:50%"
+        onmouseover="this.style.color='white'"
+        onmouseout="this.style.color='rgba(255,255,255,.6)'">×</button>
     </div>
-    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:white">Персональний розбір</div>
-    <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:3px">На основі відповідей студента</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:white">✦ Персональний розбір</div>
   </div>
   <!-- Контент -->
-  <div id="ai-side-content" style="flex:1;overflow-y:auto;padding:20px 22px">
+  <div id="ai-side-content" style="flex:1;overflow-y:auto;padding:22px 24px">
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--muted)">
-      <div style="font-size:28px;margin-bottom:10px">⏳</div>
-      <div style="font-size:14px">Аналізую...</div>
+      <div style="font-size:32px;margin-bottom:10px">⏳</div>
+      <div style="font-size:14px">Аналізую помилки...</div>
     </div>
   </div>
 </div>
-<!-- Overlay з blur -->
-<div id="ai-side-overlay" onclick="G.closeAiPanel()" style="position:fixed;inset:0;z-index:399;display:none;background:rgba(13,19,64,.25);backdrop-filter:blur(2px)"></div>
+<!-- Overlay для закриття -->
+<div id="ai-side-overlay" onclick="G.closeAiPanel()" style="position:fixed;inset:0;z-index:399;display:none;background:transparent"></div>
 
 <!-- DELETE STUDENT MODAL -->
 <div class="mo" id="m-del-student"><div class="mb" style="max-width:380px;text-align:center;padding:36px 32px">
@@ -2978,47 +2973,84 @@ window.G = {
       </div>
 
       <!-- Ручне виставлення оцінки — одразу після шапки -->
-      ${a.status==="pending_review"?`
-      <div style="margin:16px 20px 0;padding:18px 20px;background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(245,158,11,.02));border:2px solid rgba(245,158,11,.3);border-radius:16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="width:32px;height:32px;border-radius:9px;background:rgba(245,158,11,.15);display:flex;align-items:center;justify-content:center">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </div>
-            <div>
-              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#92400e">Виставте оцінку</div>
-              <div style="font-size:12px;color:var(--muted)">Спроба містить розгорнуті відповіді</div>
-            </div>
-          </div>
-        </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          ${Array.from({length:12},(_,i)=>i+1).map(g=>{
-            const col=g>=10?"#0d9e85":g>=7?"#2d5be3":g>=4?"#f59e0b":"#f43f5e";
-            const bg=g>=10?"rgba(13,158,133,.1)":g>=7?"rgba(45,91,227,.1)":g>=4?"rgba(245,158,11,.1)":"rgba(244,63,94,.1)";
-            return `<button onclick="G.setManualGrade('${a.id}',${g})"
-              style="width:40px;height:40px;border-radius:10px;border:1.5px solid ${col}44;background:${bg};color:${col};font-weight:800;font-size:15px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif"
-              onmouseover="this.style.background='${col}';this.style.color='#fff';this.style.transform='scale(1.08)'"
-              onmouseout="this.style.background='${bg}';this.style.color='${col}';this.style.transform=''">${g}</button>`;
-          }).join("")}
-        </div>
-      </div>`:""}
+      ${(()=>{
+        const longIdxs=qs.map((q,qi)=>qi).filter(qi=>qs[qi].type==="long");
+        const allLongGraded=longIdxs.length===0||longIdxs.every(qi=>a.score?.details?.[qi]?.longResult);
+        const hasGrade=a.grade12!=null;
+        const canAnalyse=allLongGraded&&hasGrade;
+        window._viewAttId=a.id;
 
-      <!-- AI секція -->
-      <div style="margin:16px 20px 0;background:rgba(45,91,227,.03);border:1.5px solid rgba(45,91,227,.12);border-radius:16px;overflow:hidden">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(45,91,227,.08)">
-          <div style="display:flex;align-items:center;gap:8px">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <span style="font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--primary);font-weight:700">ШІ Аналіз</span>
-          </div>
-          <button onclick="G.personalAnalysis('${a.id}')" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9px;border:1.5px solid rgba(45,91,227,.25);background:#fff;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;transition:all .15s"
-            onmouseover="this.style.background='rgba(45,91,227,.06)'" onmouseout="this.style.background='#fff'">
-            ✦ Персональний розбір
-          </button>
-        </div>
-        ${a.aiComment
-          ?`<div style="padding:14px 16px;font-size:14px;color:var(--text);line-height:1.75">${esc(a.aiComment)}</div>`
-          :`<div style="padding:12px 16px;font-size:13px;color:var(--muted);font-style:italic">Коментар згенерується автоматично після перевірки спроби</div>`}
-      </div>
+        let out="";
+
+        // Відкриті питання
+        if(longIdxs.length){
+          out+='<div style="margin:16px 20px 0;padding:14px 18px;background:rgba(245,158,11,.05);border:1.5px solid rgba(245,158,11,.2);border-radius:14px">';
+          out+='<div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#b45309;font-weight:700;margin-bottom:10px">Оцініть відкриті відповіді</div>';
+          longIdxs.forEach(qi=>{
+            const r=ans[qi];
+            const ua=(r!=null&&r!==undefined&&typeof r==="object"&&!Array.isArray(r)&&"value" in r)?r.value:r;
+            const uaText=(ua!=null&&ua!==""&&typeof ua!=="object")?String(ua).trim():"";
+            const lr=a.score?.details?.[qi]?.longResult||"";
+            const qText=(qs[qi].text||"").replace(/<[^>]+>/g,"").substring(0,70);
+            const cC=lr==="correct"?"#0d9e85":"rgba(13,158,133,.3)";
+            const bgC=lr==="correct"?"rgba(13,158,133,.15)":"rgba(13,158,133,.06)";
+            const cP=lr==="partial"?"#b45309":"rgba(245,158,11,.3)";
+            const bgP=lr==="partial"?"rgba(245,158,11,.15)":"rgba(245,158,11,.06)";
+            const cW=lr==="wrong"?"#be123c":"rgba(244,63,94,.2)";
+            const bgW=lr==="wrong"?"rgba(244,63,94,.14)":"rgba(244,63,94,.05)";
+            out+="<div style='margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(245,158,11,.1)'>";
+            out+="<div style='font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px'>"+(qi+1)+". "+esc(qText)+"</div>";
+            if(uaText) out+="<div style='font-size:12px;color:var(--muted);margin-bottom:7px;padding:7px 10px;background:white;border-radius:8px;border:1px solid var(--border)'>"+esc(uaText.substring(0,200))+"</div>";
+            else out+="<div style='font-size:12px;color:var(--muted);font-style:italic;margin-bottom:7px'>(без відповіді)</div>";
+            out+="<div style='display:flex;gap:6px;flex-wrap:wrap'>";
+            out+="<button data-aid='"+a.id+"' data-qi='"+qi+"' data-res='correct' onclick='G.setLongAnswer(this.dataset.aid,+this.dataset.qi,this.dataset.res)' style='padding:4px 10px;border-radius:7px;border:1.5px solid "+cC+";background:"+bgC+";color:#0d9e85;font-size:12px;font-weight:600;cursor:pointer'>✓ Правильно (1б)</button>";
+            out+="<button data-aid='"+a.id+"' data-qi='"+qi+"' data-res='partial' onclick='G.setLongAnswer(this.dataset.aid,+this.dataset.qi,this.dataset.res)' style='padding:4px 10px;border-radius:7px;border:1.5px solid "+cP+";background:"+bgP+";color:#b45309;font-size:12px;font-weight:600;cursor:pointer'>~ Частково (0.5б)</button>";
+            out+="<button data-aid='"+a.id+"' data-qi='"+qi+"' data-res='wrong' onclick='G.setLongAnswer(this.dataset.aid,+this.dataset.qi,this.dataset.res)' style='padding:4px 10px;border-radius:7px;border:1.5px solid "+cW+";background:"+bgW+";color:#be123c;font-size:12px;font-weight:600;cursor:pointer'>✗ Неправильно (0б)</button>";
+            out+="</div></div>";
+          });
+          out+="</div>";
+        }
+
+        // Загальна оцінка
+        if(a.status==="pending_review"){
+          const borderCol=allLongGraded?"rgba(45,91,227,.2)":"var(--border)";
+          const bgCol=allLongGraded?"rgba(45,91,227,.04)":"rgba(107,114,128,.04)";
+          const labelCol=allLongGraded?"var(--primary)":"var(--muted)";
+          const label=allLongGraded?"Загальна оцінка":"Спочатку оцініть відкриті відповіді";
+          out+="<div style='margin:16px 20px 0;padding:14px 18px;background:"+bgCol+";border:1.5px solid "+borderCol+";border-radius:14px'>";
+          out+="<div style='font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:"+labelCol+";font-weight:700;margin-bottom:8px'>"+label+"</div>";
+          if(allLongGraded){
+            out+="<div style='display:flex;gap:5px;flex-wrap:wrap'>";
+            for(let g=1;g<=12;g++){
+              const col=g>=10?"#0d9e85":g>=7?"#2d5be3":g>=4?"#f59e0b":"#f43f5e";
+              const bg=g>=10?"rgba(13,158,133,.08)":g>=7?"rgba(45,91,227,.08)":g>=4?"rgba(245,158,11,.08)":"rgba(244,63,94,.08)";
+              const sel=a.grade12===g?"outline:2px solid "+col+";outline-offset:2px;":"";
+              out+='<button data-aid="'+a.id+'" data-g="'+g+'" onclick="G.setManualGrade(this.dataset.aid,+this.dataset.g)" style="width:36px;height:36px;border-radius:9px;border:1.5px solid '+col+'44;background:'+bg+';color:'+col+';font-weight:800;font-size:14px;cursor:pointer;'+sel+'">'+g+'</button>';
+            }
+            out+="</div>";
+          }
+          out+="</div>";
+        }
+
+        // AI секція
+        const aiColor=canAnalyse?"var(--primary)":"var(--muted)";
+        const hasBorder=a.aiComment||a.personalAnalysis?";border-bottom:1px solid rgba(45,91,227,.08)":"";
+        out+="<div style='margin:16px 20px 0;background:rgba(45,91,227,.02);border:1.5px solid rgba(45,91,227,.1);border-radius:14px;overflow:hidden'>";
+        out+="<div style='display:flex;align-items:center;justify-content:space-between;padding:11px 15px"+hasBorder+"'>";
+        out+="<div style='display:flex;align-items:center;gap:7px'><svg width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='"+aiColor+"' stroke-width='2'><polygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/></svg>";
+        out+="<span style='font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:"+aiColor+";font-weight:700'>ШІ Аналіз</span></div>";
+        if(canAnalyse){
+          out+='<button data-aid="'+a.id+'" onclick="G.personalAnalysis(this.dataset.aid)" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:8px;border:1.5px solid rgba(45,91,227,.2);background:#fff;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer">✦ Розбір</button>';
+        } else {
+          out+="<span style='font-size:11px;color:var(--muted);font-style:italic'>"+(hasGrade?"оцініть відповіді":"виставте оцінку")+"</span>";
+        }
+        out+="</div>";
+        if(a.aiComment) out+="<div style='padding:12px 15px;font-size:13px;color:var(--text);line-height:1.7'>"+esc(a.aiComment)+"</div>";
+        else if(a.personalAnalysis) out+="<div style='padding:12px 15px;font-size:13px;color:var(--text);line-height:1.7'>"+esc(a.personalAnalysis)+"</div>";
+        out+="</div>";
+
+        return out;
+      })()}
 
       <!-- Питання -->
       <div style="padding:16px 20px 24px">
@@ -3053,77 +3085,41 @@ window.G = {
       const qs=Array.isArray(a.questionsSnapshot)?a.questionsSnapshot:(t?.questions||[]);
       const ans=Array.isArray(a.answers)?a.answers:[];
 
-      // Нормалізація відповіді до масиву індексів або рядку
-      const normalizeAns=(val)=>{
-        if(val===null||val===undefined||val==="") return null;
-        if(Array.isArray(val)) return val;
-        if(typeof val==="object") return null; // [object Object] — ігноруємо
-        return val;
-      };
-      // Перетворення індексів у текст варіантів
-      const idxToText=(val, opts)=>{
-        if(val===null||val===undefined) return "(без відповіді)";
-        if(Array.isArray(val)){
-          const r=val.map(j=>opts[j]!==undefined?opts[j]:j).filter(x=>x!==null&&x!==undefined);
-          return r.length?r.join(", "):"(без відповіді)";
-        }
-        const n=Number(val);
-        if(!isNaN(n)&&opts[n]!==undefined) return opts[n];
-        return String(val)||"(без відповіді)";
-      };
-
       const wrongList=qs.map((q,i)=>{
         const rawAns=ans[i];
         const ua=(rawAns!==null&&rawAns!==undefined&&typeof rawAns==="object"&&!Array.isArray(rawAns)&&"value" in rawAns)
           ? rawAns.value : rawAns;
-        const uaN=normalizeAns(ua);
-        if(uaN===null) return null; // немає відповіді — пропускаємо
-        const opts=q.options||[];
+        // Пропускаємо питання без відповіді
+        if(ua===null||ua===undefined||ua==="") return null;
         let wrong=false;
-        if(q.type==="single"){
-          // Нормалізуємо обидва до числа для порівняння
-          const uaNum=Array.isArray(uaN)?uaN[0]:Number(uaN);
-          const cNum=Array.isArray(q.correct)?q.correct[0]:Number(q.correct);
-          wrong=uaNum!==cNum;
-        } else if(q.type==="multi"){
-          const uaArr=(Array.isArray(uaN)?uaN:[uaN]).map(Number).sort();
-          const cArr=(Array.isArray(q.correct)?q.correct:[q.correct]).map(Number).sort();
-          wrong=JSON.stringify(uaArr)!==JSON.stringify(cArr);
-        } else if(q.type==="number"){
-          wrong=parseFloat(uaN)!==parseFloat(q.correct);
-        } else if(q.type==="text"){
-          wrong=true;
-        } else {
-          return null; // long/order — пропускаємо
+        if(q.type==="single") wrong=ua!==q.correct&&String(ua)!==String(q.correct);
+        else if(q.type==="multi"){
+          const uaArr=Array.isArray(ua)?ua:[];
+          const cArr=Array.isArray(q.correct)?q.correct:[];
+          wrong=JSON.stringify([...uaArr].sort())!==JSON.stringify([...cArr].sort());
         }
-        const qText=(q.text||q.question||"").replace(/<[^>]+>/g,"").substring(0,80);
-        const uaStr=idxToText(uaN, opts);
-        const corrStr=idxToText(Array.isArray(q.correct)?q.correct:q.correct, opts);
-        return wrong?("- "+qText+": \""+uaStr+"\" (правильно: \""+corrStr+"\")"):null;
+        else if(q.type==="number") wrong=parseFloat(ua)!==parseFloat(q.correct);
+        else if(q.type==="text") wrong=true; // текст завжди включаємо для AI аналізу
+        else return null; // long/order — пропускаємо
+        const uaStr=Array.isArray(ua)?ua.join(", "):String(ua);
+        const corrStr=Array.isArray(q.correct)?q.correct.join(", "):String(q.correct||"");
+        return wrong?`Питання: "${(q.text||q.question||"").replace(/<[^>]+>/g,"")}"
+Відповідь студента: "${uaStr}"
+Правильна відповідь: "${corrStr}"`:null;
       }).filter(Boolean);
 
-      // Перевіряємо score щоб не показати "все правильно" помилково
-      const reallyAllCorrect = wrongList.length===0 && (a.score?.correct||0)>=(a.score?.total||qs.length);
-      if(reallyAllCorrect){
+      if(!wrongList.length){
         const text="✅ Студент відповів правильно на всі питання! Відмінна робота.";
         await dbUpd(`attempts/${attId}`,{personalAnalysis:text});
         a.personalAnalysis=text;
         G._showAiPanel(text); return;
       }
 
-      const isFem=/[аяієї]$/i.test(a.name||"")&&!/Дмитро|Микола|Ілля/.test(a.name||"");
-      const mistakesPart=wrongList.length?wrongList.slice(0,6).join("\n"):"(не вдалось визначити помилки автоматично)";
-      const prompt="Ти викладач. Зроби структурований розбір помилок для "+(a.name||"Студента")+" "+(a.surname||"")
-        +" (оцінка "+(a.grade12||"—")+"/12, тест: "+(t?.title||"")+").\n"
-        +"Помилки:\n"+mistakesPart+"\n\n"
-        +"Формат відповіді: звертайся на ти, стать — "+(isFem?"вона":"він")+". Суворо до 600 символів. "
-        +"Структура: 1-2 речення — що конкретно помилилось і чому. Потім 1-2 речення — що саме повторити або вивчити. "
-        +"Без загальних фраз, без води. Конкретно і по суті.";
-      const res=await callGroq([{role:"user",content:prompt}],400,0.35);
-      const trimmed=res.trim().length>600?res.trim().substring(0,597)+"...":res.trim();
-      await dbUpd(`attempts/${attId}`,{personalAnalysis:trimmed});
-      a.personalAnalysis=trimmed;
-      G._showAiPanel(trimmed);
+      const prompt = `Ти репетитор. Студент ${esc(a.name)} ${esc(a.surname)} отримав оцінку ${a.grade12}/12 за тест "${t?.title || ""}". Помилкові відповіді: ${wrongList.slice(0, 8).join("")}. Напиши короткий персональний розбір (5–8 речень): що студент не зрозумів, на що звернути увагу, як виправити знання. Звертайся до студента напряму.`;
+      const res=await callGroq([{role:"user",content:prompt}],600,0.5);
+      await dbUpd(`attempts/${attId}`,{personalAnalysis:res});
+      a.personalAnalysis=res;
+      G._showAiPanel(res);
     }catch(e){
       document.getElementById("ai-side-content").innerHTML=`<div style="color:#be123c;padding:16px;font-size:14px">Помилка: ${esc(e.message)}</div>`;
     }
@@ -3131,13 +3127,7 @@ window.G = {
 
   _showAiPanel(text){
     document.getElementById("ai-side-content").innerHTML=`
-      <div style="font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap">${esc(text)}</div>
-      <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border)">
-        <button onclick="G.closeAiPanel()"
-          style="width:100%;padding:11px;border-radius:11px;border:1.5px solid var(--border);background:white;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .15s"
-          onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
-          onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Закрити</button>
-      </div>`;
+      <div style="font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap">${esc(text)}</div>`;
     document.getElementById("ai-side-panel").style.right="0";
     document.getElementById("ai-side-overlay").style.display="block";
   },
@@ -4232,6 +4222,22 @@ window.G = {
     G.renderGradebook && G.renderGradebook();
   },
 
+  async setLongAnswer(attId, qIdx, result){
+    const a=attempts.find(x=>x.id===attId);
+    if(!a) return;
+    const pts=result==="correct"?1:result==="partial"?0.5:0;
+    const details=a.score?.details?[...a.score.details]:[];
+    while(details.length<=qIdx) details.push({});
+    details[qIdx]={...(details[qIdx]||{}),longResult:result,points:pts};
+    try{
+      await dbUpd(`attempts/${attId}`,{"score/details":details});
+      if(!a.score) a.score={};
+      a.score.details=details;
+      // Оновлюємо вміст модалки без закриття
+      G.viewAtt(attId);
+    }catch(e){ toast("Помилка: "+e.message,"err"); }
+  },
+
   async setManualGrade(attId, grade){
     const a=attempts.find(x=>x.id===attId);
     if(!a) return;
@@ -4245,8 +4251,11 @@ window.G = {
     try{
       await dbUpd(`attempts/${attId}`,{grade12:grade,status:"completed"});
       a.grade12=grade; a.status="completed";
-      renderAll();
-      closeM("m-attempt");
+      // Оновлюємо списки без закриття модалки
+      try{ renderAttemptRows && renderAttemptRows(); }catch(_){}
+      try{ renderDashboard && renderDashboard(); }catch(_){}
+      // Перерендеримо вміст модалки
+      G.viewAtt(attId);
       toast(`Оцінка ${grade}/12 виставлена ✅`);
     }catch(e){ toast("Помилка: "+e.message,"err"); }
     finally{ ldr(false); }
