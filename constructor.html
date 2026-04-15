@@ -817,7 +817,10 @@ async function rephraseQuestion(questionText, options = []) {
 
   const raw = await callGroq([{ role: "user", content: prompt }], 400, 0.6);
   try {
-    return JSON.parse(raw.replace(/```json|```/g, "").trim());
+    const cleaned=raw.replace(/```json\s*/gi,"").replace(/```\s*/gi,"").trim();
+    const si=cleaned.indexOf("{"),ei=cleaned.lastIndexOf("}");
+    if(si!==-1&&ei>si) return JSON.parse(cleaned.substring(si,ei+1));
+    throw new Error("invalid");
   } catch {
     const match = raw.match(/\{[\s\S]*\}/);
     if (!match) throw new Error("Невірний формат відповіді");
@@ -826,6 +829,22 @@ async function rephraseQuestion(questionText, options = []) {
 }
 
 // ─── AI генерація кількох питань ─────────────────────────────────────────────
+
+// Надійний парсер JSON з відповіді AI (прибирає markdown і зайвий текст)
+function extractJSON(text){
+  // 1. Прибираємо markdown-огорожу
+  let cleaned = text.replace(/```json\s*/gi,"").replace(/```\s*/gi,"").trim();
+  // 2. Шукаємо перший [ і знаходимо відповідний ]
+  const start = cleaned.indexOf("[");
+  if(start === -1) throw new Error("Масив не знайдено");
+  let depth=0, end=-1;
+  for(let i=start;i<cleaned.length;i++){
+    if(cleaned[i]==="[") depth++;
+    else if(cleaned[i]==="]"){ depth--; if(depth===0){end=i;break;} }
+  }
+  if(end===-1) throw new Error("Масив не закритий");
+  return JSON.parse(cleaned.substring(start,end+1));
+}
 
 async function generateQuestions({ topic, desc = "", difficulty, type, count = 10 }) {
   const typeMap = {
@@ -857,15 +876,12 @@ async function generateQuestions({ topic, desc = "", difficulty, type, count = 1
 Формат:
 [{"type":"single","text":"Питання?","options":["А","Б","В","Г"],"correct":[0]},{"type":"multi","text":"Питання?","options":["А","Б","В","Г"],"correct":[1,2]},{"type":"text","text":"Питання?","correct":"відповідь"}]`;
 
-  const raw = await callGroq([{ role: "user", content: prompt }], maxTokens, 0.6);
+  const raw = await callGroq([{ role: "user", content: prompt }], maxTokens, 0.3);
   let parsed;
   try {
-    parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
-  } catch {
-    // Якщо парсинг не вдався - пробуємо знайти масив у відповіді
-    const match = raw.match(/\[[\s\S]*\]/);
-    if (!match) throw new Error("AI не повернув коректний JSON");
-    parsed = JSON.parse(match[0]);
+    parsed = extractJSON(raw);
+  } catch(e) {
+    throw new Error("AI не повернув коректний JSON: " + e.message);
   }
 
   // Фільтруємо дублікати за текстом питання
