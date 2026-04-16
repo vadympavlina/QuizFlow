@@ -642,7 +642,7 @@ let _stats = {};
 window.loadAll = async () => {
   const snap = await get(ref(db,"users"));
   if(!snap.exists()){ document.getElementById("loader").style.display="none"; return; }
-  _users = Object.entries(snap.val()).map(([id,u])=>({id,...u}));
+  _users = Object.entries(snap.val()).filter(([id,u])=>u&&typeof u==="object").map(([id,u])=>({id,...u}));
 
   // Статистика паралельно
   await Promise.all(_users.map(async u => {
@@ -859,17 +859,7 @@ let _tt;
 function toast(msg){ const e=document.getElementById("toast"); e.textContent=msg; e.classList.add("show"); clearTimeout(_tt); _tt=setTimeout(()=>e.classList.remove("show"),3000); }
 
 // ─── AI Settings ─────────────────────────────────────────────────────────────
-window.switchProvider = function(prov){
-  const isGemini = prov === "gemini";
-  document.getElementById("groq-block").style.display   = isGemini ? "none" : "";
-  document.getElementById("gemini-block").style.display = isGemini ? "" : "none";
-  document.getElementById("prov-groq-lbl").style.borderColor   = !isGemini ? "var(--primary)" : "var(--border)";
-  document.getElementById("prov-groq-lbl").style.background    = !isGemini ? "rgba(45,91,227,.04)" : "";
-  document.getElementById("prov-gemini-lbl").style.borderColor = isGemini ? "var(--primary)" : "var(--border)";
-  document.getElementById("prov-gemini-lbl").style.background  = isGemini ? "rgba(45,91,227,.04)" : "";
-  const provRadio = document.querySelector(`input[name="ai-provider"][value="${prov}"]`);
-  if(provRadio) provRadio.checked = true;
-};
+// switchProvider видалено — провайдер обирається per-feature
 
 function highlightFeatProv(feat, prov){
   ["groq","gemini"].forEach(p=>{
@@ -897,12 +887,11 @@ async function loadAISettings(){
     const snap = await get(ref(db,"settings/ai"));
     if(!snap.exists()) return;
     const s = snap.val();
-    // Провайдер
-    const prov = s.provider || "groq";
-    switchProvider(prov);
-    // Ключі
-    if(s.groqApiKey){ const el=document.getElementById("ai-groq-key"); if(el) el.value=s.groqApiKey; }
-    if(s.geminiApiKey){ const el=document.getElementById("ai-gemini-key"); if(el) el.value=s.geminiApiKey; }
+    // Ключі — підтримка старих і нових полів
+    const gk = document.getElementById("ai-groq-key");
+    if(gk) gk.value = s.groqApiKey || s.apiKey || "";
+    const gemk = document.getElementById("ai-gemini-key");
+    if(gemk) gemk.value = s.geminiApiKey || "";
     // Моделі
     if(s.groqModel){ const r=document.querySelector(`input[name="ai-groq-model"][value="${s.groqModel}"]`); if(r) r.checked=true; }
     if(s.geminiModel){ const r=document.querySelector(`input[name="ai-gemini-model"][value="${s.geminiModel}"]`); if(r) r.checked=true; }
