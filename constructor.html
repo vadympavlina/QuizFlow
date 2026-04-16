@@ -438,12 +438,18 @@
 <div class="modal-overlay" id="aiModal">
   <div class="modal-box" style="max-width:520px">
     <button class="modal-close-btn" onclick="document.getElementById('aiModal').classList.remove('open')">×</button>
-    <div style="font-size:28px;margin-bottom:10px">✦</div>
-    <div class="modal-title">AI Генерація питань</div>
-    <div class="modal-sub" id="ai-modal-sub-text">Groq AI створить питання за вашими параметрами</div>
-    <div id="ai-provider-badge" style="display:inline-flex;align-items:center;gap:6px;margin:8px 0 4px;padding:5px 12px;border-radius:20px;background:rgba(45,91,227,.07);border:1.5px solid rgba(45,91,227,.15);font-size:12px;font-weight:600;color:var(--primary)">
-      <span id="ai-provider-icon">⚡</span>
-      <span id="ai-provider-name">Groq · llama-3.3-70b</span>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <span style="font-size:20px">✦</span>
+          <div class="modal-title" style="margin:0">AI Генерація питань</div>
+        </div>
+        <div class="modal-sub" style="margin:0">Створить питання за вашими параметрами</div>
+      </div>
+      <div id="ai-provider-badge" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;background:rgba(45,91,227,.07);border:1.5px solid rgba(45,91,227,.15);font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap;flex-shrink:0;margin-top:2px">
+        <span id="ai-provider-icon">⚡</span>
+        <span id="ai-provider-name">Groq</span>
+      </div>
     </div>
 
     <div class="setting-field" style="margin-bottom:14px">
