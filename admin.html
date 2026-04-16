@@ -289,7 +289,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
         </button>
       </div>
 
-      <!-- ── API КЛЮЧІ: два провайдери поруч ─────────────────────────── -->
+      <!-- Два провайдери паралельно -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
 
         <!-- Groq -->
@@ -301,7 +301,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
               <a href="https://console.groq.com/keys" target="_blank" style="font-size:11px;color:var(--primary);text-decoration:none">console.groq.com</a>
             </div>
           </div>
-
           <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:7px">API Ключ</div>
           <div style="position:relative;margin-bottom:14px">
             <input type="password" id="ai-groq-key" placeholder="gsk_..." class="fi" autocomplete="new-password" style="font-family:monospace;font-size:13px;padding-right:44px">
@@ -309,18 +308,17 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
               <svg id="eye-groq" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
           </div>
-
           <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Модель</div>
           <div style="display:flex;flex-direction:column;gap:5px">
-            <label style="display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:10px;border:1.5px solid var(--primary);background:rgba(45,91,227,.03);cursor:pointer">
+            <label class="model-lbl" style="display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:10px;border:1.5px solid var(--primary);background:rgba(45,91,227,.03);cursor:pointer">
               <input type="radio" name="ai-groq-model" value="llama-3.3-70b-versatile" checked style="margin-top:2px;accent-color:var(--primary)">
               <div><div style="font-weight:600;font-size:12px">llama-3.3-70b-versatile</div><div style="font-size:11px;color:var(--muted)">Найточніша · рекомендована</div></div>
             </label>
-            <label style="display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer">
+            <label class="model-lbl" style="display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer">
               <input type="radio" name="ai-groq-model" value="llama-3.1-8b-instant" style="margin-top:2px;accent-color:var(--primary)">
               <div><div style="font-weight:600;font-size:12px">llama-3.1-8b-instant</div><div style="font-size:11px;color:var(--muted)">Швидша · економніша</div></div>
             </label>
-            <label style="display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer">
+            <label class="model-lbl" style="display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer">
               <input type="radio" name="ai-groq-model" value="mixtral-8x7b-32768" style="margin-top:2px;accent-color:var(--primary)">
               <div><div style="font-weight:600;font-size:12px">mixtral-8x7b-32768</div><div style="font-size:11px;color:var(--muted)">Великий контекст</div></div>
             </label>
@@ -336,7 +334,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
               <a href="https://aistudio.google.com/apikey" target="_blank" style="font-size:11px;color:var(--primary);text-decoration:none">aistudio.google.com</a>
             </div>
           </div>
-
           <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:7px">API Ключ</div>
           <div style="position:relative;margin-bottom:14px">
             <input type="password" id="ai-gemini-key" placeholder="AIza..." class="fi" autocomplete="new-password" style="font-family:monospace;font-size:13px;padding-right:44px">
@@ -344,18 +341,17 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
               <svg id="eye-gemini" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
           </div>
-
           <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Модель</div>
           <div style="display:flex;flex-direction:column;gap:5px">
-            <label style="display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:10px;border:1.5px solid var(--primary);background:rgba(45,91,227,.03);cursor:pointer">
+            <label class="model-lbl" style="display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:10px;border:1.5px solid var(--primary);background:rgba(45,91,227,.03);cursor:pointer">
               <input type="radio" name="ai-gemini-model" value="gemini-2.5-flash" checked style="margin-top:2px;accent-color:var(--primary)">
               <div><div style="font-weight:600;font-size:12px">gemini-2.5-flash</div><div style="font-size:11px;color:var(--muted)">Найшвидша · рекомендована</div></div>
             </label>
-            <label style="display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer">
+            <label class="model-lbl" style="display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer">
               <input type="radio" name="ai-gemini-model" value="gemini-2.5-flash-lite" style="margin-top:2px;accent-color:var(--primary)">
               <div><div style="font-weight:600;font-size:12px">gemini-2.5-flash-lite</div><div style="font-size:11px;color:var(--muted)">Легша · швидша</div></div>
             </label>
-            <label style="display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer">
+            <label class="model-lbl" style="display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer">
               <input type="radio" name="ai-gemini-model" value="gemini-1.5-pro" style="margin-top:2px;accent-color:var(--primary)">
               <div><div style="font-weight:600;font-size:12px">gemini-1.5-pro</div><div style="font-size:11px;color:var(--muted)">Найточніша · більший контекст</div></div>
             </label>
@@ -364,103 +360,74 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 
       </div>
 
-      <!-- ── ФУНКЦІЇ: увімк/вимк + провайдер ─────────────────────────── -->
+      <!-- Функції: toggle + провайдер -->
       <div class="card" style="padding:24px">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
-          <div style="width:42px;height:42px;border-radius:12px;background:rgba(45,91,227,.08);display:flex;align-items:center;justify-content:center;font-size:20px">⚙️</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+          <div style="width:40px;height:40px;border-radius:12px;background:rgba(45,91,227,.08);display:flex;align-items:center;justify-content:center;font-size:19px">⚙️</div>
           <div>
-            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px">Функції AI</div>
-            <div style="font-size:13px;color:var(--muted)">Увімк/Вимк та вибір провайдера для кожної функції</div>
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">Функції AI</div>
+            <div style="font-size:12px;color:var(--muted)">Увімк/Вимк та провайдер для кожної функції</div>
           </div>
         </div>
-
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
 
-          <!-- Коментар студентам -->
-          <div style="padding:16px;border:1.5px solid var(--border);border-radius:14px;display:flex;flex-direction:column;gap:12px">
-            <div style="display:flex;align-items:center;justify-content:space-between">
-              <div style="display:flex;align-items:center;gap:10px">
-                <div style="width:36px;height:36px;border-radius:10px;background:rgba(45,91,227,.08);display:flex;align-items:center;justify-content:center;font-size:16px">💬</div>
-                <div>
-                  <div style="font-weight:600;font-size:13px">Коментар студентам</div>
-                  <div style="font-size:11px;color:var(--muted)">Після проходження тесту</div>
-                </div>
+          <!-- 💬 Коментар -->
+          <div style="padding:14px;border:1.5px solid var(--border);border-radius:13px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div style="display:flex;align-items:center;gap:9px">
+                <div style="width:32px;height:32px;border-radius:9px;background:rgba(45,91,227,.08);display:flex;align-items:center;justify-content:center;font-size:14px">💬</div>
+                <div><div style="font-weight:600;font-size:13px">Коментар студентам</div><div style="font-size:11px;color:var(--muted)">Після проходження тесту</div></div>
               </div>
               <label class="toggle-sw"><input type="checkbox" id="ai-comments" checked><span class="toggle-sl"></span></label>
             </div>
             <div style="display:flex;gap:6px">
-              <label id="feat-comments-groq-lbl" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:9px;border:1.5px solid var(--primary);background:rgba(45,91,227,.05);cursor:pointer;font-size:12px;font-weight:600;color:var(--primary)">
-                <input type="radio" name="feat-comments-prov" value="groq" checked style="display:none" onchange="highlightFeatProv('comments','groq')"> ⚡ Groq
-              </label>
-              <label id="feat-comments-gemini-lbl" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:9px;border:1.5px solid var(--border);cursor:pointer;font-size:12px;font-weight:600;color:var(--muted)">
-                <input type="radio" name="feat-comments-prov" value="gemini" style="display:none" onchange="highlightFeatProv('comments','gemini')"> ✨ Gemini
-              </label>
+              <button id="fp-comments-groq" onclick="setFeatProv('comments','groq')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--primary);background:rgba(45,91,227,.07);color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">⚡ Groq</button>
+              <button id="fp-comments-gemini" onclick="setFeatProv('comments','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">✨ Gemini</button>
             </div>
           </div>
 
-          <!-- Персональний розбір -->
-          <div style="padding:16px;border:1.5px solid var(--border);border-radius:14px;display:flex;flex-direction:column;gap:12px">
-            <div style="display:flex;align-items:center;justify-content:space-between">
-              <div style="display:flex;align-items:center;gap:10px">
-                <div style="width:36px;height:36px;border-radius:10px;background:rgba(147,51,234,.08);display:flex;align-items:center;justify-content:center;font-size:16px">🔍</div>
-                <div>
-                  <div style="font-weight:600;font-size:13px">Персональний розбір</div>
-                  <div style="font-size:11px;color:var(--muted)">Аналіз помилок студента</div>
-                </div>
+          <!-- 🔍 Розбір -->
+          <div style="padding:14px;border:1.5px solid var(--border);border-radius:13px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div style="display:flex;align-items:center;gap:9px">
+                <div style="width:32px;height:32px;border-radius:9px;background:rgba(147,51,234,.08);display:flex;align-items:center;justify-content:center;font-size:14px">🔍</div>
+                <div><div style="font-weight:600;font-size:13px">Персональний розбір</div><div style="font-size:11px;color:var(--muted)">Аналіз помилок студента</div></div>
               </div>
               <label class="toggle-sw"><input type="checkbox" id="ai-analysis" checked><span class="toggle-sl"></span></label>
             </div>
             <div style="display:flex;gap:6px">
-              <label id="feat-analysis-groq-lbl" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:9px;border:1.5px solid var(--primary);background:rgba(45,91,227,.05);cursor:pointer;font-size:12px;font-weight:600;color:var(--primary)">
-                <input type="radio" name="feat-analysis-prov" value="groq" checked style="display:none" onchange="highlightFeatProv('analysis','groq')"> ⚡ Groq
-              </label>
-              <label id="feat-analysis-gemini-lbl" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:9px;border:1.5px solid var(--border);cursor:pointer;font-size:12px;font-weight:600;color:var(--muted)">
-                <input type="radio" name="feat-analysis-prov" value="gemini" style="display:none" onchange="highlightFeatProv('analysis','gemini')"> ✨ Gemini
-              </label>
+              <button id="fp-analysis-groq" onclick="setFeatProv('analysis','groq')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--primary);background:rgba(45,91,227,.07);color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">⚡ Groq</button>
+              <button id="fp-analysis-gemini" onclick="setFeatProv('analysis','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">✨ Gemini</button>
             </div>
           </div>
 
-          <!-- Генерація питань -->
-          <div style="padding:16px;border:1.5px solid var(--border);border-radius:14px;display:flex;flex-direction:column;gap:12px">
-            <div style="display:flex;align-items:center;justify-content:space-between">
-              <div style="display:flex;align-items:center;gap:10px">
-                <div style="width:36px;height:36px;border-radius:10px;background:rgba(245,158,11,.08);display:flex;align-items:center;justify-content:center;font-size:16px">⚡</div>
-                <div>
-                  <div style="font-weight:600;font-size:13px">Генерація питань</div>
-                  <div style="font-size:11px;color:var(--muted)">AI в конструкторі тестів</div>
-                </div>
+          <!-- ⚡ Генерація -->
+          <div style="padding:14px;border:1.5px solid var(--border);border-radius:13px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div style="display:flex;align-items:center;gap:9px">
+                <div style="width:32px;height:32px;border-radius:9px;background:rgba(245,158,11,.08);display:flex;align-items:center;justify-content:center;font-size:14px">⚡</div>
+                <div><div style="font-weight:600;font-size:13px">Генерація питань</div><div style="font-size:11px;color:var(--muted)">AI в конструкторі тестів</div></div>
               </div>
               <label class="toggle-sw"><input type="checkbox" id="ai-generation" checked><span class="toggle-sl"></span></label>
             </div>
             <div style="display:flex;gap:6px">
-              <label id="feat-generation-groq-lbl" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:9px;border:1.5px solid var(--primary);background:rgba(45,91,227,.05);cursor:pointer;font-size:12px;font-weight:600;color:var(--primary)">
-                <input type="radio" name="feat-generation-prov" value="groq" checked style="display:none" onchange="highlightFeatProv('generation','groq')"> ⚡ Groq
-              </label>
-              <label id="feat-generation-gemini-lbl" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:9px;border:1.5px solid var(--border);cursor:pointer;font-size:12px;font-weight:600;color:var(--muted)">
-                <input type="radio" name="feat-generation-prov" value="gemini" style="display:none" onchange="highlightFeatProv('generation','gemini')"> ✨ Gemini
-              </label>
+              <button id="fp-generation-groq" onclick="setFeatProv('generation','groq')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--primary);background:rgba(45,91,227,.07);color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">⚡ Groq</button>
+              <button id="fp-generation-gemini" onclick="setFeatProv('generation','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">✨ Gemini</button>
             </div>
           </div>
 
-          <!-- Перевірка тексту -->
-          <div style="padding:16px;border:1.5px solid var(--border);border-radius:14px;display:flex;flex-direction:column;gap:12px">
-            <div style="display:flex;align-items:center;justify-content:space-between">
-              <div style="display:flex;align-items:center;gap:10px">
-                <div style="width:36px;height:36px;border-radius:10px;background:rgba(13,158,133,.08);display:flex;align-items:center;justify-content:center;font-size:16px">📝</div>
-                <div>
-                  <div style="font-weight:600;font-size:13px">Перевірка тексту</div>
-                  <div style="font-size:11px;color:var(--muted)">AI оцінка відповідей</div>
-                </div>
+          <!-- 📝 Перевірка -->
+          <div style="padding:14px;border:1.5px solid var(--border);border-radius:13px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div style="display:flex;align-items:center;gap:9px">
+                <div style="width:32px;height:32px;border-radius:9px;background:rgba(13,158,133,.08);display:flex;align-items:center;justify-content:center;font-size:14px">📝</div>
+                <div><div style="font-weight:600;font-size:13px">Перевірка тексту</div><div style="font-size:11px;color:var(--muted)">AI оцінка відповідей</div></div>
               </div>
               <label class="toggle-sw"><input type="checkbox" id="ai-textcheck" checked><span class="toggle-sl"></span></label>
             </div>
             <div style="display:flex;gap:6px">
-              <label id="feat-textcheck-groq-lbl" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:9px;border:1.5px solid var(--primary);background:rgba(45,91,227,.05);cursor:pointer;font-size:12px;font-weight:600;color:var(--primary)">
-                <input type="radio" name="feat-textcheck-prov" value="groq" checked style="display:none" onchange="highlightFeatProv('textcheck','groq')"> ⚡ Groq
-              </label>
-              <label id="feat-textcheck-gemini-lbl" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:9px;border:1.5px solid var(--border);cursor:pointer;font-size:12px;font-weight:600;color:var(--muted)">
-                <input type="radio" name="feat-textcheck-prov" value="gemini" style="display:none" onchange="highlightFeatProv('textcheck','gemini')"> ✨ Gemini
-              </label>
+              <button id="fp-textcheck-groq" onclick="setFeatProv('textcheck','groq')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--primary);background:rgba(45,91,227,.07);color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">⚡ Groq</button>
+              <button id="fp-textcheck-gemini" onclick="setFeatProv('textcheck','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">✨ Gemini</button>
             </div>
           </div>
 
@@ -468,9 +435,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
       </div>
 
       <div style="margin-top:10px;font-size:11px;color:var(--muted);opacity:.7">⚠️ Ключі зберігаються у Firebase — переконайтесь що правила бази захищені</div>
-
-      <!-- Статус -->
-      <div id="ai-status" style="margin-top:16px;display:none"></div>
+      <div id="ai-status" style="margin-top:14px;display:none"></div>
     </div>
     <!-- NEWS -->
     <div class="sec" id="sec-news">
@@ -788,9 +753,8 @@ window.createTeacher = async () => {
   if(_users.some(u=>u.login===login)){ errEl.textContent="Цей логін вже зайнятий"; return; }
   errEl.textContent="";
   _newPass = genPass();
-  // Генеруємо повністю випадковий uid без логіну
-  const uid = "u" + Date.now().toString(36) + Math.random().toString(36).slice(2,10);
   try{
+    const uid="u"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
     await set(ref(db,`users/${uid}`),{name,login,uid,role,password:_newPass,isFirstLogin:true,createdAt:Date.now()});
     document.getElementById("created-pass").textContent = _newPass;
     document.getElementById("created-box").style.display = "";
@@ -859,20 +823,19 @@ let _tt;
 function toast(msg){ const e=document.getElementById("toast"); e.textContent=msg; e.classList.add("show"); clearTimeout(_tt); _tt=setTimeout(()=>e.classList.remove("show"),3000); }
 
 // ─── AI Settings ─────────────────────────────────────────────────────────────
-// switchProvider видалено — провайдер обирається per-feature
+const _featProvs = {comments:"groq", analysis:"groq", generation:"groq", textcheck:"groq"};
 
-function highlightFeatProv(feat, prov){
+window.setFeatProv = function(feat, prov){
+  _featProvs[feat] = prov;
   ["groq","gemini"].forEach(p=>{
-    const lbl=document.getElementById("feat-"+feat+"-"+p+"-lbl");
-    if(!lbl) return;
-    const active=p===prov;
-    lbl.style.borderColor=active?"var(--primary)":"var(--border)";
-    lbl.style.background=active?"rgba(45,91,227,.05)":"";
-    lbl.style.color=active?"var(--primary)":"var(--muted)";
-    const r=lbl.querySelector("input[type=radio]");
-    if(r) r.checked=active;
+    const btn = document.getElementById("fp-"+feat+"-"+p);
+    if(!btn) return;
+    const active = p === prov;
+    btn.style.borderColor = active ? "var(--primary)" : "var(--border)";
+    btn.style.background  = active ? "rgba(45,91,227,.07)" : "none";
+    btn.style.color       = active ? "var(--primary)" : "var(--muted)";
   });
-}
+};
 
 function highlightModels(){
   document.querySelectorAll(".model-lbl").forEach(lbl=>{
@@ -887,7 +850,7 @@ async function loadAISettings(){
     const snap = await get(ref(db,"settings/ai"));
     if(!snap.exists()) return;
     const s = snap.val();
-    // Ключі — підтримка старих і нових полів
+    // Ключі (підтримка старого поля apiKey)
     const gk = document.getElementById("ai-groq-key");
     if(gk) gk.value = s.groqApiKey || s.apiKey || "";
     const gemk = document.getElementById("ai-gemini-key");
@@ -897,25 +860,17 @@ async function loadAISettings(){
     if(s.geminiModel){ const r=document.querySelector(`input[name="ai-gemini-model"][value="${s.geminiModel}"]`); if(r) r.checked=true; }
     highlightModels();
     // Тогли
-    const toggles = {
-      "ai-comments": s.aiComments!==false,
-      "ai-analysis": s.aiAnalysis!==false,
-      "ai-generation":s.aiGeneration!==false,
-      "ai-textcheck":s.aiTextCheck!==false
-    };
-    Object.entries(toggles).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.checked=val; });
-    // Завантаження провайдерів per feature
+    const tmap = {"ai-comments":s.aiComments,"ai-analysis":s.aiAnalysis,"ai-generation":s.aiGeneration,"ai-textcheck":s.aiTextCheck};
+    Object.entries(tmap).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.checked=val!==false; });
+    // Провайдери per feature
     const fp = s.featProviders || {};
     ["comments","analysis","generation","textcheck"].forEach(feat=>{
-      const prov = fp[feat] || "groq";
-      const r = document.querySelector(`input[name="feat-${feat}-prov"][value="${prov}"]`);
-      if(r){ r.checked=true; highlightFeatProv(feat,prov); }
+      setFeatProv(feat, fp[feat] || "groq");
     });
   }catch(e){ console.warn("Load AI settings:", e.message); }
 }
 
 window.saveAISettings = async () => {
-  const provider = "groq"; // провайдер визначається per-feature
   const groqKey    = document.getElementById("ai-groq-key")?.value.trim();
   const geminiKey  = document.getElementById("ai-gemini-key")?.value.trim();
   const groqModel  = document.querySelector('input[name="ai-groq-model"]:checked')?.value || "llama-3.3-70b-versatile";
@@ -924,22 +879,18 @@ window.saveAISettings = async () => {
   const analysis   = document.getElementById("ai-analysis")?.checked;
   const generation = document.getElementById("ai-generation")?.checked;
   const textcheck  = document.getElementById("ai-textcheck")?.checked;
-  // Провайдер per feature
-  const pComments  = document.querySelector('input[name="feat-comments-prov"]:checked')?.value || "groq";
-  const pAnalysis  = document.querySelector('input[name="feat-analysis-prov"]:checked')?.value || "groq";
-  const pGeneration= document.querySelector('input[name="feat-generation-prov"]:checked')?.value || "groq";
-  const pTextcheck = document.querySelector('input[name="feat-textcheck-prov"]:checked')?.value || "groq";
 
-  // Хоча б один ключ має бути заповнений
-  if(!groqKey && !geminiKey){ toast("Введіть хоча б один API ключ","err"); return; }
+  if(!groqKey && !geminiKey){ toast("Введіть хоча б один API ключ"); return; }
 
   try{
     await update(ref(db,"settings/ai"),{
-      provider, groqApiKey:groqKey||"", geminiApiKey:geminiKey||"",
+      groqApiKey:groqKey||"", geminiApiKey:geminiKey||"",
       groqModel, geminiModel,
+      // Зворотна сумісність
       apiKey: groqKey||geminiKey||"", model: groqModel,
+      provider: groqKey ? "groq" : "gemini",
       aiComments:comments, aiAnalysis:analysis, aiGeneration:generation, aiTextCheck:textcheck,
-      featProviders:{ comments:pComments, analysis:pAnalysis, generation:pGeneration, textcheck:pTextcheck },
+      featProviders:{..._featProvs},
       updatedAt: Date.now()
     });
     const status=document.getElementById("ai-status");
@@ -962,7 +913,6 @@ window.toggleKeyVisibility = (inputId, iconId) => {
     : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
 };
 
-// Підсвічування вибраної моделі
 document.querySelectorAll('.model-lbl input').forEach(r=>{
   r.addEventListener("change", highlightModels);
 });
