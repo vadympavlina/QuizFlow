@@ -220,6 +220,41 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
   }
   .mobile-menu-btn svg { width: 18px; height: 18px; color: var(--text); }
 
+
+
+  /* ─── TEACHERS TOOLBAR ─────────────────────────────────────────────── */
+  .tc-fb {
+    padding: 8px 14px;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .tc-fb:hover { color: var(--text); }
+  .tc-fb.on {
+    background: white;
+    color: var(--text);
+    box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  }
+  .tc-del-btn:hover {
+    background: rgba(127,29,29,.15) !important;
+    border-color: rgba(127,29,29,.35) !important;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
+
+  /* Мобільна — toolbar вертикально */
+  @media (max-width: 600px) {
+    .tc-toolbar { flex-direction: column; align-items: stretch !important; }
+    .tc-filter-btns { overflow-x: auto; }
+    .tc-fb { flex-shrink: 0; padding: 7px 12px; font-size: 12px; }
+  }
+
 </style>
 </head>
 <body>
@@ -328,12 +363,30 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
     <!-- TEACHERS -->
     <div class="sec" id="sec-teachers">
       <div class="ph">
-        <div><div class="pt">Викладачі</div><div class="ps">Управління акаунтами</div></div>
+        <div><div class="pt">Викладачі</div><div class="ps">Управління акаунтами <span id="tc-count" style="color:var(--primary);font-weight:600"></span></div></div>
         <button class="btn bp" onclick="openCreateModal()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Новий викладач
         </button>
       </div>
+
+      <!-- Панель фільтрів -->
+      <div class="tc-toolbar" style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center">
+        <div style="position:relative;flex:1;min-width:220px">
+          <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" id="tc-search" placeholder="Пошук за ім\'ям або логіном..." oninput="renderTeachers()"
+            class="fi" style="padding-left:42px">
+        </div>
+        <div class="tc-filter-btns" style="display:flex;gap:6px;background:var(--bg);padding:4px;border-radius:12px;border:1.5px solid var(--border)">
+          <button class="tc-fb on" data-filter="all" onclick="setTeacherFilter(\'all\')">Всі</button>
+          <button class="tc-fb" data-filter="active" onclick="setTeacherFilter(\'active\')">Активні</button>
+          <button class="tc-fb" data-filter="blocked" onclick="setTeacherFilter(\'blocked\')">Заблоковані</button>
+          <button class="tc-fb" data-filter="first" onclick="setTeacherFilter(\'first\')">Перший вхід</button>
+        </div>
+      </div>
+
       <div class="teacher-grid" id="teacher-grid">
         <div class="empty"><div class="spin" style="margin:0 auto 16px"></div></div>
       </div>
@@ -647,6 +700,49 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
+<!-- DELETE TEACHER MODAL -->
+<div class="mo" id="m-delete">
+  <div class="mb" style="max-width:440px;text-align:left;padding:32px 30px">
+    <button class="mcl" onclick="closeModal('m-delete')">×</button>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+      <div style="width:52px;height:52px;border-radius:15px;background:linear-gradient(135deg,rgba(220,38,38,.12),rgba(127,29,29,.08));display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;border:1.5px solid rgba(220,38,38,.22)">🗑️</div>
+      <div>
+        <div class="mtl" style="margin-bottom:3px">Видалити викладача?</div>
+        <div style="font-size:13px;color:var(--muted)">Ця дія незворотна</div>
+      </div>
+    </div>
+
+    <div style="background:rgba(220,38,38,.05);border:1.5px solid rgba(220,38,38,.2);border-radius:14px;padding:14px 16px;margin-bottom:16px">
+      <div style="font-size:13px;color:var(--text);margin-bottom:4px">
+        Буде остаточно видалено акаунт <strong id="del-name"></strong>
+        <span style="font-family:monospace;color:var(--muted);font-size:12px">(@<span id="del-login"></span>)</span>
+      </div>
+      <div style="font-size:12px;color:#be123c;margin-top:10px;line-height:1.6">
+        ⚠️ <strong>Буде видалено:</strong><br>
+        • Акаунт користувача<br>
+        • Всі тести цього викладача<br>
+        • Всі спроби, студенти, посилання, папки<br>
+        • Індивідуальні AI налаштування
+      </div>
+    </div>
+
+    <div class="fl">
+      <label>Для підтвердження введіть логін <strong id="del-login-confirm" style="color:var(--text);font-family:monospace"></strong></label>
+      <input class="fi" id="del-confirm-inp" placeholder="Введіть логін..." autocomplete="off" oninput="checkDeleteConfirm()">
+    </div>
+
+    <div id="del-err" style="color:#be123c;font-size:13px;min-height:16px;margin-bottom:8px"></div>
+
+    <div style="display:flex;gap:10px">
+      <button class="btn bs" onclick="closeModal('m-delete')" style="flex:1">Скасувати</button>
+      <button id="del-confirm-btn" onclick="confirmDeleteTeacher()" disabled
+        style="flex:1;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#dc2626,#7f1d1d);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;opacity:.5;transition:all .2s">
+        🗑 Видалити назавжди
+      </button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script type="module">
@@ -742,23 +838,72 @@ function renderOverview(){
 }
 
 // ─── Teachers grid ────────────────────────────────────────────────────────────
+let _teacherFilter = "all";
+
+window.setTeacherFilter = function(f){
+  _teacherFilter = f;
+  document.querySelectorAll(".tc-fb").forEach(b=>b.classList.toggle("on", b.dataset.filter===f));
+  renderTeachers();
+};
+
 function renderTeachers(){
   const grid = document.getElementById("teacher-grid");
-  if(!_users.length){ grid.innerHTML=`<div class="empty"><div class="empty-icon">👤</div><div class="empty-text">Немає викладачів</div></div>`; return; }
+  const searchEl = document.getElementById("tc-search");
+  const search = searchEl ? searchEl.value.trim().toLowerCase() : "";
 
-  grid.innerHTML = _users.map(u => {
+  let list = [..._users];
+
+  // Фільтр за статусом
+  if(_teacherFilter === "active")       list = list.filter(u=>!u.blocked && !u.isFirstLogin);
+  else if(_teacherFilter === "blocked") list = list.filter(u=>u.blocked===true);
+  else if(_teacherFilter === "first")   list = list.filter(u=>u.isFirstLogin===true && !u.blocked);
+
+  // Пошук
+  if(search){
+    list = list.filter(u=>
+      (u.name||"").toLowerCase().includes(search) ||
+      (u.login||"").toLowerCase().includes(search)
+    );
+  }
+
+  // Сортування: активні першими, потім перший вхід, потім заблоковані
+  list.sort((a,b)=>{
+    const aw = a.blocked ? 2 : (a.isFirstLogin ? 1 : 0);
+    const bw = b.blocked ? 2 : (b.isFirstLogin ? 1 : 0);
+    if(aw !== bw) return aw - bw;
+    return (_stats[b.id]?.attempts||0) - (_stats[a.id]?.attempts||0);
+  });
+
+  // Лічильник
+  const cnt = document.getElementById("tc-count");
+  if(cnt) cnt.textContent = "· " + list.length + " з " + _users.length;
+
+  if(!list.length){
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div class="empty-text">Нічого не знайдено</div><div style="font-size:13px;margin-top:6px">Спробуйте інший пошуковий запит або фільтр</div></div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(u => {
     const s = _stats[u.id]||{};
     const isMe = u.id===_user.id;
     const isBlocked = u.blocked===true;
-    const roleLabel = u.role==="admin" ? `<span class="bdg bg-r" style="font-size:11px">Адмін</span>` : `<span class="bdg bg-b" style="font-size:11px">Викладач</span>`;
-    const statusLabel = isBlocked ? `<span class="bdg bg-r" style="font-size:11px">Заблоковано</span>`
-      : u.isFirstLogin ? `<span class="bdg bg-a" style="font-size:11px">Перший вхід</span>`
-      : `<span class="bdg bg-g" style="font-size:11px">Активний</span>`;
+    const isFirst = u.isFirstLogin===true;
+    const roleLabel = u.role==="admin"
+      ? `<span class="bdg" style="background:rgba(220,38,38,.12);color:#dc2626;font-size:10px;padding:2px 8px">Адмін</span>`
+      : `<span class="bdg" style="background:rgba(45,91,227,.1);color:var(--primary);font-size:10px;padding:2px 8px">Викладач</span>`;
+    const statusDot = isBlocked
+      ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#fca5a5"><span style="width:6px;height:6px;border-radius:50%;background:#fca5a5"></span>Заблоковано</span>`
+      : isFirst
+      ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#fbbf24"><span style="width:6px;height:6px;border-radius:50%;background:#fbbf24;animation:pulse 2s infinite"></span>Перший вхід</span>`
+      : `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#86efac"><span style="width:6px;height:6px;border-radius:50%;background:#22c55e"></span>Активний</span>`;
+    const lastActStr = s.lastAct
+      ? new Date(s.lastAct).toLocaleDateString("uk-UA",{day:"numeric",month:"short"})
+      : "—";
     return `<div class="teacher-card${isBlocked?" blocked-card":""}">
       <div class="tc-head">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
           <div class="tc-ava">${esc(u.name||u.login).slice(0,2).toUpperCase()}</div>
-          <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">${roleLabel} ${statusLabel}</div>
+          <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end">${roleLabel}${statusDot}</div>
         </div>
         <div class="tc-name">${esc(u.name||"—")} ${isMe?'<span style="font-size:11px;color:rgba(255,255,255,.4)">(ви)</span>':''}</div>
         <div class="tc-login">@${esc(u.login)}</div>
@@ -769,11 +914,15 @@ function renderTeachers(){
           <div class="tc-stat"><div class="tc-stat-n" style="color:#f59e0b">${s.attempts||0}</div><div class="tc-stat-l">Спроб</div></div>
           <div class="tc-stat"><div class="tc-stat-n" style="color:#9333ea">${s.students||0}</div><div class="tc-stat-l">Студентів</div></div>
         </div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:12px;padding:8px 10px;background:var(--bg);border-radius:9px;display:flex;align-items:center;gap:6px">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Остання активність: <strong style="color:var(--text)">${lastActStr}</strong>
+        </div>
         <div class="tc-actions">
-          ${!isMe?`<button class="btn bs btn-sm" onclick="openResetModal('${u.id}','${esc(u.name||u.login)}')">🔑 Пароль</button>`:""}
-          ${!isMe?`<button class="btn btn-sm ${isBlocked?"bg":"bd"}" onclick="openBlockModal('${u.id}','${esc(u.name||u.login)}',${isBlocked})">${isBlocked?"✅ Розблокувати":"🚫 Заблокувати"}</button>`:""}
-          <button class="btn bs btn-sm" onclick="openAIModal('${u.id}','${esc(u.name||u.login)}')">✦ AI</button>
-          <button class="btn bs btn-sm" onclick="showSec('stats')">📊 Деталі</button>
+          <button class="btn bs btn-sm" onclick="openAIModal('${u.id}','${esc(u.name||u.login)}')" title="Налаштування AI">✦ AI</button>
+          ${!isMe?`<button class="btn bs btn-sm" onclick="openResetModal('${u.id}','${esc(u.name||u.login)}')" title="Скинути пароль">🔑</button>`:""}
+          ${!isMe?`<button class="btn btn-sm ${isBlocked?"bg":"bd"}" onclick="openBlockModal('${u.id}','${esc(u.name||u.login)}',${isBlocked})" title="${isBlocked?"Розблокувати":"Заблокувати"}">${isBlocked?"✅":"🚫"}</button>`:""}
+          ${!isMe?`<button class="btn btn-sm tc-del-btn" onclick="openDeleteTeacher('${u.id}','${esc(u.name||u.login)}','${esc(u.login)}')" title="Видалити повністю" style="background:rgba(127,29,29,.08);border:1.5px solid rgba(127,29,29,.22);color:#7f1d1d">🗑</button>`:""}
         </div>
       </div>
     </div>`;
@@ -887,6 +1036,54 @@ window.doToggleBlock = async () => {
     toast(_blockCurrent?"Розблоковано ✅":"Заблоковано 🚫");
   }catch(e){ toast("Помилка: "+e.message); }
 };
+
+// ─── Delete teacher (ПОВНЕ видалення) ────────────────────────────────────────
+let _delUid = "", _delLogin = "";
+
+window.openDeleteTeacher = (uid, name, login) => {
+  _delUid = uid; _delLogin = login;
+  document.getElementById("del-name").textContent = name;
+  document.getElementById("del-login").textContent = login;
+  document.getElementById("del-login-confirm").textContent = login;
+  document.getElementById("del-confirm-inp").value = "";
+  document.getElementById("del-err").textContent = "";
+  const btn = document.getElementById("del-confirm-btn");
+  btn.disabled = true; btn.style.opacity = ".5";
+  openModal("m-delete");
+  setTimeout(()=>document.getElementById("del-confirm-inp").focus(), 100);
+};
+
+window.checkDeleteConfirm = () => {
+  const val = document.getElementById("del-confirm-inp").value.trim().toLowerCase();
+  const btn = document.getElementById("del-confirm-btn");
+  const match = val === _delLogin.toLowerCase();
+  btn.disabled = !match;
+  btn.style.opacity = match ? "1" : ".5";
+};
+
+window.confirmDeleteTeacher = async () => {
+  if(!_delUid) return;
+  const btn = document.getElementById("del-confirm-btn");
+  const errEl = document.getElementById("del-err");
+  btn.disabled = true;
+  btn.textContent = "⏳ Видалення...";
+  try{
+    // Видаляємо ВСЕ пов\'язане з викладачем
+    await Promise.all([
+      remove(ref(db, `users/${_delUid}`)),
+      remove(ref(db, `teachers/${_delUid}`))
+    ]);
+    closeModal("m-delete");
+    _delUid = ""; _delLogin = "";
+    await loadAll();
+    toast("Викладача та всі його дані видалено ✅");
+  }catch(e){
+    errEl.textContent = "Помилка: " + e.message;
+    btn.disabled = false;
+    btn.textContent = "🗑 Видалити назавжди";
+  }
+};
+
 
 // ─── Modals ───────────────────────────────────────────────────────────────────
 function openModal(id){ document.getElementById(id).classList.add("on"); }
