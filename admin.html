@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23dc2626'/><stop offset='1' stop-color='%237f1d1d'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><path d='M16 6 L24 9 L24 16 C24 20.5 20.5 24 16 26 C11.5 24 8 20.5 8 16 L8 9 Z' fill='white' opacity='0.95'/><path d='M12.5 16 L15 18.5 L19.5 14' fill='none' stroke='%237f1d1d' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/></svg>">
 <title>QuizFlow — Адмін</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--primary:#dc2626;--primary-d:#7f1d1d;--rose:#f43f5e;--teal:#0d9e85;--amber:#f59e0b;--purple:#9333ea;--text:#1a0508;--muted:#6b7280;--light:#9ca3af;--border:#efe0e0;--bg:#fdf8f8;--card:#fff;--grad:linear-gradient(135deg,#dc2626,#7f1d1d)}
+:root{--primary:#2d5be3;--primary-d:#1a3ab8;--rose:#f43f5e;--teal:#0d9e85;--amber:#f59e0b;--purple:#9333ea;--text:#0d1340;--muted:#6b7280;--light:#9ca3af;--border:#e5e8f0;--bg:#f0f3fa;--card:#fff;--grad:linear-gradient(135deg,#2d5be3,#1a3ab8)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -33,7 +33,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 .sb-sep{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,.22);font-weight:600;padding:0 10px;margin:16px 0 6px}
 .ni{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;cursor:pointer;color:rgba(255,255,255,.5);font-size:13.5px;font-weight:500;transition:all .15s;border:none;background:none;width:100%;text-align:left;text-decoration:none}
 .ni:hover{background:rgba(255,255,255,.07);color:#fff}
-.ni.on{background:rgba(220,38,38,.25);color:#93b4ff;border:1px solid rgba(220,38,38,.3)}
+.ni.on{background:rgba(45,91,227,.25);color:#93b4ff;border:1px solid rgba(45,91,227,.3)}
 .ni svg{width:16px;height:16px;flex-shrink:0;opacity:.75}
 .ni.on svg{opacity:1}
 .sb-foot{margin-top:auto;padding:14px 10px 0;border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px}
@@ -61,14 +61,14 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 .card-title{font-family:"Syne",sans-serif;font-weight:700;font-size:15px}
 /* Table */
 .tbl{width:100%;border-collapse:collapse}
-.tbl th{padding:10px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600;text-align:left;background:rgba(220,38,38,.02);border-bottom:1.5px solid var(--border)}
+.tbl th{padding:10px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600;text-align:left;background:rgba(45,91,227,.02);border-bottom:1.5px solid var(--border)}
 .tbl td{padding:14px 16px;font-size:14px;border-bottom:1px solid rgba(229,232,240,.6)}
 .tbl tbody tr:last-child td{border-bottom:none}
-.tbl tbody tr:hover td{background:rgba(220,38,38,.018)}
+.tbl tbody tr:hover td{background:rgba(45,91,227,.018)}
 /* Buttons */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:11px;font-family:"DM Sans",sans-serif;font-weight:600;font-size:14px;cursor:pointer;transition:all .15s;border:none;text-decoration:none}
-.bp{background:var(--grad);color:#fff;box-shadow:0 4px 14px rgba(220,38,38,.28)}
-.bp:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(220,38,38,.38)}
+.bp{background:var(--grad);color:#fff;box-shadow:0 4px 14px rgba(45,91,227,.28)}
+.bp:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(45,91,227,.38)}
 .bs{background:var(--card);border:1.5px solid var(--border);color:var(--text)}
 .bs:hover{border-color:var(--primary);color:var(--primary)}
 .bd{background:rgba(244,63,94,.07);border:1.5px solid rgba(244,63,94,.2);color:#be123c}
@@ -80,12 +80,12 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 .bdg{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap}
 .bg-g{background:rgba(13,158,133,.1);color:#0d9e85}
 .bg-r{background:rgba(244,63,94,.1);color:#be123c}
-.bg-b{background:rgba(220,38,38,.1);color:var(--primary)}
+.bg-b{background:rgba(45,91,227,.1);color:var(--primary)}
 .bg-a{background:rgba(245,158,11,.1);color:#b45309}
 /* Teacher card grid */
 .teacher-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
 .teacher-card{background:var(--card);border:1.5px solid var(--border);border-radius:18px;overflow:hidden;transition:all .2s}
-.teacher-card:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(0,0,0,.08);border-color:rgba(220,38,38,.2)}
+.teacher-card:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(0,0,0,.08);border-color:rgba(45,91,227,.2)}
 .teacher-card.blocked-card{opacity:.6;border-style:dashed}
 .tc-head{background:linear-gradient(135deg,#1e2d6b,#0d1340);padding:20px 20px 16px;position:relative;overflow:hidden}
 .tc-head::before{content:"";position:absolute;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.04);top:-50px;right:-40px}
@@ -109,7 +109,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 .fl{margin-bottom:14px}
 .fl label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:6px}
 .fi{width:100%;padding:12px 16px;border-radius:12px;border:1.5px solid var(--border);font-family:"DM Sans",sans-serif;font-size:14px;color:var(--text);outline:none;transition:all .2s;background:#fff}
-.fi:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(220,38,38,.08)}
+.fi:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(45,91,227,.08)}
 .pass-box{background:linear-gradient(135deg,rgba(13,158,133,.07),rgba(13,158,133,.03));border:1.5px solid rgba(13,158,133,.25);border-radius:14px;padding:18px 20px;margin-top:18px}
 .pass-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:#0d9e85;font-weight:700;margin-bottom:8px}
 .pass-val{font-family:monospace;font-size:24px;font-weight:700;color:var(--text);letter-spacing:3px;word-break:break-all}
@@ -119,7 +119,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 #toast.show{opacity:1}
 /* Loader */
 #loader{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
-.spin{width:40px;height:40px;border:3px solid rgba(220,38,38,.15);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+.spin{width:40px;height:40px;border:3px solid rgba(45,91,227,.15);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
 /* Toggle switch */
 .toggle-sw{position:relative;display:inline-block;width:50px;height:28px;flex-shrink:0;cursor:pointer}
 .toggle-sw input{opacity:0;width:0;height:0;position:absolute}
@@ -129,7 +129,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 .toggle-sw input:checked+.toggle-sl:before{transform:translateX(22px)}
 /* Feature row */
 .feat-row{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-radius:13px;border:1.5px solid var(--border);background:#fff;transition:all .2s}
-.feat-row:hover{border-color:rgba(220,38,38,.25);background:rgba(220,38,38,.015)}
+.feat-row:hover{border-color:rgba(45,91,227,.25);background:rgba(45,91,227,.015)}
 .feat-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;margin-right:12px}
 /* Empty state */
 .empty{text-align:center;padding:60px 20px;color:var(--muted)}
@@ -137,386 +137,107 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 .empty-text{font-family:"Syne",sans-serif;font-weight:600;font-size:16px;color:var(--text);margin-bottom:6px}
 
 
-  /* ─── ЧЕРВОНА АДМІН-ПАЛІТРА (для sidebar та акцентів) ──────────────────── */
-  .sidebar { background: linear-gradient(170deg, #1a0a10, #2b0b10) !important; }
-  .sb-tag { background: rgba(220,38,38,.22) !important; color: #fca5a5 !important; }
-  .sb-logo-icon { background: linear-gradient(135deg,#dc2626,#7f1d1d) !important; box-shadow: 0 6px 20px rgba(220,38,38,.35); }
-  .ni.on { background: rgba(220,38,38,.2) !important; color: #fca5a5 !important; border-color: rgba(220,38,38,.3) !important; }
-  .ava { background: linear-gradient(135deg,#dc2626,#7f1d1d) !important; }
-  .sidebar.collapsed .ni[data-tip]:hover::after { background: #7f1d1d !important; }
-  .sidebar.collapsed .ni[data-tip]:hover::before { border-right-color: #7f1d1d !important; }
+  /* ═══ ADAPTATION: Dashboard (ov-stats) та Stats ═══════════════════════════ */
 
-  /* ─── MOBILE ADAPTATION ─────────────────────────────────────────────── */
-
-  /* Бургер-кнопка */
-  .mobile-menu-btn {
-    display: none;
-    width: 40px; height: 40px;
-    border-radius: 11px;
-    border: 1.5px solid var(--border);
-    background: white;
-    cursor: pointer;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    color: var(--text);
-    box-shadow: 0 2px 8px rgba(0,0,0,.04);
-  }
-  .mobile-menu-btn svg { width: 20px; height: 20px; }
-  .mobile-menu-btn:active { transform: scale(.94); }
-
-  .sidebar-backdrop {
-    position: fixed; inset: 0;
-    background: rgba(10,5,10,.55);
-    backdrop-filter: blur(4px);
-    z-index: 998;
-    display: none;
-    animation: fadeIn .2s ease;
-  }
-  .sidebar-backdrop.on { display: block; }
-
-  /* ─ ПЛАНШЕТ і менше (< 900px) ─ */
+  /* < 900px: KPI сітка з 4 у 2×2 */
   @media (max-width: 900px) {
-    /* Sidebar → висувна панель */
-    .sidebar {
-      position: fixed; top: 0; left: -280px; bottom: 0;
-      width: 280px; z-index: 999;
-      transition: left .28s cubic-bezier(.4,0,.2,1);
-      padding: 20px 14px;
+    .sg {
+      grid-template-columns: 1fr 1fr !important;
+      gap: 10px !important;
+      margin-bottom: 18px !important;
     }
-    .sidebar.mobile-open { left: 0; box-shadow: 6px 0 40px rgba(0,0,0,.35); }
-    .sidebar.collapsed { width: 280px; }
-    .sidebar.collapsed .sb-logo-name,
-    .sidebar.collapsed .sb-tag,
-    .sidebar.collapsed .ni-label,
-    .sidebar.collapsed .sb-sep,
-    .sidebar.collapsed .sb-uname,
-    .sidebar.collapsed .sb-urole { display: block !important; }
-    .sidebar.collapsed .ni { justify-content: flex-start; padding: 11px 14px; gap: 12px; }
-    .sidebar.collapsed .sb-logo { justify-content: flex-start; padding: 4px 10px 24px; }
-    .sidebar.collapsed .sb-foot { justify-content: flex-start; gap: 10px; padding: 14px 10px 0; }
-    .sidebar.collapsed .ava { margin: 0; }
-    #adm-toggle, #adm-toggle-collapsed { display: none !important; }
-    .ni { font-size: 14.5px; padding: 12px 14px; }
-    .ni svg { width: 18px; height: 18px; }
+    .sc { padding: 16px !important; }
+    .sn { font-size: 30px !important; letter-spacing: -1px !important; }
 
-    .main, .adm-collapsed-main { margin-left: 0 !important; padding: 14px !important; }
-    .mobile-menu-btn { display: inline-flex !important; }
-
-    /* Page header — бургер+заголовок+кнопка в ряд */
-    .ph {
-      flex-direction: row !important;
-      align-items: center !important;
-      gap: 12px;
-      margin-bottom: 20px !important;
+    /* Таблиці (Dashboard і Stats) — горизонтальний скрол */
+    #sec-overview .card,
+    #sec-stats .card {
+      overflow: hidden;
     }
-    .ph > div:first-child { flex: 1; min-width: 0; }
-    .pt { font-size: 19px !important; letter-spacing: -.3px; }
-    .ps { font-size: 12px !important; margin-top: 1px; }
-    .ph > .btn, .ph > div:last-child > .btn {
-      width: auto; padding: 9px 14px; font-size: 13px;
-    }
-    .ph .btn span, .ph .btn svg + * { display: inline; }
-
-    /* KPI — 2×2 сітка, компактніше */
-    .sg { grid-template-columns: 1fr 1fr !important; gap: 10px; margin-bottom: 18px; }
-    .sc { padding: 14px !important; border-radius: 14px !important; }
-    .si { width: 32px !important; height: 32px !important; margin-bottom: 10px !important; }
-    .si svg { width: 15px; height: 15px; }
-    .sn { font-size: 26px !important; margin-bottom: 2px !important; letter-spacing: -1px !important; }
-    .sl { font-size: 10px !important; }
-    .sc-sub { font-size: 10px !important; margin-top: 3px !important; }
-
-    /* Overview split → 1 колонка */
-    .ov-split { grid-template-columns: 1fr !important; gap: 12px !important; }
-
-    /* Картки */
-    .card { border-radius: 14px; }
-    .card-head { padding: 14px 16px !important; }
-    .card-head .card-title { font-size: 14px; }
-    .card > .tbl { font-size: 12px; }
-
-    /* Таблиці — горизонтальний скрол */
-    .tbl-wrap, .card > div[style*="overflow-x:auto"] {
+    #sec-overview .card > table,
+    #sec-stats .card > table {
+      display: block;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
+      max-width: 100%;
     }
-    .tbl th, .tbl td { padding: 10px 10px !important; white-space: nowrap; }
-    .tbl th { font-size: 10px !important; }
-
-    /* Викладачі — картки 1 в ряд */
-    .teacher-grid { grid-template-columns: 1fr !important; gap: 12px; }
-    .teacher-card { border-radius: 16px; }
-    .tc-head { padding: 16px 18px 14px !important; }
-    .tc-ava { width: 46px !important; height: 46px !important; font-size: 16px !important; border-radius: 12px !important; }
-    .tc-name { font-size: 15px !important; }
-    .tc-login { font-size: 11px; }
-    .tc-body { padding: 14px 18px !important; }
-    .tc-stats { gap: 6px; margin-bottom: 12px; }
-    .tc-stat { padding: 8px !important; border-radius: 9px; }
-    .tc-stat-n { font-size: 17px !important; }
-    .tc-stat-l { font-size: 9px !important; letter-spacing: .3px; }
-    .tc-actions { gap: 6px; }
-    .tc-actions .btn-sm { padding: 6px 10px; font-size: 12px; }
-
-    /* Toolbar (пошук + фільтри) */
-    .tc-toolbar { gap: 8px !important; margin-bottom: 14px !important; }
-    .tc-toolbar > div:first-child { width: 100%; }
-    .tc-filter-btns { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .tc-fb { flex: 0 0 auto; padding: 7px 12px; font-size: 12px; }
-
-    /* AI Налаштування — 1 колонка */
-    .ai-providers-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
-    .ai-features-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
-    .card[style*="padding:22px"], .card[style*="padding:24px"] { padding: 18px !important; }
-    .feat-row { padding: 10px 12px !important; }
-
-    /* Інпути — iOS не зумить */
-    input, select, textarea { font-size: 16px !important; }
-    .fi { padding: 11px 14px; }
-
-    /* Модалки */
-    .mb { padding: 22px 18px !important; margin: 10px; border-radius: 18px !important; }
-    .mcl { top: 12px; right: 12px; width: 28px; height: 28px; }
-    .mtl { font-size: 17px !important; }
-
-    /* Toast */
-    #toast { bottom: 20px; left: 10px; right: 10px; transform: none; white-space: normal; text-align: center; }
-    #toast.show { transform: none; }
-
-    /* Графік активності */
-    #ov-chart { height: 100px !important; }
-    #ov-chart-labels span { font-size: 9px; }
+    #sec-overview .tbl thead,
+    #sec-stats .tbl thead,
+    #sec-overview .tbl tbody,
+    #sec-stats .tbl tbody {
+      display: table;
+      width: 100%;
+      min-width: 600px;
+    }
+    #sec-stats .tbl thead,
+    #sec-stats .tbl tbody { min-width: 780px; }
+    .tbl th { white-space: nowrap; }
+    .tbl td { white-space: nowrap; }
   }
 
-  /* ─ ТЕЛЕФОН (< 560px) ─ */
+  /* < 560px: KPI картки компактніші, але все ще 2 колонки */
   @media (max-width: 560px) {
-    .main { padding: 10px !important; }
+    .sg { gap: 8px !important; }
+    .sc { padding: 14px 12px !important; border-radius: 14px !important; }
+    .si { width: 32px !important; height: 32px !important; margin-bottom: 10px !important; }
+    .sn { font-size: 26px !important; letter-spacing: -.8px !important; }
+    .sl { font-size: 10px !important; letter-spacing: .3px !important; }
 
-    /* KPI — 2×2 дуже компактно */
-    .sg { gap: 8px; }
-    .sc { padding: 12px !important; border-radius: 12px !important; }
-    .sn { font-size: 24px !important; }
+    /* Заголовки сторінок */
+    #sec-overview .pt,
+    #sec-stats .pt { font-size: 20px !important; }
+    #sec-overview .ps,
+    #sec-stats .ps { font-size: 12px !important; }
 
-    /* Заголовки */
-    .pt { font-size: 17px !important; }
-    .ps { font-size: 11px !important; }
-    .ph .btn { padding: 8px 12px; font-size: 12px; }
-    .ph .btn svg { width: 12px; height: 12px; }
+    /* Кнопки в шапці */
+    #sec-overview .ph .btn,
+    #sec-stats .ph .btn { padding: 9px 12px; font-size: 13px; }
+    #sec-overview .ph,
+    #sec-stats .ph {
+      flex-wrap: wrap;
+      gap: 10px;
+    }
 
-    /* Картки викладачів — компактніше */
-    .tc-head { padding: 14px 16px 12px !important; }
-    .tc-body { padding: 12px 16px !important; }
-    .tc-stats { grid-template-columns: repeat(3,1fr); gap: 5px; }
-    .tc-stat { padding: 7px 4px !important; }
-    .tc-stat-n { font-size: 15px !important; }
-    .tc-stat-l { font-size: 8px !important; }
-    .tc-actions { gap: 5px; }
-    .tc-actions .btn-sm { padding: 6px 9px; font-size: 11.5px; min-width: 34px; }
+    /* Card head */
+    #sec-overview .card-head,
+    #sec-stats .card-head { padding: 13px 14px !important; }
+    #sec-overview .card-title,
+    #sec-stats .card-title { font-size: 14px !important; }
+    #sec-overview .card-head .btn-sm,
+    #sec-stats .card-head .btn-sm { padding: 5px 10px; font-size: 12px; }
 
-    /* Таблиці */
-    .tbl th, .tbl td { padding: 8px 8px !important; font-size: 11px; }
-
-    /* Feature rows у налаштуваннях */
-    .feat-icon { width: 28px !important; height: 28px !important; font-size: 13px !important; margin-right: 9px !important; }
-
-    /* Модалки */
-    .mb { padding: 20px 16px !important; border-radius: 16px !important; margin: 6px; }
-    .mtl { font-size: 16px !important; }
-    .fl label { font-size: 10px; }
-
-    /* Графік */
-    #ov-chart { height: 90px !important; gap: 4px !important; }
-    .ov-bar-val { font-size: 10px; top: -18px; }
-
-    /* Поле пошуку overview */
-    #ov-teach-search { width: 100% !important; }
-
-    /* Статус-розподіл */
-    .ov-stat-label { min-width: 80px !important; font-size: 12px !important; }
-    .ov-stat-val { font-size: 13px !important; }
+    /* Комірки таблиці компактніше */
+    #sec-overview .tbl td,
+    #sec-stats .tbl td { padding: 11px 10px !important; font-size: 13px; }
+    #sec-overview .tbl th,
+    #sec-stats .tbl th { padding: 9px 10px !important; font-size: 10px !important; }
   }
 
-  /* ─ ДУЖЕ МАЛИЙ (< 380px) ─ */
-  @media (max-width: 380px) {
+  /* < 400px: KPI в одну колонку — щоб числа було добре видно */
+  @media (max-width: 400px) {
     .sg { grid-template-columns: 1fr !important; }
-    .sn { font-size: 28px !important; }
-    .tc-actions .btn-sm { font-size: 11px; padding: 5px 7px; }
+    .sc { padding: 14px 16px !important; }
+    .sn { font-size: 30px !important; }
   }
-
-
-
-
-  /* ─── TEACHERS TOOLBAR ─────────────────────────────────────────────── */
-  .tc-fb {
-    padding: 8px 14px;
-    border-radius: 9px;
-    border: none;
-    background: transparent;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all .15s;
-    white-space: nowrap;
-  }
-  .tc-fb:hover { color: var(--text); }
-  .tc-fb.on {
-    background: white;
-    color: var(--text);
-    box-shadow: 0 2px 6px rgba(0,0,0,.06);
-  }
-  .tc-del-btn:hover {
-    background: rgba(127,29,29,.15) !important;
-    border-color: rgba(127,29,29,.35) !important;
-  }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
-
-
-
-  /* ─── OVERVIEW ENHANCEMENTS ─────────────────────────────────────────── */
-  .sc { position: relative; }
-  .sc-sub {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 5px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .sc-sub strong { color: var(--primary); font-weight: 700; }
-  .sc-sub.pos { color: #0d9e85; }
-  .sc-sub.pos strong { color: #0d9e85; }
-
-  /* Графік 7 днів */
-  .ov-bar {
-    flex: 1;
-    background: linear-gradient(180deg, rgba(220,38,38,.7), rgba(220,38,38,.35));
-    border-radius: 7px 7px 4px 4px;
-    min-height: 4px;
-    transition: all .3s cubic-bezier(.34,1.56,.64,1);
-    position: relative;
-    cursor: pointer;
-  }
-  .ov-bar:hover { background: linear-gradient(180deg, rgba(220,38,38,.95), rgba(220,38,38,.5)); }
-  .ov-bar.today { background: linear-gradient(180deg, #dc2626, #7f1d1d); }
-  .ov-bar-val {
-    position: absolute;
-    top: -22px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--text);
-    opacity: 0;
-    transition: opacity .15s;
-  }
-  .ov-bar:hover .ov-bar-val { opacity: 1; }
-  #ov-chart-labels span {
-    flex: 1;
-    text-align: center;
-    font-size: 10px;
-    color: var(--muted);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .3px;
-  }
-  #ov-chart-labels span.today { color: var(--primary); }
-
-  /* Розподіл статусів */
-  .ov-stat-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .ov-stat-label {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    min-width: 120px;
-    font-size: 13px;
-    font-weight: 500;
-  }
-  .ov-stat-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-  .ov-stat-bar-wrap {
-    flex: 1;
-    height: 10px;
-    background: var(--bg);
-    border-radius: 5px;
-    overflow: hidden;
-  }
-  .ov-stat-bar {
-    height: 100%;
-    border-radius: 5px;
-    transition: width .5s cubic-bezier(.34,1.56,.64,1);
-  }
-  .ov-stat-val {
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    min-width: 28px;
-    text-align: right;
-  }
-
-  /* Топ викладачів */
-  .ov-top-item {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(239,224,224,.6);
-  }
-  .ov-top-item:last-child { border-bottom: none; }
-  .ov-top-rank {
-    width: 26px; height: 26px;
-    border-radius: 8px;
-    background: var(--bg);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 12px;
-    flex-shrink: 0;
-  }
-  .ov-top-rank.gold { background: linear-gradient(135deg,#fbbf24,#f59e0b); color: #fff; }
-  .ov-top-rank.silver { background: linear-gradient(135deg,#e5e7eb,#9ca3af); color: #fff; }
-  .ov-top-rank.bronze { background: linear-gradient(135deg,#fb923c,#c2410c); color: #fff; }
-  .ov-top-name { flex: 1; font-size: 13px; font-weight: 600; min-width: 0; }
-  .ov-top-name small { display: block; font-weight: 400; color: var(--muted); font-size: 11px; font-family: monospace; }
-  .ov-top-val {
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 800;
-    font-size: 16px;
-    color: var(--primary);
-  }
-
-  /* Останні спроби */
-  .ov-recent-item {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(239,224,224,.6);
-  }
-  .ov-recent-item:last-child { border-bottom: none; }
-  .ov-recent-ava {
-    width: 30px; height: 30px;
-    border-radius: 9px;
-    background: var(--grad);
-    color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif; font-weight: 700;
-    font-size: 11px;
-    flex-shrink: 0;
-  }
-  .ov-recent-info { flex: 1; min-width: 0; }
-  .ov-recent-tname { font-size: 13px; font-weight: 600; }
-  .ov-recent-meta { font-size: 11px; color: var(--muted); margin-top: 1px; }
-  .ov-recent-time { font-size: 11px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
 
 </style>
 </head>
 <body>
+<!-- MOBILE OVERLAY -->
+<div id="mobile-overlay" style="display:none;position:fixed;inset:0;background:#0d1340;z-index:9999;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center">
+  <div style="width:64px;height:64px;background:linear-gradient(135deg,#2d5be3,#1a3ab8);border-radius:18px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:28px;color:#fff;margin-bottom:28px;box-shadow:0 8px 28px rgba(45,91,227,.4)">Q</div>
+  <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:#fff;margin-bottom:12px;line-height:1.3">Мобільна версія недоступна</div>
+  <div style="font-size:15px;color:rgba(255,255,255,.55);line-height:1.7;max-width:280px">Для зручної роботи з QuizFlow використовуйте комп'ютер або ноутбук</div>
+  <div style="margin-top:32px;display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.25);font-size:13px">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    Мінімальна ширина: 1024px
+  </div>
+</div>
+<style>
+@media(max-width:1023px){
+  #mobile-overlay{display:flex!important}
+  body > *:not(#mobile-overlay){display:none!important}
+}
 </style>
 
 
@@ -569,7 +290,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
     </button>
 
     <div class="sb-sep">Аккаунт</div>
-    <a class="ni" data-tip="Дашборд (новий таб)" href="index.html" target="_blank" rel="noopener">
+    <a class="ni" data-tip="Дашборд" href="index.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       <span class="ni-label">Дашборд</span>
     </a>
@@ -587,139 +308,42 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
     </div>
   </aside>
 
-  <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeMobileSidebar()"></div>
   <main class="main">
-    <!-- Мобільний бургер -->
-    <button class="mobile-menu-btn" onclick="openMobileSidebar()" aria-label="Меню">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
 
     <!-- OVERVIEW -->
     <div class="sec on" id="sec-overview">
       <div class="ph">
         <div><div class="pt" id="ov-greeting">Адмін-панель</div><div class="ps">Загальний огляд платформи</div></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn bs btn-sm" onclick="loadAll()" title="Оновити">↻</button>
-          <button class="btn bp" onclick="showSec('teachers');document.getElementById('ni-teachers').click();openCreateModal()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Новий викладач
-          </button>
-        </div>
+        <button class="btn bp" onclick="showSec('teachers');document.getElementById('ni-teachers').click();openCreateModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Новий викладач
+        </button>
       </div>
-
-      <!-- KPI картки -->
       <div class="sg" id="ov-stats">
-        <div class="sc">
-          <div class="si" style="background:rgba(220,38,38,.08)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
-          <div class="sn" style="color:var(--primary)" id="ov-t">—</div>
-          <div class="sl">Викладачів</div>
-          <div class="sc-sub" id="ov-t-sub">—</div>
-        </div>
-        <div class="sc">
-          <div class="si" style="background:rgba(13,158,133,.08)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0d9e85" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-          <div class="sn" style="color:#0d9e85" id="ov-ts">—</div>
-          <div class="sl">Тестів</div>
-          <div class="sc-sub" id="ov-ts-sub">—</div>
-        </div>
-        <div class="sc">
-          <div class="si" style="background:rgba(245,158,11,.08)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
-          <div class="sn" style="color:#f59e0b" id="ov-s">—</div>
-          <div class="sl">Студентів</div>
-          <div class="sc-sub">унікальних</div>
-        </div>
-        <div class="sc">
-          <div class="si" style="background:rgba(147,51,234,.08)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9333ea" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-          <div class="sn" style="color:#9333ea" id="ov-a">—</div>
-          <div class="sl">Спроб</div>
-          <div class="sc-sub" id="ov-a-sub">—</div>
-        </div>
+        <div class="sc"><div class="si" style="background:rgba(45,91,227,.08)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2d5be3" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="sn" style="color:var(--primary)" id="ov-t">—</div><div class="sl">Викладачів</div></div>
+        <div class="sc"><div class="si" style="background:rgba(13,158,133,.08)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0d9e85" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="sn" style="color:#0d9e85" id="ov-ts">—</div><div class="sl">Тестів</div></div>
+        <div class="sc"><div class="si" style="background:rgba(245,158,11,.08)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="sn" style="color:#f59e0b" id="ov-s">—</div><div class="sl">Студентів</div></div>
+        <div class="sc"><div class="si" style="background:rgba(147,51,234,.08)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9333ea" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="sn" style="color:#9333ea" id="ov-a">—</div><div class="sl">Спроб</div></div>
       </div>
-
-      <!-- Два рядки карток: Інсайти + Топ викладачів -->
-      <div class="ov-split" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-
-        <!-- Активність за 7 днів -->
-        <div class="card" style="padding:22px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-            <div>
-              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">Активність за 7 днів</div>
-              <div style="font-size:12px;color:var(--muted);margin-top:2px">Спроби студентів</div>
-            </div>
-            <div id="ov-week-total" style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:22px;color:var(--primary)">0</div>
-          </div>
-          <div id="ov-chart" style="display:flex;align-items:flex-end;gap:6px;height:120px;padding:0 4px"></div>
-          <div id="ov-chart-labels" style="display:flex;justify-content:space-between;margin-top:8px;padding:0 4px"></div>
-        </div>
-
-        <!-- Розподіл статусів -->
-        <div class="card" style="padding:22px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-            <div>
-              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">Стан викладачів</div>
-              <div style="font-size:12px;color:var(--muted);margin-top:2px">Розподіл по статусах</div>
-            </div>
-          </div>
-          <div id="ov-status-chart" style="display:flex;flex-direction:column;gap:14px"></div>
-        </div>
-
-      </div>
-
-      <!-- Таблиця статистики по викладачах -->
       <div class="card">
         <div class="card-head">
-          <div class="card-title">📊 Статистика викладачів</div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <input type="text" id="ov-teach-search" placeholder="Пошук..." oninput="renderOverviewTable()"
-              class="fi" style="padding:7px 12px;font-size:13px;width:180px;height:34px">
-            <button class="btn bs btn-sm" onclick="showSec('teachers')">Всі →</button>
-          </div>
+          <div class="card-title">Активність викладачів</div>
+          <button class="btn bs btn-sm" onclick="showSec('teachers')">Всі →</button>
         </div>
-        <div style="overflow-x:auto">
-          <table class="tbl">
-            <thead>
-              <tr>
-                <th style="cursor:pointer" onclick="sortOverviewBy('name')">Викладач <span id="sort-name"></span></th>
-                <th style="cursor:pointer" onclick="sortOverviewBy('tests')">Тестів <span id="sort-tests"></span></th>
-                <th style="cursor:pointer" onclick="sortOverviewBy('activeTests')">Активних <span id="sort-activeTests"></span></th>
-                <th style="cursor:pointer" onclick="sortOverviewBy('students')">Студентів <span id="sort-students"></span></th>
-                <th style="cursor:pointer" onclick="sortOverviewBy('attempts')">Спроб <span id="sort-attempts"></span></th>
-                <th style="cursor:pointer" onclick="sortOverviewBy('weekAttempts')">За тиждень <span id="sort-weekAttempts"></span></th>
-                <th style="cursor:pointer" onclick="sortOverviewBy('lastAct')">Активність <span id="sort-lastAct"></span></th>
-              </tr>
-            </thead>
-            <tbody id="ov-table"></tbody>
-          </table>
-        </div>
+        <table class="tbl"><thead><tr><th>Викладач</th><th>Тестів</th><th>Спроб</th><th>Студентів</th><th>Статус</th></tr></thead>
+        <tbody id="ov-table"></tbody></table>
       </div>
     </div>
 
     <!-- TEACHERS -->
     <div class="sec" id="sec-teachers">
       <div class="ph">
-        <div><div class="pt">Викладачі</div><div class="ps">Управління акаунтами <span id="tc-count" style="color:var(--primary);font-weight:600"></span></div></div>
+        <div><div class="pt">Викладачі</div><div class="ps">Управління акаунтами</div></div>
         <button class="btn bp" onclick="openCreateModal()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Новий викладач
         </button>
       </div>
-
-      <!-- Панель фільтрів -->
-      <div class="tc-toolbar" style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center">
-        <div style="position:relative;flex:1;min-width:220px">
-          <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input type="text" id="tc-search" placeholder="Пошук за іменем або логіном..." oninput="renderTeachers()"
-            class="fi" style="padding-left:42px">
-        </div>
-        <div class="tc-filter-btns" style="display:flex;gap:6px;background:var(--bg);padding:4px;border-radius:12px;border:1.5px solid var(--border)">
-          <button class="tc-fb on" data-filter="all" onclick="setTeacherFilter('all')">Всі</button>
-          <button class="tc-fb" data-filter="active" onclick="setTeacherFilter('active')">Активні</button>
-          <button class="tc-fb" data-filter="blocked" onclick="setTeacherFilter('blocked')">Заблоковані</button>
-          <button class="tc-fb" data-filter="first" onclick="setTeacherFilter('first')">Перший вхід</button>
-        </div>
-      </div>
-
       <div class="teacher-grid" id="teacher-grid">
         <div class="empty"><div class="spin" style="margin:0 auto 16px"></div></div>
       </div>
@@ -743,160 +367,137 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
     <!-- SETTINGS -->
     <div class="sec" id="sec-settings">
       <div class="ph">
-        <div><div class="pt">Налаштування AI</div><div class="ps">API ключі, моделі та функції</div></div>
+        <div><div class="pt">Налаштування AI</div><div class="ps">Groq API та параметри штучного інтелекту</div></div>
         <button class="btn bp" onclick="saveAISettings()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           Зберегти
         </button>
       </div>
 
-      <!-- Два провайдери паралельно -->
-      <div class="ai-providers-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
 
-        <!-- Groq -->
-        <div class="card" style="padding:22px">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-            <div style="width:38px;height:38px;border-radius:11px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center;font-size:18px">⚡</div>
+        <!-- Провайдер + API ключі + Моделі -->
+        <div class="card" style="padding:24px;grid-column:1/-1">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+            <div style="width:42px;height:42px;border-radius:12px;background:rgba(45,91,227,.08);display:flex;align-items:center;justify-content:center;font-size:20px">🤖</div>
             <div>
-              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">Groq</div>
-              <a href="https://console.groq.com/keys" target="_blank" style="font-size:11px;color:var(--primary);text-decoration:none">console.groq.com</a>
+              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px">AI Провайдер</div>
+              <div style="font-size:13px;color:var(--muted)">Оберіть сервіс, вставте ключ і модель</div>
             </div>
           </div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:7px">API Ключ</div>
-          <div style="position:relative;margin-bottom:14px">
-            <input type="password" id="ai-groq-key" placeholder="gsk_..." class="fi" autocomplete="new-password" style="font-family:monospace;font-size:13px;padding-right:44px">
-            <button onclick="toggleKeyVisibility('ai-groq-key','eye-groq')" style="position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted)">
-              <svg id="eye-groq" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
-          </div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Модель</div>
-          <div style="display:flex;flex-direction:column;gap:5px">
-            <label class="model-lbl" style="display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:10px;border:1.5px solid var(--primary);background:rgba(220,38,38,.03);cursor:pointer">
-              <input type="radio" name="ai-groq-model" value="llama-3.3-70b-versatile" checked style="margin-top:2px;accent-color:var(--primary)">
-              <div><div style="font-weight:600;font-size:12px">llama-3.3-70b-versatile</div><div style="font-size:11px;color:var(--muted)">Найточніша · рекомендована</div></div>
-            </label>
-            <label class="model-lbl" style="display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer">
-              <input type="radio" name="ai-groq-model" value="llama-3.1-8b-instant" style="margin-top:2px;accent-color:var(--primary)">
-              <div><div style="font-weight:600;font-size:12px">llama-3.1-8b-instant</div><div style="font-size:11px;color:var(--muted)">Швидша · економніша</div></div>
-            </label>
-            <label class="model-lbl" style="display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer">
-              <input type="radio" name="ai-groq-model" value="mixtral-8x7b-32768" style="margin-top:2px;accent-color:var(--primary)">
-              <div><div style="font-weight:600;font-size:12px">mixtral-8x7b-32768</div><div style="font-size:11px;color:var(--muted)">Великий контекст</div></div>
-            </label>
-          </div>
-        </div>
 
-        <!-- Gemini -->
-        <div class="card" style="padding:22px">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-            <div style="width:38px;height:38px;border-radius:11px;background:rgba(13,158,133,.1);display:flex;align-items:center;justify-content:center;font-size:18px">✨</div>
-            <div>
-              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">Google Gemini</div>
-              <a href="https://aistudio.google.com/apikey" target="_blank" style="font-size:11px;color:var(--primary);text-decoration:none">aistudio.google.com</a>
+          <!-- Вибір провайдера -->
+          <div style="display:flex;gap:10px;margin-bottom:20px">
+            <label id="prov-groq-lbl" onclick="switchProvider('groq')" style="flex:1;display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--primary);background:rgba(45,91,227,.04);cursor:pointer">
+              <input type="radio" name="ai-provider" value="groq" checked style="accent-color:var(--primary)">
+              <div>
+                <div style="font-weight:700;font-size:14px">Groq</div>
+                <div style="font-size:11px;color:var(--muted)">console.groq.com</div>
+              </div>
+            </label>
+            <label id="prov-gemini-lbl" onclick="switchProvider('gemini')" style="flex:1;display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer">
+              <input type="radio" name="ai-provider" value="gemini" style="accent-color:var(--primary)">
+              <div>
+                <div style="font-weight:700;font-size:14px">Google AI Studio</div>
+                <div style="font-size:11px;color:var(--muted)">aistudio.google.com</div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Groq блок -->
+          <div id="groq-block">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Groq API Ключ</div>
+            <div style="position:relative;margin-bottom:12px">
+              <input type="password" id="ai-groq-key" placeholder="gsk_..." class="fi" autocomplete="new-password" style="font-family:monospace;font-size:14px;padding-right:48px">
+              <button onclick="toggleKeyVisibility('ai-groq-key','eye-groq')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted)">
+                <svg id="eye-groq" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Модель Groq</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <label class="model-lbl" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--primary);background:rgba(45,91,227,.03);cursor:pointer">
+                <input type="radio" name="ai-groq-model" value="llama-3.3-70b-versatile" checked style="margin-top:2px;accent-color:var(--primary)">
+                <div><div style="font-weight:600;font-size:13px">llama-3.3-70b-versatile</div><div style="font-size:11px;color:var(--muted)">Найточніша · рекомендована</div></div>
+              </label>
+              <label class="model-lbl" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--border);cursor:pointer">
+                <input type="radio" name="ai-groq-model" value="llama-3.1-8b-instant" style="margin-top:2px;accent-color:var(--primary)">
+                <div><div style="font-weight:600;font-size:13px">llama-3.1-8b-instant</div><div style="font-size:11px;color:var(--muted)">Швидша · економніша</div></div>
+              </label>
+              <label class="model-lbl" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--border);cursor:pointer">
+                <input type="radio" name="ai-groq-model" value="mixtral-8x7b-32768" style="margin-top:2px;accent-color:var(--primary)">
+                <div><div style="font-weight:600;font-size:13px">mixtral-8x7b-32768</div><div style="font-size:11px;color:var(--muted)">Великий контекст</div></div>
+              </label>
             </div>
           </div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:7px">API Ключ</div>
-          <div style="position:relative;margin-bottom:14px">
-            <input type="password" id="ai-gemini-key" placeholder="AIza..." class="fi" autocomplete="new-password" style="font-family:monospace;font-size:13px;padding-right:44px">
-            <button onclick="toggleKeyVisibility('ai-gemini-key','eye-gemini')" style="position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted)">
-              <svg id="eye-gemini" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
+
+          <!-- Gemini блок -->
+          <div id="gemini-block" style="display:none">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Google AI Studio API Ключ</div>
+            <div style="position:relative;margin-bottom:12px">
+              <input type="password" id="ai-gemini-key" placeholder="AIza..." class="fi" autocomplete="new-password" style="font-family:monospace;font-size:14px;padding-right:48px">
+              <button onclick="toggleKeyVisibility('ai-gemini-key','eye-gemini')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted)">
+                <svg id="eye-gemini" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div style="margin-bottom:12px;font-size:12px;color:var(--muted)">Отримати ключ: <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--primary)">aistudio.google.com/apikey</a></div>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Модель Gemini</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <label class="model-lbl" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--border);cursor:pointer">
+                <input type="radio" name="ai-gemini-model" value="gemini-2.5-flash" checked style="margin-top:2px;accent-color:var(--primary)">
+                <div><div style="font-weight:600;font-size:13px">gemini-2.5-flash</div><div style="font-size:11px;color:var(--muted)">Найшвидша · рекомендована</div></div>
+              </label>
+              <label class="model-lbl" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--border);cursor:pointer">
+                <input type="radio" name="ai-gemini-model" value="gemini-2.5-flash-lite" style="margin-top:2px;accent-color:var(--primary)">
+                <div><div style="font-weight:600;font-size:13px">gemini-2.5-flash-lite</div><div style="font-size:11px;color:var(--muted)">Легша · швидша</div></div>
+              </label>
+              <label class="model-lbl" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--border);cursor:pointer">
+                <input type="radio" name="ai-gemini-model" value="gemini-1.5-pro" style="margin-top:2px;accent-color:var(--primary)">
+                <div><div style="font-weight:600;font-size:13px">gemini-1.5-pro</div><div style="font-size:11px;color:var(--muted)">Найточніша · більший контекст</div></div>
+              </label>
+            </div>
           </div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Модель</div>
-          <div style="display:flex;flex-direction:column;gap:5px">
-            <label class="model-lbl" style="display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:10px;border:1.5px solid var(--primary);background:rgba(220,38,38,.03);cursor:pointer">
-              <input type="radio" name="ai-gemini-model" value="gemini-2.5-flash" checked style="margin-top:2px;accent-color:var(--primary)">
-              <div><div style="font-weight:600;font-size:12px">gemini-2.5-flash</div><div style="font-size:11px;color:var(--muted)">Найшвидша · рекомендована</div></div>
-            </label>
-            <label class="model-lbl" style="display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer">
-              <input type="radio" name="ai-gemini-model" value="gemini-2.5-flash-lite" style="margin-top:2px;accent-color:var(--primary)">
-              <div><div style="font-weight:600;font-size:12px">gemini-2.5-flash-lite</div><div style="font-size:11px;color:var(--muted)">Легша · швидша</div></div>
-            </label>
-            <label class="model-lbl" style="display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer">
-              <input type="radio" name="ai-gemini-model" value="gemini-1.5-pro" style="margin-top:2px;accent-color:var(--primary)">
-              <div><div style="font-weight:600;font-size:12px">gemini-1.5-pro</div><div style="font-size:11px;color:var(--muted)">Найточніша · більший контекст</div></div>
-            </label>
-          </div>
+
+          <div style="margin-top:14px;font-size:11px;color:var(--muted);opacity:.7">⚠️ Ключі зберігаються у Firebase — переконайтесь що правила бази захищені</div>
         </div>
 
-      </div>
-
-      <!-- Функції: toggle + провайдер -->
-      <div class="card" style="padding:24px">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
-          <div style="width:40px;height:40px;border-radius:12px;background:rgba(220,38,38,.08);display:flex;align-items:center;justify-content:center;font-size:19px">⚙️</div>
-          <div>
-            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">Функції AI</div>
-            <div style="font-size:12px;color:var(--muted)">Увімк/Вимк та провайдер для кожної функції</div>
+        <!-- Перемикачі -->
+        <div class="card" style="padding:24px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+            <div style="width:42px;height:42px;border-radius:12px;background:rgba(13,158,133,.08);display:flex;align-items:center;justify-content:center;font-size:20px">⚙️</div>
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px">Функції AI</div>
+              <div style="font-size:13px;color:var(--muted)">Вмк/Вимк окремі можливості</div>
+            </div>
           </div>
-        </div>
-        <div class="ai-features-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-
-          <!-- 💬 Коментар -->
-          <div style="padding:14px;border:1.5px solid var(--border);border-radius:13px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-              <div style="display:flex;align-items:center;gap:9px">
-                <div style="width:32px;height:32px;border-radius:9px;background:rgba(220,38,38,.08);display:flex;align-items:center;justify-content:center;font-size:14px">💬</div>
-                <div><div style="font-weight:600;font-size:13px">Коментар студентам</div><div style="font-size:11px;color:var(--muted)">Після проходження тесту</div></div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div class="feat-row">
+              <div style="display:flex;align-items:center">
+                <div class="feat-icon" style="background:rgba(45,91,227,.08)">💬</div>
+                <div><div style="font-weight:600;font-size:14px">AI коментарі студентам</div><div style="font-size:12px;color:var(--muted)">Коментар після проходження тесту</div></div>
               </div>
               <label class="toggle-sw"><input type="checkbox" id="ai-comments" checked><span class="toggle-sl"></span></label>
             </div>
-            <div style="display:flex;gap:6px">
-              <button id="fp-comments-groq" onclick="setFeatProv('comments','groq')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--primary);background:rgba(220,38,38,.07);color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">⚡ Groq</button>
-              <button id="fp-comments-gemini" onclick="setFeatProv('comments','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">✨ Gemini</button>
-            </div>
-          </div>
-
-          <!-- 🔍 Розбір -->
-          <div style="padding:14px;border:1.5px solid var(--border);border-radius:13px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-              <div style="display:flex;align-items:center;gap:9px">
-                <div style="width:32px;height:32px;border-radius:9px;background:rgba(147,51,234,.08);display:flex;align-items:center;justify-content:center;font-size:14px">🔍</div>
-                <div><div style="font-weight:600;font-size:13px">Персональний розбір</div><div style="font-size:11px;color:var(--muted)">Аналіз помилок студента</div></div>
-              </div>
-              <label class="toggle-sw"><input type="checkbox" id="ai-analysis" checked><span class="toggle-sl"></span></label>
-            </div>
-            <div style="display:flex;gap:6px">
-              <button id="fp-analysis-groq" onclick="setFeatProv('analysis','groq')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--primary);background:rgba(220,38,38,.07);color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">⚡ Groq</button>
-              <button id="fp-analysis-gemini" onclick="setFeatProv('analysis','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">✨ Gemini</button>
-            </div>
-          </div>
-
-          <!-- ⚡ Генерація -->
-          <div style="padding:14px;border:1.5px solid var(--border);border-radius:13px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-              <div style="display:flex;align-items:center;gap:9px">
-                <div style="width:32px;height:32px;border-radius:9px;background:rgba(245,158,11,.08);display:flex;align-items:center;justify-content:center;font-size:14px">⚡</div>
-                <div><div style="font-weight:600;font-size:13px">Генерація питань</div><div style="font-size:11px;color:var(--muted)">AI в конструкторі тестів</div></div>
+            <div class="feat-row">
+              <div style="display:flex;align-items:center">
+                <div class="feat-icon" style="background:rgba(245,158,11,.08)">⚡</div>
+                <div><div style="font-weight:600;font-size:14px">AI генерація питань</div><div style="font-size:12px;color:var(--muted)">В конструкторі тестів</div></div>
               </div>
               <label class="toggle-sw"><input type="checkbox" id="ai-generation" checked><span class="toggle-sl"></span></label>
             </div>
-            <div style="display:flex;gap:6px">
-              <button id="fp-generation-groq" onclick="setFeatProv('generation','groq')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--primary);background:rgba(220,38,38,.07);color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">⚡ Groq</button>
-              <button id="fp-generation-gemini" onclick="setFeatProv('generation','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">✨ Gemini</button>
-            </div>
-          </div>
-
-          <!-- 📝 Перевірка -->
-          <div style="padding:14px;border:1.5px solid var(--border);border-radius:13px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-              <div style="display:flex;align-items:center;gap:9px">
-                <div style="width:32px;height:32px;border-radius:9px;background:rgba(13,158,133,.08);display:flex;align-items:center;justify-content:center;font-size:14px">📝</div>
-                <div><div style="font-weight:600;font-size:13px">Перевірка тексту</div><div style="font-size:11px;color:var(--muted)">AI оцінка відповідей</div></div>
+            <div class="feat-row">
+              <div style="display:flex;align-items:center">
+                <div class="feat-icon" style="background:rgba(13,158,133,.08)">📝</div>
+                <div><div style="font-weight:600;font-size:14px">AI перевірка тексту</div><div style="font-size:12px;color:var(--muted)">Перевірка текстових відповідей</div></div>
               </div>
               <label class="toggle-sw"><input type="checkbox" id="ai-textcheck" checked><span class="toggle-sl"></span></label>
             </div>
-            <div style="display:flex;gap:6px">
-              <button id="fp-textcheck-groq" onclick="setFeatProv('textcheck','groq')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--primary);background:rgba(220,38,38,.07);color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">⚡ Groq</button>
-              <button id="fp-textcheck-gemini" onclick="setFeatProv('textcheck','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">✨ Gemini</button>
-            </div>
           </div>
-
         </div>
+
       </div>
 
-      <div style="margin-top:10px;font-size:11px;color:var(--muted);opacity:.7">⚠️ Ключі зберігаються у Firebase — переконайтесь що правила бази захищені</div>
-      <div id="ai-status" style="margin-top:14px;display:none"></div>
+      <!-- Статус -->
+      <div id="ai-status" style="margin-top:16px;display:none"></div>
     </div>
 
     <!-- NEWS -->
@@ -954,7 +555,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
       <button class="btn bs btn-sm" style="margin-top:10px;width:100%" onclick="copyPass('reset-pass')">📋 Скопіювати</button>
     </div>
     <div id="reset-actions" style="display:flex;flex-direction:column;gap:10px">
-      <button onclick="doResetPassword()" style="padding:14px;border-radius:13px;border:none;background:var(--grad);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 4px 14px rgba(220,38,38,.3)">🔑 Згенерувати новий пароль</button>
+      <button onclick="doResetPassword()" style="padding:14px;border-radius:13px;border:none;background:var(--grad);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 4px 14px rgba(45,91,227,.3)">🔑 Згенерувати новий пароль</button>
       <button onclick="closeModal('m-reset')" style="padding:12px;border-radius:13px;border:1.5px solid var(--border);background:transparent;font-size:14px;cursor:pointer;color:var(--muted)">Скасувати</button>
     </div>
   </div>
@@ -965,7 +566,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
   <div class="mb" style="max-width:480px">
     <button class="mcl" onclick="closeModal('m-ai')">×</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
-      <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,rgba(220,38,38,.12),rgba(220,38,38,.06));display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;border:1.5px solid rgba(220,38,38,.12)">✦</div>
+      <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,rgba(45,91,227,.12),rgba(45,91,227,.06));display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;border:1.5px solid rgba(45,91,227,.12)">✦</div>
       <div>
         <div class="mtl" style="margin-bottom:3px">AI налаштування</div>
         <div style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px">
@@ -984,7 +585,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
     <div style="display:flex;flex-direction:column;gap:9px" id="ai-modal-toggles">
       <div class="feat-row">
         <div style="display:flex;align-items:center">
-          <div class="feat-icon" style="background:rgba(220,38,38,.08)">💬</div>
+          <div class="feat-icon" style="background:rgba(45,91,227,.08)">💬</div>
           <div><div style="font-weight:600;font-size:14px">AI коментарі студентам</div><div style="font-size:12px;color:var(--muted);margin-top:1px">Коментар після проходження тесту</div></div>
         </div>
         <label class="toggle-sw"><input type="checkbox" id="t-ai-comments"><span class="toggle-sl"></span></label>
@@ -1014,7 +615,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 
     <div style="display:flex;gap:10px;margin-top:20px">
       <button onclick="resetTeacherAI()" style="flex:1;padding:11px 16px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;color:var(--muted);transition:all .15s" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">↩ До глобальних</button>
-      <button onclick="saveTeacherAI()" style="flex:1;padding:11px 16px;border-radius:12px;border:none;background:var(--grad);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(220,38,38,.28);transition:all .15s" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">Зберегти</button>
+      <button onclick="saveTeacherAI()" style="flex:1;padding:11px 16px;border-radius:12px;border:none;background:var(--grad);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(45,91,227,.28);transition:all .15s" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">Зберегти</button>
     </div>
   </div>
 </div>
@@ -1033,49 +634,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
-<!-- DELETE TEACHER MODAL -->
-<div class="mo" id="m-delete">
-  <div class="mb" style="max-width:440px;text-align:left;padding:32px 30px">
-    <button class="mcl" onclick="closeModal('m-delete')">×</button>
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <div style="width:52px;height:52px;border-radius:15px;background:linear-gradient(135deg,rgba(220,38,38,.12),rgba(127,29,29,.08));display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;border:1.5px solid rgba(220,38,38,.22)">🗑️</div>
-      <div>
-        <div class="mtl" style="margin-bottom:3px">Видалити викладача?</div>
-        <div style="font-size:13px;color:var(--muted)">Ця дія незворотна</div>
-      </div>
-    </div>
-
-    <div style="background:rgba(220,38,38,.05);border:1.5px solid rgba(220,38,38,.2);border-radius:14px;padding:14px 16px;margin-bottom:16px">
-      <div style="font-size:13px;color:var(--text);margin-bottom:4px">
-        Буде остаточно видалено акаунт <strong id="del-name"></strong>
-        <span style="font-family:monospace;color:var(--muted);font-size:12px">(@<span id="del-login"></span>)</span>
-      </div>
-      <div style="font-size:12px;color:#be123c;margin-top:10px;line-height:1.6">
-        ⚠️ <strong>Буде видалено:</strong><br>
-        • Акаунт користувача<br>
-        • Всі тести цього викладача<br>
-        • Всі спроби, студенти, посилання, папки<br>
-        • Індивідуальні AI налаштування
-      </div>
-    </div>
-
-    <div class="fl">
-      <label>Для підтвердження введіть логін <strong id="del-login-confirm" style="color:var(--text);font-family:monospace"></strong></label>
-      <input class="fi" id="del-confirm-inp" placeholder="Введіть логін..." autocomplete="off" oninput="checkDeleteConfirm()">
-    </div>
-
-    <div id="del-err" style="color:#be123c;font-size:13px;min-height:16px;margin-bottom:8px"></div>
-
-    <div style="display:flex;gap:10px">
-      <button class="btn bs" onclick="closeModal('m-delete')" style="flex:1">Скасувати</button>
-      <button id="del-confirm-btn" onclick="confirmDeleteTeacher()" disabled
-        style="flex:1;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#dc2626,#7f1d1d);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;opacity:.5;transition:all .2s">
-        🗑 Видалити назавжди
-      </button>
-    </div>
-  </div>
-</div>
-
 <div id="toast"></div>
 
 <script type="module">
@@ -1088,9 +646,9 @@ const db  = getDatabase(app);
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 const sess = sessionStorage.getItem("qf_user");
-if(!sess){ location.href="admin-login.html"; throw ""; }
+if(!sess){ location.href="login.html"; throw ""; }
 const _user = JSON.parse(sess);
-if(!_user || _user.role !== "admin"){ sessionStorage.clear(); location.href="admin-login.html"; throw ""; }
+if(!_user || _user.role !== "admin"){ location.href="index.html"; throw ""; }
 
 const h=new Date().getHours();
 const gr=h<6?"Добрий вечір":h<12?"Доброго ранку":h<18?"Добрий день":"Добрий вечір";
@@ -1107,16 +665,14 @@ const genPass = () => {
 
 let _users = [];
 let _stats = {};
-let _allAttempts = [];
 
 // ─── Load ─────────────────────────────────────────────────────────────────────
 window.loadAll = async () => {
   const snap = await get(ref(db,"users"));
   if(!snap.exists()){ document.getElementById("loader").style.display="none"; return; }
-  _users = Object.entries(snap.val()).filter(([id,u])=>u&&typeof u==="object").map(([id,u])=>({id,...u}));
+  _users = Object.entries(snap.val()).map(([id,u])=>({id,...u}));
 
   // Статистика паралельно
-  _allAttempts = [];
   await Promise.all(_users.map(async u => {
     const [ts,as,ss,ls] = await Promise.all([
       get(ref(db,`teachers/${u.id}/tests`)),
@@ -1125,16 +681,12 @@ window.loadAll = async () => {
       get(ref(db,`teachers/${u.id}/links`))
     ]);
     const atArr = as.exists()?Object.values(as.val()):[];
-    atArr.forEach(a => _allAttempts.push({ ...a, teacherId: u.id, teacherName: u.name || u.login }));
     const activeTests = ts.exists()?Object.values(ts.val()).filter(t=>t.status==="active").length:0;
     const lastAct = atArr.length ? Math.max(...atArr.map(a=>a.createdAt||0)) : 0;
-    const weekAgo = Date.now() - 7*24*60*60*1000;
-    const weekAttempts = atArr.filter(a => (a.createdAt||0) >= weekAgo).length;
     _stats[u.id] = {
       tests: ts.exists()?Object.keys(ts.val()).length:0,
       activeTests,
       attempts: atArr.length,
-      weekAttempts,
       students: ss.exists()?Object.keys(ss.val()).length:0,
       links: ls.exists()?Object.keys(ls.val()).length:0,
       lastAct
@@ -1150,252 +702,50 @@ window.loadAll = async () => {
 // ─── Overview ─────────────────────────────────────────────────────────────────
 function renderOverview(){
   const active = _users.filter(u=>!u.blocked);
-  const blocked = _users.filter(u=>u.blocked).length;
-  const firstLogin = _users.filter(u=>u.isFirstLogin && !u.blocked).length;
-  const regularActive = active.length - firstLogin;
-  let totalTests=0, totalActive=0, totalStudents=0, totalAttempts=0, weekAttempts=0;
-  _users.forEach(u=>{
-    const s=_stats[u.id]||{};
-    totalTests+=s.tests||0;
-    totalActive+=s.activeTests||0;
-    totalStudents+=s.students||0;
-    totalAttempts+=s.attempts||0;
-    weekAttempts+=s.weekAttempts||0;
-  });
-
-  // KPI
-  document.getElementById("ov-t").textContent = _users.length;
-  const tSub = document.getElementById("ov-t-sub");
-  if(tSub){
-    if(blocked > 0) tSub.innerHTML = `<strong>${active.length}</strong> активних, ${blocked} заблокованих`;
-    else tSub.innerHTML = `всі <strong>${active.length}</strong> активні`;
-  }
+  let totalTests=0,totalStudents=0,totalAttempts=0;
+  _users.forEach(u=>{ const s=_stats[u.id]||{}; totalTests+=s.tests||0; totalStudents+=s.students||0; totalAttempts+=s.attempts||0; });
+  document.getElementById("ov-t").textContent = active.length;
   document.getElementById("ov-ts").textContent = totalTests;
-  const tsSub = document.getElementById("ov-ts-sub");
-  if(tsSub) tsSub.innerHTML = `<strong>${totalActive}</strong> опубліковано`;
   document.getElementById("ov-s").textContent = totalStudents;
   document.getElementById("ov-a").textContent = totalAttempts;
-  const aSub = document.getElementById("ov-a-sub");
-  if(aSub){
-    aSub.className = "sc-sub" + (weekAttempts > 0 ? " pos" : "");
-    aSub.innerHTML = `<strong>+${weekAttempts}</strong> за тиждень`;
-  }
 
-  // Тиждень — графік
-  const DAYS = ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"];
-  const now = new Date(); now.setHours(23,59,59,999);
-  const todayDow = (now.getDay() + 6) % 7; // 0=Monday
-  const week = [0,0,0,0,0,0,0];
-  _allAttempts.forEach(a => {
-    if(!a.createdAt) return;
-    const diff = Math.floor((now - a.createdAt) / (24*60*60*1000));
-    if(diff >= 0 && diff < 7){
-      week[6 - diff]++;
-    }
-  });
-  const maxVal = Math.max(...week, 1);
-  const chart = document.getElementById("ov-chart");
-  const labels = document.getElementById("ov-chart-labels");
-  if(chart && labels){
-    chart.innerHTML = week.map((v,i)=>{
-      const h = (v / maxVal) * 100;
-      const isToday = i === 6;
-      return `<div class="ov-bar${isToday?' today':''}" style="height:${h}%" title="${v} спроб"><span class="ov-bar-val">${v}</span></div>`;
-    }).join("");
-    // Правильні мітки днів — з сьогоднішнього дня назад
-    const labArr = [];
-    for(let i=6;i>=0;i--){
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      labArr.push(DAYS[(d.getDay()+6)%7]);
-    }
-    labels.innerHTML = labArr.map((d,i)=>`<span class="${i===6?'today':''}">${d}</span>`).join("");
-  }
-  const wt = document.getElementById("ov-week-total");
-  if(wt) wt.textContent = week.reduce((a,b)=>a+b,0);
-
-  // Розподіл статусів
-  const statusChart = document.getElementById("ov-status-chart");
-  if(statusChart){
-    const total = _users.length || 1;
-    const data = [
-      {label:"Активні", count:regularActive, color:"#0d9e85"},
-      {label:"Перший вхід", count:firstLogin, color:"#f59e0b"},
-      {label:"Заблоковані", count:blocked, color:"#dc2626"}
-    ];
-    statusChart.innerHTML = data.map(d=>{
-      const pct = (d.count/total*100).toFixed(0);
-      return `<div class="ov-stat-row">
-        <div class="ov-stat-label"><span class="ov-stat-dot" style="background:${d.color}"></span>${d.label}</div>
-        <div class="ov-stat-bar-wrap"><div class="ov-stat-bar" style="width:${pct}%;background:${d.color}"></div></div>
-        <div class="ov-stat-val" style="color:${d.color}">${d.count}</div>
-      </div>`;
-    }).join("");
-  }
-
-  // Таблиця статистики
-  renderOverviewTable();
-}
-
-let _ovSortBy = "attempts", _ovSortDir = "desc";
-
-window.sortOverviewBy = function(key){
-  if(_ovSortBy === key){
-    _ovSortDir = _ovSortDir === "desc" ? "asc" : "desc";
-  } else {
-    _ovSortBy = key;
-    _ovSortDir = "desc";
-  }
-  renderOverviewTable();
-};
-
-window.renderOverviewTable = function(){
-  const tbody = document.getElementById("ov-table");
-  if(!tbody) return;
-
-  // Оновлюємо стрілки сортування
-  ["name","tests","activeTests","students","attempts","weekAttempts","lastAct"].forEach(k=>{
-    const el = document.getElementById("sort-"+k);
-    if(el) el.textContent = k === _ovSortBy ? (_ovSortDir === "desc" ? "↓" : "↑") : "";
-  });
-
-  const searchEl = document.getElementById("ov-teach-search");
-  const search = searchEl ? searchEl.value.trim().toLowerCase() : "";
-
-  let list = [..._users];
-  if(search){
-    list = list.filter(u =>
-      (u.name||"").toLowerCase().includes(search) ||
-      (u.login||"").toLowerCase().includes(search)
-    );
-  }
-
-  list.sort((a,b)=>{
-    let av, bv;
-    if(_ovSortBy === "name"){ av = (a.name||a.login||"").toLowerCase(); bv = (b.name||b.login||"").toLowerCase(); }
-    else { av = _stats[a.id]?.[_ovSortBy] || 0; bv = _stats[b.id]?.[_ovSortBy] || 0; }
-    const cmp = av > bv ? 1 : av < bv ? -1 : 0;
-    return _ovSortDir === "desc" ? -cmp : cmp;
-  });
-
-  if(!list.length){
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted)">Нічого не знайдено</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = list.map(u=>{
-    const s = _stats[u.id]||{};
-    const isBlocked = u.blocked===true;
-    const isFirst = u.isFirstLogin===true && !isBlocked;
-    const lastStr = s.lastAct ? formatTimeAgo(s.lastAct) : "—";
-    const lastColor = s.lastAct && (Date.now() - s.lastAct < 24*60*60*1000) ? "#0d9e85" : "var(--muted)";
-    const weekBadge = (s.weekAttempts||0) > 0
-      ? `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;background:rgba(13,158,133,.1);color:#0d9e85;font-size:12px;font-weight:700">+${s.weekAttempts}</span>`
-      : `<span style="color:var(--muted);font-size:13px">0</span>`;
-    const statusDot = isBlocked
-      ? '<span style="width:7px;height:7px;border-radius:50%;background:#dc2626;display:inline-block;flex-shrink:0" title="Заблокований"></span>'
-      : isFirst
-      ? '<span style="width:7px;height:7px;border-radius:50%;background:#f59e0b;display:inline-block;flex-shrink:0" title="Перший вхід"></span>'
-      : '<span style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;flex-shrink:0" title="Активний"></span>';
-    return `<tr style="${isBlocked?'opacity:.55':''}">
-      <td>
-        <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:32px;height:32px;border-radius:9px;background:var(--grad);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0">${esc(u.name||u.login).slice(0,2).toUpperCase()}</div>
-          <div style="min-width:0">
-            <div style="display:flex;align-items:center;gap:6px"><span style="font-weight:600">${esc(u.name||"—")}</span>${statusDot}</div>
-            <div style="font-size:11px;color:var(--muted);font-family:monospace">@${esc(u.login)}</div>
-          </div>
-        </div>
-      </td>
+  const sorted = [..._users].sort((a,b)=>(_stats[b.id]?.attempts||0)-(_stats[a.id]?.attempts||0));
+  document.getElementById("ov-table").innerHTML = sorted.map(u=>{
+    const s=_stats[u.id]||{};
+    const status = u.blocked ? `<span class="bdg bg-r">Заблоковано</span>`
+      : u.isFirstLogin ? `<span class="bdg bg-a">Перший вхід</span>`
+      : `<span class="bdg bg-g">Активний</span>`;
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;border-radius:9px;background:var(--grad);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0">${esc(u.name||u.login).slice(0,2).toUpperCase()}</div>
+        <div><div style="font-weight:600">${esc(u.name||"—")}</div><div style="font-size:11px;color:var(--muted);font-family:monospace">${esc(u.login)}</div></div>
+      </div></td>
       <td style="font-weight:700;color:#0d9e85">${s.tests||0}</td>
-      <td><span class="bdg bg-g" style="font-size:11px">${s.activeTests||0}</span></td>
-      <td style="font-weight:700;color:#9333ea">${s.students||0}</td>
       <td style="font-weight:700;color:#f59e0b">${s.attempts||0}</td>
-      <td>${weekBadge}</td>
-      <td style="font-size:12px;color:${lastColor};white-space:nowrap">${lastStr}</td>
+      <td style="font-weight:700;color:#9333ea">${s.students||0}</td>
+      <td>${status}</td>
     </tr>`;
   }).join("");
 }
 
-function formatTimeAgo(ts){
-  const diff = Date.now() - ts;
-  const mins = Math.floor(diff / 60000);
-  if(mins < 1) return "щойно";
-  if(mins < 60) return mins + " хв тому";
-  const hrs = Math.floor(mins / 60);
-  if(hrs < 24) return hrs + " год тому";
-  const days = Math.floor(hrs / 24);
-  if(days < 7) return days + " д тому";
-  return new Date(ts).toLocaleDateString("uk-UA",{day:"numeric",month:"short"});
-}
-
 // ─── Teachers grid ────────────────────────────────────────────────────────────
-let _teacherFilter = "all";
-
-window.setTeacherFilter = function(f){
-  _teacherFilter = f;
-  document.querySelectorAll(".tc-fb").forEach(b=>b.classList.toggle("on", b.dataset.filter===f));
-  renderTeachers();
-};
-
 function renderTeachers(){
   const grid = document.getElementById("teacher-grid");
-  const searchEl = document.getElementById("tc-search");
-  const search = searchEl ? searchEl.value.trim().toLowerCase() : "";
+  if(!_users.length){ grid.innerHTML=`<div class="empty"><div class="empty-icon">👤</div><div class="empty-text">Немає викладачів</div></div>`; return; }
 
-  let list = [..._users];
-
-  // Фільтр за статусом
-  if(_teacherFilter === "active")       list = list.filter(u=>!u.blocked && !u.isFirstLogin);
-  else if(_teacherFilter === "blocked") list = list.filter(u=>u.blocked===true);
-  else if(_teacherFilter === "first")   list = list.filter(u=>u.isFirstLogin===true && !u.blocked);
-
-  // Пошук
-  if(search){
-    list = list.filter(u=>
-      (u.name||"").toLowerCase().includes(search) ||
-      (u.login||"").toLowerCase().includes(search)
-    );
-  }
-
-  // Сортування: активні першими, потім перший вхід, потім заблоковані
-  list.sort((a,b)=>{
-    const aw = a.blocked ? 2 : (a.isFirstLogin ? 1 : 0);
-    const bw = b.blocked ? 2 : (b.isFirstLogin ? 1 : 0);
-    if(aw !== bw) return aw - bw;
-    return (_stats[b.id]?.attempts||0) - (_stats[a.id]?.attempts||0);
-  });
-
-  // Лічильник
-  const cnt = document.getElementById("tc-count");
-  if(cnt) cnt.textContent = "· " + list.length + " з " + _users.length;
-
-  if(!list.length){
-    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div class="empty-text">Нічого не знайдено</div><div style="font-size:13px;margin-top:6px">Спробуйте інший пошуковий запит або фільтр</div></div>`;
-    return;
-  }
-
-  grid.innerHTML = list.map(u => {
+  grid.innerHTML = _users.map(u => {
     const s = _stats[u.id]||{};
     const isMe = u.id===_user.id;
     const isBlocked = u.blocked===true;
-    const isFirst = u.isFirstLogin===true;
-    const roleLabel = u.role==="admin"
-      ? `<span class="bdg" style="background:rgba(220,38,38,.12);color:#dc2626;font-size:10px;padding:2px 8px">Адмін</span>`
-      : `<span class="bdg" style="background:rgba(220,38,38,.1);color:var(--primary);font-size:10px;padding:2px 8px">Викладач</span>`;
-    const statusDot = isBlocked
-      ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#fca5a5"><span style="width:6px;height:6px;border-radius:50%;background:#fca5a5"></span>Заблоковано</span>`
-      : isFirst
-      ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#fbbf24"><span style="width:6px;height:6px;border-radius:50%;background:#fbbf24;animation:pulse 2s infinite"></span>Перший вхід</span>`
-      : `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#86efac"><span style="width:6px;height:6px;border-radius:50%;background:#22c55e"></span>Активний</span>`;
-    const lastActStr = s.lastAct
-      ? new Date(s.lastAct).toLocaleDateString("uk-UA",{day:"numeric",month:"short"})
-      : "—";
+    const roleLabel = u.role==="admin" ? `<span class="bdg bg-r" style="font-size:11px">Адмін</span>` : `<span class="bdg bg-b" style="font-size:11px">Викладач</span>`;
+    const statusLabel = isBlocked ? `<span class="bdg bg-r" style="font-size:11px">Заблоковано</span>`
+      : u.isFirstLogin ? `<span class="bdg bg-a" style="font-size:11px">Перший вхід</span>`
+      : `<span class="bdg bg-g" style="font-size:11px">Активний</span>`;
     return `<div class="teacher-card${isBlocked?" blocked-card":""}">
       <div class="tc-head">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
           <div class="tc-ava">${esc(u.name||u.login).slice(0,2).toUpperCase()}</div>
-          <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end">${roleLabel}${statusDot}</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">${roleLabel} ${statusLabel}</div>
         </div>
         <div class="tc-name">${esc(u.name||"—")} ${isMe?'<span style="font-size:11px;color:rgba(255,255,255,.4)">(ви)</span>':''}</div>
         <div class="tc-login">@${esc(u.login)}</div>
@@ -1406,15 +756,11 @@ function renderTeachers(){
           <div class="tc-stat"><div class="tc-stat-n" style="color:#f59e0b">${s.attempts||0}</div><div class="tc-stat-l">Спроб</div></div>
           <div class="tc-stat"><div class="tc-stat-n" style="color:#9333ea">${s.students||0}</div><div class="tc-stat-l">Студентів</div></div>
         </div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:12px;padding:8px 10px;background:var(--bg);border-radius:9px;display:flex;align-items:center;gap:6px">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Остання активність: <strong style="color:var(--text)">${lastActStr}</strong>
-        </div>
         <div class="tc-actions">
-          <button class="btn bs btn-sm" onclick="openAIModal('${u.id}','${esc(u.name||u.login)}')" title="Налаштування AI">✦ AI</button>
-          ${!isMe?`<button class="btn bs btn-sm" onclick="openResetModal('${u.id}','${esc(u.name||u.login)}')" title="Скинути пароль">🔑</button>`:""}
-          ${!isMe?`<button class="btn btn-sm ${isBlocked?"bg":"bd"}" onclick="openBlockModal('${u.id}','${esc(u.name||u.login)}',${isBlocked})" title="${isBlocked?"Розблокувати":"Заблокувати"}">${isBlocked?"✅":"🚫"}</button>`:""}
-          ${!isMe?`<button class="btn btn-sm tc-del-btn" onclick="openDeleteTeacher('${u.id}','${esc(u.name||u.login)}','${esc(u.login)}')" title="Видалити повністю" style="background:rgba(127,29,29,.08);border:1.5px solid rgba(127,29,29,.22);color:#7f1d1d">🗑</button>`:""}
+          ${!isMe?`<button class="btn bs btn-sm" onclick="openResetModal('${u.id}','${esc(u.name||u.login)}')">🔑 Пароль</button>`:""}
+          ${!isMe?`<button class="btn btn-sm ${isBlocked?"bg":"bd"}" onclick="openBlockModal('${u.id}','${esc(u.name||u.login)}',${isBlocked})">${isBlocked?"✅ Розблокувати":"🚫 Заблокувати"}</button>`:""}
+          <button class="btn bs btn-sm" onclick="openAIModal('${u.id}','${esc(u.name||u.login)}')">✦ AI</button>
+          <button class="btn bs btn-sm" onclick="showSec('stats')">📊 Деталі</button>
         </div>
       </div>
     </div>`;
@@ -1529,54 +875,6 @@ window.doToggleBlock = async () => {
   }catch(e){ toast("Помилка: "+e.message); }
 };
 
-// ─── Delete teacher (ПОВНЕ видалення) ────────────────────────────────────────
-let _delUid = "", _delLogin = "";
-
-window.openDeleteTeacher = (uid, name, login) => {
-  _delUid = uid; _delLogin = login;
-  document.getElementById("del-name").textContent = name;
-  document.getElementById("del-login").textContent = login;
-  document.getElementById("del-login-confirm").textContent = login;
-  document.getElementById("del-confirm-inp").value = "";
-  document.getElementById("del-err").textContent = "";
-  const btn = document.getElementById("del-confirm-btn");
-  btn.disabled = true; btn.style.opacity = ".5";
-  openModal("m-delete");
-  setTimeout(()=>document.getElementById("del-confirm-inp").focus(), 100);
-};
-
-window.checkDeleteConfirm = () => {
-  const val = document.getElementById("del-confirm-inp").value.trim().toLowerCase();
-  const btn = document.getElementById("del-confirm-btn");
-  const match = val === _delLogin.toLowerCase();
-  btn.disabled = !match;
-  btn.style.opacity = match ? "1" : ".5";
-};
-
-window.confirmDeleteTeacher = async () => {
-  if(!_delUid) return;
-  const btn = document.getElementById("del-confirm-btn");
-  const errEl = document.getElementById("del-err");
-  btn.disabled = true;
-  btn.textContent = "⏳ Видалення...";
-  try{
-    // Видаляємо ВСЕ пов\'язане з викладачем
-    await Promise.all([
-      remove(ref(db, `users/${_delUid}`)),
-      remove(ref(db, `teachers/${_delUid}`))
-    ]);
-    closeModal("m-delete");
-    _delUid = ""; _delLogin = "";
-    await loadAll();
-    toast("Викладача та всі його дані видалено ✅");
-  }catch(e){
-    errEl.textContent = "Помилка: " + e.message;
-    btn.disabled = false;
-    btn.textContent = "🗑 Видалити назавжди";
-  }
-};
-
-
 // ─── Modals ───────────────────────────────────────────────────────────────────
 function openModal(id){ document.getElementById(id).classList.add("on"); }
 window.closeModal = id => document.getElementById(id).classList.remove("on");
@@ -1587,25 +885,23 @@ let _tt;
 function toast(msg){ const e=document.getElementById("toast"); e.textContent=msg; e.classList.add("show"); clearTimeout(_tt); _tt=setTimeout(()=>e.classList.remove("show"),3000); }
 
 // ─── AI Settings ─────────────────────────────────────────────────────────────
-const _featProvs = {comments:"groq", analysis:"groq", generation:"groq", textcheck:"groq"};
-
-window.setFeatProv = function(feat, prov){
-  _featProvs[feat] = prov;
-  ["groq","gemini"].forEach(p=>{
-    const btn = document.getElementById("fp-"+feat+"-"+p);
-    if(!btn) return;
-    const active = p === prov;
-    btn.style.borderColor = active ? "var(--primary)" : "var(--border)";
-    btn.style.background  = active ? "rgba(220,38,38,.07)" : "none";
-    btn.style.color       = active ? "var(--primary)" : "var(--muted)";
-  });
+window.switchProvider = function(prov){
+  const isGemini = prov === "gemini";
+  document.getElementById("groq-block").style.display   = isGemini ? "none" : "";
+  document.getElementById("gemini-block").style.display = isGemini ? "" : "none";
+  document.getElementById("prov-groq-lbl").style.borderColor   = !isGemini ? "var(--primary)" : "var(--border)";
+  document.getElementById("prov-groq-lbl").style.background    = !isGemini ? "rgba(45,91,227,.04)" : "";
+  document.getElementById("prov-gemini-lbl").style.borderColor = isGemini ? "var(--primary)" : "var(--border)";
+  document.getElementById("prov-gemini-lbl").style.background  = isGemini ? "rgba(45,91,227,.04)" : "";
+  const provRadio = document.querySelector(`input[name="ai-provider"][value="${prov}"]`);
+  if(provRadio) provRadio.checked = true;
 };
 
 function highlightModels(){
   document.querySelectorAll(".model-lbl").forEach(lbl=>{
     const inp = lbl.querySelector("input");
     lbl.style.borderColor = inp?.checked ? "var(--primary)" : "var(--border)";
-    lbl.style.background  = inp?.checked ? "rgba(220,38,38,.03)" : "";
+    lbl.style.background  = inp?.checked ? "rgba(45,91,227,.03)" : "";
   });
 }
 
@@ -1614,46 +910,42 @@ async function loadAISettings(){
     const snap = await get(ref(db,"settings/ai"));
     if(!snap.exists()) return;
     const s = snap.val();
-    // Ключі (з підтримкою старого поля apiKey)
-    const gk = document.getElementById("ai-groq-key");
-    if(gk) gk.value = s.groqApiKey || s.apiKey || "";
-    const gemk = document.getElementById("ai-gemini-key");
-    if(gemk) gemk.value = s.geminiApiKey || "";
+    // Провайдер
+    const prov = s.provider || "groq";
+    switchProvider(prov);
+    // Ключі
+    if(s.groqApiKey){ const el=document.getElementById("ai-groq-key"); if(el) el.value=s.groqApiKey; }
+    if(s.geminiApiKey){ const el=document.getElementById("ai-gemini-key"); if(el) el.value=s.geminiApiKey; }
     // Моделі
     if(s.groqModel){ const r=document.querySelector(`input[name="ai-groq-model"][value="${s.groqModel}"]`); if(r) r.checked=true; }
     if(s.geminiModel){ const r=document.querySelector(`input[name="ai-gemini-model"][value="${s.geminiModel}"]`); if(r) r.checked=true; }
     highlightModels();
     // Тогли
-    const tmap = {"ai-comments":s.aiComments,"ai-analysis":s.aiAnalysis,"ai-generation":s.aiGeneration,"ai-textcheck":s.aiTextCheck};
-    Object.entries(tmap).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.checked=val!==false; });
-    // Провайдери per feature
-    const fp = s.featProviders || {};
-    ["comments","analysis","generation","textcheck"].forEach(feat=>{
-      setFeatProv(feat, fp[feat] || "groq");
-    });
+    const toggles = {"ai-comments":s.aiComments!==false,"ai-generation":s.aiGeneration!==false,"ai-textcheck":s.aiTextCheck!==false};
+    Object.entries(toggles).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.checked=val; });
   }catch(e){ console.warn("Load AI settings:", e.message); }
 }
 
 window.saveAISettings = async () => {
+  const provider   = document.querySelector('input[name="ai-provider"]:checked')?.value || "groq";
   const groqKey    = document.getElementById("ai-groq-key")?.value.trim();
   const geminiKey  = document.getElementById("ai-gemini-key")?.value.trim();
   const groqModel  = document.querySelector('input[name="ai-groq-model"]:checked')?.value || "llama-3.3-70b-versatile";
   const geminiModel= document.querySelector('input[name="ai-gemini-model"]:checked')?.value || "gemini-2.5-flash";
   const comments   = document.getElementById("ai-comments")?.checked;
-  const analysis   = document.getElementById("ai-analysis")?.checked;
   const generation = document.getElementById("ai-generation")?.checked;
   const textcheck  = document.getElementById("ai-textcheck")?.checked;
 
-  if(!groqKey && !geminiKey){ toast("Введіть хоча б один API ключ"); return; }
+  const activeKey = provider==="gemini" ? geminiKey : groqKey;
+  if(!activeKey){ toast("Введіть API ключ для обраного провайдера"); return; }
 
   try{
     await update(ref(db,"settings/ai"),{
-      groqApiKey:groqKey||"", geminiApiKey:geminiKey||"",
+      provider, groqApiKey:groqKey||"", geminiApiKey:geminiKey||"",
       groqModel, geminiModel,
-      apiKey: groqKey||geminiKey||"", model: groqModel,
-      provider: groqKey ? "groq" : "gemini",
-      aiComments:comments, aiAnalysis:analysis, aiGeneration:generation, aiTextCheck:textcheck,
-      featProviders:{..._featProvs},
+      // Зворотна сумісність: apiKey і model для старого коду
+      apiKey: activeKey, model: provider==="gemini" ? geminiModel : groqModel,
+      aiComments:comments, aiGeneration:generation, aiTextCheck:textcheck,
       updatedAt: Date.now()
     });
     const status=document.getElementById("ai-status");
@@ -1676,6 +968,7 @@ window.toggleKeyVisibility = (inputId, iconId) => {
     : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
 };
 
+// Підсвічування вибраної моделі
 document.querySelectorAll('.model-lbl input').forEach(r=>{
   r.addEventListener("change", highlightModels);
 });
@@ -1989,21 +1282,7 @@ async function loadNews(){
 }
 
 // ─── Logout ───────────────────────────────────────────────────────────────────
-window.doLogout = () => { sessionStorage.clear(); location.href="admin-login.html"; };
-
-// ─── MOBILE SIDEBAR ──────────────────────────────────────────────────────────
-window.openMobileSidebar = () => {
-  document.getElementById("adm-sidebar").classList.add("mobile-open");
-  document.getElementById("sidebar-backdrop").classList.add("on");
-};
-window.closeMobileSidebar = () => {
-  document.getElementById("adm-sidebar").classList.remove("mobile-open");
-  document.getElementById("sidebar-backdrop").classList.remove("on");
-};
-// Закриваємо після кліку на пункт меню (на мобільному)
-document.querySelectorAll(".sidebar .ni").forEach(n=>n.addEventListener("click", ()=>{
-  if(window.innerWidth <= 900) closeMobileSidebar();
-}));
+window.doLogout = () => { sessionStorage.clear(); location.href="login.html"; };
 
 // Init
 loadAll();
@@ -2016,7 +1295,7 @@ loadNews();
   <div class="mb" style="max-width:620px">
     <button class="mcl" onclick="closeModal('m-news')">×</button>
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
-      <div style="width:44px;height:44px;border-radius:12px;background:rgba(220,38,38,.08);display:flex;align-items:center;justify-content:center;font-size:20px">📰</div>
+      <div style="width:44px;height:44px;border-radius:12px;background:rgba(45,91,227,.08);display:flex;align-items:center;justify-content:center;font-size:20px">📰</div>
       <div>
         <div class="mtl" id="news-modal-title" style="margin-bottom:2px">Нова новина</div>
         <div style="font-size:13px;color:var(--muted)">Буде надіслана всім викладачам</div>
@@ -2032,24 +1311,24 @@ loadNews();
       <div style="display:flex;gap:4px;padding:8px 10px;background:var(--bg);border:1.5px solid var(--border);border-bottom:none;border-radius:12px 12px 0 0">
         <button type="button" onclick="newsFormat('bold')" title="Жирний (Ctrl+B)"
           style="width:30px;height:30px;border:none;background:none;border-radius:7px;cursor:pointer;font-weight:700;font-size:14px;color:var(--text);transition:all .15s"
-          onmouseover="this.style.background='rgba(220,38,38,.08)'" onmouseout="this.style.background='none'"><b>B</b></button>
+          onmouseover="this.style.background='rgba(45,91,227,.08)'" onmouseout="this.style.background='none'"><b>B</b></button>
         <button type="button" onclick="newsFormat('italic')" title="Курсив (Ctrl+I)"
           style="width:30px;height:30px;border:none;background:none;border-radius:7px;cursor:pointer;font-size:14px;color:var(--text);transition:all .15s"
-          onmouseover="this.style.background='rgba(220,38,38,.08)'" onmouseout="this.style.background='none'"><i>I</i></button>
+          onmouseover="this.style.background='rgba(45,91,227,.08)'" onmouseout="this.style.background='none'"><i>I</i></button>
         <button type="button" onclick="newsFormat('underline')" title="Підкреслений"
           style="width:30px;height:30px;border:none;background:none;border-radius:7px;cursor:pointer;font-size:14px;color:var(--text);transition:all .15s;text-decoration:underline"
-          onmouseover="this.style.background='rgba(220,38,38,.08)'" onmouseout="this.style.background='none'">U</button>
+          onmouseover="this.style.background='rgba(45,91,227,.08)'" onmouseout="this.style.background='none'">U</button>
         <div style="width:1px;background:var(--border);margin:4px 4px"></div>
         <button type="button" onclick="newsFormat('h')" title="Заголовок"
           style="width:30px;height:30px;border:none;background:none;border-radius:7px;cursor:pointer;font-size:12px;font-weight:700;color:var(--text);transition:all .15s"
-          onmouseover="this.style.background='rgba(220,38,38,.08)'" onmouseout="this.style.background='none'">H</button>
+          onmouseover="this.style.background='rgba(45,91,227,.08)'" onmouseout="this.style.background='none'">H</button>
         <button type="button" onclick="newsFormat('bullet')" title="Список"
           style="width:30px;height:30px;border:none;background:none;border-radius:7px;cursor:pointer;font-size:14px;color:var(--text);transition:all .15s"
-          onmouseover="this.style.background='rgba(220,38,38,.08)'" onmouseout="this.style.background='none'">•</button>
+          onmouseover="this.style.background='rgba(45,91,227,.08)'" onmouseout="this.style.background='none'">•</button>
         <div style="width:1px;background:var(--border);margin:4px 4px"></div>
         <button type="button" onclick="openLinkModal()" title="Вставити посилання"
           style="width:30px;height:30px;border:none;background:none;border-radius:7px;cursor:pointer;font-size:14px;color:var(--text);transition:all .15s"
-          onmouseover="this.style.background='rgba(220,38,38,.08)'" onmouseout="this.style.background='none'">🔗</button>
+          onmouseover="this.style.background='rgba(45,91,227,.08)'" onmouseout="this.style.background='none'">🔗</button>
         <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
           <span id="news-char-count" style="font-size:11px;color:var(--muted)">0 симв.</span>
         </div>
@@ -2097,7 +1376,7 @@ loadNews();
   <div class="mb" style="max-width:400px">
     <button class="mcl" onclick="closeModal('m-link-insert')">×</button>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
-      <div style="width:40px;height:40px;border-radius:11px;background:rgba(220,38,38,.08);display:flex;align-items:center;justify-content:center;font-size:18px">🔗</div>
+      <div style="width:40px;height:40px;border-radius:11px;background:rgba(45,91,227,.08);display:flex;align-items:center;justify-content:center;font-size:18px">🔗</div>
       <div class="mtl" style="margin:0">Вставити посилання</div>
     </div>
     <div class="fl">
