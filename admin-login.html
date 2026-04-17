@@ -148,16 +148,8 @@
   import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyA4OyQtUGDsS8Pm01fRrtOZrb_gGyXT5aI",
-    authDomain: "quizflow-db.firebaseapp.com",
-    databaseURL: "https://quizflow-db-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "quizflow-db",
-    storageBucket: "quizflow-db.firebasestorage.app",
-    messagingSenderId: "1041093830442",
-    appId: "1:1041093830442:web:a51c37bbb1b0f4cc0b3ea2"
-  };
-  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+  const cfg = {apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",authDomain:"quizflow-8a978.firebaseapp.com",databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",projectId:"quizflow-8a978",storageBucket:"quizflow-8a978.firebasestorage.app",messagingSenderId:"206469794166",appId:"1:206469794166:web:55cd7007b429607acd5257"};
+  const app = getApps().length ? getApps()[0] : initializeApp(cfg);
   const db = getDatabase(app);
 
   const errEl = document.getElementById("err");
