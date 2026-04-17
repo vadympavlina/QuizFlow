@@ -146,79 +146,204 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
   .sidebar.collapsed .ni[data-tip]:hover::after { background: #7f1d1d !important; }
   .sidebar.collapsed .ni[data-tip]:hover::before { border-right-color: #7f1d1d !important; }
 
-  /* ─── MOBILE ADAPTATION (повна) ─────────────────────────────────────────── */
+  /* ─── MOBILE ADAPTATION ─────────────────────────────────────────────── */
+
+  /* Бургер-кнопка */
+  .mobile-menu-btn {
+    display: none;
+    width: 40px; height: 40px;
+    border-radius: 11px;
+    border: 1.5px solid var(--border);
+    background: white;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--text);
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+  }
+  .mobile-menu-btn svg { width: 20px; height: 20px; }
+  .mobile-menu-btn:active { transform: scale(.94); }
+
+  .sidebar-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(10,5,10,.55);
+    backdrop-filter: blur(4px);
+    z-index: 998;
+    display: none;
+    animation: fadeIn .2s ease;
+  }
+  .sidebar-backdrop.on { display: block; }
+
+  /* ─ ПЛАНШЕТ і менше (< 900px) ─ */
   @media (max-width: 900px) {
+    /* Sidebar → висувна панель */
     .sidebar {
-      position: fixed; top: 0; left: -240px; bottom: 0;
-      width: 240px; z-index: 999;
-      transition: left .25s cubic-bezier(.4,0,.2,1);
+      position: fixed; top: 0; left: -280px; bottom: 0;
+      width: 280px; z-index: 999;
+      transition: left .28s cubic-bezier(.4,0,.2,1);
+      padding: 20px 14px;
     }
-    .sidebar.mobile-open { left: 0; }
-    .sidebar.collapsed { width: 240px; }
+    .sidebar.mobile-open { left: 0; box-shadow: 6px 0 40px rgba(0,0,0,.35); }
+    .sidebar.collapsed { width: 280px; }
     .sidebar.collapsed .sb-logo-name,
     .sidebar.collapsed .sb-tag,
     .sidebar.collapsed .ni-label,
     .sidebar.collapsed .sb-sep,
     .sidebar.collapsed .sb-uname,
     .sidebar.collapsed .sb-urole { display: block !important; }
-    .sidebar.collapsed .ni { justify-content: flex-start; padding: 10px 12px; gap: 10px; }
-    .sidebar.collapsed .sb-logo { justify-content: flex-start; padding: 4px 10px 28px; }
-    .sidebar.collapsed .sb-foot { justify-content: flex-start; gap: 10px; padding: 12px 8px 0; }
+    .sidebar.collapsed .ni { justify-content: flex-start; padding: 11px 14px; gap: 12px; }
+    .sidebar.collapsed .sb-logo { justify-content: flex-start; padding: 4px 10px 24px; }
+    .sidebar.collapsed .sb-foot { justify-content: flex-start; gap: 10px; padding: 14px 10px 0; }
     .sidebar.collapsed .ava { margin: 0; }
     #adm-toggle, #adm-toggle-collapsed { display: none !important; }
-    .main, .adm-collapsed-main { margin-left: 0 !important; padding: 16px !important; }
+    .ni { font-size: 14.5px; padding: 12px 14px; }
+    .ni svg { width: 18px; height: 18px; }
+
+    .main, .adm-collapsed-main { margin-left: 0 !important; padding: 14px !important; }
     .mobile-menu-btn { display: inline-flex !important; }
-    .ph { flex-direction: column; align-items: flex-start !important; gap: 10px; }
-    .ph .btn { width: 100%; justify-content: center; }
-    .pt { font-size: 22px !important; }
-    .sg { grid-template-columns: 1fr 1fr !important; gap: 10px; }
-    .sc { padding: 14px 16px !important; }
-    .sn { font-size: 30px !important; }
-    .teacher-grid { grid-template-columns: 1fr !important; }
-    table { font-size: 12px; }
-    .tbl th, .tbl td { padding: 10px 8px !important; }
-    .tc-login { font-size: 11px; }
-    .tc-name { font-size: 15px !important; }
-    .mb { padding: 24px 20px !important; margin: 10px; border-radius: 20px !important; }
-    input, select, textarea { font-size: 16px !important; }
-    .ai-providers-grid { grid-template-columns: 1fr !important; }
-    .ai-features-grid { grid-template-columns: 1fr !important; }
-    .card { padding: 16px !important; }
-    .feat-row { padding: 10px 12px !important; }
-    .sidebar-backdrop {
-      position: fixed; inset: 0;
-      background: rgba(10,14,46,.55);
-      backdrop-filter: blur(4px);
-      z-index: 998;
-      display: none;
+
+    /* Page header — бургер+заголовок+кнопка в ряд */
+    .ph {
+      flex-direction: row !important;
+      align-items: center !important;
+      gap: 12px;
+      margin-bottom: 20px !important;
     }
-    .sidebar-backdrop.on { display: block; }
-  }
-  @media (max-width: 500px) {
-    .sg { grid-template-columns: 1fr !important; }
-    .pt { font-size: 20px !important; }
-    .mb { padding: 20px 16px !important; border-radius: 18px !important; }
-    .main { padding: 12px !important; }
-    .tc-stats { grid-template-columns: repeat(3,1fr); gap: 6px; }
-    .tc-stat { padding: 8px; }
+    .ph > div:first-child { flex: 1; min-width: 0; }
+    .pt { font-size: 19px !important; letter-spacing: -.3px; }
+    .ps { font-size: 12px !important; margin-top: 1px; }
+    .ph > .btn, .ph > div:last-child > .btn {
+      width: auto; padding: 9px 14px; font-size: 13px;
+    }
+    .ph .btn span, .ph .btn svg + * { display: inline; }
+
+    /* KPI — 2×2 сітка, компактніше */
+    .sg { grid-template-columns: 1fr 1fr !important; gap: 10px; margin-bottom: 18px; }
+    .sc { padding: 14px !important; border-radius: 14px !important; }
+    .si { width: 32px !important; height: 32px !important; margin-bottom: 10px !important; }
+    .si svg { width: 15px; height: 15px; }
+    .sn { font-size: 26px !important; margin-bottom: 2px !important; letter-spacing: -1px !important; }
+    .sl { font-size: 10px !important; }
+    .sc-sub { font-size: 10px !important; margin-top: 3px !important; }
+
+    /* Overview split → 1 колонка */
+    .ov-split { grid-template-columns: 1fr !important; gap: 12px !important; }
+
+    /* Картки */
+    .card { border-radius: 14px; }
+    .card-head { padding: 14px 16px !important; }
+    .card-head .card-title { font-size: 14px; }
+    .card > .tbl { font-size: 12px; }
+
+    /* Таблиці — горизонтальний скрол */
+    .tbl-wrap, .card > div[style*="overflow-x:auto"] {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tbl th, .tbl td { padding: 10px 10px !important; white-space: nowrap; }
+    .tbl th { font-size: 10px !important; }
+
+    /* Викладачі — картки 1 в ряд */
+    .teacher-grid { grid-template-columns: 1fr !important; gap: 12px; }
+    .teacher-card { border-radius: 16px; }
+    .tc-head { padding: 16px 18px 14px !important; }
+    .tc-ava { width: 46px !important; height: 46px !important; font-size: 16px !important; border-radius: 12px !important; }
+    .tc-name { font-size: 15px !important; }
+    .tc-login { font-size: 11px; }
+    .tc-body { padding: 14px 18px !important; }
+    .tc-stats { gap: 6px; margin-bottom: 12px; }
+    .tc-stat { padding: 8px !important; border-radius: 9px; }
     .tc-stat-n { font-size: 17px !important; }
-    .tc-stat-l { font-size: 9px !important; }
+    .tc-stat-l { font-size: 9px !important; letter-spacing: .3px; }
+    .tc-actions { gap: 6px; }
+    .tc-actions .btn-sm { padding: 6px 10px; font-size: 12px; }
+
+    /* Toolbar (пошук + фільтри) */
+    .tc-toolbar { gap: 8px !important; margin-bottom: 14px !important; }
+    .tc-toolbar > div:first-child { width: 100%; }
+    .tc-filter-btns { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tc-fb { flex: 0 0 auto; padding: 7px 12px; font-size: 12px; }
+
+    /* AI Налаштування — 1 колонка */
+    .ai-providers-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+    .ai-features-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+    .card[style*="padding:22px"], .card[style*="padding:24px"] { padding: 18px !important; }
+    .feat-row { padding: 10px 12px !important; }
+
+    /* Інпути — iOS не зумить */
+    input, select, textarea { font-size: 16px !important; }
+    .fi { padding: 11px 14px; }
+
+    /* Модалки */
+    .mb { padding: 22px 18px !important; margin: 10px; border-radius: 18px !important; }
+    .mcl { top: 12px; right: 12px; width: 28px; height: 28px; }
+    .mtl { font-size: 17px !important; }
+
+    /* Toast */
+    #toast { bottom: 20px; left: 10px; right: 10px; transform: none; white-space: normal; text-align: center; }
+    #toast.show { transform: none; }
+
+    /* Графік активності */
+    #ov-chart { height: 100px !important; }
+    #ov-chart-labels span { font-size: 9px; }
   }
 
-  /* Бургер-кнопка */
-  .mobile-menu-btn {
-    display: none;
-    width: 38px; height: 38px;
-    border-radius: 10px;
-    border: 1.5px solid var(--border);
-    background: white;
-    cursor: pointer;
-    align-items: center;
-    justify-content: center;
-    margin-right: 10px;
-    flex-shrink: 0;
+  /* ─ ТЕЛЕФОН (< 560px) ─ */
+  @media (max-width: 560px) {
+    .main { padding: 10px !important; }
+
+    /* KPI — 2×2 дуже компактно */
+    .sg { gap: 8px; }
+    .sc { padding: 12px !important; border-radius: 12px !important; }
+    .sn { font-size: 24px !important; }
+
+    /* Заголовки */
+    .pt { font-size: 17px !important; }
+    .ps { font-size: 11px !important; }
+    .ph .btn { padding: 8px 12px; font-size: 12px; }
+    .ph .btn svg { width: 12px; height: 12px; }
+
+    /* Картки викладачів — компактніше */
+    .tc-head { padding: 14px 16px 12px !important; }
+    .tc-body { padding: 12px 16px !important; }
+    .tc-stats { grid-template-columns: repeat(3,1fr); gap: 5px; }
+    .tc-stat { padding: 7px 4px !important; }
+    .tc-stat-n { font-size: 15px !important; }
+    .tc-stat-l { font-size: 8px !important; }
+    .tc-actions { gap: 5px; }
+    .tc-actions .btn-sm { padding: 6px 9px; font-size: 11.5px; min-width: 34px; }
+
+    /* Таблиці */
+    .tbl th, .tbl td { padding: 8px 8px !important; font-size: 11px; }
+
+    /* Feature rows у налаштуваннях */
+    .feat-icon { width: 28px !important; height: 28px !important; font-size: 13px !important; margin-right: 9px !important; }
+
+    /* Модалки */
+    .mb { padding: 20px 16px !important; border-radius: 16px !important; margin: 6px; }
+    .mtl { font-size: 16px !important; }
+    .fl label { font-size: 10px; }
+
+    /* Графік */
+    #ov-chart { height: 90px !important; gap: 4px !important; }
+    .ov-bar-val { font-size: 10px; top: -18px; }
+
+    /* Поле пошуку overview */
+    #ov-teach-search { width: 100% !important; }
+
+    /* Статус-розподіл */
+    .ov-stat-label { min-width: 80px !important; font-size: 12px !important; }
+    .ov-stat-val { font-size: 13px !important; }
   }
-  .mobile-menu-btn svg { width: 18px; height: 18px; color: var(--text); }
+
+  /* ─ ДУЖЕ МАЛИЙ (< 380px) ─ */
+  @media (max-width: 380px) {
+    .sg { grid-template-columns: 1fr !important; }
+    .sn { font-size: 28px !important; }
+    .tc-actions .btn-sm { font-size: 11px; padding: 5px 7px; }
+  }
+
 
 
 
@@ -247,13 +372,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
     border-color: rgba(127,29,29,.35) !important;
   }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
-
-  /* Мобільна — toolbar вертикально */
-  @media (max-width: 600px) {
-    .tc-toolbar { flex-direction: column; align-items: stretch !important; }
-    .tc-filter-btns { overflow-x: auto; }
-    .tc-fb { flex-shrink: 0; padding: 7px 12px; font-size: 12px; }
-  }
 
 
 
@@ -395,10 +513,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
   .ov-recent-tname { font-size: 13px; font-weight: 600; }
   .ov-recent-meta { font-size: 11px; color: var(--muted); margin-top: 1px; }
   .ov-recent-time { font-size: 11px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
-
-  @media (max-width: 900px) {
-    .ov-split { grid-template-columns: 1fr !important; }
-  }
 
 </style>
 </head>
