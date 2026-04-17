@@ -333,7 +333,7 @@
       <option value="closed">Закритий</option>
     </select>
     <div style="display:flex;gap:6px;flex-shrink:0">
-      <button data-ai-btn="generation" class="btn btn-ghost" onclick="window.openAiModal()" style="gap:6px;font-size:13px">
+      <button class="btn btn-ghost" onclick="window.openAiModal()" style="gap:6px;font-size:13px">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>AI
       </button>
       <button class="btn btn-ghost" onclick="window.openExcelModal()" style="gap:6px;font-size:13px">
@@ -438,9 +438,19 @@
 <div class="modal-overlay" id="aiModal">
   <div class="modal-box" style="max-width:520px">
     <button class="modal-close-btn" onclick="document.getElementById('aiModal').classList.remove('open')">×</button>
-    <div style="font-size:28px;margin-bottom:10px">✦</div>
-    <div class="modal-title">AI Генерація питань</div>
-    <div class="modal-sub">Groq AI створить питання за вашими параметрами</div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <span style="font-size:20px">✦</span>
+          <div class="modal-title" style="margin:0">AI Генерація питань</div>
+        </div>
+        <div class="modal-sub" style="margin:0">Створить питання за вашими параметрами</div>
+      </div>
+      <div id="ai-provider-badge" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;background:rgba(45,91,227,.07);border:1.5px solid rgba(45,91,227,.15);font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap;flex-shrink:0;margin-top:2px">
+        <span id="ai-provider-icon">⚡</span>
+        <span id="ai-provider-name">Groq</span>
+      </div>
+    </div>
 
     <div class="setting-field" style="margin-bottom:14px">
       <div class="setting-label">Тема *</div>
@@ -550,17 +560,7 @@ const db  = getDatabase(app);
       }
     }
   }catch(e){ console.warn("Teacher AI settings:", e.message); }
-  // Застосовуємо видимість кнопок AI
-  applyAIVisibility();
 })();
-
-function applyAIVisibility(){
-  const hide = window._AI_GENERATION === false;
-  document.querySelectorAll('[data-ai-btn="generation"]').forEach(el=>{
-    el.style.display = hide ? "none" : "";
-  });
-}
-window.applyAIVisibility = applyAIVisibility;
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -758,14 +758,13 @@ async function loadAISettings(db) {
     const snap = await get(ref(db, "settings/ai"));
     if(snap.exists()){
       const s = snap.val();
-      AI_PROVIDER = s.provider || "groq";
-      if(AI_PROVIDER === "gemini"){
-        GEMINI_KEY   = s.geminiApiKey || s.apiKey || "";
-        GEMINI_MODEL = s.geminiModel  || s.model  || "gemini-2.5-flash";
-      } else {
-        if(s.groqApiKey || s.apiKey) GROQ_API_KEY = s.groqApiKey || s.apiKey;
-        if(s.groqModel  || s.model ) GROQ_MODEL   = s.groqModel  || s.model;
-      }
+      // Завжди завантажуємо обидва провайдери
+      if(s.groqApiKey || s.apiKey) GROQ_API_KEY = s.groqApiKey || s.apiKey;
+      if(s.groqModel  || s.model ) GROQ_MODEL   = s.groqModel  || s.model;
+      GEMINI_KEY   = s.geminiApiKey || "";
+      GEMINI_MODEL = s.geminiModel  || "gemini-2.5-flash";
+      // Провайдер для генерації — з featProviders.generation
+      AI_PROVIDER = (s.featProviders && s.featProviders.generation) || s.provider || "groq";
       if(s.enabled !== undefined) AI_ENABLED = s.enabled !== false;
       window._AI_COMMENTS   = s.aiComments   !== false;
       window._AI_ANALYSIS   = s.aiAnalysis   !== false;
@@ -1679,14 +1678,11 @@ function renderEditor() {
 
       <div class="ai-row">
         <button class="ai-btn ai-rephrase" onclick="window.aiRephrase()">✦ Перефразувати</button>
-        <button data-ai-btn="generation" class="ai-btn ai-generate" onclick="window.openAiModal()">⚡ AI генерація</button>
+        <button class="ai-btn ai-generate" onclick="window.openAiModal()">⚡ AI генерація</button>
       </div>
 
       ${answerSection}
     </div>`;
-
-  // Застосовуємо видимість AI кнопок після рендеру
-  if(typeof applyAIVisibility === "function") applyAIVisibility();
 }
 
 function renderChoiceOptions(q) {
@@ -2008,6 +2004,24 @@ window.aiRephrase = async () => {
 };
 
 window.openAiModal = () => {
+  // Оновлюємо бейдж провайдера
+  const icon = AI_PROVIDER === "gemini" ? "✨" : "⚡";
+  const name = AI_PROVIDER === "gemini"
+    ? "Gemini · " + (GEMINI_MODEL || "gemini-2.5-flash").replace("gemini-","")
+    : "Groq · " + (GROQ_MODEL || "llama-3.3-70b-versatile")
+        .replace("llama-3.3-70b-versatile","llama 3.3 70b")
+        .replace("llama-3.1-8b-instant","llama 3.1 8b")
+        .replace("mixtral-8x7b-32768","mixtral 8x7b");
+  const badge = document.getElementById("ai-provider-badge");
+  if(badge){
+    badge.style.background  = AI_PROVIDER === "gemini" ? "rgba(13,158,133,.08)" : "rgba(45,91,227,.07)";
+    badge.style.borderColor = AI_PROVIDER === "gemini" ? "rgba(13,158,133,.22)" : "rgba(45,91,227,.15)";
+    badge.style.color       = AI_PROVIDER === "gemini" ? "#0d9e85" : "var(--primary)";
+  }
+  const iconEl = document.getElementById("ai-provider-icon");
+  const nameEl = document.getElementById("ai-provider-name");
+  if(iconEl) iconEl.textContent = icon;
+  if(nameEl) nameEl.textContent = name;
   document.getElementById("aiModal").classList.add("open");
 };
 
