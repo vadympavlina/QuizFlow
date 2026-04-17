@@ -595,14 +595,14 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
           <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          <input type="text" id="tc-search" placeholder="Пошук за ім\'ям або логіном..." oninput="renderTeachers()"
+          <input type="text" id="tc-search" placeholder="Пошук за іменем або логіном..." oninput="renderTeachers()"
             class="fi" style="padding-left:42px">
         </div>
         <div class="tc-filter-btns" style="display:flex;gap:6px;background:var(--bg);padding:4px;border-radius:12px;border:1.5px solid var(--border)">
-          <button class="tc-fb on" data-filter="all" onclick="setTeacherFilter(\'all\')">Всі</button>
-          <button class="tc-fb" data-filter="active" onclick="setTeacherFilter(\'active\')">Активні</button>
-          <button class="tc-fb" data-filter="blocked" onclick="setTeacherFilter(\'blocked\')">Заблоковані</button>
-          <button class="tc-fb" data-filter="first" onclick="setTeacherFilter(\'first\')">Перший вхід</button>
+          <button class="tc-fb on" data-filter="all" onclick="setTeacherFilter('all')">Всі</button>
+          <button class="tc-fb" data-filter="active" onclick="setTeacherFilter('active')">Активні</button>
+          <button class="tc-fb" data-filter="blocked" onclick="setTeacherFilter('blocked')">Заблоковані</button>
+          <button class="tc-fb" data-filter="first" onclick="setTeacherFilter('first')">Перший вхід</button>
         </div>
       </div>
 
