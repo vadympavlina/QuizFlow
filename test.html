@@ -1605,7 +1605,7 @@ function generateResultHTML({ student, test, attempt, questions }) {
 
   ${attempt.status==="pending_review"
     ? '<div class="pending-box"><span style="font-size:22px;flex-shrink:0">⏳</span><div><div style="font-family:Syne,sans-serif;font-weight:700;font-size:14px;color:#b45309;margin-bottom:2px">Очікує перевірки</div><div style="font-size:13px;color:#b45309;opacity:.85">Розгорнуті відповіді чекають на оцінювання викладача</div></div></div>'
-    : (attempt.aiComment ? '<div class="ai-box"><div class="ai-label">AI Коментар</div><div class="ai-text">'+attempt.aiComment+'</div></div>' : "")
+    : (attempt.aiComment ? '<div class="ai-box"><div class="ai-label">Коментар</div><div class="ai-text">'+attempt.aiComment+'</div></div>' : "")
   }
 
   <div class="section-title">Детальні відповіді</div>
