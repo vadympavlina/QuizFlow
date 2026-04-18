@@ -984,9 +984,9 @@ function renderSuspBadges(el, a){
     bdg.title = `${label}: ${count}`;
   }
 
-  syncBadge("tabs",   tabs,   "👁", "Вкладки");
-  syncBadge("copies", copies, "📋", "Копіювання");
-  syncBadge("shots",  shots,  "📸", "Скріншоти");
+  syncBadge("tabs",   tabs,   "Вкладки:", "Вкладки");
+  syncBadge("copies", copies, "Копіювання:", "Копіювання");
+  syncBadge("shots",  shots,  "Скріншоти:", "Скріншоти");
 
   row.classList.toggle("visible", level > 0);
 }
