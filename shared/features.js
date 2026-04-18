@@ -226,9 +226,15 @@ function showNotifBanner({icon, msg, color, id}){
 
 
 function renderAll(){
-  renderStats(); renderDashAtt(); renderDashLinks();
-  renderTests(); renderAttempts(); renderLinks();
-  updateBadges(); fillSelects();
+  // Кожен рендерер — у try-catch, бо конкретна сторінка може не мати всіх елементів
+  try { renderStats(); } catch(e) { console.warn("[renderAll] renderStats:", e.message); }
+  try { renderDashAtt(); } catch(e) { console.warn("[renderAll] renderDashAtt:", e.message); }
+  try { renderDashLinks(); } catch(e) { console.warn("[renderAll] renderDashLinks:", e.message); }
+  try { renderTests(); } catch(e) { console.warn("[renderAll] renderTests:", e.message); }
+  try { renderAttempts(); } catch(e) { console.warn("[renderAll] renderAttempts:", e.message); }
+  try { renderLinks(); } catch(e) { console.warn("[renderAll] renderLinks:", e.message); }
+  try { updateBadges(); } catch(e) { console.warn("[renderAll] updateBadges:", e.message); }
+  try { fillSelects(); } catch(e) { console.warn("[renderAll] fillSelects:", e.message); }
   // Оновлюємо лічильник архіву
   const archiveCnt=document.getElementById("archive-count");
   if(archiveCnt) archiveCnt.textContent=tests.filter(t=>t.status==="archived").length||"";
@@ -242,16 +248,16 @@ function renderStats(){
   const cp = attempts.filter(a=>a.status==="completed");
   const pending = attempts.filter(a=>a.status==="pending_review").length;
   const passRate = cp.length ? Math.round(cp.filter(a=>a.grade12>=4).length/cp.length*100) : 0;
-  $("s-t").textContent=tests.length;
-  $("s-a").textContent=attempts.length;
-  $("s-l").textContent=al;
+  const st = $("s-t"); if(st) st.textContent=tests.length;
+  const sa = $("s-a"); if(sa) sa.textContent=attempts.length;
+  const sl = $("s-l"); if(sl) sl.textContent=al;
   const spEl=$("s-pending"); if(spEl) spEl.textContent=pending;
   const srEl=$("s-passrate"); if(srEl) srEl.textContent=cp.length?passRate+"%":"—";
 }
 function updateBadges(){
-  $("nb-t").textContent=tests.length;
-  $("nb-a").textContent=attempts.length;
-  $("nb-l").textContent=links.filter(l=>l.status==="active").length;
+  const nbt = $("nb-t"); if(nbt) nbt.textContent=tests.length;
+  const nba = $("nb-a"); if(nba) nba.textContent=attempts.length;
+  const nbl = $("nb-l"); if(nbl) nbl.textContent=links.filter(l=>l.status==="active").length;
   // Підозрілі
   const suspCount = attempts.filter(a=>(a.tabSwitches||0)*2+(a.copyAttempts||0)*3+(a.screenshots||0)*5>0&&(a.status==="completed"||a.status==="pending_review")).length;
   // Підозрілі — порівнюємо з збереженим в Firebase
