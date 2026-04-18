@@ -42,6 +42,34 @@ window.addEventListener("_qfDataReady", () => {
   if (window.renderAll) window.renderAll();
 });
 
+// ─── Helpers що використовуються по всьому коду ────────────────────────
+const timeAgo = t => {
+  if(!t) return "—";
+  const d = (Date.now()-t)/1e3;
+  if(d<60) return "щойно";
+  if(d<3600) return `${Math.floor(d/60)} хв тому`;
+  if(d<86400) return `${Math.floor(d/3600)} год тому`;
+  return new Date(t).toLocaleDateString("uk-UA");
+};
+const fmtTime = s => {
+  const m = Math.floor(s/60), sc = Math.floor(s%60);
+  return `${m}:${sc.toString().padStart(2,"0")}`;
+};
+const grBdg = g => g>=10 ? "bg-g" : g>=6 ? "bg-b" : "bg-r";
+const stripHtml = s => {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = s || "";
+  return tmp.textContent || "";
+};
+// DB shortcuts (використовують tp з app.js)
+const dbPush = async (path, val) => { const r = push(ref(db, tp(path))); await set(r, val); return r.key; };
+const dbSet  = (path, val) => set(ref(db, tp(path)), val);
+const dbUpd  = (path, val) => update(ref(db, tp(path)), val);
+const dbDel  = path => remove(ref(db, tp(path)));
+
+// Стан (деякі модалки/функції з G використовують ці змінні)
+let _students = [], _fid = null, _pid = null;
+
 async function loadStoredNotifs(){
   try {
     const snap = await dbGet("notifications");
