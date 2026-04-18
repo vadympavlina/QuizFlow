@@ -135,6 +135,10 @@ setTimeout(()=>{
 }, 500);
 
 
+// ─── Нотифікації ─────────────────────────────────────────────────────────────
+let _notifQueue = [];
+let _notifActive = false;
+
 function showNotification(attempt, type){
   const test = tests.find(t=>t.id===attempt.testId);
   const name = `${attempt.name} ${attempt.surname}`;
