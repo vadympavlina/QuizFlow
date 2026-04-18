@@ -136,7 +136,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 .empty-icon{font-size:40px;margin-bottom:12px}
 .empty-text{font-family:"Syne",sans-serif;font-weight:600;font-size:16px;color:var(--text);margin-bottom:6px}
 
-
   /* ═════════════ Sidebar overrides ═════════════ */
   .sidebar { background: linear-gradient(170deg, #1a0a10, #2b0b10) !important; }
   .sb-tag { background: rgba(220,38,38,.22) !important; color: #fca5a5 !important; }
@@ -261,8 +260,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
     .pt { font-size: 22px !important; letter-spacing: -.3px; }
     .ps { font-size: 13px !important; }
 
-    .sg { grid-template-columns: 1fr 1fr !important; gap: 10px !important; margin-bottom: 18px !important; }
-    .sc { padding: 16px !important; border-radius: 14px !important; }
+.sc { padding: 16px !important; border-radius: 14px !important; }
     .sn { font-size: 30px !important; letter-spacing: -1px !important; }
 
     .ov-split { grid-template-columns: 1fr !important; gap: 12px !important; }
@@ -334,12 +332,8 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
   }
 
   @media (max-width: 400px) {
-    .sg { grid-template-columns: 1fr !important; }
-    .sc { padding: 14px 16px !important; }
-    .sn { font-size: 30px !important; }
+
   }
-
-
 
   /* ═════════════ STATS MOBILE CARDS ═════════════ */
   .stats-cards { display: none; }
@@ -458,10 +452,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
     }
 
     /* KPI — 2 колонки, великі числа */
-    #sec-overview .sg {
-      grid-template-columns: 1fr 1fr !important;
-      gap: 10px !important;
-    }
+    
     #sec-overview .sc {
       padding: 16px 14px !important;
     }
@@ -595,8 +586,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
     .sc-card-item { padding: 9px 4px !important; }
   }
 
-
-
   /* Загальний btn-lbl */
   @media (max-width: 500px) {
     .ph .btn-lbl { font-size: 13px; }
@@ -607,10 +596,207 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
     .ph .btn svg { margin: 0; }
   }
 
+  /* ═════════════════════════════════════════════════════════════════
+     DASHBOARD MOBILE — компактний вигляд
+     ═════════════════════════════════════════════════════════════════ */
+
+  /* Desktop / tablet >= 768: картки ховаються */
+  .ov-cards-wrap { display: none; }
+
+  /* KPI картки — горизонтальні на мобільному (іконка + число+підпис поряд) */
+  .sc-horizontal {
+    display: flex !important;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px !important;
+  }
+  .sc-horizontal .si {
+    margin-bottom: 0 !important;
+    flex-shrink: 0;
+  }
+  .sc-horizontal .sc-text { flex: 1; min-width: 0; }
+  .sc-horizontal .sn {
+    margin-bottom: 2px !important;
+    line-height: 1 !important;
+  }
+
+  /* Overview card list items */
+  .ov-card-item {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .ov-card-item:last-child { border-bottom: none; }
+  .ov-card-item.blocked { opacity: .55; }
+  .ov-card-item-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .ov-card-ava {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .ov-card-item-info { flex: 1; min-width: 0; }
+  .ov-card-item-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .ov-card-item-login {
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+  .ov-card-item-stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 44px;
+  }
+  .ov-card-item-stats > div { flex-shrink: 0; }
+
+  /* ═════ < 768px: компактний дашборд ═════ */
+  @media (max-width: 768px) {
+    /* KPI — 1 колонка, горизонтально */
+    #sec-overview .sg {
+      grid-template-columns: 1fr !important;
+      gap: 8px !important;
+      margin-bottom: 14px !important;
+    }
+    #sec-overview .sc {
+      display: flex !important;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 14px !important;
+      border-radius: 12px !important;
+    }
+    #sec-overview .sc:hover { transform: none; }
+    #sec-overview .si {
+      margin-bottom: 0 !important;
+      width: 36px !important;
+      height: 36px !important;
+      flex-shrink: 0;
+    }
+    #sec-overview .si svg { width: 16px; height: 16px; }
+    #sec-overview .sn {
+      font-size: 26px !important;
+      margin-bottom: 0 !important;
+      letter-spacing: -.8px !important;
+      line-height: 1 !important;
+    }
+    #sec-overview .sl {
+      font-size: 10px !important;
+      margin-top: 2px;
+    }
+    #sec-overview .sc-sub {
+      font-size: 10px !important;
+      margin-top: 3px !important;
+    }
+
+    /* Два блоки графіка в колонку */
+    #sec-overview .ov-split {
+      grid-template-columns: 1fr !important;
+      gap: 10px !important;
+      margin-bottom: 10px !important;
+    }
+    #sec-overview .ov-split .card {
+      padding: 16px !important;
+    }
+    #sec-overview .ov-split .card > div:first-child > div:first-child > div:first-child {
+      font-size: 14px !important;
+    }
+    #sec-overview .ov-split .card > div:first-child > div:first-child > div:last-child {
+      font-size: 11px !important;
+    }
+    #sec-overview .ov-split .card #ov-week-total {
+      font-size: 20px !important;
+    }
+    #ov-chart { height: 90px !important; gap: 4px !important; }
+    #ov-chart-labels span { font-size: 9px; }
+
+    /* Розподіл статусів — компактніше */
+    .ov-stat-label {
+      min-width: 90px !important;
+      font-size: 12px !important;
+    }
+    .ov-stat-val {
+      font-size: 13px !important;
+      min-width: 22px !important;
+    }
+    .ov-stat-bar-wrap { height: 8px; }
+
+    /* Таблиця overview — сховати, показати cards */
+    .ov-table-wrap { display: none !important; }
+    .ov-cards-wrap { display: block; }
+  }
+
+  /* ═════ < 500px: дрібніші KPI ═════ */
+  @media (max-width: 500px) {
+    .main { padding: 10px !important; }
+
+    #sec-overview .sc {
+      padding: 11px 12px !important;
+      gap: 12px;
+    }
+    #sec-overview .si {
+      width: 32px !important;
+      height: 32px !important;
+    }
+    #sec-overview .si svg { width: 15px; height: 15px; }
+    #sec-overview .sn {
+      font-size: 22px !important;
+    }
+    #sec-overview .sl { font-size: 9.5px !important; }
+    #sec-overview .sc-sub { font-size: 10px !important; }
+
+    .ov-split .card { padding: 14px !important; }
+    #ov-chart { height: 80px !important; }
+
+    /* Card list items — стиснуті */
+    .ov-card-item-stats {
+      padding: 0 !important;
+      flex-wrap: wrap;
+      gap: 6px !important;
+      font-size: 11px;
+    }
+    .ov-card-item-stats > div:nth-child(1),
+    .ov-card-item-stats > div:nth-child(2),
+    .ov-card-item-stats > div:nth-child(3) {
+      flex: 1;
+      min-width: 0;
+    }
+    .ov-card-item-stats > div span:first-child {
+      font-size: 14px !important;
+    }
+    .ov-card-ava { width: 30px !important; height: 30px !important; font-size: 11px !important; border-radius: 9px !important; }
+    .ov-card-item-name { font-size: 13px !important; }
+  }
+
+  /* ═════ < 380px ═════ */
+  @media (max-width: 380px) {
+    #sec-overview .sc {
+      padding: 10px 12px !important;
+      gap: 11px;
+    }
+    #sec-overview .sn { font-size: 20px !important; }
+    #sec-overview .si { width: 30px !important; height: 30px !important; }
+  }
+
 </style>
 </head>
 <body>
-
 
 <div id="loader"><div class="spin"></div><div style="font-size:13px;color:var(--muted)">Завантаження...</div></div>
 
@@ -749,7 +935,8 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
         </div>
       </div>
 
-      <div class="card">
+      <!-- Desktop таблиця -->
+      <div class="card ov-table-wrap">
         <div class="card-head">
           <div class="card-title">Статистика викладачів</div>
           <div style="display:flex;gap:8px;align-items:center">
@@ -772,6 +959,25 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
             </thead>
             <tbody id="ov-table"></tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- Mobile cards — той самий список з пошуком -->
+      <div class="ov-cards-wrap">
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="padding:14px 14px 10px">
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:10px">Статистика викладачів</div>
+            <div style="position:relative">
+              <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" id="ov-teach-search-m" placeholder="Пошук..." oninput="renderOverviewCards()" class="fi" style="padding:9px 12px 9px 36px;font-size:14px">
+            </div>
+          </div>
+          <div id="ov-cards" style="padding:6px 12px 12px"></div>
+          <div style="padding:10px 14px 14px;border-top:1px solid var(--border)">
+            <button class="btn bs" onclick="showSec('teachers')" style="width:100%;justify-content:center">Всі викладачі</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1319,6 +1525,7 @@ window.sortOverviewBy = function(key){
 };
 
 window.renderOverviewTable = function(){
+  renderOverviewCards();
   const tbody = document.getElementById("ov-table");
   if(!tbody) return;
   ["name","tests","activeTests","students","attempts","weekAttempts","lastAct"].forEach(k=>{
@@ -1378,6 +1585,65 @@ window.renderOverviewTable = function(){
     </tr>`;
   }).join("");
 }
+
+window.renderOverviewCards = function(){
+  const wrap = document.getElementById("ov-cards");
+  if(!wrap) return;
+  const searchEl = document.getElementById("ov-teach-search-m") || document.getElementById("ov-teach-search");
+  const search = searchEl ? searchEl.value.trim().toLowerCase() : "";
+
+  let list = [..._users];
+  if(search){
+    list = list.filter(u =>
+      (u.name||"").toLowerCase().includes(search) ||
+      (u.login||"").toLowerCase().includes(search)
+    );
+  }
+
+  // Сортуємо за кількістю спроб, але активні зверху
+  list.sort((a,b)=>{
+    const aw = a.blocked ? 1 : 0;
+    const bw = b.blocked ? 1 : 0;
+    if(aw !== bw) return aw - bw;
+    return (_stats[b.id]?.attempts||0) - (_stats[a.id]?.attempts||0);
+  });
+
+  if(!list.length){
+    wrap.innerHTML = `<div style="text-align:center;padding:24px 12px;color:var(--muted);font-size:13px">Нічого не знайдено</div>`;
+    return;
+  }
+
+  wrap.innerHTML = list.slice(0, 20).map(u=>{
+    const s = _stats[u.id]||{};
+    const isBlocked = u.blocked===true;
+    const isFirst = u.isFirstLogin===true && !isBlocked;
+    const lastStr = s.lastAct ? formatTimeAgo(s.lastAct) : "—";
+    const lastColor = s.lastAct && (Date.now() - s.lastAct < 24*60*60*1000) ? "#0d9e85" : "var(--muted)";
+    const statusColor = isBlocked ? "#dc2626" : isFirst ? "#f59e0b" : "#22c55e";
+    const weekBadge = (s.weekAttempts||0) > 0
+      ? `<span style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:12px;background:rgba(13,158,133,.1);color:#0d9e85;font-size:11px;font-weight:700">+${s.weekAttempts}</span>`
+      : "";
+    return `<div class="ov-card-item${isBlocked?' blocked':''}">
+      <div class="ov-card-item-head">
+        <div class="ov-card-ava" style="background:var(--grad)">${esc(u.name||u.login).slice(0,2).toUpperCase()}</div>
+        <div class="ov-card-item-info">
+          <div class="ov-card-item-name">
+            <span style="width:6px;height:6px;border-radius:50%;background:${statusColor};flex-shrink:0"></span>
+            <span>${esc(u.name||"—")}</span>
+          </div>
+          <div class="ov-card-item-login">@${esc(u.login)}</div>
+        </div>
+        ${weekBadge}
+      </div>
+      <div class="ov-card-item-stats">
+        <div><span style="color:#0d9e85;font-weight:700;font-size:15px">${s.tests||0}</span><span style="font-size:10px;color:var(--muted);margin-left:4px">тестів</span></div>
+        <div><span style="color:#f59e0b;font-weight:700;font-size:15px">${s.attempts||0}</span><span style="font-size:10px;color:var(--muted);margin-left:4px">спроб</span></div>
+        <div><span style="color:#9333ea;font-weight:700;font-size:15px">${s.students||0}</span><span style="font-size:10px;color:var(--muted);margin-left:4px">студ</span></div>
+        <div style="font-size:11px;color:${lastColor};white-space:nowrap">${lastStr}</div>
+      </div>
+    </div>`;
+  }).join("") + (list.length > 20 ? `<div style="text-align:center;font-size:12px;color:var(--muted);padding:10px">...і ще ${list.length - 20}</div>` : "");
+};
 
 function formatTimeAgo(ts){
   const diff = Date.now() - ts;
@@ -2174,7 +2440,6 @@ loadNews();
     </div>
   </div>
 </div>
-
 
 <!-- LINK INSERT MODAL -->
 <div class="mo" id="m-link-insert" style="z-index:500">
