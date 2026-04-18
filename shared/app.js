@@ -113,6 +113,8 @@ export function ldr(show) {
     el.style.display = "flex";
     el.style.opacity = "1";
   } else {
+    // Показуємо sidebar + main (знімаємо opacity:0 з CSS)
+    document.body.classList.add("app-ready");
     el.style.opacity = "0";
     setTimeout(() => { el.style.display = "none"; }, 200);
   }
