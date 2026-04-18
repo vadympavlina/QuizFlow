@@ -416,28 +416,65 @@ main {
   font-weight: 700;
   letter-spacing: .2px;
 }
-/* ── Suspicion badges ── */
+/* ── Suspicion levels ── */
+
+/* Середня підозрілість — помаранчева */
+.student-card.susp-mid {
+  border-color: rgba(245,158,11,.45);
+  box-shadow: 0 2px 12px rgba(245,158,11,.12), 0 1px 3px rgba(245,158,11,.08);
+}
+.student-card.susp-mid::before {
+  background: linear-gradient(180deg, #f59e0b, #d97706);
+}
+.student-card.susp-mid:hover {
+  box-shadow: 0 8px 28px rgba(245,158,11,.18);
+  border-color: rgba(245,158,11,.6);
+}
+
+/* Висока підозрілість — червона */
+.student-card.susp-high {
+  border-color: rgba(244,63,94,.5);
+  box-shadow: 0 2px 12px rgba(244,63,94,.14), 0 1px 3px rgba(244,63,94,.08);
+}
+.student-card.susp-high::before {
+  background: linear-gradient(180deg, #f43f5e, #be123c);
+}
+.student-card.susp-high:hover {
+  box-shadow: 0 8px 28px rgba(244,63,94,.2);
+  border-color: rgba(244,63,94,.65);
+}
+
+/* Рядок бейджиків */
 .susp-row {
-  display: flex;
+  display: none;
   flex-wrap: wrap;
   gap: 5px;
 }
+.susp-row.visible { display: flex; }
+
 .susp-bdg {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 8px;
-  border-radius: 8px;
+  padding: 2px 7px;
+  border-radius: 7px;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: .1px;
+  animation: suspIn .2s ease both;
+}
+.susp-mid .susp-bdg {
+  background: rgba(245,158,11,.1);
+  color: #92400e;
+  border: 1px solid rgba(245,158,11,.25);
+}
+.susp-high .susp-bdg {
   background: rgba(244,63,94,.08);
-  color: #be123c;
-  border: 1px solid rgba(244,63,94,.15);
-  animation: suspIn .25s ease both;
+  color: #9f1239;
+  border: 1px solid rgba(244,63,94,.2);
 }
 @keyframes suspIn {
-  from { opacity: 0; transform: scale(.85); }
+  from { opacity: 0; transform: scale(.82); }
   to   { opacity: 1; transform: scale(1); }
 }
 
@@ -830,15 +867,15 @@ function render(attempts){
       const tabs = a.tabSwitches || 0;
       const copies = a.copyAttempts || 0;
       const shots = a.screenshots || 0;
+      const score = calcSuspScore(a);
       _cardState.set(a.id, {
         currentQ: a.currentQ || 0,
         pct: calcPct(a),
         isIdle: false,
         startedAt: a.startedAt || 0,
-        tabs, copies, shots
+        tabs, copies, shots, score
       });
-      // Одразу рендеримо бейджики якщо вже є
-      if(tabs + copies + shots > 0) renderSuspBadges(el, tabs, copies, shots);
+      if(score > 0) renderSuspBadges(el, a);
       grid.appendChild(el);
     }
   });
@@ -884,40 +921,74 @@ function patchCardData(el, a){
   const tabs = a.tabSwitches || 0;
   const copies = a.copyAttempts || 0;
   const shots = a.screenshots || 0;
-  if(prev.tabs !== tabs || prev.copies !== copies || prev.shots !== shots){
-    renderSuspBadges(el, tabs, copies, shots);
+  const score = calcSuspScore(a);
+  if(prev.tabs !== tabs || prev.copies !== copies || prev.shots !== shots || prev.score !== score){
+    renderSuspBadges(el, a);
   }
 
-  _cardState.set(a.id, { currentQ, pct, isIdle, startedAt: a.startedAt || 0, tabs, copies, shots });
+  _cardState.set(a.id, { currentQ, pct, isIdle, startedAt: a.startedAt || 0, tabs, copies, shots, score });
 }
 
-// Малює бейджики підозрілості хірургічно — тільки що змінилось
-function renderSuspBadges(el, tabs, copies, shots){
+// ─── Рахує бали підозрілості ───────────────────────────────────────────────
+// Вкладки: 3 бали кожна, копіювання: 2, скріншоти: 5, devtools (з events): 4
+function calcSuspScore(a){
+  const tabs   = a.tabSwitches  || 0;
+  const copies = a.copyAttempts || 0;
+  const shots  = a.screenshots  || 0;
+  // DevTools рахуємо з suspiciousEvents якщо є
+  const devtools = (a.suspiciousEvents || []).filter(e => e.type === "devtools").length;
+  return tabs * 3 + copies * 2 + shots * 5 + devtools * 4;
+}
+
+// Рівень: 0 — нормальний, 1 — середній (помаранч.), 2 — високий (червоний)
+function suspLevel(score){
+  if(score >= 15) return 2;
+  if(score >= 5)  return 1;
+  return 0;
+}
+
+// Малює бейджики і рівень картки хірургічно
+function renderSuspBadges(el, a){
+  const tabs   = a.tabSwitches  || 0;
+  const copies = a.copyAttempts || 0;
+  const shots  = a.screenshots  || 0;
+  const score  = calcSuspScore(a);
+  const level  = suspLevel(score);
+
+  // Клас рівня на картці
+  const prev = el.dataset.suspLevel || "0";
+  const cur  = String(level);
+  if(prev !== cur){
+    el.dataset.suspLevel = cur;
+    el.classList.remove("susp-mid", "susp-high");
+    if(level === 1) el.classList.add("susp-mid");
+    if(level === 2) el.classList.add("susp-high");
+  }
+
+  // Бейджики
   const row = el.querySelector("[data-susp]");
   if(!row) return;
 
   function syncBadge(key, count, icon, label){
     let bdg = row.querySelector(`[data-key="${key}"]`);
-    if(count === 0){
-      if(bdg) bdg.remove();
-      return;
-    }
+    if(count === 0){ if(bdg) bdg.remove(); return; }
     if(!bdg){
       bdg = document.createElement("span");
       bdg.className = "susp-bdg";
       bdg.dataset.key = key;
       row.appendChild(bdg);
     }
-    const text = `${icon} ${label}: ${count}`;
+    const text = `${icon} ${count}`;
     if(bdg.textContent !== text) bdg.textContent = text;
+    // Оновлюємо title для hover підказки
+    bdg.title = `${label}: ${count}`;
   }
 
   syncBadge("tabs",   tabs,   "👁", "Вкладки");
   syncBadge("copies", copies, "📋", "Копіювання");
   syncBadge("shots",  shots,  "📸", "Скріншоти");
 
-  // Ховаємо рядок якщо все нулі
-  row.style.display = (tabs + copies + shots) === 0 ? "none" : "flex";
+  row.classList.toggle("visible", level > 0);
 }
 
 // ─── Окремий таймер ТІЛЬКИ для тривалості — не торкається нічого іншого ───
