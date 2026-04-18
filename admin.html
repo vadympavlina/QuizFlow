@@ -14,7 +14,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 /* Layout */
 .layout{display:flex;min-height:100vh}
-.sidebar{width:220px;background:#0b0f2e;display:flex;flex-direction:column;padding:18px 10px;position:fixed;top:0;left:0;bottom:0;z-index:100;border-right:1px solid rgba(255,255,255,.06);transition:width .25s cubic-bezier(.4,0,.2,1)}
+.sidebar{width:220px;background:linear-gradient(170deg,#1a0a10,#2b0b10);display:flex;flex-direction:column;padding:18px 10px;position:fixed;top:0;left:0;bottom:0;z-index:100;border-right:1px solid rgba(255,255,255,.06);transition:width .25s cubic-bezier(.4,0,.2,1)}
 .sidebar.collapsed{width:60px}
 .sidebar.collapsed .sb-logo-name,.sidebar.collapsed .sb-tag,.sidebar.collapsed .ni-label,.sidebar.collapsed .sb-sep,.sidebar.collapsed .sb-uname,.sidebar.collapsed .sb-urole{display:none!important}
 .sidebar.collapsed .ni{justify-content:center;padding:10px;gap:0}
@@ -24,16 +24,16 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 .sidebar.collapsed .sb-foot{justify-content:center;gap:0;border-top:1px solid rgba(255,255,255,.07)}
 .sidebar.collapsed .ava{margin:0 auto}
 /* Tooltip */
-.sidebar.collapsed .ni[data-tip]:hover::after{content:attr(data-tip);position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);background:#1e2d6b;color:#fff;font-size:12px;font-weight:500;padding:5px 10px;border-radius:8px;white-space:nowrap;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.2);z-index:200}
-.sidebar.collapsed .ni[data-tip]:hover::before{content:'';position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%);border:5px solid transparent;border-right-color:#1e2d6b}
+.sidebar.collapsed .ni[data-tip]:hover::after{content:attr(data-tip);position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);background:#7f1d1d;color:#fff;font-size:12px;font-weight:500;padding:5px 10px;border-radius:8px;white-space:nowrap;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.2);z-index:200}
+.sidebar.collapsed .ni[data-tip]:hover::before{content:'';position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%);border:5px solid transparent;border-right-color:#7f1d1d}
 .sb-logo{display:flex;align-items:center;gap:10px;padding:4px 10px 28px}
 .sb-logo-icon{width:38px;height:38px;background:var(--grad);border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:"Syne",sans-serif;font-weight:800;font-size:17px;color:#fff;flex-shrink:0}
 .sb-logo-name{font-family:"Syne",sans-serif;font-weight:700;font-size:18px;color:#fff}
-.sb-tag{background:rgba(244,63,94,.18);color:#fca5a5;font-size:10px;padding:2px 9px;border-radius:20px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;align-self:center}
+.sb-tag{background:rgba(220,38,38,.22);color:#fca5a5;font-size:10px;padding:2px 9px;border-radius:20px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;align-self:center}
 .sb-sep{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,.22);font-weight:600;padding:0 10px;margin:16px 0 6px}
 .ni{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;cursor:pointer;color:rgba(255,255,255,.5);font-size:13.5px;font-weight:500;transition:all .15s;border:none;background:none;width:100%;text-align:left;text-decoration:none}
 .ni:hover{background:rgba(255,255,255,.07);color:#fff}
-.ni.on{background:rgba(220,38,38,.25);color:#93b4ff;border:1px solid rgba(220,38,38,.3)}
+.ni.on{background:rgba(220,38,38,.25);color:#fca5a5;border:1px solid rgba(220,38,38,.3)}
 .ni svg{width:16px;height:16px;flex-shrink:0;opacity:.75}
 .ni.on svg{opacity:1}
 .sb-foot{margin-top:auto;padding:14px 10px 0;border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px}
@@ -87,7 +87,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 .teacher-card{background:var(--card);border:1.5px solid var(--border);border-radius:18px;overflow:hidden;transition:all .2s}
 .teacher-card:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(0,0,0,.08);border-color:rgba(220,38,38,.2)}
 .teacher-card.blocked-card{opacity:.6;border-style:dashed}
-.tc-head{background:linear-gradient(135deg,#1e2d6b,#0d1340);padding:20px 20px 16px;position:relative;overflow:hidden}
+.tc-head{background:linear-gradient(135deg,#450a0a,#1a0508);padding:20px 20px 16px;position:relative;overflow:hidden}
 .tc-head::before{content:"";position:absolute;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.04);top:-50px;right:-40px}
 .tc-ava{width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-family:"Syne",sans-serif;font-weight:800;font-size:18px;color:#fff;margin-bottom:12px;border:2px solid rgba(255,255,255,.15)}
 .tc-name{font-family:"Syne",sans-serif;font-weight:700;font-size:16px;color:#fff;margin-bottom:3px}
@@ -99,7 +99,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 .tc-stat-l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
 .tc-actions{display:flex;gap:7px;flex-wrap:wrap}
 /* Modal */
-.mo{position:fixed;inset:0;background:rgba(10,14,46,.55);backdrop-filter:blur(6px);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;padding:16px}
+.mo{position:fixed;inset:0;background:rgba(26,5,8,.55);backdrop-filter:blur(6px);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;padding:16px}
 .mo.on{opacity:1;pointer-events:all}
 .mb{background:#fff;border-radius:22px;padding:28px;width:100%;max-width:460px;box-shadow:0 28px 80px rgba(0,0,0,.18);position:relative;animation:fadeIn .25s ease}
 .mcl{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:9px;border:1.5px solid var(--border);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px;transition:all .15s}
@@ -115,7 +115,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 .pass-val{font-family:monospace;font-size:24px;font-weight:700;color:var(--text);letter-spacing:3px;word-break:break-all}
 .pass-note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
 /* Toast */
-#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#0b0f2e;color:#fff;padding:13px 22px;border-radius:14px;font-size:14px;font-weight:500;z-index:999;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;box-shadow:0 8px 28px rgba(0,0,0,.2)}
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1a0508;color:#fff;padding:13px 22px;border-radius:14px;font-size:14px;font-weight:500;z-index:999;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;box-shadow:0 8px 28px rgba(0,0,0,.2)}
 #toast.show{opacity:1}
 /* Loader */
 #loader{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
@@ -137,7 +137,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 .empty-text{font-family:"Syne",sans-serif;font-weight:600;font-size:16px;color:var(--text);margin-bottom:6px}
 
 
-  /* ─── ЧЕРВОНА АДМІН-ПАЛІТРА (для sidebar та акцентів) ──────────────────── */
+  /* ═════════════ Sidebar overrides ═════════════ */
   .sidebar { background: linear-gradient(170deg, #1a0a10, #2b0b10) !important; }
   .sb-tag { background: rgba(220,38,38,.22) !important; color: #fca5a5 !important; }
   .sb-logo-icon { background: linear-gradient(135deg,#dc2626,#7f1d1d) !important; box-shadow: 0 6px 20px rgba(220,38,38,.35); }
@@ -146,382 +146,207 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
   .sidebar.collapsed .ni[data-tip]:hover::after { background: #7f1d1d !important; }
   .sidebar.collapsed .ni[data-tip]:hover::before { border-right-color: #7f1d1d !important; }
 
-  /* ─── MOBILE ADAPTATION ─────────────────────────────────────────────── */
-
-  /* Бургер-кнопка */
-  .mobile-menu-btn {
-    display: none;
-    width: 40px; height: 40px;
-    border-radius: 11px;
-    border: 1.5px solid var(--border);
-    background: white;
-    cursor: pointer;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    color: var(--text);
-    box-shadow: 0 2px 8px rgba(0,0,0,.04);
-  }
-  .mobile-menu-btn svg { width: 20px; height: 20px; }
-  .mobile-menu-btn:active { transform: scale(.94); }
-
-  .sidebar-backdrop {
-    position: fixed; inset: 0;
-    background: rgba(10,5,10,.55);
-    backdrop-filter: blur(4px);
-    z-index: 998;
-    display: none;
-    animation: fadeIn .2s ease;
-  }
-  .sidebar-backdrop.on { display: block; }
-
-  /* ─ ПЛАНШЕТ і менше (< 900px) ─ */
-  @media (max-width: 900px) {
-    /* Sidebar → висувна панель */
-    .sidebar {
-      position: fixed; top: 0; left: -280px; bottom: 0;
-      width: 280px; z-index: 999;
-      transition: left .28s cubic-bezier(.4,0,.2,1);
-      padding: 20px 14px;
-    }
-    .sidebar.mobile-open { left: 0; box-shadow: 6px 0 40px rgba(0,0,0,.35); }
-    .sidebar.collapsed { width: 280px; }
-    .sidebar.collapsed .sb-logo-name,
-    .sidebar.collapsed .sb-tag,
-    .sidebar.collapsed .ni-label,
-    .sidebar.collapsed .sb-sep,
-    .sidebar.collapsed .sb-uname,
-    .sidebar.collapsed .sb-urole { display: block !important; }
-    .sidebar.collapsed .ni { justify-content: flex-start; padding: 11px 14px; gap: 12px; }
-    .sidebar.collapsed .sb-logo { justify-content: flex-start; padding: 4px 10px 24px; }
-    .sidebar.collapsed .sb-foot { justify-content: flex-start; gap: 10px; padding: 14px 10px 0; }
-    .sidebar.collapsed .ava { margin: 0; }
-    #adm-toggle, #adm-toggle-collapsed { display: none !important; }
-    .ni { font-size: 14.5px; padding: 12px 14px; }
-    .ni svg { width: 18px; height: 18px; }
-
-    .main, .adm-collapsed-main { margin-left: 0 !important; padding: 14px !important; }
-    .mobile-menu-btn { display: inline-flex !important; }
-
-    /* Page header — бургер+заголовок+кнопка в ряд */
-    .ph {
-      flex-direction: row !important;
-      align-items: center !important;
-      gap: 12px;
-      margin-bottom: 20px !important;
-    }
-    .ph > div:first-child { flex: 1; min-width: 0; }
-    .pt { font-size: 19px !important; letter-spacing: -.3px; }
-    .ps { font-size: 12px !important; margin-top: 1px; }
-    .ph > .btn, .ph > div:last-child > .btn {
-      width: auto; padding: 9px 14px; font-size: 13px;
-    }
-    .ph .btn span, .ph .btn svg + * { display: inline; }
-
-    /* KPI — 2×2 сітка, компактніше */
-    .sg { grid-template-columns: 1fr 1fr !important; gap: 10px; margin-bottom: 18px; }
-    .sc { padding: 14px !important; border-radius: 14px !important; }
-    .si { width: 32px !important; height: 32px !important; margin-bottom: 10px !important; }
-    .si svg { width: 15px; height: 15px; }
-    .sn { font-size: 26px !important; margin-bottom: 2px !important; letter-spacing: -1px !important; }
-    .sl { font-size: 10px !important; }
-    .sc-sub { font-size: 10px !important; margin-top: 3px !important; }
-
-    /* Overview split → 1 колонка */
-    .ov-split { grid-template-columns: 1fr !important; gap: 12px !important; }
-
-    /* Картки */
-    .card { border-radius: 14px; }
-    .card-head { padding: 14px 16px !important; }
-    .card-head .card-title { font-size: 14px; }
-    .card > .tbl { font-size: 12px; }
-
-    /* Таблиці — горизонтальний скрол */
-    .tbl-wrap, .card > div[style*="overflow-x:auto"] {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    .tbl th, .tbl td { padding: 10px 10px !important; white-space: nowrap; }
-    .tbl th { font-size: 10px !important; }
-
-    /* Викладачі — картки 1 в ряд */
-    .teacher-grid { grid-template-columns: 1fr !important; gap: 12px; }
-    .teacher-card { border-radius: 16px; }
-    .tc-head { padding: 16px 18px 14px !important; }
-    .tc-ava { width: 46px !important; height: 46px !important; font-size: 16px !important; border-radius: 12px !important; }
-    .tc-name { font-size: 15px !important; }
-    .tc-login { font-size: 11px; }
-    .tc-body { padding: 14px 18px !important; }
-    .tc-stats { gap: 6px; margin-bottom: 12px; }
-    .tc-stat { padding: 8px !important; border-radius: 9px; }
-    .tc-stat-n { font-size: 17px !important; }
-    .tc-stat-l { font-size: 9px !important; letter-spacing: .3px; }
-    .tc-actions { gap: 6px; }
-    .tc-actions .btn-sm { padding: 6px 10px; font-size: 12px; }
-
-    /* Toolbar (пошук + фільтри) */
-    .tc-toolbar { gap: 8px !important; margin-bottom: 14px !important; }
-    .tc-toolbar > div:first-child { width: 100%; }
-    .tc-filter-btns { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .tc-fb { flex: 0 0 auto; padding: 7px 12px; font-size: 12px; }
-
-    /* AI Налаштування — 1 колонка */
-    .ai-providers-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
-    .ai-features-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
-    .card[style*="padding:22px"], .card[style*="padding:24px"] { padding: 18px !important; }
-    .feat-row { padding: 10px 12px !important; }
-
-    /* Інпути — iOS не зумить */
-    input, select, textarea { font-size: 16px !important; }
-    .fi { padding: 11px 14px; }
-
-    /* Модалки */
-    .mb { padding: 22px 18px !important; margin: 10px; border-radius: 18px !important; }
-    .mcl { top: 12px; right: 12px; width: 28px; height: 28px; }
-    .mtl { font-size: 17px !important; }
-
-    /* Toast */
-    #toast { bottom: 20px; left: 10px; right: 10px; transform: none; white-space: normal; text-align: center; }
-    #toast.show { transform: none; }
-
-    /* Графік активності */
-    #ov-chart { height: 100px !important; }
-    #ov-chart-labels span { font-size: 9px; }
-  }
-
-  /* ─ ТЕЛЕФОН (< 560px) ─ */
-  @media (max-width: 560px) {
-    .main { padding: 10px !important; }
-
-    /* KPI — 2×2 дуже компактно */
-    .sg { gap: 8px; }
-    .sc { padding: 12px !important; border-radius: 12px !important; }
-    .sn { font-size: 24px !important; }
-
-    /* Заголовки */
-    .pt { font-size: 17px !important; }
-    .ps { font-size: 11px !important; }
-    .ph .btn { padding: 8px 12px; font-size: 12px; }
-    .ph .btn svg { width: 12px; height: 12px; }
-
-    /* Картки викладачів — компактніше */
-    .tc-head { padding: 14px 16px 12px !important; }
-    .tc-body { padding: 12px 16px !important; }
-    .tc-stats { grid-template-columns: repeat(3,1fr); gap: 5px; }
-    .tc-stat { padding: 7px 4px !important; }
-    .tc-stat-n { font-size: 15px !important; }
-    .tc-stat-l { font-size: 8px !important; }
-    .tc-actions { gap: 5px; }
-    .tc-actions .btn-sm { padding: 6px 9px; font-size: 11.5px; min-width: 34px; }
-
-    /* Таблиці */
-    .tbl th, .tbl td { padding: 8px 8px !important; font-size: 11px; }
-
-    /* Feature rows у налаштуваннях */
-    .feat-icon { width: 28px !important; height: 28px !important; font-size: 13px !important; margin-right: 9px !important; }
-
-    /* Модалки */
-    .mb { padding: 20px 16px !important; border-radius: 16px !important; margin: 6px; }
-    .mtl { font-size: 16px !important; }
-    .fl label { font-size: 10px; }
-
-    /* Графік */
-    #ov-chart { height: 90px !important; gap: 4px !important; }
-    .ov-bar-val { font-size: 10px; top: -18px; }
-
-    /* Поле пошуку overview */
-    #ov-teach-search { width: 100% !important; }
-
-    /* Статус-розподіл */
-    .ov-stat-label { min-width: 80px !important; font-size: 12px !important; }
-    .ov-stat-val { font-size: 13px !important; }
-  }
-
-  /* ─ ДУЖЕ МАЛИЙ (< 380px) ─ */
-  @media (max-width: 380px) {
-    .sg { grid-template-columns: 1fr !important; }
-    .sn { font-size: 28px !important; }
-    .tc-actions .btn-sm { font-size: 11px; padding: 5px 7px; }
-  }
-
-
-
-
-  /* ─── TEACHERS TOOLBAR ─────────────────────────────────────────────── */
+  /* ═════════════ Teachers toolbar ═════════════ */
   .tc-fb {
-    padding: 8px 14px;
-    border-radius: 9px;
-    border: none;
-    background: transparent;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all .15s;
-    white-space: nowrap;
+    padding: 8px 14px; border-radius: 9px; border: none;
+    background: transparent; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    cursor: pointer; transition: all .15s; white-space: nowrap;
   }
   .tc-fb:hover { color: var(--text); }
-  .tc-fb.on {
-    background: white;
-    color: var(--text);
-    box-shadow: 0 2px 6px rgba(0,0,0,.06);
-  }
-  .tc-del-btn:hover {
-    background: rgba(127,29,29,.15) !important;
-    border-color: rgba(127,29,29,.35) !important;
-  }
+  .tc-fb.on { background: white; color: var(--text); box-shadow: 0 2px 6px rgba(0,0,0,.06); }
+  .tc-del-btn:hover { background: rgba(127,29,29,.15) !important; border-color: rgba(127,29,29,.35) !important; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
 
-
-
-  /* ─── OVERVIEW ENHANCEMENTS ─────────────────────────────────────────── */
+  /* ═════════════ Overview enhancements ═════════════ */
   .sc { position: relative; }
   .sc-sub {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 5px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    font-size: 11px; color: var(--muted); margin-top: 5px;
+    display: flex; align-items: center; gap: 4px;
   }
   .sc-sub strong { color: var(--primary); font-weight: 700; }
   .sc-sub.pos { color: #0d9e85; }
   .sc-sub.pos strong { color: #0d9e85; }
-
-  /* Графік 7 днів */
   .ov-bar {
     flex: 1;
     background: linear-gradient(180deg, rgba(220,38,38,.7), rgba(220,38,38,.35));
     border-radius: 7px 7px 4px 4px;
     min-height: 4px;
     transition: all .3s cubic-bezier(.34,1.56,.64,1);
-    position: relative;
-    cursor: pointer;
+    position: relative; cursor: pointer;
   }
   .ov-bar:hover { background: linear-gradient(180deg, rgba(220,38,38,.95), rgba(220,38,38,.5)); }
   .ov-bar.today { background: linear-gradient(180deg, #dc2626, #7f1d1d); }
   .ov-bar-val {
-    position: absolute;
-    top: -22px;
-    left: 50%;
+    position: absolute; top: -22px; left: 50%;
     transform: translateX(-50%);
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--text);
-    opacity: 0;
-    transition: opacity .15s;
+    font-size: 11px; font-weight: 700; color: var(--text);
+    opacity: 0; transition: opacity .15s;
   }
   .ov-bar:hover .ov-bar-val { opacity: 1; }
   #ov-chart-labels span {
-    flex: 1;
-    text-align: center;
-    font-size: 10px;
-    color: var(--muted);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .3px;
+    flex: 1; text-align: center; font-size: 10px;
+    color: var(--muted); font-weight: 600;
+    text-transform: uppercase; letter-spacing: .3px;
   }
   #ov-chart-labels span.today { color: var(--primary); }
-
-  /* Розподіл статусів */
-  .ov-stat-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+  .ov-stat-row { display: flex; align-items: center; gap: 10px; }
   .ov-stat-label {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    min-width: 120px;
-    font-size: 13px;
-    font-weight: 500;
+    display: flex; align-items: center; gap: 7px;
+    min-width: 120px; font-size: 13px; font-weight: 500;
   }
   .ov-stat-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
   .ov-stat-bar-wrap {
-    flex: 1;
-    height: 10px;
-    background: var(--bg);
-    border-radius: 5px;
-    overflow: hidden;
+    flex: 1; height: 10px; background: var(--bg);
+    border-radius: 5px; overflow: hidden;
   }
   .ov-stat-bar {
-    height: 100%;
-    border-radius: 5px;
+    height: 100%; border-radius: 5px;
     transition: width .5s cubic-bezier(.34,1.56,.64,1);
   }
   .ov-stat-val {
     font-family: 'DM Sans', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    min-width: 28px;
-    text-align: right;
+    font-weight: 700; font-size: 14px;
+    min-width: 28px; text-align: right;
   }
 
-  /* Топ викладачів */
-  .ov-top-item {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(239,224,224,.6);
+  /* ═════════════ Mobile burger ═════════════ */
+  .mobile-menu-btn {
+    display: none;
+    width: 40px; height: 40px; border-radius: 11px;
+    border: 1.5px solid var(--border); background: white;
+    cursor: pointer;
+    align-items: center; justify-content: center;
+    flex-shrink: 0; color: var(--text);
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    margin-bottom: 16px;
   }
-  .ov-top-item:last-child { border-bottom: none; }
-  .ov-top-rank {
-    width: 26px; height: 26px;
-    border-radius: 8px;
-    background: var(--bg);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 12px;
-    flex-shrink: 0;
+  .mobile-menu-btn svg { width: 20px; height: 20px; }
+  .mobile-menu-btn:active { transform: scale(.94); }
+  .sidebar-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(10,5,10,.55);
+    backdrop-filter: blur(4px);
+    z-index: 998; display: none;
+    animation: fadeIn .2s ease;
   }
-  .ov-top-rank.gold { background: linear-gradient(135deg,#fbbf24,#f59e0b); color: #fff; }
-  .ov-top-rank.silver { background: linear-gradient(135deg,#e5e7eb,#9ca3af); color: #fff; }
-  .ov-top-rank.bronze { background: linear-gradient(135deg,#fb923c,#c2410c); color: #fff; }
-  .ov-top-name { flex: 1; font-size: 13px; font-weight: 600; min-width: 0; }
-  .ov-top-name small { display: block; font-weight: 400; color: var(--muted); font-size: 11px; font-family: monospace; }
-  .ov-top-val {
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 800;
-    font-size: 16px;
-    color: var(--primary);
+  .sidebar-backdrop.on { display: block; }
+
+  /* ═════════════ MOBILE ADAPTATION ═════════════ */
+  @media (max-width: 900px) {
+    .sidebar {
+      position: fixed; top: 0; left: -300px; bottom: 0;
+      width: 300px; z-index: 999;
+      transition: left .28s cubic-bezier(.4,0,.2,1);
+      padding: 22px 14px;
+    }
+    .sidebar.mobile-open { left: 0; box-shadow: 6px 0 40px rgba(0,0,0,.35); }
+    .sidebar.collapsed { width: 300px; }
+    .sidebar.collapsed .sb-logo-name,
+    .sidebar.collapsed .sb-tag,
+    .sidebar.collapsed .ni-label,
+    .sidebar.collapsed .sb-sep,
+    .sidebar.collapsed .sb-uname,
+    .sidebar.collapsed .sb-urole { display: block !important; }
+    .sidebar.collapsed .ni { justify-content: flex-start; padding: 13px 14px; gap: 12px; }
+    .sidebar.collapsed .sb-logo { justify-content: flex-start; padding: 4px 10px 24px; }
+    .sidebar.collapsed .sb-foot { justify-content: flex-start; gap: 10px; padding: 14px 10px 0; }
+    .sidebar.collapsed .ava { margin: 0; }
+    #adm-toggle, #adm-toggle-collapsed { display: none !important; }
+
+    .main, .adm-collapsed-main { margin-left: 0 !important; padding: 14px !important; }
+    .mobile-menu-btn { display: inline-flex !important; }
+
+    .ph { flex-wrap: wrap; gap: 12px; margin-bottom: 20px !important; }
+    .pt { font-size: 22px !important; letter-spacing: -.3px; }
+    .ps { font-size: 13px !important; }
+
+    .sg { grid-template-columns: 1fr 1fr !important; gap: 10px !important; margin-bottom: 18px !important; }
+    .sc { padding: 16px !important; border-radius: 14px !important; }
+    .sn { font-size: 30px !important; letter-spacing: -1px !important; }
+
+    .ov-split { grid-template-columns: 1fr !important; gap: 12px !important; }
+
+    .card-head { padding: 14px 16px !important; }
+    .card-head .card-title { font-size: 14px; }
+
+    #sec-overview .card > div[style*="overflow-x:auto"],
+    #sec-stats .card > table {
+      overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%;
+    }
+    #sec-stats .card > table { display: block; }
+    #sec-overview .tbl thead, #sec-overview .tbl tbody { display: table; width: 100%; min-width: 680px; }
+    #sec-stats .tbl thead, #sec-stats .tbl tbody { display: table; width: 100%; min-width: 780px; }
+    .tbl th, .tbl td { white-space: nowrap; padding: 11px 12px !important; }
+    .tbl th { font-size: 11px !important; }
+
+    .teacher-grid { grid-template-columns: 1fr !important; gap: 12px; }
+    .tc-head { padding: 18px 20px 16px !important; }
+    .tc-ava { width: 48px !important; height: 48px !important; font-size: 17px !important; }
+    .tc-name { font-size: 16px !important; }
+    .tc-body { padding: 16px 20px !important; }
+    .tc-stat-n { font-size: 19px !important; }
+    .tc-stat-l { font-size: 10px !important; }
+    .tc-actions .btn-sm { padding: 8px 12px; font-size: 13px; min-height: 34px; }
+
+    .tc-toolbar { gap: 8px !important; }
+    .tc-toolbar > div:first-child { width: 100%; }
+    .tc-filter-btns { width: 100%; overflow-x: auto; }
+    .tc-fb { flex: 0 0 auto; padding: 7px 12px; font-size: 12px; }
+
+    .ai-providers-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+    .ai-features-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+
+    input, select, textarea { font-size: 16px !important; }
+    .fi { padding: 11px 14px; }
+    .mb { padding: 22px 18px !important; margin: 10px; border-radius: 18px !important; }
+    .mtl { font-size: 17px !important; }
+    #toast { bottom: 20px; left: 10px; right: 10px; transform: none; white-space: normal; text-align: center; }
+    #toast.show { transform: none; }
+    #ov-chart { height: 100px !important; }
+    .ov-stat-label { min-width: 100px !important; font-size: 12px !important; }
   }
 
-  /* Останні спроби */
-  .ov-recent-item {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(239,224,224,.6);
+  @media (max-width: 560px) {
+    .main { padding: 10px !important; }
+    .sg { gap: 8px !important; }
+    .sc { padding: 14px 12px !important; border-radius: 12px !important; }
+    .si { width: 32px !important; height: 32px !important; margin-bottom: 10px !important; }
+    .sn { font-size: 26px !important; letter-spacing: -.8px !important; }
+    .sl { font-size: 10px !important; }
+    .pt { font-size: 19px !important; }
+    .ps { font-size: 12px !important; }
+    .ph .btn { padding: 9px 12px; font-size: 13px; }
+    .tc-actions .btn-sm { padding: 7px 10px; font-size: 12px; min-width: 36px; }
+    .tc-head { padding: 14px 16px 12px !important; }
+    .tc-body { padding: 12px 16px !important; }
+    .tc-stats { gap: 6px; }
+    .tc-stat { padding: 8px 4px !important; }
+    .tc-stat-n { font-size: 17px !important; }
+    .tc-stat-l { font-size: 9px !important; }
+    .tbl th, .tbl td { padding: 10px !important; font-size: 12px !important; }
+    .feat-icon { width: 30px !important; height: 30px !important; font-size: 14px !important; margin-right: 10px !important; }
+    .mb { padding: 20px 16px !important; border-radius: 16px !important; margin: 6px; }
+    .mtl { font-size: 16px !important; }
+    .ov-stat-label { min-width: 90px !important; }
+    #ov-chart { height: 90px !important; gap: 4px !important; }
+    #ov-teach-search { width: 100% !important; }
   }
-  .ov-recent-item:last-child { border-bottom: none; }
-  .ov-recent-ava {
-    width: 30px; height: 30px;
-    border-radius: 9px;
-    background: var(--grad);
-    color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif; font-weight: 700;
-    font-size: 11px;
-    flex-shrink: 0;
+
+  @media (max-width: 400px) {
+    .sg { grid-template-columns: 1fr !important; }
+    .sc { padding: 14px 16px !important; }
+    .sn { font-size: 30px !important; }
   }
-  .ov-recent-info { flex: 1; min-width: 0; }
-  .ov-recent-tname { font-size: 13px; font-weight: 600; }
-  .ov-recent-meta { font-size: 11px; color: var(--muted); margin-top: 1px; }
-  .ov-recent-time { font-size: 11px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
 
 </style>
 </head>
 <body>
-</style>
 
 
 <div id="loader"><div class="spin"></div><div style="font-size:13px;color:var(--muted)">Завантаження...</div></div>
 
+<div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeMobileSidebar()"></div>
 <div class="layout">
   <aside class="sidebar" id="adm-sidebar">
     <!-- Лого + toggle -->
@@ -587,9 +412,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
     </div>
   </aside>
 
-  <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeMobileSidebar()"></div>
   <main class="main">
-    <!-- Мобільний бургер -->
     <button class="mobile-menu-btn" onclick="openMobileSidebar()" aria-label="Меню">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
@@ -607,7 +430,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
         </div>
       </div>
 
-      <!-- KPI картки -->
       <div class="sg" id="ov-stats">
         <div class="sc">
           <div class="si" style="background:rgba(220,38,38,.08)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
@@ -635,10 +457,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
         </div>
       </div>
 
-      <!-- Два рядки карток: Інсайти + Топ викладачів -->
       <div class="ov-split" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-
-        <!-- Активність за 7 днів -->
         <div class="card" style="padding:22px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
             <div>
@@ -651,7 +470,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
           <div id="ov-chart-labels" style="display:flex;justify-content:space-between;margin-top:8px;padding:0 4px"></div>
         </div>
 
-        <!-- Розподіл статусів -->
         <div class="card" style="padding:22px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
             <div>
@@ -661,16 +479,13 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
           </div>
           <div id="ov-status-chart" style="display:flex;flex-direction:column;gap:14px"></div>
         </div>
-
       </div>
 
-      <!-- Таблиця статистики по викладачах -->
       <div class="card">
         <div class="card-head">
           <div class="card-title">📊 Статистика викладачів</div>
           <div style="display:flex;gap:8px;align-items:center">
-            <input type="text" id="ov-teach-search" placeholder="Пошук..." oninput="renderOverviewTable()"
-              class="fi" style="padding:7px 12px;font-size:13px;width:180px;height:34px">
+            <input type="text" id="ov-teach-search" placeholder="Пошук..." oninput="renderOverviewTable()" class="fi" style="padding:7px 12px;font-size:13px;width:180px;height:34px">
             <button class="btn bs btn-sm" onclick="showSec('teachers')">Всі →</button>
           </div>
         </div>
@@ -703,7 +518,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
         </button>
       </div>
 
-      <!-- Панель фільтрів -->
       <div class="tc-toolbar" style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center">
         <div style="position:relative;flex:1;min-width:220px">
           <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -750,10 +564,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
         </button>
       </div>
 
-      <!-- Два провайдери паралельно -->
       <div class="ai-providers-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-
-        <!-- Groq -->
         <div class="card" style="padding:22px">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
             <div style="width:38px;height:38px;border-radius:11px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center;font-size:18px">⚡</div>
@@ -786,7 +597,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
           </div>
         </div>
 
-        <!-- Gemini -->
         <div class="card" style="padding:22px">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
             <div style="width:38px;height:38px;border-radius:11px;background:rgba(13,158,133,.1);display:flex;align-items:center;justify-content:center;font-size:18px">✨</div>
@@ -818,10 +628,8 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
             </label>
           </div>
         </div>
-
       </div>
 
-      <!-- Функції: toggle + провайдер -->
       <div class="card" style="padding:24px">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
           <div style="width:40px;height:40px;border-radius:12px;background:rgba(220,38,38,.08);display:flex;align-items:center;justify-content:center;font-size:19px">⚙️</div>
@@ -831,8 +639,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
           </div>
         </div>
         <div class="ai-features-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-
-          <!-- 💬 Коментар -->
           <div style="padding:14px;border:1.5px solid var(--border);border-radius:13px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
               <div style="display:flex;align-items:center;gap:9px">
@@ -846,8 +652,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
               <button id="fp-comments-gemini" onclick="setFeatProv('comments','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">✨ Gemini</button>
             </div>
           </div>
-
-          <!-- 🔍 Розбір -->
           <div style="padding:14px;border:1.5px solid var(--border);border-radius:13px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
               <div style="display:flex;align-items:center;gap:9px">
@@ -861,8 +665,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
               <button id="fp-analysis-gemini" onclick="setFeatProv('analysis','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">✨ Gemini</button>
             </div>
           </div>
-
-          <!-- ⚡ Генерація -->
           <div style="padding:14px;border:1.5px solid var(--border);border-radius:13px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
               <div style="display:flex;align-items:center;gap:9px">
@@ -876,8 +678,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
               <button id="fp-generation-gemini" onclick="setFeatProv('generation','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">✨ Gemini</button>
             </div>
           </div>
-
-          <!-- 📝 Перевірка -->
           <div style="padding:14px;border:1.5px solid var(--border);border-radius:13px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
               <div style="display:flex;align-items:center;gap:9px">
@@ -891,11 +691,10 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
               <button id="fp-textcheck-gemini" onclick="setFeatProv('textcheck','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">✨ Gemini</button>
             </div>
           </div>
-
         </div>
       </div>
 
-      <div style="margin-top:10px;font-size:11px;color:var(--muted);opacity:.7">⚠️ Ключі зберігаються у Firebase — переконайтесь що правила бази захищені</div>
+      <div style="margin-top:10px;font-size:11px;color:var(--muted);opacity:.7">⚠️ Ключі зберігаються у Firebase</div>
       <div id="ai-status" style="margin-top:14px;display:none"></div>
     </div>
 
@@ -1163,7 +962,6 @@ function renderOverview(){
     weekAttempts+=s.weekAttempts||0;
   });
 
-  // KPI
   document.getElementById("ov-t").textContent = _users.length;
   const tSub = document.getElementById("ov-t-sub");
   if(tSub){
@@ -1181,17 +979,13 @@ function renderOverview(){
     aSub.innerHTML = `<strong>+${weekAttempts}</strong> за тиждень`;
   }
 
-  // Тиждень — графік
   const DAYS = ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"];
   const now = new Date(); now.setHours(23,59,59,999);
-  const todayDow = (now.getDay() + 6) % 7; // 0=Monday
   const week = [0,0,0,0,0,0,0];
   _allAttempts.forEach(a => {
     if(!a.createdAt) return;
     const diff = Math.floor((now - a.createdAt) / (24*60*60*1000));
-    if(diff >= 0 && diff < 7){
-      week[6 - diff]++;
-    }
+    if(diff >= 0 && diff < 7){ week[6 - diff]++; }
   });
   const maxVal = Math.max(...week, 1);
   const chart = document.getElementById("ov-chart");
@@ -1202,7 +996,6 @@ function renderOverview(){
       const isToday = i === 6;
       return `<div class="ov-bar${isToday?' today':''}" style="height:${h}%" title="${v} спроб"><span class="ov-bar-val">${v}</span></div>`;
     }).join("");
-    // Правильні мітки днів — з сьогоднішнього дня назад
     const labArr = [];
     for(let i=6;i>=0;i--){
       const d = new Date(now);
@@ -1214,7 +1007,6 @@ function renderOverview(){
   const wt = document.getElementById("ov-week-total");
   if(wt) wt.textContent = week.reduce((a,b)=>a+b,0);
 
-  // Розподіл статусів
   const statusChart = document.getElementById("ov-status-chart");
   if(statusChart){
     const total = _users.length || 1;
@@ -1233,35 +1025,26 @@ function renderOverview(){
     }).join("");
   }
 
-  // Таблиця статистики
   renderOverviewTable();
 }
 
 let _ovSortBy = "attempts", _ovSortDir = "desc";
 
 window.sortOverviewBy = function(key){
-  if(_ovSortBy === key){
-    _ovSortDir = _ovSortDir === "desc" ? "asc" : "desc";
-  } else {
-    _ovSortBy = key;
-    _ovSortDir = "desc";
-  }
+  if(_ovSortBy === key){ _ovSortDir = _ovSortDir === "desc" ? "asc" : "desc"; }
+  else { _ovSortBy = key; _ovSortDir = "desc"; }
   renderOverviewTable();
 };
 
 window.renderOverviewTable = function(){
   const tbody = document.getElementById("ov-table");
   if(!tbody) return;
-
-  // Оновлюємо стрілки сортування
   ["name","tests","activeTests","students","attempts","weekAttempts","lastAct"].forEach(k=>{
     const el = document.getElementById("sort-"+k);
     if(el) el.textContent = k === _ovSortBy ? (_ovSortDir === "desc" ? "↓" : "↑") : "";
   });
-
   const searchEl = document.getElementById("ov-teach-search");
   const search = searchEl ? searchEl.value.trim().toLowerCase() : "";
-
   let list = [..._users];
   if(search){
     list = list.filter(u =>
@@ -1269,7 +1052,6 @@ window.renderOverviewTable = function(){
       (u.login||"").toLowerCase().includes(search)
     );
   }
-
   list.sort((a,b)=>{
     let av, bv;
     if(_ovSortBy === "name"){ av = (a.name||a.login||"").toLowerCase(); bv = (b.name||b.login||"").toLowerCase(); }
@@ -1277,12 +1059,10 @@ window.renderOverviewTable = function(){
     const cmp = av > bv ? 1 : av < bv ? -1 : 0;
     return _ovSortDir === "desc" ? -cmp : cmp;
   });
-
   if(!list.length){
     tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted)">Нічого не знайдено</td></tr>`;
     return;
   }
-
   tbody.innerHTML = list.map(u=>{
     const s = _stats[u.id]||{};
     const isBlocked = u.blocked===true;
@@ -1293,10 +1073,10 @@ window.renderOverviewTable = function(){
       ? `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;background:rgba(13,158,133,.1);color:#0d9e85;font-size:12px;font-weight:700">+${s.weekAttempts}</span>`
       : `<span style="color:var(--muted);font-size:13px">0</span>`;
     const statusDot = isBlocked
-      ? '<span style="width:7px;height:7px;border-radius:50%;background:#dc2626;display:inline-block;flex-shrink:0" title="Заблокований"></span>'
+      ? '<span style="width:7px;height:7px;border-radius:50%;background:#dc2626;display:inline-block;flex-shrink:0"></span>'
       : isFirst
-      ? '<span style="width:7px;height:7px;border-radius:50%;background:#f59e0b;display:inline-block;flex-shrink:0" title="Перший вхід"></span>'
-      : '<span style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;flex-shrink:0" title="Активний"></span>';
+      ? '<span style="width:7px;height:7px;border-radius:50%;background:#f59e0b;display:inline-block;flex-shrink:0"></span>'
+      : '<span style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;flex-shrink:0"></span>';
     return `<tr style="${isBlocked?'opacity:.55':''}">
       <td>
         <div style="display:flex;align-items:center;gap:10px">
@@ -1345,12 +1125,10 @@ function renderTeachers(){
 
   let list = [..._users];
 
-  // Фільтр за статусом
   if(_teacherFilter === "active")       list = list.filter(u=>!u.blocked && !u.isFirstLogin);
   else if(_teacherFilter === "blocked") list = list.filter(u=>u.blocked===true);
   else if(_teacherFilter === "first")   list = list.filter(u=>u.isFirstLogin===true && !u.blocked);
 
-  // Пошук
   if(search){
     list = list.filter(u=>
       (u.name||"").toLowerCase().includes(search) ||
@@ -1358,7 +1136,6 @@ function renderTeachers(){
     );
   }
 
-  // Сортування: активні першими, потім перший вхід, потім заблоковані
   list.sort((a,b)=>{
     const aw = a.blocked ? 2 : (a.isFirstLogin ? 1 : 0);
     const bw = b.blocked ? 2 : (b.isFirstLogin ? 1 : 0);
@@ -1366,7 +1143,6 @@ function renderTeachers(){
     return (_stats[b.id]?.attempts||0) - (_stats[a.id]?.attempts||0);
   });
 
-  // Лічильник
   const cnt = document.getElementById("tc-count");
   if(cnt) cnt.textContent = "· " + list.length + " з " + _users.length;
 
@@ -1471,7 +1247,8 @@ window.createTeacher = async () => {
   errEl.textContent="";
   _newPass = genPass();
   try{
-    await set(ref(db,`users/${login}`),{name,login,role,password:_newPass,isFirstLogin:true,createdAt:Date.now()});
+    const uid="u"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+    await set(ref(db,`users/${uid}`),{name,login,uid,role,password:_newPass,isFirstLogin:true,createdAt:Date.now()});
     document.getElementById("created-pass").textContent = _newPass;
     document.getElementById("created-box").style.display = "";
     document.getElementById("create-btn").style.display = "none";
@@ -1529,7 +1306,7 @@ window.doToggleBlock = async () => {
   }catch(e){ toast("Помилка: "+e.message); }
 };
 
-// ─── Delete teacher (ПОВНЕ видалення) ────────────────────────────────────────
+// ─── Delete teacher (повне видалення) ────────────────────────────────────────
 let _delUid = "", _delLogin = "";
 
 window.openDeleteTeacher = (uid, name, login) => {
@@ -1560,7 +1337,6 @@ window.confirmDeleteTeacher = async () => {
   btn.disabled = true;
   btn.textContent = "⏳ Видалення...";
   try{
-    // Видаляємо ВСЕ пов\'язане з викладачем
     await Promise.all([
       remove(ref(db, `users/${_delUid}`)),
       remove(ref(db, `teachers/${_delUid}`))
@@ -1575,7 +1351,6 @@ window.confirmDeleteTeacher = async () => {
     btn.textContent = "🗑 Видалити назавжди";
   }
 };
-
 
 // ─── Modals ───────────────────────────────────────────────────────────────────
 function openModal(id){ document.getElementById(id).classList.add("on"); }
@@ -1614,19 +1389,15 @@ async function loadAISettings(){
     const snap = await get(ref(db,"settings/ai"));
     if(!snap.exists()) return;
     const s = snap.val();
-    // Ключі (з підтримкою старого поля apiKey)
     const gk = document.getElementById("ai-groq-key");
     if(gk) gk.value = s.groqApiKey || s.apiKey || "";
     const gemk = document.getElementById("ai-gemini-key");
     if(gemk) gemk.value = s.geminiApiKey || "";
-    // Моделі
     if(s.groqModel){ const r=document.querySelector(`input[name="ai-groq-model"][value="${s.groqModel}"]`); if(r) r.checked=true; }
     if(s.geminiModel){ const r=document.querySelector(`input[name="ai-gemini-model"][value="${s.geminiModel}"]`); if(r) r.checked=true; }
     highlightModels();
-    // Тогли
     const tmap = {"ai-comments":s.aiComments,"ai-analysis":s.aiAnalysis,"ai-generation":s.aiGeneration,"ai-textcheck":s.aiTextCheck};
     Object.entries(tmap).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.checked=val!==false; });
-    // Провайдери per feature
     const fp = s.featProviders || {};
     ["comments","analysis","generation","textcheck"].forEach(feat=>{
       setFeatProv(feat, fp[feat] || "groq");
@@ -1643,9 +1414,7 @@ window.saveAISettings = async () => {
   const analysis   = document.getElementById("ai-analysis")?.checked;
   const generation = document.getElementById("ai-generation")?.checked;
   const textcheck  = document.getElementById("ai-textcheck")?.checked;
-
   if(!groqKey && !geminiKey){ toast("Введіть хоча б один API ключ"); return; }
-
   try{
     await update(ref(db,"settings/ai"),{
       groqApiKey:groqKey||"", geminiApiKey:geminiKey||"",
@@ -2000,7 +1769,6 @@ window.closeMobileSidebar = () => {
   document.getElementById("adm-sidebar").classList.remove("mobile-open");
   document.getElementById("sidebar-backdrop").classList.remove("on");
 };
-// Закриваємо після кліку на пункт меню (на мобільному)
 document.querySelectorAll(".sidebar .ni").forEach(n=>n.addEventListener("click", ()=>{
   if(window.innerWidth <= 900) closeMobileSidebar();
 }));
