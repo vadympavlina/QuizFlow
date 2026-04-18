@@ -53,7 +53,9 @@ body::after {
   50% { transform: translate(50px,30px) scale(1.08); }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-@keyframes cardIn { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes cardIn { from { opacity: 0; transform: translateY(16px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes cardOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(.94) translateY(-8px); } }
+@keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
 @keyframes pulseRing {
   0% { box-shadow: 0 0 0 0 rgba(34,197,94,.6); }
@@ -244,10 +246,20 @@ main {
   border-radius: 22px;
   padding: 20px;
   box-shadow: 0 6px 24px rgba(10,14,46,.04);
-  animation: cardIn .35s cubic-bezier(.34,1.56,.64,1);
+  animation: cardIn .38s cubic-bezier(.34,1.56,.64,1) both;
   position: relative;
   overflow: hidden;
-  transition: all .25s;
+  transition: box-shadow .25s, border-color .25s, transform .25s;
+  will-change: transform, opacity;
+}
+.student-card:hover {
+  box-shadow: 0 12px 36px rgba(45,91,227,.10);
+  border-color: rgba(45,91,227,.22);
+  transform: translateY(-2px);
+}
+.student-card.removing {
+  animation: cardOut .28s ease forwards;
+  pointer-events: none;
 }
 .student-card::before {
   content: '';
@@ -420,7 +432,6 @@ main {
 }
 .empty-text { font-size: 14px; color: var(--muted); }
 
-/* Loader */
 #loader {
   position: fixed;
   inset: 0;
@@ -431,14 +442,17 @@ main {
   align-items: center;
   justify-content: center;
   gap: 16px;
+  transition: opacity .4s ease;
 }
+#loader.hiding { opacity: 0; pointer-events: none; }
 .spin {
-  width: 50px;
-  height: 50px;
-  border: 3.5px solid rgba(45,91,227,.15);
+  width: 44px;
+  height: 44px;
+  border: 3px solid rgba(45,91,227,.12);
   border-top-color: var(--primary);
   border-radius: 50%;
-  animation: spin .8s linear infinite;
+  animation: spin .7s linear infinite;
+  box-shadow: 0 0 20px rgba(45,91,227,.15);
 }
 
 /* Grade (for finished) */
@@ -719,7 +733,7 @@ function studentCard(a, state){
   </div>`;
 }
 
-// ─── Render ────────────────────────────────────────────────────────────────
+// ─── Render (DOM diffing — no flashing) ───────────────────────────────────
 function render(attempts){
   const active = [];
   Object.entries(attempts || {}).forEach(([id, a]) => {
@@ -735,13 +749,95 @@ function render(attempts){
   // Лічильник у шапці
   document.getElementById("stat-active").textContent = active.length;
 
-  // Рендер грід
   const grid = document.getElementById("grid-active");
-  grid.innerHTML = active.map(a => studentCard(a, "active")).join("");
+
+  // Збираємо поточні картки що є в DOM
+  const existing = new Map();
+  grid.querySelectorAll(".student-card[data-id]").forEach(el => {
+    existing.set(el.dataset.id, el);
+  });
+
+  // Видаляємо картки яких вже немає — з анімацією
+  const newIds = new Set(active.map(a => a.id));
+  existing.forEach((el, id) => {
+    if(!newIds.has(id)){
+      el.classList.add("removing");
+      el.addEventListener("animationend", () => el.remove(), { once: true });
+    }
+  });
+
+  // Оновлюємо або додаємо картки
+  active.forEach((a, idx) => {
+    const html = studentCard(a, "active");
+    const tmp = document.createElement("div");
+    tmp.innerHTML = html;
+    const newEl = tmp.firstElementChild;
+    newEl.dataset.id = a.id;
+
+    if(existing.has(a.id)){
+      const oldEl = existing.get(a.id);
+      // Оновлюємо тільки дані що змінились, без скидання анімацій
+      patchCard(oldEl, newEl, a);
+      // Переставляємо позицію якщо потрібно (без анімації)
+      const children = [...grid.children].filter(c => !c.classList.contains("removing") && c.dataset.id);
+      const currentIdx = children.indexOf(oldEl);
+      if(currentIdx !== idx){
+        grid.insertBefore(oldEl, grid.children[idx] || null);
+      }
+    } else {
+      // Нова картка — вставляємо з анімацією
+      newEl.style.animationDelay = (idx * 40) + "ms";
+      grid.insertBefore(newEl, grid.children[idx] || null);
+    }
+  });
 
   // Empty state
   const emptyEl = document.getElementById("empty-state");
   emptyEl.style.display = active.length === 0 ? "block" : "none";
+}
+
+// Точкове оновлення картки без перемалювання всього DOM
+function patchCard(oldEl, newEl, a){
+  // Progress bar — плавно через CSS transition
+  const oldFill = oldEl.querySelector(".progress-fill");
+  const newFill = newEl.querySelector(".progress-fill");
+  if(oldFill && newFill && oldFill.style.width !== newFill.style.width){
+    oldFill.style.width = newFill.style.width;
+  }
+
+  // Прогрес текст
+  const oldQ = oldEl.querySelector(".progress-q");
+  const newQ = newEl.querySelector(".progress-q");
+  if(oldQ && newQ && oldQ.innerHTML !== newQ.innerHTML){
+    oldQ.innerHTML = newQ.innerHTML;
+  }
+
+  // Відсоток
+  const oldPct = oldEl.querySelector(".progress-pct");
+  const newPct = newEl.querySelector(".progress-pct");
+  if(oldPct && newPct && oldPct.textContent !== newPct.textContent){
+    oldPct.textContent = newPct.textContent;
+  }
+
+  // Час
+  const oldMeta = oldEl.querySelector(".meta-item");
+  const newMeta = newEl.querySelector(".meta-item");
+  if(oldMeta && newMeta && oldMeta.textContent.trim() !== newMeta.textContent.trim()){
+    oldMeta.innerHTML = newMeta.innerHTML;
+  }
+
+  // Badge (active/idle)
+  const oldBdg = oldEl.querySelector(".bdg");
+  const newBdg = newEl.querySelector(".bdg");
+  if(oldBdg && newBdg && oldBdg.outerHTML !== newBdg.outerHTML){
+    oldBdg.replaceWith(newBdg.cloneNode(true));
+  }
+
+  // idle клас на картці
+  const isIdle = newEl.classList.contains("idle");
+  if(isIdle !== oldEl.classList.contains("idle")){
+    oldEl.classList.toggle("idle", isIdle);
+  }
 }
 
 // ─── Refresh timers (живий час + оновлення карток) ─────────────────────────
@@ -758,10 +854,14 @@ setInterval(() => {
   onValue(ref(db, `teachers/${_tuid}/attempts`), (snap) => {
     _lastAttempts = snap.val() || {};
     render(_lastAttempts);
-    document.getElementById("loader").style.display = "none";
+    const loader = document.getElementById("loader");
+    loader.classList.add("hiding");
+    setTimeout(() => loader.style.display = "none", 400);
   }, (err) => {
     console.error("Live subscription error:", err);
-    document.getElementById("loader").style.display = "none";
+    const loader = document.getElementById("loader");
+    loader.classList.add("hiding");
+    setTimeout(() => loader.style.display = "none", 400);
   });
 })();
 </script>
