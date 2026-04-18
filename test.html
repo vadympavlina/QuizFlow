@@ -2618,6 +2618,18 @@ async function sendScreenshotNotification(){
 
 function logSuspicious(type, description){
   _suspiciousEvents.push({ type, description, time: Date.now() });
+  pushSuspicionToFirebase();
+}
+
+// Одразу пише лічильники підозрілості в Firebase щоб live-сторінка бачила в реальному часі
+function pushSuspicionToFirebase(){
+  if(!attemptId) return;
+  const data = {};
+  if(_tabSwitchCount)  data.tabSwitches   = _tabSwitchCount;
+  if(_copyAttempts)    data.copyAttempts  = _copyAttempts;
+  if(_screenshotCount) data.screenshots   = _screenshotCount;
+  if(Object.keys(data).length === 0) return;
+  update(ref(db, tp(`attempts/${attemptId}`)), data).catch(()=>{});
 }
 
 let _warningTimeout = null;

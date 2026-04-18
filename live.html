@@ -416,9 +416,30 @@ main {
   font-weight: 700;
   letter-spacing: .2px;
 }
-.bdg-g { background: rgba(13,158,133,.1); color: var(--teal); }
-.bdg-a { background: rgba(245,158,11,.1); color: #b45309; }
-.bdg-r { background: rgba(220,38,38,.08); color: #be123c; }
+/* ── Suspicion badges ── */
+.susp-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.susp-bdg {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1px;
+  background: rgba(244,63,94,.08);
+  color: #be123c;
+  border: 1px solid rgba(244,63,94,.15);
+  animation: suspIn .25s ease both;
+}
+@keyframes suspIn {
+  from { opacity: 0; transform: scale(.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
 
 /* Empty */
 .empty {
@@ -743,6 +764,7 @@ function studentCard(a, state){
       </div>
       <div class="progress-bar"><div class="progress-fill ${fillCls}" style="width:${pct}%"></div></div>
     </div>
+    <div class="susp-row" data-susp></div>
     <div class="meta-row">
       <span class="meta-item">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -805,12 +827,18 @@ function render(attempts){
       el.style.animationDelay = (idx * 35) + "ms";
       el.addEventListener("animationend", () => el.classList.remove("new-card"), { once: true });
       // Зберігаємо початковий стан
+      const tabs = a.tabSwitches || 0;
+      const copies = a.copyAttempts || 0;
+      const shots = a.screenshots || 0;
       _cardState.set(a.id, {
         currentQ: a.currentQ || 0,
         pct: calcPct(a),
         isIdle: false,
-        startedAt: a.startedAt || 0
+        startedAt: a.startedAt || 0,
+        tabs, copies, shots
       });
+      // Одразу рендеримо бейджики якщо вже є
+      if(tabs + copies + shots > 0) renderSuspBadges(el, tabs, copies, shots);
       grid.appendChild(el);
     }
   });
@@ -828,7 +856,7 @@ function patchCardData(el, a){
   const prev = _cardState.get(a.id) || {};
   const currentQ = a.currentQ || 0;
   const pct = calcPct(a);
-  const isIdle = false; // в active-render всі active
+  const isIdle = false;
 
   // Питання + відсоток
   if(prev.currentQ !== currentQ || prev.pct !== pct){
@@ -852,7 +880,44 @@ function patchCardData(el, a){
     if(ava){ ava.className = "ava " + (isIdle ? "idle" : "active"); }
   }
 
-  _cardState.set(a.id, { currentQ, pct, isIdle, startedAt: a.startedAt || 0 });
+  // Підозрілість — оновлюємо тільки якщо змінились лічильники
+  const tabs = a.tabSwitches || 0;
+  const copies = a.copyAttempts || 0;
+  const shots = a.screenshots || 0;
+  if(prev.tabs !== tabs || prev.copies !== copies || prev.shots !== shots){
+    renderSuspBadges(el, tabs, copies, shots);
+  }
+
+  _cardState.set(a.id, { currentQ, pct, isIdle, startedAt: a.startedAt || 0, tabs, copies, shots });
+}
+
+// Малює бейджики підозрілості хірургічно — тільки що змінилось
+function renderSuspBadges(el, tabs, copies, shots){
+  const row = el.querySelector("[data-susp]");
+  if(!row) return;
+
+  function syncBadge(key, count, icon, label){
+    let bdg = row.querySelector(`[data-key="${key}"]`);
+    if(count === 0){
+      if(bdg) bdg.remove();
+      return;
+    }
+    if(!bdg){
+      bdg = document.createElement("span");
+      bdg.className = "susp-bdg";
+      bdg.dataset.key = key;
+      row.appendChild(bdg);
+    }
+    const text = `${icon} ${label}: ${count}`;
+    if(bdg.textContent !== text) bdg.textContent = text;
+  }
+
+  syncBadge("tabs",   tabs,   "👁", "Вкладки");
+  syncBadge("copies", copies, "📋", "Копіювання");
+  syncBadge("shots",  shots,  "📸", "Скріншоти");
+
+  // Ховаємо рядок якщо все нулі
+  row.style.display = (tabs + copies + shots) === 0 ? "none" : "flex";
 }
 
 // ─── Окремий таймер ТІЛЬКИ для тривалості — не торкається нічого іншого ───
