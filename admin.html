@@ -339,6 +339,274 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
     .sn { font-size: 30px !important; }
   }
 
+
+
+  /* ═════════════ STATS MOBILE CARDS ═════════════ */
+  .stats-cards { display: none; }
+  .sc-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 12px;
+  }
+  .sc-card.sc-blocked { opacity: .55; }
+  .sc-card-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sc-card-ava {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--grad);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .sc-card-info { min-width: 0; flex: 1; }
+  .sc-card-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 2px;
+  }
+  .sc-card-login {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: monospace;
+  }
+  .sc-card-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .sc-card-item {
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 10px 4px;
+    text-align: center;
+  }
+  .sc-card-v {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    line-height: 1;
+  }
+  .sc-card-l {
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .sc-card-foot {
+    font-size: 12px;
+    color: var(--muted);
+    padding: 10px 12px;
+    background: var(--bg);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .sc-card-foot strong { color: var(--text); font-weight: 600; }
+
+  /* ═════════════ OVERVIEW/STATS MOBILE — ПЕРЕРОБКА ═════════════ */
+
+  /* Приховуємо текст кнопок на дуже малих — залишається тільки іконка */
+  @media (max-width: 420px) {
+    #sec-overview .ph .btn-lbl,
+    #sec-stats .ph .btn-lbl { display: none; }
+    #sec-overview .ph .btn,
+    #sec-stats .ph .btn { padding: 9px 11px; }
+  }
+
+  /* < 768px: планшетна адаптація дашборду */
+  @media (max-width: 768px) {
+    /* Заголовок: компактно */
+    #sec-overview .ph, #sec-stats .ph {
+      flex-wrap: nowrap;
+      align-items: center !important;
+      gap: 10px !important;
+    }
+    #sec-overview .ph > div:first-child,
+    #sec-stats .ph > div:first-child {
+      flex: 1; min-width: 0;
+    }
+    #sec-overview .ph > div:last-child,
+    #sec-stats .ph > div:last-child {
+      flex-shrink: 0;
+    }
+    #sec-overview .pt, #sec-stats .pt {
+      font-size: 22px !important;
+      margin: 0;
+    }
+    #sec-overview .ps, #sec-stats .ps {
+      font-size: 12px !important;
+      margin-top: 2px;
+    }
+
+    /* KPI — 2 колонки, великі числа */
+    #sec-overview .sg {
+      grid-template-columns: 1fr 1fr !important;
+      gap: 10px !important;
+    }
+    #sec-overview .sc {
+      padding: 16px 14px !important;
+    }
+    #sec-overview .sn { font-size: 28px !important; }
+
+    /* Два блоки (графік + статуси) — в колонку */
+    #sec-overview .ov-split {
+      grid-template-columns: 1fr !important;
+    }
+    #sec-overview .ov-split .card {
+      padding: 18px !important;
+    }
+
+    /* Графік — компактний */
+    #ov-chart {
+      height: 100px !important;
+      gap: 5px !important;
+    }
+
+    /* Таблиця desktop → сховати, cards → показати */
+    #sec-stats .stats-tbl-wrap { display: none; }
+    #sec-stats .stats-cards { display: block; }
+
+    /* Таблиця overview — скрол */
+    #sec-overview .card > div[style*="overflow-x:auto"] {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    #sec-overview .tbl {
+      min-width: 680px;
+    }
+    #sec-overview .tbl th, #sec-overview .tbl td {
+      white-space: nowrap;
+    }
+
+    /* Card head — пошук і кнопку в колонку */
+    #sec-overview .card-head {
+      flex-direction: column;
+      align-items: stretch !important;
+      gap: 10px;
+      padding: 14px 16px !important;
+    }
+    #sec-overview .card-head > div:last-child {
+      width: 100%;
+      display: flex;
+      gap: 8px;
+    }
+    #ov-teach-search {
+      flex: 1 !important;
+      width: auto !important;
+    }
+  }
+
+  /* < 500px: справжній телефон — KPI в 2 колонки але ще компактніше */
+  @media (max-width: 500px) {
+    .main { padding: 12px !important; }
+
+    #sec-overview .sg, #sec-stats .sg {
+      gap: 8px !important;
+    }
+    #sec-overview .sc {
+      padding: 14px 12px !important;
+    }
+    #sec-overview .si {
+      width: 30px !important;
+      height: 30px !important;
+      margin-bottom: 9px !important;
+    }
+    #sec-overview .si svg { width: 14px; height: 14px; }
+    #sec-overview .sn { font-size: 24px !important; }
+    #sec-overview .sl { font-size: 10px !important; letter-spacing: .3px !important; }
+    #sec-overview .sc-sub { font-size: 10px !important; margin-top: 3px !important; }
+
+    /* Блок графіка */
+    #sec-overview .ov-split .card {
+      padding: 16px !important;
+    }
+    #sec-overview .ov-split .card > div:first-child > div:first-child > div:first-child {
+      font-size: 14px !important;
+    }
+    #sec-overview .ov-split .card #ov-week-total {
+      font-size: 19px !important;
+    }
+    #ov-chart { height: 90px !important; }
+
+    /* Розподіл статусів — трохи компактніше */
+    .ov-stat-label {
+      min-width: 96px !important;
+      font-size: 12px !important;
+    }
+    .ov-stat-val { font-size: 13px !important; min-width: 22px !important; }
+    .ov-stat-bar-wrap { height: 8px; }
+
+    /* Stats cards на малому */
+    .sc-card { padding: 14px !important; border-radius: 14px !important; }
+    .sc-card-ava { width: 38px !important; height: 38px !important; font-size: 13px !important; }
+    .sc-card-name { font-size: 14px !important; }
+    .sc-card-login { font-size: 11px !important; }
+    .sc-card-grid { gap: 5px !important; }
+    .sc-card-item { padding: 8px 3px !important; border-radius: 8px !important; }
+    .sc-card-v { font-size: 16px !important; }
+    .sc-card-l { font-size: 8px !important; letter-spacing: .2px !important; }
+    .sc-card-foot { font-size: 11px !important; padding: 9px 10px !important; }
+  }
+
+  /* < 380px: дуже малий — KPI в 1 колонку */
+  @media (max-width: 380px) {
+    #sec-overview .sg {
+      grid-template-columns: 1fr !important;
+    }
+    #sec-overview .sc {
+      padding: 16px 18px !important;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    #sec-overview .si {
+      margin-bottom: 0 !important;
+      margin-right: 2px;
+    }
+    #sec-overview .sn {
+      font-size: 28px !important;
+      margin: 0 !important;
+    }
+    #sec-overview .sc-sub { margin-top: 2px !important; }
+
+    /* Stats cards — 3×2 */
+    .sc-card-grid {
+      grid-template-columns: repeat(3, 1fr) !important;
+    }
+    .sc-card-item { padding: 9px 4px !important; }
+  }
+
+
+
+  /* Загальний btn-lbl */
+  @media (max-width: 500px) {
+    .ph .btn-lbl { font-size: 13px; }
+  }
+  @media (max-width: 420px) {
+    .ph .btn .btn-lbl { display: none; }
+    .ph .btn { padding: 10px 12px !important; min-width: 40px; justify-content: center; }
+    .ph .btn svg { margin: 0; }
+  }
+
 </style>
 </head>
 <body>
@@ -422,10 +690,10 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
       <div class="ph">
         <div><div class="pt" id="ov-greeting">Адмін-панель</div><div class="ps">Загальний огляд платформи</div></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn bs btn-sm" onclick="loadAll()" title="Оновити">↻</button>
+          <button class="btn bs btn-sm" onclick="loadAll()" title="Оновити"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></button>
           <button class="btn bp" onclick="showSec('teachers');document.getElementById('ni-teachers').click();openCreateModal()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Новий викладач
+            <span class="btn-lbl">Новий викладач</span>
           </button>
         </div>
       </div>
@@ -483,7 +751,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 
       <div class="card">
         <div class="card-head">
-          <div class="card-title">📊 Статистика викладачів</div>
+          <div class="card-title">Статистика викладачів</div>
           <div style="display:flex;gap:8px;align-items:center">
             <input type="text" id="ov-teach-search" placeholder="Пошук..." oninput="renderOverviewTable()" class="fi" style="padding:7px 12px;font-size:13px;width:180px;height:34px">
             <button class="btn bs btn-sm" onclick="showSec('teachers')">Всі →</button>
@@ -514,7 +782,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
         <div><div class="pt">Викладачі</div><div class="ps">Управління акаунтами <span id="tc-count" style="color:var(--primary);font-weight:600"></span></div></div>
         <button class="btn bp" onclick="openCreateModal()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Новий викладач
+          <span class="btn-lbl">Новий викладач</span>
         </button>
       </div>
 
@@ -542,16 +810,26 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
     <!-- STATS -->
     <div class="sec" id="sec-stats">
       <div class="ph">
-        <div><div class="pt">Статистика</div><div class="ps">Детальна аналітика по всіх викладачах</div></div>
-        <button class="btn bs btn-sm" onclick="loadAll()">↻ Оновити</button>
+        <div><div class="pt">Статистика</div><div class="ps">Детальна аналітика по викладачах</div></div>
+        <button class="btn bs btn-sm" onclick="loadAll()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          <span class="btn-lbl">Оновити</span>
+        </button>
       </div>
-      <div class="card">
+
+      <!-- Desktop / tablet — таблиця -->
+      <div class="card stats-tbl-wrap">
         <div class="card-head"><div class="card-title">По викладачах</div></div>
-        <table class="tbl">
-          <thead><tr><th>Викладач</th><th>Тестів</th><th>Активних</th><th>Спроб</th><th>Студентів</th><th>Посилань</th><th>Остання активність</th></tr></thead>
-          <tbody id="stats-body"></tbody>
-        </table>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr><th>Викладач</th><th>Тестів</th><th>Активних</th><th>Спроб</th><th>Студентів</th><th>Посилань</th><th>Остання активність</th></tr></thead>
+            <tbody id="stats-body"></tbody>
+          </table>
+        </div>
       </div>
+
+      <!-- Mobile — картки -->
+      <div class="stats-cards" id="stats-cards"></div>
     </div>
 
     <!-- SETTINGS -->
@@ -560,14 +838,14 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
         <div><div class="pt">Налаштування AI</div><div class="ps">API ключі, моделі та функції</div></div>
         <button class="btn bp" onclick="saveAISettings()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Зберегти
+          <span class="btn-lbl">Зберегти</span>
         </button>
       </div>
 
       <div class="ai-providers-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
         <div class="card" style="padding:22px">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-            <div style="width:38px;height:38px;border-radius:11px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center;font-size:18px">⚡</div>
+            <div style="width:38px;height:38px;border-radius:11px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center;color:#f59e0b"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
             <div>
               <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">Groq</div>
               <a href="https://console.groq.com/keys" target="_blank" style="font-size:11px;color:var(--primary);text-decoration:none">console.groq.com</a>
@@ -599,7 +877,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 
         <div class="card" style="padding:22px">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-            <div style="width:38px;height:38px;border-radius:11px;background:rgba(13,158,133,.1);display:flex;align-items:center;justify-content:center;font-size:18px">✨</div>
+            <div style="width:38px;height:38px;border-radius:11px;background:rgba(13,158,133,.1);display:flex;align-items:center;justify-content:center;color:#0d9e85"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg></div>
             <div>
               <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">Google Gemini</div>
               <a href="https://aistudio.google.com/apikey" target="_blank" style="font-size:11px;color:var(--primary);text-decoration:none">aistudio.google.com</a>
@@ -632,7 +910,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 
       <div class="card" style="padding:24px">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
-          <div style="width:40px;height:40px;border-radius:12px;background:rgba(220,38,38,.08);display:flex;align-items:center;justify-content:center;font-size:19px">⚙️</div>
+          <div style="width:40px;height:40px;border-radius:12px;background:rgba(220,38,38,.08);display:flex;align-items:center;justify-content:center;color:var(--primary)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
           <div>
             <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">Функції AI</div>
             <div style="font-size:12px;color:var(--muted)">Увімк/Вимк та провайдер для кожної функції</div>
@@ -642,59 +920,59 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
           <div style="padding:14px;border:1.5px solid var(--border);border-radius:13px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
               <div style="display:flex;align-items:center;gap:9px">
-                <div style="width:32px;height:32px;border-radius:9px;background:rgba(220,38,38,.08);display:flex;align-items:center;justify-content:center;font-size:14px">💬</div>
+                <div style="width:32px;height:32px;border-radius:9px;background:rgba(220,38,38,.08);display:flex;align-items:center;justify-content:center;color:var(--primary)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
                 <div><div style="font-weight:600;font-size:13px">Коментар студентам</div><div style="font-size:11px;color:var(--muted)">Після проходження тесту</div></div>
               </div>
               <label class="toggle-sw"><input type="checkbox" id="ai-comments" checked><span class="toggle-sl"></span></label>
             </div>
             <div style="display:flex;gap:6px">
-              <button id="fp-comments-groq" onclick="setFeatProv('comments','groq')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--primary);background:rgba(220,38,38,.07);color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">⚡ Groq</button>
-              <button id="fp-comments-gemini" onclick="setFeatProv('comments','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">✨ Gemini</button>
+              <button id="fp-comments-groq" onclick="setFeatProv('comments','groq')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--primary);background:rgba(220,38,38,.07);color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">Groq</button>
+              <button id="fp-comments-gemini" onclick="setFeatProv('comments','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">Gemini</button>
             </div>
           </div>
           <div style="padding:14px;border:1.5px solid var(--border);border-radius:13px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
               <div style="display:flex;align-items:center;gap:9px">
-                <div style="width:32px;height:32px;border-radius:9px;background:rgba(147,51,234,.08);display:flex;align-items:center;justify-content:center;font-size:14px">🔍</div>
+                <div style="width:32px;height:32px;border-radius:9px;background:rgba(147,51,234,.08);display:flex;align-items:center;justify-content:center;color:#9333ea"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
                 <div><div style="font-weight:600;font-size:13px">Персональний розбір</div><div style="font-size:11px;color:var(--muted)">Аналіз помилок студента</div></div>
               </div>
               <label class="toggle-sw"><input type="checkbox" id="ai-analysis" checked><span class="toggle-sl"></span></label>
             </div>
             <div style="display:flex;gap:6px">
-              <button id="fp-analysis-groq" onclick="setFeatProv('analysis','groq')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--primary);background:rgba(220,38,38,.07);color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">⚡ Groq</button>
-              <button id="fp-analysis-gemini" onclick="setFeatProv('analysis','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">✨ Gemini</button>
+              <button id="fp-analysis-groq" onclick="setFeatProv('analysis','groq')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--primary);background:rgba(220,38,38,.07);color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">Groq</button>
+              <button id="fp-analysis-gemini" onclick="setFeatProv('analysis','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">Gemini</button>
             </div>
           </div>
           <div style="padding:14px;border:1.5px solid var(--border);border-radius:13px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
               <div style="display:flex;align-items:center;gap:9px">
-                <div style="width:32px;height:32px;border-radius:9px;background:rgba(245,158,11,.08);display:flex;align-items:center;justify-content:center;font-size:14px">⚡</div>
+                <div style="width:32px;height:32px;border-radius:9px;background:rgba(245,158,11,.08);display:flex;align-items:center;justify-content:center;color:#f59e0b"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
                 <div><div style="font-weight:600;font-size:13px">Генерація питань</div><div style="font-size:11px;color:var(--muted)">AI в конструкторі тестів</div></div>
               </div>
               <label class="toggle-sw"><input type="checkbox" id="ai-generation" checked><span class="toggle-sl"></span></label>
             </div>
             <div style="display:flex;gap:6px">
-              <button id="fp-generation-groq" onclick="setFeatProv('generation','groq')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--primary);background:rgba(220,38,38,.07);color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">⚡ Groq</button>
-              <button id="fp-generation-gemini" onclick="setFeatProv('generation','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">✨ Gemini</button>
+              <button id="fp-generation-groq" onclick="setFeatProv('generation','groq')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--primary);background:rgba(220,38,38,.07);color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">Groq</button>
+              <button id="fp-generation-gemini" onclick="setFeatProv('generation','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">Gemini</button>
             </div>
           </div>
           <div style="padding:14px;border:1.5px solid var(--border);border-radius:13px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
               <div style="display:flex;align-items:center;gap:9px">
-                <div style="width:32px;height:32px;border-radius:9px;background:rgba(13,158,133,.08);display:flex;align-items:center;justify-content:center;font-size:14px">📝</div>
+                <div style="width:32px;height:32px;border-radius:9px;background:rgba(13,158,133,.08);display:flex;align-items:center;justify-content:center;color:#0d9e85"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
                 <div><div style="font-weight:600;font-size:13px">Перевірка тексту</div><div style="font-size:11px;color:var(--muted)">AI оцінка відповідей</div></div>
               </div>
               <label class="toggle-sw"><input type="checkbox" id="ai-textcheck" checked><span class="toggle-sl"></span></label>
             </div>
             <div style="display:flex;gap:6px">
-              <button id="fp-textcheck-groq" onclick="setFeatProv('textcheck','groq')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--primary);background:rgba(220,38,38,.07);color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">⚡ Groq</button>
-              <button id="fp-textcheck-gemini" onclick="setFeatProv('textcheck','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">✨ Gemini</button>
+              <button id="fp-textcheck-groq" onclick="setFeatProv('textcheck','groq')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--primary);background:rgba(220,38,38,.07);color:var(--primary);font-size:12px;font-weight:600;cursor:pointer">Groq</button>
+              <button id="fp-textcheck-gemini" onclick="setFeatProv('textcheck','gemini')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">Gemini</button>
             </div>
           </div>
         </div>
       </div>
 
-      <div style="margin-top:10px;font-size:11px;color:var(--muted);opacity:.7">⚠️ Ключі зберігаються у Firebase</div>
+      <div style="margin-top:10px;font-size:11px;color:var(--muted);opacity:.7">Ключі зберігаються у Firebase</div>
       <div id="ai-status" style="margin-top:14px;display:none"></div>
     </div>
 
@@ -704,11 +982,11 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
         <div><div class="pt">Новини</div><div class="ps">Розсилка повідомлень всім викладачам</div></div>
         <button class="btn bp" onclick="openNewsModal()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Нова новина
+          <span class="btn-lbl">Нова новина</span>
         </button>
       </div>
       <div id="news-admin-list">
-        <div class="empty"><div class="empty-icon">📰</div><div class="empty-text">Завантаження...</div></div>
+        <div class="empty"><div class="empty-icon" style="width:48px;height:48px;margin:0 auto 12px;color:var(--muted);opacity:.5"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/></svg></div><div class="empty-text">Завантаження...</div></div>
       </div>
     </div>
 
@@ -719,7 +997,9 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 <div class="mo" id="m-create">
   <div class="mb">
     <button class="mcl" onclick="closeModal('m-create')">×</button>
-    <div style="font-size:32px;margin-bottom:12px">👤</div>
+    <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,rgba(220,38,38,.12),rgba(220,38,38,.06));border:1.5px solid rgba(220,38,38,.2);display:flex;align-items:center;justify-content:center;color:var(--primary);margin-bottom:14px">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+    </div>
     <div class="mtl">Новий викладач</div>
     <div class="msu">Пароль буде згенеровано автоматично</div>
     <div class="fl"><label>Повне ім'я *</label><input class="fi" id="new-name" placeholder="Іваненко Олег Петрович"></div>
@@ -731,10 +1011,10 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
       <button class="btn bp" onclick="createTeacher()" style="flex:1" id="create-btn">Створити →</button>
     </div>
     <div id="created-box" class="pass-box" style="display:none">
-      <div class="pass-lbl">✅ Створено! Тимчасовий пароль:</div>
+      <div class="pass-lbl">Створено! Тимчасовий пароль:</div>
       <div class="pass-val" id="created-pass"></div>
-      <div class="pass-note">⚠️ Збережіть — більше не відображатиметься.<br>При першому вході викладач буде зобов'язаний змінити пароль.</div>
-      <button class="btn bs btn-sm" style="margin-top:12px;width:100%" onclick="copyPass('created-pass')">📋 Скопіювати пароль</button>
+      <div class="pass-note">Збережіть — більше не відображатиметься.<br>При першому вході викладач буде зобов'язаний змінити пароль.</div>
+      <button class="btn bs btn-sm" style="margin-top:12px;width:100%" onclick="copyPass('created-pass')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:5px"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Скопіювати пароль</button>
     </div>
   </div>
 </div>
@@ -743,17 +1023,19 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 <div class="mo" id="m-reset">
   <div class="mb" style="text-align:center;padding:36px 32px">
     <button class="mcl" onclick="closeModal('m-reset')">×</button>
-    <div style="font-size:40px;margin-bottom:14px">🔑</div>
+    <div style="width:56px;height:56px;margin:0 auto 14px;border-radius:15px;background:linear-gradient(135deg,rgba(220,38,38,.12),rgba(220,38,38,.06));border:1.5px solid rgba(220,38,38,.2);display:flex;align-items:center;justify-content:center;color:var(--primary)">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+    </div>
     <div class="mtl">Скинути пароль</div>
     <div style="font-size:14px;color:var(--muted);margin:8px 0 24px">Скинути пароль для <strong id="reset-name-lbl"></strong>?<br>Буде згенеровано новий тимчасовий пароль.</div>
     <div id="reset-box" class="pass-box" style="display:none;text-align:left;margin-bottom:16px">
       <div class="pass-lbl">Новий тимчасовий пароль:</div>
       <div class="pass-val" id="reset-pass"></div>
-      <div class="pass-note">⚠️ Збережіть — більше не відображатиметься</div>
-      <button class="btn bs btn-sm" style="margin-top:10px;width:100%" onclick="copyPass('reset-pass')">📋 Скопіювати</button>
+      <div class="pass-note">Збережіть — більше не відображатиметься</div>
+      <button class="btn bs btn-sm" style="margin-top:10px;width:100%" onclick="copyPass('reset-pass')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Скопіювати</button>
     </div>
     <div id="reset-actions" style="display:flex;flex-direction:column;gap:10px">
-      <button onclick="doResetPassword()" style="padding:14px;border-radius:13px;border:none;background:var(--grad);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 4px 14px rgba(220,38,38,.3)">🔑 Згенерувати новий пароль</button>
+      <button onclick="doResetPassword()" style="padding:14px;border-radius:13px;border:none;background:var(--grad);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 4px 14px rgba(220,38,38,.3)">Згенерувати новий пароль</button>
       <button onclick="closeModal('m-reset')" style="padding:12px;border-radius:13px;border:1.5px solid var(--border);background:transparent;font-size:14px;cursor:pointer;color:var(--muted)">Скасувати</button>
     </div>
   </div>
@@ -764,7 +1046,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
   <div class="mb" style="max-width:480px">
     <button class="mcl" onclick="closeModal('m-ai')">×</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
-      <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,rgba(220,38,38,.12),rgba(220,38,38,.06));display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;border:1.5px solid rgba(220,38,38,.12)">✦</div>
+      <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,rgba(220,38,38,.12),rgba(220,38,38,.06));display:flex;align-items:center;justify-content:center;color:var(--primary);flex-shrink:0;border:1.5px solid rgba(220,38,38,.12)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 6 6 1.5-6 1.5L12 17l-1.5-6-6-1.5 6-1.5z"/></svg></div>
       <div>
         <div class="mtl" style="margin-bottom:3px">AI налаштування</div>
         <div style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px">
@@ -783,28 +1065,28 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
     <div style="display:flex;flex-direction:column;gap:9px" id="ai-modal-toggles">
       <div class="feat-row">
         <div style="display:flex;align-items:center">
-          <div class="feat-icon" style="background:rgba(220,38,38,.08)">💬</div>
+          <div class="feat-icon" style="background:rgba(220,38,38,.08);color:var(--primary)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
           <div><div style="font-weight:600;font-size:14px">AI коментарі студентам</div><div style="font-size:12px;color:var(--muted);margin-top:1px">Коментар після проходження тесту</div></div>
         </div>
         <label class="toggle-sw"><input type="checkbox" id="t-ai-comments"><span class="toggle-sl"></span></label>
       </div>
       <div class="feat-row">
         <div style="display:flex;align-items:center">
-          <div class="feat-icon" style="background:rgba(147,51,234,.08)">🔍</div>
+          <div class="feat-icon" style="background:rgba(147,51,234,.08);color:#9333ea"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
           <div><div style="font-weight:600;font-size:14px">Персональний розбір помилок</div><div style="font-size:12px;color:var(--muted);margin-top:1px">Детальний аналіз помилок студента</div></div>
         </div>
         <label class="toggle-sw"><input type="checkbox" id="t-ai-analysis"><span class="toggle-sl"></span></label>
       </div>
       <div class="feat-row">
         <div style="display:flex;align-items:center">
-          <div class="feat-icon" style="background:rgba(245,158,11,.08)">⚡</div>
+          <div class="feat-icon" style="background:rgba(245,158,11,.08);color:#f59e0b"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
           <div><div style="font-weight:600;font-size:14px">Генерація питань</div><div style="font-size:12px;color:var(--muted);margin-top:1px">AI генерація в конструкторі тестів</div></div>
         </div>
         <label class="toggle-sw"><input type="checkbox" id="t-ai-generation"><span class="toggle-sl"></span></label>
       </div>
       <div class="feat-row">
         <div style="display:flex;align-items:center">
-          <div class="feat-icon" style="background:rgba(13,158,133,.08)">📝</div>
+          <div class="feat-icon" style="background:rgba(13,158,133,.08);color:#0d9e85"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
           <div><div style="font-weight:600;font-size:14px">Перевірка текстових відповідей</div><div style="font-size:12px;color:var(--muted);margin-top:1px">AI оцінка текстових і числових відповідей</div></div>
         </div>
         <label class="toggle-sw"><input type="checkbox" id="t-ai-textcheck"><span class="toggle-sl"></span></label>
@@ -812,7 +1094,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
     </div>
 
     <div style="display:flex;gap:10px;margin-top:20px">
-      <button onclick="resetTeacherAI()" style="flex:1;padding:11px 16px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;color:var(--muted);transition:all .15s" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">↩ До глобальних</button>
+      <button onclick="resetTeacherAI()" style="flex:1;padding:11px 16px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;color:var(--muted);transition:all .15s" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:middle;margin-right:4px"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>До глобальних</button>
       <button onclick="saveTeacherAI()" style="flex:1;padding:11px 16px;border-radius:12px;border:none;background:var(--grad);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(220,38,38,.28);transition:all .15s" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">Зберегти</button>
     </div>
   </div>
@@ -822,7 +1104,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 <div class="mo" id="m-block">
   <div class="mb" style="text-align:center;padding:36px 32px;max-width:380px">
     <button class="mcl" onclick="closeModal('m-block')">×</button>
-    <div style="font-size:40px;margin-bottom:14px" id="block-icon">🚫</div>
+    <div id="block-icon" style="width:56px;height:56px;margin:0 auto 14px;border-radius:15px;background:linear-gradient(135deg,rgba(220,38,38,.08),rgba(127,29,29,.05));border:1.5px solid rgba(220,38,38,.18);display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
     <div class="mtl" id="block-title">Заблокувати?</div>
     <div style="font-size:14px;color:var(--muted);margin:8px 0 28px" id="block-desc"></div>
     <div style="display:flex;flex-direction:column;gap:10px">
@@ -837,7 +1119,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
   <div class="mb" style="max-width:440px;text-align:left;padding:32px 30px">
     <button class="mcl" onclick="closeModal('m-delete')">×</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <div style="width:52px;height:52px;border-radius:15px;background:linear-gradient(135deg,rgba(220,38,38,.12),rgba(127,29,29,.08));display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;border:1.5px solid rgba(220,38,38,.22)">🗑️</div>
+      <div style="width:52px;height:52px;border-radius:15px;background:linear-gradient(135deg,rgba(220,38,38,.12),rgba(127,29,29,.08));display:flex;align-items:center;justify-content:center;color:#7f1d1d;flex-shrink:0;border:1.5px solid rgba(220,38,38,.22)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></div>
       <div>
         <div class="mtl" style="margin-bottom:3px">Видалити викладача?</div>
         <div style="font-size:13px;color:var(--muted)">Ця дія незворотна</div>
@@ -850,7 +1132,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
         <span style="font-family:monospace;color:var(--muted);font-size:12px">(@<span id="del-login"></span>)</span>
       </div>
       <div style="font-size:12px;color:#be123c;margin-top:10px;line-height:1.6">
-        ⚠️ <strong>Буде видалено:</strong><br>
+        <strong>Буде видалено:</strong><br>
         • Акаунт користувача<br>
         • Всі тести цього викладача<br>
         • Всі спроби, студенти, посилання, папки<br>
@@ -869,7 +1151,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
       <button class="btn bs" onclick="closeModal('m-delete')" style="flex:1">Скасувати</button>
       <button id="del-confirm-btn" onclick="confirmDeleteTeacher()" disabled
         style="flex:1;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#dc2626,#7f1d1d);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;opacity:.5;transition:all .2s">
-        🗑 Видалити назавжди
+        Видалити назавжди
       </button>
     </div>
   </div>
@@ -893,7 +1175,7 @@ if(!_user || _user.role !== "admin"){ sessionStorage.clear(); location.href="adm
 
 const h=new Date().getHours();
 const gr=h<6?"Добрий вечір":h<12?"Доброго ранку":h<18?"Добрий день":"Добрий вечір";
-document.getElementById("ov-greeting").textContent = gr + ", " + (_user.name||_user.login).split(" ")[0] + " 👋";
+document.getElementById("ov-greeting").textContent = gr + ", " + (_user.name||_user.login).split(" ")[0];
 document.getElementById("sb-name").textContent = _user.name || _user.login;
 document.getElementById("sb-ava").textContent = (_user.name||_user.login||"?").slice(0,2).toUpperCase();
 
@@ -1147,7 +1429,7 @@ function renderTeachers(){
   if(cnt) cnt.textContent = "· " + list.length + " з " + _users.length;
 
   if(!list.length){
-    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div class="empty-text">Нічого не знайдено</div><div style="font-size:13px;margin-top:6px">Спробуйте інший пошуковий запит або фільтр</div></div>`;
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon" style="width:48px;height:48px;margin:0 auto 12px;color:var(--muted);opacity:.5"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><div class="empty-text">Нічого не знайдено</div><div style="font-size:13px;margin-top:6px">Спробуйте інший пошуковий запит або фільтр</div></div>`;
     return;
   }
 
@@ -1187,10 +1469,10 @@ function renderTeachers(){
           Остання активність: <strong style="color:var(--text)">${lastActStr}</strong>
         </div>
         <div class="tc-actions">
-          <button class="btn bs btn-sm" onclick="openAIModal('${u.id}','${esc(u.name||u.login)}')" title="Налаштування AI">✦ AI</button>
-          ${!isMe?`<button class="btn bs btn-sm" onclick="openResetModal('${u.id}','${esc(u.name||u.login)}')" title="Скинути пароль">🔑</button>`:""}
-          ${!isMe?`<button class="btn btn-sm ${isBlocked?"bg":"bd"}" onclick="openBlockModal('${u.id}','${esc(u.name||u.login)}',${isBlocked})" title="${isBlocked?"Розблокувати":"Заблокувати"}">${isBlocked?"✅":"🚫"}</button>`:""}
-          ${!isMe?`<button class="btn btn-sm tc-del-btn" onclick="openDeleteTeacher('${u.id}','${esc(u.name||u.login)}','${esc(u.login)}')" title="Видалити повністю" style="background:rgba(127,29,29,.08);border:1.5px solid rgba(127,29,29,.22);color:#7f1d1d">🗑</button>`:""}
+          <button class="btn bs btn-sm" onclick="openAIModal('${u.id}','${esc(u.name||u.login)}')" title="Налаштування AI"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l1.5 6 6 1.5-6 1.5L12 17l-1.5-6-6-1.5 6-1.5z"/></svg>AI</button>
+          ${!isMe?`<button class="btn bs btn-sm" onclick="openResetModal('${u.id}','${esc(u.name||u.login)}')" title="Скинути пароль"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></button>`:""}
+          ${!isMe?`<button class="btn btn-sm ${isBlocked?"bg":"bd"}" onclick="openBlockModal('${u.id}','${esc(u.name||u.login)}',${isBlocked})" title="${isBlocked?"Розблокувати":"Заблокувати"}">${isBlocked?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>':'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>'}</button>`:""}
+          ${!isMe?`<button class="btn btn-sm tc-del-btn" onclick="openDeleteTeacher('${u.id}','${esc(u.name||u.login)}','${esc(u.login)}')" title="Видалити повністю" style="background:rgba(127,29,29,.08);border:1.5px solid rgba(127,29,29,.22);color:#7f1d1d"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>`:""}
         </div>
       </div>
     </div>`;
@@ -1200,6 +1482,8 @@ function renderTeachers(){
 // ─── Stats ────────────────────────────────────────────────────────────────────
 function renderStats(){
   const sorted = [..._users].sort((a,b)=>(_stats[b.id]?.attempts||0)-(_stats[a.id]?.attempts||0));
+
+  // Desktop таблиця
   document.getElementById("stats-body").innerHTML = sorted.map(u=>{
     const s=_stats[u.id]||{};
     const dateStr = s.lastAct ? new Date(s.lastAct).toLocaleDateString("uk-UA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}) : "—";
@@ -1213,6 +1497,36 @@ function renderStats(){
       <td style="font-size:12px;color:var(--muted)">${dateStr}</td>
     </tr>`;
   }).join("");
+
+  // Mobile картки
+  const cardsEl = document.getElementById("stats-cards");
+  if(cardsEl){
+    cardsEl.innerHTML = sorted.map(u=>{
+      const s = _stats[u.id]||{};
+      const isBlocked = u.blocked===true;
+      const dateStr = s.lastAct ? new Date(s.lastAct).toLocaleDateString("uk-UA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}) : "—";
+      return `<div class="sc-card${isBlocked?' sc-blocked':''}">
+        <div class="sc-card-head">
+          <div class="sc-card-ava">${esc(u.name||u.login).slice(0,2).toUpperCase()}</div>
+          <div class="sc-card-info">
+            <div class="sc-card-name">${esc(u.name||"—")}</div>
+            <div class="sc-card-login">@${esc(u.login)}</div>
+          </div>
+        </div>
+        <div class="sc-card-grid">
+          <div class="sc-card-item"><div class="sc-card-v" style="color:#0d9e85">${s.tests||0}</div><div class="sc-card-l">Тестів</div></div>
+          <div class="sc-card-item"><div class="sc-card-v" style="color:#0d9e85">${s.activeTests||0}</div><div class="sc-card-l">Активних</div></div>
+          <div class="sc-card-item"><div class="sc-card-v" style="color:#f59e0b">${s.attempts||0}</div><div class="sc-card-l">Спроб</div></div>
+          <div class="sc-card-item"><div class="sc-card-v" style="color:#9333ea">${s.students||0}</div><div class="sc-card-l">Студентів</div></div>
+          <div class="sc-card-item"><div class="sc-card-v" style="color:var(--primary)">${s.links||0}</div><div class="sc-card-l">Посилань</div></div>
+        </div>
+        <div class="sc-card-foot">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Остання активність: <strong>${dateStr}</strong>
+        </div>
+      </div>`;
+    }).join("");
+  }
 }
 
 // ─── Sections ────────────────────────────────────────────────────────────────
@@ -1253,13 +1567,13 @@ window.createTeacher = async () => {
     document.getElementById("created-box").style.display = "";
     document.getElementById("create-btn").style.display = "none";
     await loadAll();
-    toast("Викладача створено ✅");
+    toast("Викладача створено");
   }catch(e){ errEl.textContent="Помилка: "+e.message; }
 };
 
 window.copyPass = (elId) => {
   const val = document.getElementById(elId)?.textContent;
-  if(val) navigator.clipboard.writeText(val).then(()=>toast("Скопійовано!"));
+  if(val) navigator.clipboard.writeText(val).then(()=>toast("Скопійовано"));
 };
 
 // ─── Reset password ───────────────────────────────────────────────────────────
@@ -1279,7 +1593,7 @@ window.doResetPassword = async () => {
     document.getElementById("reset-box").style.display="";
     document.getElementById("reset-actions").style.display="none";
     await loadAll();
-    toast("Пароль скинуто ✅");
+    toast("Пароль скинуто");
   }catch(e){ toast("Помилка: "+e.message); }
 };
 
@@ -1287,14 +1601,16 @@ window.doResetPassword = async () => {
 let _blockUid="", _blockCurrent=false;
 window.openBlockModal = (uid,name,isBlocked) => {
   _blockUid=uid; _blockCurrent=isBlocked;
-  document.getElementById("block-icon").textContent = isBlocked?"✅":"🚫";
+  document.getElementById("block-icon").innerHTML = isBlocked
+    ? '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0d9e85" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
+    : '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>';
   document.getElementById("block-title").textContent = isBlocked?"Розблокувати?":"Заблокувати?";
   document.getElementById("block-desc").innerHTML = isBlocked
     ? `Відновити доступ для <strong>${esc(name)}</strong>?`
     : `Заблокувати акаунт <strong>${esc(name)}</strong>? Викладач більше не зможе увійти.`;
   const btn=document.getElementById("block-confirm-btn");
   btn.style.background = isBlocked ? "linear-gradient(135deg,#0d9e85,#077a67)" : "linear-gradient(135deg,#f43f5e,#be123c)";
-  btn.textContent = isBlocked ? "✅ Розблокувати" : "🚫 Заблокувати";
+  btn.textContent = isBlocked ? "Розблокувати" : "Заблокувати";
   openModal("m-block");
 };
 window.doToggleBlock = async () => {
@@ -1302,7 +1618,7 @@ window.doToggleBlock = async () => {
     await update(ref(db,`users/${_blockUid}`),{blocked:!_blockCurrent});
     closeModal("m-block");
     await loadAll();
-    toast(_blockCurrent?"Розблоковано ✅":"Заблоковано 🚫");
+    toast(_blockCurrent?"Розблоковано":"Заблоковано");
   }catch(e){ toast("Помилка: "+e.message); }
 };
 
@@ -1335,7 +1651,7 @@ window.confirmDeleteTeacher = async () => {
   const btn = document.getElementById("del-confirm-btn");
   const errEl = document.getElementById("del-err");
   btn.disabled = true;
-  btn.textContent = "⏳ Видалення...";
+  btn.textContent = "Видалення...";
   try{
     await Promise.all([
       remove(ref(db, `users/${_delUid}`)),
@@ -1344,11 +1660,11 @@ window.confirmDeleteTeacher = async () => {
     closeModal("m-delete");
     _delUid = ""; _delLogin = "";
     await loadAll();
-    toast("Викладача та всі його дані видалено ✅");
+    toast("Викладача та всі його дані видалено");
   }catch(e){
     errEl.textContent = "Помилка: " + e.message;
     btn.disabled = false;
-    btn.textContent = "🗑 Видалити назавжди";
+    btn.textContent = "Видалити назавжди";
   }
 };
 
@@ -1428,10 +1744,10 @@ window.saveAISettings = async () => {
     const status=document.getElementById("ai-status");
     if(status){
       status.style.display="";
-      status.innerHTML=`<div style="background:rgba(13,158,133,.08);border:1.5px solid rgba(13,158,133,.25);border-radius:14px;padding:14px 18px;color:#0d9e85;font-weight:500;font-size:14px">✅ Налаштування збережено</div>`;
+      status.innerHTML=`<div style="background:rgba(13,158,133,.08);border:1.5px solid rgba(13,158,133,.25);border-radius:14px;padding:14px 18px;color:#0d9e85;font-weight:500;font-size:14px">Налаштування збережено</div>`;
       setTimeout(()=>status.style.display="none",3000);
     }
-    toast("Налаштування AI збережено ✅");
+    toast("Налаштування AI збережено");
   }catch(e){ toast("Помилка: "+e.message); }
 };
 
@@ -1513,7 +1829,7 @@ window.saveTeacherAI = async () => {
     await update(ref(db,`users/${_aiTeacherId}/aiSettings`), settings);
     document.getElementById("ai-modal-source").style.display = "flex";
     closeModal("m-ai");
-    toast("Налаштування AI збережено ✅");
+    toast("Налаштування AI збережено");
   }catch(e){ toast("Помилка: "+e.message); }
 };
 
@@ -1684,7 +2000,7 @@ window.saveNews = async () => {
   if(!title){ errEl.textContent="Введіть заголовок"; return; }
   if(!textPlain){ errEl.textContent="Введіть текст"; return; }
   const btn = document.getElementById("news-save-btn");
-  btn.disabled=true; btn.textContent="⏳ Зберігаю...";
+  btn.disabled=true; btn.textContent="Зберігаю...";
   try{
     const data = { title, text, pinned, updatedAt: Date.now() };
     if(_editNewsId){
@@ -1696,7 +2012,7 @@ window.saveNews = async () => {
       await set(nr, data);
     }
     closeModal("m-news");
-    toast(_editNewsId ? "Новину оновлено ✅" : "Новину опубліковано ✅");
+    toast(_editNewsId ? "Новину оновлено" : "Новину опубліковано");
     loadNews();
   }catch(e){
     errEl.textContent="Помилка: "+e.message;
@@ -1727,7 +2043,7 @@ async function loadNews(){
   try{
     const snap = await get(ref(db,"news"));
     if(!snap.exists()){
-      list.innerHTML=`<div class="empty"><div class="empty-icon">📰</div><div class="empty-text">Новин ще немає</div><div style="font-size:14px;color:var(--muted);margin-top:6px">Натисніть «Нова новина» щоб створити першу</div></div>`;
+      list.innerHTML=`<div class="empty"><div class="empty-icon" style="width:48px;height:48px;margin:0 auto 12px;color:var(--muted);opacity:.5"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/></svg></div><div class="empty-text">Новин ще немає</div><div style="font-size:14px;color:var(--muted);margin-top:6px">Натисніть «Нова новина» щоб створити першу</div></div>`;
       return;
     }
     const items = Object.entries(snap.val())
@@ -1740,13 +2056,13 @@ async function loadNews(){
       return `<div style="background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:20px 22px;margin-bottom:14px;transition:all .2s">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:8px">
           <div style="flex:1;min-width:0">
-            ${n.pinned?`<span class="bdg bg-a" style="margin-bottom:6px;display:inline-block">📌 Закріплено</span><br>`:""}
+            ${n.pinned?`<span class="bdg bg-a" style="margin-bottom:6px;display:inline-flex;align-items:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3 6 6 1-4.5 4.5 1 6-5.5-3-5.5 3 1-6-4.5-4.5 6-1z"/></svg>Закріплено</span><br>`:""}
             <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:4px">${esc(n.title||"")}</div>
             <div style="font-size:12px;color:var(--muted);font-style:italic;margin-top:4px">Натисніть «Редагувати» щоб переглянути вміст</div>
           </div>
           <div style="display:flex;gap:8px;flex-shrink:0">
-            <button class="btn bs btn-sm" onclick="window.openNewsModal('${n.id}')">✏️ Редагувати</button>
-            <button class="btn bd btn-sm" onclick="window.deleteNews('${n.id}')">🗑</button>
+            <button class="btn bs btn-sm" onclick="window.openNewsModal('${n.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Редагувати</button>
+            <button class="btn bd btn-sm" onclick="window.deleteNews('${n.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
           </div>
         </div>
         <div style="font-size:11px;color:var(--light);margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">${dateStr}</div>
@@ -1784,7 +2100,7 @@ loadNews();
   <div class="mb" style="max-width:620px">
     <button class="mcl" onclick="closeModal('m-news')">×</button>
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
-      <div style="width:44px;height:44px;border-radius:12px;background:rgba(220,38,38,.08);display:flex;align-items:center;justify-content:center;font-size:20px">📰</div>
+      <div style="width:44px;height:44px;border-radius:12px;background:rgba(220,38,38,.08);display:flex;align-items:center;justify-content:center;color:var(--primary)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/></svg></div>
       <div>
         <div class="mtl" id="news-modal-title" style="margin-bottom:2px">Нова новина</div>
         <div style="font-size:13px;color:var(--muted)">Буде надіслана всім викладачам</div>
@@ -1817,7 +2133,7 @@ loadNews();
         <div style="width:1px;background:var(--border);margin:4px 4px"></div>
         <button type="button" onclick="openLinkModal()" title="Вставити посилання"
           style="width:30px;height:30px;border:none;background:none;border-radius:7px;cursor:pointer;font-size:14px;color:var(--text);transition:all .15s"
-          onmouseover="this.style.background='rgba(220,38,38,.08)'" onmouseout="this.style.background='none'">🔗</button>
+          onmouseover="this.style.background='rgba(220,38,38,.08)'" onmouseout="this.style.background='none'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg></button>
         <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
           <span id="news-char-count" style="font-size:11px;color:var(--muted)">0 симв.</span>
         </div>
@@ -1834,7 +2150,7 @@ loadNews();
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:500">
         <input type="checkbox" id="news-pinned" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer">
-        📌 Закріпити новину вгорі
+        Закріпити новину вгорі
       </label>
     </div>
     <div id="news-modal-err" style="color:#be123c;font-size:13px;min-height:18px;margin-bottom:8px"></div>
@@ -1849,7 +2165,7 @@ loadNews();
 <div class="mo" id="m-news-del">
   <div class="mb" style="max-width:380px;text-align:center;padding:36px 32px">
     <button class="mcl" onclick="closeModal('m-news-del')">×</button>
-    <div style="font-size:44px;margin-bottom:14px">🗑️</div>
+    <div style="width:56px;height:56px;margin:0 auto 14px;border-radius:15px;background:linear-gradient(135deg,rgba(220,38,38,.12),rgba(127,29,29,.08));border:1.5px solid rgba(220,38,38,.22);display:flex;align-items:center;justify-content:center;color:#7f1d1d"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></div>
     <div class="mtl">Видалити новину?</div>
     <div style="font-size:14px;color:var(--muted);margin:8px 0 24px">Новина зникне для всіх викладачів.<br>Цю дію не можна скасувати.</div>
     <div style="display:flex;gap:10px">
@@ -1865,7 +2181,7 @@ loadNews();
   <div class="mb" style="max-width:400px">
     <button class="mcl" onclick="closeModal('m-link-insert')">×</button>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
-      <div style="width:40px;height:40px;border-radius:11px;background:rgba(220,38,38,.08);display:flex;align-items:center;justify-content:center;font-size:18px">🔗</div>
+      <div style="width:40px;height:40px;border-radius:11px;background:rgba(220,38,38,.08);display:flex;align-items:center;justify-content:center;color:var(--primary)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg></div>
       <div class="mtl" style="margin:0">Вставити посилання</div>
     </div>
     <div class="fl">
