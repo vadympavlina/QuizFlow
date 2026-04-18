@@ -246,14 +246,16 @@ main {
   border-radius: 18px;
   padding: 16px;
   box-shadow: 0 2px 12px rgba(10,14,46,.05), 0 1px 3px rgba(10,14,46,.04);
-  animation: cardIn .38s cubic-bezier(.34,1.56,.64,1) both;
   position: relative;
   overflow: hidden;
   transition: box-shadow .22s, border-color .22s, transform .22s;
-  will-change: transform, opacity;
+  will-change: transform;
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+.student-card.new-card {
+  animation: cardIn .38s cubic-bezier(.34,1.56,.64,1) both;
 }
 .student-card:hover {
   box-shadow: 0 8px 28px rgba(45,91,227,.11), 0 2px 6px rgba(45,91,227,.06);
@@ -750,7 +752,10 @@ function studentCard(a, state){
   </div>`;
 }
 
-// ─── Render (DOM diffing — no flashing) ───────────────────────────────────
+// ─── Кеш стану карток (для порівняння змін) ───────────────────────────────
+const _cardState = new Map(); // id → { currentQ, pct, isIdle, startedAt }
+
+// ─── Render: тільки структурні зміни (додати/видалити картку) ─────────────
 function render(attempts){
   const active = [];
   Object.entries(attempts || {}).forEach(([id, a]) => {
@@ -760,105 +765,118 @@ function render(attempts){
     }
   });
 
-  // Сортування: за найдальшим питанням (активніші — вгору)
   active.sort((a,b) => (b.currentQ || 0) - (a.currentQ || 0) || (a.startedAt||0) - (b.startedAt||0));
 
-  // Лічильник у шапці
   document.getElementById("stat-active").textContent = active.length;
 
   const grid = document.getElementById("grid-active");
 
-  // Збираємо поточні картки що є в DOM
+  // Поточні картки в DOM
   const existing = new Map();
   grid.querySelectorAll(".student-card[data-id]").forEach(el => {
     existing.set(el.dataset.id, el);
   });
 
-  // Видаляємо картки яких вже немає — з анімацією
+  // Видаляємо зниклих — плавно
   const newIds = new Set(active.map(a => a.id));
   existing.forEach((el, id) => {
     if(!newIds.has(id)){
+      _cardState.delete(id);
       el.classList.add("removing");
-      el.addEventListener("animationend", () => el.remove(), { once: true });
+      // fallback якщо animationend не спрацює
+      const t = setTimeout(() => el.remove(), 400);
+      el.addEventListener("animationend", () => { clearTimeout(t); el.remove(); }, { once: true });
     }
   });
 
-  // Оновлюємо або додаємо картки
+  // Додаємо нових / оновлюємо існуючих
   active.forEach((a, idx) => {
-    const html = studentCard(a, "active");
-    const tmp = document.createElement("div");
-    tmp.innerHTML = html;
-    const newEl = tmp.firstElementChild;
-    newEl.dataset.id = a.id;
-
     if(existing.has(a.id)){
-      const oldEl = existing.get(a.id);
-      // Оновлюємо тільки дані що змінились, без скидання анімацій
-      patchCard(oldEl, newEl, a);
-      // Переставляємо позицію якщо потрібно (без анімації)
-      const children = [...grid.children].filter(c => !c.classList.contains("removing") && c.dataset.id);
-      const currentIdx = children.indexOf(oldEl);
-      if(currentIdx !== idx){
-        grid.insertBefore(oldEl, grid.children[idx] || null);
-      }
+      // Картка вже є — лише патчимо дані, БЕЗ будь-яких DOM-переміщень
+      patchCardData(existing.get(a.id), a);
     } else {
-      // Нова картка — вставляємо з анімацією
-      newEl.style.animationDelay = (idx * 40) + "ms";
-      grid.insertBefore(newEl, grid.children[idx] || null);
+      // Нова картка — створюємо і вставляємо
+      const html = studentCard(a, "active");
+      const tmp = document.createElement("div");
+      tmp.innerHTML = html.trim();
+      const el = tmp.firstElementChild;
+      el.dataset.id = a.id;
+      el.classList.add("new-card");
+      el.style.animationDelay = (idx * 35) + "ms";
+      el.addEventListener("animationend", () => el.classList.remove("new-card"), { once: true });
+      // Зберігаємо початковий стан
+      _cardState.set(a.id, {
+        currentQ: a.currentQ || 0,
+        pct: calcPct(a),
+        isIdle: false,
+        startedAt: a.startedAt || 0
+      });
+      grid.appendChild(el);
     }
   });
 
-  // Empty state
-  const emptyEl = document.getElementById("empty-state");
-  emptyEl.style.display = active.length === 0 ? "block" : "none";
+  document.getElementById("empty-state").style.display = active.length === 0 ? "block" : "none";
 }
 
-// Точкове оновлення картки без перемалювання всього DOM
-function patchCard(oldEl, newEl, a){
-  // Progress bar — плавно через CSS transition
-  const oldFill = oldEl.querySelector(".progress-fill");
-  const newFill = newEl.querySelector(".progress-fill");
-  if(oldFill && newFill && oldFill.style.width !== newFill.style.width){
-    oldFill.style.width = newFill.style.width;
-  }
-
-  // Прогрес текст
-  const oldQ = oldEl.querySelector(".progress-q");
-  const newQ = newEl.querySelector(".progress-q");
-  if(oldQ && newQ && oldQ.innerHTML !== newQ.innerHTML){
-    oldQ.innerHTML = newQ.innerHTML;
-  }
-
-  // Відсоток
-  const oldPct = oldEl.querySelector(".progress-pct");
-  const newPct = newEl.querySelector(".progress-pct");
-  if(oldPct && newPct && oldPct.textContent !== newPct.textContent){
-    oldPct.textContent = newPct.textContent;
-  }
-
-  // Час (meta-item)
-  const oldMeta = oldEl.querySelector(".meta-item");
-  const newMeta = newEl.querySelector(".meta-item");
-  if(oldMeta && newMeta && oldMeta.textContent.trim() !== newMeta.textContent.trim()){
-    oldMeta.innerHTML = newMeta.innerHTML;
-  }
-
-  // idle клас на картці
-  const isIdle = newEl.classList.contains("idle");
-  if(isIdle !== oldEl.classList.contains("idle")){
-    oldEl.classList.toggle("idle", isIdle);
-    // Оновити бейдж якщо статус змінився
-    const oldBdg = oldEl.querySelector(".bdg");
-    const newBdg = newEl.querySelector(".bdg");
-    if(oldBdg && newBdg) oldBdg.replaceWith(newBdg.cloneNode(true));
-  }
+function calcPct(a){
+  const totalQ = a.totalQ || _tests[a.testId]?.questions?.length || 0;
+  return totalQ > 0 ? Math.round(((a.currentQ || 0) / totalQ) * 100) : 0;
 }
 
-// ─── Refresh timers (живий час + оновлення карток) ─────────────────────────
+// ─── patchCardData: хірургічно оновлює тільки поля що змінились ───────────
+function patchCardData(el, a){
+  const prev = _cardState.get(a.id) || {};
+  const currentQ = a.currentQ || 0;
+  const pct = calcPct(a);
+  const isIdle = false; // в active-render всі active
+
+  // Питання + відсоток
+  if(prev.currentQ !== currentQ || prev.pct !== pct){
+    const qEl = el.querySelector(".progress-q");
+    const totalQ = a.totalQ || _tests[a.testId]?.questions?.length || 0;
+    if(qEl) qEl.innerHTML = `${currentQ}<sub>/${totalQ || "?"}</sub>`;
+
+    const pctEl = el.querySelector(".progress-pct");
+    if(pctEl) pctEl.textContent = pct + "%";
+
+    const fill = el.querySelector(".progress-fill");
+    if(fill) fill.style.width = pct + "%";
+  }
+
+  // idle статус
+  if(prev.isIdle !== isIdle){
+    el.classList.toggle("idle", isIdle);
+    const fill = el.querySelector(".progress-fill");
+    if(fill) fill.classList.toggle("idle", isIdle);
+    const ava = el.querySelector(".ava");
+    if(ava){ ava.className = "ava " + (isIdle ? "idle" : "active"); }
+  }
+
+  _cardState.set(a.id, { currentQ, pct, isIdle, startedAt: a.startedAt || 0 });
+}
+
+// ─── Окремий таймер ТІЛЬКИ для тривалості — не торкається нічого іншого ───
 let _lastAttempts = {};
 setInterval(() => {
-  if(Object.keys(_lastAttempts).length > 0) render(_lastAttempts);
-}, 10000); // кожні 10с оновлюємо картки (для тривалості та idle-статусу)
+  const grid = document.getElementById("grid-active");
+  grid.querySelectorAll(".student-card[data-id]").forEach(el => {
+    const id = el.dataset.id;
+    const a = _lastAttempts[id];
+    if(!a || !a.startedAt) return;
+    const dur = el.querySelector(".meta-item");
+    if(dur){
+      const txt = formatDuration(Date.now() - a.startedAt);
+      // Оновлюємо лише текстовий вузол, не торкаємось SVG
+      const nodes = dur.childNodes;
+      for(let i = 0; i < nodes.length; i++){
+        if(nodes[i].nodeType === 3 && nodes[i].textContent.trim()){
+          nodes[i].textContent = "\n        " + txt + "\n      ";
+          break;
+        }
+      }
+    }
+  });
+}, 5000);
 
 // ─── Init ──────────────────────────────────────────────────────────────────
 (async () => {
