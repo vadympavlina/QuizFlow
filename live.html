@@ -234,53 +234,59 @@ main {
 /* Grid */
 .live-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
   margin-bottom: 32px;
 }
 
-/* Student card */
+/* ── Student card ── */
 .student-card {
   background: var(--card);
   border: 1.5px solid var(--border);
-  border-radius: 22px;
-  padding: 20px;
-  box-shadow: 0 6px 24px rgba(10,14,46,.04);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(10,14,46,.05), 0 1px 3px rgba(10,14,46,.04);
   animation: cardIn .38s cubic-bezier(.34,1.56,.64,1) both;
   position: relative;
   overflow: hidden;
-  transition: box-shadow .25s, border-color .25s, transform .25s;
+  transition: box-shadow .22s, border-color .22s, transform .22s;
   will-change: transform, opacity;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 .student-card:hover {
-  box-shadow: 0 12px 36px rgba(45,91,227,.10);
-  border-color: rgba(45,91,227,.22);
+  box-shadow: 0 8px 28px rgba(45,91,227,.11), 0 2px 6px rgba(45,91,227,.06);
+  border-color: rgba(45,91,227,.2);
   transform: translateY(-2px);
 }
 .student-card.removing {
   animation: cardOut .28s ease forwards;
   pointer-events: none;
 }
+
+/* Кольорова смужка зліва */
 .student-card::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 4px;
+  top: 0; left: 0; bottom: 0;
+  width: 3px;
   background: var(--grad);
+  border-radius: 18px 0 0 18px;
 }
-.student-card.idle::before { background: linear-gradient(90deg, #f59e0b, #c2410c); }
-.student-card.finished::before { background: linear-gradient(90deg, #0d9e85, #047857); }
+.student-card.idle::before { background: linear-gradient(180deg, #f59e0b, #c2410c); }
+.student-card.finished::before { background: linear-gradient(180deg, #0d9e85, #047857); }
 
+/* ── Верхня частина: аватар + ім'я + статус ── */
 .card-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 10px;
 }
 .ava {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   background: var(--grad);
   color: #fff;
   display: flex;
@@ -288,29 +294,29 @@ main {
   justify-content: center;
   font-family: 'DM Sans', sans-serif;
   font-weight: 800;
-  font-size: 15px;
-  letter-spacing: .4px;
+  font-size: 13px;
+  letter-spacing: .3px;
   flex-shrink: 0;
   position: relative;
 }
 .ava.active::after {
   content: '';
   position: absolute;
-  bottom: -2px; right: -2px;
-  width: 14px; height: 14px;
+  bottom: -3px; right: -3px;
+  width: 11px; height: 11px;
   border-radius: 50%;
   background: #22c55e;
-  border: 2.5px solid var(--card);
+  border: 2px solid var(--card);
   animation: pulseRing 2s infinite;
 }
 .ava.idle::after {
   content: '';
   position: absolute;
-  bottom: -2px; right: -2px;
-  width: 14px; height: 14px;
+  bottom: -3px; right: -3px;
+  width: 11px; height: 11px;
   border-radius: 50%;
   background: #f59e0b;
-  border: 2.5px solid var(--card);
+  border: 2px solid var(--card);
 }
 .ava.finished { background: linear-gradient(135deg, #0d9e85, #047857); }
 
@@ -318,88 +324,95 @@ main {
 .who-name {
   font-family: 'DM Sans', sans-serif;
   font-weight: 700;
-  font-size: 16px;
-  line-height: 1.2;
+  font-size: 14px;
+  line-height: 1.25;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--text);
 }
 .who-test {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted);
-  margin-top: 3px;
+  margin-top: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Progress */
+/* ── Прогрес ── */
+.progress-block { display: flex; flex-direction: column; gap: 6px; }
 .progress-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
 }
 .progress-q {
   font-family: 'DM Sans', sans-serif;
   font-weight: 800;
-  font-size: 24px;
+  font-size: 20px;
   color: var(--primary);
   line-height: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
 }
 .progress-q sub {
   font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
+  font-size: 11px;
   color: var(--muted);
   font-weight: 500;
   vertical-align: baseline;
-  margin-left: 2px;
+  margin-left: 1px;
 }
 .progress-pct {
   font-family: 'DM Sans', sans-serif;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--bg);
+  padding: 2px 7px;
+  border-radius: 8px;
 }
 .progress-bar {
-  height: 8px;
+  height: 5px;
   background: var(--bg);
-  border-radius: 6px;
+  border-radius: 4px;
   overflow: hidden;
-  margin-bottom: 12px;
 }
 .progress-fill {
   height: 100%;
   background: var(--grad);
-  border-radius: 6px;
+  border-radius: 4px;
   transition: width .5s cubic-bezier(.34,1.56,.64,1);
 }
 .progress-fill.idle { background: linear-gradient(90deg, #f59e0b, #c2410c); }
 .progress-fill.finished { background: linear-gradient(90deg, #0d9e85, #047857); }
 
+/* ── Нижня смужка: час + бейдж ── */
 .meta-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted);
 }
 .meta-item {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
-.meta-item svg { flex-shrink: 0; opacity: .7; }
+.meta-item svg { flex-shrink: 0; opacity: .65; }
 .bdg {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 9px;
-  border-radius: 20px;
-  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 10px;
   font-weight: 700;
+  letter-spacing: .2px;
 }
 .bdg-g { background: rgba(13,158,133,.1); color: var(--teal); }
 .bdg-a { background: rgba(245,158,11,.1); color: #b45309; }
@@ -459,20 +472,22 @@ main {
 .grade-big {
   font-family: 'DM Sans', sans-serif;
   font-weight: 800;
-  font-size: 36px;
+  font-size: 28px;
   color: var(--teal);
   line-height: 1;
   text-align: center;
-  padding: 12px 0;
+  padding: 6px 0 2px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
 }
 .grade-big small {
-  display: block;
   font-family: 'DM Sans', sans-serif;
   font-size: 11px;
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: .5px;
-  margin-top: 4px;
   font-weight: 600;
 }
 
@@ -482,26 +497,26 @@ main {
 @media (min-width: 1800px) {
   main { padding: 40px 56px 56px; }
   .live-grid {
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
   }
   .top { padding: 22px 56px; }
   .top-logo { width: 56px; height: 56px; font-size: 26px; }
   .top-title { font-size: 28px; }
   .top-stat-n { font-size: 32px; }
   .section-title { font-size: 24px; }
-  .student-card { padding: 24px; border-radius: 26px; }
-  .who-name { font-size: 18px; }
-  .progress-q { font-size: 28px; }
+  .student-card { padding: 18px; border-radius: 20px; }
+  .who-name { font-size: 15px; }
+  .progress-q { font-size: 22px; }
 }
 @media (min-width: 2400px) {
   .live-grid {
-    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   }
   .top-title { font-size: 32px; }
-  .student-card { padding: 28px; }
-  .who-name { font-size: 20px; }
-  .progress-q { font-size: 32px; }
+  .student-card { padding: 22px; }
+  .who-name { font-size: 17px; }
+  .progress-q { font-size: 26px; }
 }
 
 /* Tablet */
@@ -509,10 +524,10 @@ main {
   .top { padding: 14px 20px; flex-wrap: wrap; }
   main { padding: 20px; }
   .live-grid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
   }
-  .student-card { padding: 16px; border-radius: 18px; }
+  .student-card { padding: 14px; border-radius: 16px; }
   .top-stat { padding: 4px 10px; min-width: 50px; }
   .top-stat-n { font-size: 22px; }
 }
@@ -542,27 +557,27 @@ main {
   main { padding: 14px; }
   .live-grid {
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 8px;
   }
-  .student-card { padding: 14px; border-radius: 16px; }
-  .ava { width: 40px; height: 40px; font-size: 13px; border-radius: 12px; }
-  .who-name { font-size: 14px; }
-  .who-test { font-size: 11px; }
-  .progress-q { font-size: 19px; }
-  .progress-q sub { font-size: 11px; }
-  .progress-pct { font-size: 13px; }
-  .meta-row { font-size: 10px; padding-top: 10px; }
+  .student-card { padding: 12px; border-radius: 14px; gap: 10px; }
+  .ava { width: 34px; height: 34px; font-size: 11px; border-radius: 10px; }
+  .who-name { font-size: 13px; }
+  .who-test { font-size: 10px; }
+  .progress-q { font-size: 18px; }
+  .progress-q sub { font-size: 10px; }
+  .progress-pct { font-size: 11px; }
+  .meta-row { font-size: 10px; }
   .meta-item svg { width: 10px; height: 10px; }
   .section-title { font-size: 16px; }
   .section-count { font-size: 11px; padding: 3px 9px; }
-  .grade-big { font-size: 26px; padding: 8px 0; }
+  .grade-big { font-size: 22px; }
   .back-btn { width: 36px; height: 36px; }
 }
 
 @media (max-width: 440px) {
   .live-grid { grid-template-columns: 1fr; }
   .top-title { font-size: 16px; }
-  .card-head { margin-bottom: 12px; }
+  .card-head { gap: 8px; }
 }
 </style>
 </head>
@@ -688,16 +703,16 @@ function studentCard(a, state){
           <div class="who-name">${esc(display)}</div>
           <div class="who-test">${esc(testTitle)}</div>
         </div>
+        <span class="bdg bdg-g">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Завершено
+        </span>
       </div>
       <div class="grade-big">${grade != null ? grade : "—"}<small>з 12</small></div>
       <div class="meta-row">
         <span class="meta-item">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           ${a.finishedAt ? formatTimeAgo(a.finishedAt) + " тому" : "—"}
-        </span>
-        <span class="bdg bdg-g">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          Завершено
         </span>
       </div>
     </div>`;
@@ -717,18 +732,20 @@ function studentCard(a, state){
         <div class="who-name">${esc(display)}</div>
         <div class="who-test">${esc(testTitle)}</div>
       </div>
+      ${badge}
     </div>
-    <div class="progress-row">
-      <div class="progress-q">${currentQ}<sub>/${totalQ || "?"}</sub></div>
-      <div class="progress-pct">${pct}%</div>
+    <div class="progress-block">
+      <div class="progress-row">
+        <div class="progress-q">${currentQ}<sub>/${totalQ || "?"}</sub></div>
+        <div class="progress-pct">${pct}%</div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill ${fillCls}" style="width:${pct}%"></div></div>
     </div>
-    <div class="progress-bar"><div class="progress-fill ${fillCls}" style="width:${pct}%"></div></div>
     <div class="meta-row">
       <span class="meta-item">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         ${formatDuration(duration)}
       </span>
-      ${badge}
     </div>
   </div>`;
 }
@@ -819,24 +836,21 @@ function patchCard(oldEl, newEl, a){
     oldPct.textContent = newPct.textContent;
   }
 
-  // Час
+  // Час (meta-item)
   const oldMeta = oldEl.querySelector(".meta-item");
   const newMeta = newEl.querySelector(".meta-item");
   if(oldMeta && newMeta && oldMeta.textContent.trim() !== newMeta.textContent.trim()){
     oldMeta.innerHTML = newMeta.innerHTML;
   }
 
-  // Badge (active/idle)
-  const oldBdg = oldEl.querySelector(".bdg");
-  const newBdg = newEl.querySelector(".bdg");
-  if(oldBdg && newBdg && oldBdg.outerHTML !== newBdg.outerHTML){
-    oldBdg.replaceWith(newBdg.cloneNode(true));
-  }
-
   // idle клас на картці
   const isIdle = newEl.classList.contains("idle");
   if(isIdle !== oldEl.classList.contains("idle")){
     oldEl.classList.toggle("idle", isIdle);
+    // Оновити бейдж якщо статус змінився
+    const oldBdg = oldEl.querySelector(".bdg");
+    const newBdg = newEl.querySelector(".bdg");
+    if(oldBdg && newBdg) oldBdg.replaceWith(newBdg.cloneNode(true));
   }
 }
 
