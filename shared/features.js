@@ -348,6 +348,7 @@ function renderDashAtt(){
   }
 
   const tb=$("d-att"), r=attempts.slice(0,8);
+  if(!tb) return;
   if(!r.length){tb.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="ei">📭</div><div class="et">Ще немає спроб</div></div></td></tr>`;return;}
   tb.innerHTML=r.map(a=>{
     const t=tests.find(x=>x.id===a.testId);
@@ -369,6 +370,7 @@ function renderDashAtt(){
 }
 function renderDashLinks(){
   const c=$("d-lnk"),al=links.filter(l=>l.status==="active").slice(0,4);
+  if(!c) return;
   if(!al.length){c.innerHTML=`<div style="text-align:center;color:var(--muted);padding:18px;font-size:14px">Немає активних посилань</div>`;return;}
   c.innerHTML=al.map(l=>{
     const t=tests.find(x=>x.id===l.testId);
@@ -606,20 +608,23 @@ renderTests = function(q=""){
 // ATTEMPTS
 fillSelects = function(){
   // Прихований select для сумісності з renderAttempts
-  $("ft").innerHTML=`<option value="">Всі тести</option>`+tests.filter(t=>t.status!=="archived").map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
+  const ft = $("ft");
+  if (ft) ft.innerHTML=`<option value="">Всі тести</option>`+tests.filter(t=>t.status!=="archived").map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
   // Кастомний дропдаун тестів
   const ftMenu=document.getElementById("cd-ft-menu");
   if(ftMenu){
-    const curFt=$("ft").value;
+    const curFt=$("ft")?.value||"";
     ftMenu.innerHTML=`<div class="cd-item${!curFt?" cd-active":""}" onclick="G.selectDrop('cd-ft','','Всі тести')">Всі тести</div>`+
       tests.filter(t=>t.status!=="archived").map(t=>
         `<div class="cd-item${curFt===t.id?" cd-active":""}" onclick="G.selectDrop('cd-ft','${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
       ).join("");
   }
-  $("nl-t").innerHTML=tests.map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
+  const nlT = $("nl-t");
+  if (nlT) nlT.innerHTML=tests.map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
   // Групи з посилань
   const groups=[...new Set(links.map(l=>l.group).filter(Boolean))].sort();
-  $("fgrp").innerHTML=`<option value="">Всі групи</option>`+groups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join("");
+  const fgrp = $("fgrp");
+  if (fgrp) fgrp.innerHTML=`<option value="">Всі групи</option>`+groups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join("");
   // Кастомний дропдаун груп
   const grpMenu=document.getElementById("cd-fgrp-menu");
   if(grpMenu){
@@ -696,6 +701,7 @@ renderAttempts = function(resetPage=false){
     });
   }
   const tb=$("att-tbl");
+  if(!tb) return;
   const countLabel=document.getElementById("att-count-label");
   if(countLabel) countLabel.textContent=`${lst.length} спроб${lst.length===1?"а":lst.length<5?"и":""}`;
   if(!lst.length){
@@ -784,6 +790,7 @@ renderAttempts = function(resetPage=false){
 // LINKS
 renderLinks = function(){
   const tb=$("lnk-tbl");
+  if(!tb) return;
   const base=location.origin+location.pathname.replace("index.html","");
   // Автоматично закриваємо прострочені посилання
   const now=Date.now();
