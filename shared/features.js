@@ -1577,7 +1577,7 @@ window.G = {
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px">
           <div style="display:flex;align-items:flex-start;gap:10px;flex:1">
             <div style="width:26px;height:26px;border-radius:8px;background:rgba(45,91,227,.08);color:var(--primary);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</div>
-            <div style="font-size:14px;font-weight:600;line-height:1.5;flex:1">${esc(q.text||q.question||"")}</div>
+            <div style="font-size:14px;font-weight:600;line-height:1.5;flex:1" class="qf-rich">${q.text||q.question||""}</div>
           </div>
           ${pts!=null?`<div style="font-size:13px;font-weight:700;color:${ptsColor};flex-shrink:0">${pts>0?"+"+pts:pts} б</div>`:""}
         </div>

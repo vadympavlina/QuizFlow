@@ -228,3 +228,16 @@ textarea.fi{resize:vertical;min-height:72px}
 #toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#0d1340;color:#fff;padding:13px 22px;border-radius:14px;font-size:14px;font-weight:500;z-index:9999;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;box-shadow:0 8px 28px rgba(0,0,0,.2)}
 #toast.show{opacity:1}
 #toast.err{background:#be123c}
+
+/* Rich text у питаннях (використовується в модалці перегляду спроби) */
+.qf-rich b,.qf-rich strong{font-weight:700}
+.qf-rich i,.qf-rich em{font-style:italic}
+.qf-rich u{text-decoration:underline}
+.qf-rich s,.qf-rich del{text-decoration:line-through}
+.qf-rich ul,.qf-rich ol{padding-left:22px;margin:6px 0}
+.qf-rich li{margin:2px 0}
+.qf-rich p{margin:4px 0}
+.qf-rich p:first-child{margin-top:0}
+.qf-rich p:last-child{margin-bottom:0}
+.qf-rich code{background:rgba(45,91,227,.08);padding:1px 5px;border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em}
+.qf-rich img{max-width:100%;height:auto;border-radius:8px}
