@@ -29,6 +29,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .top-stat-n{font-family:'Syne',sans-serif;font-weight:700;font-size:22px;line-height:1;letter-spacing:-.5px;color:var(--primary);font-variant-numeric:tabular-nums}
 .top-stat-l{font-size:12px;color:var(--muted);font-weight:500}
 .top-clock{font-family:'Syne',sans-serif;font-weight:600;font-size:14px;font-variant-numeric:tabular-nums;padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:12px;color:var(--text)}
+#admin-toggle{display:none !important}
+#admin-toggle.visible{display:inline-flex !important}
+#admin-toggle.active{background:var(--grad) !important;color:#fff !important;border-color:transparent !important;box-shadow:0 4px 14px rgba(45,91,227,.25)}
 
 /* Admin tabs + search */
 .admin-bar{padding:14px 30px 0}
@@ -129,6 +132,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   .top-stat-n{font-size:18px}
   .top-stat-l{font-size:11px}
   .top-clock{padding:7px 11px;font-size:13px}
+  #admin-toggle{width:36px;height:36px}
   .admin-bar{padding:10px 14px 0}
   .tab{padding:7px 12px;font-size:12px}
   .main{padding:14px}
@@ -170,10 +174,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <span class="top-stat-l">проходять</span>
       </div>
       <div class="top-clock" id="clock">—:—:—</div>
+      <button id="admin-toggle" onclick="toggleAdminBar()" title="Панель адміна" style="display:none;width:40px;height:40px;border-radius:12px;border:1.5px solid var(--border);background:#fff;cursor:pointer;color:var(--muted);align-items:center;justify-content:center;transition:all .15s;flex-shrink:0"
+        onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
+        onmouseout="if(!this.classList.contains('active')){this.style.borderColor='var(--border)';this.style.color='var(--muted)'}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </button>
     </div>
   </header>
 
-  <!-- Admin bar (видно тільки для admin) -->
+  <!-- Admin bar (видно тільки для admin і коли toggle увімкнений) -->
   <div class="admin-bar" id="admin-bar" style="display:none">
     <div class="tabs">
       <button id="tab-mine" class="tab active" onclick="switchTab('mine')">
@@ -244,7 +255,40 @@ const _myName = _user.name || _user.login;
 const _isAdmin = _user.role === "admin";
 
 document.getElementById("teacher-name").textContent = _myName;
-if(_isAdmin) document.getElementById("admin-bar").style.display = "block";
+// Для адміна — показуємо кнопку-тогл зверху (не сам бар)
+if(_isAdmin){
+  const toggleBtn = document.getElementById("admin-toggle");
+  toggleBtn.classList.add("visible");
+  // Запам'ятовуємо чи бар відкрито — читаємо з localStorage
+  const wasOpen = localStorage.getItem("qf_live_admin_open") === "1";
+  if(wasOpen){
+    document.getElementById("admin-bar").style.display = "block";
+    toggleBtn.classList.add("active");
+  }
+}
+
+window.toggleAdminBar = function(){
+  const bar = document.getElementById("admin-bar");
+  const btn = document.getElementById("admin-toggle");
+  const isHidden = bar.style.display === "none" || !bar.style.display;
+  if(isHidden){
+    bar.style.display = "block";
+    btn.classList.add("active");
+    localStorage.setItem("qf_live_admin_open", "1");
+  } else {
+    bar.style.display = "none";
+    btn.classList.remove("active");
+    btn.style.borderColor = "var(--border)";
+    btn.style.color = "var(--muted)";
+    localStorage.setItem("qf_live_admin_open", "0");
+    // При закритті — повертаємось до свого лайву
+    if(_activeUid !== _myUid){
+      switchTab("mine");
+    }
+    // Також закриваємо дропдаун пошуку якщо було відкрито
+    document.getElementById("search-results").style.display = "none";
+  }
+};
 
 // ─── Helpers ────────────────────────────────────────────────────────
 const esc = s => String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
@@ -407,10 +451,11 @@ window.switchTab = async function(which){
       render({});
       document.getElementById("stat-active").textContent = 0;
       document.getElementById("watching-pill").classList.remove("show");
+      // Залишаємо дефолтний empty-стан — "Зараз ніхто не проходить тест"
       const empty = document.getElementById("empty");
       empty.style.display = "block";
-      document.getElementById("empty-title").textContent = "Виберіть викладача";
-      document.getElementById("empty-text").textContent = "Почніть вводити ПІБ у полі пошуку вище та натисніть на викладача у списку";
+      document.getElementById("empty-title").textContent = "Зараз ніхто не проходить тест";
+      document.getElementById("empty-text").textContent = "Коли студенти почнуть виконувати завдання — вони з'являться тут автоматично";
     }
   }
 };
