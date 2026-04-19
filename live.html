@@ -308,22 +308,6 @@ window.toggleAdminBar = function(){
 
 // ─── Helpers ────────────────────────────────────────────────────────
 const esc = s => String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-
-// ─── FIX: нормалізуємо startedAt до мілісекунд незалежно від формату ──
-// Firebase може повернути: число (мс), число (секунди), ISO-рядок, або об'єкт {".sv":"timestamp"}
-function toMs(v){
-  if(!v) return 0;
-  if(typeof v === "number"){
-    // Якщо менше 1e10 — це секунди (Unix timestamp), конвертуємо в мс
-    return v < 1e10 ? v * 1000 : v;
-  }
-  if(typeof v === "string"){
-    const parsed = Date.parse(v);
-    return isNaN(parsed) ? 0 : parsed;
-  }
-  return 0;
-}
-
 function formatDuration(ms){
   const secs = Math.max(0, Math.floor(ms/1000));
   const h = Math.floor(secs/3600);
@@ -395,9 +379,7 @@ function buildCard(a){
   const totalQ = a.totalQ || _tests[a.testId]?.questions?.length || 0;
   const currentQ = a.currentQ || 0;
   const pct = totalQ > 0 ? Math.round((currentQ/totalQ)*100) : 0;
-  // FIX: використовуємо toMs() для правильної конвертації startedAt
-  const startMs = toMs(a.startedAt);
-  const duration = startMs ? Date.now() - startMs : 0;
+  const duration = a.startedAt ? Date.now() - a.startedAt : 0;
   const tab = a.tabSwitches || 0;
   const cp = a.copyAttempts || 0;
   const sh = a.screenshots || 0;
@@ -407,7 +389,6 @@ function buildCard(a){
   el.className = "s-card" + (sc ? " " + sc : "");
   el.dataset.id = a.id;
   el.dataset.totalQ = totalQ;
-  el.dataset.localStart = Date.now(); // локальний старт для таймера
   el.innerHTML = `
     <div class="s-head">
       <div class="s-ava">${initials(display)}</div>
@@ -438,9 +419,7 @@ function updateCard(el, a){
   const totalQ = Number(el.dataset.totalQ) || a.totalQ || _tests[a.testId]?.questions?.length || 0;
   const currentQ = a.currentQ || 0;
   const pct = totalQ > 0 ? Math.round((currentQ/totalQ)*100) : 0;
-  // FIX: використовуємо toMs() для правильної конвертації startedAt
-  const startMs = toMs(a.startedAt);
-  const duration = startMs ? Date.now() - startMs : 0;
+  const duration = a.startedAt ? Date.now() - a.startedAt : 0;
   const tab = a.tabSwitches || 0;
   const cp = a.copyAttempts || 0;
   const sh = a.screenshots || 0;
@@ -493,8 +472,7 @@ function render(attempts){
       active.push({id, ...a});
     }
   });
-  // FIX: використовуємо toMs() при сортуванні
-  active.sort((a,b) => (b.currentQ||0) - (a.currentQ||0) || toMs(a.startedAt) - toMs(b.startedAt));
+  active.sort((a,b) => (b.currentQ||0) - (a.currentQ||0) || (a.startedAt||0) - (b.startedAt||0));
 
   document.getElementById("stat-active").textContent = active.length;
 
@@ -709,15 +687,18 @@ function initSearchHandlers(){
   });
 }
 
-// ─── Тікаємо час щосекунди від локального часу появи картки ────────
+// ─── Refresh timer — оновлюємо тривалість кожні 10с ─────────────────
+// ─── Тікаємо час щосекунди — оновлюємо тільки duration-span (не весь render) ─
 setInterval(() => {
+  if(!_activeUid || Object.keys(_lastAttempts).length === 0) return;
   const grid = document.getElementById("grid-active");
   grid.querySelectorAll(".s-card").forEach(el => {
-    const localStart = Number(el.dataset.localStart);
-    if(!localStart) return;
+    const id = el.dataset.id;
+    const a = _lastAttempts[id];
+    if(!a || !a.startedAt) return;
     const durEl = el.querySelector('[data-field="duration"]');
     if(!durEl) return;
-    const text = formatDuration(Date.now() - localStart);
+    const text = formatDuration(Date.now() - a.startedAt);
     if(durEl.textContent !== text) durEl.textContent = text;
   });
 }, 1000);
