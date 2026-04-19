@@ -80,10 +80,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .s-bar{height:6px;background:rgba(45,91,227,.08);border-radius:4px;overflow:hidden;margin-bottom:12px}
 .s-bar-fill{height:100%;background:var(--grad);border-radius:4px;transition:width .5s cubic-bezier(.34,1.56,.64,1)}
 
-.s-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:12px;border-top:1px solid rgba(45,91,227,.06);font-size:12px;color:var(--muted)}
-.s-meta-item{display:inline-flex;align-items:center;gap:5px}
-.s-meta-item svg{flex-shrink:0;opacity:.6}
-.s-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:14px;font-size:11px;font-weight:600;background:rgba(20,212,180,.1);color:#0d9e85}
+.s-meta{display:flex;align-items:center;gap:6px;padding-top:12px;border-top:1px solid rgba(45,91,227,.06);font-size:12px;color:var(--muted);flex-wrap:wrap}
+.s-meta-item{display:inline-flex;align-items:center;gap:5px;font-variant-numeric:tabular-nums;font-weight:500}
+.s-meta-item svg{flex-shrink:0;opacity:.7}
+.s-meta-spacer{flex:1;min-width:4px}
+.s-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:14px;font-size:11px;font-weight:600;background:rgba(20,212,180,.1);color:#0d9e85;white-space:nowrap}
 .s-tag .dot{width:5px;height:5px;border-radius:50%;background:#0d9e85}
 
 /* Suspicious states — колір картки залежно від рейтингу порушень */
@@ -95,8 +96,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .s-card.susp-high .s-ava::after{background:var(--rose);animation:pulseDotRed 1.4s infinite}
 @keyframes pulseDotRed{0%{box-shadow:0 0 0 0 rgba(244,63,94,.6)}70%{box-shadow:0 0 0 12px rgba(244,63,94,0)}100%{box-shadow:0 0 0 0 rgba(244,63,94,0)}}
 
-.s-violations{display:flex;align-items:center;gap:6px;margin-top:10px}
-.v-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:10px;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.v-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:10px;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
 .v-chip.v-tab{background:rgba(245,158,11,.12);color:#b45309}
 .v-chip.v-copy{background:rgba(147,51,234,.12);color:#7e22ce}
 .v-chip.v-shot{background:rgba(244,63,94,.12);color:#be123c}
@@ -309,7 +309,7 @@ window.toggleAdminBar = function(){
 // ─── Helpers ────────────────────────────────────────────────────────
 const esc = s => String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 function formatDuration(ms){
-  const secs = Math.floor(ms/1000);
+  const secs = Math.max(0, Math.floor(ms/1000));
   const h = Math.floor(secs/3600);
   const m = Math.floor((secs%3600)/60);
   const s = secs%60;
@@ -359,6 +359,18 @@ function suspScore(a){
   return (a.tabSwitches||0)*2 + (a.copyAttempts||0)*3 + (a.screenshots||0)*5;
 }
 
+// HTML для чіпів порушень (використовується і в buildCard і в updateCard)
+function violationsHTML(a){
+  const tab = a.tabSwitches || 0;
+  const cp = a.copyAttempts || 0;
+  const sh = a.screenshots || 0;
+  let html = "";
+  if(tab>0) html += `<span class="v-chip v-tab" title="Переключення вкладок: ${tab}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>${tab}</span>`;
+  if(cp>0)  html += `<span class="v-chip v-copy" title="Копіювання: ${cp}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>${cp}</span>`;
+  if(sh>0)  html += `<span class="v-chip v-shot" title="Скріншоти: ${sh}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>${sh}</span>`;
+  return html;
+}
+
 // Створення нової картки (повний HTML — викликається тільки один раз при появі студента)
 function buildCard(a){
   const name = (a.name||"") + " " + (a.surname||"");
@@ -390,16 +402,13 @@ function buildCard(a){
       <div class="s-pct" data-field="pct">${pct}%</div>
     </div>
     <div class="s-bar"><div class="s-bar-fill" data-field="bar" style="width:${pct}%"></div></div>
-    <div class="s-violations" data-field="violations" ${tab+cp+sh===0?'style="display:none"':''}>
-      ${tab>0?`<span class="v-chip v-tab" title="Переключення вкладок"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>${tab}</span>`:""}
-      ${cp>0?`<span class="v-chip v-copy" title="Копіювання"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>${cp}</span>`:""}
-      ${sh>0?`<span class="v-chip v-shot" title="Скріншоти"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>${sh}</span>`:""}
-    </div>
     <div class="s-meta">
       <span class="s-meta-item">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <span data-field="duration">${formatDuration(duration)}</span>
       </span>
+      <span data-field="violations" data-key="${tab}|${cp}|${sh}" style="display:inline-flex;align-items:center;gap:5px">${violationsHTML(a)}</span>
+      <span class="s-meta-spacer"></span>
       <span class="s-tag"><span class="dot"></span>Активний</span>
     </div>`;
   return el;
@@ -438,22 +447,12 @@ function updateCard(el, a){
   const durText = formatDuration(duration);
   if(durEl.textContent !== durText) durEl.textContent = durText;
 
-  // Порушення
+  // Порушення — просто переписуємо HTML-чіпи якщо лічильники змінились
   const vEl = el.querySelector('[data-field="violations"]');
   const vKey = `${tab}|${cp}|${sh}`;
   if(vEl.dataset.key !== vKey){
     vEl.dataset.key = vKey;
-    if(tab + cp + sh === 0){
-      vEl.style.display = "none";
-      vEl.innerHTML = "";
-    } else {
-      vEl.style.display = "";
-      vEl.innerHTML = `
-        ${tab>0?`<span class="v-chip v-tab" title="Переключення вкладок"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>${tab}</span>`:""}
-        ${cp>0?`<span class="v-chip v-copy" title="Копіювання"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>${cp}</span>`:""}
-        ${sh>0?`<span class="v-chip v-shot" title="Скріншоти"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>${sh}</span>`:""}
-      `;
-    }
+    vEl.innerHTML = violationsHTML(a);
   }
 
   // Клас susp-* (колір картки)
@@ -689,9 +688,20 @@ function initSearchHandlers(){
 }
 
 // ─── Refresh timer — оновлюємо тривалість кожні 10с ─────────────────
+// ─── Тікаємо час щосекунди — оновлюємо тільки duration-span (не весь render) ─
 setInterval(() => {
-  if(_activeUid && Object.keys(_lastAttempts).length > 0) render(_lastAttempts);
-}, 10000);
+  if(!_activeUid || Object.keys(_lastAttempts).length === 0) return;
+  const grid = document.getElementById("grid-active");
+  grid.querySelectorAll(".s-card").forEach(el => {
+    const id = el.dataset.id;
+    const a = _lastAttempts[id];
+    if(!a || !a.startedAt) return;
+    const durEl = el.querySelector('[data-field="duration"]');
+    if(!durEl) return;
+    const text = formatDuration(Date.now() - a.startedAt);
+    if(durEl.textContent !== text) durEl.textContent = text;
+  });
+}, 1000);
 
 // ─── Init ────────────────────────────────────────────────────────────
 (async () => {
