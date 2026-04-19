@@ -94,12 +94,23 @@
   <!-- Нижній блок -->
   <div style="margin-top:auto;display:flex;flex-direction:column;gap:5px">
 
-    <a href="admin.html" id="admin-panel-btn" data-tip="Адмін" style="display:none;text-decoration:none">
+    <a href="live.html" target="_blank" rel="noopener" data-tip="Live (нова вкладка)" style="text-decoration:none">
+      <div class="ni" style="background:rgba(13,158,133,.15);color:#7eead1;border:1px solid rgba(13,158,133,.2)"
+        onmouseover="this.style.background='rgba(13,158,133,.25)';this.style.color='#fff'"
+        onmouseout="this.style.background='rgba(13,158,133,.15)';this.style.color='#7eead1'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+        <span class="ni-label">Live</span>
+        <svg class="sb-bottom-labels" style="margin-left:auto;opacity:.6" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
+      </div>
+    </a>
+
+    <a href="admin.html" id="admin-panel-btn" target="_blank" rel="noopener" data-tip="Адмін (нова вкладка)" style="display:none;text-decoration:none">
       <div class="ni" style="background:rgba(244,63,94,.15);color:#fca5a5;border:1px solid rgba(244,63,94,.2)"
         onmouseover="this.style.background='rgba(244,63,94,.25)';this.style.color='#fff'"
         onmouseout="this.style.background='rgba(244,63,94,.15)';this.style.color='#fca5a5'">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         <span class="ni-label">Адмін-панель</span>
+        <svg class="sb-bottom-labels" style="margin-left:auto;opacity:.6" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M7 7h10v10"/></svg>
       </div>
     </a>
 

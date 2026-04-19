@@ -180,7 +180,7 @@ async function loadModals() {
 
 async function loadSidebar(activePage) {
   try {
-    const resp = await fetch("shared/layout.html");
+    const resp = await fetch("shared/layout.html?v=12");
     if (!resp.ok) throw new Error("layout.html " + resp.status);
     const html = await resp.text();
     const mainEl = document.querySelector(".main");
