@@ -407,6 +407,7 @@ function buildCard(a){
   el.className = "s-card" + (sc ? " " + sc : "");
   el.dataset.id = a.id;
   el.dataset.totalQ = totalQ;
+  el.dataset.localStart = Date.now(); // локальний старт для таймера
   el.innerHTML = `
     <div class="s-head">
       <div class="s-ava">${initials(display)}</div>
@@ -708,20 +709,15 @@ function initSearchHandlers(){
   });
 }
 
-// ─── Тікаємо час щосекунди — оновлюємо тільки duration-span (не весь render) ─
+// ─── Тікаємо час щосекунди від локального часу появи картки ────────
 setInterval(() => {
-  if(!_activeUid || Object.keys(_lastAttempts).length === 0) return;
   const grid = document.getElementById("grid-active");
   grid.querySelectorAll(".s-card").forEach(el => {
-    const id = el.dataset.id;
-    const a = _lastAttempts[id];
-    if(!a || !a.startedAt) return;
+    const localStart = Number(el.dataset.localStart);
+    if(!localStart) return;
     const durEl = el.querySelector('[data-field="duration"]');
     if(!durEl) return;
-    // FIX: використовуємо toMs() для правильної конвертації startedAt
-    const startMs = toMs(a.startedAt);
-    if(!startMs) return;
-    const text = formatDuration(Date.now() - startMs);
+    const text = formatDuration(Date.now() - localStart);
     if(durEl.textContent !== text) durEl.textContent = text;
   });
 }, 1000);
