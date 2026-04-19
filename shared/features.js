@@ -791,7 +791,7 @@ renderAttempts = function(resetPage=false){
 renderLinks = function(){
   const tb=$("lnk-tbl");
   if(!tb) return;
-  const base=location.origin+location.pathname.replace("index.html","");
+  const base=location.origin+location.pathname.replace(/[^/]*$/, "");
   // Автоматично закриваємо прострочені посилання
   const now=Date.now();
   links.filter(l=>l.closeAt && now>l.closeAt && l.status==="active").forEach(async l=>{
@@ -1228,7 +1228,7 @@ window.G = {
   showQR(linkId){
     const l=links.find(x=>x.id===linkId),t=tests.find(x=>x.id===l?.testId);
     if(!l)return;
-    const base=location.origin+location.pathname.replace("index.html","");
+    const base=location.origin+location.pathname.replace(/[^/]*$/, "");
     const url=`${base}test.html?link=${linkId}&t=${_uid}`;
     window._qrUrl=url;
     $("qr-title").textContent=t?.title||"—";
