@@ -379,7 +379,8 @@ function buildCard(a){
   const totalQ = a.totalQ || _tests[a.testId]?.questions?.length || 0;
   const currentQ = a.currentQ || 0;
   const pct = totalQ > 0 ? Math.round((currentQ/totalQ)*100) : 0;
-  const duration = a.startedAt ? Date.now() - a.startedAt : 0;
+  const startTs = a.startedAt || a.createdAt || 0;
+  const duration = startTs ? Date.now() - startTs : 0;
   const tab = a.tabSwitches || 0;
   const cp = a.copyAttempts || 0;
   const sh = a.screenshots || 0;
@@ -389,6 +390,7 @@ function buildCard(a){
   el.className = "s-card" + (sc ? " " + sc : "");
   el.dataset.id = a.id;
   el.dataset.totalQ = totalQ;
+  el.dataset.startTs = startTs;
   el.innerHTML = `
     <div class="s-head">
       <div class="s-ava">${initials(display)}</div>
@@ -419,7 +421,13 @@ function updateCard(el, a){
   const totalQ = Number(el.dataset.totalQ) || a.totalQ || _tests[a.testId]?.questions?.length || 0;
   const currentQ = a.currentQ || 0;
   const pct = totalQ > 0 ? Math.round((currentQ/totalQ)*100) : 0;
-  const duration = a.startedAt ? Date.now() - a.startedAt : 0;
+  // Оновлюємо startTs в dataset якщо він з'явився пізніше (наприклад старий attempt без startedAt)
+  let startTs = Number(el.dataset.startTs) || 0;
+  if(!startTs){
+    startTs = a.startedAt || a.createdAt || 0;
+    if(startTs) el.dataset.startTs = startTs;
+  }
+  const duration = startTs ? Date.now() - startTs : 0;
   const tab = a.tabSwitches || 0;
   const cp = a.copyAttempts || 0;
   const sh = a.screenshots || 0;
@@ -690,15 +698,21 @@ function initSearchHandlers(){
 // ─── Refresh timer — оновлюємо тривалість кожні 10с ─────────────────
 // ─── Тікаємо час щосекунди — оновлюємо тільки duration-span (не весь render) ─
 setInterval(() => {
-  if(!_activeUid || Object.keys(_lastAttempts).length === 0) return;
+  if(!_activeUid) return;
   const grid = document.getElementById("grid-active");
   grid.querySelectorAll(".s-card").forEach(el => {
     const id = el.dataset.id;
     const a = _lastAttempts[id];
-    if(!a || !a.startedAt) return;
+    // Беремо startTs з dataset (встановлений при buildCard/updateCard); fallback на attempt
+    let startTs = Number(el.dataset.startTs) || 0;
+    if(!startTs && a){
+      startTs = a.startedAt || a.createdAt || 0;
+      if(startTs) el.dataset.startTs = startTs;
+    }
+    if(!startTs) return;
     const durEl = el.querySelector('[data-field="duration"]');
     if(!durEl) return;
-    const text = formatDuration(Date.now() - a.startedAt);
+    const text = formatDuration(Date.now() - startTs);
     if(durEl.textContent !== text) durEl.textContent = text;
   });
 }, 1000);
