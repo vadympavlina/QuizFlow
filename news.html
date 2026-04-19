@@ -8,6 +8,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
+<link rel="modulepreload" href="shared/app.js?v=7">
+<link rel="preload" as="fetch" href="shared/layout.html" crossorigin>
+<link rel="preload" as="fetch" href="shared/features.js?v=7" crossorigin>
 </head>
 <body>
 
@@ -39,409 +42,47 @@
 
 </main>
 
-<!-- MODALS -->
-<!-- MODALS -->
-<!-- Новий тест -->
-<div class="mo" id="m-test"><div class="mb">
-  <button class="mcl" onclick="closeM('m-test')">×</button>
-  <div style="font-size:26px;margin-bottom:8px">📋</div>
-  <div class="mtl">Новий тест</div><div class="msu">Заповніть інформацію</div>
-  <div class="fl"><label>Назва *</label><input class="fi" id="nt-n" placeholder="Наприклад: HTML Основи" onkeydown="if(event.key==='Enter')G.submitTest()"></div>
-  <div class="fl"><label>Опис</label><textarea class="fi" id="nt-d" rows="2" placeholder="Короткий опис..."></textarea></div>
-  <div class="fl"><label>Папка</label><div class="chips" id="nt-chips"></div><div style="font-size:12px;color:var(--muted);margin-top:3px">Оберіть існуючу або залиш без папки</div></div>
-  <div class="fl"><label>Теги (через кому)</label><input class="fi" id="nt-tg" placeholder="html, css, js"></div>
-  <div class="fl"><label>Ліміт часу (хвилин)</label><input class="fi" type="number" id="nt-tm" value="10" min="1"></div>
-  <div class="ma"><button class="btn bs" onclick="closeM('m-test')">Скасувати</button><button class="btn bp" onclick="G.submitTest()">Створити тест →</button></div>
-</div></div>
-
-<!-- AI РОЗБІР — SIDE PANEL -->
-<div id="ai-side-panel" style="position:fixed;top:0;right:-480px;width:460px;height:100vh;background:white;z-index:400;box-shadow:-8px 0 40px rgba(0,0,0,.18);transition:right .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;border-radius:20px 0 0 20px">
-  <!-- Заголовок -->
-  <div style="background:linear-gradient(135deg,#2d5be3,#1530a0);padding:22px 24px;border-radius:20px 0 0 0;flex-shrink:0">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.6)">AI Аналіз</div>
-      <button onclick="G.closeAiPanel()" style="width:28px;height:28px;border:none;background:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:color .15s;border-radius:50%"
-        onmouseover="this.style.color='white'"
-        onmouseout="this.style.color='rgba(255,255,255,.6)'">×</button>
-    </div>
-    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:white">✦ Персональний розбір</div>
-  </div>
-  <!-- Контент -->
-  <div id="ai-side-content" style="flex:1;overflow-y:auto;padding:22px 24px">
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--muted)">
-      <div style="font-size:32px;margin-bottom:10px">⏳</div>
-      <div style="font-size:14px">Аналізую помилки...</div>
-    </div>
-  </div>
-</div>
-<!-- Overlay для закриття -->
-<div id="ai-side-overlay" onclick="G.closeAiPanel()" style="position:fixed;inset:0;z-index:399;display:none;background:transparent"></div>
-
-<!-- DELETE STUDENT MODAL -->
-<div class="mo" id="m-del-student"><div class="mb" style="max-width:380px;text-align:center;padding:36px 32px">
-  <button class="mcl" onclick="closeM('m-del-student')">×</button>
-  <div style="font-size:44px;margin-bottom:14px">🗑️</div>
-  <div class="mtl" style="margin-bottom:8px">Видалити картку?</div>
-  <div style="font-size:14px;color:var(--muted);line-height:1.55;margin-bottom:28px">
-    Картку студента <strong id="del-student-name"></strong> буде видалено.<br>
-    Спроби в базі <strong>залишаться</strong> — видаляється тільки профіль.
-  </div>
-  <div style="display:flex;flex-direction:column;gap:10px">
-    <button id="del-student-confirm-btn"
-      style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#f43f5e,#be123c);color:white;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 4px 16px rgba(244,63,94,.3);transition:all .2s"
-      onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 8px 24px rgba(244,63,94,.4)'"
-      onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(244,63,94,.3)'">
-      🗑 Так, видалити картку
-    </button>
-    <button onclick="closeM('m-del-student')"
-      style="width:100%;padding:12px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;transition:all .15s"
-      onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
-      onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">
-      Скасувати
-    </button>
-  </div>
-</div></div>
-
-<!-- MERGE STUDENTS MODAL -->
-<div class="mo" id="m-merge"><div class="mb" style="max-width:440px">
-  <button class="mcl" onclick="closeM('m-merge')">×</button>
-  <div style="font-size:26px;margin-bottom:8px">🔗</div>
-  <div class="mtl">Об'єднати картки</div>
-  <div class="msu" id="m-merge-sub">Вибери картку з якою об'єднати</div>
-  <div id="m-merge-list" style="max-height:280px;overflow-y:auto;margin:16px 0;display:flex;flex-direction:column;gap:8px"></div>
-  <div class="ma">
-    <button class="btn bs" onclick="closeM('m-merge')">Скасувати</button>
-    <button class="btn bp" id="merge-confirm-btn" onclick="G.confirmMerge()" disabled>Об'єднати →</button>
-  </div>
-</div></div>
-
-<!-- STUDENT CARD MODAL -->
-<div class="mo" id="m-student">
-  <div class="mb wd" style="max-width:860px;padding:0;overflow:hidden;display:flex;flex-direction:column;position:relative">
-    <button onclick="closeM('m-student')"
-      style="position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;border:none;background:none;color:rgba(255,255,255,.7);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;line-height:1;transition:color .15s"
-      onmouseover="this.style.color='white'"
-      onmouseout="this.style.color='rgba(255,255,255,.7)'">×</button>
-    <div id="m-student-body" style="overflow-y:auto;overflow-x:hidden;flex:1;max-height:92vh"></div>
-  </div>
-</div>
-
-<!-- Нова папка -->
-<div class="mo" id="m-folder"><div class="mb" style="max-width:400px">
-  <button class="mcl" onclick="closeM('m-folder')">×</button>
-  <div class="mtl">Нова папка</div><div class="msu">Назва для групування тестів</div>
-  <div class="fl"><label>Назва *</label><input class="fi" id="nf-n" placeholder="Наприклад: Frontend" onkeydown="if(event.key==='Enter')G.submitFolder()"></div>
-  <div class="fl">
-    <label>Колір</label>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
-      <div onclick="G.selectFolderColor('#2d5be3')" data-color="#2d5be3" style="width:28px;height:28px;border-radius:8px;background:#2d5be3;cursor:pointer;transition:all .15s;border:2.5px solid white;box-shadow:0 2px 8px #2d5be388"></div>
-      <div onclick="G.selectFolderColor('#0d9e85')" data-color="#0d9e85" style="width:28px;height:28px;border-radius:8px;background:#0d9e85;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
-      <div onclick="G.selectFolderColor('#9333ea')" data-color="#9333ea" style="width:28px;height:28px;border-radius:8px;background:#9333ea;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
-      <div onclick="G.selectFolderColor('#f59e0b')" data-color="#f59e0b" style="width:28px;height:28px;border-radius:8px;background:#f59e0b;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
-      <div onclick="G.selectFolderColor('#f43f5e')" data-color="#f43f5e" style="width:28px;height:28px;border-radius:8px;background:#f43f5e;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
-      <div onclick="G.selectFolderColor('#0ea5e9')" data-color="#0ea5e9" style="width:28px;height:28px;border-radius:8px;background:#0ea5e9;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
-      <div onclick="G.selectFolderColor('#ec4899')" data-color="#ec4899" style="width:28px;height:28px;border-radius:8px;background:#ec4899;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
-      <div onclick="G.selectFolderColor('#10b981')" data-color="#10b981" style="width:28px;height:28px;border-radius:8px;background:#10b981;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
-      <div onclick="G.selectFolderColor('#dc2626')" data-color="#dc2626" style="width:28px;height:28px;border-radius:8px;background:#dc2626;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
-      <div onclick="G.selectFolderColor('#64748b')" data-color="#64748b" style="width:28px;height:28px;border-radius:8px;background:#64748b;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
-    </div>
-    <input type="hidden" id="nf-color" value="#2d5be3">
-  </div>
-  <div class="ma"><button class="btn bs" onclick="closeM('m-folder')">Скасувати</button><button class="btn bp" onclick="G.submitFolder()">Створити →</button></div>
-</div></div>
-
-<!-- Нове посилання -->
-<div class="mo" id="m-link">
-  <div class="mb" style="max-width:500px;padding:0;overflow:hidden">
-    <button onclick="closeM('m-link')"
-      style="position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;line-height:1;transition:all .15s"
-      onmouseover="this.style.background='rgba(255,255,255,.25)'"
-      onmouseout="this.style.background='rgba(255,255,255,.15)'">×</button>
-
-    <!-- Шапка -->
-    <div style="background:linear-gradient(135deg,#1e2d6b,#0d1340);padding:24px 28px 20px;position:relative;overflow:hidden">
-      <div style="position:absolute;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.04);top:-60px;right:-40px"></div>
-      <div style="display:flex;align-items:center;gap:14px">
-        <div style="width:44px;height:44px;border-radius:13px;background:rgba(45,91,227,.5);border:1.5px solid rgba(45,91,227,.6);display:flex;align-items:center;justify-content:center">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-        </div>
-        <div>
-          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff" id="m-link-title">Нове посилання</div>
-          <div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:2px" id="m-link-sub">Для студентів на тест</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Тіло -->
-    <div style="padding:22px 28px 24px;display:flex;flex-direction:column;gap:16px">
-
-      <!-- Тест -->
-      <div id="m-link-test-wrap" class="fl" style="margin:0">
-        <label>Тест *</label>
-        <div class="cd-wrap" id="cd-nl-t" style="display:block">
-          <button class="cd-btn" style="width:100%;justify-content:space-between;padding:11px 14px;border-radius:11px" onclick="G.toggleDrop('cd-nl-t')">
-            <span class="cd-label" id="cd-nl-t-label" style="font-size:14px">Оберіть тест...</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div class="cd-menu" id="cd-nl-t-menu" style="width:100%"></div>
-        </div>
-        <select class="fi" id="nl-t" style="display:none"></select>
-      </div>
-
-      <!-- Група + Ліміт в ряд -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div class="fl" style="margin:0">
-          <label>Назва групи <span style="font-weight:400;font-size:11px;color:var(--muted);text-transform:none;letter-spacing:0">(необов'язково)</span></label>
-          <input class="fi" id="nl-g" placeholder="ПК-21, Потік А...">
-        </div>
-        <div class="fl" style="margin:0">
-          <label>Ліміт спроб</label>
-          <input class="fi" type="number" id="nl-m" value="30" min="1">
-        </div>
-      </div>
-
-      <!-- Дата закриття -->
-      <div class="fl" style="margin:0">
-        <label>Дата закриття <span style="font-weight:400;font-size:11px;color:var(--muted);text-transform:none;letter-spacing:0">(необов'язково)</span></label>
-        <input class="fi" type="datetime-local" id="nl-close" style="cursor:pointer">
-        <div style="font-size:11px;color:var(--muted);margin-top:3px">Посилання автоматично закриється в цей час</div>
-      </div>
-
-      <!-- Перемішування -->
-      <div style="background:rgba(45,91,227,.04);border:1.5px solid rgba(45,91,227,.1);border-radius:12px;padding:14px 16px">
-        <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Перемішування</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:400">
-            <input type="checkbox" id="nl-sq" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer">
-            Перемішувати питання
-          </label>
-          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:400">
-            <input type="checkbox" id="nl-sa" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer">
-            Перемішувати варіанти відповідей
-          </label>
-        </div>
-      </div>
-
-      <!-- Кнопки -->
-      <div style="display:flex;gap:10px;margin-top:4px">
-        <button class="btn bs" onclick="closeM('m-link')" style="flex:1">Скасувати</button>
-        <button class="btn bp" id="nl-submit-btn" onclick="G.submitLink()" style="flex:2">Створити →</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<!-- SHARE TEST MODAL -->
-<div class="mo" id="m-share">
-  <div class="mb" style="max-width:440px">
-    <button class="mcl" onclick="closeM('m-share')">×</button>
-    <div style="font-size:28px;margin-bottom:10px">🔗</div>
-    <div class="mtl">Поділитись тестом</div>
-    <div class="msu" id="share-test-name">Тест</div>
-    <div class="fl">
-      <label>Оберіть викладача</label>
-      <div class="sbox" style="margin-bottom:10px;width:100%;max-width:100%">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" id="share-srch" placeholder="Пошук викладача..." autocomplete="off"
-          oninput="G._filterShareTeachers(this.value)" style="width:100%">
-      </div>
-      <div id="share-teachers-list" style="display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;padding:2px"></div>
-    </div>
-    <div id="share-err" style="color:#be123c;font-size:13px;min-height:18px;margin-bottom:8px"></div>
-    <div class="ma">
-      <button class="btn bs" onclick="closeM('m-share')">Скасувати</button>
-      <button class="btn bp" onclick="G.doShareTest()" id="share-btn">Поділитись →</button>
-    </div>
-  </div>
-</div>
-
-<!-- Деталі спроби -->
-<div class="mo" id="m-attempt">
-  <div class="mb wd" style="max-width:860px;padding:0;overflow:hidden;display:flex;flex-direction:column;position:relative">
-    <button onclick="closeM('m-attempt')"
-      style="position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;border:none;background:none;color:rgba(255,255,255,.7);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;line-height:1;transition:color .15s"
-      onmouseover="this.style.color='white'"
-      onmouseout="this.style.color='rgba(255,255,255,.7)'">×</button>
-    <div id="att-det" style="overflow-y:auto;overflow-x:hidden;flex:1;padding:0;max-height:92vh"></div>
-  </div>
-</div>
-
-<!-- Студенти по посиланню -->
-<div class="mo" id="m-students"><div class="mb wd">
-  <button class="mcl" onclick="closeM('m-students')">×</button>
-  <div id="stud-det"></div>
-</div></div>
-
-<!-- Видалення тесту -->
-<div class="mo" id="m-del-test"><div class="mb" style="max-width:400px;text-align:center">
-  <div style="font-size:36px;margin-bottom:10px">📋</div>
-  <div class="mtl" style="margin-bottom:6px">Що зробити з тестом?</div>
-  <div style="font-size:14px;color:var(--muted);margin-bottom:20px"><strong id="del-tn"></strong></div>
-
-  <div style="display:flex;flex-direction:column;gap:10px;text-align:left;margin-bottom:16px">
-    <button onclick="G.doDelTest('archive')"
-      style="display:flex;align-items:flex-start;gap:14px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(245,158,11,.25);background:rgba(245,158,11,.04);cursor:pointer;text-align:left;width:100%">
-      <span style="font-size:22px;flex-shrink:0">📦</span>
-      <div>
-        <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;color:#b45309;margin-bottom:2px">Перемістити в архів</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.4">Тест зникне зі списку, але всі спроби збережуться</div>
-      </div>
-    </button>
-    <button onclick="G.doDelTest('delete')"
-      style="display:flex;align-items:flex-start;gap:14px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(244,63,94,.2);background:rgba(244,63,94,.04);cursor:pointer;text-align:left;width:100%">
-      <span style="font-size:22px;flex-shrink:0">🗑️</span>
-      <div>
-        <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;color:#be123c;margin-bottom:2px">Видалити назавжди</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.4">Тест та всі спроби студентів видаляться</div>
-      </div>
-    </button>
-  </div>
-
-  <button class="btn bs" onclick="closeM('m-del-test')" style="width:100%;justify-content:center">Скасувати</button>
-</div></div>
-
-<!-- Статистика тесту -->
-<div class="mo" id="m-stats"><div class="mb wd" style="max-width:680px">
-  <button class="mcl" onclick="closeM('m-stats')">×</button>
-  <div id="stats-content"></div>
-</div></div>
-
-<!-- QR-код посилання -->
-<div class="mo" id="m-qr">
-  <div class="mb" style="max-width:380px;padding:0;overflow:hidden;text-align:center">
-    <button onclick="closeM('m-qr')"
-      style="position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;line-height:1;transition:all .15s"
-      onmouseover="this.style.background='rgba(255,255,255,.25)'"
-      onmouseout="this.style.background='rgba(255,255,255,.15)'">×</button>
-
-    <!-- Шапка -->
-    <div style="background:linear-gradient(135deg,#1e2d6b,#0d1340);padding:22px 24px 18px;position:relative;overflow:hidden">
-      <div style="position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.04);top:-40px;right:-30px"></div>
-      <div style="width:46px;height:46px;border-radius:13px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 14v3M14 17h3"/></svg>
-      </div>
-      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:#fff;margin-bottom:3px" id="qr-title"></div>
-      <div style="font-size:13px;color:rgba(255,255,255,.5)" id="qr-group"></div>
-    </div>
-
-    <!-- QR код -->
-    <div style="padding:24px 24px 16px">
-      <div style="background:#fff;padding:18px;border-radius:18px;border:1.5px solid var(--border);display:inline-flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.06);margin-bottom:16px">
-        <div id="qr-canvas"></div>
-      </div>
-
-      <!-- URL -->
-      <div style="display:flex;align-items:center;gap:8px;background:rgba(45,91,227,.04);border:1.5px solid rgba(45,91,227,.1);border-radius:12px;padding:10px 14px;margin-bottom:18px;text-align:left">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="flex-shrink:0"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-        <div style="font-size:11px;color:var(--muted);word-break:break-all;line-height:1.5" id="qr-url-text"></div>
-      </div>
-
-      <!-- Кнопки -->
-      <div style="display:flex;gap:8px">
-        <button class="btn bs" style="flex:1;justify-content:center;gap:6px" onclick="G.copyUrl(window._qrUrl)">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-          Копіювати
-        </button>
-        <button class="btn bp" style="flex:1;justify-content:center;gap:6px" onclick="G.downloadQR()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Завантажити
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Видалення спроби -->
-<div class="mo" id="m-del-attempt"><div class="mb" style="max-width:380px;text-align:center">
-  <div style="font-size:36px;margin-bottom:10px">🗑️</div>
-  <div class="mtl">Видалити спробу?</div>
-  <div style="font-size:14px;color:var(--muted);margin:6px 0 22px">Спроба студента <strong id="del-att-name"></strong> буде видалена назавжди</div>
-  <div class="ma"><button class="btn bs" onclick="closeM('m-del-attempt')">Скасувати</button><button class="btn bd" onclick="G.doDelAttempt()">Видалити</button></div>
-</div></div>
-
-<!-- Видалення папки -->
-<div class="mo" id="m-del-folder"><div class="mb" style="max-width:380px;text-align:center;padding:36px 32px">
-  <button class="mcl" onclick="closeM('m-del-folder')">×</button>
-  <div style="font-size:44px;margin-bottom:14px">📁</div>
-  <div class="mtl" style="margin-bottom:8px">Видалити папку?</div>
-  <div style="font-size:14px;color:var(--muted);line-height:1.55;margin-bottom:28px">Папка <strong id="del-fn"></strong> буде видалена.<br>Тести залишаться <strong>без папки</strong>.</div>
-  <div style="display:flex;flex-direction:column;gap:10px">
-    <button onclick="G.doDelFolder()"
-      style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#f43f5e,#be123c);color:white;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 4px 16px rgba(244,63,94,.3);transition:all .2s"
-      onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 8px 24px rgba(244,63,94,.4)'"
-      onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(244,63,94,.3)'">
-      🗑 Так, видалити папку
-    </button>
-    <button onclick="closeM('m-del-folder')"
-      style="width:100%;padding:12px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;transition:all .15s"
-      onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
-      onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">
-      Скасувати
-    </button>
-  </div>
-</div></div>
-
-<!-- ONBOARDING MODAL -->
-<div id="m-onboarding" style="position:fixed;inset:0;background:rgba(10,14,46,.65);backdrop-filter:blur(8px);z-index:500;display:none;align-items:center;justify-content:center;padding:16px">
-  <div style="background:#fff;border-radius:24px;width:100%;max-width:600px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.2);position:relative">
-    <div style="height:4px;background:var(--border)"><div id="ob-progress" style="height:100%;background:var(--grad);transition:width .4s ease;border-radius:4px"></div></div>
-    <div id="ob-content" style="padding:40px 44px 32px"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 44px 32px">
-      <button id="ob-prev" onclick="window.obNav(-1)" style="display:none;padding:10px 20px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted)">← Назад</button>
-      <div style="display:flex;gap:6px;align-items:center" id="ob-dots"></div>
-      <button id="ob-next" style="padding:11px 24px;border-radius:12px;border:none;background:var(--grad);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(45,91,227,.3)">Далі →</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- NEWS MODAL -->
-<div class="mo" id="m-news-view">
-  <div class="mb" style="max-width:560px">
-    <button class="mcl" onclick="closeM('m-news-view')">×</button>
-    <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-weight:600;margin-bottom:8px">📰 Системне повідомлення</div>
-    <div class="mtl" id="news-view-title" style="margin-bottom:16px"></div>
-    <div id="news-view-text" style="font-size:15px;color:var(--text);line-height:1.8;border-top:1px solid var(--border);padding-top:16px"></div>
-    <div id="news-view-date" style="font-size:12px;color:var(--muted);margin-top:16px;padding-top:12px;border-top:1px solid var(--border)"></div>
-  </div>
-</div>
-
+<div id="modals-root"></div>
 
 <script type="module">
-import { initApp } from "./shared/app.js?v=5";
+// Паралельне завантаження: features.js починає качатись одразу, не чекає initApp
+const featuresP = import("./shared/features.js?v=7");
+const { initApp } = await import("./shared/app.js?v=7");
 
-const PAGES = {
-  dashboard:"index.html", tests:"tests.html", archive:"tests.html",
-  attempts:"attempts.html", links:"links.html", analytics:"analytics.html",
-  gradebook:"gradebook.html", students:"students.html",
-  notifications:"notifications.html", suspicious:"suspicious.html",
-  online:"online.html", news:"news.html"
-};
-
-// showSec: для цієї сторінки залишається на ній, інші — ведуть на відповідний html
+// showSec: залишаємось на сторінці якщо це та сама; інакше — йдемо на відповідний html
 window.showSec = function(name){
   if (name === "news") {
     document.querySelectorAll(".sec").forEach(s=>s.classList.remove("on"));
     document.getElementById("sec-news")?.classList.add("on");
     return;
   }
-  const url = PAGES[name];
-  if (url) location.href = url;
+  const sec = document.getElementById("sec-"+name);
+  if (sec) {
+    document.querySelectorAll(".sec").forEach(s=>s.classList.remove("on"));
+    sec.classList.add("on");
+    return;
+  }
+  const pageMap = {
+      dashboard:"index.html", tests:"tests.html", attempts:"attempts.html",
+      links:"links.html", analytics:"analytics.html", gradebook:"gradebook.html",
+      students:"students.html", notifications:"notifications.html",
+      suspicious:"suspicious.html", online:"online.html", news:"news.html"
+    };
+  if (pageMap[name]) location.href = pageMap[name];
 };
 
+// initApp робить: sidebar load, auth, loadAllData
+// Паралельно вже тягнеться features.js
 await initApp("news");
-await import("./shared/features.js?v=5");
-await window.initFeatures();
+await featuresP;             // features.js точно готовий
+await window.initFeatures(); // запускає realtime + нотифікації
 
 if (window.renderAll) window.renderAll();
 
-// Показуємо основну секцію цієї сторінки
-document.getElementById("sec-news")?.classList.add("on");
-
-// Секція-специфічні рендерери (як робив старий showSec)
+// Специфічний хук для цієї сторінки (як було в showSec оригіналу)
 if (window.renderNews) try { window.renderNews(); } catch {}
 
+// Esc для закриття модалок
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
     document.querySelectorAll(".mo.on").forEach(m => {
