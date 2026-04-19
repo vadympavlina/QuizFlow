@@ -86,6 +86,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .s-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:14px;font-size:11px;font-weight:600;background:rgba(20,212,180,.1);color:#0d9e85}
 .s-tag .dot{width:5px;height:5px;border-radius:50%;background:#0d9e85}
 
+/* Suspicious states — колір картки залежно від рейтингу порушень */
+.s-card.susp-low{border-color:rgba(245,158,11,.35);background:linear-gradient(180deg,rgba(245,158,11,.04),var(--card) 60%)}
+.s-card.susp-mid{border-color:rgba(245,158,11,.55);background:linear-gradient(180deg,rgba(245,158,11,.09),var(--card) 60%)}
+.s-card.susp-high{border-color:rgba(244,63,94,.55);background:linear-gradient(180deg,rgba(244,63,94,.09),var(--card) 60%)}
+.s-card.susp-low .s-ava::after{background:var(--amber)}
+.s-card.susp-mid .s-ava::after{background:var(--amber)}
+.s-card.susp-high .s-ava::after{background:var(--rose);animation:pulseDotRed 1.4s infinite}
+@keyframes pulseDotRed{0%{box-shadow:0 0 0 0 rgba(244,63,94,.6)}70%{box-shadow:0 0 0 12px rgba(244,63,94,0)}100%{box-shadow:0 0 0 0 rgba(244,63,94,0)}}
+
+.s-violations{display:flex;align-items:center;gap:6px;margin-top:10px}
+.v-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:10px;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.v-chip.v-tab{background:rgba(245,158,11,.12);color:#b45309}
+.v-chip.v-copy{background:rgba(147,51,234,.12);color:#7e22ce}
+.v-chip.v-shot{background:rgba(244,63,94,.12);color:#be123c}
+.v-chip svg{opacity:.9}
+
 /* Empty */
 .empty{padding:100px 20px;text-align:center}
 .empty-i{width:72px;height:72px;margin:0 auto 18px;border-radius:20px;background:var(--grad);opacity:.25;display:flex;align-items:center;justify-content:center;color:#fff}
@@ -331,7 +347,20 @@ async function loadTests(uid){
 }
 
 // ─── Card ───────────────────────────────────────────────────────────
-function studentCard(a){
+// Повертає CSS-клас для рівня порушень
+function suspClass(score){
+  if(score <= 0) return "";
+  if(score <= 2) return "susp-low";
+  if(score <= 5) return "susp-mid";
+  return "susp-high";
+}
+
+function suspScore(a){
+  return (a.tabSwitches||0)*2 + (a.copyAttempts||0)*3 + (a.screenshots||0)*5;
+}
+
+// Створення нової картки (повний HTML — викликається тільки один раз при появі студента)
+function buildCard(a){
   const name = (a.name||"") + " " + (a.surname||"");
   const display = name.trim() || "Студент";
   const testTitle = _tests[a.testId]?.title || "Тест";
@@ -339,8 +368,16 @@ function studentCard(a){
   const currentQ = a.currentQ || 0;
   const pct = totalQ > 0 ? Math.round((currentQ/totalQ)*100) : 0;
   const duration = a.startedAt ? Date.now() - a.startedAt : 0;
+  const tab = a.tabSwitches || 0;
+  const cp = a.copyAttempts || 0;
+  const sh = a.screenshots || 0;
+  const sc = suspClass(suspScore(a));
 
-  return `<div class="s-card">
+  const el = document.createElement("div");
+  el.className = "s-card" + (sc ? " " + sc : "");
+  el.dataset.id = a.id;
+  el.dataset.totalQ = totalQ;
+  el.innerHTML = `
     <div class="s-head">
       <div class="s-ava">${initials(display)}</div>
       <div class="s-who">
@@ -349,21 +386,85 @@ function studentCard(a){
       </div>
     </div>
     <div class="s-progress">
-      <div class="s-q">${currentQ}<sub>/${totalQ||"?"}</sub></div>
-      <div class="s-pct">${pct}%</div>
+      <div class="s-q" data-field="q">${currentQ}<sub>/${totalQ||"?"}</sub></div>
+      <div class="s-pct" data-field="pct">${pct}%</div>
     </div>
-    <div class="s-bar"><div class="s-bar-fill" style="width:${pct}%"></div></div>
+    <div class="s-bar"><div class="s-bar-fill" data-field="bar" style="width:${pct}%"></div></div>
+    <div class="s-violations" data-field="violations" ${tab+cp+sh===0?'style="display:none"':''}>
+      ${tab>0?`<span class="v-chip v-tab" title="Переключення вкладок"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>${tab}</span>`:""}
+      ${cp>0?`<span class="v-chip v-copy" title="Копіювання"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>${cp}</span>`:""}
+      ${sh>0?`<span class="v-chip v-shot" title="Скріншоти"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>${sh}</span>`:""}
+    </div>
     <div class="s-meta">
       <span class="s-meta-item">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        ${formatDuration(duration)}
+        <span data-field="duration">${formatDuration(duration)}</span>
       </span>
       <span class="s-tag"><span class="dot"></span>Активний</span>
-    </div>
-  </div>`;
+    </div>`;
+  return el;
 }
 
-// ─── Render ─────────────────────────────────────────────────────────
+// Оновлення існуючої картки (тільки динамічні поля — без блимання)
+function updateCard(el, a){
+  const totalQ = Number(el.dataset.totalQ) || a.totalQ || _tests[a.testId]?.questions?.length || 0;
+  const currentQ = a.currentQ || 0;
+  const pct = totalQ > 0 ? Math.round((currentQ/totalQ)*100) : 0;
+  const duration = a.startedAt ? Date.now() - a.startedAt : 0;
+  const tab = a.tabSwitches || 0;
+  const cp = a.copyAttempts || 0;
+  const sh = a.screenshots || 0;
+  const sc = suspClass(suspScore(a));
+
+  // Питання (тільки якщо змінилось)
+  const qEl = el.querySelector('[data-field="q"]');
+  const qText = `${currentQ}/${totalQ||"?"}`;
+  if(qEl.dataset.val !== qText){
+    qEl.innerHTML = `${currentQ}<sub>/${totalQ||"?"}</sub>`;
+    qEl.dataset.val = qText;
+  }
+
+  // %
+  const pctEl = el.querySelector('[data-field="pct"]');
+  const pctText = pct + "%";
+  if(pctEl.textContent !== pctText) pctEl.textContent = pctText;
+
+  // Бар
+  const barEl = el.querySelector('[data-field="bar"]');
+  if(barEl.style.width !== pct + "%") barEl.style.width = pct + "%";
+
+  // Тривалість — оновлюємо завжди, бо змінюється щосекунди
+  const durEl = el.querySelector('[data-field="duration"]');
+  const durText = formatDuration(duration);
+  if(durEl.textContent !== durText) durEl.textContent = durText;
+
+  // Порушення
+  const vEl = el.querySelector('[data-field="violations"]');
+  const vKey = `${tab}|${cp}|${sh}`;
+  if(vEl.dataset.key !== vKey){
+    vEl.dataset.key = vKey;
+    if(tab + cp + sh === 0){
+      vEl.style.display = "none";
+      vEl.innerHTML = "";
+    } else {
+      vEl.style.display = "";
+      vEl.innerHTML = `
+        ${tab>0?`<span class="v-chip v-tab" title="Переключення вкладок"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>${tab}</span>`:""}
+        ${cp>0?`<span class="v-chip v-copy" title="Копіювання"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>${cp}</span>`:""}
+        ${sh>0?`<span class="v-chip v-shot" title="Скріншоти"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>${sh}</span>`:""}
+      `;
+    }
+  }
+
+  // Клас susp-* (колір картки)
+  const currentSusp = ["susp-low","susp-mid","susp-high"].find(c => el.classList.contains(c));
+  if(currentSusp !== sc){
+    if(currentSusp) el.classList.remove(currentSusp);
+    if(sc) el.classList.add(sc);
+  }
+}
+
+// ─── Render (diff-based — без блимання) ──────────────────────────────
 function render(attempts){
   const active = [];
   Object.entries(attempts||{}).forEach(([id, a]) => {
@@ -375,7 +476,35 @@ function render(attempts){
   active.sort((a,b) => (b.currentQ||0) - (a.currentQ||0) || (a.startedAt||0) - (b.startedAt||0));
 
   document.getElementById("stat-active").textContent = active.length;
-  document.getElementById("grid-active").innerHTML = active.map(studentCard).join("");
+
+  const grid = document.getElementById("grid-active");
+  const existing = new Map();
+  grid.querySelectorAll(".s-card").forEach(el => existing.set(el.dataset.id, el));
+  const activeIds = new Set(active.map(a => a.id));
+
+  // Видаляємо картки студентів яких більше немає
+  for(const [id, el] of existing){
+    if(!activeIds.has(id)) el.remove();
+  }
+
+  // Для кожного активного — або створюємо, або оновлюємо; також правильний порядок
+  let prevEl = null;
+  for(const a of active){
+    let el = existing.get(a.id);
+    if(!el){
+      el = buildCard(a);
+      existing.set(a.id, el);
+    } else {
+      updateCard(el, a);
+    }
+    // Ставимо в правильне місце в гріді
+    if(prevEl){
+      if(prevEl.nextSibling !== el) prevEl.parentNode.insertBefore(el, prevEl.nextSibling);
+    } else {
+      if(grid.firstChild !== el) grid.insertBefore(el, grid.firstChild);
+    }
+    prevEl = el;
+  }
 
   const empty = document.getElementById("empty");
   empty.style.display = active.length === 0 ? "block" : "none";
