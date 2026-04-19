@@ -434,7 +434,7 @@
 </div>
 
 <script type="module">
-import { initApp, onDataReady } from "./shared/app.js?v=4";
+import { initApp, onDataReady } from "./shared/app.js?v=5";
 
 // Локальний showSec для перемикання sec-tests <-> sec-archive в межах сторінки
 // Для переходу на іншу сторінку використовується href у sidebar
@@ -461,7 +461,7 @@ window.showSec = function(name){
 await initApp("tests");
 
 // Підключаємо features.js (виставляє всі G.*, renderAll, etc. на window)
-await import("./shared/features.js?v=4");
+await import("./shared/features.js?v=5");
 
 // Запускаємо всі підсистеми features
 await window.initFeatures();

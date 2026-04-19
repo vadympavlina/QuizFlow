@@ -440,7 +440,7 @@
 
 
 <script type="module">
-import { initApp } from "./shared/app.js?v=4";
+import { initApp } from "./shared/app.js?v=5";
 
 const PAGES = {
   dashboard:"index.html", tests:"tests.html", archive:"tests.html",
@@ -462,7 +462,7 @@ window.showSec = function(name){
 };
 
 await initApp("gradebook");
-await import("./shared/features.js?v=4");
+await import("./shared/features.js?v=5");
 await window.initFeatures();
 
 if (window.renderAll) window.renderAll();
