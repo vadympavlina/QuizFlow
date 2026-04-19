@@ -82,6 +82,10 @@ async function loadStoredNotifs(){
   } catch(e){ console.warn("Notifs load error:", e.message); _notifications=[]; }
 }
 
+// ─── NOTIFICATION SOUND ──────────────────────────────────────────────
+let _audioCtx = null;
+let _soundEnabled = localStorage.getItem("qf_sound") !== "0"; // увімкнено за замовчуванням
+
 function playNotifSound(isWarning = false){
   if(!_soundEnabled) return;
   try {
