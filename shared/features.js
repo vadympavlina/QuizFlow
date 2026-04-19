@@ -62,10 +62,13 @@ const stripHtml = s => {
   return tmp.textContent || "";
 };
 // DB shortcuts (використовують tp з app.js)
-const dbPush = async (path, val) => { const r = push(ref(db, tp(path))); await set(r, val); return r.key; };
-const dbSet  = (path, val) => set(ref(db, tp(path)), val);
-const dbUpd  = (path, val) => update(ref(db, tp(path)), val);
-const dbDel  = path => remove(ref(db, tp(path)));
+// DB shortcuts — автоматично інвалідують кеш при мутаціях
+// (бо щоразу як дані змінюються, треба наступного разу перечитати свіжі)
+const _bust = () => { try { window.invalidateQfCache && window.invalidateQfCache(); } catch {} };
+const dbPush = async (path, val) => { const r = push(ref(db, tp(path))); await set(r, val); _bust(); return r.key; };
+const dbSet  = async (path, val) => { const r = await set(ref(db, tp(path)), val); _bust(); return r; };
+const dbUpd  = async (path, val) => { const r = await update(ref(db, tp(path)), val); _bust(); return r; };
+const dbDel  = async path => { const r = await remove(ref(db, tp(path))); _bust(); return r; };
 
 // Стан (деякі модалки/функції з G використовують ці змінні)
 let _students = [], _fid = null, _pid = null;
@@ -3063,6 +3066,7 @@ function startRealtimeListeners(){
 
     attempts = newAttempts;
     window.attempts = attempts;
+    _bust();  // кеш застарілий — стерти
     // Оновлюємо те що на сторінці є
     if (typeof renderDashAtt === "function") try { renderDashAtt(); } catch {}
     if (typeof renderAttempts === "function") try { renderAttempts(); } catch {}
@@ -3105,6 +3109,7 @@ function startRealtimeListeners(){
   onValue(ref(db, tp("links")), (snap) => {
     links = toArr(snap).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
     window.links = links;
+    _bust();
     if (typeof renderLinks === "function") try { renderLinks(); } catch {}
     if (typeof renderDashLinks === "function") try { renderDashLinks(); } catch {}
     if (typeof updateBadges === "function") try { updateBadges(); } catch {}

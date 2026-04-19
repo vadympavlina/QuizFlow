@@ -96,11 +96,12 @@ window.toast = toast;
 // ─── Loader ────────────────────────────────────────────────────────────
 export function ldr(show) {
   let el = document.getElementById("app-loader");
+  // Якщо лоадера немає — створюємо (на випадок якщо скрипт викликається без HTML-лоадера)
   if (!el) {
     el = document.createElement("div");
     el.id = "app-loader";
-    el.innerHTML = '<div class="spin" style="width:44px;height:44px;border:3.5px solid rgba(45,91,227,.15);border-top-color:var(--primary);border-radius:50%;animation:appSpin .8s linear infinite"></div><div style="font-size:13px;color:var(--muted);margin-top:12px">Завантаження...</div>';
-    el.style.cssText = "position:fixed;inset:0;background:var(--bg);z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .2s";
+    el.innerHTML = '<div style="width:44px;height:44px;border:3.5px solid rgba(45,91,227,.15);border-top-color:#2d5be3;border-radius:50%;animation:appSpin .8s linear infinite"></div><div style="font-size:13px;color:#6b7280;margin-top:12px;font-family:DM Sans,sans-serif">Завантаження...</div>';
+    el.style.cssText = "position:fixed;inset:0;background:#f0f3fa;z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .25s ease";
     document.body.appendChild(el);
     if (!document.getElementById("app-ldr-kf")) {
       const s = document.createElement("style");
@@ -111,15 +112,20 @@ export function ldr(show) {
   }
   if (show) {
     el.style.display = "flex";
-    el.style.opacity = "1";
+    requestAnimationFrame(() => { el.style.opacity = "1"; });
   } else {
     // Показуємо sidebar + main (знімаємо opacity:0 з CSS)
     document.body.classList.add("app-ready");
     el.style.opacity = "0";
-    setTimeout(() => { el.style.display = "none"; }, 200);
+    setTimeout(() => {
+      el.style.display = "none";
+      // Видаляємо з DOM щоб він не мішав
+      try { el.remove(); } catch {}
+    }, 260);
   }
 }
 window.ldr = ldr;
+window.appReady = () => ldr(false);
 
 // ─── Sidebar toggle ────────────────────────────────────────────────────
 window.toggleSidebar = function () {
@@ -234,6 +240,40 @@ function notifyReady() {
   _dataReadyCbs.forEach(cb => { try { cb(); } catch (e) { console.error(e); } });
 }
 
+// ─── Cache helpers (sessionStorage) ────────────────────────────────────
+function tryLoadCache(key, maxAgeMs) {
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed.savedAt || Date.now() - parsed.savedAt > maxAgeMs) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function saveCache(key) {
+  try {
+    const data = {
+      folders: window.folders,
+      tests: window.tests,
+      links: window.links,
+      attempts: window.attempts,
+      savedAt: Date.now()
+    };
+    sessionStorage.setItem(key, JSON.stringify(data));
+  } catch (e) {
+    // QuotaExceededError — просто не кешуємо, не критично
+    console.warn("[app.js] cache save failed:", e.message);
+  }
+}
+
+// Видалити кеш — виклик features.js після будь-якої мутації (create/update/delete)
+window.invalidateQfCache = function() {
+  try { sessionStorage.removeItem("qf_cache_v1"); } catch {}
+};
+
 async function loadAllData() {
   try {
     const uSnap = await get(ref(db, `users/${uid}`));
@@ -245,6 +285,26 @@ async function loadAllData() {
     }
   } catch (e) { console.warn("[app.js] block check failed:", e.message); }
 
+  // ─── 1) Пробуємо sessionStorage-кеш ─────────────────────────────────
+  // Кеш живе поки вкладка відкрита і не старше 60 секунд.
+  // При навігації між сторінками — дані показуються МИТТЄВО з кешу.
+  const CACHE_KEY = "qf_cache_v1";
+  const CACHE_MAX_AGE = 60 * 1000; // 60 сек
+
+  const cached = tryLoadCache(CACHE_KEY, CACHE_MAX_AGE);
+  if (cached) {
+    window.folders = cached.folders;
+    window.tests = cached.tests;
+    window.links = cached.links;
+    window.attempts = cached.attempts;
+    console.log(`⚡ [app.js] з кешу (${cached.tests.length} тестів, вік ${Math.round((Date.now()-cached.savedAt)/1000)}с)`);
+    notifyReady();
+    // Фонове оновлення — realtime listeners з features.js все одно підпишуться,
+    // тому окремий запит не потрібен. Дані автоматично оновляться через onValue.
+    return;
+  }
+
+  // ─── 2) Кешу немає — тягнемо свіже з Firebase ───────────────────────
   try {
     const [fs, ts_, ls, as] = await Promise.all([
       dbGet("folders"), dbGet("tests"), dbGet("links"), dbGet("attempts")
@@ -254,6 +314,9 @@ async function loadAllData() {
     window.links = toArr(ls).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     window.attempts = toArr(as).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     console.log(`✅ [app.js] data loaded (${window.tests.length} tests, ${window.attempts.length} attempts)`);
+
+    // Зберігаємо в кеш для наступної сторінки
+    saveCache(CACHE_KEY);
     notifyReady();
   } catch (e) {
     toast("Помилка завантаження: " + e.message, "err");
@@ -276,7 +339,13 @@ export async function initApp(pageName, options = {}) {
   if (!options.skipData) {
     await loadAllData();
   }
+  // ldr(false) НЕ викликаємо — це робить сторінка після того як все відрендерить
+  // (див. initFeatures → renderAll → specific hook → appReady())
+}
+
+// Явна функція щоб показати "все готово" — сторінка викликає після renderAll
+export function appReady() {
   ldr(false);
 }
 
-export default { initApp, onDataReady, db, tp, user, uid, toast, ldr, $, esc, toArr };
+export default { initApp, appReady, onDataReady, db, tp, user, uid, toast, ldr, $, esc, toArr };
