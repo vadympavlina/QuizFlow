@@ -542,7 +542,7 @@
 </div>
 
 <script type="module">
-import { initApp } from "./shared/app.js?v=5";
+import { initApp } from "./shared/app.js?v=6";
 
 // Карта для переходу між сторінками
 const PAGES = {
@@ -561,7 +561,7 @@ window.showSec = function(name){
 };
 
 await initApp("dashboard");
-await import("./shared/features.js?v=5");
+await import("./shared/features.js?v=6");
 await window.initFeatures();
 
 if (window.renderAll) window.renderAll();
