@@ -1705,7 +1705,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (linkData.status !== "active")            return showError("Доступ до тесту закрито.");
     if (linkData.closeAt && Date.now() > linkData.closeAt) return showError("Час доступу до тесту вийшов. Посилання автоматично закрито.");
     if (linkData.usedAttempts >= linkData.maxAttempts)
-                                                 return showError("Вичерпано ліміт спроб для цього посилання.");
+                                                 return showError("Вичерпано ліміт студентів для цього посилання.");
 
     testData = await getTest(linkData.testId);
     if (!testData || !testData.questions?.length) return showError("Тест не знайдено або він порожній.");
@@ -1740,7 +1740,7 @@ function fillTestInfo() {
   setEl("infoQuestions", testData.questions.length);
   const mins = testData.timeLimit ? Math.round(testData.timeLimit / 60) : 0;
   setEl("infoTime", mins > 0 ? mins + " хвилин" : "Без обмежень");
-  setEl("infoAttempts", `${linkData.usedAttempts} / ${linkData.maxAttempts} спроб`);
+  setEl("infoAttempts", `${linkData.usedAttempts} / ${linkData.maxAttempts} студентів`);
   if (linkData.group) {
     const row = document.getElementById("infoGroupRow");
     if (row) row.style.display = "flex";
