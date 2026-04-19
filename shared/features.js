@@ -254,20 +254,36 @@ function showNotifBanner({icon, msg, color, id}){
 
 
 function renderAll(){
-  // Кожен рендерер — у try-catch, бо конкретна сторінка може не мати всіх елементів
-  try { renderStats(); } catch(e) { console.warn("[renderAll] renderStats:", e.message); }
-  try { renderDashAtt(); } catch(e) { console.warn("[renderAll] renderDashAtt:", e.message); }
-  try { renderDashLinks(); } catch(e) { console.warn("[renderAll] renderDashLinks:", e.message); }
-  try { renderTests(); } catch(e) { console.warn("[renderAll] renderTests:", e.message); }
-  try { renderAttempts(); } catch(e) { console.warn("[renderAll] renderAttempts:", e.message); }
-  try { renderLinks(); } catch(e) { console.warn("[renderAll] renderLinks:", e.message); }
-  try { updateBadges(); } catch(e) { console.warn("[renderAll] updateBadges:", e.message); }
-  try { fillSelects(); } catch(e) { console.warn("[renderAll] fillSelects:", e.message); }
-  // Оновлюємо лічильник архіву
-  const archiveCnt=document.getElementById("archive-count");
-  if(archiveCnt) archiveCnt.textContent=tests.filter(t=>t.status==="archived").length||"";
-  const nbArchive=document.getElementById("nb-archive");
-  if(nbArchive) nbArchive.textContent=tests.filter(t=>t.status==="archived").length;
+  // Smart dispatch: викликаємо тільки ті рендерери чиї елементи є на сторінці.
+  // Кожен рендерер має "якірний" DOM-елемент — якщо його немає, рендерер не запускається.
+  // Це чистіше за try/catch: немає жодного warning у Console.
+  const has = id => document.getElementById(id) !== null;
+
+  // Дашборд: привітання, блок спроб, статистика
+  if (has("dash-greeting") || has("d-att")) renderDashAtt();
+  // Дашборд: активні посилання
+  if (has("d-lnk")) renderDashLinks();
+  // Дашборд: KPI картки
+  if (has("s-t") || has("s-a") || has("s-l") || has("s-pending") || has("s-passrate")) renderStats();
+
+  // Тести + папки
+  if (has("tc")) renderTests();
+  // Таблиця спроб
+  if (has("att-tbl")) renderAttempts();
+  // Таблиця посилань
+  if (has("lnk-tbl")) renderLinks();
+
+  // Селекти фільтрів (заповнюються лише якщо хоч один select існує)
+  if (has("ft") || has("nl-t") || has("fgrp") || has("an-test") || has("an-group")) fillSelects();
+
+  // Бейджі в sidebar (завжди, бо sidebar підвантажений на кожній сторінці)
+  updateBadges();
+
+  // Архів
+  const archiveCnt = document.getElementById("archive-count");
+  if(archiveCnt) archiveCnt.textContent = tests.filter(t=>t.status==="archived").length || "";
+  const nbArchive = document.getElementById("nb-archive");
+  if(nbArchive) nbArchive.textContent = tests.filter(t=>t.status==="archived").length;
 }
 
 // STATS
@@ -2844,7 +2860,12 @@ window.G = {
 
 window.openOnboarding = () => {
   _obStep = 0;
-  document.getElementById("m-onboarding").style.display = "flex";
+  const el = document.getElementById("m-onboarding");
+  if (!el) {
+    console.warn("[onboarding] m-onboarding не знайдено в DOM");
+    return;
+  }
+  el.style.display = "flex";
   renderObStep();
 };
 const OB_STEPS = [

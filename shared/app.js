@@ -152,6 +152,26 @@ document.addEventListener("click", e => {
 });
 
 // ─── Sidebar: завантаження + підсвітка активної сторінки ───────────────
+// ─── Модалки: завантажуються один раз з shared/modals.html ─────────────
+async function loadModals() {
+  // Якщо сторінка уже містить <div id="modals-root"> — туди й вставимо,
+  // інакше створимо новий контейнер перед </body>
+  try {
+    const resp = await fetch("shared/modals.html");
+    if (!resp.ok) throw new Error("modals.html " + resp.status);
+    const html = await resp.text();
+    let root = document.getElementById("modals-root");
+    if (!root) {
+      root = document.createElement("div");
+      root.id = "modals-root";
+      document.body.appendChild(root);
+    }
+    root.innerHTML = html;
+  } catch (e) {
+    console.error("[app.js] loadModals failed:", e);
+  }
+}
+
 async function loadSidebar(activePage) {
   try {
     const resp = await fetch("shared/layout.html");
@@ -248,7 +268,11 @@ async function loadAllData() {
  */
 export async function initApp(pageName, options = {}) {
   ldr(true);
-  await loadSidebar(pageName);
+  // Sidebar + модалки завантажуємо паралельно
+  await Promise.all([
+    loadSidebar(pageName),
+    loadModals()
+  ]);
   if (!options.skipData) {
     await loadAllData();
   }
