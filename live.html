@@ -5,1032 +5,525 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><circle cx='16' cy='16' r='5' fill='white'/><circle cx='16' cy='16' r='9' fill='none' stroke='white' stroke-width='2' opacity='.5'/></svg>">
 <title>QuizFlow — Live</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --primary: #2d5be3;
-  --primary-d: #1a3ab8;
-  --teal: #0d9e85;
-  --amber: #f59e0b;
-  --purple: #9333ea;
-  --rose: #f43f5e;
-  --text: #0d1340;
-  --muted: #6b7280;
-  --border: #e5e8f0;
-  --card: #fff;
-  --bg: #f0f3fa;
-  --grad: linear-gradient(135deg, #2d5be3, #1a3ab8);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body {
-  font-family: 'DM Sans', sans-serif;
-  color: var(--text);
-  min-height: 100vh;
-  overflow-x: hidden;
-  background: linear-gradient(160deg, #eaf0fd 0%, #f0f3fa 45%, #e8eefc 100%);
-  position: relative;
-}
-body::before {
-  content: '';
-  position: fixed;
-  width: 900px; height: 900px;
-  background: radial-gradient(circle, rgba(45,91,227,.10), transparent 65%);
-  top: -300px; right: -300px;
-  pointer-events: none; z-index: 0;
-  animation: bgMove 20s ease-in-out infinite;
-}
-body::after {
-  content: '';
-  position: fixed;
-  width: 700px; height: 700px;
-  background: radial-gradient(circle, rgba(147,51,234,.07), transparent 60%);
-  bottom: -250px; left: -200px;
-  pointer-events: none; z-index: 0;
-  animation: bgMove 25s ease-in-out infinite reverse;
-}
-@keyframes bgMove {
-  0%,100% { transform: translate(0,0) scale(1); }
-  50% { transform: translate(50px,30px) scale(1.08); }
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes cardIn { from { opacity: 0; transform: translateY(16px) scale(.96); } to { opacity: 1; transform: none; } }
-@keyframes cardOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(.94) translateY(-8px); } }
-@keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
-@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
-@keyframes pulseRing {
-  0% { box-shadow: 0 0 0 0 rgba(34,197,94,.6); }
-  70% { box-shadow: 0 0 0 14px rgba(34,197,94,0); }
-  100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
-}
+:root{--bg:#f0f3fa;--sidebar:#0a0f2e;--primary:#2d5be3;--primary-light:#4d78ff;--glow:rgba(45,91,227,0.15);--teal:#14d4b4;--amber:#f59e0b;--rose:#f43f5e;--card:#fff;--border:rgba(45,91,227,0.08);--text:#0d1340;--muted:#6b7280;--light:#a0a8c0;--grad:linear-gradient(135deg,#2d5be3,#1a3ab8)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes pulseDot{0%{box-shadow:0 0 0 0 rgba(20,212,180,.55)}70%{box-shadow:0 0 0 12px rgba(20,212,180,0)}100%{box-shadow:0 0 0 0 rgba(20,212,180,0)}}
 
-/* ── Шапка ── */
-.top {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  background: rgba(240,243,250,.75);
-  border-bottom: 1px solid rgba(45,91,227,.1);
-  padding: 16px 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
-.top-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-}
-.top-logo {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  background: var(--grad);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  font-size: 22px;
-  flex-shrink: 0;
-  box-shadow: 0 6px 22px rgba(45,91,227,.4);
-}
-.top-info { min-width: 0; }
-.top-title {
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 800;
-  font-size: 22px;
-  letter-spacing: -.4px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.live-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background: rgba(220,38,38,.1);
-  border: 1.5px solid rgba(220,38,38,.25);
-  border-radius: 14px;
-  font-size: 10px;
-  font-weight: 800;
-  color: #dc2626;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-.live-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #dc2626;
-  animation: pulse 1.5s infinite;
-}
-.top-sub {
-  font-size: 13px;
-  color: var(--muted);
-  margin-top: 2px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+/* Top */
+.top{position:sticky;top:0;z-index:50;background:rgba(240,243,250,.82);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--border);padding:16px 30px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.top-left{display:flex;align-items:center;gap:12px;min-width:0}
+.logo-i{width:40px;height:40px;background:var(--grad);border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:#fff;flex-shrink:0;box-shadow:0 4px 14px var(--glow)}
+.top-info{min-width:0}
+.top-title{font-family:'Syne',sans-serif;font-weight:700;font-size:22px;letter-spacing:-.4px;display:flex;align-items:center;gap:10px;line-height:1.1}
+.live-tag{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;background:rgba(244,63,94,.1);border-radius:14px;font-size:10px;font-weight:700;color:var(--rose);letter-spacing:1.2px;text-transform:uppercase}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--rose);animation:pulse 1.5s infinite}
+.top-sub{font-size:13px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-right{display:flex;align-items:center;gap:14px}
+.top-stat{display:flex;align-items:baseline;gap:8px;padding:8px 16px;background:#fff;border:1.5px solid var(--border);border-radius:12px}
+.top-stat-n{font-family:'Syne',sans-serif;font-weight:700;font-size:22px;line-height:1;letter-spacing:-.5px;color:var(--primary);font-variant-numeric:tabular-nums}
+.top-stat-l{font-size:12px;color:var(--muted);font-weight:500}
+.top-clock{font-family:'Syne',sans-serif;font-weight:600;font-size:14px;font-variant-numeric:tabular-nums;padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:12px;color:var(--text)}
 
-.top-right {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-.top-stat {
-  text-align: center;
-  padding: 4px 14px;
-  border-left: 1.5px solid var(--border);
-  min-width: 58px;
-}
-.top-stat:first-child { border-left: none; padding-left: 0; }
-.top-stat-n {
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 800;
-  font-size: 26px;
-  line-height: 1;
-  color: var(--primary);
-  font-variant-numeric: tabular-nums;
-}
-.top-stat-n.green { color: var(--teal); }
-.top-stat-n.amber { color: var(--amber); }
-.top-stat-l {
-  font-size: 10px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: .6px;
-  margin-top: 4px;
-  font-weight: 600;
-}
-.top-clock {
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 700;
-  font-size: 18px;
-  font-variant-numeric: tabular-nums;
-  padding: 8px 14px;
-  background: white;
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
-}
-.back-btn {
-  width: 40px; height: 40px;
-  border-radius: 11px;
-  border: 1.5px solid var(--border);
-  background: white;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--muted);
-  transition: all .15s;
-  flex-shrink: 0;
-  text-decoration: none;
-}
-.back-btn:hover { border-color: var(--primary); color: var(--primary); }
+/* Admin tabs + search */
+.admin-bar{padding:14px 30px 0}
+.tabs{display:inline-flex;background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:4px;gap:2px;box-shadow:0 2px 8px rgba(10,14,46,.03);flex-wrap:wrap}
+.tab{padding:8px 16px;border-radius:10px;border:none;background:transparent;color:var(--muted);font-weight:600;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:7px;transition:all .15s}
+.tab.active{background:var(--grad);color:#fff}
+.tab:not(.active):hover{color:var(--primary)}
 
-/* ── Main ── */
-main {
-  padding: 28px 32px 40px;
-  position: relative;
-  z-index: 1;
-}
+.search-wrap{margin-top:12px;position:relative;max-width:460px}
+.search-box{display:flex;align-items:center;gap:10px;padding:11px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:12px;transition:border-color .15s}
+.search-box:focus-within{border-color:var(--primary)}
+.search-box input{flex:1;border:none;outline:none;background:none;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);min-width:0}
+.search-box input::placeholder{color:var(--muted);opacity:.7}
+.search-clear{width:22px;height:22px;border-radius:50%;border:none;background:rgba(45,91,227,.1);color:var(--primary);cursor:pointer;display:none;align-items:center;justify-content:center;flex-shrink:0}
+.search-results{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--card);border:1.5px solid var(--border);border-radius:12px;box-shadow:0 10px 32px rgba(10,14,46,.08);max-height:320px;overflow-y:auto;z-index:20}
+.tcr-item{padding:11px 16px;cursor:pointer;display:flex;align-items:center;gap:11px;transition:background .12s;border-bottom:1px solid rgba(45,91,227,.04)}
+.tcr-item:last-child{border-bottom:none}
+.tcr-item:hover{background:rgba(45,91,227,.05)}
+.tcr-ava{width:32px;height:32px;border-radius:10px;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;flex-shrink:0}
+.tcr-name{font-size:13px;font-weight:600;color:var(--text)}
+.tcr-empty{padding:18px;text-align:center;font-size:13px;color:var(--muted)}
 
-.section-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-  gap: 12px;
-}
-.section-title {
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 800;
-  font-size: 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.section-count {
-  padding: 4px 12px;
-  background: rgba(45,91,227,.08);
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--primary);
-}
-.section-count.green { background: rgba(13,158,133,.1); color: var(--teal); }
-.section-count.amber { background: rgba(245,158,11,.1); color: #b45309; }
+.watching-pill{margin-top:12px;display:none;align-items:center;gap:10px;padding:8px 14px;background:rgba(45,91,227,.06);border:1.5px solid rgba(45,91,227,.15);border-radius:12px;font-size:13px;max-width:fit-content}
+.watching-pill.show{display:inline-flex}
+.watching-close{margin-left:6px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(45,91,227,.1);color:var(--primary);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
 
-/* Grid */
-.live-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 12px;
-  margin-bottom: 32px;
-}
+/* Main */
+.main{padding:26px 30px;animation:fadeIn .3s ease}
 
-/* ── Student card ── */
-.student-card {
-  background: var(--card);
-  border: 1.5px solid var(--border);
-  border-radius: 18px;
-  padding: 16px;
-  box-shadow: 0 2px 12px rgba(10,14,46,.05), 0 1px 3px rgba(10,14,46,.04);
-  position: relative;
-  overflow: hidden;
-  transition: box-shadow .22s, border-color .22s, transform .22s;
-  will-change: transform;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.student-card.new-card {
-  animation: cardIn .38s cubic-bezier(.34,1.56,.64,1) both;
-}
-.student-card:hover {
-  box-shadow: 0 8px 28px rgba(45,91,227,.11), 0 2px 6px rgba(45,91,227,.06);
-  border-color: rgba(45,91,227,.2);
-  transform: translateY(-2px);
-}
-.student-card.removing {
-  animation: cardOut .28s ease forwards;
-  pointer-events: none;
-}
+.live-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
 
-/* Кольорова смужка зліва */
-.student-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; bottom: 0;
-  width: 3px;
-  background: var(--grad);
-  border-radius: 18px 0 0 18px;
-}
-.student-card.idle::before { background: linear-gradient(180deg, #f59e0b, #c2410c); }
-.student-card.finished::before { background: linear-gradient(180deg, #0d9e85, #047857); }
+.s-card{background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:18px;animation:fadeIn .25s ease;transition:transform .2s,box-shadow .2s}
+.s-card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(45,91,227,.08)}
 
-/* ── Верхня частина: аватар + ім'я + статус ── */
-.card-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.ava {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: var(--grad);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 800;
-  font-size: 13px;
-  letter-spacing: .3px;
-  flex-shrink: 0;
-  position: relative;
-}
-.ava.active::after {
-  content: '';
-  position: absolute;
-  bottom: -3px; right: -3px;
-  width: 11px; height: 11px;
-  border-radius: 50%;
-  background: #22c55e;
-  border: 2px solid var(--card);
-  animation: pulseRing 2s infinite;
-}
-.ava.idle::after {
-  content: '';
-  position: absolute;
-  bottom: -3px; right: -3px;
-  width: 11px; height: 11px;
-  border-radius: 50%;
-  background: #f59e0b;
-  border: 2px solid var(--card);
-}
-.ava.finished { background: linear-gradient(135deg, #0d9e85, #047857); }
+.s-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.s-ava{width:40px;height:40px;border-radius:11px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#fff;flex-shrink:0;position:relative}
+.s-ava::after{content:'';position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;background:var(--teal);border:2.5px solid var(--card);animation:pulseDot 2s infinite}
+.s-who{flex:1;min-width:0}
+.s-name{font-family:'Syne',sans-serif;font-weight:600;font-size:15px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.s-test{font-size:12px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-.who { flex: 1; min-width: 0; }
-.who-name {
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 700;
-  font-size: 14px;
-  line-height: 1.25;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--text);
-}
-.who-test {
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 2px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+.s-progress{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.s-q{font-family:'Syne',sans-serif;font-weight:700;font-size:22px;letter-spacing:-.8px;line-height:1;color:var(--primary)}
+.s-q sub{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--muted);font-weight:400;vertical-align:baseline;margin-left:2px}
+.s-pct{font-family:'Syne',sans-serif;font-weight:600;font-size:14px;color:var(--text)}
+.s-bar{height:6px;background:rgba(45,91,227,.08);border-radius:4px;overflow:hidden;margin-bottom:12px}
+.s-bar-fill{height:100%;background:var(--grad);border-radius:4px;transition:width .5s cubic-bezier(.34,1.56,.64,1)}
 
-/* ── Прогрес ── */
-.progress-block { display: flex; flex-direction: column; gap: 6px; }
-.progress-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.progress-q {
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 800;
-  font-size: 20px;
-  color: var(--primary);
-  line-height: 1;
-  display: flex;
-  align-items: baseline;
-  gap: 1px;
-}
-.progress-q sub {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 11px;
-  color: var(--muted);
-  font-weight: 500;
-  vertical-align: baseline;
-  margin-left: 1px;
-}
-.progress-pct {
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 700;
-  font-size: 12px;
-  color: var(--muted);
-  background: var(--bg);
-  padding: 2px 7px;
-  border-radius: 8px;
-}
-.progress-bar {
-  height: 5px;
-  background: var(--bg);
-  border-radius: 4px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background: var(--grad);
-  border-radius: 4px;
-  transition: width .5s cubic-bezier(.34,1.56,.64,1);
-}
-.progress-fill.idle { background: linear-gradient(90deg, #f59e0b, #c2410c); }
-.progress-fill.finished { background: linear-gradient(90deg, #0d9e85, #047857); }
-
-/* ── Нижня смужка: час + бейдж ── */
-.meta-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 11px;
-  color: var(--muted);
-}
-.meta-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-.meta-item svg { flex-shrink: 0; opacity: .65; }
-.bdg {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .2px;
-}
-/* ── Suspicion levels ── */
-
-/* Середня підозрілість — помаранчева */
-.student-card.susp-mid {
-  border-color: rgba(245,158,11,.45);
-  box-shadow: 0 2px 12px rgba(245,158,11,.12), 0 1px 3px rgba(245,158,11,.08);
-}
-.student-card.susp-mid::before {
-  background: linear-gradient(180deg, #f59e0b, #d97706);
-}
-.student-card.susp-mid:hover {
-  box-shadow: 0 8px 28px rgba(245,158,11,.18);
-  border-color: rgba(245,158,11,.6);
-}
-
-/* Висока підозрілість — червона */
-.student-card.susp-high {
-  border-color: rgba(244,63,94,.5);
-  box-shadow: 0 2px 12px rgba(244,63,94,.14), 0 1px 3px rgba(244,63,94,.08);
-}
-.student-card.susp-high::before {
-  background: linear-gradient(180deg, #f43f5e, #be123c);
-}
-.student-card.susp-high:hover {
-  box-shadow: 0 8px 28px rgba(244,63,94,.2);
-  border-color: rgba(244,63,94,.65);
-}
-
-/* Рядок бейджиків */
-.susp-row {
-  display: none;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-.susp-row.visible { display: flex; }
-
-.susp-bdg {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 7px;
-  border-radius: 7px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .1px;
-  animation: suspIn .2s ease both;
-}
-.susp-mid .susp-bdg {
-  background: rgba(245,158,11,.1);
-  color: #92400e;
-  border: 1px solid rgba(245,158,11,.25);
-}
-.susp-high .susp-bdg {
-  background: rgba(244,63,94,.08);
-  color: #9f1239;
-  border: 1px solid rgba(244,63,94,.2);
-}
-@keyframes suspIn {
-  from { opacity: 0; transform: scale(.82); }
-  to   { opacity: 1; transform: scale(1); }
-}
+.s-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:12px;border-top:1px solid rgba(45,91,227,.06);font-size:12px;color:var(--muted)}
+.s-meta-item{display:inline-flex;align-items:center;gap:5px}
+.s-meta-item svg{flex-shrink:0;opacity:.6}
+.s-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:14px;font-size:11px;font-weight:600;background:rgba(20,212,180,.1);color:#0d9e85}
+.s-tag .dot{width:5px;height:5px;border-radius:50%;background:#0d9e85}
 
 /* Empty */
-.empty {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 80px 20px;
-}
-.empty-icon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 20px;
-  border-radius: 22px;
-  background: var(--grad);
-  opacity: .3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-}
-.empty-icon svg { width: 40px; height: 40px; }
-.empty-title {
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 700;
-  font-size: 22px;
-  margin-bottom: 8px;
-}
-.empty-text { font-size: 14px; color: var(--muted); }
+.empty{padding:100px 20px;text-align:center}
+.empty-i{width:72px;height:72px;margin:0 auto 18px;border-radius:20px;background:var(--grad);opacity:.25;display:flex;align-items:center;justify-content:center;color:#fff}
+.empty-i svg{width:34px;height:34px}
+.empty-t{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;color:var(--text);margin-bottom:6px;letter-spacing:-.3px}
+.empty-s{font-size:14px;color:var(--muted);max-width:380px;margin:0 auto;line-height:1.5}
 
-#loader {
-  position: fixed;
-  inset: 0;
-  background: var(--bg);
-  z-index: 999;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  transition: opacity .4s ease;
-}
-#loader.hiding { opacity: 0; pointer-events: none; }
-.spin {
-  width: 44px;
-  height: 44px;
-  border: 3px solid rgba(45,91,227,.12);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin .7s linear infinite;
-  box-shadow: 0 0 20px rgba(45,91,227,.15);
-}
+/* Loader */
+#loader{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.spin{width:44px;height:44px;border:3.5px solid rgba(45,91,227,.15);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
 
-/* Grade (for finished) */
-.grade-big {
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 800;
-  font-size: 28px;
-  color: var(--teal);
-  line-height: 1;
-  text-align: center;
-  padding: 6px 0 2px;
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 4px;
+/* Adaptation */
+@media (min-width:1600px){
+  .live-grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+  .main{padding:32px 40px}
+  .top{padding:18px 40px}
+  .top-title{font-size:26px}
+  .top-stat-n{font-size:26px}
+  .logo-i{width:46px;height:46px;font-size:19px}
+  .admin-bar{padding:16px 40px 0}
 }
-.grade-big small {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 11px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  font-weight: 600;
+@media (min-width:2200px){
+  .live-grid{grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}
+  .top-title{font-size:30px}
+  .s-name{font-size:17px}
+  .s-q{font-size:26px}
 }
-
-/* ═══════ ADAPTATION ═══════ */
-
-/* Great TV 4K — more columns, larger */
-@media (min-width: 1800px) {
-  main { padding: 40px 56px 56px; }
-  .live-grid {
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 16px;
-  }
-  .top { padding: 22px 56px; }
-  .top-logo { width: 56px; height: 56px; font-size: 26px; }
-  .top-title { font-size: 28px; }
-  .top-stat-n { font-size: 32px; }
-  .section-title { font-size: 24px; }
-  .student-card { padding: 18px; border-radius: 20px; }
-  .who-name { font-size: 15px; }
-  .progress-q { font-size: 22px; }
+@media (max-width:1000px){
+  .top{padding:14px 20px}
+  .main{padding:20px}
+  .admin-bar{padding:12px 20px 0}
+  .live-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+  .s-card{padding:16px;border-radius:16px}
 }
-@media (min-width: 2400px) {
-  .live-grid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  }
-  .top-title { font-size: 32px; }
-  .student-card { padding: 22px; }
-  .who-name { font-size: 17px; }
-  .progress-q { font-size: 26px; }
+@media (max-width:700px){
+  .top{flex-wrap:wrap;padding:12px 16px;gap:10px}
+  .top-left{gap:10px}
+  .logo-i{width:36px;height:36px;font-size:15px;border-radius:10px}
+  .top-title{font-size:18px}
+  .top-sub{font-size:12px}
+  .live-tag{padding:2px 7px;font-size:9px}
+  .top-right{width:100%;gap:8px}
+  .top-stat{flex:1;padding:7px 12px;justify-content:center;gap:6px}
+  .top-stat-n{font-size:18px}
+  .top-stat-l{font-size:11px}
+  .top-clock{padding:7px 11px;font-size:13px}
+  .admin-bar{padding:10px 14px 0}
+  .tab{padding:7px 12px;font-size:12px}
+  .main{padding:14px}
+  .live-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .s-card{padding:14px;border-radius:14px}
+  .s-ava{width:36px;height:36px;font-size:12px}
+  .s-name{font-size:13px}
+  .s-test{font-size:11px}
+  .s-q{font-size:18px}
+  .s-q sub{font-size:11px}
+  .s-pct{font-size:12px}
+  .s-meta{font-size:11px;padding-top:10px}
+  .s-meta-item svg{width:10px;height:10px}
+  .s-tag{font-size:10px;padding:2px 7px}
 }
-
-/* Tablet */
-@media (max-width: 1000px) {
-  .top { padding: 14px 20px; flex-wrap: wrap; }
-  main { padding: 20px; }
-  .live-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
-  }
-  .student-card { padding: 14px; border-radius: 16px; }
-  .top-stat { padding: 4px 10px; min-width: 50px; }
-  .top-stat-n { font-size: 22px; }
-}
-
-/* Phone */
-@media (max-width: 700px) {
-  .top {
-    flex-wrap: wrap;
-    padding: 12px 16px;
-    gap: 12px;
-  }
-  .top-left { gap: 10px; }
-  .top-logo { width: 40px; height: 40px; font-size: 18px; border-radius: 12px; }
-  .top-title { font-size: 18px; }
-  .top-sub { font-size: 11px; }
-  .live-badge { padding: 3px 9px; font-size: 9px; }
-  .top-right {
-    width: 100%;
-    justify-content: space-between;
-    gap: 8px;
-  }
-  .top-stat { flex: 1; padding: 2px 6px; border-left: 1px solid var(--border); min-width: 0; }
-  .top-stat:first-child { padding-left: 0; }
-  .top-stat-n { font-size: 18px; }
-  .top-stat-l { font-size: 9px; }
-  .top-clock { display: none; }
-  main { padding: 14px; }
-  .live-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .student-card { padding: 12px; border-radius: 14px; gap: 10px; }
-  .ava { width: 34px; height: 34px; font-size: 11px; border-radius: 10px; }
-  .who-name { font-size: 13px; }
-  .who-test { font-size: 10px; }
-  .progress-q { font-size: 18px; }
-  .progress-q sub { font-size: 10px; }
-  .progress-pct { font-size: 11px; }
-  .meta-row { font-size: 10px; }
-  .meta-item svg { width: 10px; height: 10px; }
-  .section-title { font-size: 16px; }
-  .section-count { font-size: 11px; padding: 3px 9px; }
-  .grade-big { font-size: 22px; }
-  .back-btn { width: 36px; height: 36px; }
-}
-
-@media (max-width: 440px) {
-  .live-grid { grid-template-columns: 1fr; }
-  .top-title { font-size: 16px; }
-  .card-head { gap: 8px; }
+@media (max-width:440px){
+  .live-grid{grid-template-columns:1fr}
+  .top-title{font-size:17px}
 }
 </style>
 </head>
 <body>
-  <div id="loader">
-    <div class="spin"></div>
-    <div style="font-size:14px;color:var(--muted)">Завантаження...</div>
-  </div>
+  <div id="loader"><div class="spin"></div><div style="font-size:13px;color:var(--muted)">Завантаження...</div></div>
 
   <header class="top">
     <div class="top-left">
-      <div class="top-logo">Q</div>
+      <div class="logo-i">Q</div>
       <div class="top-info">
         <div class="top-title">
           <span>Live</span>
-          <span class="live-badge"><span class="live-dot"></span>Online</span>
+          <span class="live-tag"><span class="live-dot"></span>Online</span>
         </div>
         <div class="top-sub" id="teacher-name">—</div>
       </div>
     </div>
     <div class="top-right">
       <div class="top-stat">
-        <div class="top-stat-n green" id="stat-active">0</div>
-        <div class="top-stat-l">Проходять зараз</div>
+        <span class="top-stat-n" id="stat-active">0</span>
+        <span class="top-stat-l">проходять</span>
       </div>
       <div class="top-clock" id="clock">—:—:—</div>
     </div>
   </header>
 
-  <main>
-    <div class="live-grid" id="grid-active"></div>
+  <!-- Admin bar (видно тільки для admin) -->
+  <div class="admin-bar" id="admin-bar" style="display:none">
+    <div class="tabs">
+      <button id="tab-mine" class="tab active" onclick="switchTab('mine')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>
+        Мій лайв
+      </button>
+      <button id="tab-others" class="tab" onclick="switchTab('others')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        Інші викладачі
+      </button>
+    </div>
 
-    <!-- Empty -->
-    <div class="empty" id="empty-state" style="display:none">
-      <div class="empty-icon">
+    <div class="search-wrap" id="search-wrap" style="display:none">
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" style="color:var(--muted);flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="search-input" placeholder="Почніть вводити ПІБ викладача..." autocomplete="off"/>
+        <button id="search-clear" class="search-clear" onclick="clearSearch()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="search-results" class="search-results"></div>
+    </div>
+
+    <div id="watching-pill" class="watching-pill">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--primary);flex-shrink:0"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+      <span style="color:var(--muted)">Дивитесь лайв:</span>
+      <span id="watching-name" style="font-weight:700;color:var(--text)">—</span>
+      <button class="watching-close" onclick="switchTab('mine')" title="Повернутись до свого">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <main class="main">
+    <div class="live-grid" id="grid-active"></div>
+    <div class="empty" id="empty" style="display:none">
+      <div class="empty-i">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
           <circle cx="9" cy="7" r="4"/>
           <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
         </svg>
       </div>
-      <div class="empty-title">Зараз ніхто не проходить тест</div>
-      <div class="empty-text">Коли студенти почнуть виконувати завдання — вони з'являться тут автоматично</div>
+      <div class="empty-t" id="empty-title">Зараз ніхто не проходить тест</div>
+      <div class="empty-s" id="empty-text">Коли студенти почнуть виконувати завдання — вони з'являться тут автоматично</div>
     </div>
   </main>
 
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, get, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const cfg = {apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",authDomain:"quizflow-8a978.firebaseapp.com",databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",projectId:"quizflow-8a978",storageBucket:"quizflow-8a978.firebasestorage.app",messagingSenderId:"206469794166",appId:"1:206469794166:web:55cd7007b429607acd5257"};
 const app = getApps().length ? getApps()[0] : initializeApp(cfg);
 const db  = getDatabase(app);
 
-// ─── Auth ──────────────────────────────────────────────────────────────────
-const sess = sessionStorage.getItem("qf_user");
+// ─── Auth: читаємо з sessionStorage АБО з localStorage (fix для нової вкладки) ──
+let sess = sessionStorage.getItem("qf_user");
+if(!sess) sess = localStorage.getItem("qf_user");
 if(!sess){ location.href = "login.html"; throw ""; }
 const _user = JSON.parse(sess);
 if(!_user || !_user.id){ location.href = "login.html"; throw ""; }
+// Синхронізуємо щоб у новій вкладці теж було
+try { sessionStorage.setItem("qf_user", sess); localStorage.setItem("qf_user", sess); } catch {}
 
-const _tuid = _user.id;
-document.getElementById("teacher-name").textContent = _user.name || _user.login;
+const _myUid = _user.id;
+const _myName = _user.name || _user.login;
+const _isAdmin = _user.role === "admin";
 
-// ─── Helpers ───────────────────────────────────────────────────────────────
+document.getElementById("teacher-name").textContent = _myName;
+if(_isAdmin) document.getElementById("admin-bar").style.display = "block";
+
+// ─── Helpers ────────────────────────────────────────────────────────
 const esc = s => String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-
-function formatTimeAgo(ts){
-  const diff = Date.now() - ts;
-  const secs = Math.floor(diff / 1000);
-  if(secs < 60) return "щойно";
-  const mins = Math.floor(secs / 60);
-  if(mins < 60) return mins + " хв";
-  const hrs = Math.floor(mins / 60);
-  if(hrs < 24) return hrs + " год";
-  return new Date(ts).toLocaleDateString("uk-UA",{day:"numeric",month:"short"});
-}
-
 function formatDuration(ms){
-  const secs = Math.floor(ms / 1000);
-  const mins = Math.floor(secs / 60);
-  const s = secs % 60;
-  return mins + ":" + String(s).padStart(2,"0");
+  const secs = Math.floor(ms/1000);
+  const h = Math.floor(secs/3600);
+  const m = Math.floor((secs%3600)/60);
+  const s = secs%60;
+  if(h > 0) return h + ":" + String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
+  return m + ":" + String(s).padStart(2,"0");
 }
-
 function initials(name){
   return (name||"?").split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase();
 }
 
-// ─── Clock ─────────────────────────────────────────────────────────────────
+// ─── Clock ──────────────────────────────────────────────────────────
 function updateClock(){
   const d = new Date();
-  const h = String(d.getHours()).padStart(2,"0");
-  const m = String(d.getMinutes()).padStart(2,"0");
-  const s = String(d.getSeconds()).padStart(2,"0");
-  document.getElementById("clock").textContent = `${h}:${m}:${s}`;
+  document.getElementById("clock").textContent =
+    String(d.getHours()).padStart(2,"0") + ":" +
+    String(d.getMinutes()).padStart(2,"0") + ":" +
+    String(d.getSeconds()).padStart(2,"0");
 }
 updateClock();
 setInterval(updateClock, 1000);
 
-// ─── Load tests (для назв) ─────────────────────────────────────────────────
+// ─── State ──────────────────────────────────────────────────────────
+let _activeUid  = _myUid;
+let _activeName = _myName;
 let _tests = {};
-async function loadTests(){
-  const snap = await get(ref(db, `teachers/${_tuid}/tests`));
-  if(snap.exists()) _tests = snap.val();
+let _lastAttempts = {};
+let _currentRef = null;
+let _currentSub = null;
+
+// ─── Load tests (для назв) ───────────────────────────────────────────
+async function loadTests(uid){
+  _tests = {};
+  const snap = await get(ref(db, `teachers/${uid}/tests`));
+  if(snap.exists()) _tests = snap.val() || {};
 }
 
-// ─── Render card ───────────────────────────────────────────────────────────
-function studentCard(a, state){
-  const name = (a.name || "") + " " + (a.surname || "");
+// ─── Card ───────────────────────────────────────────────────────────
+function studentCard(a){
+  const name = (a.name||"") + " " + (a.surname||"");
   const display = name.trim() || "Студент";
   const testTitle = _tests[a.testId]?.title || "Тест";
   const totalQ = a.totalQ || _tests[a.testId]?.questions?.length || 0;
   const currentQ = a.currentQ || 0;
-  const pct = totalQ > 0 ? Math.round((currentQ / totalQ) * 100) : 0;
+  const pct = totalQ > 0 ? Math.round((currentQ/totalQ)*100) : 0;
   const duration = a.startedAt ? Date.now() - a.startedAt : 0;
 
-  if(state === "finished"){
-    const grade = a.grade12;
-    return `<div class="student-card finished">
-      <div class="card-head">
-        <div class="ava finished">${initials(display)}</div>
-        <div class="who">
-          <div class="who-name">${esc(display)}</div>
-          <div class="who-test">${esc(testTitle)}</div>
-        </div>
-        <span class="bdg bdg-g">
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          Завершено
-        </span>
+  return `<div class="s-card">
+    <div class="s-head">
+      <div class="s-ava">${initials(display)}</div>
+      <div class="s-who">
+        <div class="s-name">${esc(display)}</div>
+        <div class="s-test">${esc(testTitle)}</div>
       </div>
-      <div class="grade-big">${grade != null ? grade : "—"}<small>з 12</small></div>
-      <div class="meta-row">
-        <span class="meta-item">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          ${a.finishedAt ? formatTimeAgo(a.finishedAt) + " тому" : "—"}
-        </span>
-      </div>
-    </div>`;
-  }
-
-  const cls = state === "idle" ? " idle" : "";
-  const avaCls = state === "idle" ? "idle" : "active";
-  const fillCls = state === "idle" ? "idle" : "";
-  const badge = state === "idle"
-    ? `<span class="bdg bdg-a">Неактивний</span>`
-    : `<span class="bdg bdg-g">Активний</span>`;
-
-  return `<div class="student-card${cls}">
-    <div class="card-head">
-      <div class="ava ${avaCls}">${initials(display)}</div>
-      <div class="who">
-        <div class="who-name">${esc(display)}</div>
-        <div class="who-test">${esc(testTitle)}</div>
-      </div>
-      ${badge}
     </div>
-    <div class="progress-block">
-      <div class="progress-row">
-        <div class="progress-q">${currentQ}<sub>/${totalQ || "?"}</sub></div>
-        <div class="progress-pct">${pct}%</div>
-      </div>
-      <div class="progress-bar"><div class="progress-fill ${fillCls}" style="width:${pct}%"></div></div>
+    <div class="s-progress">
+      <div class="s-q">${currentQ}<sub>/${totalQ||"?"}</sub></div>
+      <div class="s-pct">${pct}%</div>
     </div>
-    <div class="susp-row" data-susp></div>
-    <div class="meta-row">
-      <span class="meta-item">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <div class="s-bar"><div class="s-bar-fill" style="width:${pct}%"></div></div>
+    <div class="s-meta">
+      <span class="s-meta-item">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         ${formatDuration(duration)}
       </span>
+      <span class="s-tag"><span class="dot"></span>Активний</span>
     </div>
   </div>`;
 }
 
-// ─── Кеш стану карток (для порівняння змін) ───────────────────────────────
-const _cardState = new Map(); // id → { currentQ, pct, isIdle, startedAt }
-
-// ─── Render: тільки структурні зміни (додати/видалити картку) ─────────────
+// ─── Render ─────────────────────────────────────────────────────────
 function render(attempts){
   const active = [];
-  Object.entries(attempts || {}).forEach(([id, a]) => {
+  Object.entries(attempts||{}).forEach(([id, a]) => {
     if(!a) return;
     if(a.status === "in_progress" && !a.finishedAt){
       active.push({id, ...a});
     }
   });
-
-  active.sort((a,b) => (b.currentQ || 0) - (a.currentQ || 0) || (a.startedAt||0) - (b.startedAt||0));
+  active.sort((a,b) => (b.currentQ||0) - (a.currentQ||0) || (a.startedAt||0) - (b.startedAt||0));
 
   document.getElementById("stat-active").textContent = active.length;
+  document.getElementById("grid-active").innerHTML = active.map(studentCard).join("");
 
-  const grid = document.getElementById("grid-active");
-
-  // Поточні картки в DOM
-  const existing = new Map();
-  grid.querySelectorAll(".student-card[data-id]").forEach(el => {
-    existing.set(el.dataset.id, el);
-  });
-
-  // Видаляємо зниклих — плавно
-  const newIds = new Set(active.map(a => a.id));
-  existing.forEach((el, id) => {
-    if(!newIds.has(id)){
-      _cardState.delete(id);
-      el.classList.add("removing");
-      // fallback якщо animationend не спрацює
-      const t = setTimeout(() => el.remove(), 400);
-      el.addEventListener("animationend", () => { clearTimeout(t); el.remove(); }, { once: true });
-    }
-  });
-
-  // Додаємо нових / оновлюємо існуючих
-  active.forEach((a, idx) => {
-    if(existing.has(a.id)){
-      // Картка вже є — лише патчимо дані, БЕЗ будь-яких DOM-переміщень
-      patchCardData(existing.get(a.id), a);
-    } else {
-      // Нова картка — створюємо і вставляємо
-      const html = studentCard(a, "active");
-      const tmp = document.createElement("div");
-      tmp.innerHTML = html.trim();
-      const el = tmp.firstElementChild;
-      el.dataset.id = a.id;
-      el.classList.add("new-card");
-      el.style.animationDelay = (idx * 35) + "ms";
-      el.addEventListener("animationend", () => el.classList.remove("new-card"), { once: true });
-      // Зберігаємо початковий стан
-      const tabs = a.tabSwitches || 0;
-      const copies = a.copyAttempts || 0;
-      const shots = a.screenshots || 0;
-      const score = calcSuspScore(a);
-      _cardState.set(a.id, {
-        currentQ: a.currentQ || 0,
-        pct: calcPct(a),
-        isIdle: false,
-        startedAt: a.startedAt || 0,
-        tabs, copies, shots, score
-      });
-      if(score > 0) renderSuspBadges(el, a);
-      grid.appendChild(el);
-    }
-  });
-
-  document.getElementById("empty-state").style.display = active.length === 0 ? "block" : "none";
+  const empty = document.getElementById("empty");
+  empty.style.display = active.length === 0 ? "block" : "none";
 }
 
-function calcPct(a){
-  const totalQ = a.totalQ || _tests[a.testId]?.questions?.length || 0;
-  return totalQ > 0 ? Math.round(((a.currentQ || 0) / totalQ) * 100) : 0;
-}
+// ─── Subscribe to teacher's live ────────────────────────────────────
+async function subscribeToTeacher(uid, name){
+  _activeUid = uid;
+  _activeName = name;
 
-// ─── patchCardData: хірургічно оновлює тільки поля що змінились ───────────
-function patchCardData(el, a){
-  const prev = _cardState.get(a.id) || {};
-  const currentQ = a.currentQ || 0;
-  const pct = calcPct(a);
-  const isIdle = false;
-
-  // Питання + відсоток
-  if(prev.currentQ !== currentQ || prev.pct !== pct){
-    const qEl = el.querySelector(".progress-q");
-    const totalQ = a.totalQ || _tests[a.testId]?.questions?.length || 0;
-    if(qEl) qEl.innerHTML = `${currentQ}<sub>/${totalQ || "?"}</sub>`;
-
-    const pctEl = el.querySelector(".progress-pct");
-    if(pctEl) pctEl.textContent = pct + "%";
-
-    const fill = el.querySelector(".progress-fill");
-    if(fill) fill.style.width = pct + "%";
+  // Відписуємось від попереднього
+  if(_currentRef && _currentSub){
+    off(_currentRef, "value", _currentSub);
+    _currentRef = null;
+    _currentSub = null;
   }
 
-  // idle статус
-  if(prev.isIdle !== isIdle){
-    el.classList.toggle("idle", isIdle);
-    const fill = el.querySelector(".progress-fill");
-    if(fill) fill.classList.toggle("idle", isIdle);
-    const ava = el.querySelector(".ava");
-    if(ava){ ava.className = "ava " + (isIdle ? "idle" : "active"); }
+  _lastAttempts = {};
+  document.getElementById("loader").style.display = "flex";
+  document.getElementById("grid-active").innerHTML = "";
+
+  // Плашка "Дивитесь лайв…" тільки для адмінів коли не свій
+  const pill = document.getElementById("watching-pill");
+  if(_isAdmin && uid !== _myUid){
+    pill.classList.add("show");
+    document.getElementById("watching-name").textContent = name;
+    document.getElementById("empty-title").textContent = "Зараз ніхто не проходить тест";
+    document.getElementById("empty-text").textContent = "Коли студенти почнуть виконувати завдання — вони з'являться тут автоматично";
+  } else {
+    pill.classList.remove("show");
   }
 
-  // Підозрілість — оновлюємо тільки якщо змінились лічильники
-  const tabs = a.tabSwitches || 0;
-  const copies = a.copyAttempts || 0;
-  const shots = a.screenshots || 0;
-  const score = calcSuspScore(a);
-  if(prev.tabs !== tabs || prev.copies !== copies || prev.shots !== shots || prev.score !== score){
-    renderSuspBadges(el, a);
-  }
+  await loadTests(uid);
 
-  _cardState.set(a.id, { currentQ, pct, isIdle, startedAt: a.startedAt || 0, tabs, copies, shots, score });
-}
-
-// ─── Рахує бали підозрілості ───────────────────────────────────────────────
-// Вкладки: 3 бали кожна, копіювання: 2, скріншоти: 5, devtools (з events): 4
-function calcSuspScore(a){
-  const tabs   = a.tabSwitches  || 0;
-  const copies = a.copyAttempts || 0;
-  const shots  = a.screenshots  || 0;
-  // DevTools рахуємо з suspiciousEvents якщо є
-  const devtools = (a.suspiciousEvents || []).filter(e => e.type === "devtools").length;
-  return tabs * 3 + copies * 2 + shots * 5 + devtools * 4;
-}
-
-// Рівень: 0 — нормальний, 1 — середній (помаранч.), 2 — високий (червоний)
-function suspLevel(score){
-  if(score >= 15) return 2;
-  if(score >= 5)  return 1;
-  return 0;
-}
-
-// Малює бейджики і рівень картки хірургічно
-function renderSuspBadges(el, a){
-  const tabs   = a.tabSwitches  || 0;
-  const copies = a.copyAttempts || 0;
-  const shots  = a.screenshots  || 0;
-  const score  = calcSuspScore(a);
-  const level  = suspLevel(score);
-
-  // Клас рівня на картці
-  const prev = el.dataset.suspLevel || "0";
-  const cur  = String(level);
-  if(prev !== cur){
-    el.dataset.suspLevel = cur;
-    el.classList.remove("susp-mid", "susp-high");
-    if(level === 1) el.classList.add("susp-mid");
-    if(level === 2) el.classList.add("susp-high");
-  }
-
-  // Бейджики
-  const row = el.querySelector("[data-susp]");
-  if(!row) return;
-
-  function syncBadge(key, count, icon, label){
-    let bdg = row.querySelector(`[data-key="${key}"]`);
-    if(count === 0){ if(bdg) bdg.remove(); return; }
-    if(!bdg){
-      bdg = document.createElement("span");
-      bdg.className = "susp-bdg";
-      bdg.dataset.key = key;
-      row.appendChild(bdg);
-    }
-    const text = `${icon} ${count}`;
-    if(bdg.textContent !== text) bdg.textContent = text;
-    // Оновлюємо title для hover підказки
-    bdg.title = `${label}: ${count}`;
-  }
-
-  syncBadge("tabs",   tabs,   "Вкладки:", "Вкладки");
-  syncBadge("copies", copies, "Копіювання:", "Копіювання");
-  syncBadge("shots",  shots,  "Скріншоти:", "Скріншоти");
-
-  row.classList.toggle("visible", level > 0);
-}
-
-// ─── Окремий таймер ТІЛЬКИ для тривалості — не торкається нічого іншого ───
-let _lastAttempts = {};
-setInterval(() => {
-  const grid = document.getElementById("grid-active");
-  grid.querySelectorAll(".student-card[data-id]").forEach(el => {
-    const id = el.dataset.id;
-    const a = _lastAttempts[id];
-    if(!a || !a.startedAt) return;
-    const dur = el.querySelector(".meta-item");
-    if(dur){
-      const txt = formatDuration(Date.now() - a.startedAt);
-      // Оновлюємо лише текстовий вузол, не торкаємось SVG
-      const nodes = dur.childNodes;
-      for(let i = 0; i < nodes.length; i++){
-        if(nodes[i].nodeType === 3 && nodes[i].textContent.trim()){
-          nodes[i].textContent = "\n        " + txt + "\n      ";
-          break;
-        }
-      }
-    }
-  });
-}, 1000);
-
-// ─── Init ──────────────────────────────────────────────────────────────────
-(async () => {
-  await loadTests();
-
-  // Real-time підписка на зміни спроб викладача
-  onValue(ref(db, `teachers/${_tuid}/attempts`), (snap) => {
+  _currentRef = ref(db, `teachers/${uid}/attempts`);
+  _currentSub = onValue(_currentRef, (snap) => {
     _lastAttempts = snap.val() || {};
     render(_lastAttempts);
-    const loader = document.getElementById("loader");
-    loader.classList.add("hiding");
-    setTimeout(() => loader.style.display = "none", 400);
+    document.getElementById("loader").style.display = "none";
   }, (err) => {
     console.error("Live subscription error:", err);
-    const loader = document.getElementById("loader");
-    loader.classList.add("hiding");
-    setTimeout(() => loader.style.display = "none", 400);
+    document.getElementById("loader").style.display = "none";
   });
+}
+
+// ─── Admin tabs ─────────────────────────────────────────────────────
+window.switchTab = async function(which){
+  const mineBtn = document.getElementById("tab-mine");
+  const othersBtn = document.getElementById("tab-others");
+  const searchWrap = document.getElementById("search-wrap");
+
+  if(which === "mine"){
+    mineBtn.classList.add("active");
+    othersBtn.classList.remove("active");
+    searchWrap.style.display = "none";
+    document.getElementById("search-results").style.display = "none";
+    if(_activeUid !== _myUid){
+      await subscribeToTeacher(_myUid, _myName);
+    }
+  } else {
+    othersBtn.classList.add("active");
+    mineBtn.classList.remove("active");
+    searchWrap.style.display = "block";
+    document.getElementById("search-input").focus();
+
+    if(_activeUid === _myUid){
+      if(_currentRef && _currentSub){
+        off(_currentRef, "value", _currentSub);
+        _currentRef = null; _currentSub = null;
+      }
+      _lastAttempts = {};
+      _activeUid = null;
+      render({});
+      document.getElementById("stat-active").textContent = 0;
+      document.getElementById("watching-pill").classList.remove("show");
+      const empty = document.getElementById("empty");
+      empty.style.display = "block";
+      document.getElementById("empty-title").textContent = "Виберіть викладача";
+      document.getElementById("empty-text").textContent = "Почніть вводити ПІБ у полі пошуку вище та натисніть на викладача у списку";
+    }
+  }
+};
+
+// ─── Search teachers ────────────────────────────────────────────────
+let _allTeachers = [];
+let _teachersLoaded = false;
+
+async function loadAllTeachers(){
+  if(_teachersLoaded) return;
+  try {
+    const snap = await get(ref(db, "users"));
+    if(!snap.exists()){ _teachersLoaded = true; return; }
+    const users = snap.val();
+    _allTeachers = Object.entries(users)
+      .map(([id, u]) => ({
+        id,
+        name: (u && u.name) || "",
+        login: (u && u.login) || "",
+        role: (u && u.role) || "",
+        blocked: !!(u && u.blocked)
+      }))
+      .filter(u => u.id && u.id !== _myUid && u.role !== "admin" && !u.blocked)
+      .sort((a,b) => (a.name || a.login).localeCompare(b.name || b.login, "uk"));
+    _teachersLoaded = true;
+  } catch(e){
+    console.error("loadAllTeachers:", e);
+  }
+}
+
+function searchTeachers(q){
+  q = (q || "").trim().toLowerCase();
+  const resBox = document.getElementById("search-results");
+  if(!q){
+    resBox.style.display = "none";
+    return;
+  }
+  const matches = _allTeachers.filter(t =>
+    (t.name || "").toLowerCase().includes(q) ||
+    (t.login || "").toLowerCase().includes(q)
+  ).slice(0, 12);
+
+  if(matches.length === 0){
+    resBox.innerHTML = `<div class="tcr-empty">Нікого не знайдено</div>`;
+  } else {
+    resBox.innerHTML = matches.map(t => {
+      const display = t.name || t.login;
+      const init = display.split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase();
+      return `<div class="tcr-item" data-uid="${t.id}" data-name="${esc(display)}">
+        <div class="tcr-ava">${init}</div>
+        <div class="tcr-name">${esc(display)}</div>
+      </div>`;
+    }).join("");
+    resBox.querySelectorAll(".tcr-item").forEach(el => {
+      el.addEventListener("click", () => {
+        const uid = el.getAttribute("data-uid");
+        // декодуємо з HTML-entities назад
+        const tmp = document.createElement("textarea");
+        tmp.innerHTML = el.getAttribute("data-name");
+        const name = tmp.value;
+        pickTeacher(uid, name);
+      });
+    });
+  }
+  resBox.style.display = "block";
+}
+
+async function pickTeacher(uid, name){
+  document.getElementById("search-input").value = "";
+  document.getElementById("search-clear").style.display = "none";
+  document.getElementById("search-results").style.display = "none";
+  await subscribeToTeacher(uid, name);
+}
+
+window.clearSearch = function(){
+  const inp = document.getElementById("search-input");
+  inp.value = "";
+  inp.focus();
+  document.getElementById("search-clear").style.display = "none";
+  document.getElementById("search-results").style.display = "none";
+};
+
+function initSearchHandlers(){
+  const inp = document.getElementById("search-input");
+  const clr = document.getElementById("search-clear");
+  if(!inp) return;
+  inp.addEventListener("input", e => {
+    const v = e.target.value;
+    clr.style.display = v ? "inline-flex" : "none";
+    searchTeachers(v);
+  });
+  inp.addEventListener("focus", async () => {
+    await loadAllTeachers();
+    if(inp.value) searchTeachers(inp.value);
+  });
+  document.addEventListener("click", e => {
+    const wrap = document.getElementById("search-wrap");
+    if(wrap && !wrap.contains(e.target)){
+      document.getElementById("search-results").style.display = "none";
+    }
+  });
+}
+
+// ─── Refresh timer — оновлюємо тривалість кожні 10с ─────────────────
+setInterval(() => {
+  if(_activeUid && Object.keys(_lastAttempts).length > 0) render(_lastAttempts);
+}, 10000);
+
+// ─── Init ────────────────────────────────────────────────────────────
+(async () => {
+  initSearchHandlers();
+  // Стартово підписуємось на свого (адмін теж починає зі свого)
+  await subscribeToTeacher(_myUid, _myName);
 })();
 </script>
 </body>
