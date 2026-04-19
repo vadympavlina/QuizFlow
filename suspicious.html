@@ -8,9 +8,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
-<link rel="modulepreload" href="shared/app.js?v=7">
+<link rel="modulepreload" href="shared/app.js?v=8">
 <link rel="preload" as="fetch" href="shared/layout.html" crossorigin>
-<link rel="preload" as="fetch" href="shared/features.js?v=7" crossorigin>
+<link rel="modulepreload" href="shared/features.js?v=8">
 </head>
 <body>
 
@@ -53,8 +53,11 @@
 
 <script type="module">
 // Паралельне завантаження: features.js починає качатись одразу, не чекає initApp
-const featuresP = import("./shared/features.js?v=7");
-const { initApp } = await import("./shared/app.js?v=7");
+// Спочатку app.js (щоб вставити window._fb і іншу базу),
+// потім features.js (він читає з window._fb).
+// Preload у <head> вже починає завантаження обох паралельно — тут тільки execute order.
+const { initApp } = await import("./shared/app.js?v=8");
+const featuresP = import("./shared/features.js?v=8");
 
 // showSec: залишаємось на сторінці якщо це та сама; інакше — йдемо на відповідний html
 window.showSec = function(name){
