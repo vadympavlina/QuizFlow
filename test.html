@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%230d9e85'/><stop offset='1' stop-color='%23077a67'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='8' y='6' width='16' height='20' rx='2' fill='white' opacity='.9'/><rect x='11' y='10' width='10' height='1.8' rx='.9' fill='%230d9e85'/><rect x='11' y='14' width='7' height='1.8' rx='.9' fill='%230d9e85'/><polyline points='10,20 13,23 20,17' fill='none' stroke='%230d9e85' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <title>QuizFlow — Тест</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -2737,13 +2738,24 @@ async function generatePersonalErrorAnalysis(answers, questions, score){
 }
 
 // ─── DOWNLOAD ─────────────────────────────────────────────────────────────────
-document.getElementById("downloadBtn")?.addEventListener("click", () => {
+document.getElementById("downloadBtn")?.addEventListener("click", async () => {
   if (!resultData) return;
+
   const html = generateResultHTML(resultData);
   const name = `${resultData.student.name}_${resultData.student.surname}_result.html`;
-  downloadHTML(html, name);
-});
 
+  const zip = new JSZip();
+  zip.file(name, html);
+
+  const blob = await zip.generateAsync({ type: "blob" });
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name.replace(".html", ".zip");
+  a.click();
+  URL.revokeObjectURL(url);
+});
 document.getElementById("closeTestBtn")?.addEventListener("click", () => {
   // Спробуємо закрити вкладку, якщо не вдасться — показуємо повідомлення
   try {
