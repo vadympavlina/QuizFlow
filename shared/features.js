@@ -71,7 +71,7 @@ const dbUpd  = async (path, val) => { const r = await update(ref(db, tp(path)), 
 const dbDel  = async path => { const r = await remove(ref(db, tp(path))); _bust(); return r; };
 
 // Стан (деякі модалки/функції з G використовують ці змінні)
-let _students = [], _fid = null, _pid = null;
+let _students = [], _fid = null, _pid = null, _stGroupFilter = "";
 
 async function loadStoredNotifs(){
   try {
@@ -1435,7 +1435,7 @@ window.G = {
 
   selectStFilter(value, label){
     document.getElementById("cd-st-group-label").textContent=label;
-    document.getElementById("st-group").value=value;
+    _stGroupFilter = value;
     const menu=document.getElementById("cd-st-group-menu");
     menu?.querySelectorAll(".cd-item").forEach(el=>el.classList.toggle("cd-active",el.dataset.val===value));
     menu?.classList.remove("open");
@@ -1447,7 +1447,7 @@ window.G = {
     const body=document.getElementById("students-body");
     if(!body) return;
     const q=(document.getElementById("student-srch")?.value||"").toLowerCase().trim();
-    const grp=document.getElementById("st-group")?.value||"";
+    const grp=_stGroupFilter||"";
 
     let list=[..._students];
     if(q) list=list.filter(s=>(s.name+" "+s.surname).toLowerCase().includes(q)||(s.surname+" "+s.name).toLowerCase().includes(q));
@@ -2778,7 +2778,7 @@ window.G = {
     const l=links.find(x=>x.id===linkId);
     if(l?.group){
       const sel=document.getElementById("st-group");
-      if(sel) sel.value=l.group;
+      _stGroupFilter = l.group;
       const lbl=document.getElementById("cd-st-group-label");
       if(lbl) lbl.textContent=l.group;
     }
