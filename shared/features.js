@@ -697,11 +697,11 @@ fillSelects = function(){
 
 // ─── ATTEMPTS SORT + SELECT ──────────────────────────────────────────────────
 let _attSort = { field: "date", dir: "desc" };
-let _attPage = 1;
+window._attPage = 1;
 const ATT_PER_PAGE = 20;
 
 renderAttempts = function(resetPage=false){
-  if(resetPage) _attPage=1;
+  if(resetPage) window._attPage=1;
   const tF=$("ft")?.value||"",sF=$("fst")?.value||"",gF=$("fg")?.value||"",grpF=$("fgrp")?.value||"";
   const q=($("att-srch")?.value||"").toLowerCase().trim();
   // Показуємо/ховаємо кнопку очистки
@@ -745,8 +745,8 @@ renderAttempts = function(resetPage=false){
 
   // Пагінація
   const totalPages = Math.max(1, Math.ceil(lst.length / ATT_PER_PAGE));
-  if(_attPage > totalPages) _attPage = totalPages;
-  const pageStart = (_attPage - 1) * ATT_PER_PAGE;
+  if(window._attPage > totalPages) window._attPage = totalPages;
+  const pageStart = (window._attPage - 1) * ATT_PER_PAGE;
   const pageLst = lst.slice(pageStart, pageStart + ATT_PER_PAGE);
 
   // Рендер пагінації
@@ -754,7 +754,7 @@ renderAttempts = function(resetPage=false){
   if(totalPages > 1){
     const pages = [];
     for(let p = 1; p <= totalPages; p++){
-      if(p === 1 || p === totalPages || Math.abs(p - _attPage) <= 1){
+      if(p === 1 || p === totalPages || Math.abs(p - window._attPage) <= 1){
         pages.push(p);
       } else if(pages[pages.length-1] !== "..."){
         pages.push("...");
@@ -764,7 +764,7 @@ renderAttempts = function(resetPage=false){
       <button class="btn bs btn-sm" onclick="_attPage=Math.max(1,_attPage-1);renderAttempts()" style="font-size:12px;padding:5px 10px" ${_attPage===1?"disabled":""}>‹</button>
       ${pages.map(p => p === "..." 
         ? `<span style="color:var(--muted);font-size:13px;padding:0 4px">...</span>`
-        : `<button onclick="_attPage=${p};renderAttempts()" style="min-width:30px;height:30px;border-radius:8px;border:1.5px solid ${p===_attPage?"var(--primary)":"var(--border)"};background:${p===_attPage?"var(--primary)":"white"};color:${p===_attPage?"white":"var(--text)"};font-size:13px;font-weight:${p===_attPage?"600":"400"};cursor:pointer">${p}</button>`
+        : `<button onclick="_attPage=${p};renderAttempts()" style="min-width:30px;height:30px;border-radius:8px;border:1.5px solid ${p===window._attPage?"var(--primary)":"var(--border)"};background:${p===window._attPage?"var(--primary)":"white"};color:${p===window._attPage?"white":"var(--text)"};font-size:13px;font-weight:${p===window._attPage?"600":"400"};cursor:pointer">${p}</button>`
       ).join("")}
       <button class="btn bs btn-sm" onclick="_attPage=Math.min(${totalPages},_attPage+1);renderAttempts()" style="font-size:12px;padding:5px 10px" ${_attPage===totalPages?"disabled":""}>›</button>
       <span style="font-size:12px;color:var(--muted);margin-left:4px">${pageStart+1}–${Math.min(pageStart+ATT_PER_PAGE,lst.length)} з ${lst.length}</span>
