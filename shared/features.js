@@ -71,7 +71,7 @@ const dbUpd  = async (path, val) => { const r = await update(ref(db, tp(path)), 
 const dbDel  = async path => { const r = await remove(ref(db, tp(path))); _bust(); return r; };
 
 // Стан (деякі модалки/функції з G використовують ці змінні)
-let _students = [], _fid = null, _pid = null, _stGroupFilter = "";
+let _students = [], _fid = null, _pid = null;
 
 async function loadStoredNotifs(){
   try {
@@ -418,53 +418,204 @@ let _fFilter = "all";
 function setFolderFilter(v){ _fFilter=v; renderTests(document.getElementById("srch")?.value||""); }
 
 
-function buildTestRow(t){
-  const cnt=attempts.filter(a=>a.testId===t.id).length;
-  const statusMap={
-    active: {dot:"sa", label:"Активний", badge:"bg-g"},
-    draft:  {dot:"sdr",label:"Чернетка", badge:""},
-    closed: {dot:"sdc",label:"Закрито",  badge:"bg-r"}
+// Палітра для превью карток тестів (по черзі якщо немає теми)
+const _testPalette = [
+  ["#a8c8f8","#c9b8f5","#6b9ef0"],  // блакитно-фіолетовий
+  ["#b8f0e0","#a0e8d0","#5dd4b0"],  // зелений
+  ["#ffd6a0","#ffb8b8","#ff9a6c"],  // помаранчевий
+  ["#f5b8d8","#e8a0f0","#d06bc0"],  // рожево-фіолетовий
+  ["#a0d8f8","#b8eaf8","#5bb8e8"],  // блакитний
+  ["#c8f0a0","#e8f8b0","#8acc50"],  // жовто-зелений
+];
+
+function _testThemeGradient(t, idx){
+  const theme = t.theme||"";
+  if(theme==="ocean")   return "linear-gradient(135deg,#7ec8e3,#0ea5e9)";
+  if(theme==="forest")  return "linear-gradient(135deg,#6ee7b7,#16a34a)";
+  if(theme==="sunset")  return "linear-gradient(135deg,#fca5a5,#ea580c)";
+  if(theme==="midnight")return "linear-gradient(135deg,#818cf8,#1e1b4b)";
+  if(theme==="default") return "linear-gradient(135deg,#6b9ef0,#2d5be3)";
+  const p = _testPalette[idx % _testPalette.length];
+  return `linear-gradient(135deg,${p[0]},${p[1]})`;
+}
+
+function _testAbbr(title){
+  const words = title.trim().split(/\s+/);
+  if(words.length===1) return title.substring(0,3).toUpperCase();
+  return words.slice(0,3).map(w=>w[0]).join("").toUpperCase();
+}
+
+// Картка тесту (грід вю)
+function buildTestCard(t, idx){
+  const cnt = attempts.filter(a=>a.testId===t.id).length;
+  const passed = attempts.filter(a=>a.testId===t.id && (a.grade12||0)>=4).length;
+  const allGrades = attempts.filter(a=>a.testId===t.id && a.grade12!=null).map(a=>a.grade12);
+  const avgPct = allGrades.length ? Math.round(allGrades.reduce((s,g)=>s+g,0)/allGrades.length/12*100) : null;
+  const qCnt = (t.questions||[]).length;
+  const timeLimit = t.timeLimit ? `${t.timeLimit} хв` : null;
+  const grad = _testThemeGradient(t, idx);
+  const abbr = _testAbbr(t.title);
+
+  const statusCfg = {
+    active: {label:"Активний", bg:"rgba(13,158,133,.12)", color:"#0d9e85", dot:"#0d9e85"},
+    draft:  {label:"Чернетка", bg:"rgba(245,158,11,.12)",  color:"#b45309", dot:"#f59e0b"},
+    closed: {label:"Закритий", bg:"rgba(244,63,94,.12)",   color:"#be123c", dot:"#f43f5e"},
   };
-  const s=statusMap[t.status]||statusMap.draft;
-  const qCnt=(t.questions||[]).length;
+  const sc = statusCfg[t.status]||statusCfg.draft;
+  const dateStr = t.createdAt ? new Date(t.createdAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short"}) : "";
+
+  return `<div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;overflow:hidden;transition:all .2s;display:flex;flex-direction:column"
+    onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 36px rgba(45,91,227,.1)';this.style.borderColor='rgba(45,91,227,.18)'"
+    onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'">
+    <!-- Превью -->
+    <div style="height:140px;background:${grad};position:relative;overflow:hidden;cursor:pointer" onclick="location.href='constructor.html?id=${t.id}'">
+      <!-- Декоративні кола -->
+      <div style="position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.12);top:-30px;right:-20px"></div>
+      <div style="position:absolute;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.08);bottom:-20px;left:20px"></div>
+      <!-- Статус бейдж -->
+      <div style="position:absolute;top:12px;right:12px;display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px)">
+        <span style="width:6px;height:6px;border-radius:50%;background:${sc.dot};flex-shrink:0"></span>
+        <span style="font-size:11px;font-weight:600;color:${sc.color}">${sc.label}</span>
+      </div>
+      <!-- Абревіатура -->
+      <div style="position:absolute;bottom:14px;left:16px;font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:rgba(255,255,255,.9);letter-spacing:-1px;text-shadow:0 2px 8px rgba(0,0,0,.15)">${abbr}</div>
+    </div>
+    <!-- Контент -->
+    <div style="padding:16px 18px;flex:1;display:flex;flex-direction:column;gap:10px">
+      <!-- Назва -->
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;line-height:1.3;cursor:pointer;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical"
+        onclick="location.href='constructor.html?id=${t.id}'">${esc(t.title)}</div>
+      <!-- Метадані -->
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          ${qCnt} пит.
+        </span>
+        ${timeLimit?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ${timeLimit}
+        </span>`:""}
+      </div>
+      <!-- Статистика -->
+      <div style="display:flex;gap:20px;padding-top:4px;border-top:1px solid var(--border)">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;line-height:1">${cnt}</div>
+          <div style="font-size:10px;color:var(--muted);letter-spacing:.5px;margin-top:2px">СПРОБ</div>
+        </div>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;line-height:1">${passed}</div>
+          <div style="font-size:10px;color:var(--muted);letter-spacing:.5px;margin-top:2px">ЗДАЛИ</div>
+        </div>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;line-height:1;color:${avgPct!=null?(avgPct>=70?"#0d9e85":avgPct>=40?"#2d5be3":"#f43f5e"):"var(--muted)"}">${avgPct!=null?avgPct+"%":"—"}</div>
+          <div style="font-size:10px;color:var(--muted);letter-spacing:.5px;margin-top:2px">СЕРЕДНІЙ</div>
+        </div>
+      </div>
+    </div>
+    <!-- Футер -->
+    <div style="padding:11px 18px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(45,91,227,.015)">
+      <span style="font-size:12px;color:var(--muted)">${dateStr?"Створено "+dateStr:""}</span>
+      <div style="display:flex;align-items:center;gap:4px">
+        <button onclick="location.href='constructor.html?id=${t.id}'" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:9px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:500;cursor:pointer;color:var(--text);transition:all .15s"
+          onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Редагувати
+        </button>
+        <!-- Більше дій -->
+        <div style="position:relative;display:inline-block">
+          <button onclick="event.stopPropagation();G._toggleTestMenu('${t.id}')"
+            style="width:30px;height:30px;border-radius:9px;border:1.5px solid var(--border);background:#fff;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;transition:all .15s"
+            onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
+            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/></svg>
+          </button>
+          <div id="tmenu-${t.id}" style="display:none;position:absolute;bottom:calc(100% + 4px);right:0;min-width:170px;background:#fff;border:1.5px solid var(--border);border-radius:13px;box-shadow:0 8px 28px rgba(45,91,227,.12);z-index:150;overflow:hidden">
+            <div onclick="G.qLink('${t.id}')" style="display:flex;align-items:center;gap:9px;padding:10px 14px;font-size:13px;cursor:pointer;color:var(--text);transition:background .12s"
+              onmouseover="this.style.background='rgba(45,91,227,.05)'" onmouseout="this.style.background=''">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+              Нове посилання
+            </div>
+            <div onclick="G.toggleTestStatus('${t.id}','${t.status}')" style="display:flex;align-items:center;gap:9px;padding:10px 14px;font-size:13px;cursor:pointer;color:var(--text);transition:background .12s"
+              onmouseover="this.style.background='rgba(45,91,227,.05)'" onmouseout="this.style.background=''">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Змінити статус
+            </div>
+            <div onclick="G.showStats('${t.id}')" style="display:flex;align-items:center;gap:9px;padding:10px 14px;font-size:13px;cursor:pointer;color:var(--text);transition:background .12s"
+              onmouseover="this.style.background='rgba(45,91,227,.05)'" onmouseout="this.style.background=''">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              Статистика
+            </div>
+            <div onclick="G.openShareModal('${t.id}','${esc(t.title)}')" style="display:flex;align-items:center;gap:9px;padding:10px 14px;font-size:13px;cursor:pointer;color:var(--text);transition:background .12s"
+              onmouseover="this.style.background='rgba(45,91,227,.05)'" onmouseout="this.style.background=''">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              Поділитись
+            </div>
+            <div style="height:1px;background:var(--border);margin:2px 0"></div>
+            <div onclick="G.confDelTest('${t.id}','${esc(t.title)}')" style="display:flex;align-items:center;gap:9px;padding:10px 14px;font-size:13px;cursor:pointer;color:#be123c;transition:background .12s"
+              onmouseover="this.style.background='rgba(244,63,94,.05)'" onmouseout="this.style.background=''">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+              Видалити
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// Рядок тесту (список вю) — компактний
+function buildTestRow(t, idx){
+  const cnt = attempts.filter(a=>a.testId===t.id).length;
+  const passed = attempts.filter(a=>a.testId===t.id && (a.grade12||0)>=4).length;
+  const allGrades = attempts.filter(a=>a.testId===t.id && a.grade12!=null).map(a=>a.grade12);
+  const avgPct = allGrades.length ? Math.round(allGrades.reduce((s,g)=>s+g,0)/allGrades.length/12*100) : null;
+  const qCnt = (t.questions||[]).length;
+  const grad = _testThemeGradient(t, idx||0);
+  const abbr = _testAbbr(t.title);
+  const dateStr = t.createdAt ? new Date(t.createdAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short"}) : "";
+
+  const statusCfg = {
+    active: {label:"Активний", bg:"rgba(13,158,133,.1)", color:"#0d9e85", dot:"#0d9e85"},
+    draft:  {label:"Чернетка", bg:"rgba(245,158,11,.1)",  color:"#b45309", dot:"#f59e0b"},
+    closed: {label:"Закритий", bg:"rgba(244,63,94,.1)",   color:"#be123c", dot:"#f43f5e"},
+  };
+  const sc = statusCfg[t.status]||statusCfg.draft;
 
   return`<tr style="transition:background .15s">
-    <td style="padding:14px 16px">
+    <td style="padding:13px 16px">
       <div style="display:flex;align-items:center;gap:12px">
-        <div style="width:36px;height:36px;border-radius:10px;background:rgba(45,91,227,.07);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">📄</div>
+        <div style="width:42px;height:42px;border-radius:12px;background:${grad};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;color:rgba(255,255,255,.95);letter-spacing:-.5px;position:relative;overflow:hidden">
+          <div style="position:absolute;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.1);top:-10px;right:-10px"></div>
+          <span style="position:relative">${abbr}</span>
+        </div>
         <div style="min-width:0">
-          <div style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px">${esc(t.title)}</div>
-          ${t.description?`<div style="font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px">${esc(t.description.substring(0,60))}${t.description.length>60?"…":""}</div>`:""}
-          ${(t.tags||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${t.tags.map(g=>`<span class="tag tb" style="font-size:11px;padding:2px 8px">${esc(g)}</span>`).join("")}</div>`:""}
+          <div style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px">${esc(t.title)}</div>
+          ${t.description?`<div style="font-size:12px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px">${esc(t.description.substring(0,60))}${t.description.length>60?"…":""}</div>`:""}
         </div>
       </div>
     </td>
-    <td style="padding:14px 16px;white-space:nowrap">
-      <div style="position:relative;display:inline-block">
-        <button onclick="G.toggleTestStatus('${t.id}','${t.status}')"
-          style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:20px;border:1.5px solid ${t.status==="active"?"rgba(13,158,133,.2)":t.status==="closed"?"rgba(244,63,94,.15)":"rgba(107,114,128,.15)"};background:${t.status==="active"?"rgba(13,158,133,.07)":t.status==="closed"?"rgba(244,63,94,.05)":"rgba(107,114,128,.05)"};cursor:pointer;transition:all .15s"
-          title="Змінити статус"
-          onmouseover="this.style.opacity='.75'"
-          onmouseout="this.style.opacity='1'">
-          <span class="sd ${s.dot}" style="flex-shrink:0"></span>
-          <span style="font-size:13px;font-weight:500;color:${t.status==="active"?"#0d9e85":t.status==="closed"?"#be123c":"var(--muted)"}">${s.label}</span>
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:${t.status==="active"?"#0d9e85":t.status==="closed"?"#be123c":"var(--muted)"}"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-      </div>
+    <td style="padding:13px 16px;white-space:nowrap">
+      <button onclick="G.toggleTestStatus('${t.id}','${t.status}')"
+        style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:none;background:${sc.bg};cursor:pointer;transition:all .15s"
+        onmouseover="this.style.opacity='.75'" onmouseout="this.style.opacity='1'">
+        <span style="width:6px;height:6px;border-radius:50%;background:${sc.dot};flex-shrink:0"></span>
+        <span style="font-size:12px;font-weight:600;color:${sc.color}">${sc.label}</span>
+      </button>
     </td>
-    <td style="padding:14px 16px;white-space:nowrap">
-      <div style="display:flex;align-items:center;gap:6px">
-        <span style="font-size:14px;font-weight:600;color:var(--text)">${qCnt}</span>
-        <span style="font-size:12px;color:var(--muted)">${qCnt===1?"питання":qCnt<5?"питань":"питань"}</span>
-      </div>
+    <td style="padding:13px 16px;white-space:nowrap">
+      <span style="font-size:14px;font-weight:600">${qCnt}</span>
+      <span style="font-size:12px;color:var(--muted);margin-left:3px">пит.</span>
     </td>
-    <td style="padding:14px 16px;white-space:nowrap">
-      <div style="display:flex;align-items:center;gap:6px">
-        <span style="font-size:14px;font-weight:600;color:${cnt>0?"var(--primary)":"var(--muted)"}">${cnt}</span>
-        <span style="font-size:12px;color:var(--muted)">${cnt===1?"спроба":cnt<5?"спроби":"спроб"}</span>
-      </div>
+    <td style="padding:13px 16px;white-space:nowrap">
+      <span style="font-size:14px;font-weight:600;color:${cnt>0?"var(--primary)":"var(--muted)"}">${cnt}</span>
+      <span style="font-size:12px;color:var(--muted);margin-left:3px">спроб</span>
     </td>
-    <td style="padding:14px 16px">
+    <td style="padding:13px 16px;white-space:nowrap">
+      <span style="font-size:14px;font-weight:600;color:${avgPct!=null?(avgPct>=70?"#0d9e85":avgPct>=40?"#2d5be3":"#f43f5e"):"var(--muted)"}">${avgPct!=null?avgPct+"%":"—"}</span>
+    </td>
+    <td style="padding:13px 16px;font-size:12px;color:var(--muted);white-space:nowrap">${dateStr?"Створено "+dateStr:""}</td>
+    <td style="padding:13px 16px">
       <div class="ra">
         <div class="ib" title="Редагувати" onclick="location.href='constructor.html?id=${t.id}'">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -474,9 +625,6 @@ function buildTestRow(t){
         </div>
         <div class="ib" title="Статистика" onclick="G.showStats('${t.id}')">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        </div>
-        <div class="ib" title="Спроби" onclick="showSec('attempts');$('ft').value='${t.id}';G.rAttempts()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         </div>
         <div class="ib" title="Поділитись" onclick="G.openShareModal('${t.id}','${esc(t.title)}')">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -489,6 +637,11 @@ function buildTestRow(t){
   </tr>`;
 }
 
+// Стан вью: 'grid' або 'list'
+window._testsView = window._testsView || "grid";
+// Стан фільтру статусу
+window._testsStatus = window._testsStatus || "";
+
 renderTests = function(q=""){
   const c=$("tc");
   if(!tests.length&&!folders.length){
@@ -496,103 +649,110 @@ renderTests = function(q=""){
     return;
   }
 
-  let lst=tests.filter(t=>t.status!=="archived");
-  if(q) lst=lst.filter(t=>t.title.toLowerCase().includes(q.toLowerCase())||(t.tags||[]).some(g=>g.toLowerCase().includes(q.toLowerCase())));
+  // Закриваємо всі відкриті меню
+  document.querySelectorAll("[id^='tmenu-']").forEach(m=>m.style.display="none");
 
-  const hasNoFolder=lst.some(t=>!t.folderId||!folders.find(f=>f.id===t.folderId));
-  const noFolderTests=lst.filter(t=>!t.folderId||!folders.find(f=>f.id===t.folderId));
+  let lst = tests.filter(t=>t.status!=="archived");
+  if(q) lst = lst.filter(t=>t.title.toLowerCase().includes(q.toLowerCase())||(t.tags||[]).some(g=>g.toLowerCase().includes(q.toLowerCase())));
 
-  // Якщо обрана конкретна папка — показуємо тести всередині неї
+  const hasNoFolder = lst.some(t=>!t.folderId||!folders.find(f=>f.id===t.folderId));
+  const noFolderTests = lst.filter(t=>!t.folderId||!folders.find(f=>f.id===t.folderId));
+
+  // ─── Вид конкретної папки ─────────────────────────────────────────────────
   if(_fFilter && _fFilter!=="all" && _fFilter!=="none"){
     const folder = folders.find(f=>f.id===_fFilter);
-    const fTests = lst.filter(t=>t.folderId===_fFilter);
+    let fTests = lst.filter(t=>t.folderId===_fFilter);
+    if(window._testsStatus) fTests = fTests.filter(t=>t.status===window._testsStatus);
+
+    const activeCnt = lst.filter(t=>t.folderId===_fFilter&&t.status==="active").length;
+    const draftCnt  = lst.filter(t=>t.folderId===_fFilter&&t.status==="draft").length;
+    const closedCnt = lst.filter(t=>t.folderId===_fFilter&&t.status==="closed").length;
+    const allCnt    = lst.filter(t=>t.folderId===_fFilter).length;
+
     c.innerHTML=`
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap">
         <button onclick="G.setFF('all')" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);transition:all .15s"
           onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
           onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-          Назад
+          Тести
         </button>
-        <div style="width:36px;height:36px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-        </div>
         <div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:17px">${esc(folder?.name||"Папка")}</div>
-          <div style="font-size:12px;color:var(--muted)">${fTests.length} тест${fTests.length===1?"":fTests.length<5?"и":"ів"}</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px">${esc(folder?.name||"Папка")}</div>
+          <div style="font-size:12px;color:var(--muted)">${allCnt} тест${allCnt===1?"":allCnt<5?"и":"ів"}</div>
         </div>
         <div style="margin-left:auto;display:flex;gap:8px">
-          <button onclick="G.openTestInFolder('${_fFilter}')" class="btn bp btn-sm" style="font-size:13px">+ Додати тест</button>
-          <button onclick="G.confDelFolder('${_fFilter}','${esc(folder?.name||"")}')" class="btn bd btn-sm" style="font-size:13px">Видалити папку</button>
+          <button onclick="G.openTestInFolder('${_fFilter}')" class="btn bp btn-sm">+ Додати тест</button>
+          <button onclick="G.confDelFolder('${_fFilter}','${esc(folder?.name||"")}')" class="btn bd btn-sm">Видалити папку</button>
         </div>
       </div>
-      ${fTests.length
-        ? `<div class="card" style="padding:0;overflow:hidden">
-            <table class="tbl">
-              <thead><tr><th style="padding:13px 16px">Назва</th><th>Статус</th><th>Питань</th><th>Спроб</th><th></th></tr></thead>
-              <tbody>${fTests.map(t=>buildTestRow(t)).join("")}</tbody>
-            </table>
-          </div>`
-        : `<div class="empty" style="padding:60px 20px">
-            <div class="ei">📂</div>
-            <div class="et">Папка порожня</div>
-            <p style="margin-top:8px;font-size:14px;color:var(--muted)">
-              <span style="color:var(--primary);cursor:pointer" onclick="G.openTestInFolder('${_fFilter}')">Додати перший тест →</span>
-            </p>
-          </div>`
-      }`;
+      ${_renderStatusBar(allCnt,activeCnt,draftCnt,closedCnt,true)}
+      ${_renderTestsContent(fTests, allCnt)}`;
     return;
   }
 
+  // ─── Вид "Без папки" ────────────────────────────────────────────────────
   if(_fFilter==="none"){
+    let nfTests = noFolderTests;
+    if(window._testsStatus) nfTests = nfTests.filter(t=>t.status===window._testsStatus);
+    const activeCnt = noFolderTests.filter(t=>t.status==="active").length;
+    const draftCnt  = noFolderTests.filter(t=>t.status==="draft").length;
+    const closedCnt = noFolderTests.filter(t=>t.status==="closed").length;
+
     c.innerHTML=`
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
         <button onclick="G.setFF('all')" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);transition:all .15s"
           onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
           onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-          Назад
+          Тести
         </button>
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:17px">Без папки</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px">Без папки</div>
       </div>
-      <div class="card" style="padding:0;overflow:hidden">
-        <table class="tbl">
-          <thead><tr><th style="padding:13px 16px">Назва</th><th>Статус</th><th>Питань</th><th>Спроб</th><th></th></tr></thead>
-          <tbody>${noFolderTests.map(t=>buildTestRow(t)).join("")}</tbody>
-        </table>
-      </div>`;
+      ${_renderStatusBar(noFolderTests.length,activeCnt,draftCnt,closedCnt,true)}
+      ${_renderTestsContent(nfTests, noFolderTests.length)}`;
     return;
   }
 
-  // ─── Головний вид: сітка папок ───────────────────────────────────────────
+  // ─── Головний вид: папки + тести ─────────────────────────────────────────
+  if(!lst.length && !folders.length){
+    c.innerHTML=`<div class="empty"><div class="ei">🔍</div><div class="et">Нічого не знайдено</div></div>`;
+    return;
+  }
+
+  const activeCnt = lst.filter(t=>t.status==="active").length;
+  const draftCnt  = lst.filter(t=>t.status==="draft").length;
+  const closedCnt = lst.filter(t=>t.status==="closed").length;
+
+  let filteredLst = lst;
+  if(window._testsStatus) filteredLst = lst.filter(t=>t.status===window._testsStatus);
+
+  // Папки (завжди у вигляді сітки)
+  const fallbacks = ["#2d5be3","#0d9e85","#9333ea","#f59e0b","#f43f5e","#0ea5e9"];
   const folderGrid = folders.map(f=>{
     const fTests = lst.filter(t=>t.folderId===f.id);
     const cnt = fTests.length;
-    const fallbacks = ["#2d5be3","#0d9e85","#9333ea","#f59e0b","#f43f5e","#0ea5e9"];
     const col = f.color || fallbacks[folders.indexOf(f)%fallbacks.length];
     return `<div style="background:white;border:1.5px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;transition:all .2s;position:relative"
       onclick="G.setFF('${f.id}')"
-      onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 36px rgba(0,0,0,.1)';this.style.borderColor='${col}44'"
+      onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 36px rgba(0,0,0,.1)';this.style.borderColor='${col}55'"
       onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'">
-      <!-- Кольоровий верх -->
-      <div style="height:80px;background:linear-gradient(135deg,${col}22,${col}0a);display:flex;align-items:center;justify-content:center;position:relative">
-        <div style="width:48px;height:48px;border-radius:14px;background:${col};display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px ${col}44">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+      <div style="height:76px;background:linear-gradient(135deg,${col}25,${col}0e);display:flex;align-items:center;justify-content:center;position:relative">
+        <div style="width:44px;height:44px;border-radius:13px;background:${col};display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px ${col}44">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
         </div>
-        <!-- Кнопки дій -->
-        <div style="position:absolute;top:8px;right:8px;display:flex;gap:4px;opacity:0;transition:opacity .2s" class="folder-actions">
+        <div style="position:absolute;top:7px;right:7px;display:flex;gap:3px;opacity:0;transition:opacity .2s" class="folder-actions">
           <button onclick="event.stopPropagation();G.openTestInFolder('${f.id}')" title="Додати тест"
-            style="width:26px;height:26px;border-radius:8px;border:none;background:rgba(255,255,255,.9);color:${col};cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;backdrop-filter:blur(4px)">+</button>
+            style="width:24px;height:24px;border-radius:7px;border:none;background:rgba(255,255,255,.92);color:${col};cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700">+</button>
           <button onclick="event.stopPropagation();G.confDelFolder('${f.id}','${esc(f.name)}')" title="Видалити"
-            style="width:26px;height:26px;border-radius:8px;border:none;background:rgba(255,255,255,.9);color:#be123c;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+            style="width:24px;height:24px;border-radius:7px;border:none;background:rgba(255,255,255,.92);color:#be123c;cursor:pointer;display:flex;align-items:center;justify-content:center">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
           </button>
         </div>
       </div>
-      <!-- Інфо -->
-      <div style="padding:14px 16px">
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px">${esc(f.name)}</div>
-        <div style="font-size:12px;color:var(--muted)">${cnt===0?"Порожня":cnt===1?"1 тест":cnt<5?`${cnt} тести`:`${cnt} тестів`}</div>
+      <div style="padding:13px 15px">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">${esc(f.name)}</div>
+        <div style="font-size:11px;color:var(--muted)">${cnt===0?"Порожня":cnt===1?"1 тест":cnt<5?`${cnt} тести`:`${cnt} тестів`}</div>
       </div>
     </div>`;
   }).join("");
@@ -601,30 +761,98 @@ renderTests = function(q=""){
     onclick="G.setFF('none')"
     onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 36px rgba(0,0,0,.1)'"
     onmouseout="this.style.transform='';this.style.boxShadow=''">
-    <div style="height:80px;background:rgba(107,114,128,.05);display:flex;align-items:center;justify-content:center">
-      <div style="width:48px;height:48px;border-radius:14px;background:rgba(107,114,128,.12);display:flex;align-items:center;justify-content:center">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    <div style="height:76px;background:rgba(107,114,128,.05);display:flex;align-items:center;justify-content:center">
+      <div style="width:44px;height:44px;border-radius:13px;background:rgba(107,114,128,.12);display:flex;align-items:center;justify-content:center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       </div>
     </div>
-    <div style="padding:14px 16px">
-      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:3px">Без папки</div>
-      <div style="font-size:12px;color:var(--muted)">${noFolderTests.length} тест${noFolderTests.length===1?"":noFolderTests.length<5?"и":"ів"}</div>
+    <div style="padding:13px 15px">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:2px">Без папки</div>
+      <div style="font-size:11px;color:var(--muted)">${noFolderTests.length} тест${noFolderTests.length===1?"":noFolderTests.length<5?"и":"ів"}</div>
     </div>
   </div>`:"";
 
-  if(!lst.length && !folders.length){
-    c.innerHTML=`<div class="empty"><div class="ei">🔍</div><div class="et">Нічого не знайдено</div></div>`;
-    return;
-  }
+  const hasFolders = folders.length>0 || hasNoFolder;
+  const hasTests = filteredLst.filter(t=>!t.folderId||!folders.find(f=>f.id===t.folderId)||window._testsStatus).length>0||filteredLst.filter(t=>t.folderId).length>0;
+
+  // Тести без папки у поточному фільтрі
+  const visibleTests = filteredLst;
 
   c.innerHTML=`
-    <style>
-      .folder-card:hover .folder-actions { opacity:1 !important; }
-    </style>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px">
-      ${folderGrid}
-      ${noFolderCard}
+    <style>.folder-card:hover .folder-actions{opacity:1!important}</style>
+    ${_renderStatusBar(lst.length, activeCnt, draftCnt, closedCnt, false)}
+    ${hasFolders && !window._testsStatus ? `
+      <div style="margin-bottom:20px">
+        <div style="font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--light);font-weight:500;margin-bottom:10px">Папки</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">
+          ${folderGrid}${noFolderCard}
+        </div>
+      </div>` : ""}
+    ${visibleTests.length ? `
+      <div>
+        <div style="font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--light);font-weight:500;margin-bottom:10px">Тести</div>
+        ${_renderTestsContent(visibleTests, visibleTests.length)}
+      </div>` :
+      (!window._testsStatus && !q && hasFolders ? "" : `<div class="empty" style="padding:60px 20px"><div class="ei">🔍</div><div class="et">Нічого не знайдено</div></div>`)
+    }`;
+}
+
+// Рендерить панель фільтрів статусу + перемикач вью
+function _renderStatusBar(total, activeCnt, draftCnt, closedCnt, showViewToggle){
+  const s = window._testsStatus||"";
+  const v = window._testsView||"grid";
+  return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;background:#fff;border:1.5px solid var(--border);border-radius:13px;padding:3px;gap:2px">
+      <button onclick="window._testsStatus='';renderTests(document.getElementById('srch')?.value||'')"
+        style="padding:5px 13px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s;background:${!s?"var(--primary)":"transparent"};color:${!s?"#fff":"var(--muted)"}">
+        Всі <span style="font-size:11px;opacity:.75">${total}</span>
+      </button>
+      <button onclick="window._testsStatus='active';renderTests(document.getElementById('srch')?.value||'')"
+        style="padding:5px 13px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s;background:${s==="active"?"var(--primary)":"transparent"};color:${s==="active"?"#fff":"var(--muted)"}">
+        Активні <span style="font-size:11px;opacity:.75">${activeCnt}</span>
+      </button>
+      <button onclick="window._testsStatus='draft';renderTests(document.getElementById('srch')?.value||'')"
+        style="padding:5px 13px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s;background:${s==="draft"?"var(--primary)":"transparent"};color:${s==="draft"?"#fff":"var(--muted)"}">
+        Чернетки <span style="font-size:11px;opacity:.75">${draftCnt}</span>
+      </button>
+      <button onclick="window._testsStatus='closed';renderTests(document.getElementById('srch')?.value||'')"
+        style="padding:5px 13px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s;background:${s==="closed"?"var(--primary)":"transparent"};color:${s==="closed"?"#fff":"var(--muted)"}">
+        Закриті <span style="font-size:11px;opacity:.75">${closedCnt}</span>
+      </button>
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:3px;gap:2px">
+      <button onclick="window._testsView='grid';renderTests(document.getElementById('srch')?.value||'')" title="Сітка"
+        style="width:32px;height:32px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;background:${v==="grid"?"var(--primary)":"transparent"};color:${v==="grid"?"#fff":"var(--muted)"}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      </button>
+      <button onclick="window._testsView='list';renderTests(document.getElementById('srch')?.value||'')" title="Список"
+        style="width:32px;height:32px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;background:${v==="list"?"var(--primary)":"transparent"};color:${v==="list"?"#fff":"var(--muted)"}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      </button>
+    </div>
+  </div>`;
+}
+
+// Рендерить самі тести (грід або список)
+function _renderTestsContent(lst, total){
+  if(!lst.length){
+    return`<div class="empty" style="padding:50px 20px"><div class="ei">📭</div><div class="et">Немає тестів</div></div>`;
+  }
+  if(window._testsView==="list"){
+    return`<div class="card" style="padding:0;overflow:hidden">
+      <table class="tbl">
+        <thead><tr>
+          <th style="padding:12px 16px">Назва</th>
+          <th>Статус</th><th>Питань</th><th>Спроб</th><th>Середній</th><th>Дата</th><th></th>
+        </tr></thead>
+        <tbody>${lst.map((t,i)=>buildTestRow(t,i)).join("")}</tbody>
+      </table>
     </div>`;
+  }
+  // Грід
+  return`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px">
+    ${lst.map((t,i)=>buildTestCard(t,i)).join("")}
+  </div>`;
 }
 
 
@@ -931,6 +1159,16 @@ async function callGroq(messages, maxTokens=800, temp=0.5){
 window.G = {
   // Folders
   setFF(v){ _fFilter=v; renderTests(document.getElementById("srch")?.value||""); },
+  _toggleTestMenu(id){
+    const menu=document.getElementById("tmenu-"+id);
+    if(!menu) return;
+    const isOpen=menu.style.display!=="none";
+    document.querySelectorAll("[id^='tmenu-']").forEach(m=>m.style.display="none");
+    if(!isOpen){
+      menu.style.display="block";
+      setTimeout(()=>{ const h=e=>{ if(!menu.contains(e.target)){menu.style.display="none";} document.removeEventListener("click",h); }; document.addEventListener("click",h); },0);
+    }
+  },
 
   toggleDrop(wrapId){
     const menu=document.getElementById(wrapId+"-menu");
@@ -1435,7 +1673,7 @@ window.G = {
 
   selectStFilter(value, label){
     document.getElementById("cd-st-group-label").textContent=label;
-    _stGroupFilter = value;
+    document.getElementById("st-group").value=value;
     const menu=document.getElementById("cd-st-group-menu");
     menu?.querySelectorAll(".cd-item").forEach(el=>el.classList.toggle("cd-active",el.dataset.val===value));
     menu?.classList.remove("open");
@@ -1447,7 +1685,7 @@ window.G = {
     const body=document.getElementById("students-body");
     if(!body) return;
     const q=(document.getElementById("student-srch")?.value||"").toLowerCase().trim();
-    const grp=_stGroupFilter||"";
+    const grp=document.getElementById("st-group")?.value||"";
 
     let list=[..._students];
     if(q) list=list.filter(s=>(s.name+" "+s.surname).toLowerCase().includes(q)||(s.surname+" "+s.name).toLowerCase().includes(q));
@@ -2778,7 +3016,7 @@ window.G = {
     const l=links.find(x=>x.id===linkId);
     if(l?.group){
       const sel=document.getElementById("st-group");
-      _stGroupFilter = l.group;
+      if(sel) sel.value=l.group;
       const lbl=document.getElementById("cd-st-group-label");
       if(lbl) lbl.textContent=l.group;
     }
