@@ -452,7 +452,7 @@ function buildTestCard(t, idx){
   const allGrades = attempts.filter(a=>a.testId===t.id && a.grade12!=null).map(a=>a.grade12);
   const avgPct = allGrades.length ? Math.round(allGrades.reduce((s,g)=>s+g,0)/allGrades.length/12*100) : null;
   const qCnt = (t.questions||[]).length;
-  const timeLimit = t.timeLimit ? `${t.timeLimit} хв` : null;
+  const timeLimit = t.timeLimit ? `${Math.round(t.timeLimit/60)} хв` : null;
   const grad = _testThemeGradient(t, idx);
   const abbr = _testAbbr(t.title);
 
@@ -478,12 +478,12 @@ function buildTestCard(t, idx){
         <span style="font-size:11px;font-weight:600;color:${sc.color}">${sc.label}</span>
       </div>
       <!-- Абревіатура -->
-      <div style="position:absolute;bottom:14px;left:16px;font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:rgba(255,255,255,.9);letter-spacing:-1px;text-shadow:0 2px 8px rgba(0,0,0,.15)">${abbr}</div>
+      <div style="position:absolute;bottom:14px;left:16px;font-family:'DM Sans',sans-serif;font-weight:800;font-size:26px;color:rgba(255,255,255,.9);letter-spacing:-1px;text-shadow:0 2px 8px rgba(0,0,0,.15)">${abbr}</div>
     </div>
     <!-- Контент -->
     <div style="padding:16px 18px;flex:1;display:flex;flex-direction:column;gap:10px">
       <!-- Назва -->
-      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;line-height:1.3;cursor:pointer;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical"
+      <div style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:15px;line-height:1.3;cursor:pointer;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical"
         onclick="location.href='constructor.html?id=${t.id}'">${esc(t.title)}</div>
       <!-- Метадані -->
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
@@ -499,15 +499,15 @@ function buildTestCard(t, idx){
       <!-- Статистика -->
       <div style="display:flex;gap:20px;padding-top:4px;border-top:1px solid var(--border)">
         <div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;line-height:1">${cnt}</div>
+          <div style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:18px;line-height:1">${cnt}</div>
           <div style="font-size:10px;color:var(--muted);letter-spacing:.5px;margin-top:2px">СПРОБ</div>
         </div>
         <div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;line-height:1">${passed}</div>
+          <div style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:18px;line-height:1">${passed}</div>
           <div style="font-size:10px;color:var(--muted);letter-spacing:.5px;margin-top:2px">ЗДАЛИ</div>
         </div>
         <div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;line-height:1;color:${avgPct!=null?(avgPct>=70?"#0d9e85":avgPct>=40?"#2d5be3":"#f43f5e"):"var(--muted)"}">${avgPct!=null?avgPct+"%":"—"}</div>
+          <div style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:18px;line-height:1;color:${avgPct!=null?(avgPct>=70?"#0d9e85":avgPct>=40?"#2d5be3":"#f43f5e"):"var(--muted)"}">${avgPct!=null?avgPct+"%":"—"}</div>
           <div style="font-size:10px;color:var(--muted);letter-spacing:.5px;margin-top:2px">СЕРЕДНІЙ</div>
         </div>
       </div>
@@ -585,7 +585,7 @@ function buildTestRow(t, idx){
   return`<tr style="transition:background .15s">
     <td style="padding:13px 16px">
       <div style="display:flex;align-items:center;gap:12px">
-        <div style="width:42px;height:42px;border-radius:12px;background:${grad};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;color:rgba(255,255,255,.95);letter-spacing:-.5px;position:relative;overflow:hidden">
+        <div style="width:42px;height:42px;border-radius:12px;background:${grad};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Sans',sans-serif;font-weight:800;font-size:12px;color:rgba(255,255,255,.95);letter-spacing:-.5px;position:relative;overflow:hidden">
           <div style="position:absolute;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.1);top:-10px;right:-10px"></div>
           <span style="position:relative">${abbr}</span>
         </div>
@@ -678,7 +678,7 @@ renderTests = function(q=""){
           Тести
         </button>
         <div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px">${esc(folder?.name||"Папка")}</div>
+          <div style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:18px">${esc(folder?.name||"Папка")}</div>
           <div style="font-size:12px;color:var(--muted)">${allCnt} тест${allCnt===1?"":allCnt<5?"и":"ів"}</div>
         </div>
         <div style="margin-left:auto;display:flex;gap:8px">
@@ -707,7 +707,7 @@ renderTests = function(q=""){
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
           Тести
         </button>
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px">Без папки</div>
+        <div style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:18px">Без папки</div>
       </div>
       ${_renderStatusBar(noFolderTests.length,activeCnt,draftCnt,closedCnt,true)}
       ${_renderTestsContent(nfTests, noFolderTests.length)}`;
@@ -751,7 +751,7 @@ renderTests = function(q=""){
         </div>
       </div>
       <div style="padding:13px 15px">
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">${esc(f.name)}</div>
+        <div style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">${esc(f.name)}</div>
         <div style="font-size:11px;color:var(--muted)">${cnt===0?"Порожня":cnt===1?"1 тест":cnt<5?`${cnt} тести`:`${cnt} тестів`}</div>
       </div>
     </div>`;
@@ -767,34 +767,19 @@ renderTests = function(q=""){
       </div>
     </div>
     <div style="padding:13px 15px">
-      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:2px">Без папки</div>
+      <div style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;margin-bottom:2px">Без папки</div>
       <div style="font-size:11px;color:var(--muted)">${noFolderTests.length} тест${noFolderTests.length===1?"":noFolderTests.length<5?"и":"ів"}</div>
     </div>
   </div>`:"";
 
   const hasFolders = folders.length>0 || hasNoFolder;
-  const hasTests = filteredLst.filter(t=>!t.folderId||!folders.find(f=>f.id===t.folderId)||window._testsStatus).length>0||filteredLst.filter(t=>t.folderId).length>0;
 
-  // Тести без папки у поточному фільтрі
-  const visibleTests = filteredLst;
-
+  // Головний вид — тільки папки, тести не показуємо
   c.innerHTML=`
     <style>.folder-card:hover .folder-actions{opacity:1!important}</style>
-    ${_renderStatusBar(lst.length, activeCnt, draftCnt, closedCnt, false)}
-    ${hasFolders && !window._testsStatus ? `
-      <div style="margin-bottom:20px">
-        <div style="font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--light);font-weight:500;margin-bottom:10px">Папки</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">
-          ${folderGrid}${noFolderCard}
-        </div>
-      </div>` : ""}
-    ${visibleTests.length ? `
-      <div>
-        <div style="font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--light);font-weight:500;margin-bottom:10px">Тести</div>
-        ${_renderTestsContent(visibleTests, visibleTests.length)}
-      </div>` :
-      (!window._testsStatus && !q && hasFolders ? "" : `<div class="empty" style="padding:60px 20px"><div class="ei">🔍</div><div class="et">Нічого не знайдено</div></div>`)
-    }`;
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">
+      ${folderGrid}${noFolderCard}
+    </div>`;
 }
 
 // Рендерить панель фільтрів статусу + перемикач вью
