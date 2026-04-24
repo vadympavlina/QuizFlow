@@ -908,119 +908,196 @@ fillSelects = function(){
 }
 
 
-// ─── ATTEMPTS SORT + SELECT ──────────────────────────────────────────────────
+// ─── ATTEMPTS SORT + PAGINATION STATE ──────────────────────────────────
 let _attSort = { field: "date", dir: "desc" };
 window._attPage = 1;
 const ATT_PER_PAGE = 20;
 
-renderAttempts = function(resetPage=false){
-  if(resetPage) window._attPage=1;
-  const tF=$("ft")?.value||"",sF=$("fst")?.value||"",gF=$("fg")?.value||"",grpF=$("fgrp")?.value||"";
-  const q=($("att-srch")?.value||"").toLowerCase().trim();
-  // Показуємо/ховаємо кнопку очистки
-  const clr=$("att-srch-clear");
-  if(clr) clr.style.display=q?"inline":"none";
-  let lst=attempts;
-  if(tF) lst=lst.filter(a=>a.testId===tF);
-  if(sF) lst=lst.filter(a=>a.status===sF);
-  if(gF==="high") lst=lst.filter(a=>(a.grade12||0)>=10);
-  if(gF==="mid")  lst=lst.filter(a=>(a.grade12||0)>=6&&(a.grade12||0)<10);
-  if(gF==="low")  lst=lst.filter(a=>(a.grade12||0)>0&&(a.grade12||0)<6);
-  if(grpF) lst=lst.filter(a=>{ const l=links.find(x=>x.id===a.linkId); return (l?.group||"")===grpF; });
-  if(q){
-    lst=lst.filter(a=>{
-      const fullName=`${a.name} ${a.surname}`.toLowerCase();
-      const testTitle=(tests.find(t=>t.id===a.testId)?.title||"").toLowerCase();
-      const group=(links.find(l=>l.id===a.linkId)?.group||"").toLowerCase();
-      return fullName.includes(q)||testTitle.includes(q)||group.includes(q)||
-             a.name.toLowerCase().includes(q)||a.surname.toLowerCase().includes(q);
+/ ─── renderAttempts (заміна) ───────────────────────────────────────────
+renderAttempts = function(resetPage = false){
+  if (resetPage) window._attPage = 1;
+
+  // Фільтри
+  const tF   = $("ft")?.value || "";
+  const grpF = $("fgrp")?.value || "";
+  const sF   = window._attStatus || "";  // "", "completed", "in_progress", "pending_review", "flagged"
+  const q    = ($("att-srch")?.value || "").toLowerCase().trim();
+
+  // Search-clear видимість (on input уже ставить has-q, але дублюємо для consistency)
+  const srchWrap = document.getElementById("att-srch-wrap");
+  if (srchWrap) srchWrap.classList.toggle("has-q", !!q);
+
+  // ── KPI stats: рахуємо завжди від ПОВНОГО списку attempts (не від filtered) ──
+  const totalCount = attempts.length;
+  const doneCount  = attempts.filter(a => a.status === "completed").length;
+  const progCount  = attempts.filter(a => a.status === "in_progress" || a.status === "pending_review").length;
+  const flagCount  = attempts.filter(a => _attViolation(a) > 0 && (a.status === "completed" || a.status === "pending_review")).length;
+  const completed  = attempts.filter(a => a.status === "completed" && a.score?.percent != null);
+  const avgPct     = completed.length ? Math.round(completed.reduce((s, a) => s + (a.score.percent || 0), 0) / completed.length) : null;
+  const liveCount  = attempts.filter(a => a.status === "in_progress").length;
+
+  const _setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  _setText("stat-total",   totalCount);
+  _setText("stat-done",    doneCount);
+  _setText("stat-inprog",  progCount);
+  _setText("stat-flagged", flagCount);
+  _setText("stat-avg",     avgPct != null ? avgPct + "%" : "—");
+
+  // Live chip
+  const chipEl  = document.getElementById("att-live-chip");
+  const chipCnt = document.getElementById("att-live-count");
+  if (chipEl){
+    if (liveCount > 0){
+      chipEl.style.display = "inline-flex";
+      if (chipCnt) chipCnt.textContent = liveCount;
+    } else {
+      chipEl.style.display = "none";
+    }
+  }
+
+  // ── Фільтрація ──
+  let lst = attempts;
+  if (tF)   lst = lst.filter(a => a.testId === tF);
+  if (grpF) lst = lst.filter(a => { const l = links.find(x => x.id === a.linkId); return (l?.group || "") === grpF; });
+  if (sF === "flagged")  lst = lst.filter(a => _attViolation(a) > 0);
+  else if (sF)           lst = lst.filter(a => a.status === sF);
+  if (q){
+    lst = lst.filter(a => {
+      const fullName  = `${a.name || ""} ${a.surname || ""}`.toLowerCase();
+      const testTitle = (tests.find(t => t.id === a.testId)?.title || "").toLowerCase();
+      const group     = (links.find(l => l.id === a.linkId)?.group || "").toLowerCase();
+      return fullName.includes(q) || testTitle.includes(q) || group.includes(q);
     });
   }
-  const tb=$("att-tbl");
-  if(!tb) return;
-  const countLabel=document.getElementById("att-count-label");
-  if(countLabel) countLabel.textContent=`${lst.length} спроб${lst.length===1?"а":lst.length<5?"и":""}`;
-  if(!lst.length){
-    if(countLabel) countLabel.textContent="Всі проходження тестів студентами";
-    tb.innerHTML=`<tr><td colspan="9"><div class="empty"><div class="ei">📭</div><div class="et">Немає спроб</div></div></td></tr>`;
+
+  // Лейбли
+  const countLabel = document.getElementById("att-count-label");
+  if (countLabel){
+    const isFiltered = !!(q || tF || grpF || sF);
+    if (isFiltered){
+      const w = lst.length;
+      countLabel.textContent = `Знайдено ${w} ${w === 1 ? "спроба" : (w >= 2 && w <= 4) ? "спроби" : "спроб"} · застосовано фільтр`;
+    } else {
+      countLabel.textContent = "Всі проходження тестів студентами · оновлюється в реальному часі";
+    }
+  }
+  const countRight = document.getElementById("att-count-right");
+  if (countRight) countRight.textContent = `${lst.length} / ${totalCount}`;
+
+  const tb = $("att-tbl");
+  if (!tb) return;
+
+  // ── Порожній стан ──
+  if (!lst.length){
+    const isFiltered = !!(q || tF || grpF || sF);
+    tb.innerHTML = `<tr><td colspan="9" style="padding:0">
+      <div class="empty-state">
+        <div class="es-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="es-title">${isFiltered ? "Нічого не знайдено" : "Немає спроб"}</div>
+        <div class="es-hint">${isFiltered ? "Спробуйте змінити фільтри або пошуковий запит" : "Коли студенти почнуть проходити тести, їхні спроби зʼявляться тут"}</div>
+      </div>
+    </td></tr>`;
+    const pagEl = document.getElementById("att-pagination");
+    if (pagEl) pagEl.innerHTML = "";
     return;
   }
-  // Застосовуємо сортування
-  const sf=_attSort.field, sd=_attSort.dir;
-  if(sf) lst=[...lst].sort((a,b)=>{
-    let av,bv;
-    if(sf==="name")  { av=`${a.surname}${a.name}`.toLowerCase(); bv=`${b.surname}${b.name}`.toLowerCase(); }
-    if(sf==="grade") { av=a.grade12||0; bv=b.grade12||0; }
-    if(sf==="time")  { av=(a.finishedAt&&a.startedAt)?(a.finishedAt-a.startedAt):0; bv=(b.finishedAt&&b.startedAt)?(b.finishedAt-b.startedAt):0; }
-    if(sf==="date")  { av=a.createdAt||0; bv=b.createdAt||0; }
-    return sd==="asc"?(av>bv?1:av<bv?-1:0):(av<bv?1:av>bv?-1:0);
-  });
 
-  // Пагінація
+  // ── Сортування ──
+  const sf = _attSort.field, sd = _attSort.dir;
+  if (sf){
+    lst = [...lst].sort((a, b) => {
+      let av = 0, bv = 0;
+      if (sf === "name")  { av = `${a.surname || ""}${a.name || ""}`.toLowerCase(); bv = `${b.surname || ""}${b.name || ""}`.toLowerCase(); }
+      if (sf === "grade") { av = a.grade12 ?? -1; bv = b.grade12 ?? -1; }
+      if (sf === "time")  { av = (a.finishedAt && a.startedAt) ? (a.finishedAt - a.startedAt) : -1; bv = (b.finishedAt && b.startedAt) ? (b.finishedAt - b.startedAt) : -1; }
+      if (sf === "date")  { av = a.createdAt || 0; bv = b.createdAt || 0; }
+      return sd === "asc" ? (av > bv ? 1 : av < bv ? -1 : 0) : (av < bv ? 1 : av > bv ? -1 : 0);
+    });
+  }
+
+  // ── Пагінація ──
   const totalPages = Math.max(1, Math.ceil(lst.length / ATT_PER_PAGE));
-  if(window._attPage > totalPages) window._attPage = totalPages;
+  if (window._attPage > totalPages) window._attPage = totalPages;
   const pageStart = (window._attPage - 1) * ATT_PER_PAGE;
   const pageLst = lst.slice(pageStart, pageStart + ATT_PER_PAGE);
 
-  // Рендер пагінації
-  let paginationHtml = "";
-  if(totalPages > 1){
+  let pagHtml = "";
+  if (totalPages > 1){
     const pages = [];
-    for(let p = 1; p <= totalPages; p++){
-      if(p === 1 || p === totalPages || Math.abs(p - window._attPage) <= 1){
+    for (let p = 1; p <= totalPages; p++){
+      if (p === 1 || p === totalPages || Math.abs(p - window._attPage) <= 1){
         pages.push(p);
-      } else if(pages[pages.length-1] !== "..."){
+      } else if (pages[pages.length - 1] !== "..."){
         pages.push("...");
       }
     }
-    paginationHtml = `<div style="display:flex;align-items:center;gap:6px;padding:12px 16px;justify-content:center;border-top:1px solid var(--border)">
-      <button class="btn bs btn-sm" onclick="_attPage=Math.max(1,_attPage-1);renderAttempts()" style="font-size:12px;padding:5px 10px" ${_attPage===1?"disabled":""}>‹</button>
-      ${pages.map(p => p === "..." 
-        ? `<span style="color:var(--muted);font-size:13px;padding:0 4px">...</span>`
-        : `<button onclick="_attPage=${p};renderAttempts()" style="min-width:30px;height:30px;border-radius:8px;border:1.5px solid ${p===window._attPage?"var(--primary)":"var(--border)"};background:${p===window._attPage?"var(--primary)":"white"};color:${p===window._attPage?"white":"var(--text)"};font-size:13px;font-weight:${p===window._attPage?"600":"400"};cursor:pointer">${p}</button>`
+    pagHtml = `<div class="pg">
+      <button onclick="_attPage=Math.max(1,_attPage-1);renderAttempts()" ${window._attPage === 1 ? "disabled" : ""} aria-label="Попередня">‹</button>
+      ${pages.map(p => p === "..."
+        ? `<span class="pg-ellipsis">…</span>`
+        : `<button class="${p === window._attPage ? "active" : ""}" onclick="_attPage=${p};renderAttempts()">${p}</button>`
       ).join("")}
-      <button class="btn bs btn-sm" onclick="_attPage=Math.min(${totalPages},_attPage+1);renderAttempts()" style="font-size:12px;padding:5px 10px" ${_attPage===totalPages?"disabled":""}>›</button>
-      <span style="font-size:12px;color:var(--muted);margin-left:4px">${pageStart+1}–${Math.min(pageStart+ATT_PER_PAGE,lst.length)} з ${lst.length}</span>
+      <button onclick="_attPage=Math.min(${totalPages},_attPage+1);renderAttempts()" ${window._attPage === totalPages ? "disabled" : ""} aria-label="Наступна">›</button>
+      <span class="pg-info">${pageStart + 1}–${Math.min(pageStart + ATT_PER_PAGE, lst.length)} з ${lst.length}</span>
     </div>`;
   }
 
-  tb.innerHTML=pageLst.map(a=>{
-    const t=tests.find(x=>x.id===a.testId),l=links.find(x=>x.id===a.linkId);
-    const c=a.score?.correct??"—",tot=a.score?.total??"—";
-    let el2="—";
-    if(a.finishedAt&&a.startedAt&&a.finishedAt>a.startedAt) el2=fmtTime((a.finishedAt-a.startedAt)/1000);
-    const group=l?.group||"";
-    const dateStr=a.createdAt?new Date(a.createdAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"—";
-    const gradeColor=a.grade12>=10?"#0d9e85":a.grade12>=7?"#2d5be3":a.grade12>=4?"#f59e0b":a.grade12!=null?"#f43f5e":"var(--muted)";
-    const gradeBg=a.grade12>=10?"rgba(13,158,133,.1)":a.grade12>=7?"rgba(45,91,227,.1)":a.grade12>=4?"rgba(245,158,11,.1)":a.grade12!=null?"rgba(244,63,94,.1)":"var(--bg)";
-    return`<tr style="border-top:1px solid rgba(229,232,240,.5);transition:background .1s"
-      onmouseover="this.style.background='rgba(45,91,227,.02)'" onmouseout="this.style.background=''">
-      <td style="padding:12px 16px">
-        <div style="font-weight:600;font-size:14px">${esc(a.surname)} ${esc(a.name)}</div>
+  // ── Рядки таблиці ──
+  tb.innerHTML = pageLst.map(a => {
+    const t = tests.find(x => x.id === a.testId);
+    const l = links.find(x => x.id === a.linkId);
+    const c   = a.score?.correct ?? "—";
+    const tot = a.score?.total   ?? "—";
+    let durStr = "—";
+    if (a.finishedAt && a.startedAt && a.finishedAt > a.startedAt){
+      const secs = Math.floor((a.finishedAt - a.startedAt) / 1000);
+      durStr = `${Math.floor(secs / 60)}:${(secs % 60).toString().padStart(2, "0")}`;
+    }
+    const group = l?.group || "";
+    const dateStr = a.createdAt
+      ? new Date(a.createdAt).toLocaleDateString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+      : "—";
+    const viol = _attViolation(a);
+    const gc = _attGradeColors(a.grade12);
+    const gradeHtml = a.grade12 != null
+      ? `<span class="grade-chip" style="background:${gc.bg};color:${gc.fg}">${a.grade12}/12</span>`
+      : `<span class="muted mono">—</span>`;
+    const flagHtml = viol > 0
+      ? `<span class="flag-icon" title="${viol} балів підозрілої активності">⚑</span>`
+      : "";
+
+    return `<tr class="clickable" onclick="G.viewAtt('${a.id}')">
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          ${_attAva(a.name, a.surname)}
+          <div style="min-width:0">
+            <div style="font-weight:600;color:var(--ink-900);white-space:nowrap">${esc(a.surname || "")} ${esc(a.name || "")}${flagHtml}</div>
+          </div>
+        </div>
       </td>
-      <td style="padding:12px 16px;max-width:180px">
-        <div style="font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(t?.title||'')}">${esc(t?.title||"—")}</div>
+      <td style="max-width:240px">
+        <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-700)" title="${esc(t?.title || "")}">${esc(t?.title || "—")}</div>
       </td>
-      <td style="padding:12px 16px">${group?`<span class="bdg bg-b" style="font-size:11px">${esc(group)}</span>`:'<span style="color:var(--light);font-size:12px">—</span>'}</td>
-      <td style="padding:12px 16px">
-        ${a.grade12!=null?`<div style="display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:28px;border-radius:9px;background:${gradeBg};color:${gradeColor};font-weight:700;font-size:14px;padding:0 8px">${a.grade12}/12</div>`:'<span style="color:var(--muted)">—</span>'}
+      <td>${group ? `<span class="pill info" style="text-transform:none">${esc(group)}</span>` : '<span class="muted">—</span>'}</td>
+      <td>${gradeHtml}</td>
+      <td class="mono" style="color:var(--ink-700)">${c}/${tot}</td>
+      <td class="mono" style="color:var(--ink-500)">${durStr}</td>
+      <td class="mono" style="color:var(--ink-500);white-space:nowrap">${dateStr}</td>
+      <td>${_attStatusPill(a.status)}</td>
+      <td>
+        <div class="row-actions" onclick="event.stopPropagation()">
+          <button class="ic-btn" title="Переглянути" onclick="G.viewAtt('${a.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="ic-btn danger" title="Видалити" onclick="G.confDelAttempt('${a.id}','${esc(a.name)} ${esc(a.surname)}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>
+        </div>
       </td>
-      <td style="padding:12px 16px;font-size:13px;color:var(--muted)">${c}/${tot}</td>
-      <td style="padding:12px 16px;font-size:13px;color:var(--muted)">${el2}</td>
-      <td style="padding:12px 16px"><span class="bdg ${a.status==="completed"?"bg-g":a.status==="pending_review"?"bg-a":"bg-o"}" style="font-size:11px">${a.status==="completed"?"Завершено":a.status==="pending_review"?"⏳ Перевіряється":"В процесі"}</span></td>
-      <td style="padding:12px 16px;font-size:12px;color:var(--muted);white-space:nowrap">${dateStr}</td>
-      <td style="padding:12px 16px"><div class="ra">
-        <div class="ib" title="Переглянути" onclick="G.viewAtt('${a.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
-        <div class="ib d" title="Видалити" onclick="G.confDelAttempt('${a.id}','${esc(a.name)} ${esc(a.surname)}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></div>
-      </div></td>
     </tr>`;
   }).join("");
 
-  // Додаємо пагінацію після таблиці
-  const paginationEl = document.getElementById("att-pagination");
-  if(paginationEl) paginationEl.innerHTML = paginationHtml;
-
-}
+  const pagEl = document.getElementById("att-pagination");
+  if (pagEl) pagEl.innerHTML = pagHtml;
+};
 
 
 // LINKS
@@ -1504,21 +1581,23 @@ window.G = {
     }
   },
   sortAttempts(field){
-    if(_attSort.field===field){
-      _attSort.dir=_attSort.dir==="asc"?"desc":"asc";
-    } else {
-      _attSort.field=field;
-      _attSort.dir=field==="date"?"desc":"asc";
-    }
-    // Оновлюємо стрілки
-    ["name","grade","time","date"].forEach(f=>{
-      const el=$(`sort-${f}`);
-      if(!el) return;
-      el.className="sort-arrow";
-      if(f===_attSort.field) el.classList.add(_attSort.dir);
-    });
-    renderAttempts();
-  },
+  if (_attSort.field === field){
+    _attSort.dir = _attSort.dir === "asc" ? "desc" : "asc";
+  } else {
+    _attSort.field = field;
+    _attSort.dir = field === "date" ? "desc" : "asc";
+  }
+  // Текстові стрілки у новому дизайні: ↑ / ↓ / ↕
+  ["name","grade","time","date"].forEach(f => {
+    const el = $(`sort-${f}`);
+    if (!el) return;
+    el.textContent = (f === _attSort.field)
+      ? (_attSort.dir === "asc" ? "↑" : "↓")
+      : "↕";
+    el.style.opacity = (f === _attSort.field) ? "0.9" : "0.5";
+  });
+  renderAttempts();
+},
 
   copyUrl:async url=>{try{await navigator.clipboard.writeText(url);toast("Скопійовано!");}catch{toast("Не вдалось скопіювати","err");}},
   // Attempts
@@ -3387,3 +3466,37 @@ window.initFeatures = async function initFeatures(){
   // Онбординг
   setTimeout(()=>{ if(typeof checkOnboarding==="function") checkOnboarding(); }, 300);
 };
+// ─── Helpers для нового дизайну ────────────────────────────────────────
+
+// Avatar: ініціали + детермінований колір (hash по імені)
+function _attAva(name, surname){
+  const initials = ((surname?.[0] || "") + (name?.[0] || "")).toUpperCase() || "?";
+  const str = String(surname || "") + String(name || "");
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) hash = (hash + str.charCodeAt(i)) | 0;
+  const colors = ["#3B82F6","#DB2777","#16A34A","#F59E0B","#6366F1","#0EA5E9","#8B5CF6","#EF4444","#14B8A6","#F97316"];
+  const c = colors[Math.abs(hash) % colors.length];
+  return `<div class="att-ava" style="background:linear-gradient(135deg, ${c}CC, ${c})">${esc(initials)}</div>`;
+}
+
+// Violation score: tabSwitches×2 + copyAttempts×3 + screenshots×5
+function _attViolation(a){
+  return (a.tabSwitches || 0) * 2 + (a.copyAttempts || 0) * 3 + (a.screenshots || 0) * 5;
+}
+
+// Grade chip colors (grade12 → fg/bg)
+function _attGradeColors(g){
+  if (g == null)  return { fg: "var(--ink-400)", bg: "#F1F5FB" };
+  if (g >= 10)    return { fg: "#15803D", bg: "#DCFCE7" };
+  if (g >= 7)     return { fg: "#1E40AF", bg: "#DBEAFE" };
+  if (g >= 4)     return { fg: "#B45309", bg: "#FEF3C7" };
+  return           { fg: "#B91C1C", bg: "#FEE2E2" };
+}
+
+// Status pill
+function _attStatusPill(status){
+  if (status === "completed")      return `<span class="pill on">Завершено</span>`;
+  if (status === "pending_review") return `<span class="pill draft">Перевіряється</span>`;
+  if (status === "in_progress")    return `<span class="pill info">В процесі</span>`;
+  return `<span class="pill off">—</span>`;
+}
