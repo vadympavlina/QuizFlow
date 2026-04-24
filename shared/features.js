@@ -1921,166 +1921,254 @@ window.G = {
   },
 
   viewAtt(id){
-    const a=attempts.find(x=>x.id===id);
-    if(!a){ toast("Спробу не знайдено","err"); return; }
-    const t=tests.find(x=>x.id===a.testId);
-    const l=links.find(x=>x.id===a.linkId);
-    const qs=Array.isArray(a.questionsSnapshot)?a.questionsSnapshot:(t?.questions||[]);
-    const ans=Array.isArray(a.answers)?a.answers:[];
-    const dateStr=a.createdAt?new Date(a.createdAt).toLocaleString("uk-UA",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}):"—";
-    const gc=a.grade12>=10?"bg-g":a.grade12>=7?"bg-b":a.grade12>=4?"bg-a":"bg-r";
-
-    const qHtml=qs.map((q,i)=>{
-      // Підтримка обох форматів: {questionId, value} і просто value
-      const rawAns=ans[i];
-      const userAns=(rawAns!==null&&rawAns!==undefined&&typeof rawAns==="object"&&!Array.isArray(rawAns)&&"value" in rawAns)
+    const a = attempts.find(x => x.id === id);
+    if (!a){ toast("Спробу не знайдено","err"); return; }
+    const t = tests.find(x => x.id === a.testId);
+    const l = links.find(x => x.id === a.linkId);
+    const qs = Array.isArray(a.questionsSnapshot) ? a.questionsSnapshot : (t?.questions || []);
+    const ans = Array.isArray(a.answers) ? a.answers : [];
+ 
+    // ── Форматовані рядки шапки ──────────────────────────────────────────
+    const dateStr = a.createdAt
+      ? new Date(a.createdAt).toLocaleString("uk-UA", { day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" })
+      : "—";
+    let durStr = null;
+    if (a.finishedAt && a.startedAt && a.finishedAt > a.startedAt){
+      const secs = Math.floor((a.finishedAt - a.startedAt) / 1000);
+      durStr = `${Math.floor(secs / 60)}:${(secs % 60).toString().padStart(2,"0")}`;
+    }
+    // Код спроби (з id) — наприклад "A-XYZW"
+    const codeStr = `A-${String(a.id || "").slice(-4).toUpperCase()}`;
+    const grade12 = a.grade12;
+    const pctRaw = (a.score?.percent != null) ? a.score.percent : null;
+    const correctCnt = a.score?.correct ?? 0;
+    const totalCnt = qs.length || (a.score?.total ?? 0);
+    const group = l?.group || "";
+ 
+    // Колір кільця/проценту
+    let ringColor = "#94A3B8";
+    if (pctRaw != null){
+      if (pctRaw >= 80) ringColor = "#16A34A";
+      else if (pctRaw >= 60) ringColor = "#1E3A8A";
+      else if (pctRaw >= 40) ringColor = "#F59E0B";
+      else ringColor = "#DC2626";
+    }
+ 
+    // ── Donut SVG (кільце з процентом) ──
+    const ringR = 34, ringCirc = 2 * Math.PI * ringR;
+    const pctSafe = pctRaw != null ? Math.max(0, Math.min(100, pctRaw)) : 0;
+    const dash = (pctSafe / 100) * ringCirc;
+    const donut = pctRaw != null
+      ? `<svg width="80" height="80" viewBox="0 0 80 80" style="flex:0 0 auto">
+          <circle cx="40" cy="40" r="${ringR}" fill="none" stroke="#E5EAF5" stroke-width="8"/>
+          <circle cx="40" cy="40" r="${ringR}" fill="none" stroke="${ringColor}" stroke-width="8" stroke-linecap="round"
+            stroke-dasharray="${dash} ${ringCirc}" transform="rotate(-90 40 40)"/>
+          <text x="40" y="45" text-anchor="middle" font-family="Geist Mono, monospace" font-weight="800" font-size="16" fill="${ringColor}">${pctRaw}%</text>
+        </svg>`
+      : `<div style="width:80px;height:80px;border-radius:50%;background:#E5EAF5;display:flex;align-items:center;justify-content:center;color:var(--ad-ink-400);font-family:'Geist Mono',monospace;font-weight:700;flex:0 0 auto">—</div>`;
+ 
+    // ── Питання ────────────────────────────────────────────────────────
+    const qHtml = qs.map((q, i) => {
+      const rawAns = ans[i];
+      const userAns = (rawAns !== null && rawAns !== undefined && typeof rawAns === "object" && !Array.isArray(rawAns) && "value" in rawAns)
         ? rawAns.value : rawAns;
-      let ansHtml="";
-      if(q.type==="single"||q.type==="multi"){
-        ansHtml=(q.options||[]).map((o,j)=>{
-          const correct=Array.isArray(q.correct)?q.correct.includes(j):q.correct===j;
-          const chosen=Array.isArray(userAns)?userAns.includes(j):userAns===j;
-          const bg=chosen&&correct?"rgba(13,158,133,.08)":chosen&&!correct?"rgba(244,63,94,.07)":correct?"rgba(13,158,133,.04)":"";
-          const border=chosen&&correct?"1.5px solid rgba(13,158,133,.3)":chosen&&!correct?"1.5px solid rgba(244,63,94,.25)":correct?"1.5px solid rgba(13,158,133,.2)":"1.5px solid var(--border)";
-          const icon=chosen&&correct?"✅":chosen&&!correct?"❌":correct?"☑️":"";
-          return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:${bg};border:${border};margin-bottom:6px">
-            <span style="font-size:13px;flex:1">${esc(o)}</span>
-            ${icon?`<span style="font-size:13px">${icon}</span>`:""}
-          </div>`;
-        }).join("");
-      } else if(q.type==="text"||q.type==="number"){
-        const raw=userAns;
-        const ua=(raw!=null&&raw!==""&&typeof raw!=="object")?String(raw):null;
-        ansHtml=`<div style="padding:10px 14px;background:${ua?"rgba(45,91,227,.04)":"rgba(107,114,128,.05)"};border:1.5px solid ${ua?"rgba(45,91,227,.15)":"var(--border)"};border-radius:10px;font-size:14px;color:${ua?"var(--text)":"var(--muted)"}${ua?"":";font-style:italic"}">${ua?esc(ua):"Немає відповіді"}</div>`;
-      } else if(q.type==="long"){
-        const raw=userAns;
-        const ua=(raw!=null&&raw!==""&&typeof raw!=="object")?String(raw).trim():null;
-        const det=a.score?.details?.[i];
-        const lr=det?.longResult||"";
-        const locked=a.grade12!=null; // заблоковано якщо є загальна оцінка
-        const badge=lr==="correct"
-          ?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#0d9e85;background:rgba(13,158,133,.08);padding:2px 8px;border-radius:20px;margin-bottom:6px">✓ Правильно · 1б</span>`
-          :lr==="partial"
-          ?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#b45309;background:rgba(245,158,11,.08);padding:2px 8px;border-radius:20px;margin-bottom:6px">~ Частково · 0.5б</span>`
-          :lr==="wrong"
-          ?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#be123c;background:rgba(244,63,94,.07);padding:2px 8px;border-radius:20px;margin-bottom:6px">✗ Неправильно · 0б</span>`
-          :`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#b45309;background:rgba(245,158,11,.06);padding:2px 8px;border-radius:20px;margin-bottom:6px">⏳ Очікує оцінки</span>`;
-        const cC=lr==="correct"?"#0d9e85":"rgba(13,158,133,.3)";
-        const bgC=lr==="correct"?"rgba(13,158,133,.15)":"rgba(13,158,133,.06)";
-        const cP=lr==="partial"?"#b45309":"rgba(245,158,11,.3)";
-        const bgP=lr==="partial"?"rgba(245,158,11,.15)":"rgba(245,158,11,.06)";
-        const cW=lr==="wrong"?"#be123c":"rgba(244,63,94,.2)";
-        const bgW=lr==="wrong"?"rgba(244,63,94,.14)":"rgba(244,63,94,.05)";
-        const gradeAttr=`data-aid="${a.id}" data-qi="${i}"`;
-        const btns=locked
-          ?""
-          :`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
-            <button ${gradeAttr} data-res="correct" onclick="G.setLongAnswer(this.dataset.aid,+this.dataset.qi,this.dataset.res)" style="padding:5px 11px;border-radius:8px;border:1.5px solid ${cC};background:${bgC};color:#0d9e85;font-size:12px;font-weight:600;cursor:pointer">✓ Правильно</button>
-            <button ${gradeAttr} data-res="partial" onclick="G.setLongAnswer(this.dataset.aid,+this.dataset.qi,this.dataset.res)" style="padding:5px 11px;border-radius:8px;border:1.5px solid ${cP};background:${bgP};color:#b45309;font-size:12px;font-weight:600;cursor:pointer">~ Частково</button>
-            <button ${gradeAttr} data-res="wrong" onclick="G.setLongAnswer(this.dataset.aid,+this.dataset.qi,this.dataset.res)" style="padding:5px 11px;border-radius:8px;border:1.5px solid ${cW};background:${bgW};color:#be123c;font-size:12px;font-weight:600;cursor:pointer">✗ Неправильно</button>
-          </div>`;
-        ansHtml=`${badge}<div style="padding:12px 14px;background:${ua?"rgba(45,91,227,.04)":"rgba(107,114,128,.05)"};border:1.5px solid ${ua?"rgba(45,91,227,.15)":"var(--border)"};border-radius:10px;font-size:14px;color:${ua?"var(--text)":"var(--muted)"};white-space:pre-wrap;line-height:1.6${ua?"":";font-style:italic"}">${ua?esc(ua):"Немає відповіді"}</div>${btns}`;
-      } else if(q.type==="order"){
-        const ua=Array.isArray(userAns)?userAns:[];
-        ansHtml=ua.map((item,j)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);margin-bottom:5px">
-          <span style="width:22px;height:22px;border-radius:6px;background:rgba(45,91,227,.1);color:var(--primary);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">${j+1}</span>
-          <span style="font-size:13px">${esc(String(item))}</span>
-        </div>`).join("");
+      const det = a.score?.details?.[i];
+      const pts = det?.points;
+ 
+      // Визначаємо статус для лівої рамки і бейджа
+      let qCls = "none";
+      let ptsCls = "";
+      if (q.type === "long"){
+        const lr = det?.longResult;
+        if (lr === "correct")      { qCls = "ok";      ptsCls = "ok"; }
+        else if (lr === "partial") { qCls = "partial"; ptsCls = "partial"; }
+        else if (lr === "wrong")   { qCls = "bad";     ptsCls = "bad"; }
+        else                        { qCls = "pending"; ptsCls = ""; }
+      } else {
+        const hasAnswer = userAns !== null && userAns !== undefined && userAns !== ""
+          && !(Array.isArray(userAns) && userAns.length === 0);
+        if (!hasAnswer){ qCls = "none"; ptsCls = ""; }
+        else if (pts > 0){
+          const maxPts = q.points || 1;
+          if (pts >= maxPts){ qCls = "ok"; ptsCls = "ok"; }
+          else { qCls = "partial"; ptsCls = "partial"; }
+        } else if (pts === 0){ qCls = "bad"; ptsCls = "bad"; }
       }
-      const correct=a.score?.details?.[i];
-      const pts=correct?.points!=null?correct.points:null;
-      const ptsColor=pts>0?"#0d9e85":pts===0?"#f43f5e":"var(--muted)";
-      return `<div style="background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:18px 20px;margin-bottom:12px">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px">
-          <div style="display:flex;align-items:flex-start;gap:10px;flex:1">
-            <div style="width:26px;height:26px;border-radius:8px;background:rgba(45,91,227,.08);color:var(--primary);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</div>
-            <div style="font-size:14px;font-weight:600;line-height:1.5;flex:1" class="qf-rich">${q.text||q.question||""}</div>
-          </div>
-          ${pts!=null?`<div style="font-size:13px;font-weight:700;color:${ptsColor};flex-shrink:0">${pts>0?"+"+pts:pts} б</div>`:""}
+ 
+      const ptsStr = pts != null
+        ? (pts > 0 ? `+${pts}` : `${pts}`)
+        : (q.type === "long" ? "—" : "");
+ 
+      // Тіло відповіді
+      let body = "";
+      if (q.type === "single" || q.type === "multi"){
+        const opts = q.options || [];
+        const userIdxs = Array.isArray(userAns) ? userAns : (userAns != null ? [userAns] : []);
+        const correctIdxs = Array.isArray(q.correct) ? q.correct : (q.correct != null ? [q.correct] : []);
+        const userTexts = userIdxs.map(j => opts[j]).filter(x => x != null);
+        const correctTexts = correctIdxs.map(j => opts[j]).filter(x => x != null);
+        const isCorrect = qCls === "ok";
+ 
+        body = `<div class="ad-q-line"><b>Ваш:</b> ${userTexts.length
+          ? `<span class="ad-q-code ${isCorrect ? "ok" : "bad"}">${userTexts.map(esc).join(", ")}</span>`
+          : `<span class="ad-q-code none">—</span>`
+        }</div>`;
+        if (!isCorrect && correctTexts.length){
+          body += `<div class="ad-q-line"><b>Правильно:</b> <span class="ad-q-code correct">${correctTexts.map(esc).join(", ")}</span></div>`;
+        }
+      } else if (q.type === "text" || q.type === "number"){
+        const raw = userAns;
+        const ua = (raw != null && raw !== "" && typeof raw !== "object") ? String(raw) : null;
+        const correctVal = q.correct != null ? String(q.correct) : (q.answer != null ? String(q.answer) : null);
+        const isCorrect = qCls === "ok";
+        body = `<div class="ad-q-line"><b>Ваш:</b> ${ua
+          ? `<span class="ad-q-code ${isCorrect ? "ok" : "bad"}">${esc(ua)}</span>`
+          : `<span class="ad-q-code none">—</span>`
+        }</div>`;
+        if (!isCorrect && correctVal){
+          body += `<div class="ad-q-line"><b>Правильно:</b> <span class="ad-q-code correct">${esc(correctVal)}</span></div>`;
+        }
+      } else if (q.type === "order"){
+        const ua = Array.isArray(userAns) ? userAns : [];
+        body = ua.length
+          ? `<div class="ad-q-line"><b>Ваш:</b> <span class="ad-q-code">${ua.map(x => esc(String(x))).join(" → ")}</span></div>`
+          : `<div class="ad-q-line"><b>Ваш:</b> <span class="ad-q-code none">—</span></div>`;
+      } else if (q.type === "long"){
+        const raw = userAns;
+        const ua = (raw != null && raw !== "" && typeof raw !== "object") ? String(raw).trim() : null;
+        body = `<div class="ad-long-text ${ua ? "" : "empty"}">${ua ? esc(ua) : "Немає відповіді"}</div>`;
+        const locked = a.grade12 != null;
+        if (!locked){
+          const lr = det?.longResult || "";
+          body += `<div class="ad-long-grade">
+            <button class="g-ok ${lr === "correct" ? "active" : ""}" onclick="G.setLongAnswer('${a.id}', ${i}, 'correct')">✓ Правильно</button>
+            <button class="g-partial ${lr === "partial" ? "active" : ""}" onclick="G.setLongAnswer('${a.id}', ${i}, 'partial')">~ Частково</button>
+            <button class="g-bad ${lr === "wrong" ? "active" : ""}" onclick="G.setLongAnswer('${a.id}', ${i}, 'wrong')">✗ Неправильно</button>
+          </div>`;
+        }
+      }
+ 
+      return `<div class="ad-q ${qCls}">
+        <div class="ad-q-head">
+          <div class="ad-q-text"><span class="qf-rich">${i + 1}. ${q.text || q.question || ""}</span></div>
+          ${ptsStr ? `<span class="ad-q-pts ${ptsCls}">${ptsStr}</span>` : ""}
         </div>
-        ${ansHtml}
+        ${body}
       </div>`;
     }).join("");
-
-    document.getElementById("att-det").innerHTML=`
-      <!-- Шапка -->
-      <div style="background:linear-gradient(135deg,#1e2d6b,#0d1340);padding:24px 28px;color:#fff;position:relative;overflow:hidden">
-        <div style="position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.04);top:-60px;right:-40px"></div>
-        <div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Деталі спроби</div>
-        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:20px;margin-bottom:4px">${esc(a.surname||"")} ${esc(a.name||"")}</div>
-        <div style="font-size:14px;opacity:.65;margin-bottom:16px">${esc(t?.title||"—")} · ${esc(l?.group||"—")} · ${dateStr}</div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap">
-          <div style="background:rgba(255,255,255,.1);border-radius:12px;padding:10px 16px;text-align:center">
-            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:28px;line-height:1">${a.status==="pending_review"?"⏳":a.grade12!=null?a.grade12:"—"}</div>
-            <div style="font-size:10px;opacity:.6;margin-top:2px">${a.status==="pending_review"?"ПЕРЕВІРЯЄТЬСЯ":"/ 12 ОЦІНКА"}</div>
+ 
+    // ── Pending review: грейд-пікер + AI ─────────────────────────────────
+    const longIdxs = qs.map((q, qi) => qi).filter(qi => qs[qi].type === "long");
+    const allLongGraded = longIdxs.length === 0 || longIdxs.every(qi => a.score?.details?.[qi]?.longResult);
+    const hasGrade = a.grade12 != null;
+    const canAnalyse = allLongGraded && hasGrade;
+ 
+    let gradePicker = "";
+    if (a.status === "pending_review"){
+      if (allLongGraded){
+        let btns = "";
+        for (let g = 1; g <= 12; g++){
+          const col = g >= 10 ? "#16A34A" : g >= 7 ? "#1E3A8A" : g >= 4 ? "#F59E0B" : "#DC2626";
+          const sel = a.grade12 === g ? `outline:2px solid ${col};outline-offset:2px;` : "";
+          btns += `<button data-g="${g}" onclick="G.setManualGrade('${a.id}', ${g})" style="border-color:${col}55;color:${col};${sel}">${g}</button>`;
+        }
+        gradePicker = `<div class="ad-grade-pick">
+          <div class="ad-gp-label">Виставити оцінку (1–12)</div>
+          <div class="ad-gp-grid">${btns}</div>
+        </div>`;
+      } else {
+        gradePicker = `<div class="ad-pending">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Оцініть усі відкриті відповіді нижче, щоб виставити загальну оцінку
+        </div>`;
+      }
+    }
+ 
+    // AI analysis
+    let aiBlock = "";
+    if (a.aiComment || a.personalAnalysis || canAnalyse){
+      aiBlock = `<div class="ad-ai">
+        <div class="ad-ai-h">
+          <div class="ad-ai-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            ШІ аналіз
           </div>
-          <div style="background:rgba(255,255,255,.07);border-radius:12px;padding:10px 16px;text-align:center">
-            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:28px;line-height:1">${a.score?.percent||0}%</div>
-            <div style="font-size:10px;opacity:.6;margin-top:2px">ВІДСОТОК</div>
-          </div>
-          <div style="background:rgba(255,255,255,.07);border-radius:12px;padding:10px 16px;text-align:center">
-            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:28px;line-height:1">${a.score?.correct||0}/${qs.length}</div>
-            <div style="font-size:10px;opacity:.6;margin-top:2px">ПРАВИЛЬНО</div>
+          ${canAnalyse ? `<button class="ad-ai-btn" onclick="G.personalAnalysis('${a.id}')">✦ Розбір</button>` : `<span style="font-size:11px;color:var(--ad-ink-400);font-style:italic">${hasGrade ? "оцініть відповіді" : "виставте оцінку"}</span>`}
+        </div>
+        ${a.aiComment ? `<div class="ad-ai-body">${esc(a.aiComment)}</div>` : a.personalAnalysis ? `<div class="ad-ai-body">${esc(a.personalAnalysis)}</div>` : ""}
+      </div>`;
+    }
+ 
+    // ── Фінальний HTML drawer-а ─────────────────────────────────────────
+    const scoreText = totalCnt > 0
+      ? `${correctCnt}/${totalCnt} правильно`
+      : (grade12 != null ? `${grade12}/12` : "—");
+    const subLine = [t?.title, group ? group : null].filter(Boolean).join(" · ");
+ 
+    document.getElementById("att-det").innerHTML = `
+      <!-- Header -->
+      <div class="ad-head">
+        <div class="ad-code">${esc(codeStr)}</div>
+        <h2>${esc(a.surname || "")} ${esc(a.name || "")}</h2>
+        ${subLine ? `<div class="ad-sub">${esc(subLine)}</div>` : ""}
+      </div>
+ 
+      <!-- Body -->
+      <div class="ad-body">
+        <!-- Summary -->
+        <div class="ad-sum">
+          ${donut}
+          <div class="ad-sum-text">
+            <div class="ad-sum-label">${esc(t?.title || "Тест")}</div>
+            <div class="ad-sum-main">${esc(scoreText)}</div>
+            <div class="ad-sum-meta">
+              ${durStr ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${durStr} ·` : ""}
+              <span>${esc(dateStr)}</span>
+            </div>
           </div>
         </div>
+ 
+        ${gradePicker}
+        ${aiBlock}
+ 
+        <!-- Questions -->
+        <div>
+          <div class="ad-qlabel">Питання <span class="ad-qlabel-sep">·</span> ${qs.length}</div>
+          ${qHtml || `<div class="ad-empty">Немає даних про відповіді</div>`}
+        </div>
       </div>
-
-      <!-- Ручне виставлення оцінки — одразу після шапки -->
-      ${(()=>{
-        const longIdxs=qs.map((q,qi)=>qi).filter(qi=>qs[qi].type==="long");
-        const allLongGraded=longIdxs.length===0||longIdxs.every(qi=>a.score?.details?.[qi]?.longResult);
-        const hasGrade=a.grade12!=null;
-        const canAnalyse=allLongGraded&&hasGrade;
-        let out="";
-
-        // Загальна оцінка — показується тільки для pending_review і якщо всі відкриті оцінені
-        if(a.status==="pending_review"){
-          if(allLongGraded){
-            out+='<div style="margin:16px 20px 0;padding:14px 18px;background:rgba(45,91,227,.04);border:1.5px solid rgba(45,91,227,.18);border-radius:14px">';
-            out+='<div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--primary);font-weight:700;margin-bottom:8px">Загальна оцінка</div>';
-            out+='<div style="display:flex;gap:5px;flex-wrap:wrap">';
-            for(let g=1;g<=12;g++){
-              const col=g>=10?"#0d9e85":g>=7?"#2d5be3":g>=4?"#f59e0b":"#f43f5e";
-              const bg=g>=10?"rgba(13,158,133,.08)":g>=7?"rgba(45,91,227,.08)":g>=4?"rgba(245,158,11,.08)":"rgba(244,63,94,.08)";
-              const sel=a.grade12===g?'outline:2px solid '+col+';outline-offset:2px;':'';
-              out+='<button data-aid="'+a.id+'" data-g="'+g+'" onclick="G.setManualGrade(this.dataset.aid,+this.dataset.g)" style="width:36px;height:36px;border-radius:9px;border:1.5px solid '+col+'44;background:'+bg+';color:'+col+';font-weight:800;font-size:14px;cursor:pointer;'+sel+'">'+g+'</button>';
-            }
-            out+="</div></div>";
-          } else {
-            out+='<div style="margin:16px 20px 0;padding:12px 16px;background:rgba(245,158,11,.05);border:1.5px solid rgba(245,158,11,.2);border-radius:14px;font-size:13px;color:#b45309">';
-            out+='⏳ Оцініть всі відкриті відповіді нижче, щоб виставити загальну оцінку</div>';
-          }
-        }
-
-        // AI секція
-        const aiColor=canAnalyse?'var(--primary)':'var(--muted)';
-        const hasBorder=a.aiComment||a.personalAnalysis?';border-bottom:1px solid rgba(45,91,227,.08)':'';
-        out+='<div style="margin:16px 20px 0;background:rgba(45,91,227,.02);border:1.5px solid rgba(45,91,227,.1);border-radius:14px;overflow:hidden">';
-        out+='<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 15px'+hasBorder+'">';
-        out+='<div style="display:flex;align-items:center;gap:7px">';
-        out+='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="'+aiColor+'" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
-        out+='<span style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:'+aiColor+';font-weight:700">ШІ Аналіз</span></div>';
-        if(canAnalyse){
-          out+='<button data-aid="'+a.id+'" onclick="G.personalAnalysis(this.dataset.aid)" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:8px;border:1.5px solid rgba(45,91,227,.2);background:#fff;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer">✦ Розбір</button>';
-        } else {
-          out+='<span style="font-size:11px;color:var(--muted);font-style:italic">'+(hasGrade?'оцініть відповіді':'виставте оцінку')+'</span>';
-        }
-        out+='</div>';
-        if(a.aiComment) out+='<div style="padding:12px 15px;font-size:13px;color:var(--text);line-height:1.7">'+esc(a.aiComment)+'</div>';
-        else if(a.personalAnalysis) out+='<div style="padding:12px 15px;font-size:13px;color:var(--text);line-height:1.7">'+esc(a.personalAnalysis)+'</div>';
-        out+='</div>';
-
-        return out;
-      })()}
-
-      <!-- Питання -->
-      <div style="padding:16px 20px 24px">
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px">Відповіді</div>
-        ${qHtml||`<div style="text-align:center;padding:32px;color:var(--muted);font-size:14px">Немає даних про відповіді</div>`}
+ 
+      <!-- Footer -->
+      <div class="ad-foot">
+        <button class="ad-btn-sec" onclick="G.notifyAtt && G.notifyAtt('${a.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Повідомити
+        </button>
+        <button class="ad-btn-pri" onclick="G.allowRetake && G.allowRetake('${a.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v6h6"/><path d="M3 13a9 9 0 1 0 3-7.7L3 8"/></svg>
+          Дозволити перездачу
+        </button>
       </div>`;
-
+ 
     openM("m-attempt");
   },
+// ═══════════════════════════════════════════════════════════════════════════
+// ЗАГЛУШКИ для кнопок footer-а drawer-а
+// Додай у G namespace (десь поруч з іншими методами).
+// Якщо у тебе вже є власна логіка — можеш пропустити або замінити.
+// ═══════════════════════════════════════════════════════════════════════════
+ 
+  notifyAtt(aid){
+    // TODO: відкрити модалку/діалог для повідомлення студенту
+    toast("Функція 'Повідомити' поки у розробці", "info");
+  },
+ 
+  allowRetake(aid){
+    // TODO: дозволити студенту перездати цю спробу.
+    // Можливий варіант: пересунути status у "retake_allowed" + notification у /students/{uid}
+    toast("Функція 'Дозволити перездачу' поки у розробці", "info");
+  },
+ 
 
     async personalAnalysis(attId){
     if(window._AI_ANALYSIS===false){ toast("Персональний аналіз вимкнено адміністратором","err"); return; }
