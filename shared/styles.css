@@ -241,3 +241,220 @@ textarea.fi{resize:vertical;min-height:72px}
 .qf-rich p:last-child{margin-bottom:0}
 .qf-rich code{background:rgba(45,91,227,.08);padding:1px 5px;border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em}
 .qf-rich img{max-width:100%;height:auto;border-radius:8px}
+/* ═══════════════════════════════════════════════════════════════════════
+   ATTEMPT DETAIL DRAWER — новий дизайн деталей спроби
+   Перевизначає #m-attempt у drawer-режим (slide from right).
+   ═══════════════════════════════════════════════════════════════════════ */
+
+#m-attempt{
+  /* локальні токени drawer-а */
+  --ad-ink-900:#0B1437; --ad-ink-700:#24335A; --ad-ink-500:#5B6A8F; --ad-ink-400:#8691AC;
+  --ad-line:#E3E8F2; --ad-line-strong:#CDD6E8;
+  --ad-nav-600:#1E3A8A; --ad-good:#16A34A; --ad-warn:#F59E0B; --ad-bad:#DC2626;
+}
+
+/* Backdrop — прозорий затемнений фон зліва від drawer-а */
+#m-attempt.on{ background:rgba(11,20,55,.35); backdrop-filter:blur(2px); }
+
+/* Контейнер drawer-а: fixed справа, на всю висоту */
+#m-attempt .mb.wd{
+  position:fixed!important;
+  top:0!important; right:0!important; bottom:0!important; left:auto!important;
+  margin:0!important;
+  width:min(540px, 92vw)!important; max-width:540px!important;
+  height:100vh!important; max-height:100vh!important;
+  border-radius:0!important;
+  box-shadow:-24px 0 60px -20px rgba(11,20,55,.25)!important;
+  background:#fff!important;
+  transform:translateX(100%);
+  transition:transform .28s cubic-bezier(.4,0,.2,1);
+  padding:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+}
+#m-attempt.on .mb.wd{ transform:translateX(0); }
+
+/* Закриваюча X — перевизначаємо стиль з modals.html (темний хрестик на білому) */
+#m-attempt .mb.wd > button:first-of-type{
+  position:absolute!important; top:20px!important; right:20px!important;
+  width:32px!important; height:32px!important;
+  border:1px solid var(--ad-line)!important; background:#fff!important;
+  color:var(--ad-ink-500)!important; border-radius:8px!important;
+  font-size:18px!important; font-weight:300!important;
+  z-index:20!important;
+  display:flex!important; align-items:center!important; justify-content:center!important;
+  transition:all .15s!important;
+}
+#m-attempt .mb.wd > button:first-of-type:hover{
+  color:var(--ad-ink-900)!important; border-color:var(--ad-line-strong)!important; background:#F1F5FB!important;
+}
+
+/* Внутрішній скрол контейнер */
+#m-attempt #att-det{
+  max-height:none!important;
+  overflow-y:auto;
+  overflow-x:hidden;
+  flex:1;
+  padding:0!important;
+  font-family:'Manrope',system-ui,sans-serif;
+  color:var(--ad-ink-900);
+}
+
+/* Скрол стилізація */
+#m-attempt #att-det::-webkit-scrollbar{ width:6px }
+#m-attempt #att-det::-webkit-scrollbar-thumb{ background:#D5DBE9; border-radius:3px }
+#m-attempt #att-det::-webkit-scrollbar-track{ background:transparent }
+
+/* ─── Частини контенту drawer-а ─── */
+
+/* Header (код + ім'я) */
+.ad-head{ padding:22px 64px 18px 24px; border-bottom:1px solid var(--ad-line); background:#fff }
+.ad-head .ad-code{ font-family:'Geist Mono',monospace; font-size:11.5px; letter-spacing:.1em; color:var(--ad-ink-400); text-transform:uppercase; font-weight:600; margin-bottom:6px }
+.ad-head h2{ margin:0; font-size:22px; font-weight:800; letter-spacing:-.015em; color:var(--ad-ink-900); font-family:'Manrope',sans-serif; line-height:1.25 }
+.ad-head .ad-sub{ margin-top:4px; font-size:13px; color:var(--ad-ink-500) }
+
+/* Тіло drawer-а */
+.ad-body{ padding:20px 24px 24px; display:flex; flex-direction:column; gap:18px }
+
+/* Summary card з donut */
+.ad-sum{
+  background:linear-gradient(135deg,#F0F7FF 0%,#E7F3FF 100%);
+  border:1px solid #D7E7FB;
+  border-radius:16px; padding:18px 20px;
+  display:flex; align-items:center; gap:18px;
+}
+.ad-sum-text{ flex:1; min-width:0 }
+.ad-sum-label{ font-size:13px; color:var(--ad-ink-500); font-weight:500; margin-bottom:2px }
+.ad-sum-main{ font-size:22px; font-weight:800; letter-spacing:-.02em; color:var(--ad-ink-900); line-height:1.2 }
+.ad-sum-meta{ margin-top:8px; display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ad-ink-500); font-family:'Geist Mono',monospace }
+.ad-sum-meta svg{ width:13px; height:13px; flex:0 0 auto }
+
+/* Pending review повідомлення */
+.ad-pending{
+  background:#FEF3C7; border:1px solid #FDE68A; border-radius:12px;
+  padding:12px 14px; font-size:13px; color:#92400E; display:flex; align-items:center; gap:8px;
+}
+
+/* Manual grade picker (1-12) */
+.ad-grade-pick{
+  background:#F0F7FF; border:1px solid #D7E7FB; border-radius:14px; padding:14px 16px;
+}
+.ad-grade-pick .ad-gp-label{ font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--ad-nav-600); font-weight:700; margin-bottom:10px }
+.ad-grade-pick .ad-gp-grid{ display:flex; gap:5px; flex-wrap:wrap }
+.ad-grade-pick button{
+  width:36px; height:36px; border-radius:9px; border:1.5px solid; background:#fff;
+  font-weight:800; font-size:14px; cursor:pointer; font-family:'Geist Mono',monospace;
+  transition:transform .1s;
+}
+.ad-grade-pick button:hover{ transform:scale(1.05) }
+
+/* AI секція */
+.ad-ai{ background:#FAFBFE; border:1px solid var(--ad-line); border-radius:14px; overflow:hidden }
+.ad-ai-h{ display:flex; align-items:center; justify-content:space-between; padding:11px 15px }
+.ad-ai-title{ display:flex; align-items:center; gap:7px; font-size:11px; text-transform:uppercase; letter-spacing:.08em; font-weight:700; color:var(--ad-nav-600) }
+.ad-ai-btn{
+  display:inline-flex; align-items:center; gap:5px; padding:5px 11px; border-radius:8px;
+  border:1px solid #D7E7FB; background:#fff; font-size:12px; font-weight:600;
+  color:var(--ad-nav-600); cursor:pointer; font-family:'Manrope',sans-serif;
+}
+.ad-ai-btn:hover{ background:#F0F7FF }
+.ad-ai-body{ padding:0 15px 12px; font-size:13px; color:var(--ad-ink-700); line-height:1.65; border-top:1px solid var(--ad-line); padding-top:12px }
+
+/* "ПИТАННЯ · N" label */
+.ad-qlabel{
+  font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--ad-ink-400); margin:0 0 10px; font-family:'Manrope',sans-serif;
+}
+.ad-qlabel .ad-qlabel-sep{ color:var(--ad-ink-400); margin:0 4px }
+
+/* Картка питання */
+.ad-q{
+  background:#fff; border:1px solid var(--ad-line); border-left:3px solid var(--ad-ink-400);
+  border-radius:12px; padding:12px 14px 13px; margin-bottom:10px;
+  transition:border-color .15s;
+}
+.ad-q.ok{ border-left-color:var(--ad-good) }
+.ad-q.partial{ border-left-color:var(--ad-warn) }
+.ad-q.bad{ border-left-color:var(--ad-bad) }
+.ad-q.none{ border-left-color:#CBD5E1 }
+.ad-q.pending{ border-left-color:#94A3B8 }
+
+.ad-q-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:8px }
+.ad-q-text{ flex:1; font-size:14px; font-weight:600; line-height:1.4; color:var(--ad-ink-900) }
+.ad-q-text .qf-rich p:first-child{ margin-top:0 }
+.ad-q-text .qf-rich p:last-child{ margin-bottom:0 }
+.ad-q-pts{
+  flex:0 0 auto; font-family:'Geist Mono',monospace; font-weight:700; font-size:13px;
+  padding:2px 8px; border-radius:6px; background:#F1F5FB; color:var(--ad-ink-500);
+  white-space:nowrap;
+}
+.ad-q-pts.ok{ background:#DCFCE7; color:#15803D }
+.ad-q-pts.partial{ background:#FEF3C7; color:#92400E }
+.ad-q-pts.bad{ background:#FEE2E2; color:#B91C1C }
+
+.ad-q-line{ font-size:13px; color:var(--ad-ink-500); margin-top:4px; line-height:1.55 }
+.ad-q-line b{ color:var(--ad-ink-700); font-weight:600 }
+.ad-q-code{
+  font-family:'Geist Mono',monospace; font-weight:500;
+}
+.ad-q-code.ok{ color:#15803D }
+.ad-q-code.bad{ color:#B91C1C }
+.ad-q-code.correct{ color:#15803D }
+.ad-q-code.none{ color:var(--ad-ink-400); font-style:italic }
+
+/* Long answer — більше простору для тексту */
+.ad-long-text{
+  margin-top:8px; padding:10px 12px; background:#FAFBFE; border:1px solid var(--ad-line);
+  border-radius:8px; font-size:13px; line-height:1.55; color:var(--ad-ink-700);
+  white-space:pre-wrap; word-break:break-word;
+}
+.ad-long-text.empty{ color:var(--ad-ink-400); font-style:italic }
+
+/* Кнопки ручної оцінки long-answer */
+.ad-long-grade{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px }
+.ad-long-grade button{
+  padding:5px 11px; border-radius:8px; border:1.5px solid; background:#fff;
+  font-size:12px; font-weight:600; cursor:pointer; font-family:'Manrope',sans-serif;
+}
+.ad-long-grade button.g-ok{ border-color:#BBF7D0; color:#15803D }
+.ad-long-grade button.g-ok:hover,.ad-long-grade button.g-ok.active{ background:#DCFCE7 }
+.ad-long-grade button.g-partial{ border-color:#FDE68A; color:#92400E }
+.ad-long-grade button.g-partial:hover,.ad-long-grade button.g-partial.active{ background:#FEF3C7 }
+.ad-long-grade button.g-bad{ border-color:#FECACA; color:#B91C1C }
+.ad-long-grade button.g-bad:hover,.ad-long-grade button.g-bad.active{ background:#FEE2E2 }
+
+/* Multi/single — опції */
+.ad-opts{ margin-top:8px; display:flex; flex-direction:column; gap:5px }
+.ad-opt{
+  display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:8px;
+  font-size:13px; border:1px solid transparent;
+}
+.ad-opt.correct-chosen{ background:#DCFCE7; border-color:#BBF7D0; color:#15803D }
+.ad-opt.wrong-chosen{ background:#FEE2E2; border-color:#FECACA; color:#B91C1C }
+.ad-opt.correct-missed{ background:#F0FDF4; border-color:#DCFCE7; color:#16A34A }
+.ad-opt.plain{ color:var(--ad-ink-500) }
+.ad-opt-ico{ flex:0 0 auto; font-size:12px; width:14px; text-align:center }
+
+/* Footer зі sticky кнопками */
+.ad-foot{
+  padding:14px 20px; border-top:1px solid var(--ad-line); background:#fff;
+  display:flex; gap:10px;
+}
+.ad-foot button{
+  flex:1; padding:11px 16px; border-radius:10px; font-weight:600; font-size:14px;
+  cursor:pointer; font-family:'Manrope',sans-serif; display:inline-flex; align-items:center;
+  justify-content:center; gap:8px; transition:all .15s;
+}
+.ad-foot .ad-btn-sec{ background:#fff; border:1px solid var(--ad-line); color:var(--ad-ink-700) }
+.ad-foot .ad-btn-sec:hover{ border-color:var(--ad-line-strong); background:#F1F5FB }
+.ad-foot .ad-btn-pri{ background:var(--ad-nav-600); border:1px solid var(--ad-nav-600); color:#fff }
+.ad-foot .ad-btn-pri:hover{ background:#1E40AF; border-color:#1E40AF }
+.ad-foot button svg{ width:15px; height:15px; flex:0 0 auto }
+
+/* Empty state */
+.ad-empty{ text-align:center; padding:32px 16px; color:var(--ad-ink-400); font-size:13px }
+
+/* Мобілка — drawer на всю ширину */
+@media (max-width:560px){
+  #m-attempt .mb.wd{ width:100vw!important; max-width:100vw!important }
+}
