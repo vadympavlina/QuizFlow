@@ -216,10 +216,12 @@
 </div>
 
 <div class="mo" id="m-attempt">
-  <div class="mb wd">
-    <button onclick="closeM('m-attempt')" aria-label="Закрити">×</button>
+  <div class="mb wd" style="display:flex !important; flex-direction:column !important; height:100vh !important; padding:0 !important; overflow:hidden !important; position:fixed !important; right:0 !important; top:0 !important; width:540px !important; max-width:100vw !important; border-radius:0 !important; background:#fff;">
     
-    <div id="att-det"></div>
+    <button onclick="closeM('m-attempt')" aria-label="Закрити" style="position:absolute; top:20px; right:20px; z-index:50; width:32px; height:32px; border-radius:8px; border:1px solid #E3E8F2; background:#fff; color:#5B6A8F; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;">×</button>
+    
+    <div id="att-det" style="flex:1 !important; overflow-y:auto !important; display:block !important;"></div>
+    
   </div>
 </div>
 <!-- Студенти по посиланню -->
