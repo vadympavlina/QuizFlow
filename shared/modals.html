@@ -215,17 +215,13 @@
   </div>
 </div>
 
-<!-- Деталі спроби -->
 <div class="mo" id="m-attempt">
-  <div class="mb wd" style="max-width:860px;padding:0;overflow:hidden;display:flex;flex-direction:column;position:relative">
-    <button onclick="closeM('m-attempt')"
-      style="position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;border:none;background:none;color:rgba(255,255,255,.7);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;line-height:1;transition:color .15s"
-      onmouseover="this.style.color='white'"
-      onmouseout="this.style.color='rgba(255,255,255,.7)'">×</button>
-    <div id="att-det" style="overflow-y:auto;overflow-x:hidden;flex:1;padding:0;max-height:92vh"></div>
+  <div class="mb wd">
+    <button onclick="closeM('m-attempt')" aria-label="Закрити">×</button>
+    
+    <div id="att-det"></div>
   </div>
 </div>
-
 <!-- Студенти по посиланню -->
 <div class="mo" id="m-students"><div class="mb wd">
   <button class="mcl" onclick="closeM('m-students')">×</button>
