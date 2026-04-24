@@ -207,7 +207,10 @@
             <button class="tab" data-status="flagged" onclick="setAttStatusTab(this)">⚑ З прапорами</button>
           </div>
 
-          <button class="btn-reset" onclick="resetAttFilters()">✕ Скинути</button>
+          <button class="btn-reset" onclick="resetAttFilters()" title="Скинути всі фільтри">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v6h6"/><path d="M3 13a9 9 0 1 0 3-7.7L3 8"/></svg>
+  Скинути
+</button>
         </div>
 
         <div class="muted mono" id="att-count-right" style="font-size:12px">0 / 0</div>
