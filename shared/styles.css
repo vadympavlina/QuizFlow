@@ -305,6 +305,34 @@ textarea.fi{resize:vertical;min-height:72px}
 #m-attempt #att-det::-webkit-scrollbar-thumb{ background:#D5DBE9; border-radius:3px }
 #m-attempt #att-det::-webkit-scrollbar-track{ background:transparent }
 
+/* ─── FORCE DISPLAY OVERRIDES — перебиває будь-яке стороннє display:none на .ad-* ─── */
+#m-attempt #att-det .ad-head{ display:block!important }
+#m-attempt #att-det .ad-body{ display:flex!important; flex-direction:column!important; gap:18px }
+#m-attempt #att-det .ad-foot{ display:flex!important; gap:10px }
+#m-attempt #att-det .ad-sum{ display:flex!important; align-items:center; gap:18px }
+#m-attempt #att-det .ad-sum-text{ display:block!important }
+#m-attempt #att-det .ad-sum-meta{ display:flex!important; align-items:center; gap:6px }
+#m-attempt #att-det .ad-q{ display:block!important }
+#m-attempt #att-det .ad-q-head{ display:flex!important; align-items:flex-start; justify-content:space-between; gap:10px }
+#m-attempt #att-det .ad-q-text{ display:block!important; flex:1 }
+#m-attempt #att-det .ad-ai-h{ display:flex!important; align-items:center; justify-content:space-between; padding:11px 15px }
+#m-attempt #att-det .ad-ai-title{ display:inline-flex!important; align-items:center; gap:7px }
+#m-attempt #att-det .ad-grade-pick .ad-gp-grid{ display:flex!important; gap:5px; flex-wrap:wrap }
+#m-attempt #att-det .ad-long-grade{ display:flex!important; gap:6px; flex-wrap:wrap; margin-top:8px }
+#m-attempt #att-det .ad-pending{ display:flex!important; align-items:center; gap:8px }
+#m-attempt #att-det .ad-opts{ display:flex!important; flex-direction:column; gap:5px }
+#m-attempt #att-det .ad-opt{ display:flex!important; align-items:center; gap:8px }
+#m-attempt #att-det .ad-q-pts{ display:inline-block!important }
+#m-attempt #att-det .ad-qlabel{ display:block!important }
+#m-attempt #att-det .ad-long-text{ display:block!important }
+#m-attempt #att-det .ad-ai{ display:block!important }
+#m-attempt #att-det .ad-ai-body{ display:block!important }
+#m-attempt #att-det .ad-grade-pick{ display:block!important }
+#m-attempt #att-det > div{ display:revert }
+
+/* Фікс для inline style="overflow:hidden" на .mb.wd — дозволяємо контенту scroll в #att-det */
+#m-attempt .mb.wd{ overflow:visible!important }
+
 /* ─── Частини контенту drawer-а ─── */
 
 /* Header (код + ім'я) */
