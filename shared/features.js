@@ -1928,230 +1928,250 @@ window.G = {
     const qs = Array.isArray(a.questionsSnapshot) ? a.questionsSnapshot : (t?.questions || []);
     const ans = Array.isArray(a.answers) ? a.answers : [];
  
-    // ── Форматовані рядки шапки ──────────────────────────────────────────
-    const dateStr = a.createdAt
-      ? new Date(a.createdAt).toLocaleString("uk-UA", { day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" })
-      : "—";
-    let durStr = null;
-    if (a.finishedAt && a.startedAt && a.finishedAt > a.startedAt){
-      const secs = Math.floor((a.finishedAt - a.startedAt) / 1000);
-      durStr = `${Math.floor(secs / 60)}:${(secs % 60).toString().padStart(2,"0")}`;
-    }
-    // Код спроби (з id) — наприклад "A-XYZW"
-    const codeStr = `A-${String(a.id || "").slice(-4).toUpperCase()}`;
-    const grade12 = a.grade12;
-    const pctRaw = (a.score?.percent != null) ? a.score.percent : null;
-    const correctCnt = a.score?.correct ?? 0;
-    const totalCnt = qs.length || (a.score?.total ?? 0);
-    const group = l?.group || "";
+    try {
+      // ── Форматовані рядки шапки ──
+      const dateStr = a.createdAt
+        ? new Date(a.createdAt).toLocaleString("uk-UA", { day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" })
+        : "—";
+      let durStr = "";
+      if (a.finishedAt && a.startedAt && a.finishedAt > a.startedAt){
+        const secs = Math.floor((a.finishedAt - a.startedAt) / 1000);
+        durStr = `${Math.floor(secs / 60)}:${(secs % 60).toString().padStart(2,"0")}`;
+      }
+      const codeStr = "A-" + String(a.id || "").slice(-4).toUpperCase();
+      const pctRaw = (a.score?.percent != null) ? a.score.percent : null;
+      const correctCnt = a.score?.correct ?? 0;
+      const totalCnt = qs.length || (a.score?.total ?? 0);
+      const group = l?.group || "";
  
-    // Колір кільця/проценту
-    let ringColor = "#94A3B8";
-    if (pctRaw != null){
-      if (pctRaw >= 80) ringColor = "#16A34A";
-      else if (pctRaw >= 60) ringColor = "#1E3A8A";
-      else if (pctRaw >= 40) ringColor = "#F59E0B";
-      else ringColor = "#DC2626";
-    }
+      // Колір кільця
+      let ringColor = "#94A3B8";
+      if (pctRaw != null){
+        if (pctRaw >= 80) ringColor = "#16A34A";
+        else if (pctRaw >= 60) ringColor = "#1E3A8A";
+        else if (pctRaw >= 40) ringColor = "#F59E0B";
+        else ringColor = "#DC2626";
+      }
  
-    // ── Donut SVG (кільце з процентом) ──
-    const ringR = 34, ringCirc = 2 * Math.PI * ringR;
-    const pctSafe = pctRaw != null ? Math.max(0, Math.min(100, pctRaw)) : 0;
-    const dash = (pctSafe / 100) * ringCirc;
-    const donut = pctRaw != null
-      ? `<svg width="80" height="80" viewBox="0 0 80 80" style="flex:0 0 auto">
-          <circle cx="40" cy="40" r="${ringR}" fill="none" stroke="#E5EAF5" stroke-width="8"/>
-          <circle cx="40" cy="40" r="${ringR}" fill="none" stroke="${ringColor}" stroke-width="8" stroke-linecap="round"
-            stroke-dasharray="${dash} ${ringCirc}" transform="rotate(-90 40 40)"/>
-          <text x="40" y="45" text-anchor="middle" font-family="Geist Mono, monospace" font-weight="800" font-size="16" fill="${ringColor}">${pctRaw}%</text>
-        </svg>`
-      : `<div style="width:80px;height:80px;border-radius:50%;background:#E5EAF5;display:flex;align-items:center;justify-content:center;color:var(--ad-ink-400);font-family:'Geist Mono',monospace;font-weight:700;flex:0 0 auto">—</div>`;
- 
-    // ── Питання ────────────────────────────────────────────────────────
-    const qHtml = qs.map((q, i) => {
-      const rawAns = ans[i];
-      const userAns = (rawAns !== null && rawAns !== undefined && typeof rawAns === "object" && !Array.isArray(rawAns) && "value" in rawAns)
-        ? rawAns.value : rawAns;
-      const det = a.score?.details?.[i];
-      const pts = det?.points;
- 
-      // Визначаємо статус для лівої рамки і бейджа
-      let qCls = "none";
-      let ptsCls = "";
-      if (q.type === "long"){
-        const lr = det?.longResult;
-        if (lr === "correct")      { qCls = "ok";      ptsCls = "ok"; }
-        else if (lr === "partial") { qCls = "partial"; ptsCls = "partial"; }
-        else if (lr === "wrong")   { qCls = "bad";     ptsCls = "bad"; }
-        else                        { qCls = "pending"; ptsCls = ""; }
+      // Donut SVG
+      const ringR = 34, ringCirc = 2 * Math.PI * ringR;
+      const pctSafe = pctRaw != null ? Math.max(0, Math.min(100, pctRaw)) : 0;
+      const dash = (pctSafe / 100) * ringCirc;
+      let donutHtml = "";
+      if (pctRaw != null){
+        donutHtml = '<svg width="80" height="80" viewBox="0 0 80 80" style="flex:0 0 auto">'
+          + `<circle cx="40" cy="40" r="${ringR}" fill="none" stroke="#E5EAF5" stroke-width="8"/>`
+          + `<circle cx="40" cy="40" r="${ringR}" fill="none" stroke="${ringColor}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${dash} ${ringCirc}" transform="rotate(-90 40 40)"/>`
+          + `<text x="40" y="46" text-anchor="middle" font-family="Geist Mono, monospace" font-weight="800" font-size="16" fill="${ringColor}">${pctRaw}%</text>`
+          + '</svg>';
       } else {
-        const hasAnswer = userAns !== null && userAns !== undefined && userAns !== ""
-          && !(Array.isArray(userAns) && userAns.length === 0);
-        if (!hasAnswer){ qCls = "none"; ptsCls = ""; }
-        else if (pts > 0){
-          const maxPts = q.points || 1;
-          if (pts >= maxPts){ qCls = "ok"; ptsCls = "ok"; }
-          else { qCls = "partial"; ptsCls = "partial"; }
-        } else if (pts === 0){ qCls = "bad"; ptsCls = "bad"; }
+        donutHtml = '<div style="width:80px;height:80px;border-radius:50%;background:#E5EAF5;display:flex;align-items:center;justify-content:center;color:#8691AC;font-family:\'Geist Mono\',monospace;font-weight:700;flex:0 0 auto">—</div>';
       }
  
-      const ptsStr = pts != null
-        ? (pts > 0 ? `+${pts}` : `${pts}`)
-        : (q.type === "long" ? "—" : "");
+      // ── Секція ПИТАННЯ ──
+      const qHtml = qs.map((q, i) => {
+        const rawAns = ans[i];
+        const userAns = (rawAns !== null && rawAns !== undefined && typeof rawAns === "object" && !Array.isArray(rawAns) && "value" in rawAns)
+          ? rawAns.value : rawAns;
+        const det = a.score?.details?.[i];
+        const pts = det?.points;
  
-      // Тіло відповіді
-      let body = "";
-      if (q.type === "single" || q.type === "multi"){
-        const opts = q.options || [];
-        const userIdxs = Array.isArray(userAns) ? userAns : (userAns != null ? [userAns] : []);
-        const correctIdxs = Array.isArray(q.correct) ? q.correct : (q.correct != null ? [q.correct] : []);
-        const userTexts = userIdxs.map(j => opts[j]).filter(x => x != null);
-        const correctTexts = correctIdxs.map(j => opts[j]).filter(x => x != null);
-        const isCorrect = qCls === "ok";
+        // Статус картки (колір лівої рамки, бейдж)
+        let qCls = "none";
+        let ptsCls = "";
+        if (q.type === "long"){
+          const lr = det?.longResult;
+          if (lr === "correct"){ qCls = "ok"; ptsCls = "ok"; }
+          else if (lr === "partial"){ qCls = "partial"; ptsCls = "partial"; }
+          else if (lr === "wrong"){ qCls = "bad"; ptsCls = "bad"; }
+          else { qCls = "pending"; ptsCls = ""; }
+        } else {
+          const hasAnswer = userAns !== null && userAns !== undefined && userAns !== ""
+            && !(Array.isArray(userAns) && userAns.length === 0);
+          if (!hasAnswer){ qCls = "none"; ptsCls = ""; }
+          else if (pts > 0){
+            const maxPts = q.points || 1;
+            if (pts >= maxPts){ qCls = "ok"; ptsCls = "ok"; }
+            else { qCls = "partial"; ptsCls = "partial"; }
+          } else if (pts === 0){ qCls = "bad"; ptsCls = "bad"; }
+        }
  
-        body = `<div class="ad-q-line"><b>Ваш:</b> ${userTexts.length
-          ? `<span class="ad-q-code ${isCorrect ? "ok" : "bad"}">${userTexts.map(esc).join(", ")}</span>`
-          : `<span class="ad-q-code none">—</span>`
-        }</div>`;
-        if (!isCorrect && correctTexts.length){
-          body += `<div class="ad-q-line"><b>Правильно:</b> <span class="ad-q-code correct">${correctTexts.map(esc).join(", ")}</span></div>`;
+        let ptsStr = "";
+        if (pts != null) ptsStr = pts > 0 ? ("+" + pts) : String(pts);
+ 
+        // Тіло відповіді
+        let body = "";
+        if (q.type === "single" || q.type === "multi"){
+          const opts = q.options || [];
+          const userIdxs = Array.isArray(userAns) ? userAns : (userAns != null ? [userAns] : []);
+          const correctIdxs = Array.isArray(q.correct) ? q.correct : (q.correct != null ? [q.correct] : []);
+          const userTexts = userIdxs.map(j => opts[j]).filter(x => x != null);
+          const correctTexts = correctIdxs.map(j => opts[j]).filter(x => x != null);
+          const isOk = qCls === "ok";
+ 
+          if (userTexts.length){
+            body += '<div class="ad-q-line"><b>Ваш:</b> <span class="ad-q-code ' + (isOk ? "ok" : "bad") + '">' + userTexts.map(esc).join(", ") + '</span></div>';
+          } else {
+            body += '<div class="ad-q-line"><b>Ваш:</b> <span class="ad-q-code none">—</span></div>';
+          }
+          if (!isOk && correctTexts.length){
+            body += '<div class="ad-q-line"><b>Правильно:</b> <span class="ad-q-code correct">' + correctTexts.map(esc).join(", ") + '</span></div>';
+          }
+        } else if (q.type === "text" || q.type === "number"){
+          const raw = userAns;
+          const ua = (raw != null && raw !== "" && typeof raw !== "object") ? String(raw) : null;
+          const correctVal = q.correct != null ? String(q.correct) : (q.answer != null ? String(q.answer) : null);
+          const isOk = qCls === "ok";
+ 
+          if (ua){
+            body += '<div class="ad-q-line"><b>Ваш:</b> <span class="ad-q-code ' + (isOk ? "ok" : "bad") + '">' + esc(ua) + '</span></div>';
+          } else {
+            body += '<div class="ad-q-line"><b>Ваш:</b> <span class="ad-q-code none">—</span></div>';
+          }
+          if (!isOk && correctVal){
+            body += '<div class="ad-q-line"><b>Правильно:</b> <span class="ad-q-code correct">' + esc(correctVal) + '</span></div>';
+          }
+        } else if (q.type === "order"){
+          const ua = Array.isArray(userAns) ? userAns : [];
+          if (ua.length){
+            body += '<div class="ad-q-line"><b>Ваш:</b> <span class="ad-q-code">' + ua.map(x => esc(String(x))).join(" → ") + '</span></div>';
+          } else {
+            body += '<div class="ad-q-line"><b>Ваш:</b> <span class="ad-q-code none">—</span></div>';
+          }
+        } else if (q.type === "long"){
+          const raw = userAns;
+          const ua = (raw != null && raw !== "" && typeof raw !== "object") ? String(raw).trim() : null;
+          body += '<div class="ad-long-text ' + (ua ? "" : "empty") + '">' + (ua ? esc(ua) : "Немає відповіді") + '</div>';
+          if (a.grade12 == null){
+            const lr = det?.longResult || "";
+            body += '<div class="ad-long-grade">'
+              + '<button class="g-ok' + (lr === "correct" ? " active" : "") + '" onclick="G.setLongAnswer(\'' + a.id + '\', ' + i + ', \'correct\')">✓ Правильно</button>'
+              + '<button class="g-partial' + (lr === "partial" ? " active" : "") + '" onclick="G.setLongAnswer(\'' + a.id + '\', ' + i + ', \'partial\')">~ Частково</button>'
+              + '<button class="g-bad' + (lr === "wrong" ? " active" : "") + '" onclick="G.setLongAnswer(\'' + a.id + '\', ' + i + ', \'wrong\')">✗ Неправильно</button>'
+              + '</div>';
+          }
         }
-      } else if (q.type === "text" || q.type === "number"){
-        const raw = userAns;
-        const ua = (raw != null && raw !== "" && typeof raw !== "object") ? String(raw) : null;
-        const correctVal = q.correct != null ? String(q.correct) : (q.answer != null ? String(q.answer) : null);
-        const isCorrect = qCls === "ok";
-        body = `<div class="ad-q-line"><b>Ваш:</b> ${ua
-          ? `<span class="ad-q-code ${isCorrect ? "ok" : "bad"}">${esc(ua)}</span>`
-          : `<span class="ad-q-code none">—</span>`
-        }</div>`;
-        if (!isCorrect && correctVal){
-          body += `<div class="ad-q-line"><b>Правильно:</b> <span class="ad-q-code correct">${esc(correctVal)}</span></div>`;
+ 
+        const qText = q.text || q.question || "";
+        let cardHtml = '<div class="ad-q ' + qCls + '">'
+          + '<div class="ad-q-head">'
+          + '<div class="ad-q-text"><span class="qf-rich">' + (i + 1) + '. ' + qText + '</span></div>';
+        if (ptsStr){
+          cardHtml += '<span class="ad-q-pts ' + ptsCls + '">' + ptsStr + '</span>';
         }
-      } else if (q.type === "order"){
-        const ua = Array.isArray(userAns) ? userAns : [];
-        body = ua.length
-          ? `<div class="ad-q-line"><b>Ваш:</b> <span class="ad-q-code">${ua.map(x => esc(String(x))).join(" → ")}</span></div>`
-          : `<div class="ad-q-line"><b>Ваш:</b> <span class="ad-q-code none">—</span></div>`;
-      } else if (q.type === "long"){
-        const raw = userAns;
-        const ua = (raw != null && raw !== "" && typeof raw !== "object") ? String(raw).trim() : null;
-        body = `<div class="ad-long-text ${ua ? "" : "empty"}">${ua ? esc(ua) : "Немає відповіді"}</div>`;
-        const locked = a.grade12 != null;
-        if (!locked){
-          const lr = det?.longResult || "";
-          body += `<div class="ad-long-grade">
-            <button class="g-ok ${lr === "correct" ? "active" : ""}" onclick="G.setLongAnswer('${a.id}', ${i}, 'correct')">✓ Правильно</button>
-            <button class="g-partial ${lr === "partial" ? "active" : ""}" onclick="G.setLongAnswer('${a.id}', ${i}, 'partial')">~ Частково</button>
-            <button class="g-bad ${lr === "wrong" ? "active" : ""}" onclick="G.setLongAnswer('${a.id}', ${i}, 'wrong')">✗ Неправильно</button>
-          </div>`;
+        cardHtml += '</div>' + body + '</div>';
+        return cardHtml;
+      }).join("");
+ 
+      // ── Pending review: грейд-пікер + AI ──
+      const longIdxs = qs.map((_q, qi) => qi).filter(qi => qs[qi].type === "long");
+      const allLongGraded = longIdxs.length === 0 || longIdxs.every(qi => a.score?.details?.[qi]?.longResult);
+      const hasGrade = a.grade12 != null;
+      const canAnalyse = allLongGraded && hasGrade;
+ 
+      let gradePicker = "";
+      if (a.status === "pending_review"){
+        if (allLongGraded){
+          let btns = "";
+          for (let g = 1; g <= 12; g++){
+            const col = g >= 10 ? "#16A34A" : g >= 7 ? "#1E3A8A" : g >= 4 ? "#F59E0B" : "#DC2626";
+            const sel = a.grade12 === g ? ("outline:2px solid " + col + ";outline-offset:2px;") : "";
+            btns += '<button data-g="' + g + '" onclick="G.setManualGrade(\'' + a.id + '\', ' + g + ')" style="border-color:' + col + '55;color:' + col + ';' + sel + '">' + g + '</button>';
+          }
+          gradePicker = '<div class="ad-grade-pick"><div class="ad-gp-label">Виставити оцінку (1–12)</div><div class="ad-gp-grid">' + btns + '</div></div>';
+        } else {
+          gradePicker = '<div class="ad-pending"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Оцініть усі відкриті відповіді нижче, щоб виставити загальну оцінку</div>';
         }
       }
  
-      return `<div class="ad-q ${qCls}">
-        <div class="ad-q-head">
-          <div class="ad-q-text"><span class="qf-rich">${i + 1}. ${q.text || q.question || ""}</span></div>
-          ${ptsStr ? `<span class="ad-q-pts ${ptsCls}">${ptsStr}</span>` : ""}
-        </div>
-        ${body}
-      </div>`;
-    }).join("");
- 
-    // ── Pending review: грейд-пікер + AI ─────────────────────────────────
-    const longIdxs = qs.map((q, qi) => qi).filter(qi => qs[qi].type === "long");
-    const allLongGraded = longIdxs.length === 0 || longIdxs.every(qi => a.score?.details?.[qi]?.longResult);
-    const hasGrade = a.grade12 != null;
-    const canAnalyse = allLongGraded && hasGrade;
- 
-    let gradePicker = "";
-    if (a.status === "pending_review"){
-      if (allLongGraded){
-        let btns = "";
-        for (let g = 1; g <= 12; g++){
-          const col = g >= 10 ? "#16A34A" : g >= 7 ? "#1E3A8A" : g >= 4 ? "#F59E0B" : "#DC2626";
-          const sel = a.grade12 === g ? `outline:2px solid ${col};outline-offset:2px;` : "";
-          btns += `<button data-g="${g}" onclick="G.setManualGrade('${a.id}', ${g})" style="border-color:${col}55;color:${col};${sel}">${g}</button>`;
+      let aiBlock = "";
+      if (a.aiComment || a.personalAnalysis || canAnalyse){
+        aiBlock = '<div class="ad-ai"><div class="ad-ai-h">'
+          + '<div class="ad-ai-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>ШІ аналіз</div>';
+        if (canAnalyse){
+          aiBlock += '<button class="ad-ai-btn" onclick="G.personalAnalysis(\'' + a.id + '\')">✦ Розбір</button>';
+        } else {
+          aiBlock += '<span style="font-size:11px;color:#8691AC;font-style:italic">' + (hasGrade ? "оцініть відповіді" : "виставте оцінку") + '</span>';
         }
-        gradePicker = `<div class="ad-grade-pick">
-          <div class="ad-gp-label">Виставити оцінку (1–12)</div>
-          <div class="ad-gp-grid">${btns}</div>
-        </div>`;
-      } else {
-        gradePicker = `<div class="ad-pending">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Оцініть усі відкриті відповіді нижче, щоб виставити загальну оцінку
-        </div>`;
+        aiBlock += '</div>';
+        if (a.aiComment) aiBlock += '<div class="ad-ai-body">' + esc(a.aiComment) + '</div>';
+        else if (a.personalAnalysis) aiBlock += '<div class="ad-ai-body">' + esc(a.personalAnalysis) + '</div>';
+        aiBlock += '</div>';
+      }
+ 
+      // ── Summary текст ──
+      let scoreText = "—";
+      if (totalCnt > 0) scoreText = correctCnt + "/" + totalCnt + " правильно";
+      else if (a.grade12 != null) scoreText = a.grade12 + "/12";
+      const subLineParts = [];
+      if (t?.title) subLineParts.push(t.title);
+      if (group) subLineParts.push(group);
+      const subLine = subLineParts.join(" · ");
+ 
+      // ── Збирання HTML через конкатенацію (без глибокої вкладеності) ──
+      let html = "";
+ 
+      // Header
+      html += '<div class="ad-head">';
+      html += '<div class="ad-code">' + esc(codeStr) + '</div>';
+      html += '<h2>' + esc(a.surname || "") + ' ' + esc(a.name || "") + '</h2>';
+      if (subLine) html += '<div class="ad-sub">' + esc(subLine) + '</div>';
+      html += '</div>';
+ 
+      // Body
+      html += '<div class="ad-body">';
+ 
+      // Summary
+      html += '<div class="ad-sum">' + donutHtml + '<div class="ad-sum-text">';
+      html += '<div class="ad-sum-label">' + esc(t?.title || "Тест") + '</div>';
+      html += '<div class="ad-sum-main">' + esc(scoreText) + '</div>';
+      html += '<div class="ad-sum-meta">';
+      if (durStr){
+        html += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+        html += durStr + ' · ';
+      }
+      html += '<span>' + esc(dateStr) + '</span>';
+      html += '</div></div></div>';
+ 
+      // Pending + AI
+      html += gradePicker + aiBlock;
+ 
+      // Questions
+      html += '<div><div class="ad-qlabel">Питання <span class="ad-qlabel-sep">·</span> ' + qs.length + '</div>';
+      html += qHtml || '<div class="ad-empty">Немає даних про відповіді</div>';
+      html += '</div>';
+ 
+      html += '</div>'; // /ad-body
+ 
+      // Footer
+      html += '<div class="ad-foot">';
+      html += '<button class="ad-btn-sec" onclick="G.notifyAtt && G.notifyAtt(\'' + a.id + '\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Повідомити</button>';
+      html += '<button class="ad-btn-pri" onclick="G.allowRetake && G.allowRetake(\'' + a.id + '\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v6h6"/><path d="M3 13a9 9 0 1 0 3-7.7L3 8"/></svg>Дозволити перездачу</button>';
+      html += '</div>';
+ 
+      const target = document.getElementById("att-det");
+      if (!target){
+        console.error("[viewAtt] #att-det не знайдено в DOM");
+        toast("Помилка: модалка не готова","err");
+        return;
+      }
+      target.innerHTML = html;
+      console.log("[viewAtt] rendered OK, length:", html.length);
+    } catch (err){
+      console.error("[viewAtt] render error:", err);
+      const target = document.getElementById("att-det");
+      if (target){
+        target.innerHTML = '<div style="padding:24px;color:#B91C1C;font-family:Manrope,sans-serif">'
+          + '<div style="font-weight:700;font-size:15px;margin-bottom:8px">Помилка відображення деталей спроби</div>'
+          + '<div style="font-size:13px;color:#5B6A8F;line-height:1.5">' + esc(err.message || String(err)) + '</div>'
+          + '<div style="font-size:12px;color:#8691AC;margin-top:10px">Відкрий DevTools → Console для деталей</div>'
+          + '</div>';
       }
     }
- 
-    // AI analysis
-    let aiBlock = "";
-    if (a.aiComment || a.personalAnalysis || canAnalyse){
-      aiBlock = `<div class="ad-ai">
-        <div class="ad-ai-h">
-          <div class="ad-ai-title">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            ШІ аналіз
-          </div>
-          ${canAnalyse ? `<button class="ad-ai-btn" onclick="G.personalAnalysis('${a.id}')">✦ Розбір</button>` : `<span style="font-size:11px;color:var(--ad-ink-400);font-style:italic">${hasGrade ? "оцініть відповіді" : "виставте оцінку"}</span>`}
-        </div>
-        ${a.aiComment ? `<div class="ad-ai-body">${esc(a.aiComment)}</div>` : a.personalAnalysis ? `<div class="ad-ai-body">${esc(a.personalAnalysis)}</div>` : ""}
-      </div>`;
-    }
- 
-    // ── Фінальний HTML drawer-а ─────────────────────────────────────────
-    const scoreText = totalCnt > 0
-      ? `${correctCnt}/${totalCnt} правильно`
-      : (grade12 != null ? `${grade12}/12` : "—");
-    const subLine = [t?.title, group ? group : null].filter(Boolean).join(" · ");
- 
-    document.getElementById("att-det").innerHTML = `
-      <!-- Header -->
-      <div class="ad-head">
-        <div class="ad-code">${esc(codeStr)}</div>
-        <h2>${esc(a.surname || "")} ${esc(a.name || "")}</h2>
-        ${subLine ? `<div class="ad-sub">${esc(subLine)}</div>` : ""}
-      </div>
- 
-      <!-- Body -->
-      <div class="ad-body">
-        <!-- Summary -->
-        <div class="ad-sum">
-          ${donut}
-          <div class="ad-sum-text">
-            <div class="ad-sum-label">${esc(t?.title || "Тест")}</div>
-            <div class="ad-sum-main">${esc(scoreText)}</div>
-            <div class="ad-sum-meta">
-              ${durStr ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${durStr} ·` : ""}
-              <span>${esc(dateStr)}</span>
-            </div>
-          </div>
-        </div>
- 
-        ${gradePicker}
-        ${aiBlock}
- 
-        <!-- Questions -->
-        <div>
-          <div class="ad-qlabel">Питання <span class="ad-qlabel-sep">·</span> ${qs.length}</div>
-          ${qHtml || `<div class="ad-empty">Немає даних про відповіді</div>`}
-        </div>
-      </div>
- 
-      <!-- Footer -->
-      <div class="ad-foot">
-        <button class="ad-btn-sec" onclick="G.notifyAtt && G.notifyAtt('${a.id}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-          Повідомити
-        </button>
-        <button class="ad-btn-pri" onclick="G.allowRetake && G.allowRetake('${a.id}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v6h6"/><path d="M3 13a9 9 0 1 0 3-7.7L3 8"/></svg>
-          Дозволити перездачу
-        </button>
-      </div>`;
  
     openM("m-attempt");
   },
+ 
 // ═══════════════════════════════════════════════════════════════════════════
 // ЗАГЛУШКИ для кнопок footer-а drawer-а
 // Додай у G namespace (десь поруч з іншими методами).
