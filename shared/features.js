@@ -913,7 +913,7 @@ let _attSort = { field: "date", dir: "desc" };
 window._attPage = 1;
 const ATT_PER_PAGE = 20;
 
-/ ─── renderAttempts (заміна) ───────────────────────────────────────────
+// ─── renderAttempts (заміна) ───────────────────────────────────────────
 renderAttempts = function(resetPage = false){
   if (resetPage) window._attPage = 1;
 
