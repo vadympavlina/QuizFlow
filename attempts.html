@@ -38,7 +38,7 @@
 @keyframes attPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}70%{box-shadow:0 0 0 8px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
 
 /* KPI stats */
-#sec-attempts .stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+#sec-attempts .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 #sec-attempts .stat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;transition:border-color .15s,transform .15s}
 #sec-attempts .stat:hover{border-color:var(--line-strong)}
 #sec-attempts .stat-l{font-size:11px;color:var(--ink-400);text-transform:uppercase;letter-spacing:.06em;font-weight:600;font-family:'Manrope',sans-serif}
@@ -175,7 +175,6 @@
       <div class="stat"><div class="stat-l">Завершено</div><div class="stat-v sc-ok" id="stat-done">0</div></div>
       <div class="stat"><div class="stat-l">У процесі</div><div class="stat-v sc-info" id="stat-inprog">0</div></div>
       <div class="stat"><div class="stat-l">З прапорами</div><div class="stat-v sc-bad" id="stat-flagged">0</div></div>
-      <div class="stat"><div class="stat-l">Середній бал</div><div class="stat-v sc-warn" id="stat-avg">—</div></div>
     </div>
 
     <!-- Filters + Table -->
@@ -203,9 +202,9 @@
           <div class="tabs" id="fst-tabs">
             <button class="tab active" data-status="" onclick="setAttStatusTab(this)">Всі</button>
             <button class="tab" data-status="completed" onclick="setAttStatusTab(this)">Завершено</button>
-            <button class="tab" data-status="in_progress" onclick="setAttStatusTab(this)">● В процесі</button>
-            <button class="tab" data-status="pending_review" onclick="setAttStatusTab(this)">⏳ Перевіряється</button>
-            <button class="tab" data-status="flagged" onclick="setAttStatusTab(this)">⚑ З прапорами</button>
+            <button class="tab" data-status="in_progress" onclick="setAttStatusTab(this)">В процесі</button>
+            <button class="tab" data-status="pending_review" onclick="setAttStatusTab(this)">Перевіряється</button>
+            <button class="tab" data-status="flagged" onclick="setAttStatusTab(this)">З прапорами</button>
           </div>
 
           <button class="btn-reset" onclick="resetAttFilters()" title="Скинути всі фільтри">
