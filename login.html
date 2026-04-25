@@ -60,14 +60,6 @@
   .feat div { color:#BFD3F5; }
   .feat-txt { line-height:1.5; }
 
-  .quote { position:relative; z-index:1; border-top:1px solid rgba(255,255,255,.12); padding-top:20px; max-width:440px; }
-  .quote-text { font-size:13.5px; color:#E5ECFA; line-height:1.55; font-style:italic; }
-  .quote-author { display:flex; align-items:center; gap:10px; margin-top:14px; }
-  .q-avatar { width:32px; height:32px; border-radius:10px; background: linear-gradient(135deg, #93C5FD, #3B82F6); color:#0B1437; display:grid; place-items:center; font-weight:800; font-size:12px; }
-  .q-meta { font-size:12px; }
-  .q-meta b { color:#fff; }
-  .q-meta span { color:#93C5FD; }
-
   /* ═══════ Права панель (форма) ═══════ */
   .form-panel {
     padding: 56px 64px; display:flex; flex-direction:column; justify-content:center;
@@ -81,23 +73,6 @@
   .form-inner { max-width:400px; margin:0 auto; width:100%; }
   .form-inner h2 { font-size:26px; font-weight:800; letter-spacing:-.02em; margin:0 0 6px; }
   .form-inner .sub { color:var(--ink-500); margin:0 0 28px; font-size:14px; line-height:1.5; }
-
-  .tabs-auth { display:inline-flex; background:#F1F5FB; border-radius:10px; padding:3px; margin-bottom:22px; width:100%; }
-  .tabs-auth button { flex:1; background:transparent; border:0; font:inherit; padding:8px 10px; border-radius:8px; font-size:13px; font-weight:600; color:var(--ink-500); cursor:pointer; transition:color .12s; }
-  .tabs-auth button:hover:not(.on) { color:var(--ink-700); }
-  .tabs-auth button.on { background:#fff; color:var(--ink-900); box-shadow:0 1px 3px rgba(0,0,0,.08); }
-
-  .oauth { display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 20px; }
-  .oauth button {
-    background:#fff; border:1px solid var(--line); border-radius:10px;
-    padding: 10px 12px; font:inherit; font-size:13px; font-weight:600;
-    color:var(--ink-900); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
-    transition: border-color .15s, background .15s;
-  }
-  .oauth button:hover { border-color:var(--line-strong); background:#FAFBFE; }
-
-  .divider { display:flex; align-items:center; gap:12px; color:var(--ink-400); font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; font-weight:600; margin:18px 0; }
-  .divider::before, .divider::after { content:""; flex:1; height:1px; background:var(--line); }
 
   .field { margin-bottom:14px; }
   .field label { display:block; font-size:12.5px; font-weight:600; color:var(--ink-900); margin-bottom:6px; }
@@ -144,8 +119,6 @@
   }
   @keyframes spin { to { transform: rotate(360deg) } }
 
-  .bottom { text-align:center; margin-top:22px; font-size:13px; color:var(--ink-500); }
-
   /* Inline error message під формою */
   .error-msg {
     display:flex; align-items:center; gap:6px; font-size:13px;
@@ -168,7 +141,7 @@
   .legal a { color:var(--ink-500); text-decoration:none; }
   .legal a:hover { color:var(--ink-700); }
 
-  /* Toast (для заглушок lang/oauth/forgot) */
+  /* Toast (для заглушок lang / forgot) */
   #toast {
     position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
     background:var(--nav-900); color:#fff; padding:10px 18px;
@@ -257,13 +230,8 @@
     </div>
   </div>
 
-  <div class="quote">
-    <div class="quote-text">«Скоротили час на перевірку контрольних з трьох годин до двадцяти хвилин. Студенти теж задоволені — результати бачать одразу».</div>
-    <div class="quote-author">
-      <div class="q-avatar">МШ</div>
-      <div class="q-meta"><b>Марія Шевчук</b> · <span>доцент, КНУ ім. Шевченка</span></div>
-    </div>
-  </div>
+  <!-- Spacer щоб брендовий блок зверху не тулився до hero — flex:justify-content:space-between розкидає -->
+  <div></div>
 </aside>
 
 <!-- ═══ ПРАВА ПАНЕЛЬ — ФОРМА ═══ -->
@@ -279,24 +247,6 @@
   <div class="form-inner" id="loginForm" style="display:none">
     <h2>З поверненням 👋</h2>
     <p class="sub">Увійдіть, щоб продовжити роботу з тестами та групами.</p>
-
-    <div class="tabs-auth">
-      <button class="on">Вхід</button>
-      <button onclick="showRegToast()">Реєстрація</button>
-    </div>
-
-    <div class="oauth">
-      <button onclick="showOAuthToast()" type="button">
-        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.25 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.59 6.59 0 0 1 0-4.2V7.07H2.18a11 11 0 0 0 0 9.86l3.66-2.83z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.07.56 4.21 1.64l3.15-3.15C17.45 2.1 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.83C6.71 7.3 9.14 5.38 12 5.38z"/></svg>
-        Google
-      </button>
-      <button onclick="showOAuthToast()" type="button">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="#0078D4"><path d="M11 11H2V2h9v9zm11 0h-9V2h9v9zm-11 11H2v-9h9v9zm11 0h-9v-9h9v9z"/></svg>
-        Microsoft
-      </button>
-    </div>
-
-    <div class="divider">або продовжте з логіном</div>
 
     <form onsubmit="doLogin();return false" autocomplete="on" id="loginFormEl">
       <div class="field">
@@ -337,10 +287,6 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
       </button>
     </form>
-
-    <div class="bottom">
-      Немає акаунта? <a class="link" onclick="showRegToast()">Створити викладацький профіль</a>
-    </div>
   </div>
 
   <!-- ─── ФОРМА ЗМІНИ ПАРОЛЯ (перший вхід) ─── -->
@@ -400,7 +346,7 @@
   </div>
 </section>
 
-<!-- Toast (заглушки UA/EN, OAuth, Forgot, Реєстрація) -->
+<!-- Toast (заглушки UA/EN, Forgot) -->
 <div id="toast"></div>
 
 <script type="module">
@@ -576,8 +522,6 @@ function toast(msg){
   _toastTimer = setTimeout(()=> t.classList.remove("show"), 2400);
 }
 window.showLangToast   = () => toast("Перемикач мови — скоро буде");
-window.showOAuthToast  = () => toast("OAuth-вхід — скоро буде");
-window.showRegToast    = () => toast("Реєстрацію виконує адміністратор — зверніться по логін");
 window.showForgotToast = () => toast("Зверніться до адміністратора для скидання пароля");
 </script>
 </body>
