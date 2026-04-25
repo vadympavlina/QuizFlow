@@ -413,12 +413,19 @@ window.doChangePass = async () => {
 };
 
 function saveSession(user){
-  sessionStorage.setItem("qf_user", JSON.stringify({
+  // Збираємо дані в рядок
+  const userData = JSON.stringify({
     id:    user.id,
     name:  user.name,
     login: user.login,
     role:  user.role || "teacher"
-  }));
+  });
+
+  // Зберігаємо для поточної вкладки
+  sessionStorage.setItem("qf_user", userData);
+  
+  // ДОДАЄМО ЦЕ: Зберігаємо для нових вкладок (щоб live.html знайшов логін)
+  localStorage.setItem("qf_user", userData);
 }
 
 // ─── UI хелпери ───────────────────────────────────────────────────────────────
