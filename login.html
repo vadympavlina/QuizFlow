@@ -2,145 +2,406 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=1280">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/><circle cx='24' cy='22' r='5' fill='none' stroke='white' stroke-width='2.2'/><line x1='27.5' y1='25.5' x2='29.5' y2='27.5' stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>">
 <title>QuizFlow — Вхід</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root { --primary:#2d5be3; --rose:#f43f5e; --text:#0d1340; --text-muted:#6b7280; --border:rgba(45,91,227,0.12); }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:"DM Sans",sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f0f3fa;position:relative;overflow:hidden}
-  body::before{content:"";position:absolute;width:700px;height:700px;background:radial-gradient(circle,rgba(45,91,227,.07),transparent 70%);top:-200px;right:-200px;pointer-events:none}
-  body::after{content:"";position:absolute;width:500px;height:500px;background:radial-gradient(circle,rgba(20,212,180,.05),transparent 70%);bottom:-150px;left:-150px;pointer-events:none}
-  .card{background:#fff;border-radius:28px;padding:52px 48px;width:100%;max-width:420px;box-shadow:0 24px 80px rgba(45,91,227,.12);position:relative;z-index:1;animation:cardIn .45s cubic-bezier(.34,1.56,.64,1) both}
-  @keyframes cardIn{from{opacity:0;transform:translateY(28px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
-  .logo{display:flex;align-items:center;gap:12px;margin-bottom:36px}
-  .logo-icon{width:44px;height:44px;background:linear-gradient(135deg,#2d5be3,#1a3ab8);border-radius:13px;display:flex;align-items:center;justify-content:center;font-family:"Syne",sans-serif;font-weight:800;font-size:20px;color:#fff}
-  .logo-name{font-family:"Syne",sans-serif;font-weight:700;font-size:22px;color:var(--text)}
-  .title{font-family:"Syne",sans-serif;font-weight:700;font-size:26px;letter-spacing:-.4px;color:var(--text);margin-bottom:6px}
-  .subtitle{font-size:14px;color:var(--text-muted);margin-bottom:32px;line-height:1.5}
-  .field{margin-bottom:14px}
-  .field-label{font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:7px;font-weight:500;display:block}
-  .field-wrap{position:relative}
-  .field-input{width:100%;padding:14px 48px 14px 18px;border-radius:14px;border:2px solid var(--border);font-family:"DM Sans",sans-serif;font-size:15px;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;background:#fff}
-  .field-input:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(45,91,227,.08)}
-  .field-input.error{border-color:var(--rose);box-shadow:0 0 0 4px rgba(244,63,94,.08)}
-  .field-input.shake{animation:shake .35s ease}
-  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
-  .field-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);display:flex;align-items:center;pointer-events:none}
-  .eye-btn{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px;display:flex;align-items:center;transition:color .2s}
-  .eye-btn:hover{color:var(--primary)}
-  .error-msg{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--rose);min-height:22px;margin-bottom:20px;opacity:0;transition:opacity .2s}
-  .error-msg.show{opacity:1}
-  .submit-btn{width:100%;padding:15px;border-radius:14px;border:none;background:linear-gradient(135deg,#2d5be3,#1a3ab8);color:#fff;font-family:"Syne",sans-serif;font-weight:600;font-size:16px;cursor:pointer;transition:all .2s;box-shadow:0 8px 28px rgba(45,91,227,.3);display:flex;align-items:center;justify-content:center;gap:8px}
-  .submit-btn:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(45,91,227,.4)}
-  .submit-btn:disabled{opacity:.65;transform:none;cursor:not-allowed}
-  .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  #globalLoader{position:fixed;inset:0;background:rgba(240,243,250,.9);backdrop-filter:blur(4px);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
-  .loader-spinner{width:40px;height:40px;border:3px solid rgba(45,91,227,.15);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
-  .loader-text{font-size:14px;color:var(--text-muted)}
-  /* Зміна пароля */
-  .change-notice{background:rgba(245,158,11,.08);border:1.5px solid rgba(245,158,11,.25);border-radius:14px;padding:14px 16px;margin-bottom:24px;font-size:13px;color:#b45309;line-height:1.5}
+  :root {
+    --nav-900:#0B1437; --nav-800:#0F1E47; --nav-600:#1E3A8A;
+    --nav-accent:#3B82F6; --nav-soft:#60A5FA;
+    --bg:#F4F6FB; --ink-900:#0B1437; --ink-700:#24335A; --ink-500:#5B6A8F; --ink-400:#8691AC;
+    --line:#E3E8F2; --line-strong:#CDD6E8;
+    --rose:#DC2626;
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; padding:0; font-family:"Manrope", system-ui, sans-serif; color:var(--ink-900); -webkit-font-smoothing:antialiased; font-size:14px; }
+  body { min-height:100vh; display:grid; grid-template-columns: 1fr 560px; background:#fff; }
+
+  /* ═══════ Ліва панель (brand) ═══════ */
+  .brand-panel {
+    background:
+      radial-gradient(circle at 20% 10%, rgba(59,130,246,.45), transparent 50%),
+      radial-gradient(circle at 80% 90%, rgba(96,165,250,.35), transparent 55%),
+      linear-gradient(135deg, #0B1437 0%, #1E3A8A 100%);
+    color:#fff; padding:48px; position:relative; overflow:hidden;
+    display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .brand-panel::after {
+    content:""; position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(circle at 30% 40%, #000, transparent 70%);
+    -webkit-mask-image: radial-gradient(circle at 30% 40%, #000, transparent 70%);
+    pointer-events:none;
+  }
+  .brand { display:flex; align-items:center; gap:12px; position:relative; z-index:1; }
+  .brand-mark {
+    width:42px; height:42px; border-radius:12px;
+    background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+    display:grid; place-items:center;
+    box-shadow: 0 8px 20px -8px rgba(59,130,246,.9), inset 0 -2px 0 rgba(0,0,0,.2);
+  }
+  .brand-text { font-size:20px; font-weight:800; letter-spacing:-.01em; }
+  .brand-text em { font-style:normal; color:#93C5FD; }
+
+  .hero-copy { position:relative; z-index:1; max-width: 480px; }
+  .kicker { font-size: 11px; text-transform:uppercase; letter-spacing:.14em; color:#93C5FD; font-weight:700; margin-bottom:14px; }
+  .hero-copy h1 { margin:0 0 14px; font-size:34px; font-weight:800; letter-spacing:-.025em; line-height:1.15; }
+  .hero-copy p { margin:0; color:#BFD3F5; font-size:15px; line-height:1.6; }
+  .features { position:relative; z-index:1; display:flex; flex-direction:column; gap:14px; margin-top: 28px; }
+  .feat { display:flex; gap:12px; align-items:flex-start; color:#E5ECFA; font-size:13.5px; }
+  .feat-ico { width:30px; height:30px; border-radius:9px; background: rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); display:grid; place-items:center; flex:0 0 auto; color:#93C5FD; }
+  .feat b { color:#fff; font-weight:700; }
+  .feat div { color:#BFD3F5; }
+  .feat-txt { line-height:1.5; }
+
+  .quote { position:relative; z-index:1; border-top:1px solid rgba(255,255,255,.12); padding-top:20px; max-width:440px; }
+  .quote-text { font-size:13.5px; color:#E5ECFA; line-height:1.55; font-style:italic; }
+  .quote-author { display:flex; align-items:center; gap:10px; margin-top:14px; }
+  .q-avatar { width:32px; height:32px; border-radius:10px; background: linear-gradient(135deg, #93C5FD, #3B82F6); color:#0B1437; display:grid; place-items:center; font-weight:800; font-size:12px; }
+  .q-meta { font-size:12px; }
+  .q-meta b { color:#fff; }
+  .q-meta span { color:#93C5FD; }
+
+  /* ═══════ Права панель (форма) ═══════ */
+  .form-panel {
+    padding: 56px 64px; display:flex; flex-direction:column; justify-content:center;
+    background:#fff; position:relative;
+  }
+  .lang-switch { position:absolute; top:24px; right:32px; display:inline-flex; background:#F1F5FB; border-radius:8px; padding:3px; z-index:5; }
+  .lang-switch button { background:transparent; border:0; font:inherit; padding:5px 10px; border-radius:6px; font-size:12px; font-weight:600; color:var(--ink-500); cursor:pointer; transition:color .12s; }
+  .lang-switch button:hover:not(.on) { color:var(--ink-700); }
+  .lang-switch button.on { background:#fff; color:var(--ink-900); box-shadow:0 1px 2px rgba(0,0,0,.06); }
+
+  .form-inner { max-width:400px; margin:0 auto; width:100%; }
+  .form-inner h2 { font-size:26px; font-weight:800; letter-spacing:-.02em; margin:0 0 6px; }
+  .form-inner .sub { color:var(--ink-500); margin:0 0 28px; font-size:14px; line-height:1.5; }
+
+  .tabs-auth { display:inline-flex; background:#F1F5FB; border-radius:10px; padding:3px; margin-bottom:22px; width:100%; }
+  .tabs-auth button { flex:1; background:transparent; border:0; font:inherit; padding:8px 10px; border-radius:8px; font-size:13px; font-weight:600; color:var(--ink-500); cursor:pointer; transition:color .12s; }
+  .tabs-auth button:hover:not(.on) { color:var(--ink-700); }
+  .tabs-auth button.on { background:#fff; color:var(--ink-900); box-shadow:0 1px 3px rgba(0,0,0,.08); }
+
+  .oauth { display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 20px; }
+  .oauth button {
+    background:#fff; border:1px solid var(--line); border-radius:10px;
+    padding: 10px 12px; font:inherit; font-size:13px; font-weight:600;
+    color:var(--ink-900); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
+    transition: border-color .15s, background .15s;
+  }
+  .oauth button:hover { border-color:var(--line-strong); background:#FAFBFE; }
+
+  .divider { display:flex; align-items:center; gap:12px; color:var(--ink-400); font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; font-weight:600; margin:18px 0; }
+  .divider::before, .divider::after { content:""; flex:1; height:1px; background:var(--line); }
+
+  .field { margin-bottom:14px; }
+  .field label { display:block; font-size:12.5px; font-weight:600; color:var(--ink-900); margin-bottom:6px; }
+  .field label.split { display:flex; justify-content:space-between; align-items:baseline; }
+  .field .input-wrap { position:relative; }
+  .field input {
+    width:100%; border:1px solid var(--line); border-radius:10px;
+    padding: 11px 14px 11px 40px; font:inherit; font-size:14px; color:var(--ink-900);
+    outline:none; transition: border-color .15s, box-shadow .15s;
+    background:#fff; font-family:'Manrope', sans-serif;
+  }
+  .field input:focus { border-color: var(--nav-accent); box-shadow: 0 0 0 3px rgba(59,130,246,.12); }
+  .field input.error { border-color: var(--rose); box-shadow: 0 0 0 3px rgba(220,38,38,.1); }
+  .field input.shake { animation: shake .35s ease; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+  .field .ico { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--ink-400); display:flex; align-items:center; pointer-events:none; }
+  .field .toggle-pw { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:transparent; border:0; color:var(--ink-400); cursor:pointer; padding:2px; border-radius:4px; display:flex; align-items:center; }
+  .field .toggle-pw:hover { color:var(--ink-900); }
+
+  .row { display:flex; align-items:center; justify-content:space-between; margin: 4px 0 22px; font-size:13px; }
+  .chk { display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--ink-700); font-size:13px; }
+  .chk input { accent-color: var(--nav-accent); width:16px; height:16px; cursor:pointer; }
+  .link { color: var(--nav-600); font-weight:600; text-decoration:none; cursor:pointer; }
+  .link:hover { text-decoration: underline; }
+
+  .submit {
+    width:100%; padding: 12px; border:0; border-radius:10px;
+    background: linear-gradient(135deg, #1E40AF, #3B82F6);
+    color:#fff; font:inherit; font-size:14px; font-weight:700; cursor:pointer;
+    box-shadow: 0 10px 24px -10px rgba(30,64,175,.7);
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    transition: transform .1s, box-shadow .15s, opacity .15s;
+    font-family:'Manrope', sans-serif;
+  }
+  .submit:hover:not(:disabled) { transform: translateY(-1px); }
+  .submit:active:not(:disabled) { transform: translateY(0); }
+  .submit:disabled { opacity:.65; cursor:not-allowed; transform:none; }
+
+  .spinner {
+    width:16px; height:16px;
+    border:2px solid rgba(255,255,255,.35);
+    border-top-color:#fff; border-radius:50%;
+    animation: spin .7s linear infinite; flex:0 0 auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg) } }
+
+  .bottom { text-align:center; margin-top:22px; font-size:13px; color:var(--ink-500); }
+
+  /* Inline error message під формою */
+  .error-msg {
+    display:flex; align-items:center; gap:6px; font-size:13px;
+    color:var(--rose); min-height:0; opacity:0;
+    transition: opacity .2s, min-height .2s;
+    margin-bottom:0;
+  }
+  .error-msg.show { opacity:1; min-height:22px; margin-bottom:14px; }
+
+  /* Перший вхід — банер */
+  .first-login-notice {
+    background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.25);
+    border-radius:10px; padding:12px 14px; margin-bottom:22px;
+    font-size:13px; color:#92400E; line-height:1.5;
+    display:flex; gap:9px; align-items:flex-start;
+  }
+  .first-login-notice svg { flex:0 0 auto; margin-top:1px; color:#D97706; }
+
+  .legal { position:absolute; bottom:24px; left:64px; right:64px; display:flex; justify-content:space-between; font-size:11.5px; color:var(--ink-400); }
+  .legal a { color:var(--ink-500); text-decoration:none; }
+  .legal a:hover { color:var(--ink-700); }
+
+  /* Toast (для заглушок lang/oauth/forgot) */
+  #toast {
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background:var(--nav-900); color:#fff; padding:10px 18px;
+    border-radius:10px; font-size:13px; font-weight:500;
+    box-shadow:0 12px 32px rgba(11,20,55,.25);
+    opacity:0; pointer-events:none; transition:opacity .2s;
+    z-index:1000; white-space:nowrap;
+  }
+  #toast.show { opacity:1; }
+
+  /* Global loader (поверх усього при перевірці сесії) */
+  #globalLoader {
+    position:fixed; inset:0; z-index:200;
+    background:rgba(244,246,251,.94); backdrop-filter:blur(4px);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+  }
+  .loader-spinner {
+    width:40px; height:40px;
+    border:3px solid rgba(30,58,138,.15);
+    border-top-color:var(--nav-600);
+    border-radius:50%; animation:spin .8s linear infinite;
+  }
+  .loader-text { font-size:13px; color:var(--ink-500); }
+
+  /* Mobile blocker */
+  @media (max-width: 1023px) {
+    body { display:none; }
+    #mobile-overlay { display:flex !important; }
+  }
 </style>
 </head>
 <body>
-<!-- MOBILE OVERLAY -->
-<div id="mobile-overlay" style="display:none;position:fixed;inset:0;background:#0d1340;z-index:9999;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center">
-  <div style="width:64px;height:64px;background:linear-gradient(135deg,#2d5be3,#1a3ab8);border-radius:18px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:28px;color:#fff;margin-bottom:28px;box-shadow:0 8px 28px rgba(45,91,227,.4)">Q</div>
-  <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:#fff;margin-bottom:12px;line-height:1.3">Мобільна версія недоступна</div>
-  <div style="font-size:15px;color:rgba(255,255,255,.55);line-height:1.7;max-width:280px">Для зручної роботи з QuizFlow використовуйте комп'ютер або ноутбук</div>
-  <div style="margin-top:32px;display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.25);font-size:13px">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-    Мінімальна ширина: 1024px
+
+<!-- ═══ MOBILE OVERLAY ═══ -->
+<div id="mobile-overlay" style="display:none;position:fixed;inset:0;background:linear-gradient(160deg,#0B1437 0%,#0F1E47 100%);z-index:9999;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;color:#fff">
+  <div style="width:72px;height:72px;background:linear-gradient(135deg,#3B82F6,#1D4ED8);border-radius:20px;display:grid;place-items:center;margin-bottom:22px;box-shadow:0 12px 32px rgba(59,130,246,.4)">
+    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11a4 4 0 0 1 4 4v1"/><path d="M20 17H9a4 4 0 0 1-4-4v-1"/><circle cx="5" cy="7" r="1.3" fill="#fff"/><circle cx="19" cy="17" r="1.3" fill="#fff"/></svg>
+  </div>
+  <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:20px;margin-bottom:10px;line-height:1.3">Мобільна версія недоступна</div>
+  <div style="font-size:14px;color:#8FA0C7;line-height:1.6;max-width:320px">Для зручної роботи з QuizFlow використовуйте комп'ютер або ноутбук</div>
+  <div style="margin-top:28px;display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.3);font-size:12px;font-family:'Geist Mono',monospace">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    min-width: 1024px
   </div>
 </div>
-<style>
-@media(max-width:1023px){
-  #mobile-overlay{display:flex!important}
-  body > *:not(#mobile-overlay){display:none!important}
-}
-</style>
 
-
+<!-- ═══ Global loader (під час перевірки сесії) ═══ -->
 <div id="globalLoader">
   <div class="loader-spinner"></div>
   <div class="loader-text">Перевірка сесії...</div>
 </div>
 
-<!-- ФОРМА ВХОДУ -->
-<div class="card" id="loginCard" style="display:none">
-  <div class="logo">
-    <div class="logo-icon">Q</div>
-    <span class="logo-name">QuizFlow</span>
+<!-- ═══ ЛІВА ПАНЕЛЬ — БРЕНД ═══ -->
+<aside class="brand-panel">
+  <div class="brand">
+    <div class="brand-mark">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11a4 4 0 0 1 4 4v1"/><path d="M20 17H9a4 4 0 0 1-4-4v-1"/><circle cx="5" cy="7" r="1.3" fill="#fff"/><circle cx="19" cy="17" r="1.3" fill="#fff"/></svg>
+    </div>
+    <div class="brand-text">quiz<em>flow</em></div>
   </div>
-  <div class="title">Вхід</div>
-  <div class="subtitle">Панель керування для викладача</div>
-  <form onsubmit="doLogin();return false" autocomplete="on">
-    <div class="field">
-      <label class="field-label">Логін</label>
-      <div class="field-wrap">
-        <input class="field-input" type="text" id="loginInput" name="username" placeholder="Введіть логін" autocomplete="username" autocorrect="off" autocapitalize="none">
-        <span class="field-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-      </div>
-    </div>
-    <div class="field">
-      <label class="field-label">Пароль</label>
-      <div class="field-wrap">
-        <input class="field-input" type="password" id="passInput" name="password" placeholder="Введіть пароль" autocomplete="current-password">
-        <button class="eye-btn" onclick="togglePass()" type="button">
-          <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </button>
-      </div>
-    </div>
-    <div class="error-msg" id="errorMsg">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <span id="errorText">Невірний логін або пароль</span>
-    </div>
-    <button class="submit-btn" id="submitBtn" type="submit">
-      <span id="btnText">Увійти</span>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-    </button>
-  </form>
-</div>
 
-<!-- ФОРМА ЗМІНИ ПАРОЛЯ (перший вхід) -->
-<div class="card" id="changePassCard" style="display:none">
-  <div class="logo">
-    <div class="logo-icon">Q</div>
-    <span class="logo-name">QuizFlow</span>
+  <div class="hero-copy">
+    <div class="kicker">● Платформа для викладачів</div>
+    <h1>Тестування без списувань — і без зайвого клікання.</h1>
+    <p>Створюйте тести, відстежуйте спроби в реальному часі та отримуйте розширену аналітику. Все в одному синьому місці.</p>
+
+    <div class="features">
+      <div class="feat">
+        <div class="feat-ico">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 8.5-8 9-4.8-.5-8-4.5-8-9V6l8-3z"/></svg>
+        </div>
+        <div class="feat-txt"><b>Анти-чіт на основі поведінки</b><br/>Моніторинг вкладок, буфера обміну та патернів відповідей.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-ico">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
+        </div>
+        <div class="feat-txt"><b>Live-моніторинг</b><br/>Бачте, як студенти проходять тест, прямо зараз.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-ico">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/></svg>
+        </div>
+        <div class="feat-txt"><b>Детальна аналітика</b><br/>Розподіли балів, складність питань і звіти в 1 клік.</div>
+      </div>
+    </div>
   </div>
-  <div class="title">Зміна пароля</div>
-  <div class="change-notice">🔐 Це ваш перший вхід. Встановіть особистий пароль перед початком роботи.</div>
-  <form onsubmit="doChangePass();return false">
-    <div class="field">
-      <label class="field-label">Новий пароль</label>
-      <div class="field-wrap">
-        <input class="field-input" type="password" id="newPass1" placeholder="Мінімум 8 символів" autocomplete="new-password">
-        <button class="eye-btn" onclick="togglePassField('newPass1','eye2')" type="button">
-          <svg id="eye2" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </button>
+
+  <div class="quote">
+    <div class="quote-text">«Скоротили час на перевірку контрольних з трьох годин до двадцяти хвилин. Студенти теж задоволені — результати бачать одразу».</div>
+    <div class="quote-author">
+      <div class="q-avatar">МШ</div>
+      <div class="q-meta"><b>Марія Шевчук</b> · <span>доцент, КНУ ім. Шевченка</span></div>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══ ПРАВА ПАНЕЛЬ — ФОРМА ═══ -->
+<section class="form-panel">
+
+  <!-- Lang switch -->
+  <div class="lang-switch">
+    <button class="on" onclick="showLangToast()">UA</button>
+    <button onclick="showLangToast()">EN</button>
+  </div>
+
+  <!-- ─── ФОРМА ВХОДУ ─── -->
+  <div class="form-inner" id="loginForm" style="display:none">
+    <h2>З поверненням 👋</h2>
+    <p class="sub">Увійдіть, щоб продовжити роботу з тестами та групами.</p>
+
+    <div class="tabs-auth">
+      <button class="on">Вхід</button>
+      <button onclick="showRegToast()">Реєстрація</button>
+    </div>
+
+    <div class="oauth">
+      <button onclick="showOAuthToast()" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.25 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.59 6.59 0 0 1 0-4.2V7.07H2.18a11 11 0 0 0 0 9.86l3.66-2.83z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.07.56 4.21 1.64l3.15-3.15C17.45 2.1 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.83C6.71 7.3 9.14 5.38 12 5.38z"/></svg>
+        Google
+      </button>
+      <button onclick="showOAuthToast()" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#0078D4"><path d="M11 11H2V2h9v9zm11 0h-9V2h9v9zm-11 11H2v-9h9v9zm11 0h-9v-9h9v9z"/></svg>
+        Microsoft
+      </button>
+    </div>
+
+    <div class="divider">або продовжте з логіном</div>
+
+    <form onsubmit="doLogin();return false" autocomplete="on" id="loginFormEl">
+      <div class="field">
+        <label>Логін</label>
+        <div class="input-wrap">
+          <span class="ico">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </span>
+          <input id="loginInput" name="username" type="text" placeholder="Введіть логін" autocomplete="username" autocorrect="off" autocapitalize="none"/>
+        </div>
       </div>
-    </div>
-    <div class="field">
-      <label class="field-label">Повторіть пароль</label>
-      <div class="field-wrap">
-        <input class="field-input" type="password" id="newPass2" placeholder="Повторіть пароль" autocomplete="new-password">
-        <button class="eye-btn" onclick="togglePassField('newPass2','eye3')" type="button">
-          <svg id="eye3" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </button>
+
+      <div class="field">
+        <label class="split">Пароль <a class="link" style="font-weight:500;font-size:12px" onclick="showForgotToast()">Забули?</a></label>
+        <div class="input-wrap">
+          <span class="ico">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          </span>
+          <input id="passInput" name="password" type="password" placeholder="••••••••" autocomplete="current-password"/>
+          <button type="button" class="toggle-pw" onclick="togglePass()" aria-label="Показати/сховати пароль">
+            <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
       </div>
+
+      <div class="error-msg" id="errorMsg">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="errorText">Невірний логін або пароль</span>
+      </div>
+
+      <div class="row">
+        <label class="chk"><input type="checkbox" id="rememberMe" checked/> Запам'ятати мене</label>
+        <span style="color:var(--ink-400); font-family:'Geist Mono',monospace; font-size:11px;">SSL · 2FA готово</span>
+      </div>
+
+      <button type="submit" class="submit" id="submitBtn">
+        <span id="btnText">Увійти в QuizFlow</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+    </form>
+
+    <div class="bottom">
+      Немає акаунта? <a class="link" onclick="showRegToast()">Створити викладацький профіль</a>
     </div>
-    <div class="error-msg" id="errorMsg2">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <span id="errorText2"></span>
+  </div>
+
+  <!-- ─── ФОРМА ЗМІНИ ПАРОЛЯ (перший вхід) ─── -->
+  <div class="form-inner" id="changePassForm" style="display:none">
+    <h2>Зміна пароля 🔐</h2>
+    <p class="sub">Це ваш перший вхід. Встановіть особистий пароль перед початком роботи.</p>
+
+    <div class="first-login-notice">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+      <span>З міркувань безпеки тимчасовий пароль необхідно замінити. Мінімум 8 символів.</span>
     </div>
-    <button class="submit-btn" id="changeBtn" type="submit">
-      <span id="changeBtnText">Зберегти пароль</span>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-    </button>
-  </form>
-</div>
+
+    <form onsubmit="doChangePass();return false">
+      <div class="field">
+        <label>Новий пароль</label>
+        <div class="input-wrap">
+          <span class="ico">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          </span>
+          <input id="newPass1" type="password" placeholder="Мінімум 8 символів" autocomplete="new-password"/>
+          <button type="button" class="toggle-pw" onclick="togglePassField('newPass1','eye2')" aria-label="Показати/сховати">
+            <svg id="eye2" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Повторіть пароль</label>
+        <div class="input-wrap">
+          <span class="ico">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          </span>
+          <input id="newPass2" type="password" placeholder="Повторіть пароль" autocomplete="new-password"/>
+          <button type="button" class="toggle-pw" onclick="togglePassField('newPass2','eye3')" aria-label="Показати/сховати">
+            <svg id="eye3" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="error-msg" id="errorMsg2">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="errorText2"></span>
+      </div>
+
+      <div style="margin-bottom:16px"></div>
+
+      <button type="submit" class="submit" id="changeBtn">
+        <span id="changeBtnText">Зберегти пароль</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+    </form>
+  </div>
+
+  <div class="legal">
+    <span>© 2026 QuizFlow · v2.8</span>
+    <span><a href="#">Умови</a> · <a href="#">Конфіденційність</a> · <a href="#">Підтримка</a></span>
+  </div>
+</section>
+
+<!-- Toast (заглушки UA/EN, OAuth, Forgot, Реєстрація) -->
+<div id="toast"></div>
 
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -172,8 +433,8 @@ if(sess){
 
 function showLoginForm(){
   document.getElementById("globalLoader").style.display = "none";
-  document.getElementById("loginCard").style.display = "";
-  document.getElementById("loginInput").focus();
+  document.getElementById("loginForm").style.display = "";
+  setTimeout(()=> document.getElementById("loginInput")?.focus(), 50);
 }
 
 // ─── Логін ────────────────────────────────────────────────────────────────────
@@ -200,9 +461,9 @@ window.doLogin = async () => {
     _currentUser = user;
     if(user.isFirstLogin){
       // Перший вхід — потрібна зміна пароля
-      document.getElementById("loginCard").style.display = "none";
-      document.getElementById("changePassCard").style.display = "";
-      document.getElementById("newPass1").focus();
+      document.getElementById("loginForm").style.display = "none";
+      document.getElementById("changePassForm").style.display = "";
+      setTimeout(()=> document.getElementById("newPass1")?.focus(), 50);
     } else {
       saveSession(user);
       window.location.href = "index.html";
@@ -244,6 +505,7 @@ function showError(msg){
   document.getElementById("errorMsg").classList.add("show");
   ["loginInput","passInput"].forEach(id=>{
     const el = document.getElementById(id);
+    if (!el) return;
     el.classList.add("error","shake");
     el.addEventListener("animationend", ()=>el.classList.remove("shake"), {once:true});
     el.addEventListener("input", ()=>{
@@ -256,15 +518,32 @@ function showError(msg){
 function showError2(msg){
   document.getElementById("errorText2").textContent = msg;
   document.getElementById("errorMsg2").classList.add("show");
+  ["newPass1","newPass2"].forEach(id=>{
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add("error","shake");
+    el.addEventListener("animationend", ()=>el.classList.remove("shake"), {once:true});
+    el.addEventListener("input", ()=>{
+      el.classList.remove("error");
+      document.getElementById("errorMsg2").classList.remove("show");
+    }, {once:true});
+  });
 }
 
 function setLoading(btnId, textId, state){
   const btn = document.getElementById(btnId);
+  if (!btn) return;
   btn.disabled = state;
-  document.getElementById(textId).style.display = state ? "none" : "inline";
+  const txt = document.getElementById(textId);
+  if (txt) txt.textContent = state ? "Завантаження..." : (textId === "btnText" ? "Увійти в QuizFlow" : "Зберегти пароль");
   const ex = btn.querySelector(".spinner");
-  if(state && !ex){ const s=document.createElement("div");s.className="spinner";btn.insertBefore(s,btn.querySelector("svg")); }
-  else if(!state && ex){ ex.remove(); }
+  if(state && !ex){
+    const s = document.createElement("div");
+    s.className = "spinner";
+    btn.insertBefore(s, btn.firstChild);
+  } else if(!state && ex){
+    ex.remove();
+  }
 }
 
 window.togglePass = () => {
@@ -274,7 +553,7 @@ window.togglePass = () => {
   input.type = hidden ? "text" : "password";
   icon.innerHTML = hidden
     ? '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
-    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    : '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>';
 };
 
 window.togglePassField = (inputId, iconId) => {
@@ -284,8 +563,22 @@ window.togglePassField = (inputId, iconId) => {
   input.type = hidden ? "text" : "password";
   icon.innerHTML = hidden
     ? '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
-    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    : '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>';
 };
+
+// ─── Toast-заглушки для UA/EN, OAuth, Реєстрації, "Забули пароль" ───
+let _toastTimer = null;
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(()=> t.classList.remove("show"), 2400);
+}
+window.showLangToast   = () => toast("Перемикач мови — скоро буде");
+window.showOAuthToast  = () => toast("OAuth-вхід — скоро буде");
+window.showRegToast    = () => toast("Реєстрацію виконує адміністратор — зверніться по логін");
+window.showForgotToast = () => toast("Зверніться до адміністратора для скидання пароля");
 </script>
 </body>
 </html>
