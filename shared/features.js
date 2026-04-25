@@ -867,7 +867,7 @@ renderTests = function(q = ""){
       <span>Папки</span>
       <span class="t-n">${folders.length + (hasNoFolder ? 1 : 0)}</span>
     </div>
-    <div class="t-folders-grid" style="padding:0 18px 18px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+    <div class="t-folders-grid" style="padding:0 18px 18px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
       ${folderGrid}${noFolderCard}${newFolderTile}
     </div>
   </div>`;
