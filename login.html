@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=1280">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/><circle cx='24' cy='22' r='5' fill='none' stroke='white' stroke-width='2.2'/><line x1='27.5' y1='25.5' x2='29.5' y2='27.5' stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>">
 <title>QuizFlow — Вхід</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -65,10 +65,6 @@
     padding: 56px 64px; display:flex; flex-direction:column; justify-content:center;
     background:#fff; position:relative;
   }
-  .lang-switch { position:absolute; top:24px; right:32px; display:inline-flex; background:#F1F5FB; border-radius:8px; padding:3px; z-index:5; }
-  .lang-switch button { background:transparent; border:0; font:inherit; padding:5px 10px; border-radius:6px; font-size:12px; font-weight:600; color:var(--ink-500); cursor:pointer; transition:color .12s; }
-  .lang-switch button:hover:not(.on) { color:var(--ink-700); }
-  .lang-switch button.on { background:#fff; color:var(--ink-900); box-shadow:0 1px 2px rgba(0,0,0,.06); }
 
   .form-inner { max-width:400px; margin:0 auto; width:100%; }
   .form-inner h2 { font-size:26px; font-weight:800; letter-spacing:-.02em; margin:0 0 6px; }
@@ -92,9 +88,6 @@
   .field .toggle-pw { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:transparent; border:0; color:var(--ink-400); cursor:pointer; padding:2px; border-radius:4px; display:flex; align-items:center; }
   .field .toggle-pw:hover { color:var(--ink-900); }
 
-  .row { display:flex; align-items:center; justify-content:space-between; margin: 4px 0 22px; font-size:13px; }
-  .chk { display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--ink-700); font-size:13px; }
-  .chk input { accent-color: var(--nav-accent); width:16px; height:16px; cursor:pointer; }
   .link { color: var(--nav-600); font-weight:600; text-decoration:none; cursor:pointer; }
   .link:hover { text-decoration: underline; }
 
@@ -137,11 +130,7 @@
   }
   .first-login-notice svg { flex:0 0 auto; margin-top:1px; color:#D97706; }
 
-  .legal { position:absolute; bottom:24px; left:64px; right:64px; display:flex; justify-content:space-between; font-size:11.5px; color:var(--ink-400); }
-  .legal a { color:var(--ink-500); text-decoration:none; }
-  .legal a:hover { color:var(--ink-700); }
-
-  /* Toast (для заглушок lang / forgot) */
+  /* Toast (для заглушки "Забули пароль") */
   #toast {
     position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
     background:var(--nav-900); color:#fff; padding:10px 18px;
@@ -237,12 +226,6 @@
 <!-- ═══ ПРАВА ПАНЕЛЬ — ФОРМА ═══ -->
 <section class="form-panel">
 
-  <!-- Lang switch -->
-  <div class="lang-switch">
-    <button class="on" onclick="showLangToast()">UA</button>
-    <button onclick="showLangToast()">EN</button>
-  </div>
-
   <!-- ─── ФОРМА ВХОДУ ─── -->
   <div class="form-inner" id="loginForm" style="display:none">
     <h2>З поверненням 👋</h2>
@@ -277,10 +260,7 @@
         <span id="errorText">Невірний логін або пароль</span>
       </div>
 
-      <div class="row">
-        <label class="chk"><input type="checkbox" id="rememberMe" checked/> Запам'ятати мене</label>
-        <span style="color:var(--ink-400); font-family:'Geist Mono',monospace; font-size:11px;">SSL · 2FA готово</span>
-      </div>
+      <div style="margin-bottom:18px"></div>
 
       <button type="submit" class="submit" id="submitBtn">
         <span id="btnText">Увійти в QuizFlow</span>
@@ -340,13 +320,9 @@
     </form>
   </div>
 
-  <div class="legal">
-    <span>© 2026 QuizFlow · v2.8</span>
-    <span><a href="#">Умови</a> · <a href="#">Конфіденційність</a> · <a href="#">Підтримка</a></span>
-  </div>
 </section>
 
-<!-- Toast (заглушки UA/EN, Forgot) -->
+<!-- Toast (заглушка для "Забули пароль") -->
 <div id="toast"></div>
 
 <script type="module">
@@ -521,7 +497,6 @@ function toast(msg){
   if (_toastTimer) clearTimeout(_toastTimer);
   _toastTimer = setTimeout(()=> t.classList.remove("show"), 2400);
 }
-window.showLangToast   = () => toast("Перемикач мови — скоро буде");
 window.showForgotToast = () => toast("Зверніться до адміністратора для скидання пароля");
 </script>
 </body>
