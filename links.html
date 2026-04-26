@@ -6,11 +6,127 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/><circle cx='24' cy='22' r='5' fill='none' stroke='white' stroke-width='2.2'/><line x1='27.5' y1='25.5' x2='29.5' y2='27.5' stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>">
 <title>QuizFlow — Посилання</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
-<link rel="modulepreload" href="shared/app.js?v=13">
-<link rel="preload" as="fetch" href="shared/layout.html?v=13" crossorigin>
-<link rel="modulepreload" href="shared/features.js?v=13">
+<link rel="modulepreload" href="shared/app.js?v=15">
+<link rel="preload" as="fetch" href="shared/layout.html?v=15" crossorigin>
+<link rel="modulepreload" href="shared/features.js?v=15">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   LINKS PAGE REDESIGN — scoped під #sec-links
+   ═══════════════════════════════════════════════════════════════════════ */
+#sec-links{
+  --ink-900:#0B1437; --ink-700:#24335A; --ink-500:#5B6A8F; --ink-400:#8691AC;
+  --line:#E3E8F2; --line-strong:#CDD6E8;
+  --nav-600:#1E3A8A; --nav-accent:#3B82F6; --nav-soft:#93C5FD;
+  --good:#16A34A; --warn:#F59E0B; --bad:#DC2626;
+  font-family:'Manrope',system-ui,sans-serif;
+  color:var(--ink-900);
+}
+#sec-links.on{ display:flex; flex-direction:column; gap:18px; }
+
+/* ─── Page title ─── */
+#sec-links .l-page-title{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:0;flex-wrap:wrap}
+#sec-links .l-page-title h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:0;font-family:'Manrope',sans-serif}
+#sec-links .l-page-title p{margin:6px 0 0;color:var(--ink-500);font-size:14px}
+#sec-links .l-page-chip{background:#E7EEFC;color:var(--nav-600);padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace}
+#sec-links .l-page-chip::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--good);box-shadow:0 0 0 0 rgba(22,163,74,.5);animation:lPulse 1.8s infinite}
+@keyframes lPulse{0%{box-shadow:0 0 0 0 rgba(22,163,74,.5)}70%{box-shadow:0 0 0 6px rgba(22,163,74,0)}100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}}
+#sec-links .l-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* ─── Buttons ─── */
+#sec-links .l-btn{background:#fff;border:1px solid var(--line);padding:8px 14px;border-radius:10px;font-family:'Manrope',sans-serif;font-weight:500;font-size:13px;color:var(--ink-700);cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .15s;white-space:nowrap;height:36px;line-height:1}
+#sec-links .l-btn:hover{border-color:var(--line-strong);color:var(--ink-900)}
+#sec-links .l-btn.primary{background:var(--nav-600);border-color:var(--nav-600);color:#fff;box-shadow:0 6px 14px -8px rgba(30,58,138,.8)}
+#sec-links .l-btn.primary:hover{background:#1E40AF;border-color:#1E40AF;color:#fff}
+#sec-links .l-btn svg{width:14px;height:14px;flex:0 0 auto}
+
+/* ─── Filters bar ─── */
+#sec-links .l-filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#sec-links .l-search{position:relative;flex:1;min-width:240px;max-width:380px}
+#sec-links .l-search input{width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px 8px 36px;font:inherit;font-family:'Manrope',sans-serif;font-size:13px;color:var(--ink-900);outline:none;height:36px;transition:border-color .15s}
+#sec-links .l-search input:focus{border-color:var(--nav-accent)}
+#sec-links .l-search-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink-400);pointer-events:none;display:flex}
+
+#sec-links .l-tabs{display:inline-flex;background:#F1F5FB;border-radius:8px;padding:3px;gap:2px}
+#sec-links .l-tab{font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;padding:6px 11px;border-radius:6px;background:transparent;border:0;color:var(--ink-500);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+#sec-links .l-tab:hover:not(.active){color:var(--ink-700)}
+#sec-links .l-tab.active{background:#fff;color:var(--ink-900);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+#sec-links .l-tab-n{font-family:'Geist Mono',monospace;font-size:11px;opacity:.7;font-weight:500}
+
+/* ─── Cards grid ─── */
+#sec-links .l-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media (max-width:980px){#sec-links .l-grid{grid-template-columns:1fr}}
+
+#sec-links .lnk-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px;transition:border-color .15s}
+#sec-links .lnk-card:hover{border-color:var(--line-strong)}
+#sec-links .lnk-card.is-closed{opacity:.85}
+
+/* Card head: pills + title + QR */
+#sec-links .l-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+#sec-links .l-head-l{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+#sec-links .l-pills{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#sec-links .l-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;font-size:11.5px;font-weight:600;border-radius:999px;white-space:nowrap;font-family:'Manrope',sans-serif}
+#sec-links .l-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.9}
+#sec-links .l-pill.on{background:#DCFCE7;color:#15803D}
+#sec-links .l-pill.closed{background:#FEE2E2;color:#B91C1C}
+#sec-links .l-pill.expired{background:#FEE2E2;color:#B91C1C}
+#sec-links .l-pill.off{background:#E5EAF5;color:var(--ink-500)}
+#sec-links .l-pill.info{background:#DBEAFE;color:#1E40AF}
+#sec-links .l-title{font-size:15.5px;font-weight:700;color:var(--ink-900);letter-spacing:-.005em;line-height:1.3;font-family:'Manrope',sans-serif}
+
+#sec-links .l-qr{width:120px;height:120px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;display:grid;place-items:center;flex:0 0 auto}
+#sec-links .l-qr canvas, #sec-links .l-qr img{max-width:100%;max-height:100%;display:block}
+#sec-links .l-qr.is-disabled{background:#FAFBFE;color:var(--ink-400);font-size:11px;text-align:center;line-height:1.4;padding:14px}
+
+/* URL bar */
+#sec-links .l-url{display:flex;align-items:center;gap:8px;padding:9px 12px;background:#F5F8FD;border:1px dashed var(--line-strong);border-radius:10px;font-family:'Geist Mono',monospace;font-size:12.5px;color:var(--ink-900);min-width:0}
+#sec-links .l-url-ico{color:var(--ink-400);flex:0 0 auto;display:flex}
+#sec-links .l-url-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sec-links .l-url-text .l-dom{color:var(--ink-400)}
+#sec-links .l-url-text .l-slug{color:var(--nav-600);font-weight:700}
+#sec-links .l-url-actions{display:flex;gap:5px;flex:0 0 auto;margin-left:auto}
+#sec-links .l-url-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;font-size:11.5px;font-weight:600;font-family:'Manrope',sans-serif;background:#fff;border:1px solid var(--line);border-radius:7px;cursor:pointer;color:var(--ink-700);transition:all .12s;height:28px}
+#sec-links .l-url-btn:hover{border-color:var(--line-strong);color:var(--ink-900)}
+#sec-links .l-url-btn svg{width:11px;height:11px;flex:0 0 auto}
+#sec-links .l-url-btn.icon-only{padding:5px 8px}
+
+/* Stats row */
+#sec-links .l-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+#sec-links .l-stat-v{font-family:'Geist Mono',monospace;font-weight:700;font-size:18px;color:var(--ink-900);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+#sec-links .l-stat-v.warn{color:#B45309}
+#sec-links .l-stat-v.info{color:#1E40AF}
+#sec-links .l-stat-v.ok{color:#15803D}
+#sec-links .l-stat-v.bad{color:#B91C1C}
+#sec-links .l-stat-v.small{font-size:13px}
+#sec-links .l-stat-l{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-400);font-weight:600;margin-top:2px;font-family:'Manrope',sans-serif}
+
+/* Progress bar */
+#sec-links .l-bar{height:6px;border-radius:999px;background:#EEF2FB;overflow:hidden}
+#sec-links .l-bar i{display:block;height:100%;border-radius:999px;transition:width .4s}
+
+/* Card foot */
+#sec-links .l-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+#sec-links .l-foot-meta{font-size:11.5px;color:var(--ink-400);font-family:'Geist Mono',monospace}
+#sec-links .l-foot-actions{display:flex;gap:6px}
+#sec-links .l-icon-btn{width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid var(--line);border-radius:8px;color:var(--ink-500);cursor:pointer;transition:all .12s;padding:0}
+#sec-links .l-icon-btn:hover{background:#F1F5FB;color:var(--ink-900);border-color:var(--line-strong)}
+#sec-links .l-icon-btn.danger:hover{background:#FEE2E2;color:#B91C1C;border-color:#FECACA}
+#sec-links .l-icon-btn svg{width:14px;height:14px}
+
+/* Empty state */
+#sec-links .l-empty{padding:56px 24px;text-align:center;color:var(--ink-500);grid-column:1 / -1;background:#fff;border:1px solid var(--line);border-radius:16px}
+#sec-links .l-empty-ico{width:56px;height:56px;margin:0 auto 14px;border-radius:14px;background:#EEF2FB;display:grid;place-items:center;color:var(--nav-600)}
+#sec-links .l-empty-title{font-size:15px;font-weight:700;color:var(--ink-900);margin-bottom:4px;font-family:'Manrope',sans-serif}
+#sec-links .l-empty-hint{font-size:13px;margin-bottom:18px}
+
+/* Toast (для feedback "Скопійовано") */
+#sec-links .l-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink-900);color:#fff;padding:9px 16px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 12px 32px rgba(11,20,55,.25);opacity:0;pointer-events:none;transition:opacity .2s;z-index:1000;display:flex;align-items:center;gap:7px}
+#sec-links .l-toast.show{opacity:1}
+#sec-links .l-toast svg{color:#86EFAC;width:14px;height:14px}
+</style>
 </head>
 <body>
 
@@ -19,7 +135,7 @@
   <div style="width:80px;height:80px;background:linear-gradient(135deg,#2d5be3,#4d78ff);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-bottom:28px;box-shadow:0 20px 50px rgba(45,91,227,.4)">
     <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="3"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
   </div>
-  <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;margin-bottom:12px;max-width:320px;line-height:1.3">Мобільна версія недоступна</div>
+  <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:22px;margin-bottom:12px;max-width:320px;line-height:1.3">Мобільна версія недоступна</div>
   <div style="font-size:15px;opacity:.75;max-width:340px;line-height:1.5;margin-bottom:28px">Панель викладача оптимізована для планшетів та комп'ютерів. Відкрийте з ширшого екрану</div>
   <div style="display:inline-flex;gap:8px;background:rgba(255,255,255,.08);padding:10px 18px;border-radius:14px;backdrop-filter:blur(10px);font-size:13px;opacity:.65">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
@@ -27,46 +143,79 @@
   </div>
 </div>
 
-<!-- Initial loader: видимий одразу при завантаженні HTML, зникає коли сторінка готова -->
+<!-- Initial loader -->
 <div id="app-loader" style="position:fixed;inset:0;background:#f0f3fa;z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .25s ease">
   <div style="width:44px;height:44px;border:3.5px solid rgba(45,91,227,.15);border-top-color:#2d5be3;border-radius:50%;animation:appSpin .8s linear infinite"></div>
-  <div style="font-size:13px;color:#6b7280;margin-top:12px;font-family:'DM Sans',sans-serif">Завантаження...</div>
+  <div style="font-size:13px;color:#6b7280;margin-top:12px;font-family:'Manrope',sans-serif">Завантаження...</div>
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
 <main class="main">
 
   <div class="sec on" id="sec-links">
-    <div class="ph">
-      <div><div class="pt">Посилання</div><div class="ps">Управління посиланнями на тести</div></div>
-      <div class="bg"><button class="btn bp" onclick="openM('m-link')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Нове посилання</button></div>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-      <div class="sbox" style="max-width:280px">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" id="lnk-srch" placeholder="Пошук по групі або тесту..." oninput="renderLinks()">
+
+    <!-- Заголовок -->
+    <div class="l-page-title">
+      <div>
+        <h1>Посилання для проходження</h1>
+        <p>Видавайте унікальні URL студентам та групам, контролюйте термін дії та кількість спроб</p>
+      </div>
+      <div class="l-actions">
+        <span class="l-page-chip"><span id="lnk-active-count">0</span> активних</span>
+        <button class="l-btn primary" onclick="openM('m-link')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Нове посилання
+        </button>
       </div>
     </div>
-    <div class="card">
-      <table class="tbl"><thead><tr><th>Тест / Група</th><th>Посилання</th><th>Спроби</th><th>Статус</th><th></th></tr></thead><tbody id="lnk-tbl"></tbody></table>
-    </div>
-  </div>
 
-  <!-- SUSPICIOUS -->
+    <!-- Фільтри -->
+    <div class="l-filters">
+      <div class="l-search">
+        <span class="l-search-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+        <input type="text" id="lnk-srch" placeholder="Пошук по групі або тесту..." oninput="renderLinks()" autocomplete="off">
+      </div>
+      <div class="l-tabs" id="lnk-tabs">
+        <button class="l-tab active" data-status="" onclick="setLinkStatusTab(this)">Всі <span class="l-tab-n" id="lnk-tab-all">0</span></button>
+        <button class="l-tab" data-status="active" onclick="setLinkStatusTab(this)">Активні <span class="l-tab-n" id="lnk-tab-active">0</span></button>
+        <button class="l-tab" data-status="closed" onclick="setLinkStatusTab(this)">Закриті <span class="l-tab-n" id="lnk-tab-closed">0</span></button>
+      </div>
+    </div>
+
+    <!-- Список карток (renderLinks пише сюди cards) -->
+    <div class="l-grid" id="lnk-tbl"></div>
+
+  </div>
 
 </main>
 
 <div id="modals-root"></div>
+<div class="l-toast" id="lnk-toast"></div>
 
 <script type="module">
-// Паралельне завантаження: features.js починає качатись одразу, не чекає initApp
-// Спочатку app.js (щоб вставити window._fb і іншу базу),
-// потім features.js (він читає з window._fb).
-// Preload у <head> вже починає завантаження обох паралельно — тут тільки execute order.
-const { initApp } = await import("./shared/app.js?v=13");
-const featuresP = import("./shared/features.js?v=13");
+// Стан фільтра статусу
+window._lnkStatus = "";
 
-// showSec: залишаємось на сторінці якщо це та сама; інакше — йдемо на відповідний html
+window.setLinkStatusTab = function(btn){
+  window._lnkStatus = btn.dataset.status;
+  document.querySelectorAll("#lnk-tabs .l-tab").forEach(t => t.classList.remove("active"));
+  btn.classList.add("active");
+  if (window.renderLinks) window.renderLinks();
+};
+
+// Локальний toast (на копі URL/QR)
+window.lnkToast = function(msg){
+  const t = document.getElementById("lnk-toast");
+  if (!t) return;
+  t.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>${msg}`;
+  t.classList.add("show");
+  clearTimeout(window._lnkToastTimer);
+  window._lnkToastTimer = setTimeout(() => t.classList.remove("show"), 1800);
+};
+
+const { initApp } = await import("./shared/app.js?v=15");
+const featuresP = import("./shared/features.js?v=15");
+
 window.showSec = function(name){
   if (name === "links") {
     document.querySelectorAll(".sec").forEach(s=>s.classList.remove("on"));
@@ -88,25 +237,19 @@ window.showSec = function(name){
   if (pageMap[name]) location.href = pageMap[name];
 };
 
-// initApp робить: sidebar load, auth, loadAllData
-// Паралельно вже тягнеться features.js
 await initApp("links");
-await featuresP;             // features.js точно готовий
-await window.initFeatures(); // запускає realtime + нотифікації
+await featuresP;
+await window.initFeatures();
 
 if (window.renderAll) window.renderAll();
 
-// Специфічний хук для цієї сторінки (як було в showSec оригіналу)
-
-
-// Приховуємо лоадер після того як DOM реально відрендерився
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
     if (window.appReady) window.appReady();
   });
 });
 
-// Esc для закриття модалок
+// Esc — закриття модалок
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
     document.querySelectorAll(".mo.on").forEach(m => {
