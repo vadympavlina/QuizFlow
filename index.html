@@ -8,7 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
 <link rel="modulepreload" href="shared/app.js?v=15">
 <link rel="preload" as="fetch" href="shared/layout.html?v=15" crossorigin>
@@ -16,7 +16,6 @@
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
    DASHBOARD REDESIGN — scoped під #sec-dashboard
-   Не зачіпає sidebar/модалки/інші сторінки.
    ═══════════════════════════════════════════════════════════════════════ */
 #sec-dashboard{
   --ink-900:#0B1437; --ink-700:#24335A; --ink-500:#5B6A8F; --ink-400:#8691AC;
@@ -28,7 +27,7 @@
 }
 #sec-dashboard.on{ display:flex; flex-direction:column; gap:18px; }
 
-/* Page title */
+/* ─── Заголовок ─── */
 #sec-dashboard .d-page-title{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:0;flex-wrap:wrap}
 #sec-dashboard .d-page-title h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:0;color:var(--ink-900);font-family:'Manrope',sans-serif}
 #sec-dashboard .d-page-title .d-greeting{font-size:13px;color:var(--ink-500);font-weight:500;margin-bottom:4px;font-family:'Manrope',sans-serif}
@@ -37,21 +36,21 @@
 #sec-dashboard .d-page-title .d-chip::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--nav-600)}
 #sec-dashboard .d-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
-/* Buttons */
+/* ─── Кнопки ─── */
 #sec-dashboard .d-btn{background:#fff;border:1px solid var(--line);padding:8px 14px;border-radius:10px;font-family:'Manrope',sans-serif;font-weight:500;font-size:13px;color:var(--ink-700);cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .15s;white-space:nowrap;height:36px;line-height:1}
 #sec-dashboard .d-btn:hover{border-color:var(--line-strong);color:var(--ink-900)}
 #sec-dashboard .d-btn.primary{background:var(--nav-600);border-color:var(--nav-600);color:#fff;box-shadow:0 6px 14px -8px rgba(30,58,138,.8)}
 #sec-dashboard .d-btn.primary:hover{background:#1E40AF;border-color:#1E40AF;color:#fff}
 #sec-dashboard .d-btn svg{width:14px;height:14px;flex:0 0 auto}
 
-/* Online live banner */
+/* ─── Online live банер ─── */
 #sec-dashboard .d-online-banner{display:none;background:linear-gradient(135deg,rgba(22,163,74,.08),rgba(22,163,74,.03));border:1px solid rgba(22,163,74,.22);border-radius:14px;padding:12px 18px;align-items:center;gap:12px;cursor:pointer;transition:all .15s}
 #sec-dashboard .d-online-banner:hover{border-color:rgba(22,163,74,.4);transform:translateY(-1px)}
 #sec-dashboard .d-online-banner .d-online-dot{width:8px;height:8px;border-radius:50%;background:var(--good);flex-shrink:0;box-shadow:0 0 0 0 rgba(22,163,74,.5);animation:dPulse 1.6s infinite}
 @keyframes dPulse{0%{box-shadow:0 0 0 0 rgba(22,163,74,.5)}70%{box-shadow:0 0 0 8px rgba(22,163,74,0)}100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}}
 #sec-dashboard .d-online-banner .d-online-text{flex:1;font-size:14px;font-weight:600;color:#15803D}
 
-/* KPI cards */
+/* ─── KPI картки ─── */
 #sec-dashboard .kpi-grid{display:grid;gap:14px;grid-template-columns:repeat(4,1fr)}
 #sec-dashboard .kpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;cursor:pointer;transition:all .15s}
 #sec-dashboard .kpi:hover{border-color:var(--line-strong);transform:translateY(-2px);box-shadow:0 10px 30px -18px rgba(30,58,138,.2)}
@@ -67,50 +66,63 @@
 #sec-dashboard .kpi-trend .kpi-tag{font-family:'Geist Mono',monospace;font-weight:600}
 #sec-dashboard .kpi-spark{position:absolute;right:-4px;bottom:-6px;opacity:.18;pointer-events:none}
 
-/* Two-column grid: spotlight + activity */
+/* ─── Двоколонкова сітка ─── */
 #sec-dashboard .col2{display:grid;grid-template-columns:1fr 360px;gap:14px}
 @media (max-width:1100px){#sec-dashboard .col2{grid-template-columns:1fr}#sec-dashboard .kpi-grid{grid-template-columns:repeat(2,1fr)}}
 
-/* Card */
+/* ─── Картка ─── */
 #sec-dashboard .d-card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
 #sec-dashboard .d-card-h{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line);gap:10px}
 #sec-dashboard .d-card-h h3{margin:0;font-size:15px;font-weight:700;letter-spacing:-.005em;color:var(--ink-900);font-family:'Manrope',sans-serif}
+#sec-dashboard .d-card-h-right{display:flex;align-items:center;gap:10px}
+#sec-dashboard .d-card-h-meta{font-size:12px;color:var(--ink-500)}
 #sec-dashboard .d-link{font-size:12px;color:var(--nav-600);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:3px;text-decoration:none;background:transparent;border:0;font-family:'Manrope',sans-serif;padding:0;transition:opacity .12s}
 #sec-dashboard .d-link:hover{opacity:.75}
 #sec-dashboard .d-link svg{width:11px;height:11px}
 
-/* Spotlight: status grid (no chart, just live insights cards) */
-#sec-dashboard .spotlight{padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media (max-width:760px){#sec-dashboard .spotlight{grid-template-columns:1fr}}
-#sec-dashboard .spot{background:#FAFBFE;border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px}
-#sec-dashboard .spot.accent{background:linear-gradient(135deg,#1E3A8A,#1D4ED8);border-color:#1E3A8A;color:#fff}
-#sec-dashboard .spot.accent::before{content:"";position:absolute}
-#sec-dashboard .spot{position:relative;overflow:hidden}
-#sec-dashboard .spot.accent::after{content:"";position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none}
-#sec-dashboard .spot-h{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-500)}
-#sec-dashboard .spot.accent .spot-h{color:rgba(255,255,255,.7)}
-#sec-dashboard .spot-h svg{width:14px;height:14px;flex:0 0 auto;color:var(--nav-600)}
-#sec-dashboard .spot.accent .spot-h svg{color:rgba(255,255,255,.85)}
-#sec-dashboard .spot-val{font-family:'Geist Mono',monospace;font-size:28px;font-weight:800;letter-spacing:-.02em;color:var(--ink-900);line-height:1.05;font-variant-numeric:tabular-nums;position:relative}
-#sec-dashboard .spot.accent .spot-val{color:#fff}
-#sec-dashboard .spot-sub{font-size:12.5px;color:var(--ink-500);margin-top:auto;line-height:1.45;position:relative}
-#sec-dashboard .spot.accent .spot-sub{color:rgba(255,255,255,.75)}
-#sec-dashboard .spot-cta{font-size:12px;font-weight:600;color:var(--nav-600);display:inline-flex;align-items:center;gap:4px;margin-top:4px;position:relative;cursor:pointer}
-#sec-dashboard .spot.accent .spot-cta{color:rgba(255,255,255,.95)}
-#sec-dashboard .spot-cta svg{width:11px;height:11px;transition:transform .15s}
-#sec-dashboard .spot:hover .spot-cta svg{transform:translateX(2px)}
+/* ─── Activity list (Остання активність) ─── */
+#sec-dashboard #d-att{display:flex;flex-direction:column}
+#sec-dashboard .d-act-item{display:flex;align-items:flex-start;gap:12px;padding:13px 18px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .12s}
+#sec-dashboard .d-act-item:hover{background:#FAFBFE}
+#sec-dashboard .d-act-item:last-child{border-bottom:0}
+#sec-dashboard .d-act-ava{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:700;font-size:12px;color:#fff;flex:0 0 auto;font-family:'Manrope',sans-serif;letter-spacing:-.01em}
+#sec-dashboard .d-act-body{flex:1;min-width:0}
+#sec-dashboard .d-act-text{font-size:13px;color:var(--ink-700);line-height:1.45}
+#sec-dashboard .d-act-text b{color:var(--ink-900);font-weight:700}
+#sec-dashboard .d-act-meta{font-size:11.5px;color:var(--ink-400);margin-top:2px;display:flex;gap:10px;font-family:'Geist Mono',monospace}
+#sec-dashboard .d-act-badge{font-family:'Geist Mono',monospace;font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;flex:0 0 auto;align-self:center;letter-spacing:-.01em}
+#sec-dashboard .d-act-badge.ok{background:#DCFCE7;color:#15803D}
+#sec-dashboard .d-act-badge.mid{background:#FEF3C7;color:#92400E}
+#sec-dashboard .d-act-badge.bad{background:#FEE2E2;color:#B91C1C}
+#sec-dashboard .d-act-empty{padding:48px 20px;text-align:center}
 
-/* Latest attempts table — оверайди для існуючої #d-att tbody */
-#sec-dashboard .d-att-table{width:100%;border-collapse:separate;border-spacing:0}
-#sec-dashboard .d-att-table th{padding:11px 18px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-400);background:#FAFBFE;border-bottom:1px solid var(--line);font-family:'Manrope',sans-serif}
-/* tbody#d-att рендериться з features.js inline-стилями — не чіпаємо */
+/* ─── Таблиця "Ваші тести" ─── */
+#sec-dashboard .d-qtable{width:100%;border-collapse:separate;border-spacing:0}
+#sec-dashboard .d-qtable th,#sec-dashboard .d-qtable td{padding:12px 18px;text-align:left;font-size:13px;border-bottom:1px solid var(--line);font-family:'Manrope',sans-serif}
+#sec-dashboard .d-qtable th{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-400);background:#FAFBFE;user-select:none}
+#sec-dashboard .d-qtable tbody tr:last-child td{border-bottom:0}
+#sec-dashboard .d-qtable tbody tr{transition:background .12s}
+#sec-dashboard .d-qtable tbody tr:hover{background:#FAFBFE}
+#sec-dashboard .d-q-name{display:flex;align-items:center;gap:12px}
+#sec-dashboard .d-q-icon{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto;font-family:'Geist Mono',monospace;font-weight:800;font-size:11px;letter-spacing:-.02em}
+#sec-dashboard .d-q-title{font-weight:600;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px;font-size:13.5px}
+#sec-dashboard .d-q-fire{display:inline-block;margin-left:4px;vertical-align:middle;font-size:13px;line-height:1}
+#sec-dashboard .d-q-sub{font-size:11.5px;color:var(--ink-400);margin-top:2px;font-family:'Geist Mono',monospace}
+#sec-dashboard .d-q-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;font-size:11.5px;font-weight:600;border-radius:999px;white-space:nowrap;font-family:'Manrope',sans-serif}
+#sec-dashboard .d-q-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.9}
+#sec-dashboard .d-q-pill.on{background:#DCFCE7;color:#15803D}
+#sec-dashboard .d-q-pill.draft{background:#FEF3C7;color:#92400E}
+#sec-dashboard .d-q-pill.closed{background:#FEE2E2;color:#B91C1C}
+#sec-dashboard .d-q-bar{flex:1;height:6px;border-radius:999px;background:#EEF2FB;overflow:hidden;min-width:80px}
+#sec-dashboard .d-q-bar i{display:block;height:100%;border-radius:999px;transition:width .4s}
+#sec-dashboard .d-mono{font-family:'Geist Mono',monospace;font-variant-numeric:tabular-nums}
 
-/* Right column: Links + Suspicious + News */
+/* ─── Права колонка ─── */
 #sec-dashboard .d-side{display:flex;flex-direction:column;gap:14px}
 #sec-dashboard .d-side .d-card-h{padding:13px 16px}
 #sec-dashboard .d-side .d-card-h h3{font-size:14px}
 
-/* Suspicious card */
+/* ─── Підозрілі ─── */
 #sec-dashboard .d-suspicious{display:none;background:linear-gradient(135deg,rgba(220,38,38,.06),rgba(220,38,38,.02));border:1px solid rgba(220,38,38,.20);border-radius:14px;padding:14px 16px;cursor:pointer;transition:all .15s}
 #sec-dashboard .d-suspicious:hover{border-color:rgba(220,38,38,.35);transform:translateY(-1px)}
 #sec-dashboard .d-suspicious .d-susp-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
@@ -118,7 +130,7 @@
 #sec-dashboard .d-suspicious .d-susp-title svg{width:14px;height:14px}
 #sec-dashboard .d-suspicious .d-susp-text{font-size:12.5px;color:#B91C1C;opacity:.85;line-height:1.45}
 
-/* News card */
+/* ─── Новини ─── */
 #sec-dashboard .d-news{display:none;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
 #sec-dashboard .d-news .d-news-h{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--line)}
 #sec-dashboard .d-news .d-news-title{font-size:14px;font-weight:700;color:var(--ink-900);display:flex;align-items:center;gap:8px;font-family:'Manrope',sans-serif}
@@ -175,7 +187,7 @@
       </div>
     </div>
 
-    <!-- Online банер (показується через features.js якщо хтось онлайн) -->
+    <!-- Online банер -->
     <div id="dash-online-banner" class="d-online-banner" onclick="showSec('online')">
       <span class="d-online-dot"></span>
       <span class="d-online-text" id="dash-online-text"></span>
@@ -184,8 +196,6 @@
 
     <!-- 4 KPI картки -->
     <div class="kpi-grid">
-
-      <!-- Тести -->
       <div class="kpi" onclick="showSec('tests')">
         <div class="kpi-head">
           <div class="kpi-label">Тестів</div>
@@ -193,14 +203,12 @@
         </div>
         <div class="kpi-value" id="s-t">—</div>
         <div class="kpi-trend">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 15l6-6 6 6"/></svg>
-          <span class="kpi-tag">Активних</span>
-          <span>· бібліотека тестів</span>
+          <span class="kpi-tag">Бібліотека</span>
+          <span>· усі ваші тести</span>
         </div>
         <svg class="kpi-spark" width="160" height="60" viewBox="0 0 160 60"><path d="M0 45 L16 38 L32 42 L48 28 L64 32 L80 22 L96 26 L112 15 L128 18 L144 10 L160 14" fill="none" stroke="#3B82F6" stroke-width="2.2"/></svg>
       </div>
 
-      <!-- Спроби -->
       <div class="kpi" onclick="showSec('attempts')">
         <div class="kpi-head">
           <div class="kpi-label">Спроб</div>
@@ -213,7 +221,6 @@
         <svg class="kpi-spark" width="160" height="60" viewBox="0 0 160 60"><path d="M0 50 L16 45 L32 38 L48 35 L64 28 L80 30 L96 22 L112 25 L128 16 L144 12 L160 8" fill="none" stroke="#16A34A" stroke-width="2.2"/></svg>
       </div>
 
-      <!-- Активних посилань -->
       <div class="kpi" onclick="showSec('links')">
         <div class="kpi-head">
           <div class="kpi-label">Посилань</div>
@@ -227,7 +234,6 @@
         <svg class="kpi-spark" width="160" height="60" viewBox="0 0 160 60"><path d="M0 35 L16 40 L32 32 L48 36 L64 30 L80 28 L96 32 L112 24 L128 28 L144 20 L160 24" fill="none" stroke="#3B82F6" stroke-width="2.2"/></svg>
       </div>
 
-      <!-- На перевірці -->
       <div class="kpi" onclick="showSec('attempts')">
         <div class="kpi-head">
           <div class="kpi-label">На перевірці</div>
@@ -239,89 +245,23 @@
         </div>
         <svg class="kpi-spark" width="160" height="60" viewBox="0 0 160 60"><path d="M0 30 L16 35 L32 25 L48 32 L64 22 L80 28 L96 18 L112 22 L128 14 L144 18 L160 12" fill="none" stroke="#F59E0B" stroke-width="2.2"/></svg>
       </div>
-
     </div>
 
-    <!-- Двоколонкова сітка: Останні спроби + бічна колонка -->
+    <!-- Двоколонкова: Остання активність + Бічна -->
     <div class="col2">
 
-      <!-- Spotlight + Останні спроби -->
-      <div style="display:flex;flex-direction:column;gap:14px">
-
-        <!-- Spotlight статус-картки -->
-        <div class="d-card">
-          <div class="d-card-h">
-            <h3>Огляд тижня</h3>
-            <button class="d-link" onclick="showSec('analytics')">Аналітика
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-          </div>
-          <div class="spotlight">
-
-            <!-- Здали ≥4 -->
-            <div class="spot accent" onclick="showSec('attempts')" style="cursor:pointer">
-              <div class="spot-h" style="color:rgba(255,255,255,.7)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Успішність
-              </div>
-              <div class="spot-val" id="s-passrate">—</div>
-              <div class="spot-sub">Відсоток студентів, що отримали оцінку 4 або вище</div>
-              <span class="spot-cta">
-                Деталі
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-              </span>
-            </div>
-
-            <!-- Швидкі дії -->
-            <div class="spot" style="cursor:default">
-              <div class="spot-h">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                Швидкі дії
-              </div>
-              <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
-                <button class="d-btn" style="justify-content:flex-start;width:100%" onclick="openM('m-test')">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  Створити тест
-                </button>
-                <button class="d-btn" style="justify-content:flex-start;width:100%" onclick="showSec('attempts')">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                  Перевірити спроби
-                </button>
-                <button class="d-btn" style="justify-content:flex-start;width:100%" onclick="showSec('students')">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
-                  Список студентів
-                </button>
-              </div>
-            </div>
-
-          </div>
+      <!-- Остання активність -->
+      <div class="d-card">
+        <div class="d-card-h">
+          <h3>Остання активність</h3>
+          <button class="d-link" onclick="showSec('attempts')">Все
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
         </div>
-
-        <!-- Останні спроби -->
-        <div class="d-card">
-          <div class="d-card-h">
-            <h3>Останні спроби</h3>
-            <button class="d-link" onclick="showSec('attempts')">Всі
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-          </div>
-          <table class="d-att-table">
-            <thead>
-              <tr>
-                <th>Студент</th>
-                <th>Тест</th>
-                <th>Оцінка</th>
-                <th>Статус</th>
-                <th>Коли</th>
-              </tr>
-            </thead>
-            <tbody id="d-att"></tbody>
-          </table>
-        </div>
-
+        <div id="d-att"></div>
       </div>
 
-      <!-- Права колонка: Посилання + Підозрілі + Новини -->
+      <!-- Бічна колонка: Посилання + Підозрілі + Новини -->
       <div class="d-side">
 
         <!-- Активні посилання -->
@@ -335,7 +275,7 @@
           <div id="d-lnk" style="padding:4px 0"></div>
         </div>
 
-        <!-- Підозрілі спроби (показ через features.js) -->
+        <!-- Підозрілі -->
         <div id="dash-suspicious-block" class="d-suspicious" onclick="showSec('suspicious')">
           <div class="d-susp-h">
             <div class="d-susp-title">
@@ -363,7 +303,30 @@
         </div>
 
       </div>
+    </div>
 
+    <!-- Ваші тести (повна ширина внизу) -->
+    <div class="d-card">
+      <div class="d-card-h">
+        <h3>Ваші тести</h3>
+        <div class="d-card-h-right">
+          <span class="d-card-h-meta" id="d-tests-count">—</span>
+          <button class="d-btn" onclick="showSec('tests')" style="height:32px;padding:6px 12px;font-size:12.5px">Керувати</button>
+        </div>
+      </div>
+      <table class="d-qtable">
+        <thead>
+          <tr>
+            <th style="width:30%">Тест</th>
+            <th>Статус</th>
+            <th>Спроб</th>
+            <th>Середній</th>
+            <th style="width:22%">Прогрес групи</th>
+            <th>Дедлайн</th>
+          </tr>
+        </thead>
+        <tbody id="d-tests-tbody"></tbody>
+      </table>
     </div>
 
   </div>
@@ -373,11 +336,9 @@
 <div id="modals-root"></div>
 
 <script type="module">
-// Паралельне завантаження: features.js починає качатись одразу, не чекає initApp
 const { initApp } = await import("./shared/app.js?v=15");
 const featuresP = import("./shared/features.js?v=15");
 
-// showSec: залишаємось на сторінці якщо це та сама; інакше — йдемо на відповідний html
 window.showSec = function(name){
   if (name === "dashboard") {
     document.querySelectorAll(".sec").forEach(s=>s.classList.remove("on"));
@@ -404,6 +365,8 @@ await featuresP;
 await window.initFeatures();
 
 if (window.renderAll) window.renderAll();
+// Підстраховка: якщо renderAll ще не знає про renderDashTests
+if (window.renderDashTests) try { window.renderDashTests(); } catch(e){}
 
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
@@ -411,7 +374,6 @@ requestAnimationFrame(() => {
   });
 });
 
-// Esc для закриття модалок
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
     document.querySelectorAll(".mo.on").forEach(m => {
