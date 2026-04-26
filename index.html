@@ -6,11 +6,126 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/><circle cx='24' cy='22' r='5' fill='none' stroke='white' stroke-width='2.2'/><line x1='27.5' y1='25.5' x2='29.5' y2='27.5' stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>">
 <title>QuizFlow — Панель викладача</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
-<link rel="modulepreload" href="shared/app.js?v=13">
-<link rel="preload" as="fetch" href="shared/layout.html?v=13" crossorigin>
-<link rel="modulepreload" href="shared/features.js?v=13">
+<link rel="modulepreload" href="shared/app.js?v=15">
+<link rel="preload" as="fetch" href="shared/layout.html?v=15" crossorigin>
+<link rel="modulepreload" href="shared/features.js?v=15">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   DASHBOARD REDESIGN — scoped під #sec-dashboard
+   Не зачіпає sidebar/модалки/інші сторінки.
+   ═══════════════════════════════════════════════════════════════════════ */
+#sec-dashboard{
+  --ink-900:#0B1437; --ink-700:#24335A; --ink-500:#5B6A8F; --ink-400:#8691AC;
+  --line:#E3E8F2; --line-strong:#CDD6E8;
+  --nav-600:#1E3A8A; --nav-accent:#3B82F6; --nav-soft:#93C5FD;
+  --good:#16A34A; --warn:#F59E0B; --bad:#DC2626;
+  font-family:'Manrope',system-ui,sans-serif;
+  color:var(--ink-900);
+}
+#sec-dashboard.on{ display:flex; flex-direction:column; gap:18px; }
+
+/* Page title */
+#sec-dashboard .d-page-title{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:0;flex-wrap:wrap}
+#sec-dashboard .d-page-title h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:0;color:var(--ink-900);font-family:'Manrope',sans-serif}
+#sec-dashboard .d-page-title .d-greeting{font-size:13px;color:var(--ink-500);font-weight:500;margin-bottom:4px;font-family:'Manrope',sans-serif}
+#sec-dashboard .d-page-title .d-sub{margin:6px 0 0;color:var(--ink-500);font-size:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#sec-dashboard .d-page-title .d-chip{background:#E7EEFC;color:var(--nav-600);padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace}
+#sec-dashboard .d-page-title .d-chip::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--nav-600)}
+#sec-dashboard .d-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* Buttons */
+#sec-dashboard .d-btn{background:#fff;border:1px solid var(--line);padding:8px 14px;border-radius:10px;font-family:'Manrope',sans-serif;font-weight:500;font-size:13px;color:var(--ink-700);cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .15s;white-space:nowrap;height:36px;line-height:1}
+#sec-dashboard .d-btn:hover{border-color:var(--line-strong);color:var(--ink-900)}
+#sec-dashboard .d-btn.primary{background:var(--nav-600);border-color:var(--nav-600);color:#fff;box-shadow:0 6px 14px -8px rgba(30,58,138,.8)}
+#sec-dashboard .d-btn.primary:hover{background:#1E40AF;border-color:#1E40AF;color:#fff}
+#sec-dashboard .d-btn svg{width:14px;height:14px;flex:0 0 auto}
+
+/* Online live banner */
+#sec-dashboard .d-online-banner{display:none;background:linear-gradient(135deg,rgba(22,163,74,.08),rgba(22,163,74,.03));border:1px solid rgba(22,163,74,.22);border-radius:14px;padding:12px 18px;align-items:center;gap:12px;cursor:pointer;transition:all .15s}
+#sec-dashboard .d-online-banner:hover{border-color:rgba(22,163,74,.4);transform:translateY(-1px)}
+#sec-dashboard .d-online-banner .d-online-dot{width:8px;height:8px;border-radius:50%;background:var(--good);flex-shrink:0;box-shadow:0 0 0 0 rgba(22,163,74,.5);animation:dPulse 1.6s infinite}
+@keyframes dPulse{0%{box-shadow:0 0 0 0 rgba(22,163,74,.5)}70%{box-shadow:0 0 0 8px rgba(22,163,74,0)}100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}}
+#sec-dashboard .d-online-banner .d-online-text{flex:1;font-size:14px;font-weight:600;color:#15803D}
+
+/* KPI cards */
+#sec-dashboard .kpi-grid{display:grid;gap:14px;grid-template-columns:repeat(4,1fr)}
+#sec-dashboard .kpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;cursor:pointer;transition:all .15s}
+#sec-dashboard .kpi:hover{border-color:var(--line-strong);transform:translateY(-2px);box-shadow:0 10px 30px -18px rgba(30,58,138,.2)}
+#sec-dashboard .kpi-head{display:flex;align-items:center;justify-content:space-between}
+#sec-dashboard .kpi-label{font-size:11.5px;font-weight:600;color:var(--ink-500);text-transform:uppercase;letter-spacing:.06em;font-family:'Manrope',sans-serif}
+#sec-dashboard .kpi-ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:#E7EEFC;color:var(--nav-600);flex:0 0 auto}
+#sec-dashboard .kpi-ico.v2{background:#DCFCE7;color:#15803D}
+#sec-dashboard .kpi-ico.v3{background:#FEF3C7;color:#B45309}
+#sec-dashboard .kpi-ico.v4{background:#FCE7F3;color:#BE185D}
+#sec-dashboard .kpi-value{font-size:30px;font-weight:800;letter-spacing:-.02em;font-family:'Geist Mono',monospace;color:var(--ink-900);line-height:1;font-variant-numeric:tabular-nums}
+#sec-dashboard .kpi-trend{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-500);min-height:16px}
+#sec-dashboard .kpi-trend b{font-weight:700;color:var(--ink-700)}
+#sec-dashboard .kpi-trend .kpi-tag{font-family:'Geist Mono',monospace;font-weight:600}
+#sec-dashboard .kpi-spark{position:absolute;right:-4px;bottom:-6px;opacity:.18;pointer-events:none}
+
+/* Two-column grid: spotlight + activity */
+#sec-dashboard .col2{display:grid;grid-template-columns:1fr 360px;gap:14px}
+@media (max-width:1100px){#sec-dashboard .col2{grid-template-columns:1fr}#sec-dashboard .kpi-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* Card */
+#sec-dashboard .d-card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+#sec-dashboard .d-card-h{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line);gap:10px}
+#sec-dashboard .d-card-h h3{margin:0;font-size:15px;font-weight:700;letter-spacing:-.005em;color:var(--ink-900);font-family:'Manrope',sans-serif}
+#sec-dashboard .d-link{font-size:12px;color:var(--nav-600);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:3px;text-decoration:none;background:transparent;border:0;font-family:'Manrope',sans-serif;padding:0;transition:opacity .12s}
+#sec-dashboard .d-link:hover{opacity:.75}
+#sec-dashboard .d-link svg{width:11px;height:11px}
+
+/* Spotlight: status grid (no chart, just live insights cards) */
+#sec-dashboard .spotlight{padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){#sec-dashboard .spotlight{grid-template-columns:1fr}}
+#sec-dashboard .spot{background:#FAFBFE;border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px}
+#sec-dashboard .spot.accent{background:linear-gradient(135deg,#1E3A8A,#1D4ED8);border-color:#1E3A8A;color:#fff}
+#sec-dashboard .spot.accent::before{content:"";position:absolute}
+#sec-dashboard .spot{position:relative;overflow:hidden}
+#sec-dashboard .spot.accent::after{content:"";position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none}
+#sec-dashboard .spot-h{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-500)}
+#sec-dashboard .spot.accent .spot-h{color:rgba(255,255,255,.7)}
+#sec-dashboard .spot-h svg{width:14px;height:14px;flex:0 0 auto;color:var(--nav-600)}
+#sec-dashboard .spot.accent .spot-h svg{color:rgba(255,255,255,.85)}
+#sec-dashboard .spot-val{font-family:'Geist Mono',monospace;font-size:28px;font-weight:800;letter-spacing:-.02em;color:var(--ink-900);line-height:1.05;font-variant-numeric:tabular-nums;position:relative}
+#sec-dashboard .spot.accent .spot-val{color:#fff}
+#sec-dashboard .spot-sub{font-size:12.5px;color:var(--ink-500);margin-top:auto;line-height:1.45;position:relative}
+#sec-dashboard .spot.accent .spot-sub{color:rgba(255,255,255,.75)}
+#sec-dashboard .spot-cta{font-size:12px;font-weight:600;color:var(--nav-600);display:inline-flex;align-items:center;gap:4px;margin-top:4px;position:relative;cursor:pointer}
+#sec-dashboard .spot.accent .spot-cta{color:rgba(255,255,255,.95)}
+#sec-dashboard .spot-cta svg{width:11px;height:11px;transition:transform .15s}
+#sec-dashboard .spot:hover .spot-cta svg{transform:translateX(2px)}
+
+/* Latest attempts table — оверайди для існуючої #d-att tbody */
+#sec-dashboard .d-att-table{width:100%;border-collapse:separate;border-spacing:0}
+#sec-dashboard .d-att-table th{padding:11px 18px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-400);background:#FAFBFE;border-bottom:1px solid var(--line);font-family:'Manrope',sans-serif}
+/* tbody#d-att рендериться з features.js inline-стилями — не чіпаємо */
+
+/* Right column: Links + Suspicious + News */
+#sec-dashboard .d-side{display:flex;flex-direction:column;gap:14px}
+#sec-dashboard .d-side .d-card-h{padding:13px 16px}
+#sec-dashboard .d-side .d-card-h h3{font-size:14px}
+
+/* Suspicious card */
+#sec-dashboard .d-suspicious{display:none;background:linear-gradient(135deg,rgba(220,38,38,.06),rgba(220,38,38,.02));border:1px solid rgba(220,38,38,.20);border-radius:14px;padding:14px 16px;cursor:pointer;transition:all .15s}
+#sec-dashboard .d-suspicious:hover{border-color:rgba(220,38,38,.35);transform:translateY(-1px)}
+#sec-dashboard .d-suspicious .d-susp-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+#sec-dashboard .d-suspicious .d-susp-title{font-size:13px;font-weight:700;color:var(--bad);display:flex;align-items:center;gap:6px;font-family:'Manrope',sans-serif}
+#sec-dashboard .d-suspicious .d-susp-title svg{width:14px;height:14px}
+#sec-dashboard .d-suspicious .d-susp-text{font-size:12.5px;color:#B91C1C;opacity:.85;line-height:1.45}
+
+/* News card */
+#sec-dashboard .d-news{display:none;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+#sec-dashboard .d-news .d-news-h{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--line)}
+#sec-dashboard .d-news .d-news-title{font-size:14px;font-weight:700;color:var(--ink-900);display:flex;align-items:center;gap:8px;font-family:'Manrope',sans-serif}
+#sec-dashboard .d-news .d-news-title svg{width:14px;height:14px;color:var(--nav-600)}
+#sec-dashboard .d-news .d-news-badge{display:none;background:var(--nav-600);color:#fff;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:999px;font-family:'Geist Mono',monospace}
+#sec-dashboard .d-news-items{padding:10px 16px;display:flex;flex-direction:column;gap:8px}
+</style>
 </head>
 <body>
 
@@ -19,7 +134,7 @@
   <div style="width:80px;height:80px;background:linear-gradient(135deg,#2d5be3,#4d78ff);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-bottom:28px;box-shadow:0 20px 50px rgba(45,91,227,.4)">
     <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="3"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
   </div>
-  <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;margin-bottom:12px;max-width:320px;line-height:1.3">Мобільна версія недоступна</div>
+  <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:22px;margin-bottom:12px;max-width:320px;line-height:1.3">Мобільна версія недоступна</div>
   <div style="font-size:15px;opacity:.75;max-width:340px;line-height:1.5;margin-bottom:28px">Панель викладача оптимізована для планшетів та комп'ютерів. Відкрийте з ширшого екрану</div>
   <div style="display:inline-flex;gap:8px;background:rgba(255,255,255,.08);padding:10px 18px;border-radius:14px;backdrop-filter:blur(10px);font-size:13px;opacity:.65">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
@@ -27,10 +142,10 @@
   </div>
 </div>
 
-<!-- Initial loader: видимий одразу при завантаженні HTML, зникає коли сторінка готова -->
+<!-- Initial loader -->
 <div id="app-loader" style="position:fixed;inset:0;background:#f0f3fa;z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .25s ease">
   <div style="width:44px;height:44px;border:3.5px solid rgba(45,91,227,.15);border-top-color:#2d5be3;border-radius:50%;animation:appSpin .8s linear infinite"></div>
-  <div style="font-size:13px;color:#6b7280;margin-top:12px;font-family:'DM Sans',sans-serif">Завантаження...</div>
+  <div style="font-size:13px;color:#6b7280;margin-top:12px;font-family:'Manrope',sans-serif">Завантаження...</div>
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
@@ -38,145 +153,217 @@
 
   <div class="sec on" id="sec-dashboard">
 
-    <!-- Верхній рядок: привітання + кнопки -->
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;gap:16px">
+    <!-- Заголовок: вітання + дата + кнопки -->
+    <div class="d-page-title">
       <div>
-        <div id="dash-greeting" style="font-size:13px;color:var(--muted);font-weight:500;margin-bottom:6px"></div>
-        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:28px;color:var(--text);letter-spacing:-.5px">Дашборд</div>
-        <div id="dash-date" style="font-size:12px;color:var(--light);margin-top:3px"></div>
+        <div class="d-greeting" id="dash-greeting"></div>
+        <h1>Дашборд</h1>
+        <div class="d-sub">
+          <span id="dash-date"></span>
+          <span class="d-chip">Огляд</span>
+        </div>
       </div>
-      <div style="display:flex;gap:8px;margin-top:4px;flex-shrink:0">
-        <button class="btn bs" onclick="showSec('students')" style="font-size:13px">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      <div class="d-actions">
+        <button class="d-btn" onclick="showSec('students')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
           Студенти
         </button>
-        <button class="btn bp" onclick="openM('m-test')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <button class="d-btn primary" onclick="openM('m-test')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Новий тест
         </button>
       </div>
     </div>
 
-    <!-- Онлайн банер -->
-    <div id="dash-online-banner" style="display:none;background:linear-gradient(135deg,rgba(13,158,133,.08),rgba(13,158,133,.03));border:1.5px solid rgba(13,158,133,.22);border-radius:14px;padding:12px 18px;margin-bottom:20px;align-items:center;gap:12px;cursor:pointer" onclick="showSec('online')">
-      <div style="width:8px;height:8px;border-radius:50%;background:#0d9e85;animation:pulse 1.5s ease infinite;flex-shrink:0"></div>
-      <div style="flex:1;font-size:14px;font-weight:600;color:#0a8a74" id="dash-online-text"></div>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0d9e85" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    <!-- Online банер (показується через features.js якщо хтось онлайн) -->
+    <div id="dash-online-banner" class="d-online-banner" onclick="showSec('online')">
+      <span class="d-online-dot"></span>
+      <span class="d-online-text" id="dash-online-text"></span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </div>
 
-    <!-- 4 метрики -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
-      <div onclick="showSec('tests')" style="background:linear-gradient(140deg,#2d5be3,#1530a0);border-radius:20px;padding:20px 22px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden"
-        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 14px 36px rgba(45,91,227,.4)'"
-        onmouseout="this.style.transform='';this.style.boxShadow=''">
-        <div style="position:absolute;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.06);right:-18px;top:-28px;pointer-events:none"></div>
-        <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    <!-- 4 KPI картки -->
+    <div class="kpi-grid">
+
+      <!-- Тести -->
+      <div class="kpi" onclick="showSec('tests')">
+        <div class="kpi-head">
+          <div class="kpi-label">Тестів</div>
+          <div class="kpi-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div>
         </div>
-        <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:42px;color:white;line-height:1;letter-spacing:-1.5px" id="s-t">—</div>
-        <div style="margin-top:8px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.55);font-weight:600">Тестів</div>
+        <div class="kpi-value" id="s-t">—</div>
+        <div class="kpi-trend">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 15l6-6 6 6"/></svg>
+          <span class="kpi-tag">Активних</span>
+          <span>· бібліотека тестів</span>
+        </div>
+        <svg class="kpi-spark" width="160" height="60" viewBox="0 0 160 60"><path d="M0 45 L16 38 L32 42 L48 28 L64 32 L80 22 L96 26 L112 15 L128 18 L144 10 L160 14" fill="none" stroke="#3B82F6" stroke-width="2.2"/></svg>
       </div>
 
-      <div onclick="showSec('attempts')" style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:20px 22px;cursor:pointer;transition:all .2s"
-        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(0,0,0,.07)';this.style.borderColor='rgba(13,158,133,.3)'"
-        onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'">
-        <div style="width:36px;height:36px;border-radius:10px;background:rgba(13,158,133,.1);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0d9e85" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <!-- Спроби -->
+      <div class="kpi" onclick="showSec('attempts')">
+        <div class="kpi-head">
+          <div class="kpi-label">Спроб</div>
+          <div class="kpi-ico v2"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
         </div>
-        <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:42px;color:#0d9e85;line-height:1;letter-spacing:-1.5px" id="s-a">—</div>
-        <div style="margin-top:8px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:600">Спроб</div>
-        <div style="margin-top:4px;font-size:12px;color:var(--light)" id="dash-completed-lbl">Завершено: —</div>
+        <div class="kpi-value" id="s-a">—</div>
+        <div class="kpi-trend">
+          <span class="kpi-tag" id="dash-completed-lbl">Завершено: —</span>
+        </div>
+        <svg class="kpi-spark" width="160" height="60" viewBox="0 0 160 60"><path d="M0 50 L16 45 L32 38 L48 35 L64 28 L80 30 L96 22 L112 25 L128 16 L144 12 L160 8" fill="none" stroke="#16A34A" stroke-width="2.2"/></svg>
       </div>
 
-      <div onclick="showSec('links')" style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:20px 22px;cursor:pointer;transition:all .2s"
-        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(0,0,0,.07)';this.style.borderColor='rgba(45,91,227,.3)'"
-        onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'">
-        <div style="width:36px;height:36px;border-radius:10px;background:rgba(45,91,227,.08);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2d5be3" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+      <!-- Активних посилань -->
+      <div class="kpi" onclick="showSec('links')">
+        <div class="kpi-head">
+          <div class="kpi-label">Посилань</div>
+          <div class="kpi-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1.5 1.5"/><path d="M14 11a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1.5-1.5"/></svg></div>
         </div>
-        <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:42px;color:#2d5be3;line-height:1;letter-spacing:-1.5px" id="s-l">—</div>
-        <div style="margin-top:8px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:600">Активних посилань</div>
-        <div style="margin-top:4px;font-size:12px;color:var(--light)">Використано: <span id="dash-used-lbl">—</span></div>
+        <div class="kpi-value" id="s-l">—</div>
+        <div class="kpi-trend">
+          <span class="kpi-tag">Використано:</span>
+          <b id="dash-used-lbl">—</b>
+        </div>
+        <svg class="kpi-spark" width="160" height="60" viewBox="0 0 160 60"><path d="M0 35 L16 40 L32 32 L48 36 L64 30 L80 28 L96 32 L112 24 L128 28 L144 20 L160 24" fill="none" stroke="#3B82F6" stroke-width="2.2"/></svg>
       </div>
 
-      <div style="display:flex;flex-direction:column;gap:14px">
-
-        <!-- Блок: Потребують перевірки -->
-        <div onclick="showSec('attempts')" style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:16px 20px;cursor:pointer;transition:all .2s;flex:1"
-          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(0,0,0,.07)';this.style.borderColor='rgba(245,158,11,.35)'"
-          onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border)'">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-            <div style="width:30px;height:30px;border-radius:9px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            </div>
-            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:28px;color:#f59e0b;line-height:1" id="s-pending">—</div>
-          </div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600">На перевірці</div>
+      <!-- На перевірці -->
+      <div class="kpi" onclick="showSec('attempts')">
+        <div class="kpi-head">
+          <div class="kpi-label">На перевірці</div>
+          <div class="kpi-ico v3"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
         </div>
-
-        <!-- Блок: Відсоток успішності -->
-        <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:16px 20px;transition:all .2s;flex:1"
-          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(0,0,0,.07)'"
-          onmouseout="this.style.transform='';this.style.boxShadow=''">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-            <div style="width:30px;height:30px;border-radius:9px;background:rgba(13,158,133,.1);display:flex;align-items:center;justify-content:center">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0d9e85" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:28px;color:#0d9e85;line-height:1" id="s-passrate">—</div>
-          </div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600">Здали (≥4)</div>
+        <div class="kpi-value" id="s-pending">—</div>
+        <div class="kpi-trend">
+          <span>Потребують ручної оцінки</span>
         </div>
-
+        <svg class="kpi-spark" width="160" height="60" viewBox="0 0 160 60"><path d="M0 30 L16 35 L32 25 L48 32 L64 22 L80 28 L96 18 L112 22 L128 14 L144 18 L160 12" fill="none" stroke="#F59E0B" stroke-width="2.2"/></svg>
       </div>
+
     </div>
-    <!-- Нижній блок -->
-    <div style="display:grid;grid-template-columns:1fr 300px;gap:16px">
 
-      <!-- Останні спроби -->
-      <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;overflow:hidden">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)">
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">Останні спроби</div>
-          <span onclick="showSec('attempts')" style="font-size:12px;color:var(--primary);cursor:pointer;font-weight:600;display:flex;align-items:center;gap:3px">Всі <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></span>
+    <!-- Двоколонкова сітка: Останні спроби + бічна колонка -->
+    <div class="col2">
+
+      <!-- Spotlight + Останні спроби -->
+      <div style="display:flex;flex-direction:column;gap:14px">
+
+        <!-- Spotlight статус-картки -->
+        <div class="d-card">
+          <div class="d-card-h">
+            <h3>Огляд тижня</h3>
+            <button class="d-link" onclick="showSec('analytics')">Аналітика
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+          <div class="spotlight">
+
+            <!-- Здали ≥4 -->
+            <div class="spot accent" onclick="showSec('attempts')" style="cursor:pointer">
+              <div class="spot-h" style="color:rgba(255,255,255,.7)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Успішність
+              </div>
+              <div class="spot-val" id="s-passrate">—</div>
+              <div class="spot-sub">Відсоток студентів, що отримали оцінку 4 або вище</div>
+              <span class="spot-cta">
+                Деталі
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </span>
+            </div>
+
+            <!-- Швидкі дії -->
+            <div class="spot" style="cursor:default">
+              <div class="spot-h">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Швидкі дії
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+                <button class="d-btn" style="justify-content:flex-start;width:100%" onclick="openM('m-test')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Створити тест
+                </button>
+                <button class="d-btn" style="justify-content:flex-start;width:100%" onclick="showSec('attempts')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                  Перевірити спроби
+                </button>
+                <button class="d-btn" style="justify-content:flex-start;width:100%" onclick="showSec('students')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
+                  Список студентів
+                </button>
+              </div>
+            </div>
+
+          </div>
         </div>
-        <table class="tbl"><thead><tr>
-          <th style="padding:10px 16px">Студент</th><th>Тест</th><th>Оцінка</th><th>Статус</th><th>Коли</th>
-        </tr></thead><tbody id="d-att"></tbody></table>
+
+        <!-- Останні спроби -->
+        <div class="d-card">
+          <div class="d-card-h">
+            <h3>Останні спроби</h3>
+            <button class="d-link" onclick="showSec('attempts')">Всі
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+          <table class="d-att-table">
+            <thead>
+              <tr>
+                <th>Студент</th>
+                <th>Тест</th>
+                <th>Оцінка</th>
+                <th>Статус</th>
+                <th>Коли</th>
+              </tr>
+            </thead>
+            <tbody id="d-att"></tbody>
+          </table>
+        </div>
+
       </div>
 
-      <!-- Права колонка -->
-      <div style="display:flex;flex-direction:column;gap:14px">
+      <!-- Права колонка: Посилання + Підозрілі + Новини -->
+      <div class="d-side">
 
         <!-- Активні посилання -->
-        <div style="background:#fff;border:1.5px solid var(--border);border-radius:20px;overflow:hidden;flex:1">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)">
-            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px">Посилання</div>
-            <span onclick="showSec('links')" style="font-size:12px;color:var(--primary);cursor:pointer;font-weight:600">Всі →</span>
+        <div class="d-card">
+          <div class="d-card-h">
+            <h3>Посилання</h3>
+            <button class="d-link" onclick="showSec('links')">Всі
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
           </div>
           <div id="d-lnk" style="padding:4px 0"></div>
         </div>
 
-        <!-- Підозрілі спроби -->
-        <div id="dash-suspicious-block" style="display:none;background:rgba(244,63,94,.04);border:1.5px solid rgba(244,63,94,.2);border-radius:20px;padding:16px 18px;cursor:pointer" onclick="showSec('suspicious')">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#be123c">⚠️ Підозрілі</div>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#be123c" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        <!-- Підозрілі спроби (показ через features.js) -->
+        <div id="dash-suspicious-block" class="d-suspicious" onclick="showSec('suspicious')">
+          <div class="d-susp-h">
+            <div class="d-susp-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Підозрілі спроби
+            </div>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#B91C1C" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
-          <div style="font-size:13px;color:#be123c;opacity:.8" id="dash-suspicious-text"></div>
+          <div class="d-susp-text" id="dash-suspicious-text"></div>
         </div>
 
-        <!-- Новини блок -->
-        <div id="dash-news-block" style="display:none;background:#fff;border:1.5px solid var(--border);border-radius:20px;overflow:hidden">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)">
-            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px">
-              📰 Новини
-              <span id="dash-news-badge" style="display:none;background:var(--primary);color:#fff;font-size:11px;padding:1px 7px;border-radius:20px;font-weight:600">0</span>
+        <!-- Новини -->
+        <div id="dash-news-block" class="d-news">
+          <div class="d-news-h">
+            <div class="d-news-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h6M7 17h4"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/></svg>
+              Новини
+              <span id="dash-news-badge" class="d-news-badge">0</span>
             </div>
-            <span onclick="showSec('news')" style="font-size:12px;color:var(--primary);cursor:pointer;font-weight:600">Всі →</span>
+            <button class="d-link" onclick="showSec('news')">Всі
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
           </div>
-          <div id="dash-news-items" style="padding:12px 18px;display:flex;flex-direction:column;gap:8px"></div>
+          <div id="dash-news-items" class="d-news-items"></div>
         </div>
 
       </div>
+
     </div>
 
   </div>
@@ -187,11 +374,8 @@
 
 <script type="module">
 // Паралельне завантаження: features.js починає качатись одразу, не чекає initApp
-// Спочатку app.js (щоб вставити window._fb і іншу базу),
-// потім features.js (він читає з window._fb).
-// Preload у <head> вже починає завантаження обох паралельно — тут тільки execute order.
-const { initApp } = await import("./shared/app.js?v=13");
-const featuresP = import("./shared/features.js?v=13");
+const { initApp } = await import("./shared/app.js?v=15");
+const featuresP = import("./shared/features.js?v=15");
 
 // showSec: залишаємось на сторінці якщо це та сама; інакше — йдемо на відповідний html
 window.showSec = function(name){
@@ -215,18 +399,12 @@ window.showSec = function(name){
   if (pageMap[name]) location.href = pageMap[name];
 };
 
-// initApp робить: sidebar load, auth, loadAllData
-// Паралельно вже тягнеться features.js
 await initApp("dashboard");
-await featuresP;             // features.js точно готовий
-await window.initFeatures(); // запускає realtime + нотифікації
+await featuresP;
+await window.initFeatures();
 
 if (window.renderAll) window.renderAll();
 
-// Специфічний хук для цієї сторінки (як було в showSec оригіналу)
-
-
-// Приховуємо лоадер після того як DOM реально відрендерився
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
     if (window.appReady) window.appReady();
