@@ -265,34 +265,30 @@ function renderAll(){
   // Кожен рендерер має "якірний" DOM-елемент — якщо його немає, рендерер не запускається.
   // Це чистіше за try/catch: немає жодного warning у Console.
   const has = id => document.getElementById(id) !== null;
-
   // Дашборд: привітання, блок спроб, статистика
   if (has("dash-greeting") || has("d-att")) renderDashAtt();
   // Дашборд: активні посилання
   if (has("d-lnk")) renderDashLinks();
+  // Дашборд: таблиця "Ваші тести"
+  if (has("d-tests-tbody")) renderDashTests();
   // Дашборд: KPI картки
   if (has("s-t") || has("s-a") || has("s-l") || has("s-pending") || has("s-passrate")) renderStats();
-
   // Тести + папки
   if (has("tc")) renderTests();
   // Таблиця спроб
   if (has("att-tbl")) renderAttempts();
   // Таблиця посилань
   if (has("lnk-tbl")) renderLinks();
-
   // Селекти фільтрів (заповнюються лише якщо хоч один select існує)
   if (has("ft") || has("nl-t") || has("fgrp") || has("an-test") || has("an-group")) fillSelects();
-
   // Бейджі в sidebar (завжди, бо sidebar підвантажений на кожній сторінці)
   updateBadges();
-
   // Архів
   const archiveCnt = document.getElementById("archive-count");
   if(archiveCnt) archiveCnt.textContent = tests.filter(t=>t.status==="archived").length || "";
   const nbArchive = document.getElementById("nb-archive");
   if(nbArchive) nbArchive.textContent = tests.filter(t=>t.status==="archived").length;
 }
-
 // STATS
 function renderStats(){
   const al = links.filter(l=>l.status==="active").length;
@@ -326,71 +322,257 @@ function updateBadges(){
   if(nbArc) nbArc.textContent=tests.filter(t=>t.status==="archived").length;
 }
 
-// DASHBOARD
 function renderDashAtt(){
   // Привітання і дата
-  const now=new Date();
-  const h=now.getHours();
-  const greeting=h<6?"Добрий вечір":h<12?"Доброго ранку":h<18?"Добрий день":"Добрий вечір";
-  const teacherFirstName=(_user.name||"").split(" ")[0]||_user.login||"";
-  const el=$("dash-greeting"); if(el) el.textContent=greeting+(teacherFirstName?", "+teacherFirstName:"")+(" 👋");
-  const dateEl=$("dash-date");
-  if(dateEl) dateEl.textContent=now.toLocaleDateString("uk-UA",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-
+  const now = new Date();
+  const h = now.getHours();
+  const greeting = h < 6 ? "Добрий вечір" : h < 12 ? "Доброго ранку" : h < 18 ? "Добрий день" : "Добрий вечір";
+  const teacherFirstName = (_user.name || "").split(" ")[0] || _user.login || "";
+  const el = $("dash-greeting");
+  if (el) el.textContent = greeting + (teacherFirstName ? ", " + teacherFirstName : "") + " 👋";
+  const dateEl = $("dash-date");
+  if (dateEl) dateEl.textContent = now.toLocaleDateString("uk-UA", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
+ 
   // Додаткові метрики
-  const completedCount=attempts.filter(a=>a.status==="completed").length;
-  const lbl=$("dash-completed-lbl"); if(lbl) lbl.textContent=`Завершено: ${completedCount}`;
-  const totalUsed=links.reduce((s,l)=>s+(l.usedAttempts||0),0);
-  const usedLbl=$("dash-used-lbl"); if(usedLbl) usedLbl.textContent=totalUsed;
-
-  // Колір середньої оцінки
+  const completedCount = attempts.filter(a => a.status === "completed").length;
+  const lbl = $("dash-completed-lbl");
+  if (lbl) lbl.textContent = `Завершено: ${completedCount}`;
+  const totalUsed = links.reduce((s, l) => s + (l.usedAttempts || 0), 0);
+  const usedLbl = $("dash-used-lbl");
+  if (usedLbl) usedLbl.textContent = totalUsed;
+ 
   // Онлайн банер
-  const online=attempts.filter(a=>a.status==="in_progress");
-  const banner=document.getElementById("dash-online-banner");
-  if(banner){
-    if(online.length){
-      banner.style.display="flex";
-      const txt=document.getElementById("dash-online-text");
-      if(txt) txt.textContent=`${online.length} студент${online.length===1?"":"ів"} проходить тест прямо зараз`;
-    } else { banner.style.display="none"; }
+  const online = attempts.filter(a => a.status === "in_progress");
+  const banner = document.getElementById("dash-online-banner");
+  if (banner){
+    if (online.length){
+      banner.style.display = "flex";
+      const txt = document.getElementById("dash-online-text");
+      if (txt) txt.textContent = `${online.length} студент${online.length === 1 ? "" : "ів"} проходить тест прямо зараз`;
+    } else {
+      banner.style.display = "none";
+    }
   }
-
-  // Блок підозрілих — показуємо тільки нові (не прочитані)
-  const suspBlock=document.getElementById("dash-suspicious-block");
-  if(suspBlock){
-    dbGet("meta/suspReadCount").then(snap=>{
-      const suspRead=snap.exists()?(snap.val()||0):0;
-      const suspAll=attempts.filter(a=>(a.tabSwitches||0)*2+(a.copyAttempts||0)*3+(a.screenshots||0)*5>0&&(a.status==="completed"||a.status==="pending_review")).length;
-      const suspNew=Math.max(0,suspAll-suspRead);
-      if(suspNew>0){
-        suspBlock.style.display="block";
-        const txt=document.getElementById("dash-suspicious-text");
-        if(txt) txt.textContent=`${suspNew} нов${suspNew===1?"а":"их"} підозріл${suspNew===1?"а":"их"} спроб${suspNew===1?"а":""}`;
-      } else { suspBlock.style.display="none"; }
-    }).catch(()=>{ suspBlock.style.display="none"; });
+ 
+  // Підозрілі (нові)
+  const suspBlock = document.getElementById("dash-suspicious-block");
+  if (suspBlock){
+    dbGet("meta/suspReadCount").then(snap => {
+      const suspRead = snap.exists() ? (snap.val() || 0) : 0;
+      const suspAll = attempts.filter(a => (a.tabSwitches || 0)*2 + (a.copyAttempts || 0)*3 + (a.screenshots || 0)*5 > 0 && (a.status === "completed" || a.status === "pending_review")).length;
+      const suspNew = Math.max(0, suspAll - suspRead);
+      if (suspNew > 0){
+        suspBlock.style.display = "block";
+        const txt = document.getElementById("dash-suspicious-text");
+        if (txt) txt.textContent = `${suspNew} нов${suspNew === 1 ? "а" : "их"} підозріл${suspNew === 1 ? "а" : "их"} спроб${suspNew === 1 ? "а" : ""}`;
+      } else {
+        suspBlock.style.display = "none";
+      }
+    }).catch(() => { suspBlock.style.display = "none"; });
   }
+ 
+  // ── Activity list (новий дизайн) ──
+  const tb = $("d-att");
+  if (!tb) return;
+ 
+  const r = attempts.slice(0, 5);
+  if (!r.length){
+    tb.innerHTML = `<div class="d-act-empty">
+      <div style="font-size:32px;opacity:.4">📭</div>
+      <div style="font-size:14px;color:var(--ink-500);margin-top:8px">Ще немає спроб</div>
+    </div>`;
+    return;
+  }
+ 
+  // Палітра кольорів аватарів — детермінована за іменем
+  const avaColors = ["#3B82F6","#DB2777","#F59E0B","#16A34A","#6366F1","#0EA5E9","#8B5CF6","#EF4444","#14B8A6","#F97316"];
+ 
+  tb.innerHTML = r.map(a => {
+    const t = tests.find(x => x.id === a.testId);
+    const initials = ((a.surname?.[0] || "") + (a.name?.[0] || "")).toUpperCase() || "??";
+    const str = String(a.surname || "") + String(a.name || "");
+    let hash = 0; for (let i = 0; i < str.length; i++) hash = (hash + str.charCodeAt(i)) | 0;
+    const c = avaColors[Math.abs(hash) % avaColors.length];
+ 
+    // Визначаємо текст та badge
+    const violations = (a.tabSwitches || 0)*2 + (a.copyAttempts || 0)*3 + (a.screenshots || 0)*5;
+    let text, badgeTone, badgeTxt, metaParts = [timeAgo(a.createdAt)];
+ 
+    if (violations > 0 && (a.status === "completed" || a.status === "pending_review")){
+      text = `<b>${esc(a.surname || "")} ${esc(a.name || "")}</b> підозра на списування`;
+      badgeTone = "bad";
+      badgeTxt = "FLAG";
+      const issues = [];
+      if (a.tabSwitches) issues.push(`${a.tabSwitches} перемикан${a.tabSwitches === 1 ? "ня" : "ь"}`);
+      if (a.copyAttempts) issues.push(`${a.copyAttempts} копіюван${a.copyAttempts === 1 ? "ня" : "ь"}`);
+      if (a.screenshots) issues.push(`${a.screenshots} скрін${a.screenshots === 1 ? "" : "ів"}`);
+      if (issues.length) metaParts.push(issues[0]);
+    } else if (a.status === "in_progress"){
+      text = `<b>${esc(a.surname || "")} ${esc(a.name || "")}</b> почала «${esc(t?.title || "тест")}»`;
+      badgeTone = "mid";
+      badgeTxt = "Live";
+    } else if (a.status === "pending_review"){
+      text = `<b>${esc(a.surname || "")} ${esc(a.name || "")}</b> завершила «${esc(t?.title || "тест")}»`;
+      badgeTone = "mid";
+      badgeTxt = "Перевірка";
+      if (a.score?.correct != null && a.score?.total != null){
+        metaParts.push(`${a.score.correct}/${a.score.total}`);
+      }
+    } else if (a.status === "completed"){
+      text = `<b>${esc(a.surname || "")} ${esc(a.name || "")}</b> завершила «${esc(t?.title || "тест")}»`;
+      const pct = a.score?.percent;
+      if (pct != null){
+        if (pct >= 70) badgeTone = "ok";
+        else if (pct >= 40) badgeTone = "mid";
+        else badgeTone = "bad";
+        badgeTxt = pct + "%";
+      } else if (a.grade12 != null){
+        if (a.grade12 >= 10) badgeTone = "ok";
+        else if (a.grade12 >= 4) badgeTone = "mid";
+        else badgeTone = "bad";
+        badgeTxt = a.grade12 + "/12";
+      } else {
+        badgeTone = "mid";
+        badgeTxt = "—";
+      }
+      if (a.score?.correct != null && a.score?.total != null){
+        metaParts.push(`${a.score.correct}/${a.score.total}`);
+      }
+    } else {
+      text = `<b>${esc(a.surname || "")} ${esc(a.name || "")}</b>`;
+      badgeTone = "mid";
+      badgeTxt = "new";
+    }
+ 
+    return `<div class="d-act-item" onclick="G.viewAtt && G.viewAtt('${a.id}')">
+      <div class="d-act-ava" style="background:linear-gradient(135deg, ${c}CC, ${c})">${esc(initials)}</div>
+      <div class="d-act-body">
+        <div class="d-act-text">${text}</div>
+        <div class="d-act-meta">${metaParts.map(m => `<span>${m}</span>`).join("")}</div>
+      </div>
+      <span class="d-act-badge ${badgeTone}">${esc(badgeTxt)}</span>
+    </div>`;
+  }).join("");
+}
 
-  const tb=$("d-att"), r=attempts.slice(0,8);
-  if(!tb) return;
-  if(!r.length){tb.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="ei">📭</div><div class="et">Ще немає спроб</div></div></td></tr>`;return;}
-  tb.innerHTML=r.map(a=>{
-    const t=tests.find(x=>x.id===a.testId);
-    const gc=a.grade12!=null?(a.grade12>=10?"#0d9e85":a.grade12>=7?"#2d5be3":a.grade12>=4?"#f59e0b":"#f43f5e"):"var(--muted)";
-    const gbg=a.grade12!=null?(a.grade12>=10?"rgba(13,158,133,.1)":a.grade12>=7?"rgba(45,91,227,.1)":a.grade12>=4?"rgba(245,158,11,.1)":"rgba(244,63,94,.1)"):"var(--bg)";
-    const gradeCell=a.status==="pending_review"
-      ?`<span class="bdg bg-a" style="font-size:11px">⏳</span>`
-      :a.grade12!=null?`<div style="display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:26px;border-radius:8px;background:${gbg};color:${gc};font-weight:700;font-size:13px;padding:0 6px">${a.grade12}/12</div>`:"<span style='color:var(--muted)'>—</span>";
-    const statusClass=a.status==="completed"?"bg-g":a.status==="pending_review"?"bg-a":"bg-o";
-    const statusText=a.status==="completed"?"Завершено":a.status==="pending_review"?"Перевіряється":"В процесі";
-    return`<tr style="border-top:1px solid rgba(229,232,240,.5)" onmouseover="this.style.background='rgba(45,91,227,.02)'" onmouseout="this.style.background=''">
-      <td style="padding:11px 16px"><div style="font-weight:600;font-size:14px">${esc(a.surname)} ${esc(a.name)}</div></td>
-      <td style="padding:11px 16px;max-width:160px"><div style="font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t?.title||"—")}</div></td>
-      <td style="padding:11px 16px">${gradeCell}</td>
-      <td style="padding:11px 16px"><span class="bdg ${statusClass}" style="font-size:11px">${statusText}</span></td>
-      <td style="padding:11px 16px;font-size:12px;color:var(--muted);white-space:nowrap">${timeAgo(a.createdAt)}</td>
+// ─── 2) НОВА ФУНКЦІЯ: renderDashTests ──────────────────────────────────────
+// Малює таблицю "Ваші тести" в #d-tests-tbody + лічильник "X активні · Y чернетки"
+// Плюс прогрес-бар групи на основі links з тим самим testId
+ 
+function renderDashTests(){
+  const tb = $("d-tests-tbody");
+  if (!tb) return;
+ 
+  // Тільки не-архівні, перші 5 за датою (новіші зверху)
+  const list = tests
+    .filter(t => t.status !== "archived")
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+    .slice(0, 5);
+ 
+  // Лічильник у card-h
+  const lbl = $("d-tests-count");
+  if (lbl){
+    const act = tests.filter(t => t.status === "active").length;
+    const drf = tests.filter(t => t.status === "draft").length;
+    lbl.textContent = `${act} активн${act === 1 ? "ий" : (act >= 2 && act <= 4) ? "і" : "их"} · ${drf} чернет${drf === 1 ? "ка" : (drf >= 2 && drf <= 4) ? "ки" : "ок"}`;
+  }
+ 
+  if (!list.length){
+    tb.innerHTML = `<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--ink-500);font-size:13px">
+      Тести ще не створено. <button onclick="openM('m-test')" style="background:transparent;border:0;color:var(--nav-600);font-weight:600;cursor:pointer;font-family:inherit">Створити перший →</button>
+    </td></tr>`;
+    return;
+  }
+ 
+  // 5 кольорових варіантів плитки за хешем title
+  const tilePalette = [
+    { bg:"linear-gradient(135deg, #DBEAFE, #93C5FD)", color:"#1E3A8A" },     // navy
+    { bg:"linear-gradient(135deg, #E9D5FF, #C084FC)", color:"#6B21A8" },     // purple
+    { bg:"linear-gradient(135deg, #BBF7D0, #4ADE80)", color:"#14532D" },     // green
+    { bg:"linear-gradient(135deg, #FED7AA, #FB923C)", color:"#7C2D12" },     // orange
+    { bg:"linear-gradient(135deg, #FBCFE8, #F472B6)", color:"#831843" },     // pink
+  ];
+ 
+  // Скорочена абревіатура: 3 літери з назви
+  const abbr = (title) => {
+    if (!title) return "TST";
+    const words = title.trim().split(/\s+/).filter(Boolean);
+    if (words.length >= 3) return words.slice(0,3).map(w => w[0]).join("").toUpperCase();
+    if (words.length === 2) return (words[0].slice(0,2) + words[1][0]).toUpperCase();
+    return title.replace(/[^A-Za-zА-Яа-яҐЄІЇґєії0-9]/g,"").substring(0,3).toUpperCase() || "TST";
+  };
+ 
+  const statusMap = {
+    active:  { cls:"on",     txt:"Активний" },
+    draft:   { cls:"draft",  txt:"Чернетка" },
+    closed:  { cls:"closed", txt:"Закритий" },
+  };
+ 
+  tb.innerHTML = list.map(t => {
+    // Хеш для вибору плитки
+    let h = 0;
+    for (let i = 0; i < (t.title || "").length; i++) h = (h + t.title.charCodeAt(i)) | 0;
+    const tile = tilePalette[Math.abs(h) % tilePalette.length];
+ 
+    const tAtt = attempts.filter(a => a.testId === t.id);
+    const cnt = tAtt.length;
+ 
+    // Середній бал (відсоток)
+    const completed = tAtt.filter(a => a.status === "completed" && a.score?.percent != null);
+    const avgPct = completed.length ? Math.round(completed.reduce((s,a) => s + a.score.percent, 0) / completed.length) : null;
+ 
+    // Прогрес групи: кількість завершених / maxAttempts по всіх посиланнях цього тесту
+    const tLinks = links.filter(l => l.testId === t.id);
+    const totalCap = tLinks.reduce((s,l) => s + (l.maxAttempts || 0), 0);
+    const usedSum = tLinks.reduce((s,l) => s + (l.usedAttempts || 0), 0);
+    const progress = totalCap > 0 ? Math.min(100, Math.round(usedSum / totalCap * 100)) : 0;
+    const barColor = progress >= 80 ? "#16A34A" : progress >= 40 ? "#3B82F6" : "#F59E0B";
+ 
+    // Дедлайн: беремо найближчий expiresAt з активних посилань
+    const activeLinks = tLinks.filter(l => l.status === "active" && l.expiresAt);
+    const nextDeadline = activeLinks.length ? Math.min(...activeLinks.map(l => l.expiresAt)) : null;
+    const deadlineStr = nextDeadline
+      ? new Date(nextDeadline).toLocaleDateString("uk-UA", { day:"numeric", month:"short" })
+      : "—";
+ 
+    // Hot — якщо дедлайн менше 2 днів
+    const hot = nextDeadline && (nextDeadline - Date.now()) < 2 * 24 * 60 * 60 * 1000 && (nextDeadline - Date.now()) > 0;
+ 
+    // Підрядок: група · N питань · M хв
+    const subParts = [];
+    const groups = [...new Set(tLinks.map(l => l.group).filter(Boolean))];
+    if (groups.length) subParts.push(groups[0]);
+    const qCnt = (t.questions || []).length;
+    if (qCnt) subParts.push(`${qCnt} питань`);
+    if (t.timeLimit) subParts.push(`${Math.round(t.timeLimit / 60)} хв`);
+ 
+    const s = statusMap[t.status] || statusMap.draft;
+ 
+    return `<tr onclick="location.href='constructor.html?id=${t.id}'" style="cursor:pointer">
+      <td>
+        <div class="d-q-name">
+          <div class="d-q-icon" style="background:${tile.bg};color:${tile.color}">${esc(abbr(t.title))}</div>
+          <div style="min-width:0">
+            <div class="d-q-title">${esc(t.title || "—")}${hot ? ` <span class="d-q-fire" title="Дедлайн скоро">🔥</span>` : ""}</div>
+            <div class="d-q-sub">${subParts.length ? subParts.map(esc).join(" · ") : "—"}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="d-q-pill ${s.cls}">${s.txt}</span></td>
+      <td class="d-mono">${cnt}</td>
+      <td class="d-mono" style="font-weight:600;color:${avgPct != null ? (avgPct >= 70 ? "#15803D" : avgPct >= 40 ? "#1E40AF" : "#B91C1C") : "var(--ink-400)"}">${avgPct != null ? avgPct + "%" : "—"}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="d-q-bar"><i style="width:${progress}%;background:${barColor}"></i></div>
+          <span class="d-mono" style="font-size:11px;color:var(--ink-500);width:36px;text-align:right">${progress}%</span>
+        </div>
+      </td>
+      <td class="d-mono" style="color:var(--ink-500);white-space:nowrap">${deadlineStr}</td>
     </tr>`;
   }).join("");
 }
+ 
+ 
 function renderDashLinks(){
   const c=$("d-lnk"),al=links.filter(l=>l.status==="active").slice(0,4);
   if(!c) return;
@@ -3674,7 +3856,7 @@ window.initFeatures = async function initFeatures(){
   window.loadTeacherNews = (typeof loadTeacherNews === "function") ? loadTeacherNews : (window.loadTeacherNews || (async()=>{}));
   window.updateNewsBadge = (typeof updateNewsBadge === "function") ? updateNewsBadge : (window.updateNewsBadge || (()=>{}));
   window.checkOnboarding = (typeof checkOnboarding === "function") ? checkOnboarding : (window.checkOnboarding || (()=>{}));
-
+  window.renderDashTests = (typeof renderDashTests === "function") ? renderDashTests : (window.renderDashTests || (()=>{}));
   // Завантажуємо збережені нотифікації
   if (typeof loadStoredNotifs === "function") {
     try { await loadStoredNotifs(); } catch(e) { console.warn("loadStoredNotifs:", e); }
