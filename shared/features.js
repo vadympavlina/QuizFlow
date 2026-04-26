@@ -1503,7 +1503,7 @@ renderLinks = function(){
  
     return `<div class="lnk-card ${isActive ? "" : "is-closed"}">
  
-      <!-- Шапка: pills + title + QR -->
+      <!-- Шапка: pills + title -->
       <div class="l-head">
         <div class="l-head-l">
           <div class="l-pills">
@@ -1512,9 +1512,6 @@ renderLinks = function(){
             <span class="l-pill off">ID: ${slug}</span>
           </div>
           <div class="l-title">${esc(t?.title || "—")}</div>
-        </div>
-        <div class="l-qr ${isActive ? "" : "is-disabled"}" id="lnk-qr-${l.id}">
-          ${isActive ? "" : "QR<br/>недоступний"}
         </div>
       </div>
  
@@ -1575,6 +1572,7 @@ renderLinks = function(){
       </div>
     </div>`;
   }).join("");
+}
  
   // ── Генерація QR-кодів для активних посилань ──
   // Використовуємо існуючу бібліотеку qrcodejs (підключена з cdn в links.html)
