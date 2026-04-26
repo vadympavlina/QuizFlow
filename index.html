@@ -138,15 +138,12 @@
 #sec-dashboard .d-news .d-news-badge{display:none;background:var(--nav-600);color:#fff;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:999px;font-family:'Geist Mono',monospace}
 #sec-dashboard .d-news-items{padding:10px 16px;display:flex;flex-direction:column;gap:8px}
 
-/* ─── Info / Поради ─── */
+/* ─── Швидкі дії ─── */
 #sec-dashboard .d-info{background:linear-gradient(135deg,rgba(30,58,138,.04),rgba(59,130,246,.03));border:1px solid var(--line);border-radius:14px;overflow:hidden}
-#sec-dashboard .d-info-h{display:flex;align-items:center;gap:7px;padding:13px 16px 8px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--nav-600);font-family:'Manrope',sans-serif}
+#sec-dashboard .d-info-h{display:flex;align-items:center;gap:7px;padding:13px 16px 10px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--nav-600);font-family:'Manrope',sans-serif}
 #sec-dashboard .d-info-h svg{flex:0 0 auto}
-#sec-dashboard .d-info-body{padding:0 16px 14px;display:flex;flex-direction:column;gap:12px}
-#sec-dashboard .d-info-tip{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;color:var(--ink-500);line-height:1.5}
-#sec-dashboard .d-info-tip .d-info-emoji{flex:0 0 auto;font-size:16px;width:30px;height:30px;border-radius:8px;background:#fff;border:1px solid var(--line);display:grid;place-items:center}
-#sec-dashboard .d-info-tip b{display:block;color:var(--ink-900);font-weight:700;font-size:13px;margin-bottom:1px;font-family:'Manrope',sans-serif}
-#sec-dashboard .d-info-tip p{margin:0;font-size:12px;color:var(--ink-500);line-height:1.45}
+#sec-dashboard .d-info-body{padding:0 14px 14px;display:flex;flex-direction:column;gap:6px}
+#sec-dashboard .d-info-body .d-btn{font-size:12.5px;height:34px}
 </style>
 </head>
 <body>
@@ -301,27 +298,29 @@
           <div id="dash-news-items" class="d-news-items"></div>
         </div>
 
-        <!-- Compact info card (поки немає новин — місце не пропадає) -->
-        <div id="dash-info-block" class="d-info">
+        <!-- Швидкі дії -->
+        <div class="d-info">
           <div class="d-info-h">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-            <span>Поради</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Швидкі дії</span>
           </div>
           <div class="d-info-body">
-            <div class="d-info-tip">
-              <span class="d-info-emoji">⚡</span>
-              <div>
-                <b>Швидке створення тесту</b>
-                <p>Натисніть «Новий тест» вгорі або відкрийте бібліотеку, щоб створити з шаблону.</p>
-              </div>
-            </div>
-            <div class="d-info-tip">
-              <span class="d-info-emoji">🎯</span>
-              <div>
-                <b>Поділіться посиланням</b>
-                <p>Створіть посилання у розділі «Посилання» — вкажіть кількість спроб і групу.</p>
-              </div>
-            </div>
+            <button class="d-btn" style="justify-content:flex-start;width:100%" onclick="openM('m-test')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Створити тест
+            </button>
+            <button class="d-btn" style="justify-content:flex-start;width:100%" onclick="showSec('attempts')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Перевірити спроби
+            </button>
+            <button class="d-btn" style="justify-content:flex-start;width:100%" onclick="showSec('students')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
+              Список студентів
+            </button>
+            <button class="d-btn" style="justify-content:flex-start;width:100%" onclick="showSec('links')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1.5 1.5"/><path d="M14 11a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1.5-1.5"/></svg>
+              Керування посиланнями
+            </button>
           </div>
         </div>
 
