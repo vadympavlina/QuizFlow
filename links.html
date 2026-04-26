@@ -57,8 +57,8 @@
 #sec-links .l-tab-n{font-family:'Geist Mono',monospace;font-size:11px;opacity:.7;font-weight:500}
 
 /* ─── Cards grid ─── */
-#sec-links .l-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-@media (max-width:1280px){#sec-links .l-grid{grid-template-columns:repeat(2,1fr)}}
+#sec-links .l-grid{display:grid;grid-template-columns:repeat(3,minmax(0, 1fr));gap:12px}
+@media (max-width:1280px){#sec-links .l-grid{grid-template-columns:repeat(2,minmax(0, 1fr))}}
 @media (max-width:780px){#sec-links .l-grid{grid-template-columns:1fr}}
 
 #sec-links .lnk-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;transition:border-color .15s}
