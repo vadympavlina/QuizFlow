@@ -1574,25 +1574,6 @@ renderLinks = function(){
   }).join("");
 }
  
-  // ── Генерація QR-кодів для активних посилань ──
-  // Використовуємо існуючу бібліотеку qrcodejs (підключена з cdn в links.html)
-  if (window.QRCode){
-    lst.filter(l => l.status === "active" && (!l.closeAt || Date.now() <= l.closeAt)).forEach(l => {
-      const wrap = document.getElementById(`lnk-qr-${l.id}`);
-      if (!wrap || wrap.firstChild) return; // вже є
-      try {
-        new QRCode(wrap, {
-          text: `${base}test.html?link=${l.id}&t=${_uid}`,
-          width: 100,
-          height: 100,
-          colorDark: "#0B1437",
-          colorLight: "#FFFFFF",
-          correctLevel: QRCode.CorrectLevel.M
-        });
-      } catch(e){}
-    });
-  }
-}
  
 
 // G — global actions
