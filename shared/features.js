@@ -459,41 +459,57 @@ function renderDashAtt(){
 // Малює таблицю "Ваші тести" в #d-tests-tbody + лічильник "X активні · Y чернетки"
 // Плюс прогрес-бар групи на основі links з тим самим testId
  
+// ═══════════════════════════════════════════════════════════════════════════
+// ПОВНА ЗАМІНА ФУНКЦІЇ renderDashTests у shared/features.js
+//
+// Тепер рендерить ПОСИЛАННЯ (links) — не тести.
+// Кожен рядок = одне посилання: тест + група + статус + use/max + середня
+// оцінка по спробах через це посилання + прогрес + дедлайн (createdAt поки що).
+//
+// HTML-розмітка таблиці в index.html не змінюється (#d-tests-tbody, #d-tests-count).
+// ═══════════════════════════════════════════════════════════════════════════
+
 function renderDashTests(){
   const tb = $("d-tests-tbody");
   if (!tb) return;
- 
-  // Тільки не-архівні, перші 5 за датою (новіші зверху)
-  const list = tests
-    .filter(t => t.status !== "archived")
-    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+
+  // Беремо всі посилання, сортуємо: спочатку active, потім за датою (новіші зверху)
+  const list = links
+    .slice()
+    .sort((a, b) => {
+      // Активні зверху
+      const aActive = a.status === "active" ? 0 : 1;
+      const bActive = b.status === "active" ? 0 : 1;
+      if (aActive !== bActive) return aActive - bActive;
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    })
     .slice(0, 5);
- 
-  // Лічильник у card-h
+
+  // Лічильник
   const lbl = $("d-tests-count");
   if (lbl){
-    const act = tests.filter(t => t.status === "active").length;
-    const drf = tests.filter(t => t.status === "draft").length;
-    lbl.textContent = `${act} активн${act === 1 ? "ий" : (act >= 2 && act <= 4) ? "і" : "их"} · ${drf} чернет${drf === 1 ? "ка" : (drf >= 2 && drf <= 4) ? "ки" : "ок"}`;
+    const act = links.filter(l => l.status === "active").length;
+    const cls = links.filter(l => l.status !== "active").length;
+    lbl.textContent = `${act} активн${act === 1 ? "е" : (act >= 2 && act <= 4) ? "і" : "их"} · ${cls} закрит${cls === 1 ? "е" : (cls >= 2 && cls <= 4) ? "і" : "их"}`;
   }
- 
+
   if (!list.length){
     tb.innerHTML = `<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--ink-500);font-size:13px">
-      Тести ще не створено. <button onclick="openM('m-test')" style="background:transparent;border:0;color:var(--nav-600);font-weight:600;cursor:pointer;font-family:inherit">Створити перший →</button>
+      Ще немає посилань. <button onclick="showSec('links')" style="background:transparent;border:0;color:var(--nav-600);font-weight:600;cursor:pointer;font-family:inherit">Перейти до посилань →</button>
     </td></tr>`;
     return;
   }
- 
+
   // 5 кольорових варіантів плитки за хешем title
   const tilePalette = [
-    { bg:"linear-gradient(135deg, #DBEAFE, #93C5FD)", color:"#1E3A8A" },     // navy
-    { bg:"linear-gradient(135deg, #E9D5FF, #C084FC)", color:"#6B21A8" },     // purple
-    { bg:"linear-gradient(135deg, #BBF7D0, #4ADE80)", color:"#14532D" },     // green
-    { bg:"linear-gradient(135deg, #FED7AA, #FB923C)", color:"#7C2D12" },     // orange
-    { bg:"linear-gradient(135deg, #FBCFE8, #F472B6)", color:"#831843" },     // pink
+    { bg:"linear-gradient(135deg, #DBEAFE, #93C5FD)", color:"#1E3A8A" },
+    { bg:"linear-gradient(135deg, #E9D5FF, #C084FC)", color:"#6B21A8" },
+    { bg:"linear-gradient(135deg, #BBF7D0, #4ADE80)", color:"#14532D" },
+    { bg:"linear-gradient(135deg, #FED7AA, #FB923C)", color:"#7C2D12" },
+    { bg:"linear-gradient(135deg, #FBCFE8, #F472B6)", color:"#831843" },
   ];
- 
-  // Скорочена абревіатура: 3 літери з назви
+
+  // Скорочена абревіатура з назви
   const abbr = (title) => {
     if (!title) return "TST";
     const words = title.trim().split(/\s+/).filter(Boolean);
@@ -501,73 +517,74 @@ function renderDashTests(){
     if (words.length === 2) return (words[0].slice(0,2) + words[1][0]).toUpperCase();
     return title.replace(/[^A-Za-zА-Яа-яҐЄІЇґєії0-9]/g,"").substring(0,3).toUpperCase() || "TST";
   };
- 
+
   const statusMap = {
-    active:  { cls:"on",     txt:"Активний" },
-    draft:   { cls:"draft",  txt:"Чернетка" },
-    closed:  { cls:"closed", txt:"Закритий" },
+    active: { cls:"on",     txt:"Активне" },
+    closed: { cls:"closed", txt:"Закрите" },
+    draft:  { cls:"draft",  txt:"Чернетка" },
   };
- 
-  tb.innerHTML = list.map(t => {
-    // Хеш для вибору плитки
+
+  tb.innerHTML = list.map(l => {
+    const t = tests.find(x => x.id === l.testId);
+    const title = t?.title || "—";
+
+    // Хеш для вибору плитки (за testId або назвою)
+    const seed = String(l.testId || title);
     let h = 0;
-    for (let i = 0; i < (t.title || "").length; i++) h = (h + t.title.charCodeAt(i)) | 0;
+    for (let i = 0; i < seed.length; i++) h = (h + seed.charCodeAt(i)) | 0;
     const tile = tilePalette[Math.abs(h) % tilePalette.length];
- 
-    const tAtt = attempts.filter(a => a.testId === t.id);
-    const cnt = tAtt.length;
- 
-    // Середній бал (відсоток)
-    const completed = tAtt.filter(a => a.status === "completed" && a.score?.percent != null);
+
+    // Спроби через ЦЕ посилання
+    const lAttempts = attempts.filter(a => a.linkId === l.id);
+
+    // Середня оцінка
+    const completed = lAttempts.filter(a => a.status === "completed" && a.score?.percent != null);
     const avgPct = completed.length ? Math.round(completed.reduce((s,a) => s + a.score.percent, 0) / completed.length) : null;
- 
-    // Прогрес групи: кількість завершених / maxAttempts по всіх посиланнях цього тесту
-    const tLinks = links.filter(l => l.testId === t.id);
-    const totalCap = tLinks.reduce((s,l) => s + (l.maxAttempts || 0), 0);
-    const usedSum = tLinks.reduce((s,l) => s + (l.usedAttempts || 0), 0);
-    const progress = totalCap > 0 ? Math.min(100, Math.round(usedSum / totalCap * 100)) : 0;
-    const barColor = progress >= 80 ? "#16A34A" : progress >= 40 ? "#3B82F6" : "#F59E0B";
- 
-    // Дедлайн: беремо найближчий expiresAt з активних посилань
-    const activeLinks = tLinks.filter(l => l.status === "active" && l.expiresAt);
-    const nextDeadline = activeLinks.length ? Math.min(...activeLinks.map(l => l.expiresAt)) : null;
-    const deadlineStr = nextDeadline
-      ? new Date(nextDeadline).toLocaleDateString("uk-UA", { day:"numeric", month:"short" })
-      : "—";
- 
-    // Hot — якщо дедлайн менше 2 днів
-    const hot = nextDeadline && (nextDeadline - Date.now()) < 2 * 24 * 60 * 60 * 1000 && (nextDeadline - Date.now()) > 0;
- 
+
+    // Прогрес = used/max
+    const used = l.usedAttempts || 0;
+    const max = l.maxAttempts || 0;
+    const pct = max > 0 ? Math.min(100, Math.round(used / max * 100)) : 0;
+    const barColor = pct >= 100 ? "#16A34A" : pct >= 70 ? "#F59E0B" : pct >= 30 ? "#3B82F6" : "#94A3B8";
+
+    // Дедлайн / статус-дата:
+    //   - якщо closed → "Закрито"
+    //   - якщо expiresAt → дата
+    //   - інакше → дата створення
+    let deadlineStr = "—";
+    if (l.status === "closed") deadlineStr = "Закрито";
+    else if (l.expiresAt) deadlineStr = new Date(l.expiresAt).toLocaleDateString("uk-UA", { day:"numeric", month:"short" });
+    else if (l.createdAt) deadlineStr = "від " + new Date(l.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"short" });
+
     // Підрядок: група · N питань · M хв
     const subParts = [];
-    const groups = [...new Set(tLinks.map(l => l.group).filter(Boolean))];
-    if (groups.length) subParts.push(groups[0]);
-    const qCnt = (t.questions || []).length;
+    if (l.group) subParts.push(l.group);
+    const qCnt = (t?.questions || []).length;
     if (qCnt) subParts.push(`${qCnt} питань`);
-    if (t.timeLimit) subParts.push(`${Math.round(t.timeLimit / 60)} хв`);
- 
-    const s = statusMap[t.status] || statusMap.draft;
- 
-    return `<tr onclick="location.href='constructor.html?id=${t.id}'" style="cursor:pointer">
+    if (t?.timeLimit) subParts.push(`${Math.round(t.timeLimit / 60)} хв`);
+
+    const s = statusMap[l.status] || statusMap.active;
+
+    return `<tr onclick="showSec('links')" style="cursor:pointer">
       <td>
         <div class="d-q-name">
-          <div class="d-q-icon" style="background:${tile.bg};color:${tile.color}">${esc(abbr(t.title))}</div>
+          <div class="d-q-icon" style="background:${tile.bg};color:${tile.color}">${esc(abbr(title))}</div>
           <div style="min-width:0">
-            <div class="d-q-title">${esc(t.title || "—")}${hot ? ` <span class="d-q-fire" title="Дедлайн скоро">🔥</span>` : ""}</div>
+            <div class="d-q-title">${esc(title)}</div>
             <div class="d-q-sub">${subParts.length ? subParts.map(esc).join(" · ") : "—"}</div>
           </div>
         </div>
       </td>
       <td><span class="d-q-pill ${s.cls}">${s.txt}</span></td>
-      <td class="d-mono">${cnt}</td>
+      <td class="d-mono">${used}${max > 0 ? `/${max}` : ""}</td>
       <td class="d-mono" style="font-weight:600;color:${avgPct != null ? (avgPct >= 70 ? "#15803D" : avgPct >= 40 ? "#1E40AF" : "#B91C1C") : "var(--ink-400)"}">${avgPct != null ? avgPct + "%" : "—"}</td>
       <td>
         <div style="display:flex;align-items:center;gap:10px">
-          <div class="d-q-bar"><i style="width:${progress}%;background:${barColor}"></i></div>
-          <span class="d-mono" style="font-size:11px;color:var(--ink-500);width:36px;text-align:right">${progress}%</span>
+          <div class="d-q-bar"><i style="width:${pct}%;background:${barColor}"></i></div>
+          <span class="d-mono" style="font-size:11px;color:var(--ink-500);width:36px;text-align:right">${pct}%</span>
         </div>
       </td>
-      <td class="d-mono" style="color:var(--ink-500);white-space:nowrap">${deadlineStr}</td>
+      <td class="d-mono" style="color:${l.status === 'closed' ? '#B91C1C' : 'var(--ink-500)'};white-space:nowrap;font-size:11.5px">${esc(deadlineStr)}</td>
     </tr>`;
   }).join("");
 }
