@@ -1413,67 +1413,189 @@ renderAttempts = function(resetPage = false){
   if (pagEl) pagEl.innerHTML = pagHtml;
 };
 
-
-// LINKS
 renderLinks = function(){
-  const tb=$("lnk-tbl");
-  if(!tb) return;
-  const base=location.origin+location.pathname.replace(/[^/]*$/, "");
+  const tb = $("lnk-tbl");
+  if (!tb) return;
+  const base = location.origin + location.pathname.replace(/[^/]*$/, "");
+ 
   // Автоматично закриваємо прострочені посилання
-  const now=Date.now();
-  links.filter(l=>l.closeAt && now>l.closeAt && l.status==="active").forEach(async l=>{
-    try{ await dbUpd(`links/${l.id}`,{status:"closed"}); l.status="closed"; }catch{}
+  const now = Date.now();
+  links.filter(l => l.closeAt && now > l.closeAt && l.status === "active").forEach(async l => {
+    try { await dbUpd(`links/${l.id}`, { status:"closed" }); l.status = "closed"; } catch {}
   });
-
-  // Фільтр пошуку
-  const q = $("lnk-srch")?.value?.toLowerCase() || "";
+ 
+  // ── Лічильник активних на сторінці ──
+  const activeAll = links.filter(l => l.status === "active").length;
+  const closedAll = links.filter(l => l.status !== "active").length;
+  const cntEl = $("lnk-active-count");
+  if (cntEl) cntEl.textContent = activeAll;
+  // Лічильники у tabs
+  const tabAll    = $("lnk-tab-all");    if (tabAll)    tabAll.textContent    = links.length;
+  const tabActive = $("lnk-tab-active"); if (tabActive) tabActive.textContent = activeAll;
+  const tabClosed = $("lnk-tab-closed"); if (tabClosed) tabClosed.textContent = closedAll;
+ 
+  // ── Фільтри ──
+  const q = ($("lnk-srch")?.value || "").toLowerCase();
+  const sF = window._lnkStatus || "";
   let lst = links;
-  if(q) lst = lst.filter(l=>{
-    const t = tests.find(x=>x.id===l.testId);
-    return (l.group||"").toLowerCase().includes(q) || (t?.title||"").toLowerCase().includes(q);
-  });
-
-  if(!lst.length){
-    tb.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="ei">🔗</div><div class="et">${links.length?"Нічого не знайдено":"Немає посилань"}</div></div></td></tr>`;
+  if (sF){
+    if (sF === "active") lst = lst.filter(l => l.status === "active");
+    else if (sF === "closed") lst = lst.filter(l => l.status !== "active");
+  }
+  if (q){
+    lst = lst.filter(l => {
+      const t = tests.find(x => x.id === l.testId);
+      return (l.group || "").toLowerCase().includes(q) || (t?.title || "").toLowerCase().includes(q);
+    });
+  }
+ 
+  // ── Empty state ──
+  if (!lst.length){
+    const isFiltered = !!(q || sF);
+    tb.innerHTML = `<div class="l-empty">
+      <div class="l-empty-ico">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1.5 1.5"/><path d="M14 11a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1.5-1.5"/></svg>
+      </div>
+      <div class="l-empty-title">${isFiltered ? "Нічого не знайдено" : "Ще немає посилань"}</div>
+      <div class="l-empty-hint">${isFiltered ? "Спробуйте змінити запит або скиньте фільтри" : "Створіть перше посилання, щоб поділитися тестом зі студентами"}</div>
+      ${!isFiltered ? `<button class="l-btn primary" onclick="openM('m-link')" style="margin:0 auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Нове посилання</button>` : ""}
+    </div>`;
     return;
   }
-  tb.innerHTML=lst.map(l=>{
-    const t=tests.find(x=>x.id===l.testId),url=`${base}test.html?link=${l.id}&t=${_uid}`,pct=l.maxAttempts?Math.round(l.usedAttempts/l.maxAttempts*100):0,ia=l.status==="active";
-    return`<tr>
-      <td>
-        <div style="font-weight:500">${esc(t?.title||"—")}</div>
-        ${l.group?`<div style="font-size:12px;color:var(--primary);margin-top:2px;font-weight:500">👥 ${esc(l.group)}</div>`:""}
-      </td>
-      <td><div style="display:flex;align-items:center;gap:7px">
-        <code style="font-size:11px;color:var(--primary);background:rgba(45,91,227,.06);padding:3px 8px;border-radius:6px">${url.replace(location.origin,"")}</code>
-        <div class="ib" style="width:28px;height:28px" title="Копіювати" onclick="G.copyUrl('${url}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></div>
-      </div></td>
-      <td>
-        <div style="font-size:13px;margin-bottom:3px">${l.usedAttempts} / ${l.maxAttempts}</div>
-        <div class="pb" style="width:90px"><div class="pf" style="width:${pct}%"></div></div>
-      </td>
-      <td>
-        ${(()=>{
-          const now=Date.now();
-          const expired = l.closeAt && now > l.closeAt;
-          const statusLabel = expired ? "⏰ Закрите (авто)" : ia ? "Активне" : "Закрите";
-          const statusClass = (expired || !ia) ? "bg-r" : "bg-g";
-          const closeStr = l.closeAt ? new Date(l.closeAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}) : "";
-          const _sl = "<span class=\"bdg "+statusClass+"\">"+statusLabel+"</span>"+(closeStr?"<div style=\"font-size:11px;color:var(--muted);margin-top:3px\">⏱ до "+closeStr+"</div>":"");
-          return _sl;
-        })()}
-      </td>
-      <td><div class="ra">
-        <div class="ib" title="QR-код" onclick="G.showQR('${l.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 14v3M14 17h3"/></svg></div>
-        <div class="ib" title="Студенти" onclick="G.showStudents('${l.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
-        <div class="ib" title="Редагувати" onclick="G.editLink('${l.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
-        <div class="ib" title="${ia?"Закрити":"Відкрити"}" onclick="G.togLink('${l.id}','${l.status}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ia?'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>':'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0114 0"/>'}</svg></div>
-        <div class="ib d" title="Видалити" onclick="G.delLink('${l.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></div>
-      </div></td>
-    </tr>`;
+ 
+  // ── Картки ──
+  tb.innerHTML = lst.map(l => {
+    const t = tests.find(x => x.id === l.testId);
+    const url = `${base}test.html?link=${l.id}&t=${_uid}`;
+    const used = l.usedAttempts || 0;
+    const max = l.maxAttempts || 0;
+    const pct = max > 0 ? Math.min(100, Math.round(used / max * 100)) : 0;
+ 
+    // Статус
+    const expired = l.closeAt && Date.now() > l.closeAt;
+    const isActive = l.status === "active" && !expired;
+    let statusPill;
+    if (isActive)       statusPill = `<span class="l-pill on">Активне</span>`;
+    else if (expired)   statusPill = `<span class="l-pill expired">Протерміновано</span>`;
+    else                statusPill = `<span class="l-pill closed">Закрите</span>`;
+ 
+    // Дата закриття
+    const closeStr = l.closeAt
+      ? new Date(l.closeAt).toLocaleString("uk-UA", { day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" })
+      : null;
+ 
+    // Дата створення
+    const createdStr = l.createdAt
+      ? new Date(l.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"short" })
+      : "—";
+ 
+    // Колір для % і прогрес-бару
+    const pctColor = pct >= 100 ? "#16A34A" : pct >= 80 ? "#B45309" : pct >= 40 ? "#1E40AF" : "#5B6A8F";
+    const barColor = pct >= 100 ? "#16A34A" : pct >= 80 ? "#F59E0B" : "#3B82F6";
+    const pctClass = pct >= 100 ? "ok" : pct >= 80 ? "warn" : pct >= 40 ? "info" : "";
+ 
+    // Slug для URL — використовуємо короткий хеш id
+    const slug = String(l.id).slice(0, 8);
+ 
+    // Path of URL без origin для display
+    const urlDisplay = url.replace(location.origin, "").replace(/^\//, "");
+    const dom = location.host + "/";
+ 
+    return `<div class="lnk-card ${isActive ? "" : "is-closed"}">
+ 
+      <!-- Шапка: pills + title + QR -->
+      <div class="l-head">
+        <div class="l-head-l">
+          <div class="l-pills">
+            ${statusPill}
+            ${l.group ? `<span class="l-pill info">${esc(l.group)}</span>` : ""}
+            <span class="l-pill off">ID: ${slug}</span>
+          </div>
+          <div class="l-title">${esc(t?.title || "—")}</div>
+        </div>
+        <div class="l-qr ${isActive ? "" : "is-disabled"}" id="lnk-qr-${l.id}">
+          ${isActive ? "" : "QR<br/>недоступний"}
+        </div>
+      </div>
+ 
+      <!-- URL -->
+      <div class="l-url">
+        <span class="l-url-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1.5 1.5"/><path d="M14 11a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1.5-1.5"/></svg></span>
+        <span class="l-url-text"><span class="l-dom">${esc(dom)}</span><span class="l-slug">${esc(urlDisplay)}</span></span>
+        <span class="l-url-actions">
+          <button class="l-url-btn" onclick="G.copyUrl('${url}');window.lnkToast&&window.lnkToast('Скопійовано')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Копіювати
+          </button>
+          <a class="l-url-btn icon-only" href="${url}" target="_blank" rel="noopener" title="Відкрити в новій вкладці">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M10 6H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
+          </a>
+        </span>
+      </div>
+ 
+      <!-- Stats -->
+      <div class="l-stats">
+        <div>
+          <div class="l-stat-v">${used}${max > 0 ? `/${max}` : ""}</div>
+          <div class="l-stat-l">Використань</div>
+        </div>
+        <div>
+          <div class="l-stat-v ${pctClass}">${pct}%</div>
+          <div class="l-stat-l">Заповненість</div>
+        </div>
+        <div>
+          <div class="l-stat-v small">${closeStr || (createdStr !== "—" ? "Без терміну" : "—")}</div>
+          <div class="l-stat-l">${closeStr ? "Діє до" : "Термін"}</div>
+        </div>
+      </div>
+ 
+      <!-- Прогрес -->
+      <div class="l-bar"><i style="width:${pct}%;background:${barColor}"></i></div>
+ 
+      <!-- Footer -->
+      <div class="l-foot">
+        <div class="l-foot-meta">Створено ${createdStr}</div>
+        <div class="l-foot-actions">
+          <button class="l-icon-btn" title="QR-код" onclick="G.showQR('${l.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 14v3M14 17h3"/></svg>
+          </button>
+          <button class="l-icon-btn" title="Студенти" onclick="G.showStudents('${l.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          </button>
+          <button class="l-icon-btn" title="Редагувати" onclick="G.editLink('${l.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="l-icon-btn" title="${isActive ? "Закрити" : "Відкрити"}" onclick="G.togLink('${l.id}','${l.status}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${isActive ? '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>' : '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0114 0"/>'}</svg>
+          </button>
+          <button class="l-icon-btn danger" title="Видалити" onclick="G.delLink('${l.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>`;
   }).join("");
+ 
+  // ── Генерація QR-кодів для активних посилань ──
+  // Використовуємо існуючу бібліотеку qrcodejs (підключена з cdn в links.html)
+  if (window.QRCode){
+    lst.filter(l => l.status === "active" && (!l.closeAt || Date.now() <= l.closeAt)).forEach(l => {
+      const wrap = document.getElementById(`lnk-qr-${l.id}`);
+      if (!wrap || wrap.firstChild) return; // вже є
+      try {
+        new QRCode(wrap, {
+          text: `${base}test.html?link=${l.id}&t=${_uid}`,
+          width: 100,
+          height: 100,
+          colorDark: "#0B1437",
+          colorLight: "#FFFFFF",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      } catch(e){}
+    });
+  }
 }
-
+ 
 
 // G — global actions
 // ─── GROQ для AI аналізу ──────────────────────────────────────────────────────
