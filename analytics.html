@@ -168,21 +168,6 @@
     <!-- Фільтри -->
     <div class="a-filters">
       <div class="a-filt">
-        <div class="a-filt-l">Тест</div>
-        <div class="cd-wrap" id="cd-an-test">
-          <button class="cd-btn" style="min-width:220px;justify-content:space-between" onclick="G.toggleDrop('cd-an-test')">
-            <span class="cd-label" id="cd-an-test-label">Оберіть тест...</span>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div class="cd-menu" id="cd-an-test-menu" style="min-width:260px">
-            <div class="cd-item cd-active" onclick="G.selectAnalyticsDrop('test','','Оберіть тест...')">— Без фільтру</div>
-          </div>
-          <select id="an-test" style="display:none" onchange="G.renderAnalytics()">
-            <option value="">Оберіть тест...</option>
-          </select>
-        </div>
-      </div>
-      <div class="a-filt">
         <div class="a-filt-l">Група</div>
         <div class="cd-wrap" id="cd-an-group">
           <button class="cd-btn" style="min-width:160px;justify-content:space-between" onclick="G.toggleDrop('cd-an-group')">
@@ -194,6 +179,21 @@
           </div>
           <select id="an-group" style="display:none" onchange="G.renderAnalytics()">
             <option value="">Всі групи</option>
+          </select>
+        </div>
+      </div>
+      <div class="a-filt">
+        <div class="a-filt-l">Тест</div>
+        <div class="cd-wrap" id="cd-an-test">
+          <button class="cd-btn" style="min-width:220px;justify-content:space-between" onclick="G.toggleDrop('cd-an-test')">
+            <span class="cd-label" id="cd-an-test-label">Оберіть тест...</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="cd-menu" id="cd-an-test-menu" style="min-width:260px">
+            <div class="cd-item cd-active" onclick="G.selectAnalyticsDrop('test','','Оберіть тест...')">— Без фільтру</div>
+          </div>
+          <select id="an-test" style="display:none" onchange="G.renderAnalytics()">
+            <option value="">Оберіть тест...</option>
           </select>
         </div>
       </div>
