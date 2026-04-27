@@ -1689,7 +1689,7 @@ window.G = {
     _attPage=1; renderAttempts();
   },
 
-  selectAnalyticsDrop(field, value, label){
+selectAnalyticsDrop(field, value, label){
     const ids = field==="test"
       ? {wrap:"cd-an-test", sel:"an-test", lbl:"cd-an-test-label"}
       : {wrap:"cd-an-group", sel:"an-group", lbl:"cd-an-group-label"};
@@ -1704,6 +1704,50 @@ window.G = {
     const btn=document.querySelector(`#${ids.wrap} .cd-btn`);
     btn?.classList.toggle("active", !!value);
     menu?.classList.remove("open");
+ 
+    // ── НОВЕ: при виборі групи — перебудовуємо dropdown тестів ──
+    if (field === "group"){
+      // Тести, що мають посилання з обраною групою (або всі якщо група не обрана)
+      const validTestIds = value
+        ? new Set(links.filter(l => l.group === value).map(l => l.testId))
+        : null;
+      const filteredTests = tests.filter(t => {
+        if (t.status === "archived") return false;
+        if (!validTestIds) return true;       // група "Всі" → всі тести
+        return validTestIds.has(t.id);
+      });
+ 
+      // Перебудовуємо menu тестів
+      const anTestMenu = document.getElementById("cd-an-test-menu");
+      const anTestSel  = document.getElementById("an-test");
+      const curTestId  = anTestSel?.value || "";
+      // Чи актуальний обраний тест ще доступний у новому списку?
+      const stillValid = curTestId && filteredTests.some(t => t.id === curTestId);
+ 
+      if (anTestMenu){
+        const noneActive = !stillValid;
+        anTestMenu.innerHTML = `<div class="cd-item${noneActive?" cd-active":""}" data-val="_none" onclick="G.selectAnalyticsDrop('test','','Оберіть тест...')">— Без фільтру</div>` +
+          filteredTests.map(t =>
+            `<div class="cd-item${(stillValid && curTestId===t.id)?" cd-active":""}" data-val="${t.id}" onclick="G.selectAnalyticsDrop('test','${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
+          ).join("");
+      }
+ 
+      // Перебудовуємо <select> теж (щоб renderAnalytics брав актуальне значення)
+      if (anTestSel){
+        anTestSel.innerHTML = `<option value="">Оберіть тест...</option>` +
+          filteredTests.map(t => `<option value="${t.id}">${esc(t.title)}</option>`).join("");
+        anTestSel.value = stillValid ? curTestId : "";
+      }
+ 
+      // Якщо обраний тест більше не валідний — скидаємо лейбл і active state
+      if (!stillValid){
+        const testLbl = document.getElementById("cd-an-test-label");
+        if (testLbl) testLbl.textContent = "Оберіть тест...";
+        const testBtn = document.querySelector("#cd-an-test .cd-btn");
+        testBtn?.classList.remove("active");
+      }
+    }
+ 
     G.renderAnalytics();
   },
 
