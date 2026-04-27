@@ -6,11 +6,129 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/><circle cx='24' cy='22' r='5' fill='none' stroke='white' stroke-width='2.2'/><line x1='27.5' y1='25.5' x2='29.5' y2='27.5' stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>">
 <title>QuizFlow — Аналітика</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
-<link rel="modulepreload" href="shared/app.js?v=13">
-<link rel="preload" as="fetch" href="shared/layout.html?v=13" crossorigin>
-<link rel="modulepreload" href="shared/features.js?v=13">
+<link rel="modulepreload" href="shared/app.js?v=15">
+<link rel="preload" as="fetch" href="shared/layout.html?v=15" crossorigin>
+<link rel="modulepreload" href="shared/features.js?v=15">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   ANALYTICS PAGE REDESIGN — scoped під #sec-analytics
+   ═══════════════════════════════════════════════════════════════════════ */
+#sec-analytics{
+  --ink-900:#0B1437; --ink-700:#24335A; --ink-500:#5B6A8F; --ink-400:#8691AC;
+  --line:#E3E8F2; --line-strong:#CDD6E8;
+  --nav-600:#1E3A8A; --nav-accent:#3B82F6; --nav-soft:#93C5FD;
+  --good:#16A34A; --warn:#F59E0B; --bad:#DC2626;
+  font-family:'Manrope',system-ui,sans-serif;
+  color:var(--ink-900);
+}
+#sec-analytics.on{ display:flex; flex-direction:column; gap:18px; }
+
+/* ─── Page title ─── */
+#sec-analytics .a-page-title{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:0;flex-wrap:wrap}
+#sec-analytics .a-page-title h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:0;font-family:'Manrope',sans-serif}
+#sec-analytics .a-page-title p{margin:6px 0 0;color:var(--ink-500);font-size:14px}
+#sec-analytics .a-page-title b{color:var(--ink-900);font-weight:700}
+#sec-analytics .a-page-chip{background:#E7EEFC;color:var(--nav-600);padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace}
+#sec-analytics .a-page-chip::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--nav-600)}
+
+/* ─── Buttons ─── */
+#sec-analytics .a-btn{background:#fff;border:1px solid var(--line);padding:7px 13px;border-radius:9px;font-family:'Manrope',sans-serif;font-weight:500;font-size:12.5px;color:var(--ink-700);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s;white-space:nowrap;height:34px;line-height:1}
+#sec-analytics .a-btn:hover{border-color:var(--line-strong);color:var(--ink-900)}
+#sec-analytics .a-btn svg{width:13px;height:13px;flex:0 0 auto}
+
+/* ─── Filters ─── */
+#sec-analytics .a-filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#sec-analytics .a-filt{display:flex;flex-direction:column;gap:5px}
+#sec-analytics .a-filt-l{font-size:10.5px;font-weight:600;color:var(--ink-400);text-transform:uppercase;letter-spacing:.07em;font-family:'Manrope',sans-serif}
+
+/* Override custom dropdowns inside analytics for new look */
+#sec-analytics .cd-wrap{position:relative;display:inline-block}
+#sec-analytics .cd-btn{background:#fff;border:1px solid var(--line);border-radius:9px;padding:7px 12px;height:34px;font-family:'Manrope',sans-serif;font-weight:500;font-size:13px;color:var(--ink-900);cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:all .15s;line-height:1}
+#sec-analytics .cd-btn:hover{border-color:var(--line-strong)}
+#sec-analytics .cd-btn .cd-label{font-weight:500;color:var(--ink-900);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sec-analytics .cd-btn svg{flex:0 0 auto;color:var(--ink-400)}
+#sec-analytics .cd-menu{position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 28px -8px rgba(11,20,55,.18);z-index:50;max-height:280px;overflow-y:auto;display:none;min-width:240px}
+#sec-analytics .cd-wrap.open .cd-menu{display:block}
+#sec-analytics .cd-item{padding:9px 12px;font-size:13px;cursor:pointer;color:var(--ink-700);font-family:'Manrope',sans-serif;transition:background .12s}
+#sec-analytics .cd-item:hover{background:#F1F5FB;color:var(--ink-900)}
+#sec-analytics .cd-item.cd-active{background:#E7EEFC;color:var(--nav-600);font-weight:600}
+
+/* Range tabs (date range) */
+#sec-analytics .a-tabs{display:inline-flex;background:#F1F5FB;border-radius:8px;padding:3px;gap:2px;margin-left:auto}
+#sec-analytics .a-tab{font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;padding:5px 11px;border-radius:6px;background:transparent;border:0;color:var(--ink-500);cursor:pointer;white-space:nowrap;height:28px}
+#sec-analytics .a-tab:hover:not(.active){color:var(--ink-700)}
+#sec-analytics .a-tab.active{background:#fff;color:var(--ink-900);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+
+/* ─── Empty state ─── */
+#sec-analytics .a-empty{padding:64px 24px;text-align:center;background:#fff;border:1px solid var(--line);border-radius:16px;color:var(--ink-500)}
+#sec-analytics .a-empty-ico{width:60px;height:60px;margin:0 auto 16px;border-radius:14px;background:linear-gradient(135deg,#E7EEFC,#DBEAFE);display:grid;place-items:center;color:var(--nav-600)}
+#sec-analytics .a-empty-title{font-size:16px;font-weight:700;color:var(--ink-900);margin-bottom:4px;font-family:'Manrope',sans-serif}
+#sec-analytics .a-empty-hint{font-size:13.5px}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   #analytics-body — переоформлюємо все що пише renderAnalytics
+   Старий код пише inline стилі, тому використовуємо клас-фоллбеки які
+   рендерить нова версія renderAnalytics.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* KPI картки */
+#sec-analytics .a-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+@media (max-width:1100px){#sec-analytics .a-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+#sec-analytics .a-kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden;transition:all .15s}
+#sec-analytics .a-kpi:hover{border-color:var(--line-strong)}
+#sec-analytics .a-kpi-l{font-size:11px;color:var(--ink-400);text-transform:uppercase;letter-spacing:.06em;font-weight:600;font-family:'Manrope',sans-serif}
+#sec-analytics .a-kpi-v{font-family:'Geist Mono',monospace;font-size:28px;font-weight:800;letter-spacing:-.02em;color:var(--ink-900);line-height:1;font-variant-numeric:tabular-nums}
+#sec-analytics .a-kpi-v.ok{color:#15803D}
+#sec-analytics .a-kpi-v.info{color:#1E40AF}
+#sec-analytics .a-kpi-v.warn{color:#B45309}
+#sec-analytics .a-kpi-v.bad{color:#B91C1C}
+#sec-analytics .a-kpi-d{font-size:12px;color:var(--ink-500);display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+#sec-analytics .a-kpi-d .pos{color:#15803D;font-weight:600}
+#sec-analytics .a-kpi-d .neg{color:#B91C1C;font-weight:600}
+#sec-analytics .a-kpi-spark{position:absolute;right:-4px;bottom:-6px;opacity:.18;pointer-events:none}
+
+/* Картка-секція */
+#sec-analytics .a-card{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px}
+#sec-analytics .a-card-h{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line);gap:10px}
+#sec-analytics .a-card-h h3{margin:0;font-size:15px;font-weight:700;letter-spacing:-.005em;color:var(--ink-900);font-family:'Manrope',sans-serif}
+#sec-analytics .a-card-h-meta{font-size:11.5px;color:var(--ink-500)}
+#sec-analytics .a-card-body{padding:18px}
+
+/* Розподіл оцінок (bar chart 1-12) */
+#sec-analytics .a-dist{display:flex;align-items:flex-end;gap:6px;height:160px}
+#sec-analytics .a-dist-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+#sec-analytics .a-dist-cnt{font-size:11px;font-weight:700;font-family:'Geist Mono',monospace;height:14px;line-height:14px}
+#sec-analytics .a-dist-bar-wrap{width:100%;background:#F5F8FD;border-radius:6px 6px 0 0;height:130px;display:flex;align-items:flex-end;overflow:hidden}
+#sec-analytics .a-dist-bar{width:100%;border-radius:6px 6px 0 0;transition:height .4s ease}
+#sec-analytics .a-dist-grade{font-size:11px;color:var(--ink-400);font-weight:600;font-family:'Geist Mono',monospace}
+
+/* Розподіл оцінок: легенда */
+#sec-analytics .a-dist-legend{display:flex;gap:14px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line);flex-wrap:wrap}
+#sec-analytics .a-dist-legend-item{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-500)}
+#sec-analytics .a-dist-legend-item i{width:10px;height:10px;border-radius:3px;flex:0 0 auto;display:inline-block}
+
+/* Таблиця студентів */
+#sec-analytics .a-tbl{width:100%;border-collapse:separate;border-spacing:0}
+#sec-analytics .a-tbl th{padding:11px 18px;text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-400);background:#FAFBFE;border-bottom:1px solid var(--line);font-family:'Manrope',sans-serif}
+#sec-analytics .a-tbl td{padding:12px 18px;font-size:13px;border-bottom:1px solid var(--line);font-family:'Manrope',sans-serif;color:var(--ink-700)}
+#sec-analytics .a-tbl tbody tr:last-child td{border-bottom:0}
+#sec-analytics .a-tbl tbody tr{transition:background .12s}
+#sec-analytics .a-tbl tbody tr:hover{background:#FAFBFE}
+#sec-analytics .a-tbl .a-rank{font-family:'Geist Mono',monospace;font-weight:700;color:var(--ink-400);font-size:12px;width:36px}
+#sec-analytics .a-tbl .a-stud{font-weight:600;color:var(--ink-900);font-size:13.5px}
+#sec-analytics .a-mono{font-family:'Geist Mono',monospace;font-variant-numeric:tabular-nums}
+
+/* Pill для оцінки */
+#sec-analytics .a-grade-pill{display:inline-flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-weight:700;font-size:12px;padding:3px 9px;border-radius:999px;letter-spacing:-.01em;min-width:50px}
+#sec-analytics .a-grade-pill.g-best{background:#DCFCE7;color:#15803D}
+#sec-analytics .a-grade-pill.g-good{background:#DBEAFE;color:#1E40AF}
+#sec-analytics .a-grade-pill.g-mid{background:#FEF3C7;color:#92400E}
+#sec-analytics .a-grade-pill.g-bad{background:#FEE2E2;color:#B91C1C}
+</style>
 </head>
 <body>
 
@@ -19,7 +137,7 @@
   <div style="width:80px;height:80px;background:linear-gradient(135deg,#2d5be3,#4d78ff);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-bottom:28px;box-shadow:0 20px 50px rgba(45,91,227,.4)">
     <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="3"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
   </div>
-  <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;margin-bottom:12px;max-width:320px;line-height:1.3">Мобільна версія недоступна</div>
+  <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:22px;margin-bottom:12px;max-width:320px;line-height:1.3">Мобільна версія недоступна</div>
   <div style="font-size:15px;opacity:.75;max-width:340px;line-height:1.5;margin-bottom:28px">Панель викладача оптимізована для планшетів та комп'ютерів. Відкрийте з ширшого екрану</div>
   <div style="display:inline-flex;gap:8px;background:rgba(255,255,255,.08);padding:10px 18px;border-radius:14px;backdrop-filter:blur(10px);font-size:13px;opacity:.65">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
@@ -27,28 +145,34 @@
   </div>
 </div>
 
-<!-- Initial loader: видимий одразу при завантаженні HTML, зникає коли сторінка готова -->
+<!-- Initial loader -->
 <div id="app-loader" style="position:fixed;inset:0;background:#f0f3fa;z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .25s ease">
   <div style="width:44px;height:44px;border:3.5px solid rgba(45,91,227,.15);border-top-color:#2d5be3;border-radius:50%;animation:appSpin .8s linear infinite"></div>
-  <div style="font-size:13px;color:#6b7280;margin-top:12px;font-family:'DM Sans',sans-serif">Завантаження...</div>
+  <div style="font-size:13px;color:#6b7280;margin-top:12px;font-family:'Manrope',sans-serif">Завантаження...</div>
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
 <main class="main">
 
   <div class="sec on" id="sec-analytics">
-    <div class="ph">
-      <div><div class="pt">Аналітика</div><div class="ps">Статистика по тесту та групі</div></div>
+
+    <!-- Заголовок -->
+    <div class="a-page-title">
+      <div>
+        <h1>Аналітика</h1>
+        <p>Успішність студентів, складність питань, залученість</p>
+      </div>
+      <span class="a-page-chip" id="a-chip">Дані за весь період</span>
     </div>
 
-    <!-- Фільтри аналітики -->
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-end">
-      <div>
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:500;margin-bottom:6px">Тест</div>
+    <!-- Фільтри -->
+    <div class="a-filters">
+      <div class="a-filt">
+        <div class="a-filt-l">Тест</div>
         <div class="cd-wrap" id="cd-an-test">
           <button class="cd-btn" style="min-width:220px;justify-content:space-between" onclick="G.toggleDrop('cd-an-test')">
             <span class="cd-label" id="cd-an-test-label">Оберіть тест...</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="cd-menu" id="cd-an-test-menu" style="min-width:260px">
             <div class="cd-item cd-active" onclick="G.selectAnalyticsDrop('test','','Оберіть тест...')">— Без фільтру</div>
@@ -58,12 +182,12 @@
           </select>
         </div>
       </div>
-      <div>
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:500;margin-bottom:6px">Група</div>
+      <div class="a-filt">
+        <div class="a-filt-l">Група</div>
         <div class="cd-wrap" id="cd-an-group">
-          <button class="cd-btn" style="min-width:180px;justify-content:space-between" onclick="G.toggleDrop('cd-an-group')">
+          <button class="cd-btn" style="min-width:160px;justify-content:space-between" onclick="G.toggleDrop('cd-an-group')">
             <span class="cd-label" id="cd-an-group-label">Всі групи</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="cd-menu" id="cd-an-group-menu">
             <div class="cd-item cd-active" onclick="G.selectAnalyticsDrop('group','','Всі групи')">Всі групи</div>
@@ -75,31 +199,27 @@
       </div>
     </div>
 
+    <!-- Контейнер який заповнює renderAnalytics -->
     <div id="analytics-body">
-      <div class="empty" style="padding:60px 20px">
-        <div class="ei">📊</div>
-        <div class="et">Оберіть тест для перегляду статистики</div>
+      <div class="a-empty">
+        <div class="a-empty-ico">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M3 20h18"/></svg>
+        </div>
+        <div class="a-empty-title">Оберіть тест для перегляду статистики</div>
+        <div class="a-empty-hint">Або змініть фільтр групи для побачити загальну картину</div>
       </div>
     </div>
+
   </div>
-
-
-  <!-- STUDENTS -->
-  <!-- NEWS -->
 
 </main>
 
 <div id="modals-root"></div>
 
 <script type="module">
-// Паралельне завантаження: features.js починає качатись одразу, не чекає initApp
-// Спочатку app.js (щоб вставити window._fb і іншу базу),
-// потім features.js (він читає з window._fb).
-// Preload у <head> вже починає завантаження обох паралельно — тут тільки execute order.
-const { initApp } = await import("./shared/app.js?v=13");
-const featuresP = import("./shared/features.js?v=13");
+const { initApp } = await import("./shared/app.js?v=15");
+const featuresP = import("./shared/features.js?v=15");
 
-// showSec: залишаємось на сторінці якщо це та сама; інакше — йдемо на відповідний html
 window.showSec = function(name){
   if (name === "analytics") {
     document.querySelectorAll(".sec").forEach(s=>s.classList.remove("on"));
@@ -121,25 +241,21 @@ window.showSec = function(name){
   if (pageMap[name]) location.href = pageMap[name];
 };
 
-// initApp робить: sidebar load, auth, loadAllData
-// Паралельно вже тягнеться features.js
 await initApp("analytics");
-await featuresP;             // features.js точно готовий
-await window.initFeatures(); // запускає realtime + нотифікації
+await featuresP;
+await window.initFeatures();
 
 if (window.renderAll) window.renderAll();
 
-// Специфічний хук для цієї сторінки (як було в showSec оригіналу)
+// Специфічний хук для цієї сторінки
 if (window.G?.renderAnalytics) try { window.G.renderAnalytics(); } catch {}
 
-// Приховуємо лоадер після того як DOM реально відрендерився
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
     if (window.appReady) window.appReady();
   });
 });
 
-// Esc для закриття модалок
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
     document.querySelectorAll(".mo.on").forEach(m => {
