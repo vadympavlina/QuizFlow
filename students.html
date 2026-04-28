@@ -6,11 +6,174 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/><circle cx='24' cy='22' r='5' fill='none' stroke='white' stroke-width='2.2'/><line x1='27.5' y1='25.5' x2='29.5' y2='27.5' stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>">
 <title>QuizFlow — Студенти</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
-<link rel="modulepreload" href="shared/app.js?v=13">
-<link rel="preload" as="fetch" href="shared/layout.html?v=13" crossorigin>
-<link rel="modulepreload" href="shared/features.js?v=13">
+<link rel="modulepreload" href="shared/app.js?v=15">
+<link rel="preload" as="fetch" href="shared/layout.html?v=15" crossorigin>
+<link rel="modulepreload" href="shared/features.js?v=15">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   STUDENTS PAGE REDESIGN — scoped під #sec-students
+   ═══════════════════════════════════════════════════════════════════════ */
+#sec-students{
+  --ink-900:#0B1437; --ink-700:#24335A; --ink-500:#5B6A8F; --ink-400:#8691AC;
+  --line:#E3E8F2; --line-strong:#CDD6E8;
+  --nav-600:#1E3A8A; --nav-accent:#3B82F6; --nav-soft:#93C5FD;
+  --good:#16A34A; --warn:#F59E0B; --bad:#DC2626;
+  font-family:'Manrope',system-ui,sans-serif;
+  color:var(--ink-900);
+}
+#sec-students.on{ display:flex; flex-direction:column; gap:18px; }
+
+/* ─── Page title ─── */
+#sec-students .st-page-title{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:0;flex-wrap:wrap}
+#sec-students .st-page-title h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:0;font-family:'Manrope',sans-serif}
+#sec-students .st-page-title p{margin:6px 0 0;color:var(--ink-500);font-size:14px}
+#sec-students .st-page-title b{color:var(--ink-900);font-weight:700}
+#sec-students .st-page-chip{background:#E7EEFC;color:var(--nav-600);padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace}
+#sec-students .st-page-chip::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--nav-600)}
+
+/* ─── Split layout ─── */
+#sec-students .st-split{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:14px;align-items:flex-start}
+@media (max-width:1280px){
+  #sec-students .st-split{grid-template-columns:minmax(0,1fr)}
+  #sec-students .st-side{position:static;max-height:none}
+}
+
+/* ─── Card ─── */
+#sec-students .st-card{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+#sec-students .st-card-h{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line);gap:10px;flex-wrap:wrap}
+
+/* ─── Search & filters ─── */
+#sec-students .st-search{position:relative;flex:0 0 auto;max-width:240px}
+#sec-students .st-search input{
+  width:100%;background:#FAFBFE;border:1px solid var(--line);border-radius:9px;
+  padding:7px 12px 7px 34px;height:34px;
+  font-family:'Manrope',sans-serif;font-size:13px;color:var(--ink-900);outline:none;transition:all .15s;
+}
+#sec-students .st-search input:focus{border-color:var(--nav-accent);background:#fff}
+#sec-students .st-search-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink-400);pointer-events:none;display:flex}
+
+/* Group chips replacement for old dropdown */
+#sec-students .st-chips{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+#sec-students .st-chip{
+  font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;
+  padding:5px 11px;border-radius:8px;background:#F1F5FB;color:var(--ink-500);
+  cursor:pointer;transition:all .12s;border:1px solid transparent;height:28px;
+  display:inline-flex;align-items:center;white-space:nowrap;
+}
+#sec-students .st-chip:hover{background:#E7EEFC;color:var(--ink-700)}
+#sec-students .st-chip.on{background:var(--nav-600);color:#fff;border-color:var(--nav-600)}
+
+#sec-students .st-meta{font-size:12px;color:var(--ink-500);font-family:'Geist Mono',monospace;margin-left:auto;flex:0 0 auto}
+
+/* Hidden but functional dropdown (зберігаємо для G.toggleDrop / G.selectStFilter) */
+#sec-students .cd-wrap{position:relative;display:inline-block}
+#sec-students .cd-btn{display:none}
+#sec-students .cd-menu{display:none}
+
+/* ─── Table ─── */
+#sec-students table.st-tbl{width:100%;border-collapse:separate;border-spacing:0}
+#sec-students table.st-tbl th{
+  padding:11px 18px;text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--ink-400);background:#FAFBFE;border-bottom:1px solid var(--line);
+  font-family:'Manrope',sans-serif;white-space:nowrap;
+}
+#sec-students table.st-tbl td{
+  padding:12px 18px;font-size:13px;border-bottom:1px solid var(--line);
+  color:var(--ink-700);font-family:'Manrope',sans-serif;
+}
+#sec-students table.st-tbl tbody tr{cursor:pointer;transition:background .12s}
+#sec-students table.st-tbl tbody tr:hover{background:#FAFBFE}
+#sec-students table.st-tbl tbody tr.is-selected{background:#F2F6FD}
+#sec-students table.st-tbl tbody tr.is-selected td{border-bottom-color:#DBE6F8}
+#sec-students table.st-tbl tbody tr:last-child td{border-bottom:0}
+
+#sec-students .st-stud{display:flex;align-items:center;gap:11px;min-width:0}
+#sec-students .st-ava{
+  width:34px;height:34px;border-radius:10px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;color:#fff;
+  font-weight:700;font-size:12px;letter-spacing:-.01em;font-family:'Manrope',sans-serif;
+}
+#sec-students .st-stud-info{min-width:0;flex:1}
+#sec-students .st-stud-name{font-weight:600;color:var(--ink-900);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px}
+#sec-students .st-stud-flag{color:var(--bad);font-size:11px;font-weight:700;font-family:'Geist Mono',monospace}
+#sec-students .st-stud-sub{font-size:11.5px;color:var(--ink-400);font-family:'Geist Mono',monospace;margin-top:2px}
+
+#sec-students .st-pill{display:inline-flex;align-items:center;padding:2px 9px;font-size:11.5px;font-weight:600;border-radius:999px;background:#E5EAF5;color:var(--ink-500);font-family:'Manrope',sans-serif}
+
+#sec-students .mono{font-family:'Geist Mono',monospace;font-variant-numeric:tabular-nums}
+#sec-students .mono.ok{color:#15803D;font-weight:700}
+#sec-students .mono.info{color:#1E40AF;font-weight:700}
+#sec-students .mono.warn{color:#B45309;font-weight:700}
+#sec-students .mono.bad{color:#B91C1C;font-weight:700}
+
+#sec-students .st-empty{padding:60px 24px;text-align:center;color:var(--ink-500)}
+#sec-students .st-empty-ico{width:54px;height:54px;margin:0 auto 14px;border-radius:14px;background:#EEF2FB;display:grid;place-items:center;color:var(--nav-600)}
+#sec-students .st-empty-title{font-size:15px;font-weight:700;color:var(--ink-900);margin-bottom:4px;font-family:'Manrope',sans-serif}
+#sec-students .st-empty-hint{font-size:13px}
+
+/* ─── Right side: profile ─── */
+#sec-students .st-side{position:sticky;top:14px;max-height:calc(100vh - 28px);overflow-y:auto;display:flex;flex-direction:column}
+#sec-students .pf-head{
+  padding:22px;background:linear-gradient(135deg,#0B1437,#1E3A8A);color:#fff;
+  display:flex;align-items:flex-start;gap:14px;
+}
+#sec-students .pf-ava{
+  width:58px;height:58px;border-radius:14px;flex:0 0 auto;
+  background:linear-gradient(135deg,#93C5FD,#3B82F6);color:#0B1437;
+  display:grid;place-items:center;font-weight:800;font-size:18px;font-family:'Manrope',sans-serif;
+  letter-spacing:-.02em;
+}
+#sec-students .pf-info{flex:1;min-width:0}
+#sec-students .pf-name{font-size:17px;font-weight:800;letter-spacing:-.01em;line-height:1.25;font-family:'Manrope',sans-serif}
+#sec-students .pf-sub{font-size:12px;color:#A5B4FC;margin-top:3px;font-family:'Geist Mono',monospace}
+#sec-students .pf-status{margin-top:8px;font-size:11.5px;color:#BFD3F5}
+#sec-students .pf-status .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#86EFAC;margin-right:5px;vertical-align:1px}
+
+#sec-students .pf-stat{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--line)}
+#sec-students .pf-stat > div{background:#fff;padding:13px 14px}
+#sec-students .pf-stat .l{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-400);font-weight:600;font-family:'Manrope',sans-serif}
+#sec-students .pf-stat .v{font-family:'Geist Mono',monospace;font-weight:800;font-size:20px;color:var(--ink-900);letter-spacing:-.02em;margin-top:2px;line-height:1}
+
+#sec-students .pf-block{padding:16px 18px;border-bottom:1px solid var(--line)}
+#sec-students .pf-block:last-of-type{border-bottom:0}
+#sec-students .pf-block-h{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-400);font-weight:700;margin-bottom:10px;font-family:'Manrope',sans-serif}
+
+/* History bars */
+#sec-students .pf-bars{display:flex;align-items:flex-end;gap:4px;height:48px;padding:4px 0}
+#sec-students .pf-bar{flex:1;background:#F1F5FB;border-radius:3px;display:flex;align-items:flex-end;overflow:hidden;min-width:6px;position:relative}
+#sec-students .pf-bar i{display:block;width:100%;border-radius:2px;transition:height .4s}
+#sec-students .pf-bars-empty{font-size:12px;color:var(--ink-400);text-align:center;padding:8px 0}
+
+/* Recent attempts list */
+#sec-students .pf-list{display:flex;flex-direction:column}
+#sec-students .pf-list-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;gap:8px}
+#sec-students .pf-list-item:last-child{border-bottom:0}
+#sec-students .pf-list-item .pf-li-l{min-width:0;flex:1}
+#sec-students .pf-list-item .pf-li-name{font-weight:600;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sec-students .pf-list-item .pf-li-date{font-size:11px;color:var(--ink-400);font-family:'Geist Mono',monospace;margin-top:2px}
+#sec-students .pf-list-item .pf-li-grade{flex:0 0 auto;font-family:'Geist Mono',monospace;font-weight:800;font-size:14px;letter-spacing:-.01em}
+
+#sec-students .pf-foot{padding:14px 18px;display:flex;gap:8px;border-top:1px solid var(--line);background:#FAFBFE}
+#sec-students .pf-btn{
+  flex:1;background:#fff;border:1px solid var(--line);border-radius:9px;height:34px;
+  font-family:'Manrope',sans-serif;font-weight:600;font-size:12.5px;color:var(--ink-700);cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:all .12s;
+}
+#sec-students .pf-btn:hover{border-color:var(--line-strong);color:var(--ink-900)}
+#sec-students .pf-btn.primary{background:var(--nav-600);border-color:var(--nav-600);color:#fff}
+#sec-students .pf-btn.primary:hover{background:#1E40AF;border-color:#1E40AF}
+#sec-students .pf-btn svg{width:13px;height:13px}
+
+/* No-selection state */
+#sec-students .pf-none{padding:48px 24px;text-align:center;color:var(--ink-500)}
+#sec-students .pf-none-ico{width:50px;height:50px;margin:0 auto 12px;border-radius:14px;background:#EEF2FB;display:grid;place-items:center;color:var(--nav-600)}
+#sec-students .pf-none-title{font-size:14px;font-weight:700;color:var(--ink-900);margin-bottom:4px;font-family:'Manrope',sans-serif}
+#sec-students .pf-none-hint{font-size:12.5px}
+</style>
 </head>
 <body>
 
@@ -19,7 +182,7 @@
   <div style="width:80px;height:80px;background:linear-gradient(135deg,#2d5be3,#4d78ff);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-bottom:28px;box-shadow:0 20px 50px rgba(45,91,227,.4)">
     <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="3"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
   </div>
-  <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;margin-bottom:12px;max-width:320px;line-height:1.3">Мобільна версія недоступна</div>
+  <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:22px;margin-bottom:12px;max-width:320px;line-height:1.3">Мобільна версія недоступна</div>
   <div style="font-size:15px;opacity:.75;max-width:340px;line-height:1.5;margin-bottom:28px">Панель викладача оптимізована для планшетів та комп'ютерів. Відкрийте з ширшого екрану</div>
   <div style="display:inline-flex;gap:8px;background:rgba(255,255,255,.08);padding:10px 18px;border-radius:14px;backdrop-filter:blur(10px);font-size:13px;opacity:.65">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
@@ -27,55 +190,79 @@
   </div>
 </div>
 
-<!-- Initial loader: видимий одразу при завантаженні HTML, зникає коли сторінка готова -->
+<!-- Initial loader -->
 <div id="app-loader" style="position:fixed;inset:0;background:#f0f3fa;z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .25s ease">
   <div style="width:44px;height:44px;border:3.5px solid rgba(45,91,227,.15);border-top-color:#2d5be3;border-radius:50%;animation:appSpin .8s linear infinite"></div>
-  <div style="font-size:13px;color:#6b7280;margin-top:12px;font-family:'DM Sans',sans-serif">Завантаження...</div>
+  <div style="font-size:13px;color:#6b7280;margin-top:12px;font-family:'Manrope',sans-serif">Завантаження...</div>
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
 <main class="main">
 
   <div class="sec on" id="sec-students">
-    <div class="ph">
-      <div><div class="pt">Студенти</div><div class="ps">Картки студентів з усіма спробами</div></div>
-      <div class="bg" style="align-items:center;gap:8px">
-        <div class="sbox" style="max-width:220px">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input type="text" id="student-srch" placeholder="Пошук студента..." oninput="G.renderStudents()" autocomplete="off">
-        </div>
-        <div class="cd-wrap" id="cd-st-group">
-          <button class="cd-btn" onclick="G.toggleDrop('cd-st-group')">
-            <span class="cd-label" id="cd-st-group-label">Всі групи</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div class="cd-menu" id="cd-st-group-menu">
-            <div class="cd-item cd-active" data-val="" onclick="G.selectStFilter('','Всі групи')">Всі групи</div>
-          </div>
-          <select id="st-group" style="display:none"></select>
-        </div>
-      </div>
-    </div>
-    <div id="students-body">
-      <div class="empty" style="padding:60px 20px"><div class="ei">🎓</div><div class="et">Завантаження...</div></div>
-    </div>
-  </div>
 
-  <!-- GRADEBOOK -->
+    <!-- Заголовок -->
+    <div class="st-page-title">
+      <div>
+        <h1>Студенти</h1>
+        <p id="st-summary">Картки студентів з усіма спробами</p>
+      </div>
+      <span class="st-page-chip" id="st-page-chip">—</span>
+    </div>
+
+    <!-- Hidden dropdown wrap (для G.toggleDrop сумісності) -->
+    <div class="cd-wrap" id="cd-st-group" style="position:absolute;visibility:hidden;pointer-events:none">
+      <button class="cd-btn" onclick="G.toggleDrop('cd-st-group')">
+        <span class="cd-label" id="cd-st-group-label">Всі групи</span>
+      </button>
+      <div class="cd-menu" id="cd-st-group-menu">
+        <div class="cd-item cd-active" data-val="" onclick="G.selectStFilter('','Всі групи')">Всі групи</div>
+      </div>
+      <select id="st-group" style="display:none"></select>
+    </div>
+
+    <!-- Split: table + profile -->
+    <div class="st-split">
+
+      <!-- Liva: tabela -->
+      <div class="st-card">
+        <div class="st-card-h">
+          <div class="st-search">
+            <span class="st-search-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+            <input type="text" id="student-srch" placeholder="Пошук студента..." oninput="G.renderStudents()" autocomplete="off">
+          </div>
+          <div class="st-chips" id="st-chips">
+            <span class="st-chip on" data-val="">Всі групи</span>
+          </div>
+          <span class="st-meta" id="st-list-count"></span>
+        </div>
+        <div id="students-body"></div>
+      </div>
+
+      <!-- Pravoruch: profile -->
+      <div class="st-card st-side" id="st-side-card">
+        <div class="pf-none" id="pf-none">
+          <div class="pf-none-ico">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="4"/><path d="M3 21c0-4 4-7 9-7s9 3 9 7"/></svg>
+          </div>
+          <div class="pf-none-title">Оберіть студента</div>
+          <div class="pf-none-hint">Натисніть на рядок зліва щоб побачити деталі</div>
+        </div>
+        <div id="pf-content" style="display:none"></div>
+      </div>
+
+    </div>
+
+  </div>
 
 </main>
 
 <div id="modals-root"></div>
 
 <script type="module">
-// Паралельне завантаження: features.js починає качатись одразу, не чекає initApp
-// Спочатку app.js (щоб вставити window._fb і іншу базу),
-// потім features.js (він читає з window._fb).
-// Preload у <head> вже починає завантаження обох паралельно — тут тільки execute order.
-const { initApp } = await import("./shared/app.js?v=13");
-const featuresP = import("./shared/features.js?v=13");
+const { initApp } = await import("./shared/app.js?v=15");
+const featuresP = import("./shared/features.js?v=15");
 
-// showSec: залишаємось на сторінці якщо це та сама; інакше — йдемо на відповідний html
 window.showSec = function(name){
   if (name === "students") {
     document.querySelectorAll(".sec").forEach(s=>s.classList.remove("on"));
@@ -97,25 +284,21 @@ window.showSec = function(name){
   if (pageMap[name]) location.href = pageMap[name];
 };
 
-// initApp робить: sidebar load, auth, loadAllData
-// Паралельно вже тягнеться features.js
 await initApp("students");
-await featuresP;             // features.js точно готовий
-await window.initFeatures(); // запускає realtime + нотифікації
+await featuresP;
+await window.initFeatures();
 
 if (window.renderAll) window.renderAll();
 
-// Специфічний хук для цієї сторінки (як було в showSec оригіналу)
-if (window.G?.initStudents) try { window.G.initStudents(); } catch {}
+// Специфічний хук: ініціалізація + перший рендер
+if (window.G?.initStudents) try { await window.G.initStudents(); } catch {}
 
-// Приховуємо лоадер після того як DOM реально відрендерився
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
     if (window.appReady) window.appReady();
   });
 });
 
-// Esc для закриття модалок
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
     document.querySelectorAll(".mo.on").forEach(m => {
