@@ -2170,8 +2170,9 @@ selectAnalyticsDrop(field, value, label){
   },
 
 
-  // ─── STUDENTS ────────────────────────────────────────────────────────────
- async initStudents(){
+  // ─── ЗАМІНИТИ метод initStudents: ───────────────────────────────────────────
+ 
+  async initStudents(){
     // Завантажуємо студентів з Firebase
     try {
       const snap = await dbGet("students");
@@ -2203,6 +2204,17 @@ selectAnalyticsDrop(field, value, label){
       });
     }
  
+    // Заповнюємо прихований <select id="st-group"> опціями груп —
+    // він використовується як джерело значення фільтра в renderStudents
+    const sel = document.getElementById("st-group");
+    if (sel){
+      const cur = sel.value;
+      sel.innerHTML = `<option value="">Всі групи</option>` +
+        groups.map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join("");
+      // Зберігаємо обране значення якщо воно є серед нових опцій
+      if (groups.includes(cur)) sel.value = cur; else sel.value = "";
+    }
+ 
     // Заповнюємо приховане старе меню для сумісності з G.toggleDrop / window.G API
     const menu = document.getElementById("cd-st-group-menu");
     if (menu){
@@ -2225,7 +2237,6 @@ selectAnalyticsDrop(field, value, label){
  
     G.renderStudents();
   },
- 
 
   selectStFilter(value, label){
     // Старі контракти (для сумісності з G.toggleDrop)
