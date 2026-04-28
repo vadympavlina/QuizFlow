@@ -632,7 +632,6 @@ textarea.fi{resize:vertical;min-height:72px}
 #m-attempt #att-det .ad-ai{ display:block!important }
 #m-attempt #att-det .ad-ai-body{ display:block!important }
 #m-attempt #att-det .ad-grade-pick{ display:block!important }
-#m-attempt #att-det > div{ display:revert }
 
 /* Фікс для inline style="overflow:hidden" на .mb.wd — дозволяємо контенту scroll в #att-det */
 #m-attempt .mb.wd{ overflow:visible!important }
