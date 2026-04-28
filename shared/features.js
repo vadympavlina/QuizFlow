@@ -27,6 +27,7 @@ let links = window.links || [];
 let attempts = window.attempts || [];
 let _notifications = [];
 let _realtimeActive = false;
+let _selectedStId = null;
 
 // Декларації для browser/Node-compat: ці функції визначаються нижче,
 // але посилаються на них з G-namespace. В browser window.X = X всюди доступне,
