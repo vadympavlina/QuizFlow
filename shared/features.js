@@ -3764,23 +3764,6 @@ selectAnalyticsDrop(field, value, label){
     finally{ ldr(false); }
   },
 
-  // ── Gradebook filter ──────────────────────────────────────────────────────
-  selectGbFilter(field, value, label){
-    const wrap = field==="test" ? "cd-gb-test" : "cd-gb-group";
-    const selId = field==="test" ? "gb-test" : "gb-group";
-    const lbl = document.getElementById(wrap+"-label");
-    if(lbl) lbl.textContent = label;
-    const menu = document.getElementById(wrap+"-menu");
-    menu?.querySelectorAll(".cd-item").forEach(el=>{
-      el.classList.toggle("cd-active", el.dataset.val===value);
-    });
-    menu?.classList.remove("open");
-    const btn = document.querySelector(`#${wrap} .cd-btn`);
-    btn?.classList.toggle("active", !!value);
-    const sel = document.getElementById(selId);
-    if(sel) sel.value = value;
-    G.renderGradebook && G.renderGradebook();
-  },
 
   async setLongAnswer(attId, qIdx, result){
     const a=attempts.find(x=>x.id===attId);
