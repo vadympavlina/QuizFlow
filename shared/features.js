@@ -3181,25 +3181,74 @@ selectAnalyticsDrop(field, value, label){
     G.renderGradebook();
   },
 
-  selectGbFilter(field, value, label){
-    const wrap = field==="test" ? "cd-gb-test" : "cd-gb-group";
-    const selId = field==="test" ? "gb-test" : "gb-group";
-    const lbl = document.getElementById(wrap+"-label");
-    if(lbl) lbl.textContent=label;
-    const menu=document.getElementById(wrap+"-menu");
-    menu?.querySelectorAll(".cd-item").forEach(el=>{
-      el.classList.toggle("cd-active", el.dataset.val===value||(!value&&el.dataset.val===""));
+ selectGbFilter(field, value, label){
+    const wrap  = field === "test" ? "cd-gb-test" : "cd-gb-group";
+    const selId = field === "test" ? "gb-test"    : "gb-group";
+ 
+    // Оновлюємо лейбл, активний пункт, select
+    const lbl = document.getElementById(wrap + "-label");
+    if (lbl) lbl.textContent = label;
+    const menu = document.getElementById(wrap + "-menu");
+    menu?.querySelectorAll(".cd-item").forEach(el => {
+      el.classList.toggle("cd-active", el.dataset.val === value || (!value && el.dataset.val === ""));
     });
     menu?.classList.remove("open");
-    const btn=document.querySelector(`#${wrap} .cd-btn`);
+    const btn = document.querySelector(`#${wrap} .cd-btn`);
     btn?.classList.toggle("active", !!value);
-    // Зберігаємо в select і в window змінній
-    const sel=document.getElementById(selId);
-    if(sel) sel.value=value;
-    if(field==="test") window._gbTestF=value;
-    else window._gbGrpF=value;
-    G.renderGradebook();
+    const sel = document.getElementById(selId);
+    if (sel) sel.value = value;
+ 
+    // Зберігаємо в window-змінні (використовує initGradebook при перезавантаженні)
+    if (field === "test") window._gbTestF = value;
+    else                  window._gbGrpF  = value;
+ 
+    // ── НОВЕ: при виборі групи — перебудовуємо dropdown тестів ──
+    if (field === "group"){
+      // Тести, що мають посилання з обраною групою (або всі якщо група не обрана)
+      const validTestIds = value
+        ? new Set(links.filter(l => l.group === value).map(l => l.testId))
+        : null;
+      const filteredTests = tests.filter(t => {
+        if (t.status === "archived") return false;
+        if (!validTestIds) return true;
+        return validTestIds.has(t.id);
+      });
+ 
+      // Перебудовуємо menu тестів
+      const gbTestMenu = document.getElementById("cd-gb-test-menu");
+      const gbTestSel  = document.getElementById("gb-test");
+      const curTestId  = window._gbTestF || gbTestSel?.value || "";
+      // Чи актуальний обраний тест ще доступний у новому списку?
+      const stillValid = curTestId && filteredTests.some(t => t.id === curTestId);
+ 
+      if (gbTestMenu){
+        gbTestMenu.innerHTML =
+          `<div class="cd-item${!stillValid ? " cd-active" : ""}" data-val="" onclick="G.selectGbFilter('test','','Всі тести')">Всі тести</div>` +
+          filteredTests.map(t =>
+            `<div class="cd-item${(stillValid && curTestId === t.id) ? " cd-active" : ""}" data-val="${t.id}" onclick="G.selectGbFilter('test','${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
+          ).join("");
+      }
+ 
+      // Перебудовуємо <select> теж
+      if (gbTestSel){
+        gbTestSel.innerHTML = `<option value="">Всі тести</option>` +
+          filteredTests.map(t => `<option value="${t.id}">${esc(t.title)}</option>`).join("");
+        gbTestSel.value = stillValid ? curTestId : "";
+      }
+ 
+      // Якщо обраний тест більше не валідний — скидаємо лейбл і active state
+      if (!stillValid){
+        const testLbl = document.getElementById("cd-gb-test-label");
+        if (testLbl) testLbl.textContent = "Всі тести";
+        const testBtn = document.querySelector("#cd-gb-test .cd-btn");
+        testBtn?.classList.remove("active");
+        window._gbTestF = "";
+      }
+    }
+ 
+    G.renderGradebook && G.renderGradebook();
   },
+ 
 
   renderGradebook(){
     const body=document.getElementById("gradebook-body");
