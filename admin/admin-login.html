@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><path d='M16 5l8 3v6c0 4.5-3.2 8.5-8 9-4.8-.5-8-4.5-8-9V8l8-3z' fill='none' stroke='white' stroke-width='2.2' stroke-linejoin='round'/><path d='M13 16l2 2 4-4' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
+<title>QuizFlow Admin — Вхід</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --nav-950:#050817; --nav-900:#0A0F2C; --nav-850:#0E1638;
+    --violet-500:#7C3AED; --violet-400:#A78BFA; --indigo-500:#4F46E5;
+    --ink-900:#0B1437; --ink-700:#2A3458; --ink-500:#5B6A8F; --ink-400:#8691AC;
+    --line:#E3E8F2;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html, body{height:100%}
+  body{
+    font-family:"Manrope", system-ui, sans-serif; color:#fff;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(124,58,237,.28), transparent 50%),
+      radial-gradient(circle at 100% 100%, rgba(59,130,246,.18), transparent 60%),
+      linear-gradient(180deg, #050817 0%, #0A0F2C 50%, #0E1638 100%);
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:24px; position:relative; overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+    background-size:32px 32px;
+    -webkit-mask-image: radial-gradient(circle at 50% 50%, #000, transparent 70%);
+            mask-image: radial-gradient(circle at 50% 50%, #000, transparent 70%);
+  }
+
+  @keyframes cardIn{
+    from{opacity:0; transform:translateY(24px) scale(.97)}
+    to{opacity:1; transform:none}
+  }
+  @keyframes pulseRing{
+    0%{box-shadow:0 0 0 0 rgba(124,58,237,.6)}
+    70%{box-shadow:0 0 0 16px rgba(124,58,237,0)}
+    100%{box-shadow:0 0 0 0 rgba(124,58,237,0)}
+  }
+
+  .card{
+    position:relative; z-index:1;
+    background:#fff; color:var(--ink-900);
+    border-radius:22px;
+    padding:38px 36px;
+    width:100%; max-width:420px;
+    box-shadow:
+      0 32px 80px -20px rgba(124,58,237,.45),
+      0 8px 24px -8px rgba(11,20,55,.4);
+    animation: cardIn .45s cubic-bezier(.34,1.56,.64,1) both;
+  }
+
+  .brand{
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    margin-bottom:22px;
+  }
+  .brand-mark{
+    width:60px; height:60px; border-radius:18px;
+    background: linear-gradient(135deg, #7C3AED, #4F46E5);
+    display:grid; place-items:center;
+    box-shadow:
+      0 14px 28px -8px rgba(124,58,237,.6),
+      inset 0 -2px 0 rgba(0,0,0,.25);
+    animation: pulseRing 2.4s infinite;
+  }
+  .brand-name{
+    font-size:18px; font-weight:800; letter-spacing:-.02em;
+    color:var(--ink-900);
+  }
+  .brand-name em{font-style:normal; color:var(--violet-500)}
+
+  .admin-tag{
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:10px; font-weight:800; letter-spacing:.15em; text-transform:uppercase;
+    background: linear-gradient(135deg, #7C3AED, #4F46E5);
+    color:#fff; padding:4px 10px; border-radius:6px;
+    box-shadow: 0 4px 12px -4px rgba(124,58,237,.5);
+  }
+  .admin-tag::before{
+    content:""; width:6px; height:6px; border-radius:50%;
+    background:#fff; box-shadow:0 0 8px rgba(255,255,255,.85);
+  }
+
+  h1{
+    font-size:24px; font-weight:800; letter-spacing:-.02em;
+    text-align:center; margin-top:14px; margin-bottom:6px;
+    color:var(--ink-900);
+  }
+  .subtitle{
+    text-align:center; color:var(--ink-500); font-size:13.5px;
+    margin-bottom:26px;
+  }
+
+  .err-msg{
+    background:rgba(220,38,38,.08);
+    border:1px solid rgba(220,38,38,.25);
+    border-radius:10px; padding:10px 14px;
+    color:#B91C1C; font-size:13px; font-weight:600;
+    margin-bottom:14px; display:none;
+    align-items:center; gap:8px;
+  }
+  .err-msg.show{display:flex; animation: cardIn .2s ease}
+  .err-msg svg{flex:0 0 auto; color:#DC2626}
+
+  .field-group{margin-bottom:14px}
+  .field-label{
+    font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ink-400); font-weight:700;
+    margin-bottom:7px;
+  }
+  .field-input-wrap{position:relative; display:flex; align-items:center}
+  .field-input-wrap svg{
+    position:absolute; left:13px; color:var(--ink-400);
+    pointer-events:none;
+  }
+  .field-input{
+    width:100%; padding:13px 14px 13px 40px;
+    border-radius:11px;
+    border:1.5px solid var(--line);
+    font-family:"Manrope", sans-serif; font-size:14px;
+    color:var(--ink-900); outline:none;
+    transition: all .15s;
+    background:#FAFBFE;
+  }
+  .field-input::placeholder{color:var(--ink-400)}
+  .field-input:focus{
+    border-color:#7C3AED;
+    box-shadow:0 0 0 3px rgba(124,58,237,.12);
+    background:#fff;
+  }
+
+  .btn{
+    width:100%; padding:14px;
+    background: linear-gradient(135deg, #7C3AED, #4F46E5);
+    color:#fff; border:0; border-radius:12px;
+    font-family:"Manrope", sans-serif;
+    font-weight:700; font-size:14px; letter-spacing:.01em;
+    cursor:pointer; transition:all .2s;
+    box-shadow: 0 8px 22px -8px rgba(124,58,237,.5);
+    margin-top:6px;
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn:hover:not(:disabled){
+    transform:translateY(-1px);
+    box-shadow: 0 14px 30px -10px rgba(124,58,237,.6);
+    filter:brightness(1.05);
+  }
+  .btn:active:not(:disabled){transform:translateY(0)}
+  .btn:disabled{opacity:.6; cursor:not-allowed; transform:none}
+  .btn svg{width:14px; height:14px}
+
+  .back-link{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    text-align:center; margin-top:18px;
+    font-size:12.5px; color:var(--ink-500);
+    text-decoration:none; transition:color .15s; font-weight:600;
+  }
+  .back-link:hover{color:var(--violet-500)}
+  .back-link svg{width:13px; height:13px}
+
+  /* Footer hint */
+  .foot-hint{
+    margin-top:24px;
+    font-size:11.5px; color:rgba(255,255,255,.55);
+    text-align:center; letter-spacing:.04em;
+    position:relative; z-index:1;
+  }
+
+  @media (max-width:520px){
+    .card{padding:30px 22px; border-radius:18px}
+    h1{font-size:20px}
+    .field-input{font-size:16px}  /* запобігаємо zoom на iOS */
+  }
+</style>
+</head>
+<body>
+
+  <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+    <div class="card">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <span class="admin-tag">Admin Access</span>
+      </div>
+
+      <h1>Адмін-панель</h1>
+      <div class="subtitle">Вхід тільки для адміністраторів QuizFlow</div>
+
+      <div class="err-msg" id="err">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r=".8" fill="currentColor"/></svg>
+        <span id="err-text"></span>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">Логін</div>
+        <div class="field-input-wrap">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+          <input class="field-input" type="text" id="login" autocomplete="username" placeholder="admin">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">Пароль</div>
+        <div class="field-input-wrap">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          <input class="field-input" type="password" id="password" autocomplete="current-password" placeholder="••••••••">
+        </div>
+      </div>
+
+      <button class="btn" id="loginBtn" onclick="doLogin()">
+        <span id="loginBtn-text">Увійти</span>
+        <svg id="loginBtn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+
+      <a href="../login.html" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Я викладач, повернутися
+      </a>
+    </div>
+
+    <div class="foot-hint">Захищена область · сесія діє лише на цій вкладці</div>
+  </div>
+
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const cfg = {apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",authDomain:"quizflow-8a978.firebaseapp.com",databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",projectId:"quizflow-8a978",storageBucket:"quizflow-8a978.firebasestorage.app",messagingSenderId:"206469794166",appId:"1:206469794166:web:55cd7007b429607acd5257"};
+  const app = getApps().length ? getApps()[0] : initializeApp(cfg);
+  const db = getDatabase(app);
+
+  const errEl = document.getElementById("err");
+  const errTxt = document.getElementById("err-text");
+  function showErr(msg){ errTxt.textContent = msg; errEl.classList.add("show"); }
+  function hideErr(){ errEl.classList.remove("show"); }
+
+  function setBusy(busy){
+    const btn = document.getElementById("loginBtn");
+    btn.disabled = busy;
+    document.getElementById("loginBtn-text").textContent = busy ? "Перевірка..." : "Увійти";
+    document.getElementById("loginBtn-arrow").style.display = busy ? "none" : "";
+  }
+
+  // Якщо вже залогінений як адмін — одразу в overview
+  try {
+    const sess = sessionStorage.getItem("qf_user");
+    if (sess) {
+      const u = JSON.parse(sess);
+      if (u && u.role === "admin" && !u.blocked) {
+        location.replace("overview.html");
+      }
+    }
+  } catch {}
+
+  window.doLogin = async () => {
+    hideErr();
+    const login = document.getElementById("login").value.trim().toLowerCase();
+    const password = document.getElementById("password").value;
+    if (!login || !password) { showErr("Введіть логін і пароль"); return; }
+
+    setBusy(true);
+
+    try {
+      const snap = await get(ref(db, "users"));
+      if (!snap.exists()) { showErr("Користувача не знайдено"); setBusy(false); return; }
+
+      const all = snap.val();
+      let found = null;
+      for (const [id, u] of Object.entries(all)) {
+        if (u && typeof u === "object" && u.login === login) { found = { id, ...u }; break; }
+      }
+
+      if (!found) { showErr("Невірний логін або пароль"); setBusy(false); return; }
+      if (found.password !== password) { showErr("Невірний логін або пароль"); setBusy(false); return; }
+      if (found.role !== "admin") { showErr("Доступ заборонено — тільки для адміністраторів"); setBusy(false); return; }
+      if (found.blocked) { showErr("Акаунт заблоковано"); setBusy(false); return; }
+
+      sessionStorage.setItem("qf_user", JSON.stringify(found));
+      location.href = "overview.html";
+    } catch (e) {
+      showErr("Помилка з'єднання: " + (e.message || "невідома"));
+      setBusy(false);
+    }
+  };
+
+  document.getElementById("password").addEventListener("keydown", e => {
+    if (e.key === "Enter") doLogin();
+  });
+  document.getElementById("login").addEventListener("keydown", e => {
+    if (e.key === "Enter") document.getElementById("password").focus();
+  });
+
+  // Auto-focus login
+  setTimeout(() => document.getElementById("login").focus(), 100);
+</script>
+</body>
+</html>
