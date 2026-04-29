@@ -8,7 +8,7 @@
 //
 //  Що робить:
 //    1) Перевіряє auth: якщо немає sessionStorage.qf_user або це не admin —
-//       редіректить на ../login.html
+//       редіректить на admin-login.html
 //    2) Інжектує sidebar + topbar (HTML-фрагмент) і підсвічує активний пункт
 //    3) Запускає Firebase + експортує `db`, `dbGet`, `dbUpd`, etc.
 //    4) Експортує стан `_user`, _users, _stats, _allAttempts через window
@@ -95,7 +95,7 @@ function getCurrentUser(){
 
 export function doLogout(){
   sessionStorage.clear();
-  location.href = "../login.html";
+  location.href = "admin-login.html";
 }
 
 // ─── Sidebar / Topbar markup ────────────────────────────────────────────────
@@ -231,7 +231,7 @@ export async function initAdminShell({ activeId, crumbs, content, topbarRight })
   // Auth
   const _user = getCurrentUser();
   if (!_user){
-    location.href = "../login.html";
+    location.href = "admin-login.html";
     throw new Error("not authenticated");
   }
 
