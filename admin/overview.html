@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><path d='M9 12h11a4 4 0 0 1 4 4v0' stroke='white' stroke-width='2.4' stroke-linecap='round' fill='none'/><path d='M23 20H12a4 4 0 0 1-4-4v0' stroke='white' stroke-width='2.4' stroke-linecap='round' fill='none'/><circle cx='9' cy='12' r='1.5' fill='white'/><circle cx='23' cy='20' r='1.5' fill='white'/></svg>">
+<title>QuizFlow Admin — Огляд</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/admin-shell.css?v=1">
+<style>
+/* ─── Page-specific styles for overview ─── */
+
+/* Live strip */
+.strip{
+  display:flex; align-items:center; gap:14px;
+  padding:14px 18px; border-radius:14px;
+  background:linear-gradient(135deg, #EDE9FE, #DBEAFE);
+  border:1px solid #DDD6FE;
+}
+.strip-ico{
+  width:42px; height:42px; border-radius:11px;
+  background:linear-gradient(135deg,#7C3AED,#4F46E5); color:#fff;
+  display:grid; place-items:center; flex:0 0 auto;
+  box-shadow:0 8px 18px -8px rgba(124,58,237,.6);
+}
+.strip .t{font-weight:700; font-size:14px; color:var(--ink-900); line-height:1.3}
+.strip .s{font-size:12.5px; color:var(--ink-500); margin-top:2px}
+.strip .live{
+  margin-left:auto; padding:8px 14px; border-radius:10px;
+  background:#0B1437; color:#fff; font-size:12.5px; font-weight:700;
+  text-decoration:none; display:inline-flex; align-items:center; gap:6px;
+  white-space:nowrap;
+}
+.strip .live::before{content:""; width:7px; height:7px; border-radius:50%; background:#EF4444; box-shadow:0 0 0 2px rgba(239,68,68,.3); animation:liveDot 1.4s infinite}
+@keyframes liveDot{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Row layouts */
+.row-2{display:grid; grid-template-columns:1.4fr 1fr; gap:14px}
+.row-mix{display:grid; grid-template-columns:2fr 1fr; gap:14px}
+@media (max-width:1280px){.row-2,.row-mix{grid-template-columns:1fr}}
+
+/* Activity chart */
+.chart{
+  display:flex; align-items:flex-end; gap:14px;
+  height:200px; padding:18px 4px 8px; position:relative;
+}
+.chart-grid{
+  position:absolute; left:0; right:0; top:18px; bottom:30px;
+  background-image:linear-gradient(transparent calc(25% - 1px), rgba(11,20,55,.04) calc(25% - 1px), rgba(11,20,55,.04) 25%);
+  background-size:100% 25%;
+  pointer-events:none;
+}
+.chart-bar{
+  flex:1; display:flex; flex-direction:column-reverse; align-items:center; gap:6px;
+  position:relative;
+}
+.chart-bar .b{
+  width:100%; max-width:42px; min-height:8px;
+  background:linear-gradient(180deg,#7C3AED,#4F46E5);
+  border-radius:6px 6px 0 0;
+  transition:all .3s;
+}
+.chart-bar.dim .b{opacity:.45; background:linear-gradient(180deg,#A78BFA,#7C3AED)}
+.chart-bar.today .b{background:linear-gradient(180deg,#7C3AED,#4F46E5); box-shadow:0 6px 18px -6px rgba(124,58,237,.55)}
+.chart-bar .v{
+  font-family:"Geist Mono",monospace; font-size:11px; font-weight:700;
+  color:var(--ink-700);
+}
+.chart-bar.today .v{color:#7C3AED}
+.chart-labels{
+  display:flex; gap:14px; padding:6px 4px 0;
+  border-top:1px solid var(--line);
+}
+.chart-labels span{
+  flex:1; text-align:center; font-size:11px; color:var(--ink-400); font-weight:600;
+}
+.chart-labels span.today{color:#7C3AED; font-weight:700}
+
+.peak-tag{
+  display:inline-flex; align-items:center; gap:4px;
+  padding:3px 8px; border-radius:999px;
+  background:#DCFCE7; color:#15803D;
+  font-size:11px; font-weight:700;
+  font-family:"Geist Mono",monospace;
+}
+
+/* Status rows */
+.status-row{display:flex; align-items:center; gap:11px; padding:10px 0}
+.status-row .lbl{flex:0 0 90px; font-size:13px; font-weight:600; color:var(--ink-700)}
+.status-row .bar{flex:1; height:7px; background:#F1F5FB; border-radius:99px; overflow:hidden}
+.status-row .bar i{display:block; height:100%; border-radius:99px; transition:width .4s}
+.status-row .v{font-family:"Geist Mono",monospace; font-weight:800; font-size:14px; color:var(--ink-900); min-width:24px; text-align:right}
+.status-dot{width:9px; height:9px; border-radius:50%; flex:0 0 auto}
+
+/* Teachers table */
+.tbl-search{display:flex; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid var(--line)}
+.tbl-search .search-input{flex:1; max-width:300px}
+.tbl-search .search-input .input{width:100%}
+.tbl-search .meta{margin-left:auto; font-size:12px; color:var(--ink-500); font-family:"Geist Mono",monospace}
+</style>
+</head>
+<body>
+
+<div id="admin-loader"><div class="spin"></div></div>
+<div id="admin-root"></div>
+<div id="admin-modals"></div>
+<div id="admin-toast" class="toast"></div>
+
+<script type="module">
+import { initAdminShell, loadAllTeachers, esc, formatTimeAgo } from "./shared/admin-shell.js?v=1";
+
+const greeting = (() => {
+  const h = new Date().getHours();
+  return h<6 ? "Доброго ранку" : h<12 ? "Доброго ранку" : h<18 ? "Добрий день" : "Добрий вечір";
+})();
+const today = new Date().toLocaleDateString("uk-UA", {weekday:"long", day:"numeric", month:"long", year:"numeric"});
+
+const content = `
+  <!-- Live strip -->
+  <div class="strip">
+    <div class="strip-ico">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+    </div>
+    <div>
+      <div class="t" id="strip-title">Завантаження статистики платформи…</div>
+      <div class="s" id="strip-sub">Дочекайтесь поки тягнуться дані всіх викладачів</div>
+    </div>
+    <a href="../live.html" class="live">Live · TV-режим</a>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <!-- Activity + Statuses -->
+  <div class="row-2">
+    <div class="card">
+      <div class="card-h">
+        <div>
+          <h3>Активність за 7 днів</h3>
+          <div class="sub">Спроби студентів</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="peak-tag" id="peak-tag" style="display:none"></span>
+          <span class="pill violet">Тиждень</span>
+        </div>
+      </div>
+      <div class="chart" id="chart-bars">
+        <div class="chart-grid"></div>
+      </div>
+      <div class="chart-labels" id="chart-labels"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">
+        <div>
+          <h3>Стан викладачів</h3>
+          <div class="sub" id="teachers-total">—</div>
+        </div>
+        <span class="pill" id="teachers-count-pill">—</span>
+      </div>
+      <div id="status-rows"></div>
+    </div>
+  </div>
+
+  <!-- Teachers table -->
+  <div class="card" style="padding:0">
+    <div class="card-h" style="padding:18px 18px 0">
+      <div>
+        <h3>Статистика викладачів</h3>
+        <div class="sub">Сортування та пошук по платформі</div>
+      </div>
+    </div>
+    <div class="tbl-search">
+      <div class="search-input">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input class="input" id="ov-search" type="text" placeholder="Пошук викладача за іменем або логіном…" autocomplete="off">
+      </div>
+      <span class="meta" id="ov-table-count">—</span>
+    </div>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th class="sortable" data-sort="name">Викладач <span class="ord"></span></th>
+          <th class="sortable" data-sort="tests">Тестів <span class="ord"></span></th>
+          <th class="sortable" data-sort="activeTests">Активних <span class="ord"></span></th>
+          <th class="sortable" data-sort="students">Студентів <span class="ord"></span></th>
+          <th class="sortable" data-sort="attempts">Спроб <span class="ord"></span></th>
+          <th class="sortable" data-sort="weekAttempts">Тиждень <span class="ord"></span></th>
+          <th class="sortable" data-sort="lastAct">Активність <span class="ord"></span></th>
+        </tr>
+      </thead>
+      <tbody id="ov-table"></tbody>
+    </table>
+  </div>
+`;
+
+const topbarRight = `
+  <button class="tb-btn" id="btn-refresh">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.7L4 16"/><path d="M4 20v-4h4"/></svg>
+    Оновити
+  </button>
+  <a class="tb-btn primary" href="teachers.html">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+    Новий викладач
+  </a>
+`;
+
+const { _user } = await initAdminShell({
+  activeId: "overview",
+  crumbs: ["Огляд"],
+  content,
+  topbarRight
+});
+
+// Page-head з реальним привітанням — додаємо ПЕРЕД content
+const contentEl = document.getElementById("admin-content");
+if (contentEl){
+  const pageHead = document.createElement("div");
+  pageHead.className = "page-head";
+  pageHead.innerHTML = `
+    <div>
+      <h1>${greeting}, ${esc((_user.name||_user.login||"").split(" ")[0])}</h1>
+      <p>Загальний огляд платформи · сьогодні ${today}</p>
+    </div>
+  `;
+  contentEl.insertBefore(pageHead, contentEl.firstChild);
+}
+
+// ─── Load and render ─────────────────────────────────────────────────────────
+let _ovSortBy = "attempts", _ovSortDir = "desc";
+
+async function reload(){
+  const { _users, _stats, _allAttempts } = await loadAllTeachers();
+  renderAll(_users, _stats, _allAttempts);
+}
+
+function renderAll(_users, _stats, _allAttempts){
+  // ─── Strip ───
+  const onlineCount = 0; // нема real-time даних поки що
+  const totalAttempts = _allAttempts.length;
+  document.getElementById("strip-title").textContent =
+    onlineCount > 0
+      ? `Зараз на платформі — активна сесія`
+      : `Платформа працює · ${_users.length} викладач${_users.length === 1 ? "" : _users.length < 5 ? "і" : "ів"}, ${totalAttempts} спроб всього`;
+  document.getElementById("strip-sub").textContent =
+    `${_users.filter(u => !u.blocked).length} активних викладачів · переглядайте Live-режим для real-time картин`;
+
+  // ─── KPIs ───
+  const active = _users.filter(u => !u.blocked);
+  const blocked = _users.length - active.length;
+  let totalTests = 0, totalActive = 0, totalStudents = 0, weekAttempts = 0;
+  _users.forEach(u => {
+    const s = _stats[u.id] || {};
+    totalTests += s.tests || 0;
+    totalActive += s.activeTests || 0;
+    totalStudents += s.students || 0;
+    weekAttempts += s.weekAttempts || 0;
+  });
+
+  const KPIS = [
+    { k:"violet", icon:"teachers", label:"Викладачів",  value: _users.length,   sub: blocked>0 ? `${active.length} активних, ${blocked} заблоковано` : `всі активні`,  trend: weekAttempts>0?"+":"" },
+    { k:"blue",   icon:"doc",      label:"Тестів",      value: totalTests,      sub: `${totalActive} опубліковано`,                                                       trend: "" },
+    { k:"green",  icon:"users",    label:"Студентів",   value: totalStudents,   sub: `у системі`,                                                                          trend: "" },
+    { k:"amber",  icon:"pulse",    label:"Спроб всього", value: totalAttempts,  sub: `+${weekAttempts} за тиждень`,                                                        trend: weekAttempts>0?"up":"" },
+  ];
+
+  const KPI_ICONS = {
+    teachers: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.6 2-4.8 4.5-5"/></svg>',
+    doc:      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"/><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M9 13h6M9 17h4"/></svg>',
+    users:    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>',
+    pulse:    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>',
+  };
+
+  document.getElementById("kpi-grid").innerHTML = KPIS.map(k => `
+    <div class="kpi ${k.k}">
+      <div class="kpi-row">
+        <div class="kpi-ico">${KPI_ICONS[k.icon]||""}</div>
+      </div>
+      <div class="kpi-v">${k.value}</div>
+      <div class="kpi-l">${esc(k.label)}</div>
+      <div class="kpi-s">${k.sub}</div>
+    </div>
+  `).join("");
+
+  // ─── Activity chart ───
+  const DAYS = ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"];
+  const now = new Date(); now.setHours(23,59,59,999);
+  const week = [0,0,0,0,0,0,0];
+  _allAttempts.forEach(a => {
+    if (!a.createdAt) return;
+    const diff = Math.floor((now - a.createdAt) / (24*60*60*1000));
+    if (diff >= 0 && diff < 7) week[6 - diff]++;
+  });
+  const maxVal = Math.max(...week, 1);
+  const chartEl = document.getElementById("chart-bars");
+  chartEl.innerHTML = `<div class="chart-grid"></div>` + week.map((v, i) => {
+    const h = (v / maxVal) * 100;
+    const isToday = i === 6;
+    return `<div class="chart-bar${isToday?' today':' dim'}">
+      <div class="v">${v}</div>
+      <div class="b" style="height:${Math.max(h, 8)}%"></div>
+    </div>`;
+  }).join("");
+  const labels = [];
+  for (let i = 6; i >= 0; i--){
+    const d = new Date(now); d.setDate(d.getDate() - i);
+    labels.push(DAYS[(d.getDay()+6)%7]);
+  }
+  document.getElementById("chart-labels").innerHTML = labels.map((d, i) => `<span class="${i===6?'today':''}">${d}</span>`).join("");
+
+  // Peak tag
+  const peakIdx = week.indexOf(Math.max(...week));
+  const peakTag = document.getElementById("peak-tag");
+  if (week[peakIdx] > 0){
+    peakTag.style.display = "inline-flex";
+    peakTag.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M7 14l5-5 5 5"/></svg> Пік: ${week[peakIdx]} (${labels[peakIdx]})`;
+  }
+
+  // ─── Status rows ───
+  const firstLogin = _users.filter(u => u.isFirstLogin && !u.blocked).length;
+  const regularActive = active.length - firstLogin;
+  const total = _users.length || 1;
+  const STATUSES = [
+    { lbl:"Активні",      v: regularActive, color:"#16A34A", bg:"rgba(22,163,74,.15)" },
+    { lbl:"Перший вхід",  v: firstLogin,    color:"#D97706", bg:"rgba(217,119,6,.15)" },
+    { lbl:"Заблоковані",  v: blocked,       color:"#DC2626", bg:"rgba(220,38,38,.15)" },
+  ];
+  document.getElementById("teachers-total").textContent = `${_users.length} викладач${_users.length === 1 ? "" : _users.length < 5 ? "і" : "ів"} у системі`;
+  document.getElementById("teachers-count-pill").textContent = `Усього: ${_users.length}`;
+  document.getElementById("status-rows").innerHTML = STATUSES.map(s => `
+    <div class="status-row">
+      <span class="status-dot" style="background:${s.color}; box-shadow:0 0 0 3px ${s.bg}"></span>
+      <span class="lbl">${s.lbl}</span>
+      <span class="bar"><i style="width:${(s.v/total*100).toFixed(0)}%; background:${s.color}"></i></span>
+      <span class="v" style="color:${s.color}">${s.v}</span>
+    </div>
+  `).join("");
+
+  // ─── Table ───
+  renderTable(_users, _stats);
+}
+
+function renderTable(_users, _stats){
+  const search = (document.getElementById("ov-search")?.value || "").trim().toLowerCase();
+  let list = [..._users];
+  if (search){
+    list = list.filter(u =>
+      (u.name||"").toLowerCase().includes(search) ||
+      (u.login||"").toLowerCase().includes(search)
+    );
+  }
+  list.sort((a, b) => {
+    let av, bv;
+    if (_ovSortBy === "name"){
+      av = (a.name || a.login || "").toLowerCase();
+      bv = (b.name || b.login || "").toLowerCase();
+    } else {
+      av = _stats[a.id]?.[_ovSortBy] || 0;
+      bv = _stats[b.id]?.[_ovSortBy] || 0;
+    }
+    const cmp = av > bv ? 1 : av < bv ? -1 : 0;
+    return _ovSortDir === "desc" ? -cmp : cmp;
+  });
+
+  // Update sort indicators
+  document.querySelectorAll("th.sortable").forEach(th => {
+    const k = th.dataset.sort;
+    const ord = th.querySelector(".ord");
+    if (k === _ovSortBy){
+      th.classList.add("active");
+      ord.textContent = _ovSortDir === "desc" ? "↓" : "↑";
+    } else {
+      th.classList.remove("active");
+      ord.textContent = "";
+    }
+  });
+
+  document.getElementById("ov-table-count").textContent = `${list.length} / ${_users.length}`;
+
+  const AVA_PALETTE = ["", "b", "g", "o", "r"];
+  const tbl = document.getElementById("ov-table");
+  if (!list.length){
+    tbl.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:50px;color:var(--ink-400)">Нічого не знайдено</td></tr>`;
+    return;
+  }
+  tbl.innerHTML = list.map(u => {
+    const s = _stats[u.id] || {};
+    const isBlocked = u.blocked === true;
+    const isFirst = u.isFirstLogin === true && !isBlocked;
+    const lastStr = s.lastAct ? formatTimeAgo(s.lastAct) : "—";
+    const recent = s.lastAct && (Date.now() - s.lastAct < 24*60*60*1000);
+    const initials = (u.name || u.login || "?").slice(0, 2).toUpperCase();
+    const seed = (u.name || u.login || "").charCodeAt(0) || 0;
+    const avaCls = AVA_PALETTE[seed % AVA_PALETTE.length];
+    const statusPill = isBlocked
+      ? `<span class="pill red">заблоковано</span>`
+      : isFirst
+      ? `<span class="pill amber">перший вхід</span>`
+      : `<span class="dot-online">онлайн</span>`;
+    const weekBadge = (s.weekAttempts || 0) > 0
+      ? `<span class="pill green">+${s.weekAttempts}</span>`
+      : `<span style="color:var(--ink-400);font-family:'Geist Mono',monospace">0</span>`;
+
+    return `<tr style="${isBlocked?'opacity:.55':''}">
+      <td>
+        <div style="display:flex;align-items:center;gap:11px">
+          <div class="avatar ${avaCls}">${esc(initials)}</div>
+          <div style="min-width:0">
+            <div style="display:flex;align-items:center;gap:7px;font-weight:600">
+              ${esc(u.name||"—")}
+              ${u.role === "admin" ? `<span class="pill violet" style="font-size:9.5px;padding:2px 6px">Admin</span>` : ""}
+            </div>
+            <div style="font-size:11px;color:var(--ink-400);font-family:'Geist Mono',monospace;margin-top:2px">@${esc(u.login||"")}</div>
+          </div>
+        </div>
+      </td>
+      <td class="mono" style="font-weight:700">${s.tests || 0}</td>
+      <td><span class="pill green" style="font-family:'Geist Mono',monospace">${s.activeTests || 0}</span></td>
+      <td class="mono" style="font-weight:700;color:#6D28D9">${s.students || 0}</td>
+      <td class="mono" style="font-weight:700;color:#B45309">${s.attempts || 0}</td>
+      <td>${weekBadge}</td>
+      <td style="white-space:nowrap;font-size:12px;color:${recent?'#15803D':'var(--ink-500)'};font-family:'Geist Mono',monospace">${lastStr}</td>
+    </tr>`;
+  }).join("");
+}
+
+// Sort handlers
+document.querySelectorAll("th.sortable").forEach(th => {
+  th.addEventListener("click", () => {
+    const k = th.dataset.sort;
+    if (_ovSortBy === k){
+      _ovSortDir = _ovSortDir === "desc" ? "asc" : "desc";
+    } else {
+      _ovSortBy = k;
+      _ovSortDir = "desc";
+    }
+    renderTable(window._users || [], window._stats || {});
+  });
+});
+
+// Search handler
+document.getElementById("ov-search").addEventListener("input", () => {
+  renderTable(window._users || [], window._stats || {});
+});
+
+// Refresh button
+document.getElementById("btn-refresh").addEventListener("click", async () => {
+  const btn = document.getElementById("btn-refresh");
+  btn.disabled = true;
+  btn.style.opacity = "0.5";
+  await reload();
+  btn.disabled = false;
+  btn.style.opacity = "";
+});
+
+// First load
+await reload();
+</script>
+</body>
+</html>
