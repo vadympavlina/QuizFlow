@@ -2172,7 +2172,7 @@ selectAnalyticsDrop(field, value, label){
 
   // ─── ЗАМІНИТИ метод initStudents: ───────────────────────────────────────────
  
-  async initStudents(){
+   async initStudents(){
     // Завантажуємо студентів з Firebase
     try {
       const snap = await dbGet("students");
@@ -2203,8 +2203,7 @@ selectAnalyticsDrop(field, value, label){
         });
       });
     }
- 
-    // Заповнюємо прихований <select id="st-group"> опціями груп —
+ // Заповнюємо прихований <select id="st-group"> опціями груп —
     // він використовується як джерело значення фільтра в renderStudents
     const sel = document.getElementById("st-group");
     if (sel){
@@ -2215,14 +2214,15 @@ selectAnalyticsDrop(field, value, label){
       if (groups.includes(cur)) sel.value = cur; else sel.value = "";
     }
  
-    // Заповнюємо приховане старе меню для сумісності з G.toggleDrop / window.G API
+ 
+ // Заповнюємо приховане старе меню для сумісності з G.toggleDrop / window.G API
     const menu = document.getElementById("cd-st-group-menu");
     if (menu){
       menu.innerHTML = `<div class="cd-item cd-active" data-val="" onclick="G.selectStFilter('','Всі групи')">Всі групи</div>` +
         groups.map(g => `<div class="cd-item" data-val="${esc(g)}" onclick="G.selectStFilter('${esc(g)}','${esc(g)}')">${esc(g)}</div>`).join("");
     }
  
-    // Підсумок у заголовку
+ // Підсумок у заголовку
     const summary = document.getElementById("st-summary");
     if (summary){
       summary.innerHTML = `<b>${_students.length}</b> ${_students.length === 1 ? "студент" : (_students.length>=2 && _students.length<=4) ? "студенти" : "студентів"} у <b>${groups.length}</b> ${groups.length === 1 ? "групі" : "групах"}`;
@@ -2237,7 +2237,10 @@ selectAnalyticsDrop(field, value, label){
  
     G.renderStudents();
   },
+ 
 
+// ─── ЗАМІНИТИ метод selectStFilter: ──────────────────────────────────────────
+ 
   selectStFilter(value, label){
     // Старі контракти (для сумісності з G.toggleDrop)
     const lblEl = document.getElementById("cd-st-group-label");
@@ -2255,10 +2258,15 @@ selectAnalyticsDrop(field, value, label){
       chipsEl.querySelectorAll(".st-chip").forEach(c => c.classList.toggle("on", (c.dataset.val||"") === value));
     }
  
+    // При зміні фільтра — скидаємо на першу сторінку
+    window._stFiltersChanged = true;
+ 
     G.renderStudents();
   },
   
- renderStudents(){
+ // ─── ЗАМІНИТИ метод renderStudents: ──────────────────────────────────────────
+ 
+  renderStudents(){
     const body = document.getElementById("students-body");
     if (!body) return;
     const q = (document.getElementById("student-srch")?.value || "").toLowerCase().trim();
@@ -2268,9 +2276,28 @@ selectAnalyticsDrop(field, value, label){
     if (q) list = list.filter(s => (s.name + " " + s.surname).toLowerCase().includes(q) || (s.surname + " " + s.name).toLowerCase().includes(q));
     if (grp) list = list.filter(s => (s.groups || []).includes(grp));
  
+    // ── Пагінація ──
+    const PAGE_SIZE = 15;
+    const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+    if (window._stPage == null) window._stPage = 1;
+    // Якщо змінилися фільтри — на 1 сторінку (через прапорець)
+    if (window._stFiltersChanged){
+      window._stPage = 1;
+      window._stFiltersChanged = false;
+    }
+    if (window._stPage > totalPages) window._stPage = totalPages;
+    if (window._stPage < 1) window._stPage = 1;
+    const page = window._stPage;
+    const startIdx = (page - 1) * PAGE_SIZE;
+    const endIdx = Math.min(startIdx + PAGE_SIZE, list.length);
+    const pageList = list.slice(startIdx, endIdx);
+ 
     // Лічильник
     const cntEl = document.getElementById("st-list-count");
-    if (cntEl) cntEl.textContent = `${list.length} / ${_students.length}`;
+    if (cntEl){
+      if (list.length === 0) cntEl.textContent = `0 / ${_students.length}`;
+      else cntEl.textContent = `${startIdx + 1}–${endIdx} / ${list.length}`;
+    }
  
     if (!list.length){
       body.innerHTML = `<div class="st-empty">
@@ -2295,7 +2322,7 @@ selectAnalyticsDrop(field, value, label){
       return "bad";
     };
  
-    const rows = list.map(s => {
+    const rows = pageList.map(s => {
       const att = Array.isArray(s.attempts) ? s.attempts : [];
       const groups = (s.groups || []).filter(Boolean);
       const initials = ((s.surname?.[0] || "") + (s.name?.[0] || "")).toUpperCase() || "?";
@@ -2310,7 +2337,7 @@ selectAnalyticsDrop(field, value, label){
       const passRate = att.length ? Math.round(att.filter(a => (a.grade||0) >= 4).length / att.length * 100) : null;
       const flagsCount = att.filter(a => (a.tabSwitches||0)*2 + (a.copyAttempts||0)*3 + (a.screenshots||0)*5 > 0).length;
  
-      const isSelected = _selectedStId === s.id;
+      const isSelected = window._selectedStId === s.id;
  
       return `<tr class="${isSelected ? "is-selected" : ""}" data-st-id="${s.id}">
         <td>
@@ -2333,6 +2360,37 @@ selectAnalyticsDrop(field, value, label){
       </tr>`;
     }).join("");
  
+    // ── Pagination ──
+    let pagHtml = "";
+    if (totalPages > 1){
+      const winSize = 5; // максимум кнопок-чисел
+      let from = Math.max(1, page - Math.floor(winSize / 2));
+      let to = Math.min(totalPages, from + winSize - 1);
+      if (to - from + 1 < winSize) from = Math.max(1, to - winSize + 1);
+ 
+      const btn = (p, label, disabled, extra="") =>
+        `<button class="st-pg-btn ${extra}" ${disabled ? "disabled" : `onclick="G.setStudentsPage(${p})"`}>${label}</button>`;
+ 
+      const numbers = [];
+      if (from > 1){
+        numbers.push(btn(1, "1"));
+        if (from > 2) numbers.push(`<span class="st-pg-ellipsis">…</span>`);
+      }
+      for (let p = from; p <= to; p++){
+        numbers.push(btn(p, String(p), false, p === page ? "is-active" : ""));
+      }
+      if (to < totalPages){
+        if (to < totalPages - 1) numbers.push(`<span class="st-pg-ellipsis">…</span>`);
+        numbers.push(btn(totalPages, String(totalPages)));
+      }
+ 
+      pagHtml = `<div class="st-pagination">
+        ${btn(page - 1, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>`, page <= 1, "prev")}
+        ${numbers.join("")}
+        ${btn(page + 1, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>`, page >= totalPages, "next")}
+      </div>`;
+    }
+ 
     body.innerHTML = `<table class="st-tbl">
       <thead><tr>
         <th>Студент</th>
@@ -2343,7 +2401,7 @@ selectAnalyticsDrop(field, value, label){
         <th>Здав</th>
       </tr></thead>
       <tbody>${rows}</tbody>
-    </table>`;
+    </table>${pagHtml}`;
  
     // Click handlers — обираємо студента
     body.querySelectorAll("tr[data-st-id]").forEach(tr => {
@@ -2353,22 +2411,40 @@ selectAnalyticsDrop(field, value, label){
     });
  
     // Якщо є вибраний — перемалювати правий блок
-    if (_selectedStId && list.some(s => s.id === _selectedStId)) {
-      G.selectStudent(_selectedStId, /*skipTableUpdate*/ true);
-    } else if (!_selectedStId && list.length){
-      // Автоматично обираємо першого
-      G.selectStudent(list[0].id);
-    } else if (_selectedStId && !list.some(s => s.id === _selectedStId)){
+    if (window._selectedStId && list.some(s => s.id === window._selectedStId)) {
+      G.selectStudent(window._selectedStId, /*skipTableUpdate*/ true);
+    } else if (!window._selectedStId && pageList.length){
+      // Автоматично обираємо першого з поточної сторінки
+      G.selectStudent(pageList[0].id);
+    } else if (window._selectedStId && !list.some(s => s.id === window._selectedStId)){
       // Поточний вибраний пропав з фільтра — скидаємо
-      _selectedStId = null;
+      window._selectedStId = null;
       G.selectStudent(null);
     }
   },
+ // ─── ДОДАТИ новий метод setStudentsPage: ─────────────────────────────────────
+ 
+  setStudentsPage(page){
+    window._stPage = page;
+    G.renderStudents();
+    // Скрол до верху таблиці
+    const body = document.getElementById("students-body");
+    if (body) body.scrollIntoView({ behavior: "smooth", block: "start" });
+  },
+ 
+ 
+// ─── ДОДАТИ новий метод searchStudents (викликається з input.oninput): ───────
+ 
+  searchStudents(){
+    window._stFiltersChanged = true;
+    G.renderStudents();
+  },
+ 
  
 // ─── ДОДАТИ новий метод selectStudent: ───────────────────────────────────────
  
   selectStudent(id, skipTableUpdate){
-    _selectedStId = id;
+    window._selectedStId = id;
  
     // Підсвітка обраного у таблиці
     if (!skipTableUpdate) {
@@ -2472,7 +2548,6 @@ selectAnalyticsDrop(field, value, label){
         </button>
       </div>`;
   },
-
   viewAtt(id){
     const a = attempts.find(x => x.id === id);
     if (!a){ toast("Спробу не знайдено","err"); return; }
