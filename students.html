@@ -115,6 +115,26 @@
 #sec-students .st-empty-title{font-size:15px;font-weight:700;color:var(--ink-900);margin-bottom:4px;font-family:'Manrope',sans-serif}
 #sec-students .st-empty-hint{font-size:13px}
 
+/* ─── Pagination ─── */
+#sec-students .st-pagination{
+  display:flex;align-items:center;justify-content:center;gap:4px;
+  padding:14px 18px;border-top:1px solid var(--line);background:#FAFBFE;
+}
+#sec-students .st-pg-btn{
+  min-width:32px;height:32px;padding:0 10px;
+  background:#fff;border:1px solid var(--line);border-radius:8px;
+  font-family:'Manrope',sans-serif;font-weight:600;font-size:12.5px;
+  color:var(--ink-700);cursor:pointer;transition:all .12s;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+#sec-students .st-pg-btn:hover:not(:disabled):not(.is-active){border-color:var(--line-strong);color:var(--ink-900)}
+#sec-students .st-pg-btn.is-active{background:var(--nav-600);border-color:var(--nav-600);color:#fff}
+#sec-students .st-pg-btn:disabled{opacity:.4;cursor:not-allowed}
+#sec-students .st-pg-btn.prev,
+#sec-students .st-pg-btn.next{padding:0;width:32px}
+#sec-students .st-pg-btn svg{width:13px;height:13px}
+#sec-students .st-pg-ellipsis{padding:0 6px;color:var(--ink-400);font-family:'Geist Mono',monospace}
+
 /* ─── Right side: profile ─── */
 #sec-students .st-side{position:sticky;top:14px;max-height:calc(100vh - 28px);overflow-y:auto;display:flex;flex-direction:column}
 #sec-students .pf-head{
@@ -229,7 +249,7 @@
         <div class="st-card-h">
           <div class="st-search">
             <span class="st-search-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
-            <input type="text" id="student-srch" placeholder="Пошук студента..." oninput="G.renderStudents()" autocomplete="off">
+            <input type="text" id="student-srch" placeholder="Пошук студента..." oninput="window.G && G.searchStudents && G.searchStudents()" autocomplete="off">
           </div>
           <div class="st-chips" id="st-chips">
             <span class="st-chip on" data-val="">Всі групи</span>
