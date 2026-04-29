@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='8' width='14' height='3' rx='1.5' fill='white'/><rect x='7' y='14' width='18' height='3' rx='1.5' fill='white'/><rect x='7' y='20' width='10' height='3' rx='1.5' fill='white'/></svg>">
+<title>QuizFlow Admin — Новини</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/admin-shell.css?v=1">
+<style>
+/* ─── Page-specific ─── */
+
+/* Stats strip */
+.stats-strip{display:grid; grid-template-columns:repeat(4, 1fr); gap:14px}
+.ssl{
+  background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px 18px;
+  display:flex; align-items:center; gap:14px;
+}
+.ssl .ico{width:38px; height:38px; border-radius:11px; display:grid; place-items:center; flex:0 0 auto}
+.ssl.violet .ico{background:#EDE9FE; color:#6D28D9}
+.ssl.green  .ico{background:#DCFCE7; color:#15803D}
+.ssl.amber  .ico{background:#FEF3C7; color:#B45309}
+.ssl.blue   .ico{background:#DBEAFE; color:#1D4ED8}
+.ssl .v{font-family:"Geist Mono",monospace; font-size:24px; font-weight:800; letter-spacing:-.02em; line-height:1}
+.ssl .l{font-size:11.5px; color:var(--ink-500); text-transform:uppercase; letter-spacing:.06em; font-weight:700; margin-top:3px}
+
+/* News list */
+.news-list{display:flex; flex-direction:column; gap:0; padding:0}
+.news-row{
+  display:grid; grid-template-columns:48px 1fr auto; gap:16px; align-items:flex-start;
+  padding:18px 22px; border-bottom:1px solid var(--line);
+  transition:background .15s; cursor:default;
+}
+.news-row:last-child{border-bottom:0}
+.news-row:hover{background:#FAFBFE}
+
+.nrow-thumb{
+  width:48px; height:48px; border-radius:13px; flex:0 0 auto;
+  display:grid; place-items:center; color:#fff;
+  background:linear-gradient(135deg, #7C3AED, #4F46E5);
+  box-shadow:0 6px 14px -6px rgba(124,58,237,.5);
+}
+.nrow-thumb.green{background:linear-gradient(135deg, #22C55E, #15803D); box-shadow:0 6px 14px -6px rgba(34,197,94,.5)}
+.nrow-thumb.amber{background:linear-gradient(135deg, #F59E0B, #D97706); box-shadow:0 6px 14px -6px rgba(245,158,11,.5)}
+.nrow-thumb.blue{background:linear-gradient(135deg, #3B82F6, #1D4ED8); box-shadow:0 6px 14px -6px rgba(59,130,246,.5)}
+
+.nrow-body{min-width:0; display:flex; flex-direction:column; gap:4px}
+.nrow-tags{display:flex; align-items:center; gap:8px; margin-bottom:2px; flex-wrap:wrap}
+.npill-pinned{
+  display:inline-flex; align-items:center; gap:4px;
+  padding:2px 8px; border-radius:5px;
+  background:#FEF3C7; color:#92400E;
+  font-size:10.5px; font-weight:700; letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.nrow-title{font-weight:800; font-size:16px; letter-spacing:-.01em; color:var(--ink-900); line-height:1.3}
+.nrow-excerpt{font-size:13px; color:var(--ink-500); line-height:1.5; max-height:40px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical}
+.nrow-meta{
+  display:flex; align-items:center; gap:14px; margin-top:6px;
+  font-size:11.5px; color:var(--ink-400); font-family:"Geist Mono",monospace;
+}
+.nrow-meta-item{display:inline-flex; align-items:center; gap:5px}
+.nrow-meta-item svg{opacity:.7}
+
+.nrow-actions{display:flex; align-items:center; gap:6px; flex:0 0 auto}
+
+/* Buttons in list */
+.nrow-btn{
+  width:32px; height:32px; border-radius:9px;
+  background:#fff; border:1px solid var(--line);
+  color:var(--ink-500); cursor:pointer;
+  display:grid; place-items:center; transition:all .15s; padding:0;
+}
+.nrow-btn:hover{background:#F4F6FB; border-color:var(--line-strong); color:var(--ink-700)}
+.nrow-btn.danger:hover{background:#FEE2E2; border-color:#FCA5A5; color:#B91C1C}
+.nrow-btn svg{width:14px; height:14px}
+
+/* Empty */
+.empty-news{
+  padding:80px 24px; text-align:center; color:var(--ink-500);
+}
+.empty-news .ei{
+  width:64px; height:64px; margin:0 auto 18px; border-radius:16px;
+  background:linear-gradient(135deg, #EDE9FE, #DDD6FE); color:#6D28D9;
+  display:grid; place-items:center;
+  box-shadow:0 8px 18px -8px rgba(124,58,237,.3);
+}
+.empty-news .et{font-size:18px; font-weight:800; color:var(--ink-900); margin-bottom:6px; letter-spacing:-.01em}
+.empty-news .es{font-size:13.5px; max-width:360px; margin:0 auto; line-height:1.5}
+
+/* ─── News modal — editor ─── */
+.modal-news{max-width:680px}
+
+.field input,
+.field-input{
+  width:100%; padding:10px 12px; border-radius:10px;
+  border:1.5px solid var(--line); background:#fff;
+  font-family:"Manrope",sans-serif; font-size:14px; color:var(--ink-900);
+  outline:none; transition:all .15s;
+}
+.field input:focus,
+.field-input:focus{
+  border-color:#7C3AED; box-shadow:0 0 0 3px rgba(124,58,237,.12);
+}
+
+/* Editor toolbar */
+.ed-toolbar{
+  display:flex; align-items:center; gap:3px;
+  padding:8px 10px;
+  background:#FAFBFE; border:1.5px solid var(--line); border-bottom:0;
+  border-radius:11px 11px 0 0;
+}
+.ed-tool-btn{
+  width:30px; height:30px; border:0; background:transparent; border-radius:7px;
+  color:var(--ink-700); cursor:pointer; font:inherit;
+  display:grid; place-items:center; padding:0;
+  transition:all .15s;
+}
+.ed-tool-btn:hover{background:#EDE9FE; color:#6D28D9}
+.ed-tool-btn b{font-size:14px; font-weight:800}
+.ed-tool-btn i{font-size:14px; font-weight:700; font-family:Georgia, serif}
+.ed-tool-btn u{font-size:14px; font-weight:600}
+.ed-tool-btn.h{font-size:11.5px; font-weight:800; letter-spacing:.04em}
+.ed-tool-sep{width:1px; height:18px; background:var(--line); margin:0 4px}
+.ed-tool-meta{margin-left:auto; font-size:11px; color:var(--ink-400); font-family:"Geist Mono",monospace; font-weight:600}
+
+/* Editor area */
+.ed-area{
+  min-height:180px; max-height:340px; overflow-y:auto;
+  padding:14px 16px;
+  border:1.5px solid var(--line); border-top:0;
+  border-radius:0 0 11px 11px;
+  font-size:14.5px; line-height:1.7; color:var(--ink-900);
+  outline:none;
+  background:#fff;
+  font-family:"Manrope",sans-serif;
+}
+.ed-area:empty::before{
+  content:attr(data-placeholder);
+  color:var(--ink-400);
+  pointer-events:none;
+}
+.ed-area:focus{border-color:#7C3AED}
+.ed-area h3{font-size:18px; font-weight:800; letter-spacing:-.01em; margin:14px 0 8px}
+.ed-area ul{padding-left:24px; margin:8px 0}
+.ed-area a{color:#7C3AED; text-decoration:underline}
+.ed-area a:hover{color:#4F46E5}
+
+/* Pin checkbox */
+.pin-check{
+  display:flex; align-items:center; gap:10px;
+  padding:10px 14px;
+  background:#FAFBFE; border:1.5px solid var(--line); border-radius:11px;
+  cursor:pointer; font-size:13.5px; font-weight:600; color:var(--ink-700);
+  transition:all .15s;
+}
+.pin-check:hover{border-color:var(--line-strong)}
+.pin-check input{width:16px; height:16px; accent-color:#7C3AED; cursor:pointer; margin:0}
+
+.mod-err{
+  background:rgba(220,38,38,.06);
+  border:1px solid rgba(220,38,38,.18);
+  border-radius:8px; padding:9px 12px;
+  color:#B91C1C; font-size:12.5px; font-weight:600;
+  display:none;
+}
+.mod-err.show{display:block}
+
+/* Confirm icons */
+.confirm-icon{
+  width:56px; height:56px; margin:0 auto 14px; border-radius:15px;
+  display:grid; place-items:center;
+}
+.confirm-icon.red{background:linear-gradient(135deg, #FEE2E2, #FECACA); color:#B91C1C; border:1.5px solid #FCA5A5}
+.confirm-icon.violet{background:linear-gradient(135deg, #EDE9FE, #DDD6FE); color:#6D28D9; border:1.5px solid #C4B5FD}
+
+.confirm-desc{font-size:13.5px; color:var(--ink-500); text-align:center; margin:8px 0 10px; line-height:1.55}
+</style>
+</head>
+<body>
+
+<div id="admin-loader"><div class="spin"></div></div>
+<div id="admin-root"></div>
+<div id="admin-modals">
+
+  <!-- NEWS EDITOR MODAL -->
+  <div class="modal-bd" id="m-news">
+    <div class="modal modal-news">
+      <div class="modal-h">
+        <h3 id="news-modal-title">Нова новина</h3>
+        <button class="close" onclick="closeModal('m-news')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-b">
+        <div style="font-size:12.5px; color:var(--ink-500); margin-top:-4px">Буде надіслана всім викладачам платформи</div>
+
+        <div class="field">
+          <div class="field-l">Заголовок *</div>
+          <input class="field-input" id="news-title-inp" placeholder="Наприклад: Оновлення платформи">
+        </div>
+
+        <div class="field">
+          <div class="field-l">Текст повідомлення *</div>
+          <div class="ed-toolbar">
+            <button type="button" class="ed-tool-btn" onclick="newsFormat('bold')" title="Жирний (Ctrl+B)"><b>B</b></button>
+            <button type="button" class="ed-tool-btn" onclick="newsFormat('italic')" title="Курсив (Ctrl+I)"><i>I</i></button>
+            <button type="button" class="ed-tool-btn" onclick="newsFormat('underline')" title="Підкреслений"><u>U</u></button>
+            <span class="ed-tool-sep"></span>
+            <button type="button" class="ed-tool-btn h" onclick="newsFormat('h')" title="Заголовок">H</button>
+            <button type="button" class="ed-tool-btn" onclick="newsFormat('bullet')" title="Список"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="1" fill="currentColor"/><circle cx="4.5" cy="12" r="1" fill="currentColor"/><circle cx="4.5" cy="18" r="1" fill="currentColor"/></svg></button>
+            <span class="ed-tool-sep"></span>
+            <button type="button" class="ed-tool-btn" onclick="openLinkModal()" title="Посилання"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg></button>
+            <span class="ed-tool-meta" id="news-char-count">0 симв.</span>
+          </div>
+          <div id="news-editor"
+            class="ed-area"
+            contenteditable="true"
+            data-placeholder="Введіть текст новини..."
+            oninput="updateNewsCharCount()"
+            onkeydown="newsEditorKeydown(event)"></div>
+          <textarea id="news-text-inp" style="display:none"></textarea>
+        </div>
+
+        <label class="pin-check">
+          <input type="checkbox" id="news-pinned">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 6 1-4.5 4.5 1 6-5.5-3-5.5 3 1-6-4.5-4.5 6-1z"/></svg>
+          Закріпити новину вгорі списку
+        </label>
+
+        <div class="mod-err" id="news-modal-err"></div>
+      </div>
+      <div class="modal-f">
+        <button class="tb-btn" onclick="closeModal('m-news')">Скасувати</button>
+        <button class="tb-btn primary" id="news-save-btn" onclick="saveNews()">Опублікувати →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE MODAL -->
+  <div class="modal-bd" id="m-news-del">
+    <div class="modal" style="max-width:400px">
+      <div class="modal-h">
+        <h3>Видалити новину?</h3>
+        <button class="close" onclick="closeModal('m-news-del')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-b" style="text-align:center">
+        <div class="confirm-icon red">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        </div>
+        <div class="confirm-desc">Новина зникне для всіх викладачів.<br>Цю дію не можна скасувати.</div>
+      </div>
+      <div class="modal-f">
+        <button class="tb-btn" onclick="closeModal('m-news-del')">Скасувати</button>
+        <button class="tb-btn danger" onclick="confirmDeleteNews()">Видалити</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSERT LINK MODAL -->
+  <div class="modal-bd" id="m-link-insert" style="z-index:160">
+    <div class="modal" style="max-width:420px">
+      <div class="modal-h">
+        <h3>Вставити посилання</h3>
+        <button class="close" onclick="closeModal('m-link-insert')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-b">
+        <div class="confirm-icon violet" style="margin:0 auto 8px">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        </div>
+        <div class="field">
+          <div class="field-l">Текст посилання</div>
+          <input class="field-input" id="link-text-inp" placeholder="Наприклад: Детальніше тут">
+        </div>
+        <div class="field">
+          <div class="field-l">URL *</div>
+          <input class="field-input" id="link-url-inp" placeholder="https://..." type="url">
+        </div>
+        <div class="mod-err" id="link-modal-err"></div>
+      </div>
+      <div class="modal-f">
+        <button class="tb-btn" onclick="closeModal('m-link-insert')">Скасувати</button>
+        <button class="tb-btn primary" onclick="insertLink()">Вставити →</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div id="admin-toast" class="toast"></div>
+
+<script type="module">
+import { initAdminShell, esc, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast } from "./shared/admin-shell.js?v=1";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+const db = getDatabase();
+
+const content = `
+  <!-- Stats strip -->
+  <div class="stats-strip" id="stats-strip"></div>
+
+  <!-- News list -->
+  <div class="card" style="padding:0">
+    <div class="card-h" style="padding:18px 22px 14px; border-bottom:1px solid var(--line); margin-bottom:0">
+      <div>
+        <h3>Усі новини</h3>
+        <div class="sub" id="news-meta">—</div>
+      </div>
+      <span class="pill violet" id="news-count-pill">0</span>
+    </div>
+    <div class="news-list" id="news-admin-list">
+      <div class="empty-news">
+        <div class="ei">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/>
+            <path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/>
+          </svg>
+        </div>
+        <div class="et">Завантаження...</div>
+      </div>
+    </div>
+  </div>
+`;
+
+const topbarRight = `
+  <button class="tb-btn primary" onclick="openNewsModal()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Нова новина
+  </button>
+`;
+
+const { _user } = await initAdminShell({
+  activeId: "news",
+  crumbs: ["Новини"],
+  content,
+  topbarRight
+});
+
+// Page-head
+const contentEl = document.getElementById("admin-content");
+if (contentEl){
+  const pageHead = document.createElement("div");
+  pageHead.className = "page-head";
+  pageHead.innerHTML = `<div><h1>Новини</h1><p>Розсилка повідомлень всім викладачам платформи</p></div>`;
+  contentEl.insertBefore(pageHead, contentEl.firstChild);
+}
+
+// ─── State ────────────────────────────────────────────────────────────────
+let _editNewsId = null;
+let _deleteNewsId = null;
+let _savedRange = null;
+
+// ─── EDITOR ───────────────────────────────────────────────────────────────
+window.newsFormat = (cmd) => {
+  const editor = document.getElementById("news-editor");
+  editor.focus();
+  if (cmd === "bold")           document.execCommand("bold");
+  else if (cmd === "italic")    document.execCommand("italic");
+  else if (cmd === "underline") document.execCommand("underline");
+  else if (cmd === "h"){
+    const sel = window.getSelection();
+    if (sel.rangeCount){
+      const range = sel.getRangeAt(0);
+      const block = document.createElement("h3");
+      block.appendChild(range.extractContents());
+      range.insertNode(block);
+      const br = document.createElement("br");
+      block.after(br);
+      range.setStartAfter(br);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  }
+  else if (cmd === "bullet") document.execCommand("insertUnorderedList");
+  updateNewsCharCount();
+};
+
+window.openLinkModal = () => {
+  const sel = window.getSelection();
+  if (sel.rangeCount) _savedRange = sel.getRangeAt(0).cloneRange();
+  const selText = sel.toString().trim();
+  document.getElementById("link-text-inp").value = selText || "";
+  document.getElementById("link-url-inp").value = "";
+  const errEl = document.getElementById("link-modal-err");
+  errEl.textContent = ""; errEl.classList.remove("show");
+  openModal("m-link-insert");
+  setTimeout(() => {
+    document.getElementById(selText ? "link-url-inp" : "link-text-inp")?.focus();
+  }, 100);
+};
+
+window.insertLink = () => {
+  const text = document.getElementById("link-text-inp").value.trim();
+  const url = document.getElementById("link-url-inp").value.trim();
+  const errEl = document.getElementById("link-modal-err");
+  const showErr = msg => { errEl.textContent = msg; errEl.classList.add("show"); };
+
+  if (!url) return showErr("Введіть URL");
+  if (!url.startsWith("http")) return showErr('URL має починатись з "https://"');
+
+  const editor = document.getElementById("news-editor");
+  editor.focus();
+  if (_savedRange){
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(_savedRange);
+  }
+
+  const linkEl = document.createElement("a");
+  linkEl.href = url;
+  linkEl.target = "_blank";
+  linkEl.rel = "noopener";
+  linkEl.textContent = text || url;
+
+  if (_savedRange){
+    _savedRange.deleteContents();
+    _savedRange.insertNode(linkEl);
+    const range = document.createRange();
+    range.setStartAfter(linkEl);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  } else {
+    document.execCommand("insertHTML", false, linkEl.outerHTML);
+  }
+  _savedRange = null;
+  updateNewsCharCount();
+  closeModal("m-link-insert");
+};
+
+window.updateNewsCharCount = () => {
+  const editor = document.getElementById("news-editor");
+  const cnt = document.getElementById("news-char-count");
+  if (editor && cnt) cnt.textContent = (editor.innerText || "").length + " симв.";
+};
+
+window.newsEditorKeydown = (e) => {
+  if (e.ctrlKey && e.key === "b"){ e.preventDefault(); newsFormat("bold"); }
+  if (e.ctrlKey && e.key === "i"){ e.preventDefault(); newsFormat("italic"); }
+};
+
+// ─── OPEN/SAVE NEWS ──────────────────────────────────────────────────────
+window.openNewsModal = async (id) => {
+  _editNewsId = id || null;
+  document.getElementById("news-modal-title").textContent = id ? "Редагувати новину" : "Нова новина";
+  document.getElementById("news-save-btn").textContent = id ? "Зберегти" : "Опублікувати →";
+  const errEl = document.getElementById("news-modal-err");
+  errEl.textContent = ""; errEl.classList.remove("show");
+  document.getElementById("news-title-inp").value = "";
+  document.getElementById("news-editor").innerHTML = "";
+  document.getElementById("news-pinned").checked = false;
+  document.getElementById("news-char-count").textContent = "0 симв.";
+
+  if (id){
+    try {
+      const n = await dbGet("news/" + id);
+      if (n){
+        document.getElementById("news-title-inp").value = n.title || "";
+        const editor = document.getElementById("news-editor");
+        if ((n.text || "").includes("<")) editor.innerHTML = n.text || "";
+        else editor.innerText = n.text || "";
+        updateNewsCharCount();
+        document.getElementById("news-pinned").checked = !!n.pinned;
+      }
+    } catch (e) { console.warn(e); }
+  }
+
+  openModal("m-news");
+  setTimeout(() => document.getElementById("news-title-inp").focus(), 100);
+};
+
+window.saveNews = async () => {
+  const title = document.getElementById("news-title-inp").value.trim();
+  const editor = document.getElementById("news-editor");
+  const text = (editor.innerHTML || "").trim();
+  const textPlain = (editor.innerText || "").trim();
+  const pinned = document.getElementById("news-pinned").checked;
+  const errEl = document.getElementById("news-modal-err");
+  const showErr = msg => { errEl.textContent = msg; errEl.classList.add("show"); };
+
+  if (!title) return showErr("Введіть заголовок");
+  if (!textPlain) return showErr("Введіть текст");
+
+  const btn = document.getElementById("news-save-btn");
+  btn.disabled = true; btn.textContent = "Зберігаю...";
+
+  try {
+    const data = { title, text, pinned, updatedAt: Date.now() };
+    if (_editNewsId){
+      await dbUpd("news/" + _editNewsId, data);
+    } else {
+      data.createdAt = Date.now();
+      data.authorId = _user.id;
+      const nr = push(ref(db, "news"));
+      await dbSet("news/" + nr.key, data);
+    }
+    closeModal("m-news");
+    toast(_editNewsId ? "Новину оновлено" : "Новину опубліковано");
+    loadNews();
+  } catch (e) {
+    showErr("Помилка: " + e.message);
+    btn.disabled = false;
+    btn.textContent = _editNewsId ? "Зберегти" : "Опублікувати →";
+  }
+};
+
+window.deleteNews = (id) => {
+  _deleteNewsId = id;
+  openModal("m-news-del");
+};
+
+window.confirmDeleteNews = async () => {
+  if (!_deleteNewsId) return;
+  try {
+    await dbRemove("news/" + _deleteNewsId);
+    closeModal("m-news-del");
+    toast("Новину видалено");
+    _deleteNewsId = null;
+    loadNews();
+  } catch (e) {
+    toast("Помилка: " + e.message);
+  }
+};
+
+// ─── LOAD ─────────────────────────────────────────────────────────────────
+async function loadNews(){
+  const list = document.getElementById("news-admin-list");
+
+  try {
+    const data = await dbGet("news");
+    const items = data
+      ? Object.entries(data).map(([id, v]) => ({ id, ...v }))
+          .sort((a, b) => {
+            if (a.pinned && !b.pinned) return -1;
+            if (!a.pinned && b.pinned) return 1;
+            return (b.createdAt || 0) - (a.createdAt || 0);
+          })
+      : [];
+
+    // KPIs
+    const total = items.length;
+    const pinned = items.filter(n => n.pinned).length;
+    const lastWeek = items.filter(n => (n.createdAt || 0) > Date.now() - 7*24*60*60*1000).length;
+    const today = items.filter(n => {
+      if (!n.createdAt) return false;
+      const d = new Date(n.createdAt);
+      const t = new Date();
+      return d.toDateString() === t.toDateString();
+    }).length;
+
+    document.getElementById("stats-strip").innerHTML = `
+      <div class="ssl violet">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h6M7 17h4"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/></svg></div>
+        <div><div class="v">${total}</div><div class="l">Всього новин</div></div>
+      </div>
+      <div class="ssl amber">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 6 1-4.5 4.5 1 6-5.5-3-5.5 3 1-6-4.5-4.5 6-1z"/></svg></div>
+        <div><div class="v">${pinned}</div><div class="l">Закріплені</div></div>
+      </div>
+      <div class="ssl green">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div><div class="v">${lastWeek}</div><div class="l">За тиждень</div></div>
+      </div>
+      <div class="ssl blue">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div><div class="v">${today}</div><div class="l">Сьогодні</div></div>
+      </div>
+    `;
+
+    document.getElementById("news-count-pill").textContent = total;
+    document.getElementById("news-meta").textContent =
+      total === 0 ? "Поки що немає публікацій"
+      : total === 1 ? "1 публікація"
+      : (total >= 2 && total <= 4) ? `${total} публікації`
+      : `${total} публікацій`;
+
+    if (!items.length){
+      list.innerHTML = `<div class="empty-news">
+        <div class="ei">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/>
+            <path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/>
+          </svg>
+        </div>
+        <div class="et">Новин ще немає</div>
+        <div class="es">Натисніть «Нова новина» вгорі щоб опублікувати першу. Вона буде надіслана всім викладачам платформи.</div>
+      </div>`;
+      return;
+    }
+
+    const THUMB_PALETTE = ["", "green", "amber", "blue"];
+
+    list.innerHTML = items.map((n, i) => {
+      const dateStr = n.createdAt
+        ? new Date(n.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"short", year:"numeric" })
+        : "—";
+      const timeStr = n.createdAt
+        ? new Date(n.createdAt).toLocaleTimeString("uk-UA", { hour:"2-digit", minute:"2-digit" })
+        : "";
+
+      // Витягуємо плейн-текст з html (для excerpt)
+      const tmp = document.createElement("div");
+      tmp.innerHTML = n.text || "";
+      const plainText = (tmp.innerText || "").trim();
+      const excerpt = plainText.length > 140 ? plainText.slice(0, 140) + "…" : plainText;
+
+      const thumbCls = THUMB_PALETTE[i % THUMB_PALETTE.length];
+
+      return `<div class="news-row">
+        <div class="nrow-thumb ${thumbCls}">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="5" width="14" height="14" rx="2"/>
+            <path d="M7 9h6M7 13h6M7 17h4"/>
+            <path d="M17 8h3v9a2 2 0 0 1-2 2"/>
+          </svg>
+        </div>
+        <div class="nrow-body">
+          <div class="nrow-tags">
+            ${n.pinned ? `<span class="npill-pinned"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6 6 1-4.5 4.5 1 6-5.5-3-5.5 3 1-6-4.5-4.5 6-1z"/></svg>Закріплено</span>` : ""}
+          </div>
+          <div class="nrow-title">${esc(n.title || "—")}</div>
+          ${excerpt ? `<div class="nrow-excerpt">${esc(excerpt)}</div>` : ""}
+          <div class="nrow-meta">
+            <span class="nrow-meta-item">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+              ${dateStr}
+            </span>
+            ${timeStr ? `<span class="nrow-meta-item">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              ${timeStr}
+            </span>` : ""}
+            ${n.updatedAt && n.updatedAt !== n.createdAt ? `<span class="nrow-meta-item" style="color:var(--ink-500)">· оновлено</span>` : ""}
+          </div>
+        </div>
+        <div class="nrow-actions">
+          <button class="nrow-btn" onclick="openNewsModal('${n.id}')" title="Редагувати">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="nrow-btn danger" onclick="deleteNews('${n.id}')" title="Видалити">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          </button>
+        </div>
+      </div>`;
+    }).join("");
+  } catch (e) {
+    list.innerHTML = `<div class="empty-news"><div class="et" style="color:#B91C1C">Помилка завантаження</div><div class="es">${esc(e.message)}</div></div>`;
+  }
+}
+
+// Close modals on backdrop click
+document.querySelectorAll(".modal-bd").forEach(m => {
+  m.addEventListener("click", e => {
+    if (e.target === m) m.classList.remove("on");
+  });
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape"){
+    document.querySelectorAll(".modal-bd.on").forEach(m => m.classList.remove("on"));
+  }
+});
+
+// First load
+await loadNews();
+</script>
+</body>
+</html>
