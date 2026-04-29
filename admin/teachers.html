@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><circle cx='12' cy='13' r='3.5' fill='none' stroke='white' stroke-width='2.2'/><path d='M5 24c0-3 3.5-6 7-6s7 3 7 6' stroke='white' stroke-width='2.2' stroke-linecap='round' fill='none'/><circle cx='22' cy='14' r='2.5' fill='none' stroke='white' stroke-width='2'/></svg>">
+<title>QuizFlow Admin — Викладачі</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/admin-shell.css?v=1">
+<style>
+/* ─── Page-specific styles for teachers ─── */
+
+/* Stats strip */
+.stats-strip{display:grid; grid-template-columns:repeat(4, 1fr); gap:14px}
+.ssl{
+  background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px 18px;
+  display:flex; align-items:center; gap:14px;
+}
+.ssl .ico{width:38px; height:38px; border-radius:11px; display:grid; place-items:center; flex:0 0 auto}
+.ssl.violet .ico{background:#EDE9FE; color:#6D28D9}
+.ssl.green  .ico{background:#DCFCE7; color:#15803D}
+.ssl.amber  .ico{background:#FEF3C7; color:#B45309}
+.ssl.red    .ico{background:#FEE2E2; color:#B91C1C}
+.ssl .v{font-family:"Geist Mono",monospace; font-size:24px; font-weight:800; letter-spacing:-.02em; line-height:1}
+.ssl .l{font-size:11.5px; color:var(--ink-500); text-transform:uppercase; letter-spacing:.06em; font-weight:700; margin-top:3px}
+
+/* Filter bar */
+.filter-bar{
+  display:flex; align-items:center; gap:10px; padding:14px 16px;
+  background:#fff; border:1px solid var(--line); border-radius:14px;
+  flex-wrap:wrap;
+}
+.seg{display:inline-flex; background:#F4F6FB; border:1px solid var(--line); border-radius:10px; padding:3px}
+.seg button{
+  background:transparent; border:0; padding:7px 13px; border-radius:8px;
+  font:inherit; font-size:13px; font-weight:600; color:var(--ink-500); cursor:pointer;
+  display:inline-flex; align-items:center; gap:6px;
+}
+.seg button:hover:not(.on){color:var(--ink-700)}
+.seg button.on{background:#fff; color:var(--ink-900); box-shadow:0 1px 2px rgba(0,0,0,.04), 0 0 0 1px var(--line)}
+.seg .badge{font-family:"Geist Mono",monospace; font-size:11px; background:#EDE9FE; color:#6D28D9; padding:1px 7px; border-radius:999px; font-weight:700}
+.seg button.on .badge{background:#7C3AED; color:#fff}
+
+.search-input{position:relative; display:inline-flex; align-items:center}
+.search-input .input{padding-left:34px; width:280px}
+.search-input svg{position:absolute; left:11px; color:var(--ink-400); pointer-events:none}
+
+.tc-meta{font-size:12px; color:var(--ink-500); font-family:"Geist Mono",monospace; margin-left:auto}
+
+/* Cards grid */
+.grid-cards{display:grid; grid-template-columns:repeat(auto-fill, minmax(380px, 1fr)); gap:14px}
+
+.tcard{
+  background:#fff; border:1px solid var(--line); border-radius:16px;
+  padding:18px; display:flex; flex-direction:column; gap:14px;
+  transition: border-color .2s, transform .15s;
+  position:relative;
+}
+.tcard:hover{border-color:var(--line-strong); transform:translateY(-1px)}
+.tcard.is-blocked{opacity:.65; background:#FAFBFE}
+.tcard.is-me::before{
+  content:""; position:absolute; left:-1px; top:14px; bottom:14px; width:3px;
+  background:linear-gradient(180deg, #7C3AED, #4F46E5); border-radius:0 3px 3px 0;
+}
+
+.tcard-top{display:flex; gap:14px; align-items:flex-start}
+.tcard .ava{
+  width:48px; height:48px; border-radius:12px; flex:0 0 auto;
+  display:grid; place-items:center; color:#fff;
+  font-weight:800; font-size:14px; letter-spacing:-.01em;
+  background:linear-gradient(135deg, #A78BFA, #7C3AED);
+}
+.tcard .ava.b{background:linear-gradient(135deg, #60A5FA, #1D4ED8)}
+.tcard .ava.g{background:linear-gradient(135deg, #86EFAC, #15803D)}
+.tcard .ava.o{background:linear-gradient(135deg, #FDBA74, #B45309)}
+.tcard .ava.r{background:linear-gradient(135deg, #FCA5A5, #B91C1C)}
+
+.tcard-info{flex:1; min-width:0}
+.tcard-name-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.tcard .name{font-weight:800; font-size:15.5px; letter-spacing:-.01em; color:var(--ink-900)}
+.tcard .me-tag{font-size:10.5px; color:var(--ink-400); font-weight:600}
+.tcard .user{font-size:12px; color:var(--ink-400); font-family:"Geist Mono",monospace; margin-top:3px}
+.badge-role{
+  font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.08em;
+  padding:2px 7px; border-radius:5px;
+  background:#EDE9FE; color:#6D28D9;
+}
+.badge-role.admin{background:linear-gradient(135deg, #7C3AED, #4F46E5); color:#fff}
+
+.tcard-status{display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px}
+.tcard-status.online{background:#DCFCE7; color:#15803D}
+.tcard-status.online::before{content:""; width:5px; height:5px; border-radius:50%; background:#22C55E}
+.tcard-status.first{background:#FEF3C7; color:#B45309}
+.tcard-status.first::before{content:""; width:5px; height:5px; border-radius:50%; background:#F59E0B; animation:pulseFirst 2s infinite}
+.tcard-status.blocked{background:#FEE2E2; color:#B91C1C}
+.tcard-status.blocked::before{content:""; width:5px; height:5px; border-radius:50%; background:#DC2626}
+@keyframes pulseFirst{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* Stats grid in card */
+.tcard-stats{
+  display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;
+  padding:12px 14px; background:#FAFBFE; border-radius:10px; border:1px solid var(--line);
+}
+.tcard-stats .it{display:flex; flex-direction:column; gap:1px}
+.tcard-stats .v{font-family:"Geist Mono",monospace; font-weight:800; font-size:18px; letter-spacing:-.02em}
+.tcard-stats .l{font-size:10px; color:var(--ink-400); text-transform:uppercase; letter-spacing:.06em; font-weight:700}
+
+.tcard-foot{
+  display:flex; align-items:center; gap:6px;
+  padding-top:12px; border-top:1px solid var(--line);
+  font-size:11.5px; color:var(--ink-500);
+}
+.tcard-foot .last-act{display:inline-flex; align-items:center; gap:5px; font-family:"Geist Mono",monospace}
+.tcard-foot .last-act svg{opacity:.65}
+.tcard-foot .spacer{flex:1}
+
+/* Action buttons */
+.tcard-actions{display:flex; gap:6px; padding-top:12px; border-top:1px solid var(--line)}
+.tc-act{
+  flex:1; padding:8px 10px; border-radius:9px;
+  background:#fff; border:1px solid var(--line);
+  font:inherit; font-size:12px; font-weight:600; color:var(--ink-700);
+  cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  transition:all .15s;
+}
+.tc-act:hover{border-color:var(--line-strong); background:#FAFBFE}
+.tc-act.ai{color:#6D28D9; border-color:#DDD6FE; background:#F5F3FF}
+.tc-act.ai:hover{background:#EDE9FE}
+.tc-act.danger{color:#B91C1C; border-color:#FECACA; background:#FEF7F7}
+.tc-act.danger:hover{background:#FEE2E2; border-color:#FCA5A5}
+.tc-act svg{width:13px; height:13px; flex:0 0 auto}
+
+/* Empty */
+.empty-grid{
+  grid-column:1 / -1;
+  background:#fff; border:1px dashed var(--line-strong); border-radius:16px;
+  padding:60px 20px; text-align:center; color:var(--ink-500);
+}
+.empty-grid .ei{
+  width:54px; height:54px; margin:0 auto 14px; border-radius:14px;
+  background:#EEF2FB; color:#6D28D9; display:grid; place-items:center;
+}
+.empty-grid .et{font-size:15px; font-weight:700; color:var(--ink-900); margin-bottom:4px}
+
+/* ─── Modal — fields & password box ─── */
+.field input,
+.field select,
+.field-input{
+  width:100%; padding:10px 12px; border-radius:10px;
+  border:1.5px solid var(--line); background:#fff;
+  font-family:"Manrope",sans-serif; font-size:14px; color:var(--ink-900);
+  outline:none; transition:all .15s;
+}
+.field input:focus,
+.field select:focus,
+.field-input:focus{
+  border-color:#7C3AED; box-shadow:0 0 0 3px rgba(124,58,237,.12);
+}
+
+.pass-box{
+  background:linear-gradient(135deg, #F5F3FF, #EDE9FE);
+  border:1.5px solid #DDD6FE; border-radius:12px;
+  padding:14px 16px; margin-top:12px;
+}
+.pass-lbl{font-size:11px; color:#6D28D9; text-transform:uppercase; letter-spacing:.07em; font-weight:700; margin-bottom:8px}
+.pass-val{
+  font-family:"Geist Mono",monospace; font-size:18px; font-weight:700;
+  color:#0B1437; padding:10px 14px;
+  background:#fff; border:1px solid #DDD6FE; border-radius:8px;
+  text-align:center; letter-spacing:.04em;
+  word-break:break-all;
+}
+.pass-note{font-size:11.5px; color:var(--ink-500); margin-top:10px; line-height:1.5}
+
+.mod-err{
+  background:rgba(220,38,38,.06);
+  border:1px solid rgba(220,38,38,.18);
+  border-radius:8px; padding:9px 12px;
+  color:#B91C1C; font-size:12.5px; font-weight:600;
+  display:none;
+}
+.mod-err.show{display:block; animation:cardIn .2s ease}
+@keyframes cardIn{from{opacity:0; transform:translateY(-4px)} to{opacity:1; transform:none}}
+
+/* AI feature row */
+.feat-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:11px 14px; background:#FAFBFE; border:1px solid var(--line); border-radius:11px;
+}
+.feat-row-l{display:flex; align-items:center; gap:11px; flex:1; min-width:0}
+.feat-icon{
+  width:34px; height:34px; border-radius:10px; flex:0 0 auto;
+  display:grid; place-items:center;
+}
+.feat-name{font-weight:700; font-size:13.5px; line-height:1.2}
+.feat-desc{font-size:11.5px; color:var(--ink-500); margin-top:2px}
+
+/* Toggle switch */
+.toggle-sw{position:relative; display:inline-block; width:38px; height:22px; flex:0 0 auto}
+.toggle-sw input{display:none}
+.toggle-sl{
+  position:absolute; inset:0; cursor:pointer;
+  background:#E3E8F2; border-radius:99px; transition:background .2s;
+}
+.toggle-sl::before{
+  content:""; position:absolute; top:2px; left:2px;
+  width:18px; height:18px; border-radius:50%; background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.18); transition:transform .2s;
+}
+.toggle-sw input:checked + .toggle-sl{background:linear-gradient(135deg, #7C3AED, #4F46E5)}
+.toggle-sw input:checked + .toggle-sl::before{transform:translateX(16px)}
+
+/* AI source indicator */
+.ai-source-info{
+  background:linear-gradient(135deg, rgba(245,158,11,.08), rgba(245,158,11,.04));
+  border:1.5px solid rgba(245,158,11,.25);
+  border-radius:11px; padding:10px 14px;
+  font-size:13px; color:#B45309;
+  display:none; align-items:center; gap:8px;
+}
+.ai-source-info.show{display:flex}
+.ai-source-info svg{color:#D97706; flex:0 0 auto}
+
+/* Confirm-style modal (block, reset, delete) */
+.confirm-icon{
+  width:56px; height:56px; margin:0 auto 14px; border-radius:15px;
+  display:grid; place-items:center;
+}
+.confirm-icon.violet{background:linear-gradient(135deg, #EDE9FE, #DDD6FE); color:#6D28D9; border:1.5px solid #C4B5FD}
+.confirm-icon.green{background:linear-gradient(135deg, #DCFCE7, #BBF7D0); color:#15803D; border:1.5px solid #86EFAC}
+.confirm-icon.red{background:linear-gradient(135deg, #FEE2E2, #FECACA); color:#B91C1C; border:1.5px solid #FCA5A5}
+
+.confirm-title{font-size:18px; font-weight:800; letter-spacing:-.01em; text-align:center}
+.confirm-desc{font-size:13.5px; color:var(--ink-500); text-align:center; margin:8px 0 22px; line-height:1.5}
+.confirm-desc strong{color:var(--ink-900)}
+
+.delete-warn{
+  background:rgba(220,38,38,.06);
+  border:1.5px solid rgba(220,38,38,.18);
+  border-radius:11px; padding:13px 15px; margin-bottom:14px;
+}
+.delete-warn .head{font-size:13px; color:var(--ink-700); margin-bottom:4px}
+.delete-warn .head strong{color:var(--ink-900)}
+.delete-warn .head .login{font-family:"Geist Mono",monospace; color:var(--ink-500); font-size:12px}
+.delete-warn .list{font-size:12px; color:#B91C1C; margin-top:10px; line-height:1.6}
+</style>
+</head>
+<body>
+
+<div id="admin-loader"><div class="spin"></div></div>
+<div id="admin-root"></div>
+<div id="admin-modals">
+
+  <!-- CREATE TEACHER MODAL -->
+  <div class="modal-bd" id="m-create">
+    <div class="modal" style="max-width:460px">
+      <div class="modal-h">
+        <h3>Новий викладач</h3>
+        <button class="close" onclick="closeModal('m-create')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-b">
+        <div style="font-size:13px; color:var(--ink-500); margin-top:-4px">Пароль буде згенеровано автоматично. Викладач при першому вході зобов'язаний його змінити.</div>
+
+        <div class="field">
+          <div class="field-l">Повне ім'я *</div>
+          <input class="field-input" id="new-name" placeholder="Іваненко Олег Петрович">
+        </div>
+        <div class="field">
+          <div class="field-l">Логін *</div>
+          <input class="field-input" id="new-login" placeholder="Латиниця, цифри, _" autocorrect="off" autocapitalize="none">
+          <div class="field-h">Логін має бути унікальним і використовуватись для входу</div>
+        </div>
+        <div class="field">
+          <div class="field-l">Роль</div>
+          <select class="field-input" id="new-role">
+            <option value="teacher">Викладач</option>
+            <option value="admin">Адміністратор</option>
+          </select>
+        </div>
+
+        <div class="mod-err" id="create-err"></div>
+
+        <div class="pass-box" id="created-box" style="display:none">
+          <div class="pass-lbl">Створено! Тимчасовий пароль:</div>
+          <div class="pass-val" id="created-pass"></div>
+          <div class="pass-note">Збережіть — більше не відображатиметься. При першому вході викладач буде зобов'язаний змінити пароль.</div>
+          <button class="tb-btn" style="margin-top:10px; width:100%; justify-content:center" onclick="copyPass('created-pass')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Скопіювати пароль
+          </button>
+        </div>
+      </div>
+      <div class="modal-f">
+        <button class="tb-btn" onclick="closeModal('m-create')">Скасувати</button>
+        <button class="tb-btn primary" id="create-btn" onclick="createTeacher()">Створити →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESET PASSWORD MODAL -->
+  <div class="modal-bd" id="m-reset">
+    <div class="modal" style="max-width:420px">
+      <div class="modal-h">
+        <h3>Скинути пароль</h3>
+        <button class="close" onclick="closeModal('m-reset')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-b" style="text-align:center">
+        <div class="confirm-icon violet">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        </div>
+        <div class="confirm-desc">
+          Скинути пароль для <strong id="reset-name-lbl">—</strong>?<br>
+          Буде згенеровано новий тимчасовий пароль.
+        </div>
+        <div class="pass-box" id="reset-box" style="display:none; text-align:left">
+          <div class="pass-lbl">Новий тимчасовий пароль:</div>
+          <div class="pass-val" id="reset-pass"></div>
+          <div class="pass-note">Збережіть — більше не відображатиметься</div>
+          <button class="tb-btn" style="margin-top:10px; width:100%; justify-content:center" onclick="copyPass('reset-pass')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Скопіювати
+          </button>
+        </div>
+      </div>
+      <div class="modal-f" id="reset-actions">
+        <button class="tb-btn" onclick="closeModal('m-reset')">Скасувати</button>
+        <button class="tb-btn primary" onclick="doResetPassword()">Згенерувати новий пароль</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOCK / UNBLOCK MODAL -->
+  <div class="modal-bd" id="m-block">
+    <div class="modal" style="max-width:400px">
+      <div class="modal-h">
+        <h3 id="block-title">Заблокувати?</h3>
+        <button class="close" onclick="closeModal('m-block')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-b" style="text-align:center">
+        <div id="block-icon-wrap" class="confirm-icon red">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        </div>
+        <div class="confirm-desc" id="block-desc"></div>
+      </div>
+      <div class="modal-f">
+        <button class="tb-btn" onclick="closeModal('m-block')">Скасувати</button>
+        <button class="tb-btn" id="block-confirm-btn" onclick="doToggleBlock()">Підтвердити</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE TEACHER MODAL -->
+  <div class="modal-bd" id="m-delete">
+    <div class="modal" style="max-width:480px">
+      <div class="modal-h">
+        <h3>Видалити викладача?</h3>
+        <button class="close" onclick="closeModal('m-delete')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-b">
+        <div class="confirm-icon red" style="margin:0 auto 12px">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        </div>
+        <div class="confirm-desc">Ця дія <strong>незворотна</strong></div>
+
+        <div class="delete-warn">
+          <div class="head">
+            Буде остаточно видалено акаунт <strong id="del-name"></strong>
+            <span class="login">(@<span id="del-login"></span>)</span>
+          </div>
+          <div class="list">
+            <strong>Буде видалено:</strong><br>
+            • Акаунт користувача<br>
+            • Всі тести цього викладача<br>
+            • Всі спроби, студенти, посилання, папки<br>
+            • Індивідуальні AI налаштування
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-l">Для підтвердження введіть логін <strong id="del-login-confirm" style="font-family:'Geist Mono',monospace"></strong></div>
+          <input class="field-input" id="del-confirm-inp" placeholder="Введіть логін..." autocomplete="off" oninput="checkDeleteConfirm()">
+        </div>
+
+        <div class="mod-err" id="del-err" style="margin-top:10px"></div>
+      </div>
+      <div class="modal-f">
+        <button class="tb-btn" onclick="closeModal('m-delete')">Скасувати</button>
+        <button class="tb-btn danger" id="del-confirm-btn" onclick="confirmDeleteTeacher()" disabled>Видалити назавжди</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI SETTINGS MODAL -->
+  <div class="modal-bd" id="m-ai">
+    <div class="modal" style="max-width:500px">
+      <div class="modal-h">
+        <h3>AI налаштування</h3>
+        <button class="close" onclick="closeModal('m-ai')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-b">
+        <div style="display:flex; align-items:center; gap:12px; margin-top:-4px">
+          <div style="width:40px; height:40px; border-radius:11px; background:linear-gradient(135deg, #EDE9FE, #DDD6FE); color:#6D28D9; display:grid; place-items:center; flex:0 0 auto">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.5 6 6 1.5-6 1.5L12 17l-1.5-6-6-1.5 6-1.5z"/></svg>
+          </div>
+          <div>
+            <div style="font-size:14px; font-weight:700">Індивідуальні налаштування</div>
+            <div style="font-size:12px; color:var(--ink-500); margin-top:2px" id="ai-modal-sub">Викладач</div>
+          </div>
+        </div>
+
+        <div class="ai-source-info" id="ai-modal-source">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r=".8" fill="currentColor"/></svg>
+          Встановлені індивідуальні налаштування (перекривають глобальні)
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px">
+          <div class="feat-row">
+            <div class="feat-row-l">
+              <div class="feat-icon" style="background:rgba(124,58,237,.1); color:#6D28D9">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              </div>
+              <div>
+                <div class="feat-name">AI коментарі студентам</div>
+                <div class="feat-desc">Коментар після проходження тесту</div>
+              </div>
+            </div>
+            <label class="toggle-sw"><input type="checkbox" id="t-ai-comments"><span class="toggle-sl"></span></label>
+          </div>
+          <div class="feat-row">
+            <div class="feat-row-l">
+              <div class="feat-icon" style="background:rgba(59,130,246,.1); color:#1D4ED8">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>
+              <div>
+                <div class="feat-name">Персональний розбір помилок</div>
+                <div class="feat-desc">Детальний аналіз помилок студента</div>
+              </div>
+            </div>
+            <label class="toggle-sw"><input type="checkbox" id="t-ai-analysis"><span class="toggle-sl"></span></label>
+          </div>
+          <div class="feat-row">
+            <div class="feat-row-l">
+              <div class="feat-icon" style="background:rgba(245,158,11,.1); color:#B45309">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              </div>
+              <div>
+                <div class="feat-name">Генерація питань</div>
+                <div class="feat-desc">AI генерація в конструкторі тестів</div>
+              </div>
+            </div>
+            <label class="toggle-sw"><input type="checkbox" id="t-ai-generation"><span class="toggle-sl"></span></label>
+          </div>
+          <div class="feat-row">
+            <div class="feat-row-l">
+              <div class="feat-icon" style="background:rgba(22,163,74,.1); color:#15803D">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </div>
+              <div>
+                <div class="feat-name">Перевірка текстових відповідей</div>
+                <div class="feat-desc">AI оцінка текстових і числових відповідей</div>
+              </div>
+            </div>
+            <label class="toggle-sw"><input type="checkbox" id="t-ai-textcheck"><span class="toggle-sl"></span></label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-f between">
+        <button class="tb-btn ghost" onclick="resetTeacherAI()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>
+          До глобальних
+        </button>
+        <button class="tb-btn primary" onclick="saveTeacherAI()">Зберегти</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div id="admin-toast" class="toast"></div>
+
+<script type="module">
+import { initAdminShell, loadAllTeachers, esc, formatTimeAgo, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast, genPass } from "./shared/admin-shell.js?v=1";
+
+const content = `
+  <!-- Stats strip -->
+  <div class="stats-strip" id="stats-strip"></div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <div class="seg" id="filter-seg">
+      <button data-filter="all" class="on">Всі <span class="badge" id="cnt-all">0</span></button>
+      <button data-filter="active">Активні <span class="badge" id="cnt-active">0</span></button>
+      <button data-filter="first">Перший вхід <span class="badge" id="cnt-first">0</span></button>
+      <button data-filter="blocked">Заблоковані <span class="badge" id="cnt-blocked">0</span></button>
+    </div>
+    <div class="search-input">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input class="input" id="tc-search" type="text" placeholder="Пошук за іменем або логіном…" autocomplete="off">
+    </div>
+    <span class="tc-meta" id="tc-meta">—</span>
+  </div>
+
+  <!-- Cards grid -->
+  <div class="grid-cards" id="teacher-grid"></div>
+`;
+
+const topbarRight = `
+  <button class="tb-btn" id="btn-refresh">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.7L4 16"/><path d="M4 20v-4h4"/></svg>
+    Оновити
+  </button>
+  <button class="tb-btn primary" onclick="openCreateModal()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Новий викладач
+  </button>
+`;
+
+const { _user } = await initAdminShell({
+  activeId: "teachers",
+  crumbs: ["Викладачі"],
+  content,
+  topbarRight
+});
+
+// Page-head
+const contentEl = document.getElementById("admin-content");
+if (contentEl){
+  const pageHead = document.createElement("div");
+  pageHead.className = "page-head";
+  pageHead.innerHTML = `
+    <div>
+      <h1>Викладачі</h1>
+      <p>Управління акаунтами, паролями та AI налаштуваннями</p>
+    </div>
+  `;
+  contentEl.insertBefore(pageHead, contentEl.firstChild);
+}
+
+// ─── State ────────────────────────────────────────────────────────────────
+let _teacherFilter = "all";
+let _newPass = "";
+let _resetUid = "", _resetPass = "";
+let _blockUid = "", _blockCurrent = false;
+let _delUid = "", _delLogin = "";
+let _aiTeacherId = "";
+
+// ─── Render ───────────────────────────────────────────────────────────────
+function renderAll(){
+  const _users = window._users || [];
+  const _stats = window._stats || {};
+
+  // Stats strip
+  const total = _users.length;
+  const blocked = _users.filter(u => u.blocked).length;
+  const first = _users.filter(u => u.isFirstLogin && !u.blocked).length;
+  const active = total - blocked - first;
+  const admins = _users.filter(u => u.role === "admin").length;
+
+  document.getElementById("stats-strip").innerHTML = `
+    <div class="ssl violet">
+      <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.6 2-4.8 4.5-5"/></svg></div>
+      <div><div class="v">${total}</div><div class="l">Всього</div></div>
+    </div>
+    <div class="ssl green">
+      <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div><div class="v">${active}</div><div class="l">Активних</div></div>
+    </div>
+    <div class="ssl amber">
+      <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 21h20z"/><path d="M12 10v5"/><circle cx="12" cy="18" r=".8" fill="currentColor"/></svg></div>
+      <div><div class="v">${first}</div><div class="l">Очікують входу</div></div>
+    </div>
+    <div class="ssl red">
+      <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
+      <div><div class="v">${blocked}</div><div class="l">Заблоковані</div></div>
+    </div>
+  `;
+
+  // Filter counts
+  document.getElementById("cnt-all").textContent     = total;
+  document.getElementById("cnt-active").textContent  = active;
+  document.getElementById("cnt-first").textContent   = first;
+  document.getElementById("cnt-blocked").textContent = blocked;
+
+  renderGrid();
+}
+
+function renderGrid(){
+  const _users = window._users || [];
+  const _stats = window._stats || {};
+  const search = (document.getElementById("tc-search")?.value || "").trim().toLowerCase();
+
+  let list = [..._users];
+
+  if (_teacherFilter === "active")        list = list.filter(u => !u.blocked && !u.isFirstLogin);
+  else if (_teacherFilter === "blocked")  list = list.filter(u => u.blocked === true);
+  else if (_teacherFilter === "first")    list = list.filter(u => u.isFirstLogin === true && !u.blocked);
+
+  if (search){
+    list = list.filter(u =>
+      (u.name || "").toLowerCase().includes(search) ||
+      (u.login || "").toLowerCase().includes(search)
+    );
+  }
+
+  list.sort((a, b) => {
+    const aw = a.blocked ? 2 : (a.isFirstLogin ? 1 : 0);
+    const bw = b.blocked ? 2 : (b.isFirstLogin ? 1 : 0);
+    if (aw !== bw) return aw - bw;
+    return (_stats[b.id]?.attempts || 0) - (_stats[a.id]?.attempts || 0);
+  });
+
+  document.getElementById("tc-meta").textContent = `${list.length} / ${_users.length}`;
+
+  const grid = document.getElementById("teacher-grid");
+  if (!list.length){
+    grid.innerHTML = `<div class="empty-grid">
+      <div class="ei"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+      <div class="et">Нічого не знайдено</div>
+      <div style="font-size:13px">Спробуйте інший пошуковий запит або фільтр</div>
+    </div>`;
+    return;
+  }
+
+  const AVA_PALETTE = ["", "b", "g", "o", "r"];
+
+  grid.innerHTML = list.map(u => {
+    const s = _stats[u.id] || {};
+    const isMe = u.id === _user.id;
+    const isBlocked = u.blocked === true;
+    const isFirst = u.isFirstLogin === true && !isBlocked;
+    const initials = (u.name || u.login || "?").slice(0, 2).toUpperCase();
+    const seed = (u.name || u.login || "").charCodeAt(0) || 0;
+    const avaCls = AVA_PALETTE[seed % AVA_PALETTE.length];
+
+    const roleLabel = u.role === "admin"
+      ? `<span class="badge-role admin">Адмін</span>`
+      : `<span class="badge-role">Викладач</span>`;
+
+    const statusEl = isBlocked
+      ? `<span class="tcard-status blocked">Заблокований</span>`
+      : isFirst
+      ? `<span class="tcard-status first">Перший вхід</span>`
+      : `<span class="tcard-status online">Активний</span>`;
+
+    const lastActStr = s.lastAct
+      ? new Date(s.lastAct).toLocaleDateString("uk-UA", { day:"numeric", month:"short" })
+      : "—";
+
+    const safeName = esc(u.name || u.login).replace(/'/g, "&#39;");
+    const safeLogin = esc(u.login).replace(/'/g, "&#39;");
+
+    return `<div class="tcard ${isBlocked?"is-blocked":""} ${isMe?"is-me":""}">
+      <div class="tcard-top">
+        <div class="ava ${avaCls}">${esc(initials)}</div>
+        <div class="tcard-info">
+          <div class="tcard-name-row">
+            <span class="name">${esc(u.name || "—")}</span>
+            ${isMe ? '<span class="me-tag">(ви)</span>' : ""}
+            ${roleLabel}
+            ${statusEl}
+          </div>
+          <div class="user">@${esc(u.login)}</div>
+        </div>
+      </div>
+
+      <div class="tcard-stats">
+        <div class="it"><div class="v">${s.tests || 0}</div><div class="l">Тестів</div></div>
+        <div class="it"><div class="v" style="color:#15803D">${s.activeTests || 0}</div><div class="l">Активних</div></div>
+        <div class="it"><div class="v" style="color:#6D28D9">${s.students || 0}</div><div class="l">Студентів</div></div>
+        <div class="it"><div class="v" style="color:#B45309">${s.attempts || 0}</div><div class="l">Спроб</div></div>
+      </div>
+
+      <div class="tcard-foot">
+        <span class="last-act">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ${lastActStr}
+        </span>
+        ${(s.weekAttempts || 0) > 0 ? `<span style="font-family:'Geist Mono',monospace; color:#15803D; font-weight:700">+${s.weekAttempts} <span style="color:var(--ink-400); font-weight:500">тиждень</span></span>` : ""}
+        <span class="spacer"></span>
+      </div>
+
+      <div class="tcard-actions">
+        <button class="tc-act ai" onclick="openAIModal('${u.id}','${safeName}')" title="Налаштування AI">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.5 6 6 1.5-6 1.5L12 17l-1.5-6-6-1.5 6-1.5z"/></svg>
+          AI
+        </button>
+        ${!isMe ? `<button class="tc-act" onclick="openResetModal('${u.id}','${safeName}')" title="Скинути пароль">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          Пароль
+        </button>` : ""}
+        ${!isMe ? `<button class="tc-act" onclick="openBlockModal('${u.id}','${safeName}',${isBlocked})" title="${isBlocked?"Розблокувати":"Заблокувати"}" style="${isBlocked ? "color:#15803D" : ""}">
+          ${isBlocked
+            ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Розблок.`
+            : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Блок`}
+        </button>` : ""}
+        ${!isMe ? `<button class="tc-act danger" onclick="openDeleteTeacher('${u.id}','${safeName}','${safeLogin}')" title="Видалити повністю">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        </button>` : ""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ─── Filter / search handlers ─────────────────────────────────────────────
+document.querySelectorAll("#filter-seg button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    _teacherFilter = btn.dataset.filter;
+    document.querySelectorAll("#filter-seg button").forEach(b => b.classList.toggle("on", b === btn));
+    renderGrid();
+  });
+});
+
+document.getElementById("tc-search").addEventListener("input", renderGrid);
+
+document.getElementById("btn-refresh").addEventListener("click", async () => {
+  const btn = document.getElementById("btn-refresh");
+  btn.disabled = true; btn.style.opacity = "0.5";
+  await loadAllTeachers();
+  renderAll();
+  btn.disabled = false; btn.style.opacity = "";
+});
+
+// ─── CREATE TEACHER ───────────────────────────────────────────────────────
+window.openCreateModal = () => {
+  ["new-name", "new-login"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("new-role").value = "teacher";
+  const errEl = document.getElementById("create-err");
+  errEl.textContent = ""; errEl.classList.remove("show");
+  document.getElementById("created-box").style.display = "none";
+  document.getElementById("create-btn").style.display = "";
+  openModal("m-create");
+  setTimeout(() => document.getElementById("new-name").focus(), 100);
+};
+
+window.createTeacher = async () => {
+  const name = document.getElementById("new-name").value.trim();
+  const login = document.getElementById("new-login").value.trim().toLowerCase().replace(/\s/g, "_");
+  const role = document.getElementById("new-role").value;
+  const errEl = document.getElementById("create-err");
+
+  const showErr = (msg) => { errEl.textContent = msg; errEl.classList.add("show"); };
+  const hideErr = () => { errEl.classList.remove("show"); };
+
+  if (!name) return showErr("Введіть ім'я");
+  if (!login) return showErr("Введіть логін");
+  if (!/^[a-z0-9_]+$/.test(login)) return showErr("Логін: лише латиниця, цифри, _");
+  if ((window._users||[]).some(u => u.login === login)) return showErr("Цей логін вже зайнятий");
+  hideErr();
+
+  _newPass = genPass();
+  try {
+    const uid = "u" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    await dbSet(`users/${uid}`, {
+      name, login, uid, role,
+      password: _newPass,
+      isFirstLogin: true,
+      createdAt: Date.now()
+    });
+    document.getElementById("created-pass").textContent = _newPass;
+    document.getElementById("created-box").style.display = "";
+    document.getElementById("create-btn").style.display = "none";
+    await loadAllTeachers();
+    renderAll();
+    toast("Викладача створено");
+  } catch (e) {
+    showErr("Помилка: " + e.message);
+  }
+};
+
+window.copyPass = (elId) => {
+  const val = document.getElementById(elId)?.textContent;
+  if (val) navigator.clipboard.writeText(val).then(() => toast("Скопійовано"));
+};
+
+// ─── RESET PASSWORD ───────────────────────────────────────────────────────
+window.openResetModal = (uid, name) => {
+  _resetUid = uid; _resetPass = "";
+  document.getElementById("reset-name-lbl").textContent = name;
+  document.getElementById("reset-box").style.display = "none";
+  document.getElementById("reset-actions").style.display = "";
+  openModal("m-reset");
+};
+
+window.doResetPassword = async () => {
+  _resetPass = genPass();
+  try {
+    await dbUpd(`users/${_resetUid}`, { password: _resetPass, isFirstLogin: true });
+    document.getElementById("reset-pass").textContent = _resetPass;
+    document.getElementById("reset-box").style.display = "";
+    document.getElementById("reset-actions").style.display = "none";
+    await loadAllTeachers();
+    renderAll();
+    toast("Пароль скинуто");
+  } catch (e) {
+    toast("Помилка: " + e.message);
+  }
+};
+
+// ─── BLOCK / UNBLOCK ──────────────────────────────────────────────────────
+window.openBlockModal = (uid, name, isBlocked) => {
+  _blockUid = uid; _blockCurrent = isBlocked;
+
+  const iconWrap = document.getElementById("block-icon-wrap");
+  iconWrap.className = "confirm-icon " + (isBlocked ? "green" : "red");
+  iconWrap.innerHTML = isBlocked
+    ? '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
+    : '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>';
+
+  document.getElementById("block-title").textContent = isBlocked ? "Розблокувати?" : "Заблокувати?";
+  document.getElementById("block-desc").innerHTML = isBlocked
+    ? `Відновити доступ для <strong>${esc(name)}</strong>?`
+    : `Заблокувати акаунт <strong>${esc(name)}</strong>?<br>Викладач більше не зможе увійти.`;
+
+  const btn = document.getElementById("block-confirm-btn");
+  btn.className = "tb-btn " + (isBlocked ? "primary" : "danger");
+  btn.textContent = isBlocked ? "Розблокувати" : "Заблокувати";
+
+  openModal("m-block");
+};
+
+window.doToggleBlock = async () => {
+  try {
+    await dbUpd(`users/${_blockUid}`, { blocked: !_blockCurrent });
+    closeModal("m-block");
+    await loadAllTeachers();
+    renderAll();
+    toast(_blockCurrent ? "Розблоковано" : "Заблоковано");
+  } catch (e) {
+    toast("Помилка: " + e.message);
+  }
+};
+
+// ─── DELETE TEACHER ───────────────────────────────────────────────────────
+window.openDeleteTeacher = (uid, name, login) => {
+  _delUid = uid; _delLogin = login;
+  document.getElementById("del-name").textContent = name;
+  document.getElementById("del-login").textContent = login;
+  document.getElementById("del-login-confirm").textContent = login;
+  document.getElementById("del-confirm-inp").value = "";
+  const errEl = document.getElementById("del-err");
+  errEl.textContent = ""; errEl.classList.remove("show");
+  const btn = document.getElementById("del-confirm-btn");
+  btn.disabled = true; btn.textContent = "Видалити назавжди";
+  openModal("m-delete");
+  setTimeout(() => document.getElementById("del-confirm-inp").focus(), 100);
+};
+
+window.checkDeleteConfirm = () => {
+  const val = document.getElementById("del-confirm-inp").value.trim().toLowerCase();
+  const btn = document.getElementById("del-confirm-btn");
+  btn.disabled = val !== _delLogin.toLowerCase();
+};
+
+window.confirmDeleteTeacher = async () => {
+  if (!_delUid) return;
+  const btn = document.getElementById("del-confirm-btn");
+  const errEl = document.getElementById("del-err");
+  btn.disabled = true; btn.textContent = "Видалення...";
+
+  try {
+    await Promise.all([
+      dbRemove(`users/${_delUid}`),
+      dbRemove(`teachers/${_delUid}`)
+    ]);
+    closeModal("m-delete");
+    _delUid = ""; _delLogin = "";
+    await loadAllTeachers();
+    renderAll();
+    toast("Викладача та всі його дані видалено");
+  } catch (e) {
+    errEl.textContent = "Помилка: " + e.message; errEl.classList.add("show");
+    btn.disabled = false; btn.textContent = "Видалити назавжди";
+  }
+};
+
+// ─── AI SETTINGS ──────────────────────────────────────────────────────────
+window.openAIModal = async (uid, name) => {
+  _aiTeacherId = uid;
+  document.getElementById("ai-modal-sub").textContent = name;
+
+  // Глобальні дефолти
+  let globalSettings = { aiComments:true, aiAnalysis:true, aiGeneration:true, aiTextCheck:true };
+  try {
+    const g = await dbGet("settings/ai");
+    if (g){
+      globalSettings = {
+        aiComments:   g.aiComments   !== false,
+        aiAnalysis:   g.aiAnalysis   !== false,
+        aiGeneration: g.aiGeneration !== false,
+        aiTextCheck:  g.aiTextCheck  !== false
+      };
+    }
+  } catch {}
+
+  // Індивідуальні
+  let hasCustom = false;
+  let settings = { ...globalSettings };
+  try {
+    const t = await dbGet(`users/${uid}/aiSettings`);
+    if (t){
+      hasCustom = true;
+      settings = {
+        aiComments:   t.aiComments   !== undefined ? t.aiComments   : globalSettings.aiComments,
+        aiAnalysis:   t.aiAnalysis   !== undefined ? t.aiAnalysis   : globalSettings.aiAnalysis,
+        aiGeneration: t.aiGeneration !== undefined ? t.aiGeneration : globalSettings.aiGeneration,
+        aiTextCheck:  t.aiTextCheck  !== undefined ? t.aiTextCheck  : globalSettings.aiTextCheck
+      };
+    }
+  } catch {}
+
+  document.getElementById("t-ai-comments").checked   = settings.aiComments;
+  document.getElementById("t-ai-analysis").checked   = settings.aiAnalysis;
+  document.getElementById("t-ai-generation").checked = settings.aiGeneration;
+  document.getElementById("t-ai-textcheck").checked  = settings.aiTextCheck;
+
+  document.getElementById("ai-modal-source").classList.toggle("show", hasCustom);
+
+  openModal("m-ai");
+};
+
+window.saveTeacherAI = async () => {
+  const settings = {
+    aiComments:   document.getElementById("t-ai-comments").checked,
+    aiAnalysis:   document.getElementById("t-ai-analysis").checked,
+    aiGeneration: document.getElementById("t-ai-generation").checked,
+    aiTextCheck:  document.getElementById("t-ai-textcheck").checked,
+    updatedAt:    Date.now()
+  };
+  try {
+    await dbUpd(`users/${_aiTeacherId}/aiSettings`, settings);
+    document.getElementById("ai-modal-source").classList.add("show");
+    closeModal("m-ai");
+    toast("Налаштування AI збережено");
+  } catch (e) {
+    toast("Помилка: " + e.message);
+  }
+};
+
+window.resetTeacherAI = async () => {
+  try {
+    await dbUpd(`users/${_aiTeacherId}`, { aiSettings: null });
+    document.getElementById("ai-modal-source").classList.remove("show");
+    closeModal("m-ai");
+    toast("Скинуто до глобальних налаштувань");
+  } catch (e) {
+    toast("Помилка: " + e.message);
+  }
+};
+
+// Close modal on backdrop click
+document.querySelectorAll(".modal-bd").forEach(m => {
+  m.addEventListener("click", e => {
+    if (e.target === m) m.classList.remove("on");
+  });
+});
+// Esc closes modals
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape"){
+    document.querySelectorAll(".modal-bd.on").forEach(m => m.classList.remove("on"));
+  }
+});
+
+// First load
+await loadAllTeachers();
+renderAll();
+</script>
+</body>
+</html>
