@@ -136,6 +136,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--ink-900);font-fami
 .tb-btn.primary{
   background: linear-gradient(135deg,#7C3AED,#4F46E5);
   border-color:transparent;color:#fff;
+  text-decoration: none;
   box-shadow: 0 8px 20px -10px rgba(124,58,237,.7);
 }
 .tb-btn.primary:hover{filter:brightness(1.06)}
