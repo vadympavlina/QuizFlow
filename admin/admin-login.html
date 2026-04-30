@@ -256,8 +256,9 @@
   }
 
   // Якщо вже залогінений як адмін — одразу в overview
+  // Читаємо обидва сховища (localStorage основне, sessionStorage — fallback)
   try {
-    const sess = sessionStorage.getItem("qf_user");
+    const sess = localStorage.getItem("qf_user") || sessionStorage.getItem("qf_user");
     if (sess) {
       const u = JSON.parse(sess);
       if (u && u.role === "admin" && !u.blocked) {
@@ -289,7 +290,10 @@
       if (found.role !== "admin") { showErr("Доступ заборонено — тільки для адміністраторів"); setBusy(false); return; }
       if (found.blocked) { showErr("Акаунт заблоковано"); setBusy(false); return; }
 
-      sessionStorage.setItem("qf_user", JSON.stringify(found));
+      // Зберігаємо в localStorage щоб сесія залишалась між закриттями браузера
+      localStorage.setItem("qf_user", JSON.stringify(found));
+      // Чистимо старий sessionStorage щоб не плутав
+      sessionStorage.removeItem("qf_user");
       location.href = "overview.html";
     } catch (e) {
       showErr("Помилка з'єднання: " + (e.message || "невідома"));
