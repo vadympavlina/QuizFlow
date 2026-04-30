@@ -27,12 +27,29 @@ window._fb = { db, ref, get, set, push, update, remove, onValue, off };
 export { db, ref, get, set, push, update, remove, onValue, off };
 
 // ─── Auth ──────────────────────────────────────────────────────────────
-const _sess = sessionStorage.getItem("qf_user");
+// Читаємо обидва сховища: localStorage основне, sessionStorage — fallback (legacy).
+// Так сесія переживає закриття вкладки/браузера.
+const _sess = localStorage.getItem("qf_user") || sessionStorage.getItem("qf_user");
 if (!_sess) { location.href = "login.html"; throw new Error("no session"); }
 let _user;
 try { _user = JSON.parse(_sess); }
-catch { sessionStorage.clear(); location.href = "login.html"; throw new Error("bad session"); }
-if (!_user || !_user.id) { sessionStorage.clear(); location.href = "login.html"; throw new Error("no user id"); }
+catch {
+  localStorage.removeItem("qf_user");
+  sessionStorage.removeItem("qf_user");
+  location.href = "login.html";
+  throw new Error("bad session");
+}
+if (!_user || !_user.id) {
+  localStorage.removeItem("qf_user");
+  sessionStorage.removeItem("qf_user");
+  location.href = "login.html";
+  throw new Error("no user id");
+}
+
+// Якщо знайшли в sessionStorage — мігруємо в localStorage щоб надалі не губилось
+if (!localStorage.getItem("qf_user")) {
+  try { localStorage.setItem("qf_user", _sess); } catch {}
+}
 
 export const user = _user;
 export const uid = _user.id;
@@ -73,6 +90,8 @@ window.toArr = toArr;
 
 // ─── Logout ────────────────────────────────────────────────────────────
 window.doLogout = () => {
+  // Чистимо обидва сховища (qf_user + кеші)
+  localStorage.removeItem("qf_user");
   sessionStorage.clear();
   location.href = "login.html";
 };
@@ -278,6 +297,7 @@ async function loadAllData() {
   try {
     const uSnap = await get(ref(db, `users/${uid}`));
     if (uSnap.exists() && uSnap.val().blocked === true) {
+      localStorage.removeItem("qf_user");
       sessionStorage.clear();
       alert("Ваш акаунт заблоковано. Зверніться до адміністратора.");
       location.href = "login.html";
