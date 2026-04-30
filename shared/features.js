@@ -3494,6 +3494,15 @@ selectAnalyticsDrop(field, value, label){
  
       filtersDiv.innerHTML = `
         <span class="sp-fb-l">Фільтри:</span>
+
+        <div class="sp-drop" id="susp-group-wrap">
+          <button onclick="event.stopPropagation();G.toggleSuspDrop('group')" id="susp-group-btn">
+            <span id="susp-group-label">Усі групи</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="sp-drop-menu" id="susp-group-menu">${groupOpts}</div>
+        </div>
+ 
  
         <div class="sp-drop" id="susp-test-wrap">
           <button onclick="event.stopPropagation();G.toggleSuspDrop('test')" id="susp-test-btn">
@@ -3501,14 +3510,6 @@ selectAnalyticsDrop(field, value, label){
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="sp-drop-menu" id="susp-test-menu">${testOpts}</div>
-        </div>
- 
-        <div class="sp-drop" id="susp-group-wrap">
-          <button onclick="event.stopPropagation();G.toggleSuspDrop('group')" id="susp-group-btn">
-            <span id="susp-group-label">Усі групи</span>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div class="sp-drop-menu" id="susp-group-menu">${groupOpts}</div>
         </div>
  
         <div class="sp-drop" id="susp-date-wrap">
