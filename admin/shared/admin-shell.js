@@ -82,19 +82,27 @@ export function toast(msg){
 }
 
 // ─── Auth ───────────────────────────────────────────────────────────────────
+// Зберігаємо user у localStorage щоб сесія жила між закриттями браузера.
+// sessionStorage читається як fallback — для backward compat з існуючими сесіями.
 
 function getCurrentUser(){
-  const sess = sessionStorage.getItem("qf_user");
-  if (!sess) return null;
+  let raw = localStorage.getItem("qf_user");
+  if (!raw) raw = sessionStorage.getItem("qf_user");
+  if (!raw) return null;
   try {
-    const u = JSON.parse(sess);
+    const u = JSON.parse(raw);
     if (!u || u.role !== "admin") return null;
+    // Якщо знайшли в sessionStorage — мігруємо в localStorage щоб надалі не губилось
+    if (!localStorage.getItem("qf_user")) {
+      try { localStorage.setItem("qf_user", raw); } catch {}
+    }
     return u;
   } catch { return null; }
 }
 
 export function doLogout(){
-  sessionStorage.clear();
+  localStorage.removeItem("qf_user");
+  sessionStorage.removeItem("qf_user");
   location.href = "admin-login.html";
 }
 
