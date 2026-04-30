@@ -3,14 +3,182 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/><circle cx='24' cy='22' r='5' fill='none' stroke='white' stroke-width='2.2'/><line x1='27.5' y1='25.5' x2='29.5' y2='27.5' stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%231E3A8A'/><stop offset='1' stop-color='%233B82F6'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><path d='M16 8a5 5 0 00-5 5v4l-2 3h14l-2-3v-4a5 5 0 00-5-5z' fill='white'/><path d='M14 24a2 2 0 004 0' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'/></svg>">
 <title>QuizFlow — Сповіщення</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
-<link rel="modulepreload" href="shared/app.js?v=13">
-<link rel="preload" as="fetch" href="shared/layout.html?v=13" crossorigin>
-<link rel="modulepreload" href="shared/features.js?v=13">
+<link rel="modulepreload" href="shared/app.js?v=15">
+<link rel="preload" as="fetch" href="shared/layout.html?v=15" crossorigin>
+<link rel="modulepreload" href="shared/features.js?v=15">
+
+<style>
+/* ── Page tokens (not present in shared styles.css) ── */
+#sec-notifications{
+  --ink-900:#0B1437; --ink-700:#24335A; --ink-500:#5B6A8F; --ink-400:#8691AC; --ink-300:#A8B2C9;
+  --line:#E3E8F2; --line-strong:#CDD6E8;
+  --nav-600:#1E3A8A; --nav-accent:#3B82F6;
+  --good:#16A34A; --warn:#F59E0B; --bad:#DC2626;
+  font-family:"Manrope",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  color:var(--ink-900);
+}
+#sec-notifications .mono{font-family:"Geist Mono",monospace}
+
+/* Page head */
+#sec-notifications .nf-head{
+  display:flex; align-items:flex-end; justify-content:space-between; gap:18px;
+  margin-bottom:16px;
+}
+#sec-notifications .nf-head h1{margin:0; font-size:26px; font-weight:800; letter-spacing:-.02em; font-family:"Manrope",sans-serif; color:var(--ink-900)}
+#sec-notifications .nf-head p{margin:4px 0 0; color:var(--ink-500); font-size:13.5px}
+
+#sec-notifications .nf-actions{display:flex; align-items:center; gap:8px}
+
+/* Buttons */
+#sec-notifications .nf-btn{
+  background:#fff; border:1px solid var(--line); border-radius:9px;
+  padding:8px 14px; font:inherit; font-size:13px; font-weight:600; color:var(--ink-700);
+  cursor:pointer; display:inline-flex; align-items:center; gap:7px;
+  transition: border-color .15s, background .15s, color .15s;
+  font-family:"Manrope",sans-serif;
+}
+#sec-notifications .nf-btn:hover{border-color:var(--line-strong); background:#FAFBFE}
+#sec-notifications .nf-btn.danger{color:#B91C1C; border-color:#FECACA; background:#FEF7F7}
+#sec-notifications .nf-btn.danger:hover{background:#FEE2E2; border-color:#FCA5A5}
+#sec-notifications .nf-btn.icon{padding:0; width:36px; height:36px; justify-content:center}
+#sec-notifications .nf-btn svg{width:13px; height:13px; flex:0 0 auto}
+
+/* Card wrapper */
+#sec-notifications .nf-card{
+  background:#fff; border:1px solid var(--line); border-radius:18px;
+  overflow:hidden;
+}
+
+/* Tabs */
+#sec-notifications .nf-tabs-wrap{
+  display:flex; align-items:center; justify-content:space-between; gap:14px;
+  padding:14px 18px; border-bottom:1px solid var(--line); background:#FAFBFE;
+}
+#sec-notifications .nf-tabs{
+  display:inline-flex; background:#fff; border:1px solid var(--line);
+  border-radius:10px; padding:3px; gap:1px;
+}
+#sec-notifications .nf-tab{
+  background:transparent; border:0; padding:7px 13px; border-radius:7px;
+  font:inherit; font-size:12.5px; font-weight:600; color:var(--ink-500); cursor:pointer;
+  display:inline-flex; align-items:center; gap:6px; font-family:"Manrope",sans-serif;
+  transition: background .15s, color .15s;
+}
+#sec-notifications .nf-tab:hover:not(.on){color:var(--ink-700); background:#FAFBFE}
+#sec-notifications .nf-tab.on{background:var(--nav-600); color:#fff}
+#sec-notifications .nf-tab .cnt{
+  font-family:"Geist Mono",monospace; font-size:10.5px; font-weight:700;
+  padding:1px 7px; border-radius:999px;
+  background:rgba(11,20,55,.07); color:var(--ink-500);
+}
+#sec-notifications .nf-tab.on .cnt{background:rgba(255,255,255,.18); color:#fff}
+#sec-notifications .nf-tab.on .cnt.warn{background:#fff; color:var(--bad)}
+
+#sec-notifications .nf-meta-r{font-size:12px; color:var(--ink-500); font-family:"Geist Mono",monospace; font-weight:600}
+
+/* Items */
+#sec-notifications .nf-list{display:flex; flex-direction:column}
+
+#sec-notifications .nf-day-sep{
+  display:flex; align-items:center; gap:10px;
+  padding:14px 18px 6px;
+  background:#fff;
+}
+#sec-notifications .nf-day-sep .ln{flex:1; height:1px; background:var(--line)}
+#sec-notifications .nf-day-sep .lbl{
+  font-size:11px; text-transform:uppercase; letter-spacing:.08em;
+  color:var(--ink-400); font-weight:700; white-space:nowrap;
+}
+
+#sec-notifications .notif{
+  display:flex; gap:14px; padding:16px 18px; align-items:flex-start; cursor:pointer;
+  position:relative; border-bottom:1px solid var(--line);
+  transition:background .12s;
+}
+#sec-notifications .notif:last-child{border-bottom:0}
+#sec-notifications .notif:hover{background:#FAFBFE}
+#sec-notifications .notif.unread{background:#F2F7FF}
+#sec-notifications .notif.unread:hover{background:#E8F0FF}
+#sec-notifications .notif.unread::before{
+  content:""; position:absolute; left:6px; top:50%; transform:translateY(-50%);
+  width:6px; height:6px; background:var(--nav-accent); border-radius:50%;
+  box-shadow:0 0 0 2px rgba(59,130,246,.15);
+}
+
+#sec-notifications .notif-ico{
+  width:40px; height:40px; border-radius:12px; display:grid; place-items:center;
+  flex:0 0 auto; font-size:18px; line-height:1;
+}
+#sec-notifications .notif-ico.ok   {background:#DCFCE7; color:#15803D}
+#sec-notifications .notif-ico.warn {background:#FEF3C7; color:#B45309}
+#sec-notifications .notif-ico.bad  {background:#FEE2E2; color:#B91C1C}
+#sec-notifications .notif-ico.info {background:#DBEAFE; color:#1E40AF}
+
+#sec-notifications .notif-body{flex:1; min-width:0; display:flex; flex-direction:column; gap:3px}
+#sec-notifications .notif-title{font-weight:700; font-size:14px; color:var(--ink-900); letter-spacing:-.005em; line-height:1.3}
+#sec-notifications .notif-text{font-size:13px; color:var(--ink-700); line-height:1.5; word-break:break-word}
+#sec-notifications .notif-meta{font-size:11.5px; color:var(--ink-400); margin-top:6px; display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+#sec-notifications .notif-meta .item{display:inline-flex; align-items:center; gap:5px; font-family:"Geist Mono",monospace}
+#sec-notifications .notif-meta .item svg{opacity:.7}
+#sec-notifications .notif-meta .tag{
+  font-family:"Manrope",sans-serif;
+  font-size:10.5px; font-weight:700; letter-spacing:.04em;
+  padding:2px 7px; border-radius:5px;
+  background:#EEF2FB; color:var(--ink-700);
+}
+
+#sec-notifications .notif-actions{display:flex; flex-direction:column; gap:5px; flex-shrink:0}
+#sec-notifications .notif-actions .ib{
+  width:30px; height:30px; border-radius:8px;
+  background:#fff; border:1px solid var(--line);
+  color:var(--ink-500); cursor:pointer;
+  display:grid; place-items:center;
+  transition:all .15s; padding:0;
+}
+#sec-notifications .notif-actions .ib:hover{background:#F4F6FB; border-color:var(--line-strong); color:var(--ink-700)}
+#sec-notifications .notif-actions .ib.d:hover{background:#FEE2E2; border-color:#FCA5A5; color:#B91C1C}
+#sec-notifications .notif-actions .ib svg{width:13px; height:13px}
+
+#sec-notifications .nf-shared-link{
+  display:inline-flex; align-items:center; gap:5px; margin-top:6px;
+  font-size:12px; font-weight:600; color:var(--nav-accent);
+  cursor:pointer; user-select:none;
+  font-family:"Manrope",sans-serif;
+}
+#sec-notifications .nf-shared-link:hover{color:var(--nav-600); text-decoration:underline}
+#sec-notifications .nf-shared-link svg{width:11px; height:11px}
+
+/* Empty */
+#sec-notifications .nf-empty{padding:60px 24px; text-align:center; color:var(--ink-500)}
+#sec-notifications .nf-empty .ei{
+  width:54px; height:54px; margin:0 auto 14px; border-radius:14px;
+  background:#EEF2FB; display:grid; place-items:center; color:var(--nav-600);
+}
+#sec-notifications .nf-empty .et{font-size:15px; font-weight:700; color:var(--ink-900); margin-bottom:4px; font-family:"Manrope",sans-serif}
+#sec-notifications .nf-empty .es{font-size:13px}
+
+/* Real-time chip */
+#sec-notifications .nf-rt{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 11px; border-radius:999px;
+  background:#DCFCE7; color:#15803D;
+  font-size:11.5px; font-weight:700; font-family:"Manrope",sans-serif;
+}
+#sec-notifications .nf-rt::before{
+  content:""; width:6px; height:6px; border-radius:50%; background:#22C55E;
+  animation:nfPulse 1.4s infinite;
+}
+@keyframes nfPulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* Sound button states */
+#sec-notifications .nf-btn.snd-off{opacity:.55}
+</style>
 </head>
 <body>
 
@@ -27,7 +195,7 @@
   </div>
 </div>
 
-<!-- Initial loader: видимий одразу при завантаженні HTML, зникає коли сторінка готова -->
+<!-- Initial loader -->
 <div id="app-loader" style="position:fixed;inset:0;background:#f0f3fa;z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .25s ease">
   <div style="width:44px;height:44px;border:3.5px solid rgba(45,91,227,.15);border-top-color:#2d5be3;border-radius:50%;animation:appSpin .8s linear infinite"></div>
   <div style="font-size:13px;color:#6b7280;margin-top:12px;font-family:'DM Sans',sans-serif">Завантаження...</div>
@@ -37,59 +205,76 @@
 <main class="main">
 
   <div class="sec on" id="sec-notifications">
-    <div class="ph">
+
+    <!-- Page head -->
+    <div class="nf-head">
       <div>
-        <div class="pt">Сповіщення</div>
-        <div class="ps">Активність студентів у реальному часі</div>
+        <h1>Сповіщення</h1>
+        <p><span id="nf-unread-count">0</span> непрочитаних · автоматичне оновлення</p>
       </div>
-      <div class="bg" style="align-items:center;gap:8px">
-        <!-- Фільтр -->
-        <div class="cd-wrap" id="cd-notif-filter">
-          <button class="cd-btn" onclick="G.toggleDrop('cd-notif-filter')">
-            <span class="cd-label" id="cd-notif-filter-label">Всі</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
+      <div class="nf-actions">
+        <span class="nf-rt">real-time</span>
+        <button class="nf-btn icon" id="notif-sound-btn" onclick="G.toggleNotifSound()" title="Звук сповіщень">🔔</button>
+        <button class="nf-btn" onclick="G.markAllNotifsAsRead()" title="Позначити всі прочитаними">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Прочитати всі
+        </button>
+        <button class="nf-btn danger" onclick="G.clearAllNotifs()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          Очистити
+        </button>
+      </div>
+    </div>
+
+    <!-- Card з табами + списком -->
+    <div class="nf-card">
+
+      <div class="nf-tabs-wrap">
+        <div class="nf-tabs" id="nf-tabs">
+          <button class="nf-tab on" data-val="">Всі <span class="cnt" id="cnt-all">0</span></button>
+          <button class="nf-tab" data-val="unread">Непрочитані <span class="cnt warn" id="cnt-unread">0</span></button>
+          <button class="nf-tab" data-val="warn">Підозрілі <span class="cnt" id="cnt-warn">0</span></button>
+          <button class="nf-tab" data-val="completed">Завершили <span class="cnt" id="cnt-completed">0</span></button>
+          <button class="nf-tab" data-val="started">Почали <span class="cnt" id="cnt-started">0</span></button>
+        </div>
+        <span class="nf-meta-r" id="nf-meta-r">—</span>
+
+        <!-- ОБОВ'ЯЗКОВО для compatibility з G.selectNotifFilter (не видаляти, просто сховано) -->
+        <div class="cd-wrap" id="cd-notif-filter" style="display:none">
           <div class="cd-menu" id="cd-notif-filter-menu">
-            <div class="cd-item cd-active" data-val="" onclick="G.selectNotifFilter('','Всі')">Всі</div>
-            <div class="cd-item" data-val="warn" onclick="G.selectNotifFilter('warn','⚠️ Підозрілі')">⚠️ Підозрілі</div>
-            <div class="cd-item" data-val="completed" onclick="G.selectNotifFilter('completed','✅ Завершили')">✅ Завершили</div>
-            <div class="cd-item" data-val="started" onclick="G.selectNotifFilter('started','🎓 Почали')">🎓 Почали</div>
+            <div class="cd-item cd-active" data-val="">Всі</div>
+            <div class="cd-item" data-val="warn">Підозрілі</div>
+            <div class="cd-item" data-val="completed">Завершили</div>
+            <div class="cd-item" data-val="started">Почали</div>
           </div>
-          <select id="notif-filter" style="display:none">
+          <select id="notif-filter">
             <option value="">Всі</option>
             <option value="warn">Підозрілі</option>
             <option value="completed">Завершили</option>
             <option value="started">Почали</option>
           </select>
         </div>
-        <button class="btn bs btn-sm" id="notif-sound-btn" onclick="G.toggleNotifSound()" style="font-size:13px" title="Звук сповіщень">🔔</button>
-        <button class="btn bs btn-sm" onclick="G.clearAllNotifs()" style="font-size:13px;color:var(--rose);border-color:rgba(244,63,94,.2)">🗑 Очистити</button>
       </div>
-    </div>
-    <div id="notif-list">
-      <div class="empty" style="padding:60px 20px">
-        <div class="ei">🔔</div>
-        <div class="et">Немає сповіщень</div>
-        <div class="es">Тут з'являтимуться повідомлення про активність студентів</div>
-      </div>
-    </div>
-  </div>
 
-  <!-- ANALYTICS -->
+      <div class="nf-list" id="notif-list">
+        <div class="nf-empty">
+          <div class="ei"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1112 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 004 0"/></svg></div>
+          <div class="et">Немає сповіщень</div>
+          <div class="es">Тут з'являтимуться повідомлення про активність студентів</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
 
 </main>
 
 <div id="modals-root"></div>
 
 <script type="module">
-// Паралельне завантаження: features.js починає качатись одразу, не чекає initApp
-// Спочатку app.js (щоб вставити window._fb і іншу базу),
-// потім features.js (він читає з window._fb).
-// Preload у <head> вже починає завантаження обох паралельно — тут тільки execute order.
-const { initApp } = await import("./shared/app.js?v=13");
-const featuresP = import("./shared/features.js?v=13");
+const { initApp } = await import("./shared/app.js?v=15");
+const featuresP = import("./shared/features.js?v=15");
 
-// showSec: залишаємось на сторінці якщо це та сама; інакше — йдемо на відповідний html
 window.showSec = function(name){
   if (name === "notifications") {
     document.querySelectorAll(".sec").forEach(s=>s.classList.remove("on"));
@@ -111,25 +296,31 @@ window.showSec = function(name){
   if (pageMap[name]) location.href = pageMap[name];
 };
 
-// initApp робить: sidebar load, auth, loadAllData
-// Паралельно вже тягнеться features.js
 await initApp("notifications");
-await featuresP;             // features.js точно готовий
-await window.initFeatures(); // запускає realtime + нотифікації
+await featuresP;
+await window.initFeatures();
 
 if (window.renderAll) window.renderAll();
-
-// Специфічний хук для цієї сторінки (як було в showSec оригіналу)
 if (window.G?.renderNotifications) try { window.G.renderNotifications(); } catch {}
 
-// Приховуємо лоадер після того як DOM реально відрендерився
+// Wire tabs
+document.querySelectorAll("#nf-tabs .nf-tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const val = btn.dataset.val || "";
+    document.querySelectorAll("#nf-tabs .nf-tab").forEach(b => b.classList.toggle("on", b === btn));
+    if (window.G?.selectNotifFilter) {
+      const lbl = btn.textContent.trim().split(" ")[0];
+      window.G.selectNotifFilter(val, lbl);
+    }
+  });
+});
+
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
     if (window.appReady) window.appReady();
   });
 });
 
-// Esc для закриття модалок
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
     document.querySelectorAll(".mo.on").forEach(m => {
