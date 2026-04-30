@@ -3505,7 +3505,6 @@ selectAnalyticsDrop(field, value, label){
  
         <div class="sp-drop" id="susp-group-wrap">
           <button onclick="event.stopPropagation();G.toggleSuspDrop('group')" id="susp-group-btn">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.6 2-4.8 4.5-5"/></svg>
             <span id="susp-group-label">Усі групи</span>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
@@ -3514,7 +3513,6 @@ selectAnalyticsDrop(field, value, label){
  
         <div class="sp-drop" id="susp-date-wrap">
           <button onclick="event.stopPropagation();G.toggleSuspDrop('date')" id="susp-date-btn">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             <span id="susp-date-label">Будь-яка дата</span>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
