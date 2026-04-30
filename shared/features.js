@@ -3281,266 +3281,344 @@ selectAnalyticsDrop(field, value, label){
     </div>`;
   },
 
-  toggleSuspDrop(type){
-    const testMenu=document.getElementById("susp-test-menu");
-    const dateMenu=document.getElementById("susp-date-menu");
-    if(type==="test"){
-      const isOpen=testMenu.style.display!=="none";
-      testMenu.style.display=isOpen?"none":"block";
-      if(dateMenu) dateMenu.style.display="none";
+  toggleSuspDrop(which){
+    const test = document.getElementById("susp-test-menu");
+    const date = document.getElementById("susp-date-menu");
+    if (which === "test"){
+      if (test) test.classList.toggle("on");
+      if (date) date.classList.remove("on");
     } else {
-      const isOpen=dateMenu.style.display!=="none";
-      dateMenu.style.display=isOpen?"none":"block";
-      if(testMenu) testMenu.style.display="none";
+      if (date) date.classList.toggle("on");
+      if (test) test.classList.remove("on");
     }
   },
   setSuspTest(id, label){
-    const inp=document.getElementById("susp-filter-test");
-    if(inp) inp.value=id;
-    const lbl=document.getElementById("susp-test-label");
-    if(lbl) lbl.textContent=label;
-    const menu=document.getElementById("susp-test-menu");
-    if(menu) menu.style.display="none";
-    const btn=document.getElementById("susp-test-btn");
-    if(btn) btn.style.borderColor=id?"var(--primary)":"var(--border)";
-    if(btn) btn.style.color=id?"var(--primary)":"var(--text)";
-    const rst=document.getElementById("susp-reset-btn");
-    const dateVal=document.getElementById("susp-filter-date")?.value||"";
-    if(rst) rst.style.display=(id||dateVal)?"":"none";
+    const inp = document.getElementById("susp-filter-test");
+    if (inp) inp.value = id || "";
+    const lbl = document.getElementById("susp-test-label");
+    if (lbl) lbl.textContent = label || "Всі тести";
+    const btn = document.getElementById("susp-test-btn");
+    if (btn) btn.classList.toggle("active", !!id);
+    document.getElementById("susp-test-menu")?.classList.remove("on");
+ 
+    // Підсвічуємо обраний пункт у меню
+    document.querySelectorAll("#susp-test-menu .it").forEach(it => {
+      it.classList.toggle("on", (it.dataset.val || "") === (id || ""));
+    });
+ 
     G.renderSuspicious();
   },
-  setSuspDate(val){
-    const lbl=document.getElementById("susp-date-label");
-    if(lbl) lbl.textContent=val?new Date(val+"T00:00:00").toLocaleDateString("uk-UA",{day:"numeric",month:"short",year:"numeric"}):"Будь-яка дата";
-    const btn=document.getElementById("susp-date-btn");
-    if(btn) btn.style.borderColor=val?"var(--primary)":"var(--border)";
-    if(btn) btn.style.color=val?"var(--primary)":"var(--text)";
-    const menu=document.getElementById("susp-date-menu");
-    if(menu) menu.style.display="none";
-    const rst=document.getElementById("susp-reset-btn");
-    const testVal=document.getElementById("susp-filter-test")?.value||"";
-    if(rst) rst.style.display=(val||testVal)?"":"none";
+ setSuspDate(val){
+    const lbl = document.getElementById("susp-date-label");
+    if (lbl) lbl.textContent = val
+      ? new Date(val + "T00:00:00").toLocaleDateString("uk-UA", { day:"numeric", month:"short", year:"numeric" })
+      : "Будь-яка дата";
+    const btn = document.getElementById("susp-date-btn");
+    if (btn) btn.classList.toggle("active", !!val);
+    document.getElementById("susp-date-menu")?.classList.remove("on");
     G.renderSuspicious();
   },
+ 
   resetSuspFilters(){
-    const inp=document.getElementById("susp-filter-test");
-    if(inp) inp.value="";
-    const dateInp=document.getElementById("susp-filter-date");
-    if(dateInp) dateInp.value="";
-    G.setSuspTest("","Всі тести");
-    const lbl=document.getElementById("susp-date-label");
-    if(lbl) lbl.textContent="Будь-яка дата";
-    const btn=document.getElementById("susp-date-btn");
-    if(btn){ btn.style.borderColor="var(--border)"; btn.style.color="var(--text)"; }
-    const rst=document.getElementById("susp-reset-btn");
-    if(rst) rst.style.display="none";
+    const inp = document.getElementById("susp-filter-test");
+    if (inp) inp.value = "";
+    const dateInp = document.getElementById("susp-filter-date");
+    if (dateInp) dateInp.value = "";
+    const tBtn = document.getElementById("susp-test-btn");
+    if (tBtn) tBtn.classList.remove("active");
+    const dBtn = document.getElementById("susp-date-btn");
+    if (dBtn) dBtn.classList.remove("active");
+    const tLbl = document.getElementById("susp-test-label");
+    if (tLbl) tLbl.textContent = "Всі тести";
+    const dLbl = document.getElementById("susp-date-label");
+    if (dLbl) dLbl.textContent = "Будь-яка дата";
+    document.querySelectorAll("#susp-test-menu .it").forEach(it => {
+      it.classList.toggle("on", !it.dataset.val);
+    });
     G.renderSuspicious();
   },
+  
+// ─── ДОДАТИ новий метод toggleSuspCase: ─────────────────────────────────────
+ 
+  toggleSuspCase(id){
+    const el = document.querySelector(`[data-case-id="${id}"]`);
+    if (!el) return;
+    el.classList.toggle("expanded");
+  },
 
-    renderSuspicious(filterTest, filterDate){
+// ─── ЗАМІНИТИ повністю renderSuspicious: ────────────────────────────────────
+ 
+  renderSuspicious(filterTest, filterDate){
     const body = document.getElementById("suspicious-body");
-    if(!body) return;
-
-    // Скидаємо каунтер — помічаємо скільки є зараз "прочитано"
+    if (!body) return;
+ 
+    // Усі підозрілі спроби (з reading)
     const allScored = attempts
       .filter(a => a.status === "completed" || a.status === "pending_review")
-      .map(a => { const score=(a.tabSwitches||0)*2+(a.copyAttempts||0)*3+(a.screenshots||0)*5; return{...a,suspScore:score}; })
+      .map(a => {
+        const score = (a.tabSwitches||0)*2 + (a.copyAttempts||0)*3 + (a.screenshots||0)*5;
+        return { ...a, suspScore: score };
+      })
       .filter(a => a.suspScore > 0);
-    // Зберігаємо в Firebase — синхронізується між пристроями
+ 
+    // Зберігаємо в Firebase для сінку лічильника
     dbUpd("meta", { suspReadCount: allScored.length }).catch(()=>{});
-    const badge=$("nb-suspicious");
-    if(badge){ badge.textContent="0"; badge.style.display="none"; }
-
+    const badge = $("nb-suspicious");
+    if (badge){ badge.textContent = "0"; badge.style.display = "none"; }
+ 
     // Фільтри
     const fTest = filterTest || document.getElementById("susp-filter-test")?.value || "";
     const fDate = filterDate || document.getElementById("susp-filter-date")?.value || "";
+ 
     let scored = [...allScored];
-    if(fTest) scored = scored.filter(a=>a.testId===fTest);
-    if(fDate){
-      const d=new Date(fDate); d.setHours(0,0,0,0);
-      const d2=new Date(fDate); d2.setHours(23,59,59,999);
-      scored=scored.filter(a=>a.createdAt>=d.getTime()&&a.createdAt<=d2.getTime());
+    if (fTest) scored = scored.filter(a => a.testId === fTest);
+    if (fDate){
+      const d = new Date(fDate); d.setHours(0,0,0,0);
+      const d2 = new Date(fDate); d2.setHours(23,59,59,999);
+      scored = scored.filter(a => a.createdAt >= d.getTime() && a.createdAt <= d2.getTime());
     }
-    scored.sort((a,b)=>b.suspScore-a.suspScore);
-
-    // Заголовок з фільтрами
-    const secHead = document.querySelector("#sec-suspicious .ph");
-    if(secHead && !document.getElementById("susp-filters")){
-      const filtersDiv=document.createElement("div");
-      filtersDiv.id="susp-filters";
-      filtersDiv.style.cssText="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:20px";
-      filtersDiv.innerHTML=`
-        <!-- Кастомний дропдаун тесту -->
-        <div style="position:relative" id="susp-test-wrap">
-          <button onclick="G.toggleSuspDrop('test')"
-            style="display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;transition:all .15s;min-width:180px;justify-content:space-between"
-            onmouseover="this.style.borderColor='rgba(45,91,227,.35)'" onmouseout="this.style.borderColor='var(--border)'" id="susp-test-btn">
-            <span id="susp-test-label">Всі тести</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div id="susp-test-menu" style="display:none;position:absolute;top:calc(100% + 6px);left:0;min-width:240px;background:#fff;border:1.5px solid var(--border);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.1);z-index:100;padding:6px;max-height:240px;overflow-y:auto">
-            <div onclick="G.setSuspTest('','Всі тести')" style="padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:500;transition:background .1s"
-              onmouseover="this.style.background='rgba(45,91,227,.05)'" onmouseout="this.style.background=''">Всі тести</div>
-            ${tests.filter(t=>t.status!=="archived").map(t=>`
-              <div onclick="G.setSuspTest('${t.id}','${esc(t.title)}')" style="padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;transition:background .1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
-                onmouseover="this.style.background='rgba(45,91,227,.05)'" onmouseout="this.style.background=''">${esc(t.title)}</div>`).join("")}
-          </div>
+    scored.sort((a, b) => b.suspScore - a.suspScore);
+ 
+    // ─── Page head: lichilnyk i chip ───
+    const headCount = document.getElementById("sp-cases-count");
+    if (headCount) headCount.textContent = allScored.length;
+ 
+    const statusChip = document.getElementById("sp-status-chip");
+    if (statusChip){
+      const high = allScored.filter(a => a.suspScore >= 10).length;
+      if (high > 0){
+        statusChip.className = "sp-chip bad";
+        statusChip.textContent = `${high} high-risk`;
+      } else if (allScored.length > 0){
+        statusChip.className = "sp-chip ok";
+        statusChip.textContent = "під спостереженням";
+      } else {
+        statusChip.className = "sp-chip ok";
+        statusChip.textContent = "все спокійно";
+      }
+    }
+ 
+    // ─── KPI strip ───
+    const kpiGrid = document.getElementById("sp-kpi-grid");
+    if (kpiGrid){
+      const high = allScored.filter(a => a.suspScore >= 10).length;
+      const mid = allScored.filter(a => a.suspScore >= 5 && a.suspScore < 10).length;
+      const low = allScored.filter(a => a.suspScore < 5).length;
+ 
+      const today = new Date(); today.setHours(0,0,0,0);
+      const yest = new Date(today); yest.setDate(yest.getDate() - 1);
+      const todayCount = allScored.filter(a => (a.createdAt||0) >= today.getTime()).length;
+      const yestCount = allScored.filter(a => {
+        const ts = a.createdAt || 0;
+        return ts >= yest.getTime() && ts < today.getTime();
+      }).length;
+      const totalFlags = allScored.reduce((s, a) => s + (a.tabSwitches||0) + (a.copyAttempts||0) + (a.screenshots||0), 0);
+ 
+      kpiGrid.innerHTML = `
+        <div class="risk-card bad">
+          <div class="risk-l">High risk</div>
+          <div class="risk-score bad">${high}</div>
+          <div class="sub">${high === 0 ? "немає кейсів" : (high === 1 ? "потребує перевірки" : "потребують перевірки")}</div>
         </div>
-
-        <!-- Кастомний вибір дати -->
-        <div style="position:relative" id="susp-date-wrap">
-          <button onclick="G.toggleSuspDrop('date')"
-            style="display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;transition:all .15s"
-            onmouseover="this.style.borderColor='rgba(45,91,227,.35)'" onmouseout="this.style.borderColor='var(--border)'" id="susp-date-btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            <span id="susp-date-label">Будь-яка дата</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div id="susp-date-menu" style="display:none;position:absolute;top:calc(100% + 6px);left:0;background:#fff;border:1.5px solid var(--border);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.1);z-index:100;padding:12px">
-            <input type="date" id="susp-filter-date"
-              style="padding:9px 14px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;color:var(--text);outline:none;background:#fff;font-family:'DM Sans',sans-serif;cursor:pointer;width:180px"
-              onchange="G.setSuspDate(this.value)"
-              onfocus="this.style.borderColor='var(--primary)';this.style.boxShadow='0 0 0 3px rgba(45,91,227,.08)'"
-              onblur="this.style.borderColor='var(--border)';this.style.boxShadow=''">
-          </div>
+        <div class="risk-card warn">
+          <div class="risk-l">Medium risk</div>
+          <div class="risk-score warn">${mid}</div>
+          <div class="sub">${mid === 0 ? "немає кейсів" : "на спостереженні"}</div>
         </div>
-
-        <!-- Кнопка скинути (показується тільки якщо є фільтри) -->
-        <button id="susp-reset-btn" onclick="G.resetSuspFilters()" style="display:none;padding:9px 14px;border-radius:12px;border:1.5px solid rgba(244,63,94,.25);background:rgba(244,63,94,.05);color:#be123c;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s"
-          onmouseover="this.style.background='rgba(244,63,94,.1)'" onmouseout="this.style.background='rgba(244,63,94,.05)'">
-          ✕ Скинути фільтри
-        </button>
-
-        <!-- Лічильник результатів -->
-        <div id="susp-count-label" style="margin-left:auto;font-size:13px;color:var(--muted)"></div>
+        <div class="risk-card info">
+          <div class="risk-l">Всього флагів</div>
+          <div class="risk-score info">${totalFlags}</div>
+          <div class="sub">${todayCount} за сьогодні${yestCount ? ` · ${todayCount > yestCount ? "+" : ""}${todayCount - yestCount} vs вчора` : ""}</div>
+        </div>
+        <div class="risk-card good">
+          <div class="risk-l">Чистих спроб</div>
+          <div class="risk-score good">${(attempts.filter(a => (a.status === "completed" || a.status === "pending_review")).length - allScored.length)}</div>
+          <div class="sub">без порушень</div>
+        </div>
       `;
-      // Ховаємо меню при кліку поза (тільки один раз)
-      if(!window._suspClickListenerAdded){
-        window._suspClickListenerAdded=true;
-        document.addEventListener("click", e=>{
-          const tm=document.getElementById("susp-test-menu");
-          const dm=document.getElementById("susp-date-menu");
-          if(tm && !e.target.closest("#susp-test-wrap")) tm.style.display="none";
-          if(dm && !e.target.closest("#susp-date-wrap")) dm.style.display="none";
-        });
-      }
-      // Прихована input для збереження значення
-      const hiddenTest=document.createElement("input");
-      hiddenTest.type="hidden"; hiddenTest.id="susp-filter-test"; hiddenTest.value="";
-      filtersDiv.appendChild(hiddenTest);
-      body.parentNode.insertBefore(filtersDiv, body);
-    } else if(document.getElementById("susp-filters")){
-      // Оновлюємо список тестів в меню
-      const menu=document.getElementById("susp-test-menu");
-      if(menu){
-        const curVal=document.getElementById("susp-filter-test")?.value||"";
-        menu.innerHTML=`<div onclick="G.setSuspTest('','Всі тести')" style="padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:500;transition:background .1s" onmouseover="this.style.background='rgba(45,91,227,.05)'" onmouseout="this.style.background=''">Всі тести</div>`
-          +tests.filter(t=>t.status!=="archived").map(t=>`<div onclick="G.setSuspTest('${t.id}','${esc(t.title)}')" style="padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;transition:background .1s" onmouseover="this.style.background='rgba(45,91,227,.05)'" onmouseout="this.style.background=''">${esc(t.title)}</div>`).join("");
-      }
     }
-
-    if(!scored.length){
-      body.innerHTML=`<div class="empty" style="padding:80px 20px"><div class="ei">✅</div><div class="et">${fTest||fDate?"Нічого не знайдено":"Підозрілих спроб немає"}</div><div class="es">Студенти проходили тест без порушень</div></div>`;
-      return;
-    }
-
-    // Компактна таблиця
-    body.innerHTML=`<div style="background:#fff;border:1.5px solid var(--border);border-radius:18px;overflow:hidden">
-      <table style="width:100%;border-collapse:collapse">
-        <thead>
-          <tr style="background:rgba(244,63,94,.03)">
-            <th style="padding:11px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;text-align:left;border-bottom:1.5px solid var(--border)">Студент</th>
-            <th style="padding:11px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;text-align:left;border-bottom:1.5px solid var(--border)">Тест / Група</th>
-            <th style="padding:11px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;text-align:center;border-bottom:1.5px solid var(--border)">Активність</th>
-            <th style="padding:11px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;text-align:center;border-bottom:1.5px solid var(--border)">Ризик</th>
-            <th style="padding:11px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;text-align:left;border-bottom:1.5px solid var(--border)">Дата</th>
-            <th style="border-bottom:1.5px solid var(--border)"></th>
-          </tr>
-        </thead>
-        <tbody>${scored.map(a=>{
-          const t=tests.find(x=>x.id===a.testId);
-          const l=links.find(x=>x.id===a.linkId);
-          const score=a.suspScore;
-          const lvlC=score>=10?"#be123c":score>=5?"#b45309":"#1d4ed8";
-          const lvlBg=score>=10?"rgba(244,63,94,.08)":score>=5?"rgba(245,158,11,.07)":"rgba(45,91,227,.06)";
-          const lvlL=score>=10?"Висока":score>=5?"Середня":"Низька";
-          const dateStr=a.createdAt?new Date(a.createdAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"—";
-          const tags=[];
-          if(a.tabSwitches>0)  tags.push(`<span title="Переключень між вкладками: ${a.tabSwitches}" style="background:rgba(245,158,11,.1);color:#b45309;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;cursor:default">🔄 ${a.tabSwitches}</span>`);
-          if(a.copyAttempts>0) tags.push(`<span title="Спроб скопіювати текст: ${a.copyAttempts}" style="background:rgba(244,63,94,.09);color:#be123c;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;cursor:default">📋 ${a.copyAttempts}</span>`);
-          if(a.screenshots>0)  tags.push(`<span title="Спроб зробити скріншот: ${a.screenshots}" style="background:rgba(147,51,234,.09);color:#7e22ce;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;cursor:default">📸 ${a.screenshots}</span>`);
-          return `<tr style="border-top:1px solid rgba(229,232,240,.5);transition:background .1s" onmouseover="this.style.background='rgba(244,63,94,.02)'" onmouseout="this.style.background=''">
-            <td style="padding:11px 16px">
-              <div style="font-weight:600;font-size:14px">${esc(a.surname)} ${esc(a.name)}</div>
-            </td>
-            <td style="padding:11px 16px;max-width:180px">
-              <div style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t?.title||"—")}</div>
-              ${l?.group?`<div style="font-size:11px;color:var(--muted)">${esc(l.group)}</div>`:""}
-            </td>
-            <td style="padding:11px 16px;text-align:center">
-              <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap">${tags.join("")}</div>
-            </td>
-            <td style="padding:11px 16px;text-align:center">
-              <span style="display:inline-flex;align-items:center;gap:5px;background:${lvlBg};color:${lvlC};padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">${lvlL}</span>
-            </td>
-            <td style="padding:11px 16px;font-size:12px;color:var(--muted);white-space:nowrap">${dateStr}</td>
-            <td style="padding:11px 16px">
-              <button class="ib" onclick="G.viewAtt('${a.id}')" title="Переглянути">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              </button>
-            </td>
-          </tr>`;
-        }).join("")}</tbody>
-      </table>
-    </div>`;
-  },
-
-  renderOnline(){
-    const body = document.getElementById("online-body");
-    if(!body) return;
-
-    // "Онлайн" = спроби зі статусом in_progress
-    const online = attempts
-      .filter(a => a.status === "in_progress")
-      .sort((a,b) => (b.startedAt||0)-(a.startedAt||0));
-
-    const badge = $("nb-online");
-    if(badge){ badge.textContent = online.length; badge.style.display = online.length ? "" : "none"; }
-
-    if(!online.length){
-      body.innerHTML=`<div class="empty" style="padding:60px 20px"><div class="ei">📡</div><div class="et">Ніхто не проходить тест зараз</div></div>`;
-      return;
-    }
-
-    body.innerHTML = `
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
-        <div style="width:10px;height:10px;border-radius:50%;background:#0d9e85;animation:pulse 1.5s ease infinite"></div>
-        <span style="font-size:14px;color:var(--muted)">${online.length} студент${online.length===1?"":"ів"} зараз в тесті</span>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-      ${online.map(a => {
-        const t = tests.find(x=>x.id===a.testId);
-        const l = links.find(x=>x.id===a.linkId);
-        const elapsed = a.startedAt ? Math.round((Date.now()-a.startedAt)/60000) : 0;
-        const elStr = elapsed < 1 ? "щойно" : `${elapsed} хв`;
-        return `<div style="background:white;border:1.5px solid var(--border);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px">
-          <div style="width:10px;height:10px;border-radius:50%;background:#0d9e85;flex-shrink:0;box-shadow:0 0 0 3px rgba(13,158,133,.2)"></div>
-          <div style="flex:1;min-width:0">
-            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px">${esc(a.name)} ${esc(a.surname)}</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:3px">
-              ${esc(t?.title||"—")}${l?.group?` · ${esc(l.group)}`:""} · почав ${elStr} тому
-            </div>
-            ${a.currentQ?(()=>{const pct=a.totalQ?Math.round(a.currentQ/a.totalQ*100):0;return '<div style="margin-top:6px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><span style="font-size:11px;color:var(--muted)">Питання '+a.currentQ+' з '+(a.totalQ||'?')+'</span><span style="font-size:11px;color:var(--muted)">'+pct+'%</span></div><div style="background:var(--border);border-radius:4px;height:5px;overflow:hidden"><div style="background:linear-gradient(90deg,#0d9e85,#2d5be3);height:100%;border-radius:4px;width:'+pct+'%;transition:width .5s"></div></div></div>';})():""}
+ 
+    // ─── Filter bar ───
+    const filtersDiv = document.getElementById("susp-filters");
+    if (filtersDiv && !filtersDiv.dataset.built){
+      filtersDiv.dataset.built = "1";
+      filtersDiv.className = "sp-fb";
+ 
+      const testOpts = `<div class="it on" data-val="" onclick="G.setSuspTest('','Всі тести')">Всі тести</div>` +
+        tests.filter(t => t.status !== "archived").map(t =>
+          `<div class="it" data-val="${t.id}" onclick="G.setSuspTest('${t.id}','${esc(t.title).replace(/'/g,"&#39;")}')">${esc(t.title)}</div>`
+        ).join("");
+ 
+      filtersDiv.innerHTML = `
+        <span class="sp-fb-l">Фільтри:</span>
+ 
+        <div class="sp-drop" id="susp-test-wrap">
+          <button onclick="event.stopPropagation();G.toggleSuspDrop('test')" id="susp-test-btn">
+            <span id="susp-test-label">Всі тести</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="sp-drop-menu" id="susp-test-menu">${testOpts}</div>
+        </div>
+ 
+        <div class="sp-drop" id="susp-date-wrap">
+          <button onclick="event.stopPropagation();G.toggleSuspDrop('date')" id="susp-date-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span id="susp-date-label">Будь-яка дата</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="sp-drop-menu" id="susp-date-menu" style="padding:10px;width:240px">
+            <input type="date" id="susp-filter-date" onchange="G.setSuspDate(this.value)">
           </div>
-          <div style="display:flex;gap:8px;align-items:center">
-            ${(a.tabSwitches||0)>0||((a.copyAttempts||0)>0)||((a.screenshots||0)>0)?`<span title="Підозріла активність" style="font-size:16px">⚠️</span>`:""}
-            <button class="ib" onclick="G.viewAtt('${a.id}')" title="Переглянути">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+ 
+        ${(fTest || fDate) ? `<button class="sp-reset" id="susp-reset-btn" onclick="G.resetSuspFilters()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Скинути
+        </button>` : ""}
+ 
+        <span class="sp-fb-meta">${scored.length} / ${allScored.length}</span>
+ 
+        <input type="hidden" id="susp-filter-test" value="">
+      `;
+    } else if (filtersDiv){
+      // Оновлюємо лічильник + reset visibility
+      const meta = filtersDiv.querySelector(".sp-fb-meta");
+      if (meta) meta.textContent = `${scored.length} / ${allScored.length}`;
+      const existingReset = document.getElementById("susp-reset-btn");
+      if ((fTest || fDate) && !existingReset){
+        // Додаємо reset кнопку якщо її ще нема
+        const resetBtn = document.createElement("button");
+        resetBtn.className = "sp-reset";
+        resetBtn.id = "susp-reset-btn";
+        resetBtn.onclick = () => G.resetSuspFilters();
+        resetBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Скинути`;
+        if (meta) filtersDiv.insertBefore(resetBtn, meta);
+      } else if (!fTest && !fDate && existingReset){
+        existingReset.remove();
+      }
+      // Update test menu (на випадок якщо тести змінились)
+      const tMenu = document.getElementById("susp-test-menu");
+      if (tMenu){
+        const cur = document.getElementById("susp-filter-test")?.value || "";
+        tMenu.innerHTML = `<div class="it${!cur?" on":""}" data-val="" onclick="G.setSuspTest('','Всі тести')">Всі тести</div>` +
+          tests.filter(t => t.status !== "archived").map(t =>
+            `<div class="it${cur===t.id?" on":""}" data-val="${t.id}" onclick="G.setSuspTest('${t.id}','${esc(t.title).replace(/'/g,"&#39;")}')">${esc(t.title)}</div>`
+          ).join("");
+      }
+    }
+ 
+    // ─── Cases body ───
+    if (!scored.length){
+      body.innerHTML = `<div class="sp-empty">
+        <div class="ei"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="et">${(fTest || fDate) ? "За цим фільтром нічого немає" : "Підозрілих спроб немає"}</div>
+        <div class="es">${(fTest || fDate) ? "Спробуйте інший тест або дату" : "Студенти проходили тести без порушень"}</div>
+      </div>`;
+      return;
+    }
+ 
+    const AVA_PALETTE = ["", "b", "g", "o", "r"];
+ 
+    body.innerHTML = `<div class="case-list">${scored.map(a => {
+      const t = tests.find(x => x.id === a.testId);
+      const l = links.find(x => x.id === a.linkId);
+      const score = a.suspScore;
+      const lvl = score >= 10 ? "bad" : score >= 5 ? "warn" : "info";
+      const lvlText = lvl === "bad" ? "high" : lvl === "warn" ? "medium" : "low";
+      const lvlIcon = lvl === "bad" ? "⚑ high" : lvl === "warn" ? "medium" : "low";
+ 
+      const dateStr = a.createdAt ? new Date(a.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" }) : "—";
+      const initials = ((a.surname?.[0] || "") + (a.name?.[0] || "")).toUpperCase() || "?";
+      const seed = String(a.surname || "") + String(a.name || "");
+      let h = 0; for (let i = 0; i < seed.length; i++) h = (h + seed.charCodeAt(i)) | 0;
+      const avaCls = AVA_PALETTE[Math.abs(h) % AVA_PALETTE.length];
+ 
+      // Risk score bar fill (0-100% scale)
+      const barColor = lvl === "bad" ? "#DC2626" : lvl === "warn" ? "#F59E0B" : "#3B82F6";
+      // Скеймо score → 0..100 (15+ = max bar), для UI
+      const barPct = Math.min(100, score * 6);
+ 
+      // ID кейсу — короткий a.id
+      const caseId = "S-" + (a.id ? a.id.slice(-5).toUpperCase() : "?????");
+ 
+      // Compact tags для headera
+      const compactTags = [];
+      if (a.tabSwitches > 0) compactTags.push(`<span class="case-tag tabs">🔄 ${a.tabSwitches}</span>`);
+      if (a.copyAttempts > 0) compactTags.push(`<span class="case-tag copies">📋 ${a.copyAttempts}</span>`);
+      if (a.screenshots > 0) compactTags.push(`<span class="case-tag shots">📸 ${a.screenshots}</span>`);
+ 
+      // Висновок
+      const conclParts = [];
+      if (a.tabSwitches >= 3) conclParts.push("часті переключення між вкладками");
+      if (a.copyAttempts >= 1) conclParts.push("спроби скопіювати текст питань");
+      if (a.screenshots >= 1) conclParts.push("спроби зробити скріншот");
+      const conclusion = conclParts.length
+        ? conclParts.join(", ").charAt(0).toUpperCase() + conclParts.join(", ").slice(1) + "."
+        : "Підозріла активність зафіксована, але показники в межах допустимого.";
+ 
+      return `<div class="case" data-case-id="${a.id}">
+        <div class="case-h" onclick="G.toggleSuspCase('${a.id}')">
+          <div class="case-ava ${avaCls}">${esc(initials)}</div>
+          <div class="case-info">
+            <div class="case-id">${caseId}</div>
+            <div class="case-name">
+              ${esc(a.surname || "")} ${esc(a.name || "")}
+              <span class="ms">· ${esc(t?.title || "—")}${l?.group ? " · " + esc(l.group) : ""}</span>
+            </div>
+          </div>
+          <div class="case-right">
+            <div class="case-tags">${compactTags.join("")}</div>
+            <div class="case-score">
+              <span class="l">Risk score</span>
+              <span class="v ${lvl}">${score}</span>
+            </div>
+            <div class="case-bar"><i style="width:${barPct}%; background:${barColor}"></i></div>
+            <span class="case-pill ${lvl}">${lvlIcon}</span>
+            <span class="case-chev">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+        </div>
+ 
+        <div class="case-body">
+          <div class="case-section-l">Метрики анти-чіту</div>
+          <div class="meters">
+            <div class="meter ${a.tabSwitches > 0 ? "tabs" : "zero"}">
+              <div class="meter-l"><span class="ico">🔄</span> Перемикання вкладок</div>
+              <div class="meter-v">${a.tabSwitches || 0}</div>
+              <div class="meter-sub">×2 балів за подію</div>
+            </div>
+            <div class="meter ${a.copyAttempts > 0 ? "copies" : "zero"}">
+              <div class="meter-l"><span class="ico">📋</span> Копії в буфер</div>
+              <div class="meter-v">${a.copyAttempts || 0}</div>
+              <div class="meter-sub">×3 балів за спробу</div>
+            </div>
+            <div class="meter ${a.screenshots > 0 ? "shots" : "zero"}">
+              <div class="meter-l"><span class="ico">📸</span> Скріншоти</div>
+              <div class="meter-v">${a.screenshots || 0}</div>
+              <div class="meter-sub">×5 балів за спробу</div>
+            </div>
+          </div>
+ 
+          <div class="case-concl">
+            <span class="ico">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </span>
+            <div>
+              <div class="t">Висновок аналізатора</div>
+              <div class="d">${conclusion} Дата спроби: <span class="mono">${dateStr}</span></div>
+            </div>
+          </div>
+ 
+          <div class="case-foot">
+            <button class="sp-btn" onclick="event.stopPropagation();G.viewAtt('${a.id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              Переглянути спробу
             </button>
           </div>
-        </div>`;
-      }).join("")}
+        </div>
       </div>`;
+    }).join("")}</div>`;
   },
 
   initGradebook(){
