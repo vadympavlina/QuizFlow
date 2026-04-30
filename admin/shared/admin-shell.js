@@ -263,15 +263,43 @@ export async function initAdminShell({ activeId, crumbs, content, topbarRight })
   window._user = _user;
   window.doLogout = doLogout;
 
-  // Hide loader
-  const ld = document.getElementById("admin-loader");
-  if (ld){
-    ld.style.opacity = "0";
-    setTimeout(() => { ld.style.display = "none"; }, 250);
-  }
+  // Safety timeout: якщо за 15с сторінка не приховала loader — приховуємо самі
+  // (захист від зависань на повільному з'єднанні / помилках у renderAll)
+  setTimeout(() => {
+    const ld = document.getElementById("admin-loader");
+    if (ld && ld.style.display !== "none") {
+      console.warn("[admin-shell] Loader auto-hidden by safety timeout (15s)");
+      hideLoader();
+    }
+  }, 15000);
 
   return { _user };
 }
+
+// ─── Loader control ─────────────────────────────────────────────────────────
+// Сторінки явно викликають hideLoader() після першого рендеру даних.
+// Це треба щоб людина не бачила порожні картки/таблиці поки тягнуться дані.
+
+export function hideLoader(){
+  const ld = document.getElementById("admin-loader");
+  if (!ld) return;
+  if (ld.style.display === "none") return;
+  ld.style.opacity = "0";
+  setTimeout(() => { ld.style.display = "none"; }, 250);
+}
+
+export function showLoader(){
+  const ld = document.getElementById("admin-loader");
+  if (!ld) return;
+  ld.style.display = "";
+  // Force reflow перед opacity → плавний fade-in
+  void ld.offsetHeight;
+  ld.style.opacity = "1";
+}
+
+// Експортуємо у window щоб inline-onclick могли використати
+window.hideLoader = hideLoader;
+window.showLoader = showLoader;
 
 // ─── loadAll: спільний завантажувач даних викладачів (overview/teachers/stats) ──
 
