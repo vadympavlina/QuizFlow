@@ -342,13 +342,13 @@ const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // ─── Перевірка поточної сесії ─────────────────────────────────────────────────
-// Читаємо обидва сховища: localStorage основне, sessionStorage — fallback (legacy)
+// Читаємо обидва сховища. localStorage основне, sessionStorage — fallback.
 const sess = localStorage.getItem("qf_user") || sessionStorage.getItem("qf_user");
 if(sess){
   try{
     const u = JSON.parse(sess);
     if(u && u.id) {
-      // Якщо знайшли в sessionStorage — мігруємо в localStorage щоб не губилось
+      // Якщо є тільки в sessionStorage — мігруємо в localStorage щоб надалі не губилось
       if (!localStorage.getItem("qf_user")) {
         try { localStorage.setItem("qf_user", sess); } catch {}
       }
