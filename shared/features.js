@@ -4447,32 +4447,156 @@ function renderDashNews(){
 }
 
 function renderNews(){
-  const list=$("news-teacher-list");
-  if(!list) return;
-  if(!_newsItems.length){
-    list.innerHTML=`<div class="empty" style="padding:80px 20px"><div class="ei">📰</div><div class="et">Новин ще немає</div></div>`;
+  const list = $("news-teacher-list");
+  if (!list) return;
+ 
+  // ─── Lichilnyky (новий дизайн: stats-strip + chip) ───
+  const total   = _newsItems.length;
+  const pinned  = _newsItems.filter(n => n.pinned).length;
+  const unread  = _newsItems.filter(n => !_readNews.has(n.id)).length;
+ 
+  const elTotal  = document.getElementById("nw-cnt-total");
+  const elPinned = document.getElementById("nw-cnt-pinned");
+  const elUnread = document.getElementById("nw-cnt-unread");
+  if (elTotal)  elTotal.textContent  = total;
+  if (elPinned) elPinned.textContent = pinned;
+  if (elUnread) elUnread.textContent = unread;
+ 
+  const chip = document.getElementById("nw-status-chip");
+  if (chip){
+    if (unread > 0){
+      chip.className = "nw-chip unread";
+      chip.textContent = `${unread} непрочитан${unread === 1 ? "а" : (unread >= 2 && unread <= 4 ? "і" : "их")}`;
+    } else {
+      chip.className = "nw-chip";
+      chip.textContent = total ? "Усе прочитано" : "Поки тихо";
+    }
+  }
+ 
+  if (!_newsItems.length){
+    list.innerHTML = `<div class="nw-empty">
+      <div class="ei"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h6M7 17h4"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/></svg></div>
+      <div class="et">Поки що тут тихо</div>
+      <div class="es">Тут з'являтимуться оновлення продукту, нові фічі та інша важлива інформація від команди QuizFlow.</div>
+    </div>`;
     return;
   }
-  list.innerHTML=_newsItems.map(n=>{
-    const isRead=_readNews.has(n.id);
-    const dateStr=n.createdAt?new Date(n.createdAt).toLocaleDateString("uk-UA",{day:"numeric",month:"long",year:"numeric"}):"";
-    const preview=(n.text||"").slice(0,200)+((n.text||"").length>200?"...":"");
-    return `<div onclick="openNews('${n.id}')" style="background:#fff;border:1.5px solid ${isRead?"var(--border)":"rgba(45,91,227,.25)"};${!isRead?"border-left:4px solid var(--primary);":""}border-radius:18px;padding:20px 22px;margin-bottom:14px;cursor:pointer;transition:all .2s"
-      onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 8px 24px rgba(45,91,227,.1)'"
-      onmouseout="this.style.transform='';this.style.boxShadow=''">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px">
-        <div style="flex:1;min-width:0">
-          ${n.pinned?`<span style="background:rgba(245,158,11,.1);color:#b45309;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:6px">📌 Закріплено</span><br>`:""}
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px">
-            ${!isRead?`<span style="width:8px;height:8px;border-radius:50%;background:var(--primary);flex-shrink:0;display:inline-block"></span>`:""}
-            ${esc(n.title||"")}
+ 
+  // Палітра кольорів для thumb (по індексу/хешу)
+  const THUMB_PALETTE = ["", "green", "amber", "violet", "pink", "teal"];
+  // Палітра іконок для тематики (без n.icon — оригінал не зберігав)
+  const ICONS = ["📰","✨","📊","⚡","🛡","🤝","🎙","🎯","🔔","📚","🎓","💡"];
+ 
+  function thumbCls(seed){
+    let h = 0;
+    const s = String(seed || "");
+    for (let i = 0; i < s.length; i++) h = (h + s.charCodeAt(i)) | 0;
+    return THUMB_PALETTE[Math.abs(h) % THUMB_PALETTE.length];
+  }
+  function thumbIcon(seed){
+    let h = 0;
+    const s = String(seed || "");
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+    return ICONS[Math.abs(h) % ICONS.length];
+  }
+ 
+  // Виокремлюємо першу закріплену як hero, решту — у grid
+  const sortedItems = [..._newsItems].sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    return (b.createdAt || 0) - (a.createdAt || 0);
+  });
+ 
+  const hero = sortedItems.find(n => n.pinned) || null;
+  const rest = hero ? sortedItems.filter(n => n.id !== hero.id) : sortedItems;
+ 
+  // Plain-text excerpt helper (з html → text)
+  function excerptOf(n, max = 140){
+    const tmp = document.createElement("div");
+    tmp.innerHTML = n.text || "";
+    const plain = (tmp.innerText || "").trim();
+    if (plain.length > max) return plain.slice(0, max) + "…";
+    return plain;
+  }
+  function readTimeOf(n){
+    const tmp = document.createElement("div");
+    tmp.innerHTML = n.text || "";
+    const plain = (tmp.innerText || "").trim();
+    const words = plain.split(/\s+/).filter(Boolean).length;
+    const min = Math.max(1, Math.round(words / 200));  // ~200 wpm
+    return min + " хв";
+  }
+ 
+  let html = "";
+ 
+  // ─── HERO ───
+  if (hero){
+    const dateStr = hero.createdAt
+      ? new Date(hero.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"long", year:"numeric" })
+      : "";
+    const isUnread = !_readNews.has(hero.id);
+    html += `<div class="nw-hero" onclick="openNews('${hero.id}')">
+      <div class="nw-hero-cover">
+        <div style="position:relative; z-index:1">
+          <span class="nw-hero-tag">★ Закріплено${dateStr ? ` · ${esc(dateStr)}` : ""}</span>
+          <div class="nw-hero-title">${esc(hero.title || "—")}</div>
+        </div>
+      </div>
+      <div class="nw-hero-body">
+        <p>${esc(excerptOf(hero, 240))}</p>
+        <div class="nw-hero-foot">
+          <span class="item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            ${readTimeOf(hero)}
+          </span>
+          ${isUnread ? `<span class="item" style="color:var(--nav-accent); font-weight:700">● Не прочитано</span>` : ""}
+          <span class="item" style="margin-left:auto; color:var(--nav-600); font-weight:700">Читати →</span>
+        </div>
+      </div>
+    </div>`;
+  }
+ 
+  // ─── GRID ───
+  if (rest.length){
+    if (hero){
+      html += `<div class="nw-section-l">Інші публікації</div>`;
+    }
+ 
+    html += `<div class="nw-list">${rest.map(n => {
+      const isUnread = !_readNews.has(n.id);
+      const dateStr = n.createdAt
+        ? new Date(n.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"short" })
+        : "";
+      const cls = thumbCls(n.id || n.title);
+      const ico = thumbIcon(n.id || n.title);
+ 
+      return `<div class="nw-item${isUnread ? " unread" : ""}${n.pinned ? " pinned" : ""}" onclick="openNews('${n.id}')">
+        <div class="nw-thumb ${cls}">${ico}</div>
+        <div class="nw-body">
+          <div class="nw-tag">
+            ${n.pinned ? `<span class="pinned-mark"><svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6 6 1-4.5 4.5 1 6-5.5-3-5.5 3 1-6-4.5-4.5 6-1z"/></svg>Закріплено</span>` : "Оновлення"}
+            ${dateStr ? `· ${esc(dateStr)}` : ""}
+          </div>
+          <div class="nw-title">
+            ${isUnread ? '<span class="unread-dot"></span>' : ""}
+            ${esc(n.title || "—")}
+          </div>
+          <div class="nw-excerpt">${esc(excerptOf(n))}</div>
+          <div class="nw-foot">
+            <span class="read-time">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              ${readTimeOf(n)}
+            </span>
+            <span class="arr">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
           </div>
         </div>
-        <div style="font-size:12px;color:var(--muted);flex-shrink:0">${dateStr}</div>
-      </div>
-      <div style="font-size:13px;color:var(--muted);font-style:italic">Натисніть щоб прочитати повністю →</div>
-    </div>`;
-  }).join("");
+      </div>`;
+    }).join("")}</div>`;
+  }
+ 
+  list.innerHTML = html;
 }
 
 window.openNews = async (id) => {
