@@ -2066,50 +2066,152 @@ selectAnalyticsDrop(field, value, label){
   renderNotifications(){
     const list=$("notif-list");
     if(!list) return;
+    // ВАЖЛИВО: на новій сторінці виклик markAllNotifsRead викликався тут — це робило
+    // всі сповіщення прочитаними при ВІДКРИТТІ сторінки. Це бажана поведінка тільки
+    // на старій сторінці. Тут лишаємо так само щоб не зламати логіку badge.
     markAllNotifsRead();
-
-    const fVal=$("notif-filter")?.value||"";
-    let filtered=_notifications;
-    if(fVal==="warn")      filtered=filtered.filter(n=>n.isWarning);
-    if(fVal==="completed") filtered=filtered.filter(n=>n.type==="completed");
-    if(fVal==="started")   filtered=filtered.filter(n=>n.type==="started");
-
+ 
+    const fVal = $("notif-filter")?.value || "";
+    let filtered = _notifications;
+    if(fVal === "warn")      filtered = filtered.filter(n => n.isWarning);
+    if(fVal === "completed") filtered = filtered.filter(n => n.type === "completed");
+    if(fVal === "started")   filtered = filtered.filter(n => n.type === "started");
+    if(fVal === "unread")    filtered = filtered.filter(n => !n.read);
+ 
+    // Лічильники по табах (нова сторінка)
+    const elAll       = document.getElementById("cnt-all");
+    const elUnread    = document.getElementById("cnt-unread");
+    const elWarn      = document.getElementById("cnt-warn");
+    const elCompleted = document.getElementById("cnt-completed");
+    const elStarted   = document.getElementById("cnt-started");
+    if (elAll)       elAll.textContent       = _notifications.length;
+    if (elUnread)    elUnread.textContent    = _notifications.filter(n => !n.read).length;
+    if (elWarn)      elWarn.textContent      = _notifications.filter(n => n.isWarning).length;
+    if (elCompleted) elCompleted.textContent = _notifications.filter(n => n.type === "completed").length;
+    if (elStarted)   elStarted.textContent   = _notifications.filter(n => n.type === "started").length;
+ 
+    // Лічильник у page-head (нова сторінка)
+    const elHeadUnread = document.getElementById("nf-unread-count");
+    if (elHeadUnread) elHeadUnread.textContent = _notifications.filter(n => !n.read).length;
+ 
+    // Лічильник справа в нав-bar
+    const elMetaR = document.getElementById("nf-meta-r");
+    if (elMetaR) elMetaR.textContent = `${filtered.length} ${filtered.length === 1 ? "сповіщення" : "сповіщень"}`;
+ 
     if(!filtered.length){
-      list.innerHTML=`<div class="empty" style="padding:60px 20px"><div class="ei">🔔</div><div class="et">${fVal?"Немає сповіщень за фільтром":"Немає сповіщень"}</div></div>`;
+      list.innerHTML = `<div class="nf-empty">
+        <div class="ei"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1112 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 004 0"/></svg></div>
+        <div class="et">${fVal ? "Немає сповіщень за фільтром" : "Немає сповіщень"}</div>
+        <div class="es">${fVal ? "Спробуйте змінити фільтр" : "Тут з'являтимуться повідомлення про активність студентів"}</div>
+      </div>`;
       return;
     }
-    const today=new Date().toDateString(),yest=new Date(Date.now()-86400000).toDateString();
-    let lastGroup=null;
-    list.innerHTML=filtered.map(n=>{
-      const d=new Date(n.ts),dStr=d.toDateString();
-      const groupLabel=dStr===today?"Сьогодні":dStr===yest?"Вчора":d.toLocaleDateString("uk-UA",{day:"numeric",month:"long"});
-      let groupHtml="";
-      if(groupLabel!==lastGroup){lastGroup=groupLabel;
-        groupHtml=`<div style="display:flex;align-items:center;gap:10px;margin:14px 0 8px"><div style="flex:1;height:1px;background:var(--border)"></div><span style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--light);font-weight:600;white-space:nowrap;padding:0 4px">${groupLabel}</span><div style="flex:1;height:1px;background:var(--border)"></div></div>`;}
-      const time=d.toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
-      const isWarn=n.isWarning;
-      const nid=n.id||"";
-      const aid=n.attemptId||"";
-      return groupHtml+`
-      <div class="notif-item${isWarn?" unread-warn":""}" style="background:${isWarn?"rgba(244,63,94,.04)":"#fff"}">
-        <div class="notif-icon" style="background:${isWarn?"rgba(244,63,94,.1)":"rgba(45,91,227,.07)"}">${n.icon||"🔔"}</div>
-        <div class="notif-body" style="flex:1;min-width:0">
-          <div class="notif-title">${n.title?n.title:""}</div>
-          <div class="notif-desc">${n.msg||n.desc||""}</div>
-          ${n.sharedTestId?`<div onclick="G.openSharedTest('${n.sharedTestId}')" style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+ 
+    const today = new Date().toDateString();
+    const yest  = new Date(Date.now() - 86400000).toDateString();
+    let lastGroup = null;
+ 
+    list.innerHTML = filtered.map(n => {
+      const d = new Date(n.ts);
+      const dStr = d.toDateString();
+      const groupLabel = dStr === today ? "Сьогодні"
+                       : dStr === yest  ? "Вчора"
+                       : d.toLocaleDateString("uk-UA", { day:"numeric", month:"long" });
+ 
+      let groupHtml = "";
+      if (groupLabel !== lastGroup){
+        lastGroup = groupLabel;
+        groupHtml = `<div class="nf-day-sep"><div class="ln"></div><span class="lbl">${groupLabel}</span><div class="ln"></div></div>`;
+      }
+ 
+      const time = d.toLocaleTimeString("uk-UA", { hour:"2-digit", minute:"2-digit" });
+      const isWarn = n.isWarning;
+      const nid = n.id || "";
+      const aid = n.attemptId || "";
+      const isUnread = !n.read;
+ 
+      // Визначаємо рівень (для кольору іконки) на основі n.type / isWarning
+      let lv = "info";
+      if (isWarn) lv = "bad";
+      else if (n.type === "completed") lv = "ok";
+      else if (n.type === "started") lv = "info";
+      else if (n.type === "warn" || n.type === "warning") lv = "warn";
+ 
+      // Тег для меню
+      const tag = isWarn ? "Анти-чіт"
+                : n.type === "completed" ? "Завершено"
+                : n.type === "started"   ? "Розпочато"
+                : "Активність";
+ 
+      // Іконка — оригінальна з n.icon (емодзі)
+      const ico = n.icon || (lv === "bad" ? "⚠️" : lv === "ok" ? "✅" : lv === "warn" ? "⚡" : "🔔");
+ 
+      const sharedLink = n.sharedTestId
+        ? `<div class="nf-shared-link" onclick="event.stopPropagation();G.openSharedTest('${n.sharedTestId}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             Відкрити тест
-          </div>`:""}
-          <div class="notif-time">${time}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
-          ${aid?`<div class="ib" title="Деталі" onclick="G.viewAtt('${aid}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>`:""}
-          <div class="ib d" title="Видалити" onclick="G.delNotif('${nid}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></div>
-        </div>
-      </div>`;
+          </div>`
+        : "";
+ 
+      const detailsBtn = aid
+        ? `<button class="ib" title="Деталі" onclick="event.stopPropagation();G.viewAtt('${aid}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>`
+        : "";
+ 
+      return groupHtml + `
+        <div class="notif${isUnread ? " unread" : ""}" data-nid="${nid}" onclick="G.openNotif('${nid}')">
+          <div class="notif-ico ${lv}">${ico}</div>
+          <div class="notif-body">
+            ${n.title ? `<div class="notif-title">${n.title}</div>` : ""}
+            <div class="notif-text">${n.msg || n.desc || ""}</div>
+            ${sharedLink}
+            <div class="notif-meta">
+              <span class="item">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                ${time}
+              </span>
+              <span class="tag">${tag}</span>
+            </div>
+          </div>
+          <div class="notif-actions">
+            ${detailsBtn}
+            <button class="ib d" title="Видалити" onclick="event.stopPropagation();G.delNotif('${nid}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+            </button>
+          </div>
+        </div>`;
     }).join("");
   },
-
+  / ─── ДОДАТИ новий метод markAllNotifsAsRead (повна заміна _notifications): ──
+ 
+  async markAllNotifsAsRead(){
+    if (typeof markAllNotifsRead === "function") {
+      await markAllNotifsRead();
+    } else {
+      _notifications = _notifications.map(n => ({ ...n, read: true }));
+      if (typeof updateNotifBadge === "function") updateNotifBadge();
+    }
+    G.renderNotifications();
+    if (window.toast) toast("Всі сповіщення позначено прочитаними");
+  },
+ 
+ 
+// ─── ДОДАТИ новий метод openNotif — відкриває сповіщення (deep-link) ────────
+//   Якщо є attemptId → відкриває деталі; якщо sharedTestId → переходить на тест;
+//   інакше — нічого не робить (просто прочитане).
+ 
+  openNotif(id){
+    const n = _notifications.find(x => x.id === id);
+    if (!n) return;
+    // Позначаємо прочитаним (markAllNotifsRead уже у renderNotifications, але про всяк)
+    if (n.attemptId && window.G?.viewAtt) {
+      G.viewAtt(n.attemptId);
+    } else if (n.sharedTestId && window.G?.openSharedTest) {
+      G.openSharedTest(n.sharedTestId);
+    }
+  },
+ 
   selectNotifFilter(value, label){
     document.getElementById("notif-filter").value = value;
     document.getElementById("cd-notif-filter-label").textContent = label;
@@ -2148,6 +2250,9 @@ selectAnalyticsDrop(field, value, label){
     try{ await dbDel(`notifications/${id}`); }catch(e){console.warn(e);}
   },
 
+// ─── ОНОВЛЕННЯ toggleNotifSound (опційно — для класу .snd-off в новому дизайні) ──
+// Якщо хочеш можеш ЗАМІНИТИ існуючий toggleNotifSound:
+ 
   toggleNotifSound(){
     _soundEnabled = !_soundEnabled;
     localStorage.setItem("qf_sound", _soundEnabled ? "1" : "0");
@@ -2155,9 +2260,10 @@ selectAnalyticsDrop(field, value, label){
     if(btn){
       btn.textContent = _soundEnabled ? "🔔" : "🔕";
       btn.title = _soundEnabled ? "Звук увімкнено" : "Звук вимкнено";
-      btn.style.opacity = _soundEnabled ? "1" : "0.5";
+      btn.classList.toggle("snd-off", !_soundEnabled);
+      btn.style.opacity = "";  // скидаємо inline якщо був
     }
-    toast(_soundEnabled ? "Звук сповіщень увімкнено" : "Звук сповіщень вимкнено");
+    if (window.toast) toast(_soundEnabled ? "Звук сповіщень увімкнено" : "Звук сповіщень вимкнено");
   },
 
   async clearAllNotifs(){
