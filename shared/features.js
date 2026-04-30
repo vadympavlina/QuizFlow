@@ -3281,17 +3281,24 @@ selectAnalyticsDrop(field, value, label){
     </div>`;
   },
 
+// ─── ЗАМІНИТИ toggleSuspDrop (тепер підтримує "group"): ─────────────────────
+ 
   toggleSuspDrop(which){
     const test = document.getElementById("susp-test-menu");
     const date = document.getElementById("susp-date-menu");
-    if (which === "test"){
-      if (test) test.classList.toggle("on");
-      if (date) date.classList.remove("on");
-    } else {
-      if (date) date.classList.toggle("on");
-      if (test) test.classList.remove("on");
-    }
+    const group = document.getElementById("susp-group-menu");
+    [test, date, group].forEach(m => {
+      if (!m) return;
+      const target = (which === "test"  && m === test) ||
+                     (which === "date"  && m === date) ||
+                     (which === "group" && m === group);
+      if (target) m.classList.toggle("on");
+      else m.classList.remove("on");
+    });
   },
+ 
+// ─── ЗАМІНИТИ setSuspTest: ──────────────────────────────────────────────────
+ 
   setSuspTest(id, label){
     const inp = document.getElementById("susp-filter-test");
     if (inp) inp.value = id || "";
@@ -3300,15 +3307,15 @@ selectAnalyticsDrop(field, value, label){
     const btn = document.getElementById("susp-test-btn");
     if (btn) btn.classList.toggle("active", !!id);
     document.getElementById("susp-test-menu")?.classList.remove("on");
- 
-    // Підсвічуємо обраний пункт у меню
     document.querySelectorAll("#susp-test-menu .it").forEach(it => {
       it.classList.toggle("on", (it.dataset.val || "") === (id || ""));
     });
- 
     G.renderSuspicious();
   },
- setSuspDate(val){
+ 
+// ─── ЗАМІНИТИ setSuspDate: ──────────────────────────────────────────────────
+ 
+  setSuspDate(val){
     const lbl = document.getElementById("susp-date-label");
     if (lbl) lbl.textContent = val
       ? new Date(val + "T00:00:00").toLocaleDateString("uk-UA", { day:"numeric", month:"short", year:"numeric" })
@@ -3318,41 +3325,67 @@ selectAnalyticsDrop(field, value, label){
     document.getElementById("susp-date-menu")?.classList.remove("on");
     G.renderSuspicious();
   },
+  
+// ─── ДОДАТИ новий setSuspGroup: ─────────────────────────────────────────────
+ 
+  setSuspGroup(group, label){
+    const inp = document.getElementById("susp-filter-group");
+    if (inp) inp.value = group || "";
+    const lbl = document.getElementById("susp-group-label");
+    if (lbl) lbl.textContent = label || "Усі групи";
+    const btn = document.getElementById("susp-group-btn");
+    if (btn) btn.classList.toggle("active", !!group);
+    document.getElementById("susp-group-menu")?.classList.remove("on");
+    document.querySelectorAll("#susp-group-menu .it").forEach(it => {
+      it.classList.toggle("on", (it.dataset.val || "") === (group || ""));
+    });
+    G.renderSuspicious();
+  },
+ 
+// ─── ЗАМІНИТИ resetSuspFilters (тепер скидає й групу): ──────────────────────
  
   resetSuspFilters(){
     const inp = document.getElementById("susp-filter-test");
     if (inp) inp.value = "";
     const dateInp = document.getElementById("susp-filter-date");
     if (dateInp) dateInp.value = "";
-    const tBtn = document.getElementById("susp-test-btn");
-    if (tBtn) tBtn.classList.remove("active");
-    const dBtn = document.getElementById("susp-date-btn");
-    if (dBtn) dBtn.classList.remove("active");
+    const grpInp = document.getElementById("susp-filter-group");
+    if (grpInp) grpInp.value = "";
+ 
+    ["susp-test-btn", "susp-date-btn", "susp-group-btn"].forEach(id => {
+      document.getElementById(id)?.classList.remove("active");
+    });
+ 
     const tLbl = document.getElementById("susp-test-label");
     if (tLbl) tLbl.textContent = "Всі тести";
     const dLbl = document.getElementById("susp-date-label");
     if (dLbl) dLbl.textContent = "Будь-яка дата";
-    document.querySelectorAll("#susp-test-menu .it").forEach(it => {
-      it.classList.toggle("on", !it.dataset.val);
-    });
+    const gLbl = document.getElementById("susp-group-label");
+    if (gLbl) gLbl.textContent = "Усі групи";
+ 
+    document.querySelectorAll("#susp-test-menu .it").forEach(it => it.classList.toggle("on", !it.dataset.val));
+    document.querySelectorAll("#susp-group-menu .it").forEach(it => it.classList.toggle("on", !it.dataset.val));
+ 
     G.renderSuspicious();
   },
+ 
+ 
   
-// ─── ДОДАТИ новий метод toggleSuspCase: ─────────────────────────────────────
+// ─── ДОДАТИ toggleSuspCase: ─────────────────────────────────────────────────
  
   toggleSuspCase(id){
     const el = document.querySelector(`[data-case-id="${id}"]`);
     if (!el) return;
     el.classList.toggle("expanded");
   },
-
-// ─── ЗАМІНИТИ повністю renderSuspicious: ────────────────────────────────────
+ 
+ 
+// ─── ЗАМІНИТИ повністю renderSuspicious (тепер з group filter): ─────────────
  
   renderSuspicious(filterTest, filterDate){
     const body = document.getElementById("suspicious-body");
     if (!body) return;
  
-    // Усі підозрілі спроби (з reading)
     const allScored = attempts
       .filter(a => a.status === "completed" || a.status === "pending_review")
       .map(a => {
@@ -3361,17 +3394,21 @@ selectAnalyticsDrop(field, value, label){
       })
       .filter(a => a.suspScore > 0);
  
-    // Зберігаємо в Firebase для сінку лічильника
     dbUpd("meta", { suspReadCount: allScored.length }).catch(()=>{});
     const badge = $("nb-suspicious");
     if (badge){ badge.textContent = "0"; badge.style.display = "none"; }
  
-    // Фільтри
-    const fTest = filterTest || document.getElementById("susp-filter-test")?.value || "";
-    const fDate = filterDate || document.getElementById("susp-filter-date")?.value || "";
+    // ─── Filters ───
+    const fTest  = filterTest || document.getElementById("susp-filter-test")?.value || "";
+    const fDate  = filterDate || document.getElementById("susp-filter-date")?.value || "";
+    const fGroup = document.getElementById("susp-filter-group")?.value || "";
  
     let scored = [...allScored];
-    if (fTest) scored = scored.filter(a => a.testId === fTest);
+    if (fTest)  scored = scored.filter(a => a.testId === fTest);
+    if (fGroup) scored = scored.filter(a => {
+      const l = links.find(x => x.id === a.linkId);
+      return (l?.group || "") === fGroup;
+    });
     if (fDate){
       const d = new Date(fDate); d.setHours(0,0,0,0);
       const d2 = new Date(fDate); d2.setHours(23,59,59,999);
@@ -3402,8 +3439,7 @@ selectAnalyticsDrop(field, value, label){
     const kpiGrid = document.getElementById("sp-kpi-grid");
     if (kpiGrid){
       const high = allScored.filter(a => a.suspScore >= 10).length;
-      const mid = allScored.filter(a => a.suspScore >= 5 && a.suspScore < 10).length;
-      const low = allScored.filter(a => a.suspScore < 5).length;
+      const mid  = allScored.filter(a => a.suspScore >= 5 && a.suspScore < 10).length;
  
       const today = new Date(); today.setHours(0,0,0,0);
       const yest = new Date(today); yest.setDate(yest.getDate() - 1);
@@ -3413,6 +3449,7 @@ selectAnalyticsDrop(field, value, label){
         return ts >= yest.getTime() && ts < today.getTime();
       }).length;
       const totalFlags = allScored.reduce((s, a) => s + (a.tabSwitches||0) + (a.copyAttempts||0) + (a.screenshots||0), 0);
+      const cleanCount = attempts.filter(a => (a.status === "completed" || a.status === "pending_review")).length - allScored.length;
  
       kpiGrid.innerHTML = `
         <div class="risk-card bad">
@@ -3432,7 +3469,7 @@ selectAnalyticsDrop(field, value, label){
         </div>
         <div class="risk-card good">
           <div class="risk-l">Чистих спроб</div>
-          <div class="risk-score good">${(attempts.filter(a => (a.status === "completed" || a.status === "pending_review")).length - allScored.length)}</div>
+          <div class="risk-score good">${cleanCount}</div>
           <div class="sub">без порушень</div>
         </div>
       `;
@@ -3449,6 +3486,12 @@ selectAnalyticsDrop(field, value, label){
           `<div class="it" data-val="${t.id}" onclick="G.setSuspTest('${t.id}','${esc(t.title).replace(/'/g,"&#39;")}')">${esc(t.title)}</div>`
         ).join("");
  
+      const groupsList = [...new Set(links.map(l => l.group).filter(Boolean))].sort();
+      const groupOpts = `<div class="it on" data-val="" onclick="G.setSuspGroup('','Усі групи')">Усі групи</div>` +
+        groupsList.map(g =>
+          `<div class="it" data-val="${esc(g)}" onclick="G.setSuspGroup('${esc(g).replace(/'/g,"&#39;")}','${esc(g).replace(/'/g,"&#39;")}')">${esc(g)}</div>`
+        ).join("");
+ 
       filtersDiv.innerHTML = `
         <span class="sp-fb-l">Фільтри:</span>
  
@@ -3458,6 +3501,15 @@ selectAnalyticsDrop(field, value, label){
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="sp-drop-menu" id="susp-test-menu">${testOpts}</div>
+        </div>
+ 
+        <div class="sp-drop" id="susp-group-wrap">
+          <button onclick="event.stopPropagation();G.toggleSuspDrop('group')" id="susp-group-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.6 2-4.8 4.5-5"/></svg>
+            <span id="susp-group-label">Усі групи</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="sp-drop-menu" id="susp-group-menu">${groupOpts}</div>
         </div>
  
         <div class="sp-drop" id="susp-date-wrap">
@@ -3471,31 +3523,30 @@ selectAnalyticsDrop(field, value, label){
           </div>
         </div>
  
-        ${(fTest || fDate) ? `<button class="sp-reset" id="susp-reset-btn" onclick="G.resetSuspFilters()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          Скинути
-        </button>` : ""}
- 
         <span class="sp-fb-meta">${scored.length} / ${allScored.length}</span>
  
         <input type="hidden" id="susp-filter-test" value="">
+        <input type="hidden" id="susp-filter-group" value="">
       `;
     } else if (filtersDiv){
-      // Оновлюємо лічильник + reset visibility
+      // Оновлюємо лічильник
       const meta = filtersDiv.querySelector(".sp-fb-meta");
       if (meta) meta.textContent = `${scored.length} / ${allScored.length}`;
+ 
+      // Reset кнопка — додаємо/прибираємо в залежності від наявності фільтрів
       const existingReset = document.getElementById("susp-reset-btn");
-      if ((fTest || fDate) && !existingReset){
-        // Додаємо reset кнопку якщо її ще нема
+      const hasFilters = !!(fTest || fDate || fGroup);
+      if (hasFilters && !existingReset){
         const resetBtn = document.createElement("button");
         resetBtn.className = "sp-reset";
         resetBtn.id = "susp-reset-btn";
         resetBtn.onclick = () => G.resetSuspFilters();
         resetBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Скинути`;
         if (meta) filtersDiv.insertBefore(resetBtn, meta);
-      } else if (!fTest && !fDate && existingReset){
+      } else if (!hasFilters && existingReset){
         existingReset.remove();
       }
+ 
       // Update test menu (на випадок якщо тести змінились)
       const tMenu = document.getElementById("susp-test-menu");
       if (tMenu){
@@ -3505,14 +3556,25 @@ selectAnalyticsDrop(field, value, label){
             `<div class="it${cur===t.id?" on":""}" data-val="${t.id}" onclick="G.setSuspTest('${t.id}','${esc(t.title).replace(/'/g,"&#39;")}')">${esc(t.title)}</div>`
           ).join("");
       }
+ 
+      // Update group menu (на випадок якщо посилання/групи змінились)
+      const gMenu = document.getElementById("susp-group-menu");
+      if (gMenu){
+        const cur = document.getElementById("susp-filter-group")?.value || "";
+        const groupsList = [...new Set(links.map(l => l.group).filter(Boolean))].sort();
+        gMenu.innerHTML = `<div class="it${!cur?" on":""}" data-val="" onclick="G.setSuspGroup('','Усі групи')">Усі групи</div>` +
+          groupsList.map(g =>
+            `<div class="it${cur===g?" on":""}" data-val="${esc(g)}" onclick="G.setSuspGroup('${esc(g).replace(/'/g,"&#39;")}','${esc(g).replace(/'/g,"&#39;")}')">${esc(g)}</div>`
+          ).join("");
+      }
     }
  
     // ─── Cases body ───
     if (!scored.length){
       body.innerHTML = `<div class="sp-empty">
         <div class="ei"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="et">${(fTest || fDate) ? "За цим фільтром нічого немає" : "Підозрілих спроб немає"}</div>
-        <div class="es">${(fTest || fDate) ? "Спробуйте інший тест або дату" : "Студенти проходили тести без порушень"}</div>
+        <div class="et">${(fTest || fDate || fGroup) ? "За цим фільтром нічого немає" : "Підозрілих спроб немає"}</div>
+        <div class="es">${(fTest || fDate || fGroup) ? "Спробуйте інший фільтр" : "Студенти проходили тести без порушень"}</div>
       </div>`;
       return;
     }
@@ -3524,7 +3586,6 @@ selectAnalyticsDrop(field, value, label){
       const l = links.find(x => x.id === a.linkId);
       const score = a.suspScore;
       const lvl = score >= 10 ? "bad" : score >= 5 ? "warn" : "info";
-      const lvlText = lvl === "bad" ? "high" : lvl === "warn" ? "medium" : "low";
       const lvlIcon = lvl === "bad" ? "⚑ high" : lvl === "warn" ? "medium" : "low";
  
       const dateStr = a.createdAt ? new Date(a.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" }) : "—";
@@ -3533,21 +3594,15 @@ selectAnalyticsDrop(field, value, label){
       let h = 0; for (let i = 0; i < seed.length; i++) h = (h + seed.charCodeAt(i)) | 0;
       const avaCls = AVA_PALETTE[Math.abs(h) % AVA_PALETTE.length];
  
-      // Risk score bar fill (0-100% scale)
       const barColor = lvl === "bad" ? "#DC2626" : lvl === "warn" ? "#F59E0B" : "#3B82F6";
-      // Скеймо score → 0..100 (15+ = max bar), для UI
       const barPct = Math.min(100, score * 6);
- 
-      // ID кейсу — короткий a.id
       const caseId = "S-" + (a.id ? a.id.slice(-5).toUpperCase() : "?????");
  
-      // Compact tags для headera
       const compactTags = [];
       if (a.tabSwitches > 0) compactTags.push(`<span class="case-tag tabs">🔄 ${a.tabSwitches}</span>`);
       if (a.copyAttempts > 0) compactTags.push(`<span class="case-tag copies">📋 ${a.copyAttempts}</span>`);
       if (a.screenshots > 0) compactTags.push(`<span class="case-tag shots">📸 ${a.screenshots}</span>`);
  
-      // Висновок
       const conclParts = [];
       if (a.tabSwitches >= 3) conclParts.push("часті переключення між вкладками");
       if (a.copyAttempts >= 1) conclParts.push("спроби скопіювати текст питань");
@@ -3620,7 +3675,6 @@ selectAnalyticsDrop(field, value, label){
       </div>`;
     }).join("")}</div>`;
   },
-
   initGradebook(){
     window._gbTestF = window._gbTestF!==undefined ? window._gbTestF : "";
     window._gbGrpF  = window._gbGrpF!==undefined  ? window._gbGrpF  : "";
