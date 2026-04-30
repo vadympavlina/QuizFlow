@@ -2183,7 +2183,7 @@ selectAnalyticsDrop(field, value, label){
         </div>`;
     }).join("");
   },
-  / ─── ДОДАТИ новий метод markAllNotifsAsRead (повна заміна _notifications): ──
+  // ─── ДОДАТИ новий метод markAllNotifsAsRead (повна заміна _notifications): ──
  
   async markAllNotifsAsRead(){
     if (typeof markAllNotifsRead === "function") {
