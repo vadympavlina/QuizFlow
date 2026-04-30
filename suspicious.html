@@ -6,11 +6,298 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/><circle cx='24' cy='22' r='5' fill='none' stroke='white' stroke-width='2.2'/><line x1='27.5' y1='25.5' x2='29.5' y2='27.5' stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>">
 <title>QuizFlow — Підозрілі</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
-<link rel="modulepreload" href="shared/app.js?v=13">
-<link rel="preload" as="fetch" href="shared/layout.html?v=13" crossorigin>
-<link rel="modulepreload" href="shared/features.js?v=13">
+<link rel="modulepreload" href="shared/app.js?v=15">
+<link rel="preload" as="fetch" href="shared/layout.html?v=15" crossorigin>
+<link rel="modulepreload" href="shared/features.js?v=15">
+
+<style>
+/* ── Page tokens ── */
+#sec-suspicious{
+  --ink-900:#0B1437; --ink-700:#24335A; --ink-500:#5B6A8F; --ink-400:#8691AC; --ink-300:#A8B2C9;
+  --line:#E3E8F2; --line-strong:#CDD6E8;
+  --nav-600:#1E3A8A; --nav-accent:#3B82F6;
+  --good:#16A34A; --warn:#F59E0B; --bad:#DC2626;
+  font-family:"Manrope",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  color:var(--ink-900);
+}
+#sec-suspicious .mono{font-family:"Geist Mono",monospace}
+
+/* Page head */
+#sec-suspicious .sp-head{
+  display:flex; align-items:flex-end; justify-content:space-between; gap:18px;
+  margin-bottom:16px;
+}
+#sec-suspicious .sp-head h1{margin:0; font-size:26px; font-weight:800; letter-spacing:-.02em; font-family:"Manrope",sans-serif; color:var(--ink-900)}
+#sec-suspicious .sp-head p{margin:4px 0 0; color:var(--ink-500); font-size:13.5px}
+
+#sec-suspicious .sp-actions{display:flex; align-items:center; gap:8px}
+
+#sec-suspicious .sp-chip{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 11px; border-radius:999px;
+  font-size:11.5px; font-weight:700; font-family:"Manrope",sans-serif;
+}
+#sec-suspicious .sp-chip.bad{background:#FEE2E2; color:#B91C1C}
+#sec-suspicious .sp-chip.bad::before{content:""; width:6px; height:6px; border-radius:50%; background:#DC2626; animation:spPulse 1.4s infinite}
+#sec-suspicious .sp-chip.ok{background:#DCFCE7; color:#15803D}
+#sec-suspicious .sp-chip.ok::before{content:""; width:6px; height:6px; border-radius:50%; background:#22C55E}
+@keyframes spPulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* Buttons */
+#sec-suspicious .sp-btn{
+  background:#fff; border:1px solid var(--line); border-radius:9px;
+  padding:8px 14px; font:inherit; font-size:13px; font-weight:600; color:var(--ink-700);
+  cursor:pointer; display:inline-flex; align-items:center; gap:7px;
+  transition: border-color .15s, background .15s, color .15s;
+  font-family:"Manrope",sans-serif;
+}
+#sec-suspicious .sp-btn:hover{border-color:var(--line-strong); background:#FAFBFE}
+#sec-suspicious .sp-btn svg{width:13px; height:13px}
+
+/* KPI grid */
+#sec-suspicious .risk-grid{
+  display:grid; grid-template-columns:repeat(4, 1fr); gap:14px;
+  margin-bottom:16px;
+}
+#sec-suspicious .risk-card{
+  background:#fff; border:1px solid var(--line); border-radius:14px;
+  padding:18px;
+}
+#sec-suspicious .risk-card.bad{border-left:4px solid #DC2626}
+#sec-suspicious .risk-card.warn{border-left:4px solid #F59E0B}
+#sec-suspicious .risk-card.info{border-left:4px solid var(--nav-accent)}
+#sec-suspicious .risk-card.good{border-left:4px solid #16A34A}
+
+#sec-suspicious .risk-l{
+  font-size:11px; color:var(--ink-400); text-transform:uppercase;
+  letter-spacing:.06em; font-weight:700;
+}
+#sec-suspicious .risk-score{
+  font-family:"Geist Mono",monospace; font-size:32px; font-weight:800;
+  letter-spacing:-.02em; line-height:1.1; margin-top:6px;
+}
+#sec-suspicious .risk-score.bad{color:#DC2626}
+#sec-suspicious .risk-score.warn{color:#B45309}
+#sec-suspicious .risk-score.info{color:var(--nav-600)}
+#sec-suspicious .risk-score.good{color:#15803D}
+#sec-suspicious .risk-card .sub{font-size:12px; color:var(--ink-500); margin-top:4px}
+
+/* Filter bar */
+#sec-suspicious .sp-fb{
+  display:flex; align-items:center; gap:10px;
+  background:#fff; border:1px solid var(--line); border-radius:14px;
+  padding:12px 14px; margin-bottom:14px;
+  flex-wrap:wrap;
+}
+#sec-suspicious .sp-fb-l{
+  font-size:11px; color:var(--ink-400); text-transform:uppercase;
+  letter-spacing:.06em; font-weight:700;
+}
+
+/* Custom dropdown for filters */
+#sec-suspicious .sp-drop{position:relative}
+#sec-suspicious .sp-drop > button{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 12px; border-radius:9px;
+  border:1px solid var(--line); background:#fff;
+  font:inherit; font-size:13px; font-weight:600; color:var(--ink-700);
+  cursor:pointer; min-width:170px; justify-content:space-between;
+  font-family:"Manrope",sans-serif; transition:all .12s;
+}
+#sec-suspicious .sp-drop > button:hover{border-color:var(--line-strong)}
+#sec-suspicious .sp-drop > button.active{border-color:var(--nav-600); color:var(--nav-600)}
+#sec-suspicious .sp-drop-menu{
+  display:none; position:absolute; top:calc(100% + 6px); left:0;
+  min-width:240px; background:#fff;
+  border:1px solid var(--line); border-radius:11px;
+  box-shadow:0 12px 32px rgba(11,20,55,.12);
+  z-index:50; padding:5px; max-height:320px; overflow-y:auto;
+}
+#sec-suspicious .sp-drop-menu.on{display:block}
+#sec-suspicious .sp-drop-menu .it{
+  padding:8px 11px; border-radius:7px; cursor:pointer;
+  font-size:13px; color:var(--ink-700); transition:background .1s;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  font-weight:500;
+}
+#sec-suspicious .sp-drop-menu .it:hover{background:#F4F6FB}
+#sec-suspicious .sp-drop-menu .it.on{background:#EEF2FB; color:var(--nav-600); font-weight:700}
+#sec-suspicious .sp-drop-menu input[type="date"]{
+  padding:8px 12px; border-radius:8px; border:1px solid var(--line);
+  font-size:13px; outline:none; width:100%; box-sizing:border-box;
+  font-family:"Manrope",sans-serif;
+}
+#sec-suspicious .sp-drop-menu input[type="date"]:focus{border-color:var(--nav-600)}
+
+#sec-suspicious .sp-fb-meta{
+  margin-left:auto; font-size:12px; color:var(--ink-500);
+  font-family:"Geist Mono",monospace; font-weight:600;
+}
+
+#sec-suspicious .sp-reset{
+  padding:7px 12px; border-radius:9px;
+  border:1px solid #FCA5A5; background:#FEF7F7;
+  color:#B91C1C; font:inherit; font-size:12.5px; font-weight:600;
+  cursor:pointer; display:inline-flex; align-items:center; gap:5px;
+  font-family:"Manrope",sans-serif; transition:all .12s;
+}
+#sec-suspicious .sp-reset:hover{background:#FEE2E2}
+#sec-suspicious .sp-reset svg{width:11px; height:11px}
+
+/* Cases */
+#sec-suspicious .case-list{display:flex; flex-direction:column; gap:12px}
+
+#sec-suspicious .case{
+  background:#fff; border:1px solid var(--line); border-radius:16px;
+  overflow:hidden;
+}
+#sec-suspicious .case-h{
+  display:flex; align-items:center; gap:14px; padding:16px 18px;
+  cursor:pointer; transition:background .12s;
+}
+#sec-suspicious .case-h:hover{background:#FAFBFE}
+
+#sec-suspicious .case-ava{
+  width:42px; height:42px; border-radius:11px; flex:0 0 auto;
+  display:grid; place-items:center; color:#fff;
+  background:linear-gradient(135deg, #A78BFA, #7C3AED);
+  font-weight:800; font-size:13px; letter-spacing:-.01em;
+}
+#sec-suspicious .case-ava.b{background:linear-gradient(135deg, #60A5FA, #1D4ED8)}
+#sec-suspicious .case-ava.g{background:linear-gradient(135deg, #86EFAC, #15803D)}
+#sec-suspicious .case-ava.o{background:linear-gradient(135deg, #FDBA74, #B45309)}
+#sec-suspicious .case-ava.r{background:linear-gradient(135deg, #FCA5A5, #B91C1C)}
+
+#sec-suspicious .case-info{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px}
+#sec-suspicious .case-id{font-size:11px; color:var(--ink-400); font-family:"Geist Mono",monospace; font-weight:600}
+#sec-suspicious .case-name{
+  font-weight:700; font-size:14.5px; color:var(--ink-900); letter-spacing:-.005em;
+  display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+}
+#sec-suspicious .case-name .ms{color:var(--ink-500); font-weight:500; font-size:13px}
+
+#sec-suspicious .case-right{display:flex; align-items:center; gap:14px}
+#sec-suspicious .case-score{
+  text-align:right; display:flex; flex-direction:column; gap:2px;
+}
+#sec-suspicious .case-score .l{font-size:10.5px; color:var(--ink-400); text-transform:uppercase; letter-spacing:.06em; font-weight:700}
+#sec-suspicious .case-score .v{font-family:"Geist Mono",monospace; font-weight:800; font-size:20px; line-height:1; letter-spacing:-.01em}
+#sec-suspicious .case-score .v.bad{color:#DC2626}
+#sec-suspicious .case-score .v.warn{color:#B45309}
+#sec-suspicious .case-score .v.info{color:var(--nav-600)}
+
+#sec-suspicious .case-bar{
+  width:120px; height:6px; background:#EEF2FB; border-radius:3px; overflow:hidden;
+}
+#sec-suspicious .case-bar i{display:block; height:100%; border-radius:3px; transition:width .4s}
+
+#sec-suspicious .case-pill{
+  display:inline-flex; align-items:center; gap:5px;
+  padding:3px 10px; border-radius:999px;
+  font-size:11.5px; font-weight:700; font-family:"Manrope",sans-serif;
+}
+#sec-suspicious .case-pill.bad{background:#FEE2E2; color:#B91C1C}
+#sec-suspicious .case-pill.warn{background:#FEF3C7; color:#92400E}
+#sec-suspicious .case-pill.info{background:#DBEAFE; color:#1E40AF}
+
+#sec-suspicious .case-chev{
+  color:var(--ink-400); transition:transform .2s;
+  display:grid; place-items:center;
+}
+#sec-suspicious .case.expanded .case-chev{transform:rotate(180deg); color:var(--ink-700)}
+
+/* Expanded body */
+#sec-suspicious .case-body{
+  padding:0 18px 18px;
+  border-top:1px solid var(--line);
+  display:none;
+}
+#sec-suspicious .case.expanded .case-body{display:block}
+
+#sec-suspicious .case-section-l{
+  font-size:11px; color:var(--ink-400); text-transform:uppercase;
+  letter-spacing:.07em; font-weight:700;
+  margin:18px 0 8px;
+}
+
+#sec-suspicious .meters{
+  display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;
+}
+#sec-suspicious .meter{
+  background:#FAFBFE; border:1px solid var(--line); border-radius:11px;
+  padding:12px 14px;
+}
+#sec-suspicious .meter-l{
+  font-size:10.5px; color:var(--ink-400); text-transform:uppercase;
+  letter-spacing:.06em; font-weight:700;
+  display:flex; align-items:center; gap:5px;
+}
+#sec-suspicious .meter-l .ico{display:inline-grid; place-items:center; opacity:.7}
+#sec-suspicious .meter-v{
+  font-family:"Geist Mono",monospace; font-weight:800; font-size:20px;
+  margin-top:4px; letter-spacing:-.01em; line-height:1;
+}
+#sec-suspicious .meter.tabs .meter-v{color:#B45309}
+#sec-suspicious .meter.copies .meter-v{color:#B91C1C}
+#sec-suspicious .meter.shots .meter-v{color:#7E22CE}
+#sec-suspicious .meter.zero .meter-v{color:var(--ink-400)}
+#sec-suspicious .meter-sub{font-size:11px; color:var(--ink-500); margin-top:4px}
+
+/* Conclusion */
+#sec-suspicious .case-concl{
+  margin-top:14px; padding:12px 14px;
+  background:#F5F8FD; border:1px solid #DBE5F4; border-radius:11px;
+  display:flex; gap:10px; align-items:flex-start;
+  font-size:13px;
+}
+#sec-suspicious .case-concl .ico{
+  color:var(--nav-600); flex:0 0 auto; margin-top:1px;
+}
+#sec-suspicious .case-concl .t{font-weight:700; color:var(--ink-900); margin-bottom:3px}
+#sec-suspicious .case-concl .d{color:var(--ink-500); line-height:1.5}
+#sec-suspicious .case-concl .d .mono{color:var(--ink-700)}
+
+/* Foot */
+#sec-suspicious .case-foot{
+  margin-top:16px; display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;
+}
+#sec-suspicious .case-foot .sp-btn{font-size:12.5px; padding:8px 13px}
+#sec-suspicious .case-foot .sp-btn.primary{
+  background:var(--nav-600); border-color:var(--nav-600); color:#fff;
+}
+#sec-suspicious .case-foot .sp-btn.primary:hover{background:#1B3373; border-color:#1B3373}
+#sec-suspicious .case-foot .sp-btn.danger{
+  background:var(--bad); border-color:var(--bad); color:#fff;
+}
+#sec-suspicious .case-foot .sp-btn.danger:hover{filter:brightness(1.05)}
+
+/* Empty */
+#sec-suspicious .sp-empty{
+  background:#fff; border:1px dashed var(--line-strong); border-radius:16px;
+  padding:80px 24px; text-align:center; color:var(--ink-500);
+}
+#sec-suspicious .sp-empty .ei{
+  width:64px; height:64px; margin:0 auto 16px; border-radius:16px;
+  background:#DCFCE7; display:grid; place-items:center; color:#15803D;
+}
+#sec-suspicious .sp-empty .et{font-size:17px; font-weight:700; color:var(--ink-900); margin-bottom:6px; font-family:"Manrope",sans-serif}
+#sec-suspicious .sp-empty .es{font-size:13.5px}
+
+/* Tags inside case header (compact view) */
+#sec-suspicious .case-tags{display:flex; gap:5px; flex-wrap:wrap}
+#sec-suspicious .case-tag{
+  display:inline-flex; align-items:center; gap:4px;
+  padding:2px 8px; border-radius:999px;
+  font-size:11px; font-weight:700;
+  font-family:"Manrope",sans-serif;
+}
+#sec-suspicious .case-tag.tabs{background:rgba(245,158,11,.13); color:#B45309}
+#sec-suspicious .case-tag.copies{background:rgba(220,38,38,.1); color:#B91C1C}
+#sec-suspicious .case-tag.shots{background:rgba(126,34,206,.1); color:#7E22CE}
+</style>
 </head>
 <body>
 
@@ -27,7 +314,7 @@
   </div>
 </div>
 
-<!-- Initial loader: видимий одразу при завантаженні HTML, зникає коли сторінка готова -->
+<!-- Initial loader -->
 <div id="app-loader" style="position:fixed;inset:0;background:#f0f3fa;z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .25s ease">
   <div style="width:44px;height:44px;border:3.5px solid rgba(45,91,227,.15);border-top-color:#2d5be3;border-radius:50%;animation:appSpin .8s linear infinite"></div>
   <div style="font-size:13px;color:#6b7280;margin-top:12px;font-family:'DM Sans',sans-serif">Завантаження...</div>
@@ -37,36 +324,51 @@
 <main class="main">
 
   <div class="sec on" id="sec-suspicious">
-    <div class="ph">
-      <div>
-        <div class="pt">Підозрілі спроби</div>
-        <div class="ps">Студенти з підозрілою активністю під час тесту</div>
-      </div>
-      <div class="bg" style="align-items:center;gap:8px">
-        <div id="susp-total-badge" style="display:none;background:rgba(244,63,94,.1);color:#be123c;font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid rgba(244,63,94,.2)"></div>
-        <button class="btn bs btn-sm" onclick="G.renderSuspicious()" style="font-size:13px">↻ Оновити</button>
-      </div>
-    </div>
-    <div id="suspicious-body">
-      <div class="empty" style="padding:60px 20px"><div class="ei">🔍</div><div class="et">Завантаження...</div></div>
-    </div>
-  </div>
 
-  <!-- ONLINE -->
+    <!-- Page head -->
+    <div class="sp-head">
+      <div>
+        <h1>Підозрілі спроби</h1>
+        <p>Автоматичний моніторинг анти-чіту · <span id="sp-cases-count">0</span> кейсів</p>
+      </div>
+      <div class="sp-actions">
+        <span class="sp-chip ok" id="sp-status-chip">все спокійно</span>
+        <button class="sp-btn" onclick="G.renderSuspicious()" title="Оновити">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.7L4 16"/><path d="M4 20v-4h4"/></svg>
+          Оновити
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI strip -->
+    <div class="risk-grid" id="sp-kpi-grid"></div>
+
+    <!-- Filter bar (заповнюється JS-ом) -->
+    <div id="susp-filters"></div>
+
+    <!-- Cases list -->
+    <div id="suspicious-body">
+      <div class="sp-empty">
+        <div class="ei">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="et">Завантаження...</div>
+        <div class="es">Шукаємо підозрілу активність</div>
+      </div>
+    </div>
+
+    <!-- Прихований total badge для compatibility з оригінальним кодом -->
+    <div id="susp-total-badge" style="display:none"></div>
+  </div>
 
 </main>
 
 <div id="modals-root"></div>
 
 <script type="module">
-// Паралельне завантаження: features.js починає качатись одразу, не чекає initApp
-// Спочатку app.js (щоб вставити window._fb і іншу базу),
-// потім features.js (він читає з window._fb).
-// Preload у <head> вже починає завантаження обох паралельно — тут тільки execute order.
-const { initApp } = await import("./shared/app.js?v=13");
-const featuresP = import("./shared/features.js?v=13");
+const { initApp } = await import("./shared/app.js?v=15");
+const featuresP = import("./shared/features.js?v=15");
 
-// showSec: залишаємось на сторінці якщо це та сама; інакше — йдемо на відповідний html
 window.showSec = function(name){
   if (name === "suspicious") {
     document.querySelectorAll(".sec").forEach(s=>s.classList.remove("on"));
@@ -88,31 +390,35 @@ window.showSec = function(name){
   if (pageMap[name]) location.href = pageMap[name];
 };
 
-// initApp робить: sidebar load, auth, loadAllData
-// Паралельно вже тягнеться features.js
 await initApp("suspicious");
-await featuresP;             // features.js точно готовий
-await window.initFeatures(); // запускає realtime + нотифікації
+await featuresP;
+await window.initFeatures();
 
 if (window.renderAll) window.renderAll();
-
-// Специфічний хук для цієї сторінки (як було в showSec оригіналу)
 if (window.G?.renderSuspicious) try { window.G.renderSuspicious(); } catch {}
 
-// Приховуємо лоадер після того як DOM реально відрендерився
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
     if (window.appReady) window.appReady();
   });
 });
 
-// Esc для закриття модалок
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
     document.querySelectorAll(".mo.on").forEach(m => {
       m.classList.remove("on");
       setTimeout(()=>{ if(!m.classList.contains("on")) m.style.display="none"; }, 200);
     });
+  }
+});
+
+// Click outside to close dropdowns
+document.addEventListener("click", e => {
+  if (!e.target.closest("#susp-test-wrap")) {
+    document.getElementById("susp-test-menu")?.classList.remove("on");
+  }
+  if (!e.target.closest("#susp-date-wrap")) {
+    document.getElementById("susp-date-menu")?.classList.remove("on");
   }
 });
 </script>
