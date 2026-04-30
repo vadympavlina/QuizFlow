@@ -6,11 +6,215 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/><circle cx='24' cy='22' r='5' fill='none' stroke='white' stroke-width='2.2'/><line x1='27.5' y1='25.5' x2='29.5' y2='27.5' stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>">
 <title>QuizFlow — Новини</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
-<link rel="modulepreload" href="shared/app.js?v=13">
-<link rel="preload" as="fetch" href="shared/layout.html?v=13" crossorigin>
-<link rel="modulepreload" href="shared/features.js?v=13">
+<link rel="modulepreload" href="shared/app.js?v=15">
+<link rel="preload" as="fetch" href="shared/layout.html?v=15" crossorigin>
+<link rel="modulepreload" href="shared/features.js?v=15">
+
+<style>
+/* ── Page tokens ── */
+#sec-news{
+  --ink-900:#0B1437; --ink-700:#24335A; --ink-500:#5B6A8F; --ink-400:#8691AC; --ink-300:#A8B2C9;
+  --line:#E3E8F2; --line-strong:#CDD6E8;
+  --nav-600:#1E3A8A; --nav-accent:#3B82F6;
+  --good:#16A34A; --warn:#F59E0B; --bad:#DC2626;
+  font-family:"Manrope",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  color:var(--ink-900);
+}
+#sec-news .mono{font-family:"Geist Mono",monospace}
+
+/* Page head */
+#sec-news .nw-head{
+  display:flex; align-items:flex-end; justify-content:space-between; gap:18px;
+  margin-bottom:18px;
+}
+#sec-news .nw-head h1{margin:0; font-size:26px; font-weight:800; letter-spacing:-.02em; font-family:"Manrope",sans-serif; color:var(--ink-900)}
+#sec-news .nw-head p{margin:4px 0 0; color:var(--ink-500); font-size:13.5px}
+
+#sec-news .nw-actions{display:flex; align-items:center; gap:8px}
+#sec-news .nw-chip{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 11px; border-radius:999px;
+  background:#EEF2FB; color:var(--nav-600);
+  font-size:11.5px; font-weight:700; font-family:"Geist Mono",monospace;
+}
+#sec-news .nw-chip.unread{background:#FEE2E2; color:#B91C1C}
+#sec-news .nw-chip.unread::before{
+  content:""; width:6px; height:6px; border-radius:50%; background:#DC2626;
+  animation:nwPulse 1.4s infinite;
+}
+@keyframes nwPulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* Hero (pinned) */
+#sec-news .nw-hero{
+  background:#fff; border:1px solid var(--line); border-radius:18px;
+  overflow:hidden; margin-bottom:14px;
+  cursor:pointer; transition:transform .15s, box-shadow .2s;
+}
+#sec-news .nw-hero:hover{transform:translateY(-2px); box-shadow:0 16px 36px -16px rgba(11,20,55,.18)}
+
+#sec-news .nw-hero-cover{
+  height:200px;
+  background:linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+  position:relative;
+  display:flex; align-items:flex-end; padding:22px;
+  overflow:hidden;
+}
+#sec-news .nw-hero-cover::after{
+  content:""; position:absolute; top:-40px; right:-40px;
+  width:240px; height:240px; border-radius:50%;
+  background:radial-gradient(circle at center, rgba(255,255,255,.15), transparent 70%);
+  pointer-events:none;
+}
+#sec-news .nw-hero-cover::before{
+  content:""; position:absolute; bottom:-60px; left:-60px;
+  width:200px; height:200px; border-radius:50%;
+  background:radial-gradient(circle at center, rgba(167,139,250,.18), transparent 70%);
+  pointer-events:none;
+}
+#sec-news .nw-hero-tag{
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:10.5px; text-transform:uppercase; letter-spacing:.12em;
+  color:#A5B4FC; font-weight:700; margin-bottom:10px;
+  font-family:"Manrope",sans-serif;
+}
+#sec-news .nw-hero-tag::before{
+  content:""; width:6px; height:6px; border-radius:50%; background:#FCD34D;
+}
+#sec-news .nw-hero-title{
+  color:#fff; font-size:24px; font-weight:800;
+  letter-spacing:-.02em; line-height:1.25;
+  max-width:560px; position:relative; z-index:1;
+}
+#sec-news .nw-hero-body{padding:18px 22px}
+#sec-news .nw-hero-body p{
+  color:var(--ink-700); font-size:14px; line-height:1.6;
+  margin:0 0 14px; font-family:"Manrope",sans-serif;
+}
+#sec-news .nw-hero-foot{
+  display:flex; align-items:center; gap:14px;
+  font-size:12px; color:var(--ink-500); font-family:"Geist Mono",monospace;
+}
+#sec-news .nw-hero-foot .item{display:inline-flex; align-items:center; gap:5px}
+#sec-news .nw-hero-foot .item svg{opacity:.7}
+
+/* Stats strip */
+#sec-news .nw-strip{
+  display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;
+  margin-bottom:14px;
+}
+#sec-news .nw-strip .it{
+  background:#fff; border:1px solid var(--line); border-radius:14px;
+  padding:14px 18px; display:flex; align-items:center; gap:14px;
+}
+#sec-news .nw-strip .ico{
+  width:38px; height:38px; border-radius:11px; flex:0 0 auto;
+  display:grid; place-items:center;
+}
+#sec-news .nw-strip .ico.violet{background:#EDE9FE; color:#6D28D9}
+#sec-news .nw-strip .ico.amber{background:#FEF3C7; color:#B45309}
+#sec-news .nw-strip .ico.blue{background:#DBEAFE; color:#1D4ED8}
+#sec-news .nw-strip .v{font-family:"Geist Mono",monospace; font-size:22px; font-weight:800; line-height:1; letter-spacing:-.02em}
+#sec-news .nw-strip .l{font-size:11px; color:var(--ink-500); text-transform:uppercase; letter-spacing:.06em; font-weight:700; margin-top:3px}
+
+/* News grid */
+#sec-news .nw-list{
+  display:grid; grid-template-columns:1fr 1fr; gap:12px;
+}
+@media (max-width:900px){#sec-news .nw-list{grid-template-columns:1fr}}
+
+#sec-news .nw-item{
+  background:#fff; border:1px solid var(--line); border-radius:14px;
+  padding:16px; display:flex; gap:14px;
+  cursor:pointer; transition:all .15s;
+  position:relative;
+}
+#sec-news .nw-item:hover{border-color:var(--line-strong); transform:translateY(-1px); box-shadow:0 6px 16px -6px rgba(11,20,55,.1)}
+#sec-news .nw-item.unread{border-left:4px solid var(--nav-accent); padding-left:13px}
+#sec-news .nw-item.pinned{border:1px solid #FDE68A; background:linear-gradient(135deg, rgba(254,243,199,.4), #fff 60%)}
+
+#sec-news .nw-thumb{
+  width:56px; height:56px; border-radius:13px; flex:0 0 auto;
+  display:grid; place-items:center; color:#fff;
+  font-size:22px; font-weight:800;
+  background:linear-gradient(135deg, #3B82F6, #1E3A8A);
+  box-shadow:0 8px 18px -8px rgba(59,130,246,.4);
+}
+#sec-news .nw-thumb.green{background:linear-gradient(135deg, #22C55E, #15803D); box-shadow:0 8px 18px -8px rgba(34,197,94,.4)}
+#sec-news .nw-thumb.amber{background:linear-gradient(135deg, #F59E0B, #D97706); box-shadow:0 8px 18px -8px rgba(245,158,11,.4)}
+#sec-news .nw-thumb.violet{background:linear-gradient(135deg, #A78BFA, #7C3AED); box-shadow:0 8px 18px -8px rgba(124,58,237,.4)}
+#sec-news .nw-thumb.pink{background:linear-gradient(135deg, #F472B6, #DB2777); box-shadow:0 8px 18px -8px rgba(219,39,119,.4)}
+#sec-news .nw-thumb.teal{background:linear-gradient(135deg, #2DD4BF, #0D9488); box-shadow:0 8px 18px -8px rgba(13,148,136,.4)}
+
+#sec-news .nw-body{flex:1; min-width:0; display:flex; flex-direction:column; gap:3px}
+#sec-news .nw-tag{
+  font-size:10.5px; text-transform:uppercase; letter-spacing:.08em;
+  font-weight:700; color:var(--nav-accent);
+  font-family:"Manrope",sans-serif;
+  display:inline-flex; align-items:center; gap:6px;
+}
+#sec-news .nw-tag .pinned-mark{
+  background:#FEF3C7; color:#92400E;
+  padding:1px 6px; border-radius:4px; font-size:9.5px; letter-spacing:.05em;
+  display:inline-flex; align-items:center; gap:3px;
+}
+#sec-news .nw-title{
+  font-weight:700; font-size:14.5px; color:var(--ink-900);
+  letter-spacing:-.005em; line-height:1.3;
+  display:flex; align-items:center; gap:7px;
+}
+#sec-news .nw-title .unread-dot{
+  width:7px; height:7px; border-radius:50%; background:var(--nav-accent);
+  flex:0 0 auto;
+  box-shadow:0 0 0 2px rgba(59,130,246,.18);
+}
+#sec-news .nw-excerpt{
+  font-size:12.5px; color:var(--ink-500); line-height:1.5;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  overflow:hidden; max-height:38px;
+}
+#sec-news .nw-foot{
+  display:flex; justify-content:space-between; align-items:center;
+  margin-top:auto; padding-top:8px;
+}
+#sec-news .nw-foot .read-time{
+  font-size:11.5px; color:var(--ink-400); font-family:"Geist Mono",monospace;
+  display:inline-flex; align-items:center; gap:5px;
+}
+#sec-news .nw-foot .read-time svg{opacity:.7}
+#sec-news .nw-foot .arr{
+  width:26px; height:26px; border-radius:7px;
+  background:#F4F6FB; color:var(--ink-500);
+  display:grid; place-items:center; transition:all .15s;
+}
+#sec-news .nw-item:hover .nw-foot .arr{background:var(--nav-600); color:#fff}
+
+/* Empty */
+#sec-news .nw-empty{
+  background:#fff; border:1px dashed var(--line-strong); border-radius:18px;
+  padding:80px 24px; text-align:center; color:var(--ink-500);
+}
+#sec-news .nw-empty .ei{
+  width:64px; height:64px; margin:0 auto 16px; border-radius:16px;
+  background:linear-gradient(135deg, #DBEAFE, #BFDBFE); color:var(--nav-600);
+  display:grid; place-items:center;
+  box-shadow:0 8px 18px -8px rgba(59,130,246,.3);
+}
+#sec-news .nw-empty .et{font-size:17px; font-weight:800; color:var(--ink-900); margin-bottom:6px; letter-spacing:-.01em; font-family:"Manrope",sans-serif}
+#sec-news .nw-empty .es{font-size:13.5px; max-width:360px; margin:0 auto; line-height:1.5}
+
+/* Section heads */
+#sec-news .nw-section-l{
+  font-size:11px; color:var(--ink-400); text-transform:uppercase;
+  letter-spacing:.07em; font-weight:700;
+  margin:6px 4px 8px; display:flex; align-items:center; gap:8px;
+}
+#sec-news .nw-section-l::after{
+  content:""; flex:1; height:1px; background:var(--line);
+}
+</style>
 </head>
 <body>
 
@@ -27,7 +231,7 @@
   </div>
 </div>
 
-<!-- Initial loader: видимий одразу при завантаженні HTML, зникає коли сторінка готова -->
+<!-- Initial loader -->
 <div id="app-loader" style="position:fixed;inset:0;background:#f0f3fa;z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .25s ease">
   <div style="width:44px;height:44px;border:3.5px solid rgba(45,91,227,.15);border-top-color:#2d5be3;border-radius:50%;animation:appSpin .8s linear infinite"></div>
   <div style="font-size:13px;color:#6b7280;margin-top:12px;font-family:'DM Sans',sans-serif">Завантаження...</div>
@@ -37,29 +241,52 @@
 <main class="main">
 
   <div class="sec on" id="sec-news">
-    <div class="ph">
-      <div><div class="pt">Новини</div><div class="ps">Повідомлення від системи</div></div>
-    </div>
-    <div id="news-teacher-list">
-      <div class="empty" style="padding:60px 20px"><div class="ei">📰</div><div class="et">Завантаження...</div></div>
-    </div>
-  </div>
 
-  <!-- GRADEBOOK -->  <!-- STUDENTS -->
+    <!-- Page head -->
+    <div class="nw-head">
+      <div>
+        <h1>Новини платформи</h1>
+        <p>Оновлення продукту, нові фічі та зміни у правилах</p>
+      </div>
+      <div class="nw-actions">
+        <span class="nw-chip" id="nw-status-chip">Усе прочитано</span>
+      </div>
+    </div>
+
+    <!-- Stats strip -->
+    <div class="nw-strip" id="nw-strip">
+      <div class="it">
+        <div class="ico violet"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h6M7 17h4"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/></svg></div>
+        <div><div class="v" id="nw-cnt-total">0</div><div class="l">Всього новин</div></div>
+      </div>
+      <div class="it">
+        <div class="ico amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 6 1-4.5 4.5 1 6-5.5-3-5.5 3 1-6-4.5-4.5 6-1z"/></svg></div>
+        <div><div class="v" id="nw-cnt-pinned">0</div><div class="l">Закріплено</div></div>
+      </div>
+      <div class="it">
+        <div class="ico blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r=".8" fill="currentColor"/></svg></div>
+        <div><div class="v" id="nw-cnt-unread">0</div><div class="l">Непрочитаних</div></div>
+      </div>
+    </div>
+
+    <!-- News list -->
+    <div id="news-teacher-list">
+      <div class="nw-empty">
+        <div class="ei"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h6M7 17h4"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/></svg></div>
+        <div class="et">Завантаження...</div>
+      </div>
+    </div>
+
+  </div>
 
 </main>
 
 <div id="modals-root"></div>
 
 <script type="module">
-// Паралельне завантаження: features.js починає качатись одразу, не чекає initApp
-// Спочатку app.js (щоб вставити window._fb і іншу базу),
-// потім features.js (він читає з window._fb).
-// Preload у <head> вже починає завантаження обох паралельно — тут тільки execute order.
-const { initApp } = await import("./shared/app.js?v=13");
-const featuresP = import("./shared/features.js?v=13");
+const { initApp } = await import("./shared/app.js?v=15");
+const featuresP = import("./shared/features.js?v=15");
 
-// showSec: залишаємось на сторінці якщо це та сама; інакше — йдемо на відповідний html
 window.showSec = function(name){
   if (name === "news") {
     document.querySelectorAll(".sec").forEach(s=>s.classList.remove("on"));
@@ -81,25 +308,19 @@ window.showSec = function(name){
   if (pageMap[name]) location.href = pageMap[name];
 };
 
-// initApp робить: sidebar load, auth, loadAllData
-// Паралельно вже тягнеться features.js
 await initApp("news");
-await featuresP;             // features.js точно готовий
-await window.initFeatures(); // запускає realtime + нотифікації
+await featuresP;
+await window.initFeatures();
 
 if (window.renderAll) window.renderAll();
-
-// Специфічний хук для цієї сторінки (як було в showSec оригіналу)
 if (window.renderNews) try { window.renderNews(); } catch {}
 
-// Приховуємо лоадер після того як DOM реально відрендерився
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
     if (window.appReady) window.appReady();
   });
 });
 
-// Esc для закриття модалок
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
     document.querySelectorAll(".mo.on").forEach(m => {
