@@ -146,7 +146,7 @@
 <div id="admin-toast" class="toast"></div>
 
 <script type="module">
-import { initAdminShell, loadAllTeachers, esc } from "./shared/admin-shell.js?v=1";
+import { initAdminShell, loadAllTeachers, esc, hideLoader } from "./shared/admin-shell.js?v=2";
 
 const content = `
   <!-- KPI strip -->
@@ -651,9 +651,29 @@ document.getElementById("btn-refresh").addEventListener("click", async () => {
   btn.disabled = false; btn.style.opacity = "";
 });
 
-// First load
-await loadAllTeachers();
-renderAll();
+// First load — тримаємо loader доки дані не завантажаться
+try {
+  await loadAllTeachers();
+  renderAll();
+} catch (e) {
+  console.error("[stats] Initial load failed:", e);
+  const root = document.getElementById("admin-content");
+  if (root){
+    const errBox = document.createElement("div");
+    errBox.className = "card";
+    errBox.style.padding = "40px 24px";
+    errBox.style.textAlign = "center";
+    errBox.innerHTML = `
+      <div style="width:54px;height:54px;margin:0 auto 14px;border-radius:14px;background:#FEE2E2;color:#B91C1C;display:grid;place-items:center">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r=".8" fill="currentColor"/></svg>
+      </div>
+      <div style="font-size:16px;font-weight:800;margin-bottom:6px">Не вдалося завантажити статистику</div>
+      <div style="font-size:13px;color:var(--ink-500);margin-bottom:14px">${e.message || "Невідома помилка"}</div>
+      <button class="tb-btn primary" onclick="location.reload()">Спробувати знову</button>`;
+    root.appendChild(errBox);
+  }
+}
+hideLoader();
 </script>
 </body>
 </html>

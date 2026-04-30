@@ -289,7 +289,7 @@
 <div id="admin-toast" class="toast"></div>
 
 <script type="module">
-import { initAdminShell, esc, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast } from "./shared/admin-shell.js?v=1";
+import { initAdminShell, esc, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast, hideLoader } from "./shared/admin-shell.js?v=2";
 import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 const db = getDatabase();
 
@@ -657,8 +657,13 @@ document.addEventListener("keydown", e => {
   }
 });
 
-// First load
-await loadNews();
+// First load — тримаємо loader доки дані не завантажаться
+try {
+  await loadNews();
+} catch (e) {
+  console.error("[news] Initial load failed:", e);
+}
+hideLoader();
 </script>
 </body>
 </html>

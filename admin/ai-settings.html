@@ -148,7 +148,7 @@
 <div id="admin-toast" class="toast"></div>
 
 <script type="module">
-import { initAdminShell, dbGet, dbUpd, toast } from "./shared/admin-shell.js?v=1";
+import { initAdminShell, dbGet, dbUpd, toast, hideLoader } from "./shared/admin-shell.js?v=2";
 
 const content = `
 
@@ -521,8 +521,13 @@ document.querySelectorAll('.model-lbl input').forEach(r => {
 
 document.getElementById("btn-save-ai").addEventListener("click", saveAISettings);
 
-// First load
-await loadAISettings();
+// First load — тримаємо loader доки дані не завантажаться
+try {
+  await loadAISettings();
+} catch (e) {
+  console.error("[ai-settings] Initial load failed:", e);
+}
+hideLoader();
 </script>
 </body>
 </html>
