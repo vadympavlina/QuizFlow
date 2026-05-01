@@ -4482,22 +4482,16 @@ function renderNews(){
     return;
   }
  
-  // Палітра кольорів для thumb (по індексу/хешу)
+  // Палітра кольорів для thumb (по хешу) — щоб картки виглядали різноманітно
   const THUMB_PALETTE = ["", "green", "amber", "violet", "pink", "teal"];
-  // Палітра іконок для тематики (без n.icon — оригінал не зберігав)
-  const ICONS = ["📰","✨","📊","⚡","🛡","🤝","🎙","🎯","🔔","📚","🎓","💡"];
+  // Одна newspaper іконка для всіх — без тематичного "вгадування"
+  const NEWS_ICON = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h6M7 17h4"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/></svg>';
  
   function thumbCls(seed){
     let h = 0;
     const s = String(seed || "");
     for (let i = 0; i < s.length; i++) h = (h + s.charCodeAt(i)) | 0;
     return THUMB_PALETTE[Math.abs(h) % THUMB_PALETTE.length];
-  }
-  function thumbIcon(seed){
-    let h = 0;
-    const s = String(seed || "");
-    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
-    return ICONS[Math.abs(h) % ICONS.length];
   }
  
   // Виокремлюємо першу закріплену як hero, решту — у grid
@@ -4518,14 +4512,6 @@ function renderNews(){
     if (plain.length > max) return plain.slice(0, max) + "…";
     return plain;
   }
-  function readTimeOf(n){
-    const tmp = document.createElement("div");
-    tmp.innerHTML = n.text || "";
-    const plain = (tmp.innerText || "").trim();
-    const words = plain.split(/\s+/).filter(Boolean).length;
-    const min = Math.max(1, Math.round(words / 200));  // ~200 wpm
-    return min + " хв";
-  }
  
   let html = "";
  
@@ -4534,6 +4520,9 @@ function renderNews(){
     const dateStr = hero.createdAt
       ? new Date(hero.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"long", year:"numeric" })
       : "";
+    const heroFullDate = hero.createdAt
+      ? new Date(hero.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"long", year:"numeric" })
+      : "—";
     const isUnread = !_readNews.has(hero.id);
     html += `<div class="nw-hero" onclick="openNews('${hero.id}')">
       <div class="nw-hero-cover">
@@ -4546,8 +4535,8 @@ function renderNews(){
         <p>${esc(excerptOf(hero, 240))}</p>
         <div class="nw-hero-foot">
           <span class="item">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            ${readTimeOf(hero)}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            ${heroFullDate}
           </span>
           ${isUnread ? `<span class="item" style="color:var(--nav-accent); font-weight:700">● Не прочитано</span>` : ""}
           <span class="item" style="margin-left:auto; color:var(--nav-600); font-weight:700">Читати →</span>
@@ -4564,18 +4553,20 @@ function renderNews(){
  
     html += `<div class="nw-list">${rest.map(n => {
       const isUnread = !_readNews.has(n.id);
-      const dateStr = n.createdAt
+      const dateShort = n.createdAt
         ? new Date(n.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"short" })
         : "";
+      const dateFull = n.createdAt
+        ? new Date(n.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"short", year:"numeric" })
+        : "—";
       const cls = thumbCls(n.id || n.title);
-      const ico = thumbIcon(n.id || n.title);
  
       return `<div class="nw-item${isUnread ? " unread" : ""}${n.pinned ? " pinned" : ""}" onclick="openNews('${n.id}')">
-        <div class="nw-thumb ${cls}">${ico}</div>
+        <div class="nw-thumb ${cls}">${NEWS_ICON}</div>
         <div class="nw-body">
           <div class="nw-tag">
             ${n.pinned ? `<span class="pinned-mark"><svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6 6 1-4.5 4.5 1 6-5.5-3-5.5 3 1-6-4.5-4.5 6-1z"/></svg>Закріплено</span>` : "Оновлення"}
-            ${dateStr ? `· ${esc(dateStr)}` : ""}
+            ${dateShort ? `· ${esc(dateShort)}` : ""}
           </div>
           <div class="nw-title">
             ${isUnread ? '<span class="unread-dot"></span>' : ""}
@@ -4584,8 +4575,8 @@ function renderNews(){
           <div class="nw-excerpt">${esc(excerptOf(n))}</div>
           <div class="nw-foot">
             <span class="read-time">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              ${readTimeOf(n)}
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              ${dateFull}
             </span>
             <span class="arr">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
