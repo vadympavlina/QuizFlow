@@ -1273,14 +1273,14 @@ renderAttempts = function(resetPage = false){
   // ── Фільтрація ──
   let lst = attempts;
   if (tF)   lst = lst.filter(a => a.testId === tF);
-  if (grpF) lst = lst.filter(a => { const l = links.find(x => x.id === a.linkId); return (l?.group || "") === grpF; });
+  if (grpF) lst = lst.filter(a => (a.group || links.find(x => x.id === a.linkId)?.group || "") === grpF);
   if (sF === "flagged")  lst = lst.filter(a => _attViolation(a) > 0);
   else if (sF)           lst = lst.filter(a => a.status === sF);
   if (q){
     lst = lst.filter(a => {
       const fullName  = `${a.name || ""} ${a.surname || ""}`.toLowerCase();
       const testTitle = (tests.find(t => t.id === a.testId)?.title || "").toLowerCase();
-      const group     = (links.find(l => l.id === a.linkId)?.group || "").toLowerCase();
+      const group     = (a.group || links.find(l => l.id === a.linkId)?.group || "").toLowerCase();
       return fullName.includes(q) || testTitle.includes(q) || group.includes(q);
     });
   }
@@ -3781,7 +3781,7 @@ selectAnalyticsDrop(field, value, label){
     const groupF=activeGrpEl?.dataset?.val||"";
 
     let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
-    if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
+    if(groupF) att=att.filter(a=>(a.group||links.find(x=>x.id===a.linkId)?.group||"")===groupF);
     if(testF)  att=att.filter(a=>a.testId===testF);
 
     if(!att.length){
@@ -3900,7 +3900,7 @@ selectAnalyticsDrop(field, value, label){
     const testF=activeTestEl?.dataset?.val||"";
     const groupF=activeGrpEl?.dataset?.val||"";
     let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
-    if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
+    if(groupF) att=att.filter(a=>(a.group||links.find(x=>x.id===a.linkId)?.group||"")===groupF);
     if(testF)  att=att.filter(a=>a.testId===testF);
     if(!att.length){toast("Немає даних для експорту","err");return;}
 
@@ -4103,7 +4103,7 @@ selectAnalyticsDrop(field, value, label){
     // Фільтруємо спроби
     let att = attempts.filter(a => a.status === "completed" || a.status === "pending_review");
     if(testId)  att = att.filter(a => a.testId === testId);
-    if(groupF){ att = att.filter(a => { const l=links.find(x=>x.id===a.linkId); return (l?.group||"") === groupF; }); }
+    if(groupF){ att = att.filter(a => (a.group||links.find(x=>x.id===a.linkId)?.group||"") === groupF); }
  
     if(!att.length){
       body.innerHTML = `<div class="a-empty">
