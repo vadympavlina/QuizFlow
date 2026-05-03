@@ -516,7 +516,7 @@ import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12
 // Глобальна tp — читає uid із сесії
 function tp(path){
   try{
-    const _s=sessionStorage.getItem("qf_user");
+    const _s = localStorage.getItem("qf_user") || sessionStorage.getItem("qf_user");
     const _u=_s?JSON.parse(_s):null;
     const uid=_u?.id||"";
     return uid ? `teachers/${uid}/${path}` : path;
@@ -546,10 +546,9 @@ const db  = getDatabase(app);
   await loadAISettings(db);
   // Читаємо індивідуальні налаштування викладача
   try{
-    const _s = sessionStorage.getItem("qf_user");
+    const _s = localStorage.getItem("qf_user") || sessionStorage.getItem("qf_user");
     const _u = _s ? JSON.parse(_s) : null;
     if(_u?.id){
-      const { get:_g, ref:_r } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
       const tSnap = await _g(_r(db,`users/${_u.id}/aiSettings`));
       if(tSnap.exists()){
         const t = tSnap.val();
@@ -1008,10 +1007,10 @@ window.syncNoTimerToggle = function(){
 };
 
 // ─── AUTH GUARD ───────────────────────────────────────────────────────────────
-const _sess = sessionStorage.getItem("qf_user");
+const _sess = localStorage.getItem("qf_user") || sessionStorage.getItem("qf_user");
 if(!_sess) { window.location.href = "login.html"; }
 const _user = _sess ? JSON.parse(_sess) : null;
-if(!_user || !_user.id) { sessionStorage.clear(); window.location.href = "login.html"; }
+if(!_user || !_user.id) { localStorage.removeItem("qf_user"); sessionStorage.clear(); window.location.href = "login.html"; }
 const _uid = _user.id;
 
 
