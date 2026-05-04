@@ -489,37 +489,31 @@ window.invalidateQfCache = function() {
 
 async function loadAllData() {
   try {
-  // ─── 1) Пробуємо sessionStorage-кеш ─────────────────────────────────
-  // Кеш живе поки вкладка відкрита і не старше 60 секунд.
-  // При навігації між сторінками — дані показуються МИТТЄВО з кешу.
-  const CACHE_KEY = "qf_cache_v1";
-  const CACHE_MAX_AGE = 60 * 1000; // 60 сек
+    // ─── 1) Пробуємо sessionStorage-кеш ─────────────────────────────────
+    const CACHE_KEY = "qf_cache_v1";
+    const CACHE_MAX_AGE = 60 * 1000;
 
-  const cached = tryLoadCache(CACHE_KEY, CACHE_MAX_AGE);
-  if (cached) {
-    window.folders = cached.folders;
-    window.tests = cached.tests;
-    window.links = cached.links;
-    window.attempts = cached.attempts;
-    console.log(`⚡ [app.js] з кешу (${cached.tests.length} тестів, вік ${Math.round((Date.now()-cached.savedAt)/1000)}с)`);
-    notifyReady();
-    // Фонове оновлення — realtime listeners з features.js все одно підпишуться,
-    // тому окремий запит не потрібен. Дані автоматично оновляться через onValue.
-    return;
-  }
+    const cached = tryLoadCache(CACHE_KEY, CACHE_MAX_AGE);
+    if (cached) {
+      window.folders  = cached.folders;
+      window.tests    = cached.tests;
+      window.links    = cached.links;
+      window.attempts = cached.attempts;
+      console.log(`⚡ [app.js] з кешу (${cached.tests.length} тестів, вік ${Math.round((Date.now()-cached.savedAt)/1000)}с)`);
+      notifyReady();
+      return;
+    }
 
-  // ─── 2) Кешу немає — тягнемо свіже з Firebase ───────────────────────
-  try {
+    // ─── 2) Кешу немає — тягнемо свіже з Firebase ───────────────────────
     const [fs, ts_, ls, as] = await Promise.all([
       dbGet("folders"), dbGet("tests"), dbGet("links"), dbGet("attempts")
     ]);
-    window.folders = toArr(fs).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-    window.tests = toArr(ts_).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    window.links = toArr(ls).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    window.folders  = toArr(fs).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    window.tests    = toArr(ts_).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    window.links    = toArr(ls).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     window.attempts = toArr(as).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     console.log(`✅ [app.js] data loaded (${window.tests.length} tests, ${window.attempts.length} attempts)`);
 
-    // Зберігаємо в кеш для наступної сторінки
     saveCache(CACHE_KEY);
     notifyReady();
   } catch (e) {
