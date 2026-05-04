@@ -261,16 +261,31 @@
         <button class="close" onclick="closeModal('m-create')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
       <div class="modal-b">
-        <div style="font-size:13px; color:var(--ink-500); margin-top:-4px">Пароль буде згенеровано автоматично. Викладач при першому вході зобов'язаний його змінити.</div>
+        <div style="font-size:13px;color:var(--ink-500);margin-top:-4px;margin-bottom:16px">Акаунт буде створено через Firebase Auth. Викладач зможе одразу увійти.</div>
 
-        <div class="field">
-          <div class="field-l">Повне ім'я *</div>
-          <input class="field-input" id="new-name" placeholder="Іваненко Олег Петрович">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="field">
+            <div class="field-l">Прізвище *</div>
+            <input class="field-input" id="new-surname" placeholder="Іваненко">
+          </div>
+          <div class="field">
+            <div class="field-l">Ім'я *</div>
+            <input class="field-input" id="new-name" placeholder="Олег">
+          </div>
         </div>
         <div class="field">
-          <div class="field-l">Логін *</div>
-          <input class="field-input" id="new-login" placeholder="Латиниця, цифри, _" autocorrect="off" autocapitalize="none">
-          <div class="field-h">Логін має бути унікальним і використовуватись для входу</div>
+          <div class="field-l">Email *</div>
+          <input class="field-input" id="new-email" type="email" placeholder="teacher@university.ua" autocomplete="off">
+        </div>
+        <div class="field">
+          <div class="field-l">Тимчасовий пароль *</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input class="field-input" id="new-pass" type="text" placeholder="Мін. 8 символів" style="flex:1">
+            <button class="tb-btn" onclick="generateAndFillPass()" title="Згенерувати" style="flex-shrink:0">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0113.7-5.7L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 01-13.7 5.7L4 16"/><path d="M4 20v-4h4"/></svg>
+            </button>
+          </div>
+          <div class="field-h">Передайте пароль викладачу особисто або через захищений канал</div>
         </div>
         <div class="field">
           <div class="field-l">Роль</div>
@@ -283,11 +298,12 @@
         <div class="mod-err" id="create-err"></div>
 
         <div class="pass-box" id="created-box" style="display:none">
-          <div class="pass-lbl">Створено! Тимчасовий пароль:</div>
+          <div class="pass-lbl">Викладача створено! Дані для входу:</div>
+          <div style="font-size:12px;color:var(--ink-500);margin-bottom:6px">Email: <strong id="created-email"></strong></div>
           <div class="pass-val" id="created-pass"></div>
-          <div class="pass-note">Збережіть — більше не відображатиметься. При першому вході викладач буде зобов'язаний змінити пароль.</div>
-          <button class="tb-btn" style="margin-top:10px; width:100%; justify-content:center" onclick="copyPass('created-pass')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <div class="pass-note">Пароль більше не відображатиметься.</div>
+          <button class="tb-btn" style="margin-top:10px;width:100%;justify-content:center" onclick="copyPass('created-pass')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
             Скопіювати пароль
           </button>
         </div>
@@ -308,25 +324,63 @@
       </div>
       <div class="modal-b" style="text-align:center">
         <div class="confirm-icon violet">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
         </div>
-        <div class="confirm-desc">
-          Скинути пароль для <strong id="reset-name-lbl">—</strong>?<br>
-          Буде згенеровано новий тимчасовий пароль.
+        <div class="confirm-desc" id="reset-desc">
+          Надіслати посилання для скидання пароля на email<br>
+          <strong id="reset-email-lbl"></strong>?<br><br>
+          <span style="font-size:12px;color:var(--ink-500)">Викладач отримає лист від Firebase з посиланням для встановлення нового пароля.</span>
         </div>
-        <div class="pass-box" id="reset-box" style="display:none; text-align:left">
-          <div class="pass-lbl">Новий тимчасовий пароль:</div>
-          <div class="pass-val" id="reset-pass"></div>
-          <div class="pass-note">Збережіть — більше не відображатиметься</div>
-          <button class="tb-btn" style="margin-top:10px; width:100%; justify-content:center" onclick="copyPass('reset-pass')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            Скопіювати
-          </button>
+        <div class="pass-box" id="reset-box" style="display:none;text-align:left">
+          <div style="display:flex;align-items:center;gap:10px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+            <span style="font-weight:700;color:#16A34A;font-size:13.5px">Лист надіслано!</span>
+          </div>
+          <div style="font-size:13px;color:var(--ink-500);margin-top:6px">Перевірте папку «Вхідні» та «Спам».</div>
         </div>
       </div>
       <div class="modal-f" id="reset-actions">
         <button class="tb-btn" onclick="closeModal('m-reset')">Скасувати</button>
-        <button class="tb-btn primary" onclick="doResetPassword()">Згенерувати новий пароль</button>
+        <button class="tb-btn primary" onclick="doResetPassword()">Надіслати лист</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVITE LINK MODAL -->
+  <div class="modal-bd" id="m-invite">
+    <div class="modal" style="max-width:480px">
+      <div class="modal-h">
+        <h3>Запросити викладача</h3>
+        <button class="close" onclick="closeModal('m-invite')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-b">
+        <div style="font-size:13px;color:var(--ink-500);margin-bottom:18px">
+          Одноразове посилання для самостійної реєстрації. Викладач переходить за посиланням, вводить свої дані та створює акаунт.
+        </div>
+
+        <div id="invite-generating" style="text-align:center;padding:20px 0;color:var(--ink-500);font-size:13px">
+          <div style="width:28px;height:28px;border:2.5px solid rgba(124,58,237,.2);border-top-color:#7C3AED;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px"></div>
+          Генерація посилання...
+        </div>
+
+        <div id="invite-result" style="display:none">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-400);font-weight:700;margin-bottom:8px">Посилання для реєстрації</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input class="field-input" id="invite-link-input" readonly style="flex:1;font-size:12px;font-family:'Geist Mono',monospace;background:#F4F6FB">
+            <button class="tb-btn" onclick="copyInviteLink()" title="Скопіювати">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </button>
+          </div>
+          <div style="font-size:12px;color:var(--ink-500);margin-top:10px;line-height:1.5">
+            Посилання одноразове — після реєстрації стане недійсним. Ви можете видалити його в будь-який момент.
+          </div>
+        </div>
+      </div>
+      <div class="modal-f">
+        <button class="tb-btn" onclick="closeModal('m-invite')">Закрити</button>
+        <button class="tb-btn primary" onclick="generateInvite()" id="regen-invite-btn" style="display:none">
+          Згенерувати нове
+        </button>
       </div>
     </div>
   </div>
@@ -510,6 +564,10 @@ const topbarRight = `
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.7L4 16"/><path d="M4 20v-4h4"/></svg>
     Оновити
   </button>
+  <button class="tb-btn" onclick="openInviteModal()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Запросити
+  </button>
   <button class="tb-btn primary" onclick="openCreateModal()">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     Новий викладач
@@ -685,7 +743,7 @@ function renderGrid(){
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.5 6 6 1.5-6 1.5L12 17l-1.5-6-6-1.5 6-1.5z"/></svg>
           AI
         </button>
-        ${!isMe ? `<button class="tc-act" onclick="openResetModal('${u.id}','${safeName}')" title="Скинути пароль">
+        ${!isMe ? `<button class="tc-act" onclick="openResetModal('${u.id}','${safeName}','${(u.email||'').replace(/'/g,"\\'")}'" title="Скинути пароль">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
           Пароль
         </button>` : ""}
@@ -733,38 +791,96 @@ window.openCreateModal = () => {
   setTimeout(() => document.getElementById("new-name").focus(), 100);
 };
 
+// ─── Firebase Auth (вторинний інстанс для створення викладачів) ───────────────
+import { getApp, initializeApp as initApp2 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signOut as signOutAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const FC = {
+  apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",
+  authDomain:"quizflow-8a978.firebaseapp.com",
+  databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"quizflow-8a978",
+  storageBucket:"quizflow-8a978.firebasestorage.app",
+  messagingSenderId:"206469794166",
+  appId:"1:206469794166:web:55cd7007b429607acd5257"
+};
+// Вторинний app щоб не виходити з акаунту адміна при створенні викладача
+let _secondaryApp;
+function getSecondaryAuth() {
+  try { _secondaryApp = getApp("secondary"); }
+  catch { _secondaryApp = initApp2(FC, "secondary"); }
+  return getAuth(_secondaryApp);
+}
+
+window.openCreateModal = () => {
+  document.getElementById("new-surname").value = "";
+  document.getElementById("new-name").value = "";
+  document.getElementById("new-email").value = "";
+  document.getElementById("new-pass").value = genPass();
+  document.getElementById("new-role").value = "teacher";
+  document.getElementById("created-box").style.display = "none";
+  document.getElementById("create-btn").style.display = "";
+  document.getElementById("create-err").classList.remove("show");
+  openModal("m-create");
+};
+
+window.generateAndFillPass = () => {
+  document.getElementById("new-pass").value = genPass();
+};
+
 window.createTeacher = async () => {
-  const name = document.getElementById("new-name").value.trim();
-  const login = document.getElementById("new-login").value.trim().toLowerCase().replace(/\s/g, "_");
-  const role = document.getElementById("new-role").value;
-  const errEl = document.getElementById("create-err");
+  const surname = document.getElementById("new-surname").value.trim();
+  const name    = document.getElementById("new-name").value.trim();
+  const email   = document.getElementById("new-email").value.trim();
+  const pass    = document.getElementById("new-pass").value.trim();
+  const role    = document.getElementById("new-role").value;
+  const errEl   = document.getElementById("create-err");
 
   const showErr = (msg) => { errEl.textContent = msg; errEl.classList.add("show"); };
-  const hideErr = () => { errEl.classList.remove("show"); };
+  const hideErr = () => errEl.classList.remove("show");
 
-  if (!name) return showErr("Введіть ім'я");
-  if (!login) return showErr("Введіть логін");
-  if (!/^[a-z0-9_]+$/.test(login)) return showErr("Логін: лише латиниця, цифри, _");
-  if ((window._users||[]).some(u => u.login === login)) return showErr("Цей логін вже зайнятий");
+  if (!surname) return showErr("Введіть прізвище");
+  if (!name)    return showErr("Введіть ім'я");
+  if (!email)   return showErr("Введіть email");
+  if (pass.length < 8) return showErr("Пароль має бути мінімум 8 символів");
   hideErr();
 
-  _newPass = genPass();
+  const btn = document.getElementById("create-btn");
+  btn.disabled = true; btn.textContent = "Створення...";
+
   try {
-    const uid = "u" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    // Створюємо через вторинний Firebase Auth instance (не зачіпає сесію адміна)
+    const secAuth = getSecondaryAuth();
+    const cred = await createUserWithEmailAndPassword(secAuth, email, pass);
+    const uid = cred.user.uid;
+
+    // Виходимо з вторинного інстансу
+    await signOutAuth(secAuth);
+
+    // Пишемо профіль у Realtime DB
     await dbSet(`users/${uid}`, {
-      name, login, uid, role,
-      password: _newPass,
-      isFirstLogin: true,
-      createdAt: Date.now()
+      name, surname, email, role,
+      createdAt: Date.now(),
+      blocked: false
     });
-    document.getElementById("created-pass").textContent = _newPass;
+
+    // Показуємо результат
+    document.getElementById("created-email").textContent = email;
+    document.getElementById("created-pass").textContent = pass;
     document.getElementById("created-box").style.display = "";
-    document.getElementById("create-btn").style.display = "none";
+    btn.style.display = "none";
+
     await loadAllTeachers();
     renderAll();
     toast("Викладача створено");
-  } catch (e) {
-    showErr("Помилка: " + e.message);
+  } catch(e) {
+    const msg = e.code === "auth/email-already-in-use"
+      ? "Цей email вже зареєстрований"
+      : e.code === "auth/invalid-email"
+      ? "Невірний формат email"
+      : "Помилка: " + e.message;
+    showErr(msg);
+    btn.disabled = false; btn.textContent = "Створити →";
   }
 };
 
@@ -774,27 +890,67 @@ window.copyPass = (elId) => {
 };
 
 // ─── RESET PASSWORD ───────────────────────────────────────────────────────
-window.openResetModal = (uid, name) => {
-  _resetUid = uid; _resetPass = "";
-  document.getElementById("reset-name-lbl").textContent = name;
+window.openResetModal = (uid, name, email) => {
+  _resetUid = uid;
+  document.getElementById("reset-email-lbl").textContent = email || name;
   document.getElementById("reset-box").style.display = "none";
   document.getElementById("reset-actions").style.display = "";
+  // Зберігаємо email для відправки
+  window._resetEmail = email;
   openModal("m-reset");
 };
 
 window.doResetPassword = async () => {
-  _resetPass = genPass();
+  const email = window._resetEmail;
+  if (!email) { toast("Email не знайдено", "err"); return; }
   try {
-    await dbUpd(`users/${_resetUid}`, { password: _resetPass, isFirstLogin: true });
-    document.getElementById("reset-pass").textContent = _resetPass;
+    const mainAuth = getAuth(getApp());
+    await sendPasswordResetEmail(mainAuth, email);
     document.getElementById("reset-box").style.display = "";
     document.getElementById("reset-actions").style.display = "none";
-    await loadAllTeachers();
-    renderAll();
-    toast("Пароль скинуто");
-  } catch (e) {
-    toast("Помилка: " + e.message);
+    toast("Лист надіслано на " + email);
+  } catch(e) {
+    toast("Помилка: " + e.message, "err");
   }
+};
+
+// ─── INVITE LINK ──────────────────────────────────────────────────────────
+window.openInviteModal = async () => {
+  document.getElementById("invite-generating").style.display = "";
+  document.getElementById("invite-result").style.display = "none";
+  document.getElementById("regen-invite-btn").style.display = "none";
+  openModal("m-invite");
+  await generateInvite();
+};
+
+window.generateInvite = async () => {
+  document.getElementById("invite-generating").style.display = "";
+  document.getElementById("invite-result").style.display = "none";
+  try {
+    // Генеруємо унікальний токен (32 символи)
+    const token = Array.from(crypto.getRandomValues(new Uint8Array(24)))
+      .map(b => b.toString(36)).join("").slice(0, 32);
+
+    await dbSet(`invite_tokens/${token}`, {
+      createdAt: Date.now(),
+      used: false
+    });
+
+    const base = location.origin + location.pathname.replace(/\/admin\/.*/, "/");
+    const link = `${base}register.html?token=${token}`;
+    document.getElementById("invite-link-input").value = link;
+    document.getElementById("invite-generating").style.display = "none";
+    document.getElementById("invite-result").style.display = "";
+    document.getElementById("regen-invite-btn").style.display = "";
+  } catch(e) {
+    toast("Помилка: " + e.message, "err");
+    document.getElementById("invite-generating").style.display = "none";
+  }
+};
+
+window.copyInviteLink = () => {
+  const val = document.getElementById("invite-link-input").value;
+  if (val) navigator.clipboard.writeText(val).then(() => toast("Посилання скопійовано"));
 };
 
 // ─── BLOCK / UNBLOCK ──────────────────────────────────────────────────────
