@@ -7,6 +7,7 @@
 
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, set, push, update, remove, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // ─── Firebase ──────────────────────────────────────────────────────────
 const FC = {
@@ -15,47 +16,61 @@ const FC = {
   databaseURL: "https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "quizflow-8a978",
   storageBucket: "quizflow-8a978.firebasestorage.app",
-  messagingSenderId: "206469794166",
+  messagingSenderId: "206469794216",
   appId: "1:206469794166:web:55cd7007b429607acd5257"
 };
-const app = getApps().length ? getApps()[0] : initializeApp(FC);
-const db = getDatabase(app);
+const app  = getApps().length ? getApps()[0] : initializeApp(FC);
+const db   = getDatabase(app);
+const auth = getAuth(app);
 
 // Експонуємо на window — щоб features.js міг використати без імпорту
 window._fb = { db, ref, get, set, push, update, remove, onValue, off };
 
 export { db, ref, get, set, push, update, remove, onValue, off };
 
-// ─── Auth ──────────────────────────────────────────────────────────────
-// Читаємо обидва сховища: localStorage основне, sessionStorage — fallback (legacy).
-// Так сесія переживає закриття вкладки/браузера.
-const _sess = localStorage.getItem("qf_user") || sessionStorage.getItem("qf_user");
-if (!_sess) { location.href = "login.html"; throw new Error("no session"); }
-let _user;
-try { _user = JSON.parse(_sess); }
-catch {
-  localStorage.removeItem("qf_user");
-  sessionStorage.removeItem("qf_user");
+// ─── Auth через Firebase Auth ──────────────────────────────────────────
+// Чекаємо поки Firebase відновить сесію з IndexedDB
+const _fbUser = await new Promise((resolve) => {
+  const unsub = onAuthStateChanged(auth, (u) => { unsub(); resolve(u); });
+});
+
+if (!_fbUser) {
   location.href = "login.html";
-  throw new Error("bad session");
-}
-if (!_user || !_user.id) {
-  localStorage.removeItem("qf_user");
-  sessionStorage.removeItem("qf_user");
-  location.href = "login.html";
-  throw new Error("no user id");
+  throw new Error("no auth");
 }
 
-// Якщо знайшли в sessionStorage — мігруємо в localStorage щоб надалі не губилось
-if (!localStorage.getItem("qf_user")) {
-  try { localStorage.setItem("qf_user", _sess); } catch {}
+// Зчитуємо профіль з Realtime DB
+const _userSnap = await get(ref(db, `users/${_fbUser.uid}`));
+if (!_userSnap.exists()) {
+  await signOut(auth);
+  location.href = "login.html";
+  throw new Error("no user profile");
 }
+
+const _userDb = _userSnap.val();
+
+// Перевіряємо чи не заблокований
+if (_userDb.blocked === true) {
+  await signOut(auth);
+  alert("Ваш акаунт заблоковано. Зверніться до адміністратора.");
+  location.href = "login.html";
+  throw new Error("blocked");
+}
+
+// Збираємо _user з Firebase UID + даними з DB
+const _user = {
+  id:      _fbUser.uid,
+  email:   _fbUser.email,
+  name:    _userDb.name    || "",
+  surname: _userDb.surname || "",
+  role:    _userDb.role    || "teacher",
+};
 
 export const user = _user;
-export const uid = _user.id;
+export const uid  = _fbUser.uid;
 
 window._user = _user;
-window._uid = uid;
+window._uid  = uid;
 
 // ─── Path / DB helpers ─────────────────────────────────────────────────
 export function tp(path) {
@@ -89,10 +104,12 @@ window.ts = ts;
 window.toArr = toArr;
 
 // ─── Logout ────────────────────────────────────────────────────────────
-window.doLogout = () => {
-  // Чистимо обидва сховища (qf_user + кеші)
-  localStorage.removeItem("qf_user");
+window.doLogout = async () => {
+  // Чистимо кеші навігації
+  localStorage.removeItem("qf_nav_cache");
+  localStorage.removeItem("qf_nav_ts");
   sessionStorage.clear();
+  await signOut(auth);
   location.href = "login.html";
 };
 
@@ -472,16 +489,6 @@ window.invalidateQfCache = function() {
 
 async function loadAllData() {
   try {
-    const uSnap = await get(ref(db, `users/${uid}`));
-    if (uSnap.exists() && uSnap.val().blocked === true) {
-      localStorage.removeItem("qf_user");
-      sessionStorage.clear();
-      alert("Ваш акаунт заблоковано. Зверніться до адміністратора.");
-      location.href = "login.html";
-      return;
-    }
-  } catch (e) { console.warn("[app.js] block check failed:", e.message); }
-
   // ─── 1) Пробуємо sessionStorage-кеш ─────────────────────────────────
   // Кеш живе поки вкладка відкрита і не старше 60 секунд.
   // При навігації між сторінками — дані показуються МИТТЄВО з кешу.
