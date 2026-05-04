@@ -206,10 +206,10 @@
       </div>
 
       <div class="field-group">
-        <div class="field-label">Логін</div>
+        <div class="field-label">Email</div>
         <div class="field-input-wrap">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
-          <input class="field-input" type="text" id="login" autocomplete="username" placeholder="admin">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <input class="field-input" type="email" id="login" autocomplete="email" placeholder="admin@example.com">
         </div>
       </div>
 
@@ -238,16 +238,17 @@
 <script type="module">
   import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   const cfg = {apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",authDomain:"quizflow-8a978.firebaseapp.com",databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",projectId:"quizflow-8a978",storageBucket:"quizflow-8a978.firebasestorage.app",messagingSenderId:"206469794166",appId:"1:206469794166:web:55cd7007b429607acd5257"};
-  const app = getApps().length ? getApps()[0] : initializeApp(cfg);
-  const db = getDatabase(app);
+  const app  = getApps().length ? getApps()[0] : initializeApp(cfg);
+  const auth = getAuth(app);
+  const db   = getDatabase(app);
 
-  const errEl = document.getElementById("err");
+  const errEl  = document.getElementById("err");
   const errTxt = document.getElementById("err-text");
   function showErr(msg){ errTxt.textContent = msg; errEl.classList.add("show"); }
   function hideErr(){ errEl.classList.remove("show"); }
-
   function setBusy(busy){
     const btn = document.getElementById("loginBtn");
     btn.disabled = busy;
@@ -255,48 +256,53 @@
     document.getElementById("loginBtn-arrow").style.display = busy ? "none" : "";
   }
 
-  // Якщо вже залогінений як адмін — одразу в overview
-  // Читаємо обидва сховища (localStorage основне, sessionStorage — fallback)
-  try {
-    const sess = localStorage.getItem("qf_user") || sessionStorage.getItem("qf_user");
-    if (sess) {
-      const u = JSON.parse(sess);
-      if (u && u.role === "admin" && !u.blocked) {
-        location.replace("overview.html");
-      }
+  // Якщо вже залогінений через Firebase Auth — перевіряємо чи admin
+  onAuthStateChanged(auth, async (fbUser) => {
+    if (fbUser) {
+      try {
+        const snap = await get(ref(db, `users/${fbUser.uid}`));
+        if (snap.exists() && snap.val().role === "admin" && !snap.val().blocked) {
+          location.replace("overview.html");
+        }
+      } catch {}
     }
-  } catch {}
+  });
 
   window.doLogin = async () => {
     hideErr();
-    const login = document.getElementById("login").value.trim().toLowerCase();
+    const email    = document.getElementById("login").value.trim();
     const password = document.getElementById("password").value;
-    if (!login || !password) { showErr("Введіть логін і пароль"); return; }
+    if (!email || !password) { showErr("Введіть email і пароль"); return; }
 
     setBusy(true);
 
     try {
-      const snap = await get(ref(db, "users"));
-      if (!snap.exists()) { showErr("Користувача не знайдено"); setBusy(false); return; }
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const snap = await get(ref(db, `users/${cred.user.uid}`));
 
-      const all = snap.val();
-      let found = null;
-      for (const [id, u] of Object.entries(all)) {
-        if (u && typeof u === "object" && u.login === login) { found = { id, ...u }; break; }
+      if (!snap.exists()) {
+        await auth.signOut();
+        showErr("Профіль не знайдено"); setBusy(false); return;
       }
 
-      if (!found) { showErr("Невірний логін або пароль"); setBusy(false); return; }
-      if (found.password !== password) { showErr("Невірний логін або пароль"); setBusy(false); return; }
-      if (found.role !== "admin") { showErr("Доступ заборонено — тільки для адміністраторів"); setBusy(false); return; }
-      if (found.blocked) { showErr("Акаунт заблоковано"); setBusy(false); return; }
+      const u = snap.val();
+      if (u.role !== "admin") {
+        await auth.signOut();
+        showErr("Доступ заборонено — тільки для адміністраторів"); setBusy(false); return;
+      }
+      if (u.blocked) {
+        await auth.signOut();
+        showErr("Акаунт заблоковано"); setBusy(false); return;
+      }
 
-      // Зберігаємо в localStorage щоб сесія залишалась між закриттями браузера
-      localStorage.setItem("qf_user", JSON.stringify(found));
-      // Чистимо старий sessionStorage щоб не плутав
-      sessionStorage.removeItem("qf_user");
       location.href = "overview.html";
-    } catch (e) {
-      showErr("Помилка з'єднання: " + (e.message || "невідома"));
+    } catch(e) {
+      const msg = ["auth/invalid-credential","auth/wrong-password","auth/user-not-found"].includes(e.code)
+        ? "Невірний email або пароль"
+        : e.code === "auth/too-many-requests"
+        ? "Забагато спроб. Спробуйте пізніше"
+        : "Помилка: " + e.message;
+      showErr(msg);
       setBusy(false);
     }
   };
@@ -308,7 +314,6 @@
     if (e.key === "Enter") document.getElementById("password").focus();
   });
 
-  // Auto-focus login
   setTimeout(() => document.getElementById("login").focus(), 100);
 </script>
 </body>
