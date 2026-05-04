@@ -512,33 +512,36 @@
 
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-// Глобальна tp — читає uid із сесії
+// ─── AUTH GUARD (Firebase Auth) ───────────────────────────────────────────────
+const _firebaseConfig = {
+  apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",
+  authDomain:"quizflow-8a978.firebaseapp.com",
+  databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"quizflow-8a978",
+  storageBucket:"quizflow-8a978.firebasestorage.app",
+  messagingSenderId:"206469794166",
+  appId:"1:206469794166:web:55cd7007b429607acd5257"
+};
+const _authApp = getApps().length ? getApps()[0] : initializeApp(_firebaseConfig);
+const _auth = getAuth(_authApp);
+
+// Чекаємо поки Firebase відновить сесію
+const _fbUser = await new Promise(resolve => {
+  const unsub = onAuthStateChanged(_auth, u => { unsub(); resolve(u); });
+});
+if (!_fbUser) { window.location.href = "login.html"; throw new Error("no auth"); }
+
+// Глобальна tp — використовує Firebase uid
+const _uid = _fbUser.uid;
 function tp(path){
-  try{
-    const _s = localStorage.getItem("qf_user") || sessionStorage.getItem("qf_user");
-    const _u=_s?JSON.parse(_s):null;
-    const uid=_u?.id||"";
-    return uid ? `teachers/${uid}/${path}` : path;
-  }catch{ return path; }
+  return _uid ? `teachers/${_uid}/${path}` : path;
 }
 
 import { getDatabase, ref, get, set, push, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-// js/firebase.js — Firebase Realtime Database
-
-
-const firebaseConfig = {
-  apiKey:            "AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",
-  authDomain:        "quizflow-8a978.firebaseapp.com",
-  databaseURL:       "https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId:         "quizflow-8a978",
-  storageBucket:     "quizflow-8a978.firebasestorage.app",
-  messagingSenderId: "206469794166",
-  appId:             "1:206469794166:web:55cd7007b429607acd5257"
-};
-
-const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const app = _authApp;
 const db  = getDatabase(app);
 
 // Завантажуємо налаштування AI одразу (глобальні + індивідуальні)
@@ -546,17 +549,13 @@ const db  = getDatabase(app);
   await loadAISettings(db);
   // Читаємо індивідуальні налаштування викладача
   try{
-    const _s = localStorage.getItem("qf_user") || sessionStorage.getItem("qf_user");
-    const _u = _s ? JSON.parse(_s) : null;
-    if(_u?.id){
-      const tSnap = await _g(_r(db,`users/${_u.id}/aiSettings`));
-      if(tSnap.exists()){
-        const t = tSnap.val();
-        if(t.aiComments  !== undefined) window._AI_COMMENTS   = t.aiComments;
-        if(t.aiAnalysis  !== undefined) window._AI_ANALYSIS   = t.aiAnalysis;
-        if(t.aiGeneration!== undefined) window._AI_GENERATION = t.aiGeneration;
-        if(t.aiTextCheck !== undefined) window._AI_TEXTCHECK  = t.aiTextCheck;
-      }
+    const tSnap = await _g(_r(db,`users/${_uid}/aiSettings`));
+    if(tSnap.exists()){
+      const t = tSnap.val();
+      if(t.aiComments  !== undefined) window._AI_COMMENTS   = t.aiComments;
+      if(t.aiAnalysis  !== undefined) window._AI_ANALYSIS   = t.aiAnalysis;
+      if(t.aiGeneration!== undefined) window._AI_GENERATION = t.aiGeneration;
+      if(t.aiTextCheck !== undefined) window._AI_TEXTCHECK  = t.aiTextCheck;
     }
   }catch(e){ console.warn("Teacher AI settings:", e.message); }
 })();
@@ -1006,12 +1005,8 @@ window.syncNoTimerToggle = function(){
   }
 };
 
-// ─── AUTH GUARD ───────────────────────────────────────────────────────────────
-const _sess = localStorage.getItem("qf_user") || sessionStorage.getItem("qf_user");
-if(!_sess) { window.location.href = "login.html"; }
-const _user = _sess ? JSON.parse(_sess) : null;
-if(!_user || !_user.id) { localStorage.removeItem("qf_user"); sessionStorage.clear(); window.location.href = "login.html"; }
-const _uid = _user.id;
+// ─── AUTH GUARD ── вже виконано вище через Firebase Auth ─────────────────────
+// _uid та _fbUser доступні глобально в цьому модулі
 
 
 // ─── CONSTRUCTOR CUSTOM DROPDOWNS ─────────────────────────────────────────────
