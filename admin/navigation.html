@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><path d='M7 10h18M7 16h14M7 22h10' stroke='white' stroke-width='2.4' stroke-linecap='round'/></svg>">
+<title>QuizFlow Admin — Навігація</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/admin-shell.css?v=1">
+<style>
+/* ── Layout ── */
+.nav-layout{display:grid; grid-template-columns:1fr 360px; gap:16px; align-items:flex-start}
+@media(max-width:1200px){.nav-layout{grid-template-columns:1fr}}
+
+/* ── Section block ── */
+.ns-block{
+  background:#fff; border:1px solid var(--line); border-radius:16px;
+  margin-bottom:12px; overflow:visible;
+}
+.ns-head{
+  display:flex; align-items:center; gap:10px;
+  padding:12px 14px; border-bottom:1px solid var(--line);
+  background:#FAFBFE; border-radius:16px 16px 0 0;
+}
+.ns-head .drag-sec{
+  cursor:grab; color:var(--ink-400); display:grid; place-items:center;
+  padding:2px;
+}
+.ns-head .drag-sec:active{cursor:grabbing}
+.ns-head input.sec-name{
+  flex:1; border:0; background:transparent; font:inherit;
+  font-size:13.5px; font-weight:700; color:var(--ink-900); outline:none;
+  font-family:"Manrope",sans-serif;
+}
+.ns-head input.sec-name:focus{
+  background:#fff; border:1.5px solid #7C3AED; border-radius:7px;
+  padding:3px 8px; margin:-3px -8px;
+  box-shadow:0 0 0 3px rgba(124,58,237,.1);
+}
+.ns-head .sec-actions{display:flex; align-items:center; gap:4px; margin-left:auto}
+.ns-head .sec-btn{
+  width:28px; height:28px; border-radius:7px;
+  border:1px solid var(--line); background:#fff;
+  color:var(--ink-500); cursor:pointer;
+  display:grid; place-items:center; padding:0;
+  transition:all .12s;
+}
+.ns-head .sec-btn:hover{background:#F4F6FB; border-color:var(--line-strong); color:var(--ink-700)}
+.ns-head .sec-btn.danger:hover{background:#FEE2E2; border-color:#FCA5A5; color:#B91C1C}
+.ns-head .sec-btn svg{width:13px; height:13px}
+
+/* ── Nav items in section ── */
+.ns-items{padding:6px; display:flex; flex-direction:column; gap:4px; min-height:50px}
+.ns-items.drag-over{background:rgba(124,58,237,.04); border-radius:0 0 12px 12px}
+
+.ni-row{
+  display:flex; align-items:center; gap:10px;
+  padding:9px 10px; border-radius:10px;
+  border:1.5px solid var(--line); background:#fff;
+  transition:all .15s; position:relative;
+}
+.ni-row:hover{border-color:var(--line-strong)}
+.ni-row.dragging{opacity:.4}
+.ni-row.drag-target{border-color:#7C3AED; background:#F5F3FF}
+.ni-row.protected{background:linear-gradient(135deg, rgba(124,58,237,.04), #fff)}
+
+.ni-drag{
+  cursor:grab; color:var(--ink-300);
+  display:grid; place-items:center; padding:2px; flex:0 0 auto;
+}
+.ni-drag:active{cursor:grabbing}
+.ni-drag svg{width:13px; height:13px}
+
+.ni-icon-pick{
+  width:36px; height:36px; border-radius:9px; flex:0 0 auto;
+  border:1.5px solid var(--line); background:#FAFBFE;
+  display:grid; place-items:center; cursor:pointer;
+  transition:all .15s; color:var(--ink-700);
+  position:relative;
+}
+.ni-icon-pick:hover{border-color:#7C3AED; background:#F5F3FF; color:#6D28D9}
+.ni-icon-pick svg{width:16px; height:16px}
+
+.ni-name{
+  flex:1; border:0; background:transparent; font:inherit;
+  font-size:13.5px; font-weight:600; color:var(--ink-900); outline:none;
+  font-family:"Manrope",sans-serif;
+}
+.ni-name:focus{
+  background:#fff; border:1.5px solid #7C3AED; border-radius:7px;
+  padding:3px 8px; margin:-3px -8px;
+  box-shadow:0 0 0 3px rgba(124,58,237,.1);
+}
+
+.ni-file{
+  width:130px; border:1px solid var(--line); border-radius:8px;
+  padding:5px 9px; font:inherit; font-size:12px; font-family:"Geist Mono",monospace;
+  color:var(--ink-700); outline:none; background:#FAFBFE;
+  transition:all .15s;
+}
+.ni-file:focus{border-color:#7C3AED; box-shadow:0 0 0 2px rgba(124,58,237,.1); background:#fff}
+
+.ni-toggle{position:relative; display:inline-block; width:36px; height:20px; flex:0 0 auto}
+.ni-toggle input{display:none}
+.ni-toggle-sl{
+  position:absolute; inset:0; cursor:pointer;
+  background:#E3E8F2; border-radius:99px; transition:background .18s;
+}
+.ni-toggle-sl::before{
+  content:""; position:absolute; top:2px; left:2px;
+  width:16px; height:16px; border-radius:50%; background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.18); transition:transform .18s;
+}
+.ni-toggle input:checked + .ni-toggle-sl{background:linear-gradient(135deg, #7C3AED, #4F46E5)}
+.ni-toggle input:checked + .ni-toggle-sl::before{transform:translateX(16px)}
+.ni-toggle input:disabled + .ni-toggle-sl{opacity:.5; cursor:not-allowed}
+
+.ni-del{
+  width:28px; height:28px; border-radius:7px;
+  border:1px solid var(--line); background:#fff;
+  color:var(--ink-400); cursor:pointer;
+  display:grid; place-items:center; padding:0; flex:0 0 auto;
+  transition:all .12s;
+}
+.ni-del:hover:not(:disabled){background:#FEE2E2; border-color:#FCA5A5; color:#B91C1C}
+.ni-del:disabled{opacity:.3; cursor:not-allowed}
+.ni-del svg{width:13px; height:13px}
+
+.ni-protected-tag{
+  font-size:10px; color:#6D28D9; font-weight:700; letter-spacing:.04em;
+  background:#EDE9FE; padding:2px 6px; border-radius:4px;
+  text-transform:uppercase;
+}
+
+/* ── Add item button ── */
+.ns-add-btn{
+  margin:4px 6px 10px;
+  width:calc(100% - 12px);
+  padding:8px; border-radius:9px;
+  border:1.5px dashed var(--line-strong); background:transparent;
+  color:var(--ink-500); font:inherit; font-size:13px; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;
+  transition:all .15s; font-family:"Manrope",sans-serif;
+}
+.ns-add-btn:hover{border-color:#7C3AED; background:#F5F3FF; color:#6D28D9}
+.ns-add-btn svg{width:13px; height:13px}
+
+/* ── Add section button ── */
+.add-sec-btn{
+  width:100%; padding:11px; border-radius:12px;
+  border:1.5px dashed var(--line-strong); background:#fff;
+  color:var(--ink-500); font:inherit; font-size:13.5px; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px;
+  transition:all .15s; font-family:"Manrope",sans-serif;
+  margin-top:4px;
+}
+.add-sec-btn:hover{border-color:#7C3AED; background:#F5F3FF; color:#6D28D9}
+.add-sec-btn svg{width:14px; height:14px}
+
+/* ── Preview card ── */
+.preview-card{
+  background:#fff; border:1px solid var(--line); border-radius:16px;
+  position:sticky; top:82px;
+}
+.preview-head{padding:14px 16px; border-bottom:1px solid var(--line)}
+.preview-head h3{margin:0; font-size:14px; font-weight:800}
+.preview-head p{margin:4px 0 0; font-size:12px; color:var(--ink-500)}
+
+.sb-preview{
+  background:linear-gradient(180deg, #050817 0%, #0A0F2C 60%, #0E1638 100%);
+  border-radius:0 0 14px 14px;
+  padding:12px 10px;
+  min-height:400px;
+}
+.sbp-brand{display:flex; align-items:center; gap:8px; padding:4px 6px 10px; margin-bottom:6px}
+.sbp-mark{
+  width:28px; height:28px; border-radius:8px;
+  background:linear-gradient(135deg, #7C3AED, #4F46E5);
+  display:grid; place-items:center; flex:0 0 auto;
+}
+.sbp-name{font-size:13px; font-weight:800; color:#fff}
+.sbp-name em{font-style:normal; color:#A78BFA}
+
+.sbp-sec-lbl{
+  font-size:9px; text-transform:uppercase; letter-spacing:.1em;
+  color:#7889B5; font-weight:700; padding:8px 8px 3px;
+}
+.sbp-item{
+  display:flex; align-items:center; gap:7px;
+  padding:7px 8px; border-radius:7px; margin-bottom:1px;
+  color:#C5CDE5; font-size:12px; font-weight:500;
+  transition:background .1s;
+}
+.sbp-item.disabled{opacity:.35}
+.sbp-item svg{width:14px; height:14px; flex:0 0 auto; color:#8895BD}
+
+/* ── Icon picker modal ── */
+.modal-bd{
+  position:fixed; inset:0; z-index:150;
+  background:rgba(11,20,55,.55); backdrop-filter:blur(4px);
+  display:none; align-items:center; justify-content:center; padding:20px;
+}
+.modal-bd.on{display:flex}
+.modal{
+  background:#fff; border-radius:18px; box-shadow:0 18px 40px rgba(11,20,55,.25);
+  width:100%; max-width:560px; max-height:80vh; overflow:auto;
+  display:flex; flex-direction:column;
+}
+.modal-h{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 20px; border-bottom:1px solid var(--line);
+  position:sticky; top:0; background:#fff; z-index:1;
+}
+.modal-h h3{margin:0; font-size:16px; font-weight:800}
+.modal-h .close{
+  width:30px; height:30px; border-radius:7px; border:1px solid var(--line);
+  background:#fff; cursor:pointer; display:grid; place-items:center; color:var(--ink-500);
+}
+.modal-h .close:hover{background:#F4F6FB}
+
+.icon-cats{display:flex; gap:4px; padding:12px 16px; flex-wrap:wrap; border-bottom:1px solid var(--line)}
+.icon-cat-btn{
+  padding:5px 11px; border-radius:7px; border:1px solid var(--line); background:#fff;
+  font:inherit; font-size:12px; font-weight:600; color:var(--ink-500);
+  cursor:pointer; transition:all .12s;
+}
+.icon-cat-btn:hover{border-color:var(--line-strong)}
+.icon-cat-btn.on{background:#7C3AED; border-color:#7C3AED; color:#fff}
+
+.icon-grid{
+  display:grid; grid-template-columns:repeat(8, 1fr); gap:4px;
+  padding:14px 16px;
+}
+.icon-opt{
+  width:100%; aspect-ratio:1; border-radius:9px;
+  border:1.5px solid transparent; background:#FAFBFE;
+  display:grid; place-items:center; cursor:pointer;
+  color:var(--ink-700); transition:all .12s;
+}
+.icon-opt:hover{border-color:var(--line-strong); background:#EDE9FE; color:#6D28D9}
+.icon-opt.selected{border-color:#7C3AED; background:#EDE9FE; color:#6D28D9}
+.icon-opt svg{width:18px; height:18px}
+</style>
+</head>
+<body>
+
+<div id="admin-loader"><div class="spin"></div></div>
+<div id="admin-root"></div>
+<div id="admin-modals">
+  <!-- Icon picker -->
+  <div class="modal-bd" id="m-icon-picker">
+    <div class="modal">
+      <div class="modal-h">
+        <h3>Оберіть іконку</h3>
+        <button class="close" id="icon-picker-close"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="icon-cats" id="icon-cats"></div>
+      <div class="icon-grid" id="icon-grid"></div>
+    </div>
+  </div>
+</div>
+<div id="admin-toast" class="toast"></div>
+
+<script type="module">
+import { initAdminShell, dbGet, dbSet, dbUpd, esc, toast, hideLoader } from "./shared/admin-shell.js?v=2";
+
+// ─── ІКОНКИ (40 штук, 5 категорій) ────────────────────────────────────────
+const ICON_CATS = {
+  "Навігація": [
+    { id:"dashboard", svg:'<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>' },
+    { id:"home",      svg:'<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' },
+    { id:"menu",      svg:'<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>' },
+    { id:"grid",      svg:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>' },
+    { id:"link",      svg:'<path d="M10 13a4 4 0 005.66 0l3-3a4 4 0 00-5.66-5.66l-1.5 1.5"/><path d="M14 11a4 4 0 00-5.66 0l-3 3a4 4 0 005.66 5.66l1.5-1.5"/>' },
+    { id:"external",  svg:'<path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>' },
+    { id:"arrow-r",   svg:'<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>' },
+    { id:"chevron-r", svg:'<polyline points="9 18 15 12 9 6"/>' },
+  ],
+  "Документи": [
+    { id:"file",      svg:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/>' },
+    { id:"files",     svg:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>' },
+    { id:"clock",     svg:'<path d="M12 3v3"/><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2"/>' },
+    { id:"book",      svg:'<path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>' },
+    { id:"news",      svg:'<rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h6M7 17h4"/><path d="M17 8h3v9a2 2 0 01-2 2"/>' },
+    { id:"edit",      svg:'<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>' },
+    { id:"clipboard", svg:'<path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>' },
+    { id:"inbox",     svg:'<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/>' },
+  ],
+  "Аналітика": [
+    { id:"chart-bar", svg:'<path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M3 20h18"/>' },
+    { id:"chart-line",svg:'<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>' },
+    { id:"pie",       svg:'<path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/>' },
+    { id:"trending",  svg:'<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>' },
+    { id:"percent",   svg:'<line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>' },
+    { id:"target",    svg:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>' },
+    { id:"award",     svg:'<circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>' },
+    { id:"star",      svg:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>' },
+  ],
+  "Люди": [
+    { id:"user",      svg:'<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>' },
+    { id:"users",     svg:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.6 2-4.8 4.5-5"/>' },
+    { id:"user-plus", svg:'<path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>' },
+    { id:"graduation",svg:'<path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/>' },
+    { id:"id-card",   svg:'<rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2.5"/><path d="M14 10h4M14 14h4"/>' },
+    { id:"shield",    svg:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>' },
+    { id:"lock",      svg:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>' },
+    { id:"key",       svg:'<path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>' },
+  ],
+  "Активність": [
+    { id:"bell",      svg:'<path d="M6 15V11a6 6 0 1112 0v4l1.5 3h-15z"/><path d="M10 20a2 2 0 004 0"/>' },
+    { id:"zap",       svg:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>' },
+    { id:"live",      svg:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/>' },
+    { id:"activity",  svg:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>' },
+    { id:"refresh",   svg:'<path d="M4 12a8 8 0 0113.7-5.7L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 01-13.7 5.7L4 16"/><path d="M4 20v-4h4"/>' },
+    { id:"search",    svg:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>' },
+    { id:"filter",    svg:'<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>' },
+    { id:"settings",  svg:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>' },
+  ],
+};
+
+// Default navigation config (з поточного layout.html)
+const DEFAULT_NAV = [
+  { id:"sec-main", type:"section", label:"Головне", order:0, items:[
+    { id:"dashboard", label:"Дашборд",   file:"index.html",      icon:"dashboard", enabled:true,  protected:true  },
+    { id:"tests",     label:"Тести",     file:"tests.html",      icon:"files",     enabled:true,  badge:"nb-t"    },
+    { id:"attempts",  label:"Спроби",    file:"attempts.html",   icon:"clock",     enabled:true,  badge:"nb-a"    },
+    { id:"links",     label:"Посилання", file:"links.html",      icon:"link",      enabled:true,  badge:"nb-l"    },
+  ]},
+  { id:"sec-analysis", type:"section", label:"Аналіз", order:1, items:[
+    { id:"analytics", label:"Аналітика", file:"analytics.html",  icon:"chart-bar", enabled:true  },
+    { id:"gradebook", label:"Журнал",    file:"gradebook.html",  icon:"book",      enabled:true  },
+    { id:"students",  label:"Студенти",  file:"students.html",   icon:"users",     enabled:true  },
+  ]},
+  { id:"sec-activity", type:"section", label:"Активність", order:2, items:[
+    { id:"notifications", label:"Сповіщення", file:"notifications.html", icon:"bell",     enabled:true },
+    { id:"suspicious",    label:"Підозрілі",  file:"suspicious.html",    icon:"shield",    enabled:true },
+    { id:"online",        label:"Онлайн",     file:"online.html",         icon:"live",      enabled:true },
+    { id:"news",          label:"Новини",     file:"news.html",           icon:"news",      enabled:true },
+  ]},
+];
+
+// ─── State ────────────────────────────────────────────────────────────────
+let navData = [];
+let _iconPickerTarget = null; // { secIdx, itemIdx }
+let _dragState = null;
+let _activeCat = Object.keys(ICON_CATS)[0];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+function svgIcon(iconId, size=16){
+  for (const cat of Object.values(ICON_CATS)){
+    const found = cat.find(i => i.id === iconId);
+    if (found) return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${found.svg}</svg>`;
+  }
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>`;
+}
+
+function deepClone(obj){ return JSON.parse(JSON.stringify(obj)); }
+
+// ─── Icon picker ──────────────────────────────────────────────────────────
+function buildIconPicker(){
+  const catsEl = document.getElementById("icon-cats");
+  const gridEl = document.getElementById("icon-grid");
+
+  function renderCats(){
+    catsEl.innerHTML = Object.keys(ICON_CATS).map(cat =>
+      `<button class="icon-cat-btn${cat===_activeCat?" on":""}" data-cat="${esc(cat)}">${esc(cat)}</button>`
+    ).join("");
+    catsEl.querySelectorAll(".icon-cat-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        _activeCat = btn.dataset.cat;
+        renderCats();
+        renderGrid();
+      });
+    });
+  }
+
+  function renderGrid(){
+    const icons = ICON_CATS[_activeCat] || [];
+    gridEl.innerHTML = icons.map(ic =>
+      `<button class="icon-opt" data-icon="${ic.id}" title="${ic.id}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ic.svg}</svg>
+      </button>`
+    ).join("");
+    gridEl.querySelectorAll(".icon-opt").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (!_iconPickerTarget) return;
+        const { secIdx, itemIdx } = _iconPickerTarget;
+        navData[secIdx].items[itemIdx].icon = btn.dataset.icon;
+        _iconPickerTarget = null;
+        document.getElementById("m-icon-picker").classList.remove("on");
+        renderEditor();
+        renderPreview();
+      });
+    });
+  }
+
+  renderCats();
+  renderGrid();
+
+  document.getElementById("icon-picker-close").addEventListener("click", () => {
+    document.getElementById("m-icon-picker").classList.remove("on");
+    _iconPickerTarget = null;
+  });
+  document.getElementById("m-icon-picker").addEventListener("click", e => {
+    if (e.target === document.getElementById("m-icon-picker")){
+      document.getElementById("m-icon-picker").classList.remove("on");
+      _iconPickerTarget = null;
+    }
+  });
+}
+
+// ─── Editor render ────────────────────────────────────────────────────────
+function renderEditor(){
+  const container = document.getElementById("nav-editor");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  navData.forEach((sec, si) => {
+    const block = document.createElement("div");
+    block.className = "ns-block";
+    block.dataset.secIdx = si;
+
+    // Section head
+    const head = document.createElement("div");
+    head.className = "ns-head";
+    head.innerHTML = `
+      <span class="drag-sec" draggable="true" data-drag-type="section" data-sec-idx="${si}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/></svg>
+      </span>
+      <input class="sec-name" type="text" value="${esc(sec.label)}" placeholder="Назва секції" data-sec-idx="${si}">
+      <div class="sec-actions">
+        <button class="sec-btn" title="Додати пункт" data-add-item="${si}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <button class="sec-btn danger" title="Видалити секцію" data-del-sec="${si}" ${navData.length <= 1 ? "disabled" : ""}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>`;
+
+    // Section name edit
+    head.querySelector(".sec-name").addEventListener("input", e => {
+      navData[si].label = e.target.value;
+      renderPreview();
+    });
+    head.querySelector("[data-add-item]").addEventListener("click", () => {
+      navData[si].items.push({
+        id: "item_" + Date.now(),
+        label: "Новий пункт",
+        file: "",
+        icon: "file",
+        enabled: true
+      });
+      renderEditor();
+      renderPreview();
+    });
+    const delSecBtn = head.querySelector("[data-del-sec]");
+    if (delSecBtn && !delSecBtn.disabled){
+      delSecBtn.addEventListener("click", () => {
+        if (navData[si].items.some(it => it.protected)){
+          toast("Секція містить захищені пункти — видалити неможливо");
+          return;
+        }
+        navData.splice(si, 1);
+        renderEditor();
+        renderPreview();
+      });
+    }
+
+    // Items list
+    const items = document.createElement("div");
+    items.className = "ns-items";
+    items.dataset.secIdx = si;
+
+    sec.items.forEach((item, ii) => {
+      const row = document.createElement("div");
+      row.className = "ni-row" + (item.protected ? " protected" : "");
+      row.dataset.itemIdx = ii;
+      row.dataset.secIdx = si;
+
+      row.innerHTML = `
+        <span class="ni-drag" draggable="true" data-drag-type="item" data-sec-idx="${si}" data-item-idx="${ii}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/></svg>
+        </span>
+        <button class="ni-icon-pick" data-sec-idx="${si}" data-item-idx="${ii}" title="Змінити іконку">
+          ${svgIcon(item.icon)}
+        </button>
+        <input class="ni-name" type="text" value="${esc(item.label)}" placeholder="Назва" data-sec-idx="${si}" data-item-idx="${ii}">
+        <input class="ni-file" type="text" value="${esc(item.file || "")}" placeholder="index.html" data-sec-idx="${si}" data-item-idx="${ii}" ${item.protected ? "readonly" : ""}>
+        ${item.protected ? `<span class="ni-protected-tag" title="Завжди відображається">Захищено</span>` : ""}
+        <label class="ni-toggle" title="${item.enabled ? "Вимкнути" : "Увімкнути"}">
+          <input type="checkbox" ${item.enabled ? "checked" : ""} ${item.protected ? "disabled" : ""} data-sec-idx="${si}" data-item-idx="${ii}">
+          <span class="ni-toggle-sl"></span>
+        </label>
+        <button class="ni-del" title="Видалити" data-sec-idx="${si}" data-item-idx="${ii}" ${item.protected ? "disabled" : ""}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        </button>`;
+
+      // Icon picker
+      row.querySelector(".ni-icon-pick").addEventListener("click", () => {
+        _iconPickerTarget = { secIdx: si, itemIdx: ii };
+        document.getElementById("m-icon-picker").classList.add("on");
+      });
+
+      // Name edit
+      row.querySelector(".ni-name").addEventListener("input", e => {
+        navData[si].items[ii].label = e.target.value;
+        renderPreview();
+      });
+
+      // File edit
+      if (!item.protected){
+        row.querySelector(".ni-file").addEventListener("input", e => {
+          navData[si].items[ii].file = e.target.value.trim();
+        });
+      }
+
+      // Toggle
+      if (!item.protected){
+        row.querySelector("input[type=checkbox]").addEventListener("change", e => {
+          navData[si].items[ii].enabled = e.target.checked;
+          renderPreview();
+        });
+      }
+
+      // Delete
+      if (!item.protected){
+        const delBtn = row.querySelector(".ni-del");
+        delBtn.addEventListener("click", () => {
+          navData[si].items.splice(ii, 1);
+          renderEditor();
+          renderPreview();
+        });
+      }
+
+      items.appendChild(row);
+    });
+
+    block.appendChild(head);
+    block.appendChild(items);
+    container.appendChild(block);
+  });
+
+  // Add section button
+  const addSecBtn = document.createElement("button");
+  addSecBtn.className = "add-sec-btn";
+  addSecBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Додати секцію`;
+  addSecBtn.addEventListener("click", () => {
+    navData.push({
+      id: "sec_" + Date.now(),
+      type: "section",
+      label: "Нова секція",
+      items: []
+    });
+    renderEditor();
+    renderPreview();
+  });
+  container.appendChild(addSecBtn);
+
+  initDragDrop();
+}
+
+// ─── Drag & Drop ─────────────────────────────────────────────────────────
+function initDragDrop(){
+  let dragType = null, dragSecIdx = null, dragItemIdx = null;
+
+  document.querySelectorAll("[data-drag-type]").forEach(el => {
+    el.addEventListener("dragstart", e => {
+      dragType    = el.dataset.dragType;
+      dragSecIdx  = parseInt(el.dataset.secIdx);
+      dragItemIdx = el.dataset.itemIdx !== undefined ? parseInt(el.dataset.itemIdx) : null;
+      e.dataTransfer.effectAllowed = "move";
+      setTimeout(() => {
+        if (dragType === "item"){
+          const row = el.closest(".ni-row");
+          if (row) row.classList.add("dragging");
+        }
+      }, 0);
+    });
+    el.addEventListener("dragend", () => {
+      document.querySelectorAll(".dragging,.drag-target,.drag-over").forEach(el => {
+        el.classList.remove("dragging","drag-target","drag-over");
+      });
+    });
+  });
+
+  // Section drop zones
+  document.querySelectorAll(".ns-block").forEach(block => {
+    block.addEventListener("dragover", e => {
+      if (dragType !== "section") return;
+      e.preventDefault();
+      block.classList.add("drag-target");
+    });
+    block.addEventListener("dragleave", () => block.classList.remove("drag-target"));
+    block.addEventListener("drop", e => {
+      e.preventDefault();
+      block.classList.remove("drag-target");
+      if (dragType !== "section") return;
+      const toIdx = parseInt(block.dataset.secIdx);
+      if (dragSecIdx === toIdx) return;
+      const moved = navData.splice(dragSecIdx, 1)[0];
+      navData.splice(toIdx, 0, moved);
+      renderEditor();
+      renderPreview();
+    });
+  });
+
+  // Item drop zones
+  document.querySelectorAll(".ns-items").forEach(zone => {
+    const zoneSec = parseInt(zone.dataset.secIdx);
+    zone.addEventListener("dragover", e => {
+      if (dragType !== "item") return;
+      e.preventDefault();
+      zone.classList.add("drag-over");
+    });
+    zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
+    zone.addEventListener("drop", e => {
+      e.preventDefault();
+      zone.classList.remove("drag-over");
+      if (dragType !== "item") return;
+
+      const [movedItem] = navData[dragSecIdx].items.splice(dragItemIdx, 1);
+      navData[zoneSec].items.push(movedItem);
+      renderEditor();
+      renderPreview();
+    });
+  });
+
+  document.querySelectorAll(".ni-row").forEach(row => {
+    const rowSec  = parseInt(row.dataset.secIdx);
+    const rowItem = parseInt(row.dataset.itemIdx);
+    row.addEventListener("dragover", e => {
+      if (dragType !== "item") return;
+      e.preventDefault();
+      row.classList.add("drag-target");
+    });
+    row.addEventListener("dragleave", () => row.classList.remove("drag-target"));
+    row.addEventListener("drop", e => {
+      e.preventDefault();
+      row.classList.remove("drag-target");
+      if (dragType !== "item") return;
+      if (dragSecIdx === rowSec && dragItemIdx === rowItem) return;
+
+      const [movedItem] = navData[dragSecIdx].items.splice(dragItemIdx, 1);
+      // Adjust index if same section and item was before
+      let insertAt = rowItem;
+      if (dragSecIdx === rowSec && dragItemIdx < rowItem) insertAt--;
+      navData[rowSec].items.splice(insertAt, 0, movedItem);
+      renderEditor();
+      renderPreview();
+    });
+  });
+}
+
+// ─── Preview ──────────────────────────────────────────────────────────────
+function renderPreview(){
+  const pv = document.getElementById("nav-preview");
+  if (!pv) return;
+
+  let html = `<div class="sbp-brand">
+    <div class="sbp-mark">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11a4 4 0 014 4v1"/><path d="M20 17H9a4 4 0 01-4-4v-1"/><circle cx="5" cy="7" r="1.3" fill="#fff"/><circle cx="19" cy="17" r="1.3" fill="#fff"/></svg>
+    </div>
+    <span class="sbp-name">quiz<em>flow</em></span>
+  </div>`;
+
+  navData.forEach(sec => {
+    html += `<div class="sbp-sec-lbl">${esc(sec.label)}</div>`;
+    sec.items.forEach(item => {
+      html += `<div class="sbp-item${item.enabled ? "" : " disabled"}">
+        ${svgIcon(item.icon, 14)}
+        <span>${esc(item.label)}</span>
+      </div>`;
+    });
+  });
+
+  pv.innerHTML = html;
+}
+
+// ─── Load / Save ──────────────────────────────────────────────────────────
+async function loadNav(){
+  try {
+    const saved = await dbGet("settings/navigation");
+    if (saved && Array.isArray(saved) && saved.length > 0){
+      navData = saved;
+    } else {
+      navData = deepClone(DEFAULT_NAV);
+    }
+  } catch(e) {
+    navData = deepClone(DEFAULT_NAV);
+  }
+  renderEditor();
+  renderPreview();
+}
+
+async function saveNav(){
+  const btn = document.getElementById("btn-save-nav");
+  btn.disabled = true;
+
+  // Validate
+  for (const sec of navData){
+    if (!sec.label.trim()){ toast("Назва секції не може бути порожньою"); btn.disabled=false; return; }
+    for (const item of sec.items){
+      if (!item.label.trim()){ toast("Назва пункту не може бути порожньою"); btn.disabled=false; return; }
+      if (!item.protected && !item.file.trim()){ toast(`Вкажіть файл для пункту «${item.label}»`); btn.disabled=false; return; }
+    }
+  }
+
+  try {
+    await dbSet("settings/navigation", navData);
+    await dbSet("settings/navigation_ts", Date.now());
+    toast("Навігацію збережено — набуде чинності після перезавантаження сторінки");
+  } catch(e){
+    toast("Помилка: " + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function resetNav(){
+  if (!confirm("Скинути навігацію до стандартної? Всі зміни будуть втрачені.")) return;
+  navData = deepClone(DEFAULT_NAV);
+  try {
+    await dbSet("settings/navigation", navData);
+    await dbSet("settings/navigation_ts", Date.now());
+    renderEditor();
+    renderPreview();
+    toast("Скинуто до стандартної навігації");
+  } catch(e){
+    toast("Помилка: " + e.message);
+  }
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────
+const content = `
+  <div class="nav-layout">
+    <div>
+      <div id="nav-editor"></div>
+    </div>
+    <div class="preview-card">
+      <div class="preview-head">
+        <h3>Попередній перегляд</h3>
+        <p>Так виглядатиме sidebar для всіх викладачів</p>
+      </div>
+      <div class="sb-preview" id="nav-preview"></div>
+    </div>
+  </div>
+`;
+
+const topbarRight = `
+  <button class="tb-btn" id="btn-reset-nav">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>
+    Скинути
+  </button>
+  <button class="tb-btn primary" id="btn-save-nav">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+    Зберегти
+  </button>
+`;
+
+await initAdminShell({
+  activeId: "navigation",
+  crumbs: ["Навігація"],
+  content,
+  topbarRight
+});
+
+// Page-head
+const contentEl = document.getElementById("admin-content");
+if (contentEl){
+  const pageHead = document.createElement("div");
+  pageHead.className = "page-head";
+  pageHead.innerHTML = `<div><h1>Навігація</h1><p>Редагуйте sidebar — перетягуйте пункти, вмикайте/вимикайте, змінюйте назви та іконки</p></div>`;
+  contentEl.insertBefore(pageHead, contentEl.firstChild);
+}
+
+document.getElementById("btn-save-nav").addEventListener("click", saveNav);
+document.getElementById("btn-reset-nav").addEventListener("click", resetNav);
+
+buildIconPicker();
+
+try {
+  await loadNav();
+} catch(e) {
+  console.error("[navigation] load failed:", e);
+}
+hideLoader();
+</script>
+</body>
+</html>
