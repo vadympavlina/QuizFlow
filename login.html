@@ -233,12 +233,12 @@
 
     <form onsubmit="doLogin();return false" autocomplete="on" id="loginFormEl">
       <div class="field">
-        <label>Логін</label>
+        <label>Email</label>
         <div class="input-wrap">
           <span class="ico">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
           </span>
-          <input id="loginInput" name="username" type="text" placeholder="Введіть логін" autocomplete="username" autocorrect="off" autocapitalize="none"/>
+          <input id="loginInput" name="email" type="email" placeholder="Введіть email" autocomplete="email" autocorrect="off" autocapitalize="none"/>
         </div>
       </div>
 
@@ -327,7 +327,8 @@
 
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, get, query, orderByChild, equalTo, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",
@@ -338,27 +339,26 @@ const firebaseConfig = {
   messagingSenderId:"206469794166",
   appId:"1:206469794166:web:55cd7007b429607acd5257"
 };
-const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const app  = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getDatabase(app);
 
-// ─── Перевірка поточної сесії ─────────────────────────────────────────────────
-// Читаємо обидва сховища. localStorage основне, sessionStorage — fallback.
-const sess = localStorage.getItem("qf_user") || sessionStorage.getItem("qf_user");
-if(sess){
-  try{
-    const u = JSON.parse(sess);
-    if(u && u.id) {
-      // Якщо є тільки в sessionStorage — мігруємо в localStorage щоб надалі не губилось
-      if (!localStorage.getItem("qf_user")) {
-        try { localStorage.setItem("qf_user", sess); } catch {}
+// ─── Перевірка поточної сесії через Firebase Auth ─────────────────────────────
+onAuthStateChanged(auth, async (fbUser) => {
+  if (fbUser) {
+    try {
+      const snap = await get(ref(db, `users/${fbUser.uid}`));
+      if (snap.exists() && snap.val().blocked === true) {
+        await auth.signOut();
+        showLoginForm();
+        return;
       }
-      window.location.href = "index.html";
-    }
-    else showLoginForm();
-  }catch{ showLoginForm(); }
-} else {
-  showLoginForm();
-}
+    } catch {}
+    window.location.href = "index.html";
+  } else {
+    showLoginForm();
+  }
+});
 
 function showLoginForm(){
   document.getElementById("globalLoader").style.display = "none";
@@ -366,152 +366,48 @@ function showLoginForm(){
   setTimeout(()=> document.getElementById("loginInput")?.focus(), 50);
 }
 
-// ─── Логін ────────────────────────────────────────────────────────────────────
-async function findUser(login, password){
-  const snap = await get(ref(db, "users"));
-  if(!snap.exists()) return null;
-  const users = snap.val();
-  const entry = Object.entries(users).find(([,u]) => u.login === login && u.password === password);
-  if(!entry) return null;
-  return { id: entry[0], ...entry[1] };
-}
-
-let _currentUser = null;
-
+// ─── Логін через Firebase Auth ────────────────────────────────────────────────
 window.doLogin = async () => {
-  const login = document.getElementById("loginInput").value.trim();
+  const email = document.getElementById("loginInput").value.trim();
   const pass  = document.getElementById("passInput").value;
-  if(!login || !pass){ showError("Заповніть логін і пароль"); return; }
-  setLoading("submitBtn","btnText",true);
+  if(!email || !pass){ showError("Заповніть email і пароль"); return; }
+  setLoading(true);
   try{
-    const user = await findUser(login, pass);
-    if(!user){ showError("Невірний логін або пароль"); setLoading("submitBtn","btnText",false); return; }
-    if(user.blocked === true){ showError("Акаунт заблоковано. Зверніться до адміністратора"); setLoading("submitBtn","btnText",false); return; }
-    _currentUser = user;
-    if(user.isFirstLogin){
-      // Перший вхід — потрібна зміна пароля
-      document.getElementById("loginForm").style.display = "none";
-      document.getElementById("changePassForm").style.display = "";
-      setTimeout(()=> document.getElementById("newPass1")?.focus(), 50);
-    } else {
-      saveSession(user);
-      window.location.href = "index.html";
-    }
-  }catch(e){ showError("Помилка: " + e.message); setLoading("submitBtn","btnText",false); }
+    await signInWithEmailAndPassword(auth, email, pass);
+    // onAuthStateChanged спрацює і перенаправить
+  } catch(e) {
+    const msg = ["auth/invalid-credential","auth/wrong-password","auth/user-not-found"].includes(e.code)
+      ? "Невірний email або пароль"
+      : e.code === "auth/too-many-requests"
+      ? "Забагато спроб. Спробуйте пізніше"
+      : "Помилка: " + e.message;
+    showError(msg);
+    setLoading(false);
+  }
 };
-
-// ─── Зміна пароля при першому вході ──────────────────────────────────────────
-window.doChangePass = async () => {
-  const p1 = document.getElementById("newPass1").value;
-  const p2 = document.getElementById("newPass2").value;
-  if(p1.length < 8){ showError2("Пароль має бути мінімум 8 символів"); return; }
-  if(p1 !== p2){ showError2("Паролі не збігаються"); return; }
-  setLoading("changeBtn","changeBtnText",true);
-  try{
-    await update(ref(db, "users/" + _currentUser.id), {
-      password: p1,
-      isFirstLogin: false
-    });
-    _currentUser.password = p1;
-    _currentUser.isFirstLogin = false;
-    saveSession(_currentUser);
-    window.location.href = "onboarding.html";
-  }catch(e){ showError2("Помилка: " + e.message); setLoading("changeBtn","changeBtnText",false); }
-};
-
-function saveSession(user){
-  // Збираємо дані в рядок
-  const userData = JSON.stringify({
-    id:    user.id,
-    name:  user.name,
-    login: user.login,
-    role:  user.role || "teacher"
-  });
-
-  // Зберігаємо для поточної вкладки
-  sessionStorage.setItem("qf_user", userData);
-  
-  // ДОДАЄМО ЦЕ: Зберігаємо для нових вкладок (щоб live.html знайшов логін)
-  localStorage.setItem("qf_user", userData);
-}
 
 // ─── UI хелпери ───────────────────────────────────────────────────────────────
 function showError(msg){
   document.getElementById("errorText").textContent = msg;
-  document.getElementById("errorMsg").classList.add("show");
-  ["loginInput","passInput"].forEach(id=>{
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.classList.add("error","shake");
-    el.addEventListener("animationend", ()=>el.classList.remove("shake"), {once:true});
-    el.addEventListener("input", ()=>{
-      el.classList.remove("error");
-      document.getElementById("errorMsg").classList.remove("show");
-    }, {once:true});
-  });
+  document.getElementById("errorMsg").style.opacity = "1";
+  document.getElementById("errorMsg").style.maxHeight = "40px";
 }
-
-function showError2(msg){
-  document.getElementById("errorText2").textContent = msg;
-  document.getElementById("errorMsg2").classList.add("show");
-  ["newPass1","newPass2"].forEach(id=>{
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.classList.add("error","shake");
-    el.addEventListener("animationend", ()=>el.classList.remove("shake"), {once:true});
-    el.addEventListener("input", ()=>{
-      el.classList.remove("error");
-      document.getElementById("errorMsg2").classList.remove("show");
-    }, {once:true});
-  });
+function setLoading(on){
+  const btn = document.getElementById("submitBtn");
+  const txt = document.getElementById("btnText");
+  if(btn) btn.disabled = on;
+  if(txt) txt.textContent = on ? "Завантаження..." : "Увійти в QuizFlow";
 }
-
-function setLoading(btnId, textId, state){
-  const btn = document.getElementById(btnId);
-  if (!btn) return;
-  btn.disabled = state;
-  const txt = document.getElementById(textId);
-  if (txt) txt.textContent = state ? "Завантаження..." : (textId === "btnText" ? "Увійти в QuizFlow" : "Зберегти пароль");
-  const ex = btn.querySelector(".spinner");
-  if(state && !ex){
-    const s = document.createElement("div");
-    s.className = "spinner";
-    btn.insertBefore(s, btn.firstChild);
-  } else if(!state && ex){
-    ex.remove();
-  }
+function togglePass(){
+  const inp = document.getElementById("passInput");
+  inp.type = inp.type === "password" ? "text" : "password";
 }
-
-window.togglePass = () => {
-  const input = document.getElementById("passInput");
-  const icon  = document.getElementById("eyeIcon");
-  const hidden = input.type === "password";
-  input.type = hidden ? "text" : "password";
-  icon.innerHTML = hidden
-    ? '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
-    : '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>';
+window.togglePass = togglePass;
+window.togglePassField = (id) => {
+  const inp = document.getElementById(id);
+  if(inp) inp.type = inp.type === "password" ? "text" : "password";
 };
-
-window.togglePassField = (inputId, iconId) => {
-  const input = document.getElementById(inputId);
-  const icon  = document.getElementById(iconId);
-  const hidden = input.type === "password";
-  input.type = hidden ? "text" : "password";
-  icon.innerHTML = hidden
-    ? '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
-    : '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>';
-};
-
-// ─── Toast-заглушки для UA/EN, OAuth, Реєстрації, "Забули пароль" ───
-let _toastTimer = null;
-function toast(msg){
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.classList.add("show");
-  if (_toastTimer) clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(()=> t.classList.remove("show"), 2400);
-}
-window.showForgotToast = () => toast("Зверніться до адміністратора для скидання пароля");
+window.showForgotToast = () => {};
 </script>
 </body>
 </html>

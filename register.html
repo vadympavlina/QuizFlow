@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/></svg>">
+<title>QuizFlow — Реєстрація</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Manrope",system-ui,sans-serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:24px;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(124,58,237,.22), transparent 50%),
+      radial-gradient(circle at 100% 100%, rgba(59,130,246,.16), transparent 55%),
+      linear-gradient(180deg, #050817 0%, #0A0F2C 50%, #0E1638 100%);
+    -webkit-font-smoothing:antialiased;
+  }
+  /* Grid pattern */
+  body::before{
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.028) 1px,transparent 1px);
+    background-size:32px 32px;
+    -webkit-mask-image:radial-gradient(circle at 50% 50%,#000,transparent 75%);
+    mask-image:radial-gradient(circle at 50% 50%,#000,transparent 75%);
+  }
+
+  .card{
+    position:relative; z-index:1;
+    background:#fff; border-radius:22px; padding:40px 36px;
+    width:100%; max-width:460px;
+    box-shadow:0 32px 80px -20px rgba(124,58,237,.4), 0 8px 24px -8px rgba(11,20,55,.35);
+    animation:cardIn .45s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  @keyframes cardIn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
+
+  /* Logo */
+  .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+  .logo-mark{
+    width:38px;height:38px;border-radius:11px;
+    background:linear-gradient(135deg,#1E3A8A,#3B82F6);
+    display:grid;place-items:center;flex:0 0 auto;
+    box-shadow:0 6px 16px -4px rgba(30,58,138,.5);
+  }
+  .logo-mark svg{width:20px;height:20px}
+  .logo-name{font-weight:800;font-size:19px;letter-spacing:-.02em;color:#0B1437}
+  .logo-name em{font-style:normal;color:#1E3A8A}
+
+  h2{font-weight:800;font-size:22px;letter-spacing:-.02em;margin-bottom:5px;color:#0B1437}
+  .sub{font-size:14px;color:#5B6A8F;margin-bottom:24px;line-height:1.5}
+
+  /* Invite badge */
+  .invite-badge{
+    display:flex;align-items:center;gap:10px;
+    padding:11px 14px;background:linear-gradient(135deg,rgba(30,58,138,.06),rgba(59,130,246,.03));
+    border:1.5px solid rgba(30,58,138,.12);border-radius:12px;
+    margin-bottom:22px;font-size:13px;
+  }
+  .invite-badge .inv-ico{
+    width:32px;height:32px;border-radius:9px;background:rgba(30,58,138,.08);
+    color:#1E3A8A;display:grid;place-items:center;flex:0 0 auto;
+  }
+  .invite-badge .inv-ico svg{width:16px;height:16px}
+  .invite-badge .inv-t{font-weight:700;color:#1E3A8A;font-size:12.5px}
+  .invite-badge .inv-s{color:#5B6A8F;font-size:12px}
+
+  /* Fields */
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .field{margin-bottom:14px}
+  .field-label{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:#8691AC;margin-bottom:7px;font-weight:700}
+  .field-input{
+    width:100%;padding:13px 16px;border-radius:11px;
+    border:1.5px solid #E3E8F2;background:#FAFBFE;
+    font-family:"Manrope",sans-serif;font-size:14.5px;color:#0B1437;
+    outline:none;transition:all .15s;
+  }
+  .field-input::placeholder{color:#8691AC}
+  .field-input:focus{border-color:#1E3A8A;box-shadow:0 0 0 3px rgba(30,58,138,.1);background:#fff}
+
+  /* Submit */
+  .submit-btn{
+    width:100%;padding:15px;margin-top:6px;
+    background:linear-gradient(135deg,#1E3A8A,#3B82F6);color:#fff;border:none;
+    border-radius:12px;font-family:"Manrope",sans-serif;font-weight:700;font-size:15px;
+    cursor:pointer;transition:all .2s;letter-spacing:.01em;
+    box-shadow:0 8px 24px -8px rgba(30,58,138,.5);
+  }
+  .submit-btn:hover{transform:translateY(-1px);box-shadow:0 14px 32px -10px rgba(30,58,138,.6)}
+  .submit-btn:disabled{opacity:.55;transform:none;cursor:not-allowed}
+
+  /* Error */
+  .err{
+    display:none;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:10px;
+    padding:10px 14px;font-size:13px;color:#B91C1C;margin-top:12px;
+    font-weight:600;
+  }
+  .err.show{display:block}
+
+  /* Success */
+  .success{
+    display:none;flex-direction:column;align-items:center;text-align:center;gap:16px;
+    padding:10px 0;
+  }
+  .success.show{display:flex}
+  .success .s-ico{
+    width:64px;height:64px;border-radius:18px;
+    background:#DCFCE7;color:#16A34A;display:grid;place-items:center;
+  }
+  .success .s-ico svg{width:30px;height:30px}
+  .success h3{font-size:20px;font-weight:800;color:#0B1437;letter-spacing:-.02em}
+  .success p{font-size:14px;color:#5B6A8F;line-height:1.6}
+  .login-link{
+    display:block;width:100%;padding:13px;margin-top:8px;text-align:center;
+    background:linear-gradient(135deg,#1E3A8A,#3B82F6);color:#fff;
+    border-radius:12px;font-weight:700;font-size:14px;text-decoration:none;
+    box-shadow:0 6px 18px rgba(30,58,138,.3);transition:all .2s;
+  }
+  .login-link:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(30,58,138,.4)}
+
+  /* Invalid token */
+  .invalid{
+    display:none;flex-direction:column;align-items:center;text-align:center;gap:14px;
+    padding:10px 0;
+  }
+  .invalid.show{display:flex}
+  .invalid .inv-err-ico{
+    width:64px;height:64px;border-radius:18px;
+    background:#FEE2E2;color:#B91C1C;display:grid;place-items:center;
+  }
+  .invalid .inv-err-ico svg{width:30px;height:30px}
+  .invalid h3{font-size:19px;font-weight:800;color:#0B1437}
+  .invalid p{font-size:13.5px;color:#5B6A8F;line-height:1.6}
+
+  /* Loader */
+  #page-loader{
+    position:fixed;inset:0;background:#050817;z-index:99;
+    display:flex;align-items:center;justify-content:center;
+    transition:opacity .25s;
+  }
+  #page-loader .spin{
+    width:38px;height:38px;border:3px solid rgba(124,58,237,.2);
+    border-top-color:#A78BFA;border-radius:50%;animation:sp .8s linear infinite;
+  }
+  @keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div id="page-loader"><div class="spin"></div></div>
+
+<div class="card">
+  <div class="logo-row">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 7h11a4 4 0 0 1 4 4v1"/><path d="M20 17H9a4 4 0 0 1-4-4v-1"/>
+        <circle cx="5" cy="7" r="1.3" fill="#fff"/><circle cx="19" cy="17" r="1.3" fill="#fff"/>
+      </svg>
+    </div>
+    <span class="logo-name">quiz<em>flow</em></span>
+  </div>
+
+  <!-- Невалідний токен -->
+  <div class="invalid" id="invalid-state">
+    <div class="inv-err-ico">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>
+    </div>
+    <h3>Посилання недійсне</h3>
+    <p>Це запрошення вже було використано або не існує. Зверніться до адміністратора для отримання нового.</p>
+  </div>
+
+  <!-- Форма реєстрації -->
+  <div id="reg-form">
+    <div class="invite-badge" id="invite-badge">
+      <div class="inv-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      </div>
+      <div>
+        <div class="inv-t">Запрошення викладача</div>
+        <div class="inv-s">Одноразове посилання від адміністратора QuizFlow</div>
+      </div>
+    </div>
+
+    <h2>Створення акаунту</h2>
+    <p class="sub">Заповніть дані для реєстрації облікового запису викладача.</p>
+
+    <div class="row2">
+      <div class="field">
+        <div class="field-label">Прізвище *</div>
+        <input class="field-input" id="reg-surname" type="text" placeholder="Іваненко" autocomplete="family-name">
+      </div>
+      <div class="field">
+        <div class="field-label">Ім'я *</div>
+        <input class="field-input" id="reg-name" type="text" placeholder="Олег" autocomplete="given-name">
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label">Email *</div>
+      <input class="field-input" id="reg-email" type="email" placeholder="teacher@university.ua" autocomplete="email">
+    </div>
+    <div class="field">
+      <div class="field-label">Пароль * (мін. 8 символів)</div>
+      <input class="field-input" id="reg-pass" type="password" placeholder="••••••••" autocomplete="new-password">
+    </div>
+    <div class="field">
+      <div class="field-label">Повторіть пароль *</div>
+      <input class="field-input" id="reg-pass2" type="password" placeholder="••••••••" autocomplete="new-password">
+    </div>
+
+    <div class="err" id="reg-err"></div>
+
+    <button class="submit-btn" id="reg-btn" onclick="doRegister()">
+      Створити акаунт →
+    </button>
+  </div>
+
+  <!-- Успіх -->
+  <div class="success" id="success-state">
+    <div class="s-ico">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h3>Акаунт створено!</h3>
+    <p>Ваш обліковий запис викладача успішно зареєстрований. Тепер увійдіть за допомогою email і пароля.</p>
+    <a href="login.html" class="login-link">Увійти в QuizFlow →</a>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const FC = {
+  apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",
+  authDomain:"quizflow-8a978.firebaseapp.com",
+  databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"quizflow-8a978",
+  storageBucket:"quizflow-8a978.firebasestorage.app",
+  messagingSenderId:"206469794166",
+  appId:"1:206469794166:web:55cd7007b429607acd5257"
+};
+const app  = getApps().length ? getApps()[0] : initializeApp(FC);
+const auth = getAuth(app);
+const db   = getDatabase(app);
+
+// ─── Читаємо токен з URL ──────────────────────────────────────────────────────
+const token = new URLSearchParams(location.search).get("token");
+const loader = document.getElementById("page-loader");
+
+async function init() {
+  if (!token) {
+    showInvalid();
+    loader.style.opacity = "0"; setTimeout(()=>loader.remove(), 300);
+    return;
+  }
+
+  try {
+    const snap = await get(ref(db, `invite_tokens/${token}`));
+    if (!snap.exists() || snap.val().used === true) {
+      showInvalid();
+    }
+  } catch(e) {
+    showInvalid();
+  }
+  loader.style.opacity = "0"; setTimeout(()=>loader.remove(), 300);
+}
+
+function showInvalid(){
+  document.getElementById("reg-form").style.display = "none";
+  document.getElementById("invalid-state").classList.add("show");
+}
+
+function showErr(msg){
+  const el = document.getElementById("reg-err");
+  el.textContent = msg;
+  el.classList.add("show");
+}
+function hideErr(){
+  document.getElementById("reg-err").classList.remove("show");
+}
+
+window.doRegister = async () => {
+  hideErr();
+  const surname = document.getElementById("reg-surname").value.trim();
+  const name    = document.getElementById("reg-name").value.trim();
+  const email   = document.getElementById("reg-email").value.trim();
+  const pass    = document.getElementById("reg-pass").value;
+  const pass2   = document.getElementById("reg-pass2").value;
+
+  if (!surname) return showErr("Введіть прізвище");
+  if (!name)    return showErr("Введіть ім'я");
+  if (!email)   return showErr("Введіть email");
+  if (pass.length < 8) return showErr("Пароль має бути мінімум 8 символів");
+  if (pass !== pass2)  return showErr("Паролі не збігаються");
+
+  const btn = document.getElementById("reg-btn");
+  btn.disabled = true;
+  btn.textContent = "Реєстрація...";
+
+  try {
+    // 1) Ще раз перевіряємо токен (race condition guard)
+    const tokenSnap = await get(ref(db, `invite_tokens/${token}`));
+    if (!tokenSnap.exists() || tokenSnap.val().used === true) {
+      showInvalid();
+      return;
+    }
+
+    // 2) Створюємо Firebase Auth акаунт
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    const uid  = cred.user.uid;
+
+    // 3) Пишемо профіль у Realtime DB
+    await set(ref(db, `users/${uid}`), {
+      name, surname, email,
+      role: "teacher",
+      createdAt: Date.now(),
+      blocked: false
+    });
+
+    // 4) Позначаємо токен як використаний
+    await update(ref(db, `invite_tokens/${token}`), {
+      used: true,
+      usedAt: Date.now(),
+      usedBy: uid
+    });
+
+    // 5) Виходимо (щоб не бути автоматично залогіненим)
+    await signOut(auth);
+
+    // 6) Успіх
+    document.getElementById("reg-form").style.display = "none";
+    document.getElementById("success-state").classList.add("show");
+
+  } catch(e) {
+    const msg = e.code === "auth/email-already-in-use"
+      ? "Цей email вже зареєстрований"
+      : e.code === "auth/invalid-email"
+      ? "Невірний формат email"
+      : "Помилка: " + e.message;
+    showErr(msg);
+    btn.disabled = false;
+    btn.textContent = "Створити акаунт →";
+  }
+};
+
+init();
+</script>
+</body>
+</html>
