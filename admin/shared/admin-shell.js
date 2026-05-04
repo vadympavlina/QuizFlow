@@ -110,11 +110,12 @@ export function doLogout(){
 
 const NAV_ITEMS = [
   { sec:"ПАНЕЛЬ", items:[
-    { id:"overview", icon:"overview", label:"Огляд",            href:"overview.html" },
-    { id:"teachers", icon:"teachers", label:"Викладачі",        href:"teachers.html" },
-    { id:"stats",    icon:"stats",    label:"Статистика",       href:"stats.html" },
-    { id:"news",     icon:"news",     label:"Новини",           href:"news.html" },
-    { id:"ai",       icon:"ai",       label:"AI Налаштування",  href:"ai-settings.html" },
+    { id:"overview",    icon:"overview", label:"Огляд",            href:"overview.html" },
+    { id:"teachers",    icon:"teachers", label:"Викладачі",        href:"teachers.html" },
+    { id:"stats",       icon:"stats",    label:"Статистика",       href:"stats.html" },
+    { id:"news",        icon:"news",     label:"Новини",           href:"news.html" },
+    { id:"navigation",  icon:"menu",     label:"Навігація",        href:"navigation.html" },
+    { id:"ai",          icon:"ai",       label:"AI Налаштування",  href:"ai-settings.html" },
   ]},
   { sec:"АКАУНТ", items:[
     { id:"dashboard", icon:"dashboard", label:"Дашборд викладача", href:"../index.html" },
@@ -128,6 +129,7 @@ const ICONS = {
   stats:     '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M3 20h18"/></svg>',
   news:      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h6M7 17h4"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/></svg>',
   ai:        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><rect x="6" y="3" width="12" height="14" rx="3"/><path d="M9 9h.01M15 9h.01"/><path d="M9 13c1 1 2 1.5 3 1.5s2-.5 3-1.5"/><path d="M12 17v3"/><path d="M9 21h6"/></svg>',
+  menu:      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>',
   dashboard: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
   logout:    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>',
   bell:      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15V11a6 6 0 1 1 12 0v4l1.5 3h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
