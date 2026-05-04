@@ -2059,7 +2059,7 @@ selectAnalyticsDrop(field, value, label){
   renderAttempts();
 },
 
-  copyUrl:async url=>{try{await navigator.clipboard.writeText(url);toast("Скопійовано!");}catch{toast("Не вдалось скопіювати","err");}},
+  copyUrl:async url=>{try{await navigator.clipboard.writeText(url);}catch{if(window.toast)toast("Не вдалось скопіювати","err");}},
   // Attempts
   rAttempts:renderAttempts,
 
@@ -4103,7 +4103,7 @@ selectAnalyticsDrop(field, value, label){
     // Фільтруємо спроби
     let att = attempts.filter(a => a.status === "completed" || a.status === "pending_review");
     if(testId)  att = att.filter(a => a.testId === testId);
-    if(groupF){ att = att.filter(a => (a.group||links.find(x=>x.id===a.linkId)?.group||"") === groupF); }
+    if(groupF) att=att.filter(a=>(a.group||links.find(x=>x.id===a.linkId)?.group||"")===groupF);
  
     if(!att.length){
       body.innerHTML = `<div class="a-empty">
