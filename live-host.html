@@ -458,34 +458,53 @@ let revealMode = false;
 
 // ─── Themes ───────────────────────────────────────────────────────────────────
 const GRADIENTS = [
-  {label:"Темно-синій", bg:"linear-gradient(160deg,#050817 0%,#0A0F2C 50%,#0E1638 100%)"},
-  {label:"Фіолетово-чорний", bg:"linear-gradient(160deg,#0D0221 0%,#1A0533 50%,#2D1B69 100%)"},
-  {label:"Смарагдовий", bg:"linear-gradient(160deg,#022C22 0%,#064E3B 50%,#065F46 100%)"},
-  {label:"Захід сонця", bg:"linear-gradient(160deg,#431407 0%,#7C2D12 40%,#EA580C 100%)"},
-  {label:"Індиго-рожевий", bg:"linear-gradient(160deg,#1E1B4B 0%,#4338CA 50%,#BE185D 100%)"},
-  {label:"Чорний космос", bg:"linear-gradient(160deg,#000000 0%,#0F0F1A 50%,#1A1A2E 100%)"},
-  {label:"Весна", bg:"linear-gradient(160deg,#134E4A 0%,#065F46 40%,#84CC16 100%)"},
-  {label:"Літо", bg:"linear-gradient(160deg,#0C4A6E 0%,#0369A1 50%,#38BDF8 100%)"},
-  {label:"Осінь", bg:"linear-gradient(160deg,#1A0A00 0%,#78350F 50%,#D97706 100%)"},
-  {label:"Зима", bg:"linear-gradient(160deg,#1E3A5F 0%,#1D4ED8 50%,#7C3AED 100%)"},
-  {label:"Новий рік", bg:"linear-gradient(160deg,#042f2e 0%,#134E4A 40%,#5EEAD4 100%)"},
-  {label:"День Валентина", bg:"linear-gradient(160deg,#4a0020 0%,#831843 50%,#DB2777 100%)"},
-  {label:"8 березня", bg:"linear-gradient(160deg,#3b0764 0%,#7e22ce 50%,#f0abfc 100%)"},
+  {label:"Темно-синій",      bg:"linear-gradient(160deg,#0A0F2C 0%,#1E3A8A 50%,#3B82F6 100%)"},
+  {label:"Фіолетовий",       bg:"linear-gradient(160deg,#1A0533 0%,#5B21B6 50%,#A78BFA 100%)"},
+  {label:"Смарагдовий",      bg:"linear-gradient(160deg,#064E3B 0%,#059669 50%,#34D399 100%)"},
+  {label:"Захід сонця",      bg:"linear-gradient(160deg,#7C2D12 0%,#EA580C 50%,#FCD34D 100%)"},
+  {label:"Індиго-рожевий",   bg:"linear-gradient(160deg,#312E81 0%,#6D28D9 50%,#EC4899 100%)"},
+  {label:"Чорний космос",    bg:"linear-gradient(160deg,#000000 0%,#1A1A2E 50%,#16213E 100%)"},
+  {label:"Весна",            bg:"linear-gradient(160deg,#065F46 0%,#16A34A 50%,#86EFAC 100%)"},
+  {label:"Літо",             bg:"linear-gradient(160deg,#075985 0%,#0284C7 50%,#38BDF8 100%)"},
+  {label:"Осінь",            bg:"linear-gradient(160deg,#92400E 0%,#D97706 50%,#FCD34D 100%)"},
+  {label:"Зима",             bg:"linear-gradient(160deg,#1E3A8A 0%,#7C3AED 50%,#C4B5FD 100%)"},
+  {label:"Новий рік",        bg:"linear-gradient(160deg,#134E4A 0%,#0F766E 50%,#5EEAD4 100%)"},
+  {label:"День Валентина",   bg:"linear-gradient(160deg,#9D174D 0%,#EC4899 50%,#FBCFE8 100%)"},
+  {label:"8 березня",        bg:"linear-gradient(160deg,#6B21A8 0%,#A855F7 50%,#F0ABFC 100%)"},
 ];
+
+// Патерни для відображення на фоні (низька opacity)
 const PATTERN_SVGS = [
-  `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><path d='M0 0h40v40H0z' fill='none'/><path d='M40 0H0M0 40V0' stroke='rgba(255,255,255,.04)' stroke-width='1'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><circle cx='2' cy='2' r='1.5' fill='rgba(255,255,255,.07)'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='80' height='20'><path d='M0 10 Q20 0 40 10 Q60 20 80 10' stroke='rgba(255,255,255,.05)' stroke-width='1.5' fill='none'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='50' height='57.7'><polygon points='25,1 49,14.9 49,42.7 25,56.7 1,42.7 1,14.9' stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><line x1='0' y1='20' x2='20' y2='0' stroke='rgba(255,255,255,.05)' stroke-width='1'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><circle cx='30' cy='30' r='24' stroke='rgba(255,255,255,.04)' stroke-width='1' fill='none'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='30' height='30'><polygon points='15,2 18,11 27,11 20,17 23,27 15,21 7,27 10,17 3,11 12,11' stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='30' height='30'><line x1='15' y1='3' x2='15' y2='27' stroke='rgba(255,255,255,.07)' stroke-width='1'/><line x1='3' y1='15' x2='27' y2='15' stroke='rgba(255,255,255,.07)' stroke-width='1'/><line x1='6' y1='6' x2='24' y2='24' stroke='rgba(255,255,255,.07)' stroke-width='1'/><line x1='24' y1='6' x2='6' y2='24' stroke='rgba(255,255,255,.07)' stroke-width='1'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><path d='M20 30 C10 22,4 16,4 11 C4 7,7,4,11,4 C13.5,4,16,5.5,20,9 C24,5.5,26.5,4,29,4 C33,4,36,7,36,11 C36,16,30,22,20,30Z' stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><circle cx='20' cy='14' r='5' stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'/><circle cx='20' cy='26' r='5' stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'/><circle cx='14' cy='20' r='5' stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'/><circle cx='26' cy='20' r='5' stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'/><circle cx='20' cy='20' r='4' stroke='rgba(255,255,255,.07)' stroke-width='1' fill='none'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><path d='M8 32 Q20 8 32 8 Q32 20 8 32Z' stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='30' height='26'><polygon points='15,2 28,24 2,24' stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='16'><polyline points='0,0 10,16 20,0 30,16 40,0' stroke='rgba(255,255,255,.05)' stroke-width='1.5' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><line x1='40' y1='0' x2='0' y2='0' stroke='rgba(255,255,255,.06)' stroke-width='1'/><line x1='0' y1='0' x2='0' y2='40' stroke='rgba(255,255,255,.06)' stroke-width='1'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><circle cx='2' cy='2' r='1.5' fill='rgba(255,255,255,.1)'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='80' height='20'><path d='M0 10 Q20 0 40 10 Q60 20 80 10' stroke='rgba(255,255,255,.08)' stroke-width='1.5' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='50' height='57.7'><polygon points='25,1 49,14.9 49,42.7 25,56.7 1,42.7 1,14.9' stroke='rgba(255,255,255,.08)' stroke-width='1' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><line x1='0' y1='20' x2='20' y2='0' stroke='rgba(255,255,255,.08)' stroke-width='1'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><circle cx='30' cy='30' r='24' stroke='rgba(255,255,255,.07)' stroke-width='1' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='30' height='30'><polygon points='15,2 18,11 27,11 20,17 23,27 15,21 7,27 10,17 3,11 12,11' stroke='rgba(255,255,255,.08)' stroke-width='1' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='30' height='30'><line x1='15' y1='3' x2='15' y2='27' stroke='rgba(255,255,255,.09)' stroke-width='1'/><line x1='3' y1='15' x2='27' y2='15' stroke='rgba(255,255,255,.09)' stroke-width='1'/><line x1='6' y1='6' x2='24' y2='24' stroke='rgba(255,255,255,.09)' stroke-width='1'/><line x1='24' y1='6' x2='6' y2='24' stroke='rgba(255,255,255,.09)' stroke-width='1'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><path d='M20 30 C10 22,4 16,4 11 C4 7,7,4,11,4 C13.5,4,16,5.5,20,9 C24,5.5,26.5,4,29,4 C33,4,36,7,36,11 C36,16,30,22,20,30Z' stroke='rgba(255,255,255,.08)' stroke-width='1' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><circle cx='20' cy='14' r='5' stroke='rgba(255,255,255,.08)' stroke-width='1' fill='none'/><circle cx='20' cy='26' r='5' stroke='rgba(255,255,255,.08)' stroke-width='1' fill='none'/><circle cx='14' cy='20' r='5' stroke='rgba(255,255,255,.08)' stroke-width='1' fill='none'/><circle cx='26' cy='20' r='5' stroke='rgba(255,255,255,.08)' stroke-width='1' fill='none'/><circle cx='20' cy='20' r='4' stroke='rgba(255,255,255,.1)' stroke-width='1' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><path d='M8 32 Q20 8 32 8 Q32 20 8 32Z' stroke='rgba(255,255,255,.08)' stroke-width='1' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='30' height='26'><polygon points='15,2 28,24 2,24' stroke='rgba(255,255,255,.08)' stroke-width='1' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='16'><polyline points='0,0 10,16 20,0 30,16 40,0' stroke='rgba(255,255,255,.08)' stroke-width='1.5' fill='none'/></svg>`,
+];
+
+// Окремі SVG для свотчів — темний фон + видима біла лінія
+const PATTERN_PREVIEWS = [
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><line x1='0' y1='12' x2='36' y2='12' stroke='rgba(255,255,255,.5)' stroke-width='1'/><line x1='0' y1='24' x2='36' y2='24' stroke='rgba(255,255,255,.5)' stroke-width='1'/><line x1='12' y1='0' x2='12' y2='36' stroke='rgba(255,255,255,.5)' stroke-width='1'/><line x1='24' y1='0' x2='24' y2='36' stroke='rgba(255,255,255,.5)' stroke-width='1'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><circle cx='6' cy='6' r='2' fill='rgba(255,255,255,.6)'/><circle cx='18' cy='6' r='2' fill='rgba(255,255,255,.6)'/><circle cx='30' cy='6' r='2' fill='rgba(255,255,255,.6)'/><circle cx='6' cy='18' r='2' fill='rgba(255,255,255,.6)'/><circle cx='18' cy='18' r='2' fill='rgba(255,255,255,.6)'/><circle cx='30' cy='18' r='2' fill='rgba(255,255,255,.6)'/><circle cx='6' cy='30' r='2' fill='rgba(255,255,255,.6)'/><circle cx='18' cy='30' r='2' fill='rgba(255,255,255,.6)'/><circle cx='30' cy='30' r='2' fill='rgba(255,255,255,.6)'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><path d='M0 18 Q9 6 18 18 Q27 30 36 18' stroke='rgba(255,255,255,.55)' stroke-width='2' fill='none'/><path d='M0 30 Q9 18 18 30 Q27 42 36 30' stroke='rgba(255,255,255,.3)' stroke-width='1.5' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><polygon points='18,4 32,12 32,28 18,36 4,28 4,12' stroke='rgba(255,255,255,.55)' stroke-width='1.5' fill='none'/><polygon points='18,10 26,15 26,25 18,30 10,25 10,15' stroke='rgba(255,255,255,.25)' stroke-width='1' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><line x1='0' y1='36' x2='36' y2='0' stroke='rgba(255,255,255,.5)' stroke-width='1.5'/><line x1='-12' y1='36' x2='24' y2='0' stroke='rgba(255,255,255,.25)' stroke-width='1'/><line x1='12' y1='36' x2='48' y2='0' stroke='rgba(255,255,255,.25)' stroke-width='1'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><circle cx='18' cy='18' r='14' stroke='rgba(255,255,255,.5)' stroke-width='1.5' fill='none'/><circle cx='18' cy='18' r='8' stroke='rgba(255,255,255,.3)' stroke-width='1' fill='none'/><circle cx='18' cy='18' r='3' stroke='rgba(255,255,255,.4)' stroke-width='1' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><polygon points='18,4 21,14 31,14 23,20 26,30 18,24 10,30 13,20 5,14 15,14' stroke='rgba(255,255,255,.55)' stroke-width='1.5' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><line x1='18' y1='4' x2='18' y2='32' stroke='rgba(255,255,255,.55)' stroke-width='1.5'/><line x1='4' y1='18' x2='32' y2='18' stroke='rgba(255,255,255,.55)' stroke-width='1.5'/><line x1='7' y1='7' x2='29' y2='29' stroke='rgba(255,255,255,.35)' stroke-width='1.2'/><line x1='29' y1='7' x2='7' y2='29' stroke='rgba(255,255,255,.35)' stroke-width='1.2'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><path d='M18 28 C10 21,5 16,5 11 C5 8,8,5,11,5 C13,5,15,6,18,10 C21,6,23,5,25,5 C28,5,31,8,31,11 C31,16,26,21,18,28Z' stroke='rgba(255,255,255,.55)' stroke-width='1.5' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><circle cx='18' cy='10' r='5' stroke='rgba(255,255,255,.5)' stroke-width='1.5' fill='none'/><circle cx='18' cy='26' r='5' stroke='rgba(255,255,255,.5)' stroke-width='1.5' fill='none'/><circle cx='10' cy='18' r='5' stroke='rgba(255,255,255,.5)' stroke-width='1.5' fill='none'/><circle cx='26' cy='18' r='5' stroke='rgba(255,255,255,.5)' stroke-width='1.5' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><path d='M6 30 Q18 6 30 6 Q30 18 6 30Z' stroke='rgba(255,255,255,.55)' stroke-width='1.5' fill='none'/><path d='M3 33 Q15 9 27 9 Q27 21 3 33Z' stroke='rgba(255,255,255,.25)' stroke-width='1' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><polygon points='18,4 30,26 6,26' stroke='rgba(255,255,255,.55)' stroke-width='1.5' fill='none'/><polygon points='18,10 26,24 10,24' stroke='rgba(255,255,255,.25)' stroke-width='1' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><polyline points='0,4 9,20 18,4 27,20 36,4' stroke='rgba(255,255,255,.55)' stroke-width='2' fill='none'/><polyline points='0,18 9,34 18,18 27,34 36,18' stroke='rgba(255,255,255,.25)' stroke-width='1.5' fill='none'/></svg>`,
 ];
 const PATTERN_LABELS = ["Grid","Dots","Waves","Hexagon","Diagonal","Circles","Stars","Snowflakes","Hearts","Flowers","Leaves","Triangles","Zigzag"];
 const OPT_COLORS = ["#E53E3E","#DD6B20","#38A169","#3182CE","#805AD5","#D53F8C"];
@@ -510,10 +529,10 @@ function buildPickers() {
       onclick="selectGrad(${i})"></div>`
   ).join("");
 
-  patRow.innerHTML = PATTERN_SVGS.map((p,i) => {
+  patRow.innerHTML = PATTERN_PREVIEWS.map((p,i) => {
     const enc = encodeURIComponent(p);
     return `<div class="pat-swatch${i===0?" active":""}" title="${PATTERN_LABELS[i]}" data-pi="${i}"
-      style="background-image:url('data:image/svg+xml,${enc}');background-repeat:repeat;background-color:#1A1A2E"
+      style="background-image:url('data:image/svg+xml,${enc}');background-size:cover;background-repeat:no-repeat"
       onclick="selectPat(${i})"></div>`;
   }).join("");
 }
