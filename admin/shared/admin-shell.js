@@ -81,28 +81,58 @@ export function toast(msg){
   _toastT = setTimeout(() => el.classList.remove("show"), 3000);
 }
 
-// ─── Auth ───────────────────────────────────────────────────────────────────
-// Зберігаємо user у localStorage щоб сесія жила між закриттями браузера.
-// sessionStorage читається як fallback — для backward compat з існуючими сесіями.
+// ─── Auth (Firebase Auth) ────────────────────────────────────────────────────
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase as _getDatabase, ref as _ref, get as _get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, onAuthStateChanged, signOut as _signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const _FC = {
+  apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",
+  authDomain:"quizflow-8a978.firebaseapp.com",
+  databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"quizflow-8a978",
+  storageBucket:"quizflow-8a978.firebasestorage.app",
+  messagingSenderId:"206469794166",
+  appId:"1:206469794166:web:55cd7007b429607acd5257"
+};
+const _adminApp  = getApps().length ? getApps()[0] : initializeApp(_FC);
+const _adminAuth = getAuth(_adminApp);
+const _adminDb   = _getDatabase(_adminApp);
+
+// Чекаємо Firebase Auth — визначаємо поточного юзера
+const _adminFbUser = await new Promise(resolve => {
+  const unsub = onAuthStateChanged(_adminAuth, u => { unsub(); resolve(u); });
+});
+
+if (!_adminFbUser) {
+  location.href = "admin-login.html";
+  throw new Error("no auth");
+}
+
+// Читаємо профіль з DB і перевіряємо role === "admin"
+const _adminProfileSnap = await _get(_ref(_adminDb, `users/${_adminFbUser.uid}`));
+if (!_adminProfileSnap.exists() || _adminProfileSnap.val().role !== "admin") {
+  await _signOut(_adminAuth);
+  location.href = "admin-login.html";
+  throw new Error("not admin");
+}
+
+const _adminProfile = _adminProfileSnap.val();
+
+let _currentAdminUser = {
+  id:      _adminFbUser.uid,
+  email:   _adminFbUser.email,
+  name:    _adminProfile.name    || "",
+  surname: _adminProfile.surname || "",
+  role:    "admin"
+};
 
 function getCurrentUser(){
-  let raw = localStorage.getItem("qf_user");
-  if (!raw) raw = sessionStorage.getItem("qf_user");
-  if (!raw) return null;
-  try {
-    const u = JSON.parse(raw);
-    if (!u || u.role !== "admin") return null;
-    // Якщо знайшли в sessionStorage — мігруємо в localStorage щоб надалі не губилось
-    if (!localStorage.getItem("qf_user")) {
-      try { localStorage.setItem("qf_user", raw); } catch {}
-    }
-    return u;
-  } catch { return null; }
+  return _currentAdminUser;
 }
 
 export function doLogout(){
-  localStorage.removeItem("qf_user");
-  sessionStorage.removeItem("qf_user");
+  _signOut(_adminAuth);
   location.href = "admin-login.html";
 }
 
@@ -332,7 +362,7 @@ export async function loadAllTeachers(){
       get(ref(db, `teachers/${u.id}/links`))
     ]);
     const atArr = as.exists() ? Object.values(as.val()) : [];
-    atArr.forEach(a => _allAttempts.push({ ...a, teacherId: u.id, teacherName: u.name || u.login }));
+    atArr.forEach(a => _allAttempts.push({ ...a, teacherId: u.id, teacherName: (u.surname ? u.surname + " " + u.name : u.name) || u.email || "" }));
     const activeTests = ts.exists() ? Object.values(ts.val()).filter(t => t.status === "active").length : 0;
     const lastAct = atArr.length ? Math.max(...atArr.map(a => a.createdAt || 0)) : 0;
     const weekAgo = Date.now() - 7*24*60*60*1000;
