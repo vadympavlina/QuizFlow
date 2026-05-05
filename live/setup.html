@@ -352,7 +352,7 @@ PATS.forEach(p => {
   d.addEventListener("click", () => {
     selPat = p.id;
     document.querySelectorAll(".pat").forEach(el => el.classList.toggle("on", el === d));
-    updateSummary();
+    updatePreview();
   });
   patRow.appendChild(d);
 });
@@ -391,6 +391,28 @@ document.getElementById("inp-time").addEventListener("input", e => {
 
 function updatePreview() {
   document.getElementById("preview-bg").className = "preview " + selGrad;
+  // Show pattern in preview grid
+  const pg = document.getElementById("preview-grid-el");
+  const PAT_PREV = {
+    "grid":"linear-gradient(rgba(255,255,255,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.1) 1px,transparent 1px)",
+    "dots":"radial-gradient(rgba(255,255,255,.25) 1.5px,transparent 1.5px)",
+    "waves":"repeating-linear-gradient(0deg,transparent,transparent 20px,rgba(255,255,255,.1) 20px,rgba(255,255,255,.1) 21px)",
+    "hex":"linear-gradient(rgba(255,255,255,.1) 1px,transparent 1px),linear-gradient(60deg,rgba(255,255,255,.1) 1px,transparent 1px)",
+    "diag":"repeating-linear-gradient(45deg,rgba(255,255,255,.08) 0,rgba(255,255,255,.08) 1px,transparent 0,transparent 14px)",
+    "target":"radial-gradient(circle,rgba(255,255,255,.12) 1px,transparent 1px)",
+    "star":"radial-gradient(rgba(255,255,255,.15) 1px,transparent 1px)",
+    "snow":"linear-gradient(rgba(255,255,255,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.1) 1px,transparent 1px),linear-gradient(45deg,rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(-45deg,rgba(255,255,255,.06) 1px,transparent 1px)",
+    "heart":"radial-gradient(rgba(255,255,255,.15) 2px,transparent 2px)",
+    "flower":"radial-gradient(circle at 50% 50%,rgba(255,255,255,.12) 2px,transparent 2px)",
+    "leaf":"repeating-linear-gradient(120deg,rgba(255,255,255,.08) 0,rgba(255,255,255,.08) 1px,transparent 0,transparent 30px)",
+    "prism":"repeating-linear-gradient(60deg,rgba(255,255,255,.08) 0,rgba(255,255,255,.08) 1px,transparent 0,transparent 30px)",
+    "wave2":"repeating-linear-gradient(-45deg,rgba(255,255,255,.08) 0,rgba(255,255,255,.08) 1px,transparent 0,transparent 14px)",
+  };
+  const PAT_SZ = {"grid":"24px 24px","dots":"16px 16px","waves":"32px 32px","hex":"28px 48px","diag":"14px 14px","target":"28px 28px","star":"22px 22px","snow":"32px 32px","heart":"20px 20px","flower":"28px 28px","leaf":"20px 36px","prism":"20px 36px","wave2":"14px 14px"};
+  if (PAT_PREV[selPat]) {
+    pg.style.backgroundImage = PAT_PREV[selPat];
+    pg.style.backgroundSize = PAT_SZ[selPat] || "24px 24px";
+  }
   updateSummary();
 }
 function updateSummary() {

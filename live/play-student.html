@@ -23,6 +23,7 @@
   }
   /* Theme overlay */
   #theme-overlay{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;transition:background .6s,opacity .6s}
+  #pattern-overlay{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .6s}
 
   .topbar{position:relative;z-index:2;padding:18px 28px;display:flex;align-items:center;gap:18px}
   .progress-wrap{flex:1;display:flex;align-items:center;gap:14px}
@@ -149,6 +150,7 @@
 </head>
 <body>
 <div id="theme-overlay"></div>
+<div id="pattern-overlay"></div>
 
 <!-- Lobby waiting screen -->
 <div id="lobby-overlay">
@@ -252,11 +254,21 @@ const GRAD_CSS = {
   "g-jade":"linear-gradient(135deg,#34D399,#0F766E)","g-rose":"linear-gradient(135deg,#FB7185,#BE185D)",
   "g-magenta":"linear-gradient(135deg,#E879F9,#A21CAF)"
 };
+const PAT_CSS = {"grid": "linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px)", "dots": "radial-gradient(rgba(255,255,255,.18) 1.5px,transparent 1.5px)", "waves": "repeating-linear-gradient(0deg,transparent,transparent 30px,rgba(255,255,255,.06) 30px,rgba(255,255,255,.06) 31px)", "hex": "linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(60deg,rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(120deg,rgba(255,255,255,.06) 1px,transparent 1px)", "diag": "repeating-linear-gradient(45deg,rgba(255,255,255,.06) 0,rgba(255,255,255,.06) 1px,transparent 0,transparent 50%)", "target": "radial-gradient(circle,rgba(255,255,255,.08) 1px,transparent 1px)", "star": "radial-gradient(rgba(255,255,255,.12) 1px,transparent 1px)", "snow": "linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(45deg,rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(-45deg,rgba(255,255,255,.04) 1px,transparent 1px)", "heart": "radial-gradient(rgba(255,255,255,.1) 2px,transparent 2px)", "flower": "radial-gradient(circle at 50% 50%,rgba(255,255,255,.08) 2px,transparent 2px)", "leaf": "repeating-linear-gradient(120deg,rgba(255,255,255,.06) 0,rgba(255,255,255,.06) 1px,transparent 0,transparent 50%)", "prism": "repeating-linear-gradient(60deg,rgba(255,255,255,.06) 0,rgba(255,255,255,.06) 1px,transparent 0,transparent 50%)", "wave2": "repeating-linear-gradient(-45deg,rgba(255,255,255,.06) 0,rgba(255,255,255,.06) 1px,transparent 0,transparent 50%)"};
+const PAT_SIZE = {"grid": "64px 64px", "dots": "24px 24px", "waves": "64px 64px", "hex": "40px 70px", "diag": "20px 20px", "target": "40px 40px", "star": "32px 32px", "snow": "48px 48px", "heart": "30px 30px", "flower": "40px 40px", "leaf": "30px 52px", "prism": "30px 52px", "wave2": "20px 20px"};
+
 function applyTheme(theme) {
-  if (!theme?.grad) return;
+  if (!theme) return;
   const ov = document.getElementById("theme-overlay");
   ov.style.background = GRAD_CSS[theme.grad] || GRAD_CSS["g-default"];
   ov.style.opacity = "1";
+  if (theme.pat && PAT_CSS[theme.pat]) {
+    const po = document.getElementById("pattern-overlay");
+    po.style.backgroundImage = PAT_CSS[theme.pat];
+    po.style.backgroundSize = PAT_SIZE[theme.pat] || "40px 40px";
+    po.style.backgroundRepeat = "repeat";
+    po.style.opacity = "1";
+  }
 }
 
 function renderQuestion(qi, r) {

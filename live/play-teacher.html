@@ -20,7 +20,8 @@
     background-size:64px 64px;mask-image:radial-gradient(ellipse at center, black 30%, transparent 90%);
   }
   /* Theme overlay */
-  #theme-overlay{position:fixed;inset:0;z-index:0;opacity:0;transition:opacity .5s;pointer-events:none}
+  #theme-overlay{position:fixed;inset:0;z-index:0;opacity:0;transition:background .6s,opacity .5s;pointer-events:none}
+  #pattern-overlay{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .6s}
   .topbar{
     position:relative;z-index:2;padding:18px 32px;display:flex;align-items:center;gap:18px;
     border-bottom:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.3);backdrop-filter:blur(12px);
@@ -109,6 +110,7 @@
 </head>
 <body>
 <div id="theme-overlay"></div>
+<div id="pattern-overlay"></div>
 
 <div class="topbar">
   <div class="progress-wrap">
@@ -181,6 +183,9 @@ const LETTERS  = ["A","B","C","D","E","F"];
 function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
 // Apply theme
+const PAT_CSS = {"grid": "linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px)", "dots": "radial-gradient(rgba(255,255,255,.18) 1.5px,transparent 1.5px)", "waves": "repeating-linear-gradient(0deg,transparent,transparent 30px,rgba(255,255,255,.06) 30px,rgba(255,255,255,.06) 31px)", "hex": "linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(60deg,rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(120deg,rgba(255,255,255,.06) 1px,transparent 1px)", "diag": "repeating-linear-gradient(45deg,rgba(255,255,255,.06) 0,rgba(255,255,255,.06) 1px,transparent 0,transparent 50%)", "target": "radial-gradient(circle,rgba(255,255,255,.08) 1px,transparent 1px)", "star": "radial-gradient(rgba(255,255,255,.12) 1px,transparent 1px)", "snow": "linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(45deg,rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(-45deg,rgba(255,255,255,.04) 1px,transparent 1px)", "heart": "radial-gradient(rgba(255,255,255,.1) 2px,transparent 2px)", "flower": "radial-gradient(circle at 50% 50%,rgba(255,255,255,.08) 2px,transparent 2px)", "leaf": "repeating-linear-gradient(120deg,rgba(255,255,255,.06) 0,rgba(255,255,255,.06) 1px,transparent 0,transparent 50%)", "prism": "repeating-linear-gradient(60deg,rgba(255,255,255,.06) 0,rgba(255,255,255,.06) 1px,transparent 0,transparent 50%)", "wave2": "repeating-linear-gradient(-45deg,rgba(255,255,255,.06) 0,rgba(255,255,255,.06) 1px,transparent 0,transparent 50%)"};
+const PAT_SIZE = {"grid": "64px 64px", "dots": "24px 24px", "waves": "64px 64px", "hex": "40px 70px", "diag": "20px 20px", "target": "40px 40px", "star": "32px 32px", "snow": "48px 48px", "heart": "30px 30px", "flower": "40px 40px", "leaf": "30px 52px", "prism": "30px 52px", "wave2": "20px 20px"};
+
 function applyTheme(theme) {
   if (!theme) return;
   const GRAD_CSS = {
@@ -212,6 +217,8 @@ function renderQuestion(qi) {
   document.getElementById("answered-bar").style.display = "";
   document.getElementById("distrib").style.display = "none";
   document.getElementById("next-btn").textContent = "Розкрити →";
+  document.getElementById("pause-btn").style.display = "";
+  document.getElementById("skip-btn").style.display = "";
 
   const cols = opts.length <= 2 ? "1fr" : "1fr 1fr";
   document.getElementById("answers-grid").style.gridTemplateColumns = cols;
@@ -247,6 +254,8 @@ function revealAnswers() {
   });
 
   document.getElementById("answered-bar").style.display = "none";
+  document.getElementById("pause-btn").style.display = "none";
+  document.getElementById("skip-btn").style.display = "none";
 
   // Show distribution bars
   const distrib = document.getElementById("distrib");
