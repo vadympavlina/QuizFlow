@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuizFlow Live — Хост</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800;900&family=Geist+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:"Manrope",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  background:#0A0F2C; color:#fff;
+}
+
+/* ── Theme ── */
+#theme-bg{position:fixed;inset:0;z-index:0;transition:background .6s}
+#theme-pattern{position:fixed;inset:0;z-index:1;pointer-events:none}
+
+/* ── Screens ── */
+.screen{position:fixed;inset:0;display:none;flex-direction:column;z-index:10}
+.screen.on{display:flex}
+
+@keyframes cardIn{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes timerWarn{0%,100%{opacity:1}50%{opacity:.55}}
+
+/* ══════════════════════ SETUP SCREEN ══════════════════════ */
+#s-setup{
+  align-items:center;justify-content:center;padding:24px;
+  overflow-y:auto;
+}
+.setup-card{
+  background:rgba(255,255,255,.07);backdrop-filter:blur(24px);
+  border:1px solid rgba(255,255,255,.14);border-radius:22px;
+  padding:36px 32px;width:100%;max-width:560px;
+  animation:cardIn .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+.setup-logo{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+.setup-logo .lm{
+  width:40px;height:40px;border-radius:12px;
+  background:linear-gradient(135deg,#7C3AED,#4F46E5);
+  display:grid;place-items:center;
+}
+.setup-logo .ln{font-size:16px;font-weight:800;letter-spacing:-.01em}
+.setup-logo .ln em{font-style:normal;color:#A78BFA}
+
+.setup-title{font-size:22px;font-weight:800;margin-bottom:6px}
+.setup-sub{font-size:14px;color:rgba(255,255,255,.55);margin-bottom:24px}
+
+.setup-test-box{
+  padding:16px 18px;border-radius:14px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  margin-bottom:20px;
+}
+.setup-test-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.45);font-weight:700;margin-bottom:6px}
+.setup-test-name{font-size:17px;font-weight:800}
+.setup-test-meta{font-size:13px;color:rgba(255,255,255,.5);margin-top:4px}
+
+.setup-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.setup-field .sf-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.5);font-weight:700;margin-bottom:7px}
+.setup-field select,.setup-field input{
+  width:100%;padding:11px 14px;border-radius:10px;
+  border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);
+  font-family:"Manrope",sans-serif;font-size:14px;color:#fff;outline:none;
+  transition:all .15s;
+}
+.setup-field select{cursor:pointer}
+.setup-field select option{background:#1A1A2E;color:#fff}
+.setup-field input:focus,.setup-field select:focus{
+  border-color:#A78BFA;box-shadow:0 0 0 3px rgba(167,139,250,.18);
+}
+
+/* Theme picker */
+.theme-section{margin-bottom:20px}
+.theme-section .ts-title{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.5);font-weight:700;margin-bottom:10px}
+.theme-row{display:flex;gap:8px;flex-wrap:wrap}
+.theme-swatch{
+  width:36px;height:36px;border-radius:9px;cursor:pointer;
+  border:2px solid transparent;transition:all .15s;position:relative;overflow:hidden;
+  flex-shrink:0;
+}
+.theme-swatch.active{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.4)}
+.theme-swatch:hover{transform:scale(1.1)}
+.pat-swatch{
+  width:36px;height:36px;border-radius:9px;cursor:pointer;
+  border:2px solid rgba(255,255,255,.15);transition:all .15s;
+  background:#1A1A2E;overflow:hidden;flex-shrink:0;
+}
+.pat-swatch.active{border-color:#A78BFA;box-shadow:0 0 0 2px rgba(167,139,250,.35)}
+.pat-swatch:hover{transform:scale(1.1)}
+
+.setup-btn{
+  width:100%;padding:15px;border:none;border-radius:12px;
+  background:linear-gradient(135deg,#7C3AED,#4F46E5);color:#fff;
+  font-family:"Manrope",sans-serif;font-size:15px;font-weight:700;
+  cursor:pointer;transition:all .2s;
+  box-shadow:0 8px 24px rgba(124,58,237,.4);margin-top:4px;
+}
+.setup-btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.setup-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* ══════════════════════ LOBBY SCREEN ══════════════════════ */
+#s-lobby{flex-direction:column;padding:0}
+.lobby-top{
+  padding:20px 28px;display:flex;align-items:center;justify-content:space-between;
+  background:rgba(0,0,0,.3);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,255,255,.1);flex-shrink:0;
+}
+.lobby-code-wrap{text-align:center}
+.lobby-code-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.5);font-weight:700;margin-bottom:4px}
+.lobby-code{font-family:"Geist Mono",monospace;font-size:42px;font-weight:700;letter-spacing:.12em;color:#A78BFA;line-height:1}
+.lobby-url{font-size:12px;color:rgba(255,255,255,.4);margin-top:5px;font-family:"Geist Mono",monospace}
+.lobby-actions{display:flex;gap:10px;align-items:center}
+.lob-btn{
+  padding:10px 20px;border-radius:11px;border:1.5px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.06);color:#fff;
+  font-family:"Manrope",sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;
+}
+.lob-btn.primary{background:linear-gradient(135deg,#7C3AED,#4F46E5);border-color:transparent;box-shadow:0 6px 18px rgba(124,58,237,.35)}
+.lob-btn:hover{filter:brightness(1.1)}
+.lobby-players-section{flex:1;overflow-y:auto;padding:24px 28px}
+.lobby-players-title{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.45);font-weight:700;margin-bottom:14px}
+.lp-grid{display:flex;flex-wrap:wrap;gap:10px}
+.lp-chip{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 14px;border-radius:10px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  font-size:13px;font-weight:600;
+  animation:cardIn .3s ease both;
+}
+.lp-chip .lp-kick{
+  width:18px;height:18px;border-radius:4px;border:none;background:transparent;
+  color:rgba(255,255,255,.3);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;font-size:14px;line-height:1;padding:0;
+}
+.lp-chip .lp-kick:hover{color:#FCA5A5;background:rgba(220,38,38,.2)}
+
+/* ══════════════════════ QUESTION SCREEN ══════════════════════ */
+#s-question{flex-direction:column;overflow:hidden}
+.q-topbar{
+  padding:14px 24px;display:flex;align-items:center;gap:16px;
+  background:rgba(0,0,0,.35);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;
+}
+.q-meta{font-size:12px;color:rgba(255,255,255,.5);font-weight:600;white-space:nowrap;font-family:"Geist Mono",monospace}
+.q-bar-wrap{flex:1;height:6px;background:rgba(255,255,255,.15);border-radius:3px;overflow:hidden}
+.q-bar-fill{height:100%;border-radius:3px;background:#A78BFA;transition:width .3s}
+.q-host-timer{
+  font-family:"Geist Mono",monospace;font-size:32px;font-weight:700;
+  min-width:60px;text-align:center;transition:color .3s;
+}
+.q-host-timer.warn{color:#FCD34D}
+.q-host-timer.danger{color:#FCA5A5;animation:timerWarn .5s infinite}
+
+.q-topbar-btns{display:flex;gap:8px}
+.q-ctrl-btn{
+  padding:7px 14px;border-radius:9px;border:1.5px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.06);color:#fff;
+  font-family:"Manrope",sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;gap:6px;
+}
+.q-ctrl-btn:hover{background:rgba(255,255,255,.12)}
+.q-ctrl-btn svg{width:13px;height:13px}
+.q-ctrl-btn.danger{border-color:rgba(220,38,38,.4);color:#FCA5A5}
+.q-ctrl-btn.danger:hover{background:rgba(220,38,38,.15)}
+
+.q-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 28px;gap:0}
+.q-answered-bar{
+  width:100%;max-width:800px;display:flex;align-items:center;gap:12px;
+  margin-bottom:16px;
+}
+.q-answered-lbl{font-size:13px;color:rgba(255,255,255,.55);white-space:nowrap}
+.q-answered-track{flex:1;height:8px;background:rgba(255,255,255,.12);border-radius:4px;overflow:hidden}
+.q-answered-fill{height:100%;background:#A78BFA;border-radius:4px;transition:width .4s}
+.q-answered-count{font-family:"Geist Mono",monospace;font-size:13px;color:#A78BFA;font-weight:700;white-space:nowrap}
+
+.q-text-host{
+  font-size:clamp(22px,3vw,38px);font-weight:800;text-align:center;
+  line-height:1.3;max-width:900px;margin-bottom:28px;
+  animation:cardIn .35s ease both;
+}
+.q-opts-host{
+  display:grid;gap:12px;width:100%;max-width:900px;
+}
+.q-opt-host{
+  padding:18px 22px;border-radius:16px;
+  font-size:clamp(14px,1.8vw,20px);font-weight:700;color:#fff;
+  position:relative;overflow:hidden;min-height:64px;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  animation:cardIn .35s ease both;box-shadow:0 4px 16px rgba(0,0,0,.3);
+  transition:all .3s;
+}
+.q-opt-host.correct{outline:4px solid #16A34A;box-shadow:0 0 0 4px rgba(22,163,74,.3),0 4px 16px rgba(0,0,0,.3)}
+.q-opt-host.wrong{opacity:.4}
+
+.q-text-input-host{
+  width:100%;max-width:600px;
+  padding:16px 20px;border-radius:14px;
+  border:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);
+  font-family:"Manrope",sans-serif;font-size:18px;color:rgba(255,255,255,.5);
+  text-align:center;outline:none;
+}
+
+/* ══════════════════════ LEADERBOARD SCREEN ══════════════════════ */
+#s-leaderboard{flex-direction:column;overflow:hidden}
+.lb-topbar{
+  padding:16px 28px;display:flex;align-items:center;justify-content:space-between;
+  background:rgba(0,0,0,.35);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;
+}
+.lb-topbar h2{font-size:18px;font-weight:800}
+.lb-body{flex:1;overflow-y:auto;padding:28px}
+.lb-podium{display:flex;align-items:flex-end;justify-content:center;gap:16px;margin-bottom:32px}
+.lb-pod-item{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  animation:cardIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+.lb-pod-item:nth-child(1){animation-delay:.1s}
+.lb-pod-item:nth-child(2){animation-delay:0s}
+.lb-pod-item:nth-child(3){animation-delay:.2s}
+.lb-pod-ava{
+  width:64px;height:64px;border-radius:50%;
+  display:grid;place-items:center;font-size:22px;font-weight:800;
+  border:3px solid;
+}
+.lb-pod-ava.p1{background:rgba(255,215,0,.15);border-color:#FFD700;color:#FFD700}
+.lb-pod-ava.p2{background:rgba(192,192,192,.12);border-color:#C0C0C0;color:#C0C0C0}
+.lb-pod-ava.p3{background:rgba(205,127,50,.12);border-color:#CD7F32;color:#CD7F32}
+.lb-pod-name{font-size:14px;font-weight:700;text-align:center;max-width:120px}
+.lb-pod-score{font-family:"Geist Mono",monospace;font-size:16px;font-weight:700;color:#A78BFA}
+.lb-pod-bar{
+  width:80px;border-radius:8px 8px 0 0;
+  min-height:20px;transition:height .8s ease;
+}
+.lb-pod-bar.p1{background:rgba(255,215,0,.4);height:120px}
+.lb-pod-bar.p2{background:rgba(192,192,192,.3);height:90px}
+.lb-pod-bar.p3{background:rgba(205,127,50,.3);height:70px}
+
+.lb-list{display:flex;flex-direction:column;gap:8px;max-width:700px;margin:0 auto}
+.lb-row{
+  display:flex;align-items:center;gap:16px;
+  padding:14px 20px;border-radius:12px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  animation:cardIn .3s ease both;
+}
+.lb-row-pl{font-family:"Geist Mono",monospace;font-size:18px;font-weight:700;min-width:32px;color:rgba(255,255,255,.4)}
+.lb-row-name{flex:1;font-size:15px;font-weight:700}
+.lb-row-score{font-family:"Geist Mono",monospace;font-size:16px;font-weight:700;color:#A78BFA}
+.lb-close-btn{
+  padding:11px 24px;border-radius:11px;border:1.5px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.06);color:#fff;
+  font-family:"Manrope",sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;
+}
+.lb-close-btn:hover{background:rgba(255,255,255,.12)}
+</style>
+</head>
+<body>
+
+<div id="theme-bg"></div>
+<div id="theme-pattern"></div>
+
+<!-- SETUP -->
+<div class="screen on" id="s-setup">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <div class="lm">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/>
+        </svg>
+      </div>
+      <span class="ln">quiz<em>flow</em> live</span>
+    </div>
+    <div class="setup-title">Налаштування гри</div>
+    <div class="setup-sub">Налаштуйте параметри перед запуском</div>
+
+    <div class="setup-test-box">
+      <div class="setup-test-lbl">Тест</div>
+      <div class="setup-test-name" id="setup-test-name">—</div>
+      <div class="setup-test-meta" id="setup-test-meta">—</div>
+    </div>
+
+    <div class="setup-row">
+      <div class="setup-field">
+        <div class="sf-lbl">Час на питання (сек)</div>
+        <input type="number" id="setup-time" min="5" max="120" value="20">
+      </div>
+      <div class="setup-field">
+        <div class="sf-lbl">Бальна система</div>
+        <select id="setup-scoring">
+          <option value="correct">За правильність (1000 балів)</option>
+          <option value="speed">За швидкість (500–1000)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Gradient picker -->
+    <div class="theme-section">
+      <div class="ts-title">Градієнт фону</div>
+      <div class="theme-row" id="grad-row"></div>
+    </div>
+    <!-- Pattern picker -->
+    <div class="theme-section">
+      <div class="ts-title">Патерн</div>
+      <div class="theme-row" id="pat-row"></div>
+    </div>
+
+    <button class="setup-btn" id="setup-start-btn" onclick="createRoom()">
+      Створити кімнату →
+    </button>
+  </div>
+</div>
+
+<!-- LOBBY -->
+<div class="screen" id="s-lobby">
+  <div class="lobby-top">
+    <div class="lobby-code-wrap">
+      <div class="lobby-code-lbl">Код кімнати</div>
+      <div class="lobby-code" id="lobby-code">—</div>
+      <div class="lobby-url" id="lobby-url"></div>
+    </div>
+    <div style="text-align:center">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.45);font-weight:700;margin-bottom:6px">Гравців</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:36px;font-weight:700;color:#A78BFA" id="lobby-count">0</div>
+    </div>
+    <div class="lobby-actions">
+      <button class="lob-btn" onclick="copyInviteLink()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        Скопіювати посилання
+      </button>
+      <button class="lob-btn primary" id="start-game-btn" onclick="startGame()">
+        Почати гру →
+      </button>
+    </div>
+  </div>
+  <div class="lobby-players-section">
+    <div class="lobby-players-title" id="lobby-players-lbl">Очікуємо гравців...</div>
+    <div class="lp-grid" id="lp-grid"></div>
+  </div>
+</div>
+
+<!-- QUESTION -->
+<div class="screen" id="s-question">
+  <div class="q-topbar">
+    <span class="q-meta" id="q-meta-lbl">1/10</span>
+    <div class="q-bar-wrap"><div class="q-bar-fill" id="q-bar" style="width:10%"></div></div>
+    <div class="q-host-timer" id="q-host-timer">20</div>
+    <div class="q-topbar-btns">
+      <button class="q-ctrl-btn" onclick="togglePause()" id="pause-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        Пауза
+      </button>
+      <button class="q-ctrl-btn" onclick="skipQuestion()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+        Пропустити
+      </button>
+      <button class="q-ctrl-btn" onclick="nextQuestion()" id="next-btn" style="background:linear-gradient(135deg,#7C3AED,#4F46E5);border-color:transparent">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        Далі
+      </button>
+    </div>
+  </div>
+  <div class="q-main">
+    <div class="q-answered-bar">
+      <span class="q-answered-lbl">Відповіли:</span>
+      <div class="q-answered-track"><div class="q-answered-fill" id="q-ans-fill" style="width:0%"></div></div>
+      <span class="q-answered-count" id="q-ans-count">0 / 0</span>
+    </div>
+    <div class="q-text-host qf-rich" id="q-text-host"></div>
+    <div class="q-opts-host" id="q-opts-host"></div>
+    <input class="q-text-input-host" id="q-text-host-inp" style="display:none" placeholder="Текстова відповідь" disabled>
+  </div>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="screen" id="s-leaderboard">
+  <div class="lb-topbar">
+    <h2>Фінальний рейтинг</h2>
+    <button class="lb-close-btn" onclick="finishGame()">Завершити гру</button>
+  </div>
+  <div class="lb-body">
+    <div class="lb-podium" id="lb-podium"></div>
+    <div class="lb-list" id="lb-list"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, set, update, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const FC = {
+  apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",
+  authDomain:"quizflow-8a978.firebaseapp.com",
+  databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"quizflow-8a978",
+  storageBucket:"quizflow-8a978.firebasestorage.app",
+  messagingSenderId:"206469794166",
+  appId:"1:206469794166:web:55cd7007b429607acd5257"
+};
+const app  = getApps().length ? getApps()[0] : initializeApp(FC);
+const db   = getDatabase(app);
+const auth = getAuth(app);
+
+// ─── Auth guard ───────────────────────────────────────────────────────────────
+const fbUser = await new Promise(r => { const u = onAuthStateChanged(auth, u => { u(); r(u); }); });
+if (!fbUser) { location.href = "../login.html"; throw new Error("no auth"); }
+
+const uid = fbUser.uid;
+
+// ─── State ─────────────────────────────────────────────────────────────────
+let roomCode = "", testData = null, selectedGrad = 0, selectedPat = 0;
+let currentQ = 0, totalQ = 0;
+let timerInterval = null, roomUnsub = null, answersUnsub = null;
+let isPaused = false, pausedTimeLeft = 0;
+let roomPlayers = {};
+let questionStartedAt = 0, timePerQ = 20;
+let revealMode = false;
+
+// ─── Themes ───────────────────────────────────────────────────────────────────
+const GRADIENTS = [
+  {label:"Темно-синій", bg:"linear-gradient(160deg,#050817 0%,#0A0F2C 50%,#0E1638 100%)"},
+  {label:"Фіолетово-чорний", bg:"linear-gradient(160deg,#0D0221 0%,#1A0533 50%,#2D1B69 100%)"},
+  {label:"Смарагдовий", bg:"linear-gradient(160deg,#022C22 0%,#064E3B 50%,#065F46 100%)"},
+  {label:"Захід сонця", bg:"linear-gradient(160deg,#431407 0%,#7C2D12 40%,#EA580C 100%)"},
+  {label:"Індиго-рожевий", bg:"linear-gradient(160deg,#1E1B4B 0%,#4338CA 50%,#BE185D 100%)"},
+  {label:"Чорний космос", bg:"linear-gradient(160deg,#000000 0%,#0F0F1A 50%,#1A1A2E 100%)"},
+  {label:"Весна", bg:"linear-gradient(160deg,#134E4A 0%,#065F46 40%,#84CC16 100%)"},
+  {label:"Літо", bg:"linear-gradient(160deg,#0C4A6E 0%,#0369A1 50%,#38BDF8 100%)"},
+  {label:"Осінь", bg:"linear-gradient(160deg,#1A0A00 0%,#78350F 50%,#D97706 100%)"},
+  {label:"Зима", bg:"linear-gradient(160deg,#1E3A5F 0%,#1D4ED8 50%,#7C3AED 100%)"},
+  {label:"Новий рік", bg:"linear-gradient(160deg,#042f2e 0%,#134E4A 40%,#5EEAD4 100%)"},
+  {label:"День Валентина", bg:"linear-gradient(160deg,#4a0020 0%,#831843 50%,#DB2777 100%)"},
+  {label:"8 березня", bg:"linear-gradient(160deg,#3b0764 0%,#7e22ce 50%,#f0abfc 100%)"},
+];
+const PATTERN_SVGS = [
+  `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><path d='M0 0h40v40H0z' fill='none'/><path d='M40 0H0M0 40V0' stroke='rgba(255,255,255,.04)' stroke-width='1'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><circle cx='2' cy='2' r='1.5' fill='rgba(255,255,255,.07)'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='80' height='20'><path d='M0 10 Q20 0 40 10 Q60 20 80 10' stroke='rgba(255,255,255,.05)' stroke-width='1.5' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='50' height='57.7'><polygon points='25,1 49,14.9 49,42.7 25,56.7 1,42.7 1,14.9' stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><line x1='0' y1='20' x2='20' y2='0' stroke='rgba(255,255,255,.05)' stroke-width='1'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><circle cx='30' cy='30' r='24' stroke='rgba(255,255,255,.04)' stroke-width='1' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='30' height='30'><polygon points='15,2 18,11 27,11 20,17 23,27 15,21 7,27 10,17 3,11 12,11' stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='30' height='30'><line x1='15' y1='3' x2='15' y2='27' stroke='rgba(255,255,255,.07)' stroke-width='1'/><line x1='3' y1='15' x2='27' y2='15' stroke='rgba(255,255,255,.07)' stroke-width='1'/><line x1='6' y1='6' x2='24' y2='24' stroke='rgba(255,255,255,.07)' stroke-width='1'/><line x1='24' y1='6' x2='6' y2='24' stroke='rgba(255,255,255,.07)' stroke-width='1'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><path d='M20 30 C10 22,4 16,4 11 C4 7,7,4,11,4 C13.5,4,16,5.5,20,9 C24,5.5,26.5,4,29,4 C33,4,36,7,36,11 C36,16,30,22,20,30Z' stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><circle cx='20' cy='14' r='5' stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'/><circle cx='20' cy='26' r='5' stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'/><circle cx='14' cy='20' r='5' stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'/><circle cx='26' cy='20' r='5' stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'/><circle cx='20' cy='20' r='4' stroke='rgba(255,255,255,.07)' stroke-width='1' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><path d='M8 32 Q20 8 32 8 Q32 20 8 32Z' stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='30' height='26'><polygon points='15,2 28,24 2,24' stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'/></svg>`,
+  `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='16'><polyline points='0,0 10,16 20,0 30,16 40,0' stroke='rgba(255,255,255,.05)' stroke-width='1.5' fill='none'/></svg>`,
+];
+const PATTERN_LABELS = ["Grid","Dots","Waves","Hexagon","Diagonal","Circles","Stars","Snowflakes","Hearts","Flowers","Leaves","Triangles","Zigzag"];
+const OPT_COLORS = ["#E53E3E","#DD6B20","#38A169","#3182CE","#805AD5","#D53F8C"];
+
+function applyTheme(gi, pi) {
+  document.getElementById("theme-bg").style.background = GRADIENTS[gi]?.bg || GRADIENTS[0].bg;
+  const pat = PATTERN_SVGS[pi] || PATTERN_SVGS[0];
+  const el = document.getElementById("theme-pattern");
+  el.style.backgroundImage = `url("data:image/svg+xml,${encodeURIComponent(pat)}")`;
+  el.style.backgroundRepeat = "repeat";
+  el.style.opacity = "1";
+}
+
+// ─── Build theme pickers ──────────────────────────────────────────────────────
+function buildPickers() {
+  const gradRow = document.getElementById("grad-row");
+  const patRow  = document.getElementById("pat-row");
+
+  gradRow.innerHTML = GRADIENTS.map((g,i) =>
+    `<div class="theme-swatch${i===0?" active":""}" title="${g.label}"
+      style="background:${g.bg}" data-gi="${i}"
+      onclick="selectGrad(${i})"></div>`
+  ).join("");
+
+  patRow.innerHTML = PATTERN_SVGS.map((p,i) => {
+    const enc = encodeURIComponent(p);
+    return `<div class="pat-swatch${i===0?" active":""}" title="${PATTERN_LABELS[i]}" data-pi="${i}"
+      style="background-image:url('data:image/svg+xml,${enc}');background-repeat:repeat;background-color:#1A1A2E"
+      onclick="selectPat(${i})"></div>`;
+  }).join("");
+}
+
+window.selectGrad = (i) => {
+  selectedGrad = i;
+  document.querySelectorAll(".theme-swatch").forEach(s => s.classList.toggle("active", +s.dataset.gi === i));
+  applyTheme(selectedGrad, selectedPat);
+};
+window.selectPat = (i) => {
+  selectedPat = i;
+  document.querySelectorAll(".pat-swatch").forEach(s => s.classList.toggle("active", +s.dataset.pi === i));
+  applyTheme(selectedGrad, selectedPat);
+};
+
+// ─── Load test from URL ───────────────────────────────────────────────────────
+const params = new URLSearchParams(location.search);
+const testId = params.get("testId");
+
+if (!testId) {
+  alert("Не вказано testId. Поверніться до тестів.");
+  location.href = "tests.html";
+  throw new Error("no testId");
+}
+
+// Load from Firebase
+const testSnap = await get(ref(db, `teachers/${uid}/tests/${testId}`));
+if (!testSnap.exists()) { alert("Тест не знайдено"); location.href = "index.html"; throw new Error(); }
+testData = { id: testId, ...testSnap.val() };
+const questions = (testData.questions || []).filter(q => q.type !== "long");
+testData.questions = questions;
+
+document.getElementById("setup-test-name").textContent = testData.title || "—";
+document.getElementById("setup-test-meta").textContent = `${questions.length} питань (розгорнуті виключено)`;
+
+buildPickers();
+applyTheme(0, 0);
+
+// ─── Create room ──────────────────────────────────────────────────────────────
+window.createRoom = async () => {
+  const btn = document.getElementById("setup-start-btn");
+  btn.disabled = true; btn.textContent = "Створення...";
+
+  const time    = parseInt(document.getElementById("setup-time").value) || 20;
+  const scoring = document.getElementById("setup-scoring").value;
+
+  // Generate unique 8-digit code
+  let code;
+  let attempts = 0;
+  do {
+    code = String(Math.floor(10000000 + Math.random() * 90000000));
+    const existing = await get(ref(db, `rooms/${code}/status`));
+    if (!existing.exists() || existing.val() === "finished") break;
+    attempts++;
+  } while (attempts < 10);
+
+  roomCode = code;
+  timePerQ = time;
+  totalQ = questions.length;
+
+  await set(ref(db, `rooms/${code}`), {
+    hostUid: uid,
+    testId,
+    status: "lobby",
+    currentQ: 0,
+    timePerQ: time,
+    scoring,
+    theme: { gradient: selectedGrad, pattern: selectedPat },
+    questions: questions.map(q => ({
+      id: q.id || "",
+      type: q.type,
+      text: q.text || "",
+      options: q.options || null,
+      correct: q.correct ?? null,
+    })),
+    createdAt: Date.now(),
+  });
+
+  document.getElementById("lobby-code").textContent = code;
+  const url = `${location.origin}/play.html?code=${code}`;
+  document.getElementById("lobby-url").textContent = url;
+
+  show("s-lobby");
+  startLobbyListener();
+
+  btn.disabled = false;
+  btn.textContent = "Створити кімнату →";
+};
+
+window.copyInviteLink = () => {
+  const url = `${location.origin}/play.html?code=${roomCode}`;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.querySelector(".lob-btn");
+    const orig = btn.innerHTML;
+    btn.textContent = "Скопійовано!";
+    setTimeout(() => btn.innerHTML = orig, 2000);
+  });
+};
+
+// ─── Lobby listener ───────────────────────────────────────────────────────────
+function startLobbyListener() {
+  onValue(ref(db, `rooms/${roomCode}/players`), snap => {
+    roomPlayers = snap.val() || {};
+    const active = Object.entries(roomPlayers).filter(([,p]) => p.active !== false);
+    document.getElementById("lobby-count").textContent = active.length;
+    document.getElementById("lobby-players-lbl").textContent =
+      active.length ? `${active.length} гравців` : "Очікуємо гравців...";
+
+    document.getElementById("lp-grid").innerHTML = active.map(([pid,p]) =>
+      `<div class="lp-chip">
+        <span>${esc(p.surname)} ${esc(p.name)}</span>
+        <button class="lp-kick" onclick="kickPlayer('${pid}')" title="Видалити">×</button>
+      </div>`
+    ).join("");
+  });
+}
+
+window.kickPlayer = async (pid) => {
+  await update(ref(db, `rooms/${roomCode}/players/${pid}`), { active: false });
+};
+
+// ─── Start game ───────────────────────────────────────────────────────────────
+window.startGame = async () => {
+  currentQ = 0;
+  await launchQuestion(0);
+};
+
+async function launchQuestion(qi) {
+  revealMode = false;
+  isPaused = false;
+  questionStartedAt = Date.now();
+
+  await update(ref(db, `rooms/${roomCode}`), {
+    status: "question",
+    currentQ: qi,
+    questionStartedAt,
+  });
+
+  show("s-question");
+  renderQuestion(qi);
+  startHostTimer();
+  startAnswerListener(qi);
+}
+
+function renderQuestion(qi) {
+  const q = questions[qi];
+  currentQ = qi;
+
+  document.getElementById("q-meta-lbl").textContent = `${qi+1}/${totalQ}`;
+  document.getElementById("q-bar").style.width = `${((qi+1)/totalQ)*100}%`;
+  document.getElementById("q-text-host").innerHTML = q.text || "";
+  document.getElementById("q-ans-fill").style.width = "0%";
+  document.getElementById("q-ans-count").textContent = `0 / ${Object.keys(roomPlayers).filter(k=>roomPlayers[k].active!==false).length}`;
+
+  const optsEl = document.getElementById("q-opts-host");
+  const textInp = document.getElementById("q-text-host-inp");
+
+  if (q.type === "text") {
+    optsEl.style.display = "none";
+    textInp.style.display = "";
+    textInp.value = "";
+  } else {
+    optsEl.style.display = "";
+    textInp.style.display = "none";
+    const opts = q.options || [];
+    const cols = opts.length <= 2 ? "1fr" : opts.length <= 4 ? "1fr 1fr" : "1fr 1fr 1fr";
+    optsEl.style.gridTemplateColumns = cols;
+    optsEl.innerHTML = opts.map((o,i) =>
+      `<div class="q-opt-host" style="background:${OPT_COLORS[i]||OPT_COLORS[0]}">${esc(o)}</div>`
+    ).join("");
+  }
+
+  document.getElementById("pause-btn").innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+    Пауза`;
+}
+
+// ─── Timer ────────────────────────────────────────────────────────────────────
+function startHostTimer() {
+  clearInterval(timerInterval);
+  const total = timePerQ;
+
+  function tick() {
+    if (isPaused) return;
+    const elapsed = (Date.now() - questionStartedAt) / 1000;
+    const left = Math.max(0, total - elapsed);
+    const timerEl = document.getElementById("q-host-timer");
+    timerEl.textContent = Math.ceil(left);
+    if (left <= 5)       timerEl.className = "q-host-timer danger";
+    else if (left <= 10) timerEl.className = "q-host-timer warn";
+    else                  timerEl.className = "q-host-timer";
+    if (left <= 0) {
+      clearInterval(timerInterval);
+      revealAnswers();
+    }
+  }
+  tick();
+  timerInterval = setInterval(tick, 200);
+}
+
+// ─── Answers listener ─────────────────────────────────────────────────────────
+function startAnswerListener(qi) {
+  if (answersUnsub) answersUnsub();
+  answersUnsub = onValue(ref(db, `rooms/${roomCode}/answers/${qi}`), snap => {
+    const answers = snap.val() || {};
+    const activePlayers = Object.keys(roomPlayers).filter(k => roomPlayers[k].active !== false);
+    const answered = Object.keys(answers).length;
+    const total = activePlayers.length || 1;
+    const pct = Math.round(answered / total * 100);
+    document.getElementById("q-ans-fill").style.width = pct + "%";
+    document.getElementById("q-ans-count").textContent = `${answered} / ${total}`;
+    // Якщо всі відповіли — можна показати reveal
+    if (answered >= total && total > 0 && !revealMode) {
+      // Автоматично не переходимо — чекаємо кнопку "Далі"
+    }
+  });
+}
+
+// ─── Pause ────────────────────────────────────────────────────────────────────
+window.togglePause = async () => {
+  isPaused = !isPaused;
+  const btn = document.getElementById("pause-btn");
+  if (isPaused) {
+    pausedTimeLeft = timePerQ - (Date.now() - questionStartedAt) / 1000;
+    await update(ref(db, `rooms/${roomCode}`), { status: "paused" });
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Продовжити`;
+  } else {
+    // Adjust start time so timer continues from where it paused
+    questionStartedAt = Date.now() - (timePerQ - pausedTimeLeft) * 1000;
+    await update(ref(db, `rooms/${roomCode}`), { status: "question", questionStartedAt });
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Пауза`;
+    startHostTimer();
+  }
+};
+
+// ─── Reveal answers ───────────────────────────────────────────────────────────
+async function revealAnswers() {
+  revealMode = true;
+  clearInterval(timerInterval);
+  const q = questions[currentQ];
+  await update(ref(db, `rooms/${roomCode}`), { status: "reveal" });
+
+  // Highlight correct answers
+  if (q.type !== "text") {
+    const opts = document.querySelectorAll(".q-opt-host");
+    const correct = Array.isArray(q.correct) ? q.correct : [q.correct];
+    opts.forEach((opt, i) => {
+      opt.classList.add(correct.map(Number).includes(i) ? "correct" : "wrong");
+    });
+  } else {
+    const inp = document.getElementById("q-text-host-inp");
+    inp.value = `Правильна відповідь: ${q.correct || "—"}`;
+  }
+}
+
+// ─── Next / Skip ──────────────────────────────────────────────────────────────
+window.nextQuestion = async () => {
+  if (!revealMode) {
+    // Force reveal first
+    await revealAnswers();
+    return;
+  }
+  const next = currentQ + 1;
+  if (next >= totalQ) {
+    await showLeaderboard();
+  } else {
+    await launchQuestion(next);
+  }
+};
+
+window.skipQuestion = async () => {
+  clearInterval(timerInterval);
+  await revealAnswers();
+};
+
+// ─── Leaderboard ─────────────────────────────────────────────────────────────
+async function showLeaderboard() {
+  clearInterval(timerInterval);
+  await update(ref(db, `rooms/${roomCode}`), { status: "leaderboard" });
+
+  // Calc scores
+  const scoresSnap = await get(ref(db, `rooms/${roomCode}/answers`));
+  const allAnswers = scoresSnap.val() || {};
+  const scores = {};
+  Object.values(allAnswers).forEach(qA => {
+    Object.entries(qA || {}).forEach(([pid, ans]) => {
+      scores[pid] = (scores[pid] || 0) + (ans.points || 0);
+    });
+  });
+
+  const activePlayers = Object.entries(roomPlayers)
+    .filter(([,p]) => p.active !== false)
+    .map(([pid,p]) => ({ pid, name:`${p.surname} ${p.name}`, score: scores[pid]||0 }))
+    .sort((a,b) => b.score - a.score);
+
+  // Podium
+  const medals = ["🥇","🥈","🥉"];
+  const pCls = ["p1","p2","p3"];
+  const podEl = document.getElementById("lb-podium");
+  // Reorder for display: 2nd, 1st, 3rd
+  const podOrder = [1,0,2];
+  podEl.innerHTML = podOrder.filter(i => activePlayers[i]).map(i => {
+    const p = activePlayers[i];
+    const initials = p.name.split(" ").map(w=>w[0]||"").join("").slice(0,2).toUpperCase();
+    return `<div class="lb-pod-item">
+      <div class="lb-pod-ava ${pCls[i]}">${initials}</div>
+      <div class="lb-pod-name">${esc(p.name)}</div>
+      <div class="lb-pod-score">${p.score}</div>
+      <div class="lb-pod-bar ${pCls[i]}"></div>
+    </div>`;
+  }).join("");
+
+  // List (4th+)
+  const listEl = document.getElementById("lb-list");
+  listEl.innerHTML = activePlayers.slice(3).map((p,i) =>
+    `<div class="lb-row" style="animation-delay:${i*0.05}s">
+      <span class="lb-row-pl">${i+4}</span>
+      <span class="lb-row-name">${esc(p.name)}</span>
+      <span class="lb-row-score">${p.score}</span>
+    </div>`
+  ).join("");
+
+  show("s-leaderboard");
+}
+
+// ─── Finish game ──────────────────────────────────────────────────────────────
+window.finishGame = async () => {
+  clearInterval(timerInterval);
+  await update(ref(db, `rooms/${roomCode}`), { status: "finished", finishedAt: Date.now() });
+  // Save to game history
+  const scoresSnap = await get(ref(db, `rooms/${roomCode}/answers`));
+  const allAnswers = scoresSnap.val() || {};
+  const scores = {};
+  Object.values(allAnswers).forEach(qA => {
+    Object.entries(qA||{}).forEach(([pid,ans]) => {
+      scores[pid] = (scores[pid]||0) + (ans.points||0);
+    });
+  });
+  const results = Object.entries(roomPlayers)
+    .filter(([,p]) => p.active !== false)
+    .map(([pid,p]) => ({ name: p.name, surname: p.surname, score: scores[pid]||0 }))
+    .sort((a,b) => b.score - a.score);
+
+  await set(ref(db, `teachers/${uid}/gameHistory/${roomCode}`), {
+    code: roomCode,
+    testId,
+    testTitle: testData.title || "",
+    playedAt: Date.now(),
+    playerCount: results.length,
+    results,
+  });
+
+  location.href = "index.html";
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function show(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("on"));
+  document.getElementById(id)?.classList.add("on");
+}
+function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+// Unload — mark game as finished if host leaves
+window.addEventListener("beforeunload", () => {
+  if (roomCode) {
+    navigator.sendBeacon && navigator.sendBeacon(
+      `https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app/rooms/${roomCode}/status.json`,
+      JSON.stringify("finished")
+    );
+  }
+});
+</script>
+</body>
+</html>
