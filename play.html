@@ -138,28 +138,40 @@ body{font-family:"Manrope",system-ui,sans-serif;-webkit-font-smoothing:antialias
 }
 
 .q-opts{
-  display:grid;grid-template-columns:1fr 1fr;gap:10px;
-  padding:10px 14px 20px;flex-shrink:0;
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  padding:10px 14px 24px;flex-shrink:0;
 }
 .q-opt{
-  padding:16px 12px;border-radius:14px;border:none;cursor:pointer;
-  font-family:"Manrope",sans-serif;font-size:14px;font-weight:700;
+  padding:0;border-radius:16px;border:none;cursor:pointer;
+  font-family:"Manrope",sans-serif;font-size:15px;font-weight:700;
   color:#fff;text-align:center;line-height:1.3;
-  transition:all .15s;min-height:64px;display:flex;align-items:center;justify-content:center;
-  position:relative;overflow:hidden;
-  box-shadow:0 4px 12px rgba(0,0,0,.25);
+  transition:all .2s;min-height:80px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;gap:6px;
+  box-shadow:0 6px 20px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.2);
 }
-.q-opt:active{transform:scale(.96)}
+.q-opt:active{transform:scale(.95)}
 .q-opt:disabled{cursor:not-allowed}
-.q-opt.answered{opacity:.55;pointer-events:none}
-.q-opt.answered.selected{opacity:1}
-.q-opt.correct{animation:bounce .4s ease}
-.q-opt.wrong{opacity:.4}
-.q-opt::before{
-  content:'';position:absolute;inset:0;
-  background:rgba(255,255,255,.12);opacity:0;transition:opacity .15s;
+/* Літера зверху */
+.q-opt-letter{
+  font-size:11px;font-weight:800;letter-spacing:.08em;
+  background:rgba(0,0,0,.2);padding:2px 10px;border-radius:999px;
+  opacity:.85;
 }
-.q-opt:hover::before{opacity:1}
+.q-opt-text{
+  padding:0 14px;font-size:14px;font-weight:700;line-height:1.3;
+}
+/* Стан після відповіді */
+.q-opt.selected{
+  box-shadow:0 0 0 3px rgba(255,255,255,.7),0 6px 20px rgba(0,0,0,.3);
+  transform:scale(1.02);
+}
+.q-opt.answered{pointer-events:none}
+.q-opt.answered.selected{opacity:1}
+.q-opt.correct{
+  box-shadow:0 0 0 3px #86EFAC,0 0 0 6px rgba(22,163,74,.2),0 6px 20px rgba(0,0,0,.3);
+}
+.q-opt.wrong{opacity:.3;transform:scale(.96)}
 
 .opt-colors{
   --c0:#E53E3E; --c1:#DD6B20; --c2:#38A169; --c3:#3182CE;
@@ -737,8 +749,12 @@ function onQuestion(room) {
     textArea.style.display = "none";
     const opts = q.options || [];
     const isMulti = q.type === "multi";
+    const letters = ["A","B","C","D","E","F"];
     optsEl.innerHTML = opts.map((o,i) =>
-      `<button class="q-opt" onclick="selectOpt(${i},${isMulti})">${esc(o)}</button>`
+      `<button class="q-opt" onclick="selectOpt(${i},${isMulti})" data-idx="${i}">
+        <span class="q-opt-letter">${letters[i]}</span>
+        <span class="q-opt-text">${esc(o)}</span>
+      </button>`
     ).join("");
     // Adjust grid cols
     optsEl.style.gridTemplateColumns = opts.length <= 2 ? "1fr" : "1fr 1fr";
@@ -859,12 +875,30 @@ function checkCorrect(q, value) {
 }
 
 function showAnsweredState(q, answer) {
+  const isCorrect = answer?.isCorrect ?? false;
+
+  // Якщо є правильна відповідь — показуємо які правильні/неправильні
+  const opts = document.querySelectorAll(".q-opt");
+  if (opts.length > 0 && answer?.value !== undefined) {
+    const correct = Array.isArray(q.correct) ? q.correct.map(Number) : [Number(q.correct)];
+    const selected = Array.isArray(answer.value) ? answer.value.map(Number) : [Number(answer.value)];
+    opts.forEach((btn, i) => {
+      btn.classList.add("answered");
+      if (correct.includes(i)) {
+        btn.classList.add("correct");
+      } else if (selected.includes(i)) {
+        btn.classList.add("wrong");
+      } else {
+        btn.classList.add("wrong");
+      }
+    });
+  }
+
+  // Ховаємо оригінальні кнопки і показуємо waiting
   const waitEl = document.getElementById("q-waiting");
   const icoEl  = document.getElementById("q-wait-ico");
   const txtEl  = document.getElementById("q-wait-text");
   const subEl  = document.getElementById("q-wait-sub");
-
-  const isCorrect = answer?.isCorrect ?? false;
 
   icoEl.className = "q-wait-ico " + (isCorrect ? "ok" : "fail");
   icoEl.innerHTML = isCorrect
@@ -872,9 +906,9 @@ function showAnsweredState(q, answer) {
     : `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 
   txtEl.textContent = isCorrect ? "Правильно!" : "Неправильно";
-  subEl.textContent = "Чекаємо поки всі відповідять...";
+  subEl.textContent = "Очікуємо наступного питання...";
 
-  document.getElementById("q-opts").style.display = "none";
+  // Не ховаємо картки — нехай видно правильні підсвічені
   document.getElementById("q-text-area").style.display = "none";
   waitEl.classList.add("on");
 }
