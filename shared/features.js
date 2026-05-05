@@ -1158,33 +1158,75 @@ function _renderTestsContent(lst, total){
 
 // ATTEMPTS
 fillSelects = function(){
-  // Прихований select для сумісності з renderAttempts
-  const ft = $("ft");
-  if (ft) ft.innerHTML=`<option value="">Всі тести</option>`+tests.filter(t=>t.status!=="archived").map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
-  // Кастомний дропдаун тестів
-  const ftMenu=document.getElementById("cd-ft-menu");
-  if(ftMenu){
-    const curFt=$("ft")?.value||"";
-    ftMenu.innerHTML=`<div class="cd-item${!curFt?" cd-active":""}" onclick="G.selectDrop('cd-ft','','Всі тести')">Всі тести</div>`+
-      tests.filter(t=>t.status!=="archived").map(t=>
-        `<div class="cd-item${curFt===t.id?" cd-active":""}" onclick="G.selectDrop('cd-ft','${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
-      ).join("");
-  }
-  const nlT = $("nl-t");
-  if (nlT) nlT.innerHTML=tests.map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
-  // Групи з посилань
-  const groups=[...new Set(links.map(l=>l.group).filter(Boolean))].sort();
+  const curFt  = $("ft")?.value   || "";
+  const curGrp = $("fgrp")?.value || "";
+
+  // ─── Групи — з посилань ───────────────────────────────────────────────
+  const allGroups = [...new Set(links.map(l=>l.group).filter(Boolean))].sort();
   const fgrp = $("fgrp");
-  if (fgrp) fgrp.innerHTML=`<option value="">Всі групи</option>`+groups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join("");
-  // Кастомний дропдаун груп
-  const grpMenu=document.getElementById("cd-fgrp-menu");
-  if(grpMenu){
-    const curGrp=$("fgrp").value;
-    grpMenu.innerHTML=`<div class="cd-item${!curGrp?" cd-active":""}" onclick="G.selectDrop('cd-fgrp','','Всі групи')">Всі групи</div>`+
-      groups.map(g=>`<div class="cd-item${curGrp===g?" cd-active":""}" onclick="G.selectDrop('cd-fgrp','${esc(g)}','${esc(g)}')">${esc(g)}</div>`
+  if (fgrp) fgrp.innerHTML = `<option value="">Всі групи</option>` +
+    allGroups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join("");
+  if (curGrp && fgrp) fgrp.value = curGrp;
+
+  const grpMenu = document.getElementById("cd-fgrp-menu");
+  if (grpMenu) {
+    grpMenu.innerHTML =
+      `<div class="cd-item${!curGrp?" cd-active":""}" onclick="G.selectAttGroup('','Всі групи')">Всі групи</div>` +
+      allGroups.map(g =>
+        `<div class="cd-item${curGrp===g?" cd-active":""}" onclick="G.selectAttGroup('${esc(g)}','${esc(g)}')">${esc(g)}</div>`
       ).join("");
   }
-  // Аналітика - тести
+  if ($("cd-fgrp-label") && curGrp) $("cd-fgrp-label").textContent = curGrp;
+
+  // ─── Тести — фільтруємо по обраній групі ────────────────────────────
+  // Якщо вибрана група — показуємо лише тести що мали посилання з цією групою
+  let filteredTests = tests.filter(t => t.status !== "archived");
+  if (curGrp) {
+    const testIdsInGroup = new Set(
+      links.filter(l => l.group === curGrp).map(l => l.testId)
+    );
+    filteredTests = filteredTests.filter(t => testIdsInGroup.has(t.id));
+  }
+
+  const ft = $("ft");
+  if (ft) ft.innerHTML = `<option value="">Всі тести</option>` +
+    filteredTests.map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
+  // Якщо поточний вибраний тест є в новому списку — лишаємо, інакше скидаємо
+  if (curFt && filteredTests.some(t => t.id === curFt)) {
+    if (ft) ft.value = curFt;
+  } else {
+    if (ft) ft.value = "";
+    const ftLbl = $("cd-ft-label");
+    if (ftLbl && !filteredTests.some(t => t.id === curFt)) ftLbl.textContent = "Всі тести";
+  }
+
+  const ftMenu = document.getElementById("cd-ft-menu");
+  if (ftMenu) {
+    const nowFt = $("ft")?.value || "";
+    ftMenu.innerHTML =
+      `<div class="cd-item${!nowFt?" cd-active":""}" onclick="G.selectAttTest('','Всі тести')">Всі тести</div>` +
+      filteredTests.map(t =>
+        `<div class="cd-item${nowFt===t.id?" cd-active":""}" onclick="G.selectAttTest('${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
+      ).join("") ||
+      `<div class="cd-item" style="color:var(--ink-400);cursor:default">Немає тестів для групи</div>`;
+  }
+  if ($("cd-ft-label") && $("ft")?.value) {
+    const t = tests.find(x=>x.id===$("ft").value);
+    if (t) $("cd-ft-label").textContent = t.title;
+  }
+
+  // ─── nl-t (посилання — модаль) ────────────────────────────────────────
+  const nlT = $("nl-t");
+  if (nlT) nlT.innerHTML = tests.map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
+  const nlMenu = document.getElementById("cd-nl-t-menu");
+  if (nlMenu) {
+    const curNl=$("nl-t")?.value||"";
+    nlMenu.innerHTML = tests.filter(t=>t.status!=="archived").map(t=>
+      `<div class="cd-item${curNl===t.id?" cd-active":""}" data-val="${t.id}" onclick="G.selectLinkTest('${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
+    ).join("") || `<div class="cd-item" style="color:var(--muted)">Немає тестів</div>`;
+  }
+
+  // ─── Аналітика — тести ───────────────────────────────────────────────
   const anTest=$("an-test");
   if(anTest){
     const prev=anTest.value;
@@ -1200,25 +1242,18 @@ fillSelects = function(){
         `<div class="cd-item${curAn===t.id?" cd-active":""}" data-val="${t.id}" onclick="G.selectAnalyticsDrop('test','${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
       ).join("");
   }
-  // Аналітика - групи
+
+  // ─── Аналітика — групи ───────────────────────────────────────────────
   const anGrp=$("an-group");
   if(anGrp){
-    anGrp.innerHTML=`<option value="">Всі групи</option>`+groups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join("");
+    anGrp.innerHTML=`<option value="">Всі групи</option>`+allGroups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join("");
   }
   const anGrpMenu=document.getElementById("cd-an-group-menu");
   if(anGrpMenu){
     const curGrpAn=$("an-group")?.value||"";
     anGrpMenu.innerHTML=`<div class="cd-item${!curGrpAn?" cd-active":""}" data-val="_none" onclick="G.selectAnalyticsDrop('group','','Всі групи')">Всі групи</div>`+
-      groups.map(g=>`<div class="cd-item${curGrpAn===g?" cd-active":""}" data-val="${esc(g)}" onclick="G.selectAnalyticsDrop('group','${esc(g)}','${esc(g)}')">${esc(g)}</div>`
+      allGroups.map(g=>`<div class="cd-item${curGrpAn===g?" cd-active":""}" data-val="${esc(g)}" onclick="G.selectAnalyticsDrop('group','${esc(g)}','${esc(g)}')">${esc(g)}</div>`
       ).join("");
-  }
-  // Посилання - тест у модалі
-  const nlMenu=document.getElementById("cd-nl-t-menu");
-  if(nlMenu){
-    const curNl=$("nl-t")?.value||"";
-    nlMenu.innerHTML=tests.filter(t=>t.status!=="archived").map(t=>
-      `<div class="cd-item${curNl===t.id?" cd-active":""}" data-val="${t.id}" onclick="G.selectLinkTest('${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
-    ).join("") || `<div class="cd-item" style="color:var(--muted)">Немає тестів</div>`;
   }
 }
 
@@ -1688,6 +1723,39 @@ window.G = {
     // Закриваємо меню
     document.getElementById(wrapId+"-menu")?.classList.remove("open");
     _attPage=1; renderAttempts();
+  },
+
+  // ─── Група в attempts — при виборі перебудовує список тестів ─────────────
+  selectAttGroup(value, label){
+    const lbl = document.getElementById("cd-fgrp-label");
+    if (lbl) lbl.textContent = label;
+    const fgrp = document.getElementById("fgrp");
+    if (fgrp) fgrp.value = value;
+    const btn = document.querySelector("#cd-fgrp .cd-btn");
+    btn?.classList.toggle("active", value !== "");
+    document.getElementById("cd-fgrp-menu")?.classList.remove("open");
+    // Скидаємо вибраний тест — він може не існувати для нової групи
+    const ft = document.getElementById("ft");
+    if (ft) ft.value = "";
+    const ftLbl = document.getElementById("cd-ft-label");
+    if (ftLbl) ftLbl.textContent = "Всі тести";
+    // Перебудовуємо список тестів для нової групи
+    fillSelects();
+    window._attPage = 1;
+    renderAttempts(true);
+  },
+
+  // ─── Тест в attempts ─────────────────────────────────────────────────────
+  selectAttTest(value, label){
+    const lbl = document.getElementById("cd-ft-label");
+    if (lbl) lbl.textContent = label;
+    const ft = document.getElementById("ft");
+    if (ft) ft.value = value;
+    const btn = document.querySelector("#cd-ft .cd-btn");
+    btn?.classList.toggle("active", value !== "");
+    document.getElementById("cd-ft-menu")?.classList.remove("open");
+    window._attPage = 1;
+    renderAttempts(true);
   },
 
 selectAnalyticsDrop(field, value, label){
@@ -4103,7 +4171,7 @@ selectAnalyticsDrop(field, value, label){
     // Фільтруємо спроби
     let att = attempts.filter(a => a.status === "completed" || a.status === "pending_review");
     if(testId)  att = att.filter(a => a.testId === testId);
-    if(groupF) att=att.filter(a=>(a.group||links.find(x=>x.id===a.linkId)?.group||"")===groupF);
+    if(groupF){ att = att.filter(a => (a.group||links.find(x=>x.id===a.linkId)?.group||"") === groupF); }
  
     if(!att.length){
       body.innerHTML = `<div class="a-empty">
@@ -4364,10 +4432,7 @@ function renderObStep(){
     +'<div style="font-size:15px;color:var(--muted);line-height:1.7">'+step.text+'</div>';
   const prev = document.getElementById("ob-prev");
   const next = document.getElementById("ob-next");
-  if(prev){
-    prev.style.display = _obStep === 0 ? "none" : "";
-    prev.onclick = () => window.obNav(-1);
-  }
+  if(prev) prev.style.display = _obStep === 0 ? "none" : "";
   if(next){
     if(isLast){
       next.textContent = "Розпочати роботу ✓";
@@ -4380,11 +4445,6 @@ function renderObStep(){
     }
   }
 }
-
-window.obNav = function(dir){
-  _obStep = Math.max(0, Math.min(OB_STEPS.length - 1, _obStep + dir));
-  renderObStep();
-};
 
 async function checkOnboarding(){
   try{
