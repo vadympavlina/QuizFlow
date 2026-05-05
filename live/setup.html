@@ -295,11 +295,12 @@ if (!testId) { alert("Не вказано testId"); location.href = "../index.ht
 const testSnap = await get(ref(db, `teachers/${uid}/tests/${testId}`));
 if (!testSnap.exists()) { alert("Тест не знайдено"); location.href = "../index.html"; throw new Error(); }
 const testData = { id: testId, ...testSnap.val() };
-const questions = (testData.questions || []).filter(q => q.type !== "long");
+const EXCLUDED_TYPES = ["long", "number", "matching", "ordering"];
+const questions = (testData.questions || []).filter(q => !EXCLUDED_TYPES.includes(q.type));
 
 // Fill test info
 document.getElementById("quiz-name").textContent = testData.title || "—";
-document.getElementById("quiz-meta").textContent = `${questions.length} питань · 4 варіанти`;
+document.getElementById("quiz-meta").textContent = `${questions.length} питань · тільки single/multi/text`;
 document.getElementById("preview-title").textContent = testData.title || "—";
 document.getElementById("sum-test").textContent = testData.title || "—";
 document.getElementById("sum-q").textContent = questions.length;
