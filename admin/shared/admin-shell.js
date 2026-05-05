@@ -82,22 +82,9 @@ export function toast(msg){
 }
 
 // ─── Auth (Firebase Auth) ────────────────────────────────────────────────────
-import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase as _getDatabase, ref as _ref, get as _get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, onAuthStateChanged, signOut as _signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-const _FC = {
-  apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",
-  authDomain:"quizflow-8a978.firebaseapp.com",
-  databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId:"quizflow-8a978",
-  storageBucket:"quizflow-8a978.firebasestorage.app",
-  messagingSenderId:"206469794166",
-  appId:"1:206469794166:web:55cd7007b429607acd5257"
-};
-const _adminApp  = getApps().length ? getApps()[0] : initializeApp(_FC);
-const _adminAuth = getAuth(_adminApp);
-const _adminDb   = _getDatabase(_adminApp);
+const _adminAuth = getAuth(app);
 
 // Чекаємо Firebase Auth — визначаємо поточного юзера
 const _adminFbUser = await new Promise(resolve => {
@@ -110,7 +97,7 @@ if (!_adminFbUser) {
 }
 
 // Читаємо профіль з DB і перевіряємо role === "admin"
-const _adminProfileSnap = await _get(_ref(_adminDb, `users/${_adminFbUser.uid}`));
+const _adminProfileSnap = await get(ref(db, `users/${_adminFbUser.uid}`));
 if (!_adminProfileSnap.exists() || _adminProfileSnap.val().role !== "admin") {
   await _signOut(_adminAuth);
   location.href = "admin-login.html";
