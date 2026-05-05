@@ -421,7 +421,7 @@
         <div class="delete-warn">
           <div class="head">
             Буде остаточно видалено акаунт <strong id="del-name"></strong>
-            <span class="login">(@<span id="del-login"></span>)</span>
+            <span class="login">(<span id="del-login"></span>)</span>
           </div>
           <div class="list">
             <strong>Буде видалено:</strong><br>
@@ -433,8 +433,8 @@
         </div>
 
         <div class="field">
-          <div class="field-l">Для підтвердження введіть логін <strong id="del-login-confirm" style="font-family:'Geist Mono',monospace"></strong></div>
-          <input class="field-input" id="del-confirm-inp" placeholder="Введіть логін..." autocomplete="off" oninput="checkDeleteConfirm()">
+          <div class="field-l">Для підтвердження введіть email <strong id="del-login-confirm" style="font-family:'Geist Mono',monospace"></strong></div>
+          <input class="field-input" id="del-confirm-inp" placeholder="Введіть email..." autocomplete="off" oninput="checkDeleteConfirm()">
         </div>
 
         <div class="mod-err" id="del-err" style="margin-top:10px"></div>
@@ -657,7 +657,7 @@ function renderGrid(){
   if (search){
     list = list.filter(u =>
       (u.name || "").toLowerCase().includes(search) ||
-      (u.login || "").toLowerCase().includes(search)
+      (u.email || "").toLowerCase().includes(search)
     );
   }
 
@@ -687,8 +687,8 @@ function renderGrid(){
     const isMe = u.id === _user.id;
     const isBlocked = u.blocked === true;
     const isFirst = u.isFirstLogin === true && !isBlocked;
-    const initials = (u.name || u.login || "?").slice(0, 2).toUpperCase();
-    const seed = (u.name || u.login || "").charCodeAt(0) || 0;
+    const initials = ((u.surname||u.name||"?")[0]+(u.name||"?")[0]).toUpperCase();
+    const seed = (u.name || u.email || "").charCodeAt(0) || 0;
     const avaCls = AVA_PALETTE[seed % AVA_PALETTE.length];
 
     const roleLabel = u.role === "admin"
@@ -705,20 +705,20 @@ function renderGrid(){
       ? new Date(s.lastAct).toLocaleDateString("uk-UA", { day:"numeric", month:"short" })
       : "—";
 
-    const safeName = esc(u.name || u.login).replace(/'/g, "&#39;");
-    const safeLogin = esc(u.login).replace(/'/g, "&#39;");
+    const safeName = esc((u.surname ? u.surname+' '+u.name : u.name) || u.email || u.id).replace(/'/g, "&#39;");
+    const safeEmail = esc(u.email || "").replace(/'/g, "&#39;");
 
     return `<div class="tcard ${isBlocked?"is-blocked":""} ${isMe?"is-me":""}">
       <div class="tcard-top">
         <div class="ava ${avaCls}">${esc(initials)}</div>
         <div class="tcard-info">
           <div class="tcard-name-row">
-            <span class="name">${esc(u.name || "—")}</span>
+            <span class="name">${esc((u.surname ? u.surname+' '+u.name : u.name) || "—")}</span>
             ${isMe ? '<span class="me-tag">(ви)</span>' : ""}
             ${roleLabel}
             ${statusEl}
           </div>
-          <div class="user">@${esc(u.login)}</div>
+          <div class="user">${esc(u.email || "")}</div>
         </div>
       </div>
 
@@ -752,7 +752,7 @@ function renderGrid(){
             ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Розблок.`
             : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Блок`}
         </button>` : ""}
-        ${!isMe ? `<button class="tc-act danger" onclick="openDeleteTeacher('${u.id}','${safeName}','${safeLogin}')" title="Видалити повністю">
+        ${!isMe ? `<button class="tc-act danger" onclick="openDeleteTeacher('${u.id}','${safeName}','${safeEmail}')" title="Видалити повністю">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
         </button>` : ""}
       </div>
@@ -988,11 +988,11 @@ window.doToggleBlock = async () => {
 };
 
 // ─── DELETE TEACHER ───────────────────────────────────────────────────────
-window.openDeleteTeacher = (uid, name, login) => {
-  _delUid = uid; _delLogin = login;
+window.openDeleteTeacher = (uid, name, email) => {
+  _delUid = uid; _delLogin = (email || "").toLowerCase();
   document.getElementById("del-name").textContent = name;
-  document.getElementById("del-login").textContent = login;
-  document.getElementById("del-login-confirm").textContent = login;
+  document.getElementById("del-login").textContent = email || uid;
+  document.getElementById("del-login-confirm").textContent = email || uid;
   document.getElementById("del-confirm-inp").value = "";
   const errEl = document.getElementById("del-err");
   errEl.textContent = ""; errEl.classList.remove("show");
@@ -1005,7 +1005,7 @@ window.openDeleteTeacher = (uid, name, login) => {
 window.checkDeleteConfirm = () => {
   const val = document.getElementById("del-confirm-inp").value.trim().toLowerCase();
   const btn = document.getElementById("del-confirm-btn");
-  btn.disabled = val !== _delLogin.toLowerCase();
+  btn.disabled = val.toLowerCase() !== _delLogin;
 };
 
 window.confirmDeleteTeacher = async () => {
