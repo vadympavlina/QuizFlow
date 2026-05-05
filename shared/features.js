@@ -774,10 +774,6 @@ function buildTestCard(t, idx){
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               Змінити статус
             </div>
-            <div class="t-tmenu-item" onclick="G.showStats('${t.id}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-              Статистика
-            </div>
             <div class="t-tmenu-item" onclick="G.openShareModal('${t.id}','${esc(t.title)}')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
               Поділитись
@@ -842,9 +838,6 @@ function buildTestRow(t, idx){
         </button>
         <button class="t-ib" title="Нове посилання" onclick="G.qLink('${t.id}')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-        </button>
-        <button class="t-ib" title="Статистика" onclick="G.showStats('${t.id}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         </button>
         <button class="t-ib" title="Поділитись" onclick="G.openShareModal('${t.id}','${esc(t.title)}')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -1158,75 +1151,33 @@ function _renderTestsContent(lst, total){
 
 // ATTEMPTS
 fillSelects = function(){
-  const curFt  = $("ft")?.value   || "";
-  const curGrp = $("fgrp")?.value || "";
-
-  // ─── Групи — з посилань ───────────────────────────────────────────────
-  const allGroups = [...new Set(links.map(l=>l.group).filter(Boolean))].sort();
-  const fgrp = $("fgrp");
-  if (fgrp) fgrp.innerHTML = `<option value="">Всі групи</option>` +
-    allGroups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join("");
-  if (curGrp && fgrp) fgrp.value = curGrp;
-
-  const grpMenu = document.getElementById("cd-fgrp-menu");
-  if (grpMenu) {
-    grpMenu.innerHTML =
-      `<div class="cd-item${!curGrp?" cd-active":""}" onclick="G.selectAttGroup('','Всі групи')">Всі групи</div>` +
-      allGroups.map(g =>
-        `<div class="cd-item${curGrp===g?" cd-active":""}" onclick="G.selectAttGroup('${esc(g)}','${esc(g)}')">${esc(g)}</div>`
+  // Прихований select для сумісності з renderAttempts
+  const ft = $("ft");
+  if (ft) ft.innerHTML=`<option value="">Всі тести</option>`+tests.filter(t=>t.status!=="archived").map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
+  // Кастомний дропдаун тестів
+  const ftMenu=document.getElementById("cd-ft-menu");
+  if(ftMenu){
+    const curFt=$("ft")?.value||"";
+    ftMenu.innerHTML=`<div class="cd-item${!curFt?" cd-active":""}" onclick="G.selectDrop('cd-ft','','Всі тести')">Всі тести</div>`+
+      tests.filter(t=>t.status!=="archived").map(t=>
+        `<div class="cd-item${curFt===t.id?" cd-active":""}" onclick="G.selectDrop('cd-ft','${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
       ).join("");
   }
-  if ($("cd-fgrp-label") && curGrp) $("cd-fgrp-label").textContent = curGrp;
-
-  // ─── Тести — фільтруємо по обраній групі ────────────────────────────
-  // Якщо вибрана група — показуємо лише тести що мали посилання з цією групою
-  let filteredTests = tests.filter(t => t.status !== "archived");
-  if (curGrp) {
-    const testIdsInGroup = new Set(
-      links.filter(l => l.group === curGrp).map(l => l.testId)
-    );
-    filteredTests = filteredTests.filter(t => testIdsInGroup.has(t.id));
-  }
-
-  const ft = $("ft");
-  if (ft) ft.innerHTML = `<option value="">Всі тести</option>` +
-    filteredTests.map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
-  // Якщо поточний вибраний тест є в новому списку — лишаємо, інакше скидаємо
-  if (curFt && filteredTests.some(t => t.id === curFt)) {
-    if (ft) ft.value = curFt;
-  } else {
-    if (ft) ft.value = "";
-    const ftLbl = $("cd-ft-label");
-    if (ftLbl && !filteredTests.some(t => t.id === curFt)) ftLbl.textContent = "Всі тести";
-  }
-
-  const ftMenu = document.getElementById("cd-ft-menu");
-  if (ftMenu) {
-    const nowFt = $("ft")?.value || "";
-    ftMenu.innerHTML =
-      `<div class="cd-item${!nowFt?" cd-active":""}" onclick="G.selectAttTest('','Всі тести')">Всі тести</div>` +
-      filteredTests.map(t =>
-        `<div class="cd-item${nowFt===t.id?" cd-active":""}" onclick="G.selectAttTest('${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
-      ).join("") ||
-      `<div class="cd-item" style="color:var(--ink-400);cursor:default">Немає тестів для групи</div>`;
-  }
-  if ($("cd-ft-label") && $("ft")?.value) {
-    const t = tests.find(x=>x.id===$("ft").value);
-    if (t) $("cd-ft-label").textContent = t.title;
-  }
-
-  // ─── nl-t (посилання — модаль) ────────────────────────────────────────
   const nlT = $("nl-t");
-  if (nlT) nlT.innerHTML = tests.map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
-  const nlMenu = document.getElementById("cd-nl-t-menu");
-  if (nlMenu) {
-    const curNl=$("nl-t")?.value||"";
-    nlMenu.innerHTML = tests.filter(t=>t.status!=="archived").map(t=>
-      `<div class="cd-item${curNl===t.id?" cd-active":""}" data-val="${t.id}" onclick="G.selectLinkTest('${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
-    ).join("") || `<div class="cd-item" style="color:var(--muted)">Немає тестів</div>`;
+  if (nlT) nlT.innerHTML=tests.map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
+  // Групи з посилань
+  const groups=[...new Set(links.map(l=>l.group).filter(Boolean))].sort();
+  const fgrp = $("fgrp");
+  if (fgrp) fgrp.innerHTML=`<option value="">Всі групи</option>`+groups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join("");
+  // Кастомний дропдаун груп
+  const grpMenu=document.getElementById("cd-fgrp-menu");
+  if(grpMenu){
+    const curGrp=$("fgrp").value;
+    grpMenu.innerHTML=`<div class="cd-item${!curGrp?" cd-active":""}" onclick="G.selectDrop('cd-fgrp','','Всі групи')">Всі групи</div>`+
+      groups.map(g=>`<div class="cd-item${curGrp===g?" cd-active":""}" onclick="G.selectDrop('cd-fgrp','${esc(g)}','${esc(g)}')">${esc(g)}</div>`
+      ).join("");
   }
-
-  // ─── Аналітика — тести ───────────────────────────────────────────────
+  // Аналітика - тести
   const anTest=$("an-test");
   if(anTest){
     const prev=anTest.value;
@@ -1242,18 +1193,25 @@ fillSelects = function(){
         `<div class="cd-item${curAn===t.id?" cd-active":""}" data-val="${t.id}" onclick="G.selectAnalyticsDrop('test','${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
       ).join("");
   }
-
-  // ─── Аналітика — групи ───────────────────────────────────────────────
+  // Аналітика - групи
   const anGrp=$("an-group");
   if(anGrp){
-    anGrp.innerHTML=`<option value="">Всі групи</option>`+allGroups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join("");
+    anGrp.innerHTML=`<option value="">Всі групи</option>`+groups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join("");
   }
   const anGrpMenu=document.getElementById("cd-an-group-menu");
   if(anGrpMenu){
     const curGrpAn=$("an-group")?.value||"";
     anGrpMenu.innerHTML=`<div class="cd-item${!curGrpAn?" cd-active":""}" data-val="_none" onclick="G.selectAnalyticsDrop('group','','Всі групи')">Всі групи</div>`+
-      allGroups.map(g=>`<div class="cd-item${curGrpAn===g?" cd-active":""}" data-val="${esc(g)}" onclick="G.selectAnalyticsDrop('group','${esc(g)}','${esc(g)}')">${esc(g)}</div>`
+      groups.map(g=>`<div class="cd-item${curGrpAn===g?" cd-active":""}" data-val="${esc(g)}" onclick="G.selectAnalyticsDrop('group','${esc(g)}','${esc(g)}')">${esc(g)}</div>`
       ).join("");
+  }
+  // Посилання - тест у модалі
+  const nlMenu=document.getElementById("cd-nl-t-menu");
+  if(nlMenu){
+    const curNl=$("nl-t")?.value||"";
+    nlMenu.innerHTML=tests.filter(t=>t.status!=="archived").map(t=>
+      `<div class="cd-item${curNl===t.id?" cd-active":""}" data-val="${t.id}" onclick="G.selectLinkTest('${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
+    ).join("") || `<div class="cd-item" style="color:var(--muted)">Немає тестів</div>`;
   }
 }
 
@@ -1308,14 +1266,14 @@ renderAttempts = function(resetPage = false){
   // ── Фільтрація ──
   let lst = attempts;
   if (tF)   lst = lst.filter(a => a.testId === tF);
-  if (grpF) lst = lst.filter(a => (a.group || links.find(x => x.id === a.linkId)?.group || "") === grpF);
+  if (grpF) lst = lst.filter(a => { const l = links.find(x => x.id === a.linkId); return (l?.group || "") === grpF; });
   if (sF === "flagged")  lst = lst.filter(a => _attViolation(a) > 0);
   else if (sF)           lst = lst.filter(a => a.status === sF);
   if (q){
     lst = lst.filter(a => {
       const fullName  = `${a.name || ""} ${a.surname || ""}`.toLowerCase();
       const testTitle = (tests.find(t => t.id === a.testId)?.title || "").toLowerCase();
-      const group     = (a.group || links.find(l => l.id === a.linkId)?.group || "").toLowerCase();
+      const group     = (links.find(l => l.id === a.linkId)?.group || "").toLowerCase();
       return fullName.includes(q) || testTitle.includes(q) || group.includes(q);
     });
   }
@@ -1675,7 +1633,8 @@ window.G = {
   _toggleTestMenu(id){
     const menu=document.getElementById("tmenu-"+id);
     if(!menu) return;
-    const isOpen=menu.style.display!=="none";
+    // offsetParent === null означає що елемент прихований (display:none через CSS або style)
+    const isOpen = menu.offsetParent !== null || menu.style.display === "block";
     document.querySelectorAll("[id^='tmenu-']").forEach(m=>m.style.display="none");
     if(!isOpen){
       menu.style.display="block";
@@ -1723,39 +1682,6 @@ window.G = {
     // Закриваємо меню
     document.getElementById(wrapId+"-menu")?.classList.remove("open");
     _attPage=1; renderAttempts();
-  },
-
-  // ─── Група в attempts — при виборі перебудовує список тестів ─────────────
-  selectAttGroup(value, label){
-    const lbl = document.getElementById("cd-fgrp-label");
-    if (lbl) lbl.textContent = label;
-    const fgrp = document.getElementById("fgrp");
-    if (fgrp) fgrp.value = value;
-    const btn = document.querySelector("#cd-fgrp .cd-btn");
-    btn?.classList.toggle("active", value !== "");
-    document.getElementById("cd-fgrp-menu")?.classList.remove("open");
-    // Скидаємо вибраний тест — він може не існувати для нової групи
-    const ft = document.getElementById("ft");
-    if (ft) ft.value = "";
-    const ftLbl = document.getElementById("cd-ft-label");
-    if (ftLbl) ftLbl.textContent = "Всі тести";
-    // Перебудовуємо список тестів для нової групи
-    fillSelects();
-    window._attPage = 1;
-    renderAttempts(true);
-  },
-
-  // ─── Тест в attempts ─────────────────────────────────────────────────────
-  selectAttTest(value, label){
-    const lbl = document.getElementById("cd-ft-label");
-    if (lbl) lbl.textContent = label;
-    const ft = document.getElementById("ft");
-    if (ft) ft.value = value;
-    const btn = document.querySelector("#cd-ft .cd-btn");
-    btn?.classList.toggle("active", value !== "");
-    document.getElementById("cd-ft-menu")?.classList.remove("open");
-    window._attPage = 1;
-    renderAttempts(true);
   },
 
 selectAnalyticsDrop(field, value, label){
@@ -3849,7 +3775,7 @@ selectAnalyticsDrop(field, value, label){
     const groupF=activeGrpEl?.dataset?.val||"";
 
     let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
-    if(groupF) att=att.filter(a=>(a.group||links.find(x=>x.id===a.linkId)?.group||"")===groupF);
+    if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
     if(testF)  att=att.filter(a=>a.testId===testF);
 
     if(!att.length){
@@ -3968,7 +3894,7 @@ selectAnalyticsDrop(field, value, label){
     const testF=activeTestEl?.dataset?.val||"";
     const groupF=activeGrpEl?.dataset?.val||"";
     let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
-    if(groupF) att=att.filter(a=>(a.group||links.find(x=>x.id===a.linkId)?.group||"")===groupF);
+    if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
     if(testF)  att=att.filter(a=>a.testId===testF);
     if(!att.length){toast("Немає даних для експорту","err");return;}
 
@@ -4171,7 +4097,7 @@ selectAnalyticsDrop(field, value, label){
     // Фільтруємо спроби
     let att = attempts.filter(a => a.status === "completed" || a.status === "pending_review");
     if(testId)  att = att.filter(a => a.testId === testId);
-    if(groupF){ att = att.filter(a => (a.group||links.find(x=>x.id===a.linkId)?.group||"") === groupF); }
+    if(groupF){ att = att.filter(a => { const l=links.find(x=>x.id===a.linkId); return (l?.group||"") === groupF; }); }
  
     if(!att.length){
       body.innerHTML = `<div class="a-empty">
