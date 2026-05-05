@@ -778,6 +778,10 @@ function buildTestCard(t, idx){
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
               Поділитись
             </div>
+            <div class="t-tmenu-item" onclick="G.startLiveGame('${t.id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
+              Live гра
+            </div>
             <div class="t-tmenu-sep"></div>
             <div class="t-tmenu-item d" onclick="G.confDelTest('${t.id}','${esc(t.title)}')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
@@ -1861,6 +1865,10 @@ selectAnalyticsDrop(field, value, label){
     }catch(e){toast("Помилка: "+e.message,"err");ldr(false);}
   },
   confDelTest(id,name){_pid=id;$("del-tn").textContent=name;openM("m-del-test");},
+  startLiveGame(testId){
+    document.querySelectorAll("[id^='tmenu-']").forEach(m=>m.style.display="none");
+    window.open(`live-host.html?testId=${testId}`,"_blank","noopener");
+  },
   async doDelTest(mode="archive"){
     const id=_pid;_pid=null;closeM("m-del-test");ldr(true);
     try{
