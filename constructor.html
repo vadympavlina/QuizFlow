@@ -547,9 +547,8 @@ const db  = getDatabase(app);
 // Завантажуємо налаштування AI одразу (глобальні + індивідуальні)
 (async()=>{
   await loadAISettings(db);
-  // Читаємо індивідуальні налаштування викладача
   try{
-    const tSnap = await _g(_r(db,`users/${_uid}/aiSettings`));
+    const tSnap = await get(ref(db, `users/${_uid}/aiSettings`));
     if(tSnap.exists()){
       const t = tSnap.val();
       if(t.aiComments  !== undefined) window._AI_COMMENTS   = t.aiComments;
