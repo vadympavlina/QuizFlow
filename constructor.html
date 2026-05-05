@@ -1172,7 +1172,10 @@ const QUESTION_TYPES = {
 
 // ─── INIT — чекаємо на auth, потім завантажуємо ──────────────────────────────
 
-document.addEventListener("DOMContentLoaded", async () => {
+// ─── INIT — викликається після того як Firebase Auth відпрацював ─────────────
+// DOMContentLoaded міг вже спрацювати поки ми чекали на Auth,
+// тому викликаємо init напряму (DOM вже готовий)
+async function initConstructor() {
   const params = new URLSearchParams(window.location.search);
   testId = params.get("id");
 
@@ -1185,7 +1188,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadTest();
   bindEvents();
   checkAutosave();
-});
+}
+
+// DOM гарантовано готовий бо await вище затримав виконання модуля
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initConstructor);
+} else {
+  initConstructor();
+}
 
 
 
