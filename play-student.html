@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>QuizFlow Live · Питання</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    font-family:Manrope,system-ui,sans-serif;color:#fff;
+    background:linear-gradient(160deg,#0F1844 0%, #1E3A8A 100%);
+    min-height:100vh;display:flex;flex-direction:column;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;
+    background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+    background-size:48px 48px;mask-image:radial-gradient(ellipse at center, black 30%, transparent 90%);
+  }
+  /* Theme overlay */
+  #theme-overlay{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;transition:background .6s,opacity .6s}
+  #pattern-overlay{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .6s}
+
+  .topbar{position:relative;z-index:2;padding:18px 28px;display:flex;align-items:center;gap:18px}
+  .progress-wrap{flex:1;display:flex;align-items:center;gap:14px}
+  .progress-wrap .lbl{font-family:"Geist Mono",monospace;font-size:13px;font-weight:800;color:#A78BFA;letter-spacing:.04em}
+  .progress-bar{flex:1;height:8px;background:rgba(255,255,255,.1);border-radius:999px;overflow:hidden;position:relative}
+  .progress-bar > i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#A78BFA,#7C3AED);border-radius:999px;box-shadow:0 0 12px rgba(167,139,250,.6);transition:width .3s}
+  .player-pill{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:6px 12px 6px 6px;font-size:13px;font-weight:700}
+  .player-pill .av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#A78BFA,#6D28D9);display:grid;place-items:center;font-size:11px;font-weight:800}
+  .score{font-family:"Geist Mono",monospace;font-size:13px;font-weight:800;color:#FCD34D;background:rgba(252,211,77,.14);border:1px solid rgba(252,211,77,.3);padding:5px 11px;border-radius:8px;display:inline-flex;align-items:center;gap:6px}
+
+  .timer-wrap{display:grid;place-items:center;padding:32px 0 12px;position:relative;z-index:2}
+  .timer{
+    width:108px;height:108px;border-radius:50%;
+    background:linear-gradient(135deg,#1E3A8A,#0F1844);
+    border:3px solid #A78BFA;
+    display:grid;place-items:center;
+    font-family:"Geist Mono",monospace;font-size:44px;font-weight:800;
+    box-shadow:0 0 0 8px rgba(167,139,250,.12), 0 0 40px rgba(167,139,250,.4);
+    position:relative;transition:border-color .3s,color .3s;
+  }
+  .timer.warn{border-color:#FCD34D;box-shadow:0 0 0 8px rgba(252,211,77,.12), 0 0 40px rgba(252,211,77,.4);color:#FEF3C7}
+  .timer.danger{border-color:#F87171;animation:pulse 0.7s infinite;color:#FECACA}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+  .question-wrap{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 28px;max-width:1100px;margin:0 auto;width:100%;position:relative;z-index:2}
+  .question-meta{display:flex;justify-content:center;gap:10px;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#A78BFA;margin-bottom:14px}
+  .question-meta .dot{width:5px;height:5px;border-radius:50%;background:#A78BFA;align-self:center}
+  .question-text{
+    text-align:center;font-size:36px;font-weight:800;letter-spacing:-.02em;line-height:1.2;
+    margin:0 auto;max-width:880px;
+    text-shadow:0 2px 12px rgba(0,0,0,.25);
+  }
+
+  .answers{
+    margin:48px auto 0;
+    display:grid;grid-template-columns:1fr 1fr;gap:18px;
+    max-width:1100px;width:100%;
+  }
+  .ans{
+    display:flex;align-items:center;gap:18px;padding:22px 26px;
+    border-radius:18px;cursor:pointer;border:2px solid transparent;
+    font:inherit;color:#fff;text-align:left;font-size:22px;font-weight:800;letter-spacing:-.01em;
+    transition:transform .14s, box-shadow .15s, border-color .15s, filter .15s;
+    box-shadow:0 8px 22px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.18);
+    position:relative;min-height:96px;
+  }
+  .ans:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 14px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.22)}
+  .ans .letter{
+    width:42px;height:42px;border-radius:12px;background:rgba(0,0,0,.32);
+    display:grid;place-items:center;font-family:"Geist Mono",monospace;font-size:18px;font-weight:800;flex:0 0 auto;
+    border:1px solid rgba(255,255,255,.18);
+  }
+  .ans.a{background:linear-gradient(135deg,#EF4444,#B91C1C)}
+  .ans.b{background:linear-gradient(135deg,#F59E0B,#B45309)}
+  .ans.c{background:linear-gradient(135deg,#10B981,#047857)}
+  .ans.d{background:linear-gradient(135deg,#3B82F6,#1D4ED8)}
+  .ans.e{background:linear-gradient(135deg,#A78BFA,#6D28D9)}
+  .ans.f{background:linear-gradient(135deg,#EC4899,#BE185D)}
+  .ans.selected{outline:4px solid #FCD34D;outline-offset:3px;transform:translateY(-2px) scale(1.02)}
+  .ans.selected .letter{background:#FCD34D;color:#7C2D12}
+  .ans .check{position:absolute;top:14px;right:18px;font-size:22px;font-weight:900;color:#fff;display:none}
+  .ans.selected .check{display:block}
+  .ans.locked{filter:saturate(.55) opacity(.55);cursor:not-allowed;transform:none !important}
+  .ans:disabled{cursor:not-allowed}
+  /* reveal states */
+  .ans.correct-ans{outline:4px solid #86EFAC;outline-offset:3px}
+  .ans.wrong-ans{filter:saturate(.3) opacity(.35)}
+
+  /* Text answer */
+  .text-answer-wrap{margin:32px auto 0;max-width:700px;width:100%;padding:0 28px}
+  .text-input{
+    width:100%;padding:18px 22px;border-radius:16px;
+    border:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);
+    font-family:"Manrope",sans-serif;font-size:20px;color:#fff;outline:none;
+    font-weight:700;transition:border-color .15s;
+  }
+  .text-input:focus{border-color:#A78BFA}
+  .text-input::placeholder{color:rgba(255,255,255,.35)}
+  .text-input:disabled{opacity:.5}
+  .text-submit{
+    margin-top:12px;width:100%;padding:16px;border:none;border-radius:14px;
+    background:linear-gradient(135deg,#A78BFA,#7C3AED);color:#fff;
+    font-family:"Manrope",sans-serif;font-size:16px;font-weight:800;cursor:pointer;
+    box-shadow:0 8px 24px rgba(124,58,237,.4);transition:all .15s;
+  }
+  .text-submit:disabled{opacity:.5;cursor:not-allowed}
+
+  .hint{
+    margin:34px auto 22px;font-size:12.5px;color:#A6B0D6;
+    display:flex;justify-content:center;gap:18px;font-weight:600;position:relative;z-index:2;
+  }
+  .hint kbd{font-family:"Geist Mono",monospace;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:6px;padding:2px 7px;font-size:11.5px;color:#fff;font-weight:800}
+
+  /* Waiting state */
+  .lock-banner{
+    position:fixed;left:50%;bottom:32px;transform:translateX(-50%);
+    background:linear-gradient(135deg,#FCD34D,#F59E0B);color:#451A03;
+    padding:12px 22px;border-radius:14px;font-weight:800;font-size:14px;
+    box-shadow:0 16px 40px rgba(245,158,11,.4);display:none;align-items:center;gap:10px;
+    white-space:nowrap;z-index:10;
+  }
+  .lock-banner.show{display:flex}
+
+  /* Pause overlay */
+  #pause-overlay{
+    position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.7);backdrop-filter:blur(16px);
+    display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;
+  }
+  #pause-overlay.show{display:flex}
+  #pause-overlay .ico{font-size:64px}
+  #pause-overlay h2{font-size:28px;font-weight:800;margin:0}
+  #pause-overlay p{font-size:15px;color:rgba(255,255,255,.6);margin:0}
+
+  /* Lobby waiting */
+  #lobby-overlay{
+    position:fixed;inset:0;z-index:20;
+    background:linear-gradient(160deg,#0F1844,#1E3A8A);
+    display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;text-align:center;padding:24px;
+  }
+  #lobby-overlay.hidden{display:none}
+  .spinner{width:48px;height:48px;border:3px solid rgba(255,255,255,.15);border-top-color:#A78BFA;border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="theme-overlay"></div>
+<div id="pattern-overlay"></div>
+
+<!-- Lobby waiting screen -->
+<div id="lobby-overlay">
+  <div class="spinner"></div>
+  <div>
+    <div style="font-size:22px;font-weight:800;margin-bottom:8px">Очікуємо початку</div>
+    <div style="font-size:14px;color:rgba(255,255,255,.6)">Викладач ось-ось запустить гру</div>
+  </div>
+  <div id="lo-name" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:8px 20px;font-weight:700"></div>
+</div>
+
+<!-- Pause overlay -->
+<div id="pause-overlay">
+  <div class="ico">⏸</div>
+  <h2>Гра на паузі</h2>
+  <p>Зачекайте, викладач скоро продовжить</p>
+</div>
+
+<div class="topbar">
+  <div class="progress-wrap">
+    <span class="lbl" id="q-lbl">— / —</span>
+    <div class="progress-bar"><i id="q-bar"></i></div>
+  </div>
+  <span class="score">★ <span id="my-score">0</span></span>
+  <div class="player-pill">
+    <span class="av" id="my-av">?</span>
+    <span id="my-name">—</span>
+  </div>
+</div>
+
+<div class="timer-wrap">
+  <div class="timer" id="timer">—</div>
+</div>
+
+<div class="question-wrap">
+  <div class="question-meta" id="q-meta">
+    <span id="q-meta-n">Питання — з —</span>
+    <span class="dot"></span>
+    <span id="q-meta-time">— сек на відповідь</span>
+    <span class="dot"></span>
+    <span id="q-meta-type">1 правильна</span>
+  </div>
+  <div class="question-text qf-rich" id="q-text"></div>
+
+  <div class="answers" id="answers-grid" style="display:none"></div>
+  <div class="text-answer-wrap" id="text-answer-wrap" style="display:none">
+    <input class="text-input" id="text-inp" placeholder="Введіть відповідь..." autocomplete="off">
+    <button class="text-submit" id="text-submit" onclick="submitText()">Відповісти</button>
+  </div>
+
+  <div class="hint">
+    <span><kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd> <kbd>D</kbd> або 1–4 — обрати</span>
+  </div>
+</div>
+
+<div class="lock-banner" id="lock-banner">
+  ✓ Відповідь зафіксовано — чекаємо інших гравців
+</div>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const FC = {apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",authDomain:"quizflow-8a978.firebaseapp.com",databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",projectId:"quizflow-8a978",storageBucket:"quizflow-8a978.firebasestorage.app",messagingSenderId:"206469794166",appId:"1:206469794166:web:55cd7007b429607acd5257"};
+const app = getApps().length ? getApps()[0] : initializeApp(FC);
+const db  = getDatabase(app);
+
+const params   = new URLSearchParams(location.search);
+const code     = params.get("code");
+const pid      = params.get("pid");
+const surname  = params.get("surname") || "";
+const name     = params.get("name")    || "";
+
+if (!code || !pid) { location.href = "../index.html"; throw new Error(); }
+
+// Player UI
+const initials = ((surname||"?")[0]+(name||"?")[0]).toUpperCase();
+document.getElementById("my-av").textContent   = initials;
+document.getElementById("my-name").textContent = `${surname} ${name}`;
+document.getElementById("lo-name").textContent = `${surname} ${name}`;
+
+const CLASSES = ["a","b","c","d","e","f"];
+const LETTERS  = ["A","B","C","D","E","F"];
+let currentQ  = -1;
+let myScore   = 0;
+let answered  = false;
+let timerInterval = null;
+let timePerQ  = 20;
+let questionStartedAt = 0;
+let room = null;
+
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+// Theme
+const GRAD_CSS = {
+  "g-default":"linear-gradient(135deg,#1E3A8A,#0F1844)","g-night":"linear-gradient(135deg,#0A0F2C,#1F1F3F)",
+  "g-forest":"linear-gradient(135deg,#064E3B,#022C22)","g-amber":"linear-gradient(135deg,#9A3412,#7C2D12)",
+  "g-grape":"linear-gradient(135deg,#581C87,#312E81)","g-sun":"linear-gradient(135deg,#F59E0B,#B45309)",
+  "g-ocean":"linear-gradient(135deg,#0E7490,#1E3A8A)","g-violet":"linear-gradient(135deg,#7C3AED,#4338CA)",
+  "g-mint":"linear-gradient(135deg,#10B981,#047857)","g-sky":"linear-gradient(135deg,#60A5FA,#2563EB)",
+  "g-jade":"linear-gradient(135deg,#34D399,#0F766E)","g-rose":"linear-gradient(135deg,#FB7185,#BE185D)",
+  "g-magenta":"linear-gradient(135deg,#E879F9,#A21CAF)"
+};
+const PAT_CSS = {
+  "grid": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCc+PGxpbmUgeDE9JzAnIHkxPScwJyB4Mj0nNjQnIHkyPScwJyBzdHJva2U9J3JnYmEoMjU1LDI1NSwyNTUsLjEyKScgc3Ryb2tlLXdpZHRoPScxJy8+PGxpbmUgeDE9JzAnIHkxPScwJyB4Mj0nMCcgeTI9JzY0JyBzdHJva2U9J3JnYmEoMjU1LDI1NSwyNTUsLjEyKScgc3Ryb2tlLXdpZHRoPScxJy8+PC9zdmc+")`, size: "64px 64px" },
+  "dots": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNicgaGVpZ2h0PScxNic+PGNpcmNsZSBjeD0nNCcgY3k9JzQnIHI9JzIuNScgZmlsbD0ncmdiYSgyNTUsMjU1LDI1NSwuMjIpJy8+PC9zdmc+")`, size: "16px 16px" },
+  "waves": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc0OCc+PHBhdGggZD0nTTAgMTYgUTE2IDYgMzIgMTYgUTQ4IDI2IDY0IDE2JyBzdHJva2U9J3JnYmEoMjU1LDI1NSwyNTUsLjE2KScgc3Ryb2tlLXdpZHRoPScyJyBmaWxsPSdub25lJy8+PHBhdGggZD0nTTAgMzIgUTE2IDIyIDMyIDMyIFE0OCA0MiA2NCAzMicgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4wOCknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PC9zdmc+")`, size: "64px 48px" },
+  "hex": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2MCcgaGVpZ2h0PSc2Nic+PHBvbHlnb24gcG9pbnRzPSczMCwzIDU3LDE4IDU3LDQ4IDMwLDYzIDMsNDggMywxOCcgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xNCknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PC9zdmc+")`, size: "60px 66px" },
+  "diag": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0OCcgaGVpZ2h0PSc0OCc+PGxpbmUgeDE9JzAnIHkxPScyNCcgeDI9JzI0JyB5Mj0nMCcgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xNiknIHN0cm9rZS13aWR0aD0nMS41Jy8+PGxpbmUgeDE9JzI0JyB5MT0nNDgnIHgyPSc0OCcgeTI9JzI0JyBzdHJva2U9J3JnYmEoMjU1LDI1NSwyNTUsLjA4KScgc3Ryb2tlLXdpZHRoPScxJy8+PC9zdmc+")`, size: "48px 48px" },
+  "target": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCc+PGNpcmNsZSBjeD0nMzInIGN5PSczMicgcj0nMjgnIHN0cm9rZT0ncmdiYSgyNTUsMjU1LDI1NSwuMTMpJyBzdHJva2Utd2lkdGg9JzEuNScgZmlsbD0nbm9uZScvPjxjaXJjbGUgY3g9JzMyJyBjeT0nMzInIHI9JzE2JyBzdHJva2U9J3JnYmEoMjU1LDI1NSwyNTUsLjA3KScgc3Ryb2tlLXdpZHRoPScxJyBmaWxsPSdub25lJy8+PC9zdmc+")`, size: "64px 64px" },
+  "star": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0MCcgaGVpZ2h0PSc0MCc+PHBvbHlnb24gcG9pbnRzPScyMCwyIDI0LDE0IDM2LDE0IDI2LDIyIDMwLDM0IDIwLDI2IDEwLDM0IDE0LDIyIDQsMTQgMTYsMTQnIHN0cm9rZT0ncmdiYSgyNTUsMjU1LDI1NSwuMTYpJyBzdHJva2Utd2lkdGg9JzEuMicgZmlsbD0nbm9uZScvPjwvc3ZnPg==")`, size: "40px 40px" },
+  "snow": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSczMicgaGVpZ2h0PSczMic+PGxpbmUgeDE9JzE2JyB5MT0nMicgeDI9JzE2JyB5Mj0nMzAnIHN0cm9rZT0ncmdiYSgyNTUsMjU1LDI1NSwuMiknIHN0cm9rZS13aWR0aD0nMS41JyBzdHJva2UtbGluZWNhcD0ncm91bmQnLz48bGluZSB4MT0nMicgeTE9JzE2JyB4Mj0nMzAnIHkyPScxNicgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4yKScgc3Ryb2tlLXdpZHRoPScxLjUnIHN0cm9rZS1saW5lY2FwPSdyb3VuZCcvPjxsaW5lIHgxPSc1JyB5MT0nNScgeDI9JzI3JyB5Mj0nMjcnIHN0cm9rZT0ncmdiYSgyNTUsMjU1LDI1NSwuMTIpJyBzdHJva2Utd2lkdGg9JzEuMicgc3Ryb2tlLWxpbmVjYXA9J3JvdW5kJy8+PGxpbmUgeDE9JzI3JyB5MT0nNScgeDI9JzUnIHkyPScyNycgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xMiknIHN0cm9rZS13aWR0aD0nMS4yJyBzdHJva2UtbGluZWNhcD0ncm91bmQnLz48L3N2Zz4=")`, size: "32px 32px" },
+  "heart": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0MCcgaGVpZ2h0PSczMic+PHBhdGggZD0nTTIwIDI4IEMxMCAyMCwyIDEzLDIgOCBDMiA0LDUsMiw5LDIgQzEyLDIsMTUsNCwyMCw4IEMyNSw0LDI4LDIsMzEsMiBDMzUsMiwzOCw1LDM4LDggQzM4LDEzLDMwLDIwLDIwLDI4Wicgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xNiknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PC9zdmc+")`, size: "40px 32px" },
+  "flower": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0OCcgaGVpZ2h0PSc0OCc+PGNpcmNsZSBjeD0nMjQnIGN5PScxMicgcj0nNycgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xMyknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PGNpcmNsZSBjeD0nMjQnIGN5PSczNicgcj0nNycgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xMyknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PGNpcmNsZSBjeD0nMTAnIGN5PScyNCcgcj0nNycgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xMyknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PGNpcmNsZSBjeD0nMzgnIGN5PScyNCcgcj0nNycgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xMyknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PGNpcmNsZSBjeD0nMjQnIGN5PScyNCcgcj0nNScgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4yKScgc3Ryb2tlLXdpZHRoPScxLjUnIGZpbGw9J25vbmUnLz48L3N2Zz4=")`, size: "48px 48px" },
+  "leaf": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0OCcgaGVpZ2h0PSc0OCc+PHBhdGggZD0nTTQgNDQgUTI0IDQgNDQgNCBRNDQgMjQgNCA0NFonIHN0cm9rZT0ncmdiYSgyNTUsMjU1LDI1NSwuMTUpJyBzdHJva2Utd2lkdGg9JzEuNScgZmlsbD0nbm9uZScvPjxwYXRoIGQ9J000IDQ0IFEyNCAyNCA0NCA0JyBzdHJva2U9J3JnYmEoMjU1LDI1NSwyNTUsLjA3KScgc3Ryb2tlLXdpZHRoPScxJyBmaWxsPSdub25lJy8+PC9zdmc+")`, size: "48px 48px" },
+  "prism": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0MCcgaGVpZ2h0PSczNic+PHBvbHlnb24gcG9pbnRzPScyMCwzIDM3LDMzIDMsMzMnIHN0cm9rZT0ncmdiYSgyNTUsMjU1LDI1NSwuMTUpJyBzdHJva2Utd2lkdGg9JzEuNScgZmlsbD0nbm9uZScvPjwvc3ZnPg==")`, size: "40px 36px" },
+  "wave2": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0OCcgaGVpZ2h0PSc0OCc+PHBvbHlsaW5lIHBvaW50cz0nMCwwIDEyLDI0IDI0LDAgMzYsMjQgNDgsMCcgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xOCknIHN0cm9rZS13aWR0aD0nMicgZmlsbD0nbm9uZScgc3Ryb2tlLWxpbmVqb2luPSdyb3VuZCcgc3Ryb2tlLWxpbmVjYXA9J3JvdW5kJy8+PHBvbHlsaW5lIHBvaW50cz0nMCwyNCAxMiw0OCAyNCwyNCAzNiw0OCA0OCwyNCcgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4wOSknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJyBzdHJva2UtbGluZWpvaW49J3JvdW5kJyBzdHJva2UtbGluZWNhcD0ncm91bmQnLz48L3N2Zz4=")`, size: "48px 48px" },
+};
+
+function applyTheme(theme) {
+  if (!theme) return;
+  const ov = document.getElementById("theme-overlay");
+  ov.style.background = GRAD_CSS[theme.grad] || GRAD_CSS["g-default"];
+  ov.style.opacity = "1";
+  const po = document.getElementById("pattern-overlay");
+  const pat = PAT_CSS[theme.pat];
+  if (po && pat) {
+    po.style.backgroundImage = pat.bg;
+    po.style.backgroundSize = pat.size;
+    po.style.backgroundRepeat = "repeat";
+    po.style.opacity = "1";
+  }
+}
+
+function renderQuestion(qi, r) {
+  const q = r.questions[qi];
+  if (!q) return;
+  const total = r.questions.length;
+  answered = false;
+
+  document.getElementById("q-lbl").textContent   = `${qi+1} / ${total}`;
+  document.getElementById("q-bar").style.width   = `${((qi+1)/total)*100}%`;
+  document.getElementById("q-text").innerHTML    = q.text || "";
+  document.getElementById("q-meta-n").textContent = `Питання ${qi+1} з ${total}`;
+  document.getElementById("q-meta-time").textContent = `${r.timePerQ||20} сек на відповідь`;
+  document.getElementById("q-meta-type").textContent = q.type === "multi" ? "Кілька правильних" : q.type === "text" ? "Текстова" : "1 правильна";
+  document.getElementById("lock-banner").classList.remove("show");
+
+  const opts = q.options || [];
+  if (q.type === "text") {
+    document.getElementById("answers-grid").style.display = "none";
+    document.getElementById("text-answer-wrap").style.display = "";
+    document.getElementById("text-inp").value = "";
+    document.getElementById("text-inp").disabled = false;
+    document.getElementById("text-submit").disabled = false;
+  } else {
+    document.getElementById("text-answer-wrap").style.display = "none";
+    const grid = document.getElementById("answers-grid");
+    grid.style.display = "";
+    grid.style.gridTemplateColumns = opts.length <= 2 ? "1fr" : "1fr 1fr";
+    grid.innerHTML = opts.map((o,i) =>
+      `<button class="ans ${CLASSES[i]||"a"}" onclick="selectOpt(${i},${q.type==='multi'})" data-i="${i}">
+        <span class="letter">${LETTERS[i]}</span>
+        <span style="flex:1">${esc(o)}</span>
+        <span class="check">✓</span>
+      </button>`
+    ).join("");
+  }
+}
+
+let multiSel = [];
+window.selectOpt = async (idx, isMulti) => {
+  if (answered) return;
+  if (isMulti) {
+    const btns = document.querySelectorAll(".ans");
+    if (multiSel.includes(idx)) { multiSel = multiSel.filter(i=>i!==idx); btns[idx].classList.remove("selected"); }
+    else { multiSel.push(idx); btns[idx].classList.add("selected"); }
+    clearTimeout(window._mt);
+    window._mt = setTimeout(() => submitAnswer(multiSel), 600);
+    return;
+  }
+  await submitAnswer(idx);
+};
+
+async function submitAnswer(value) {
+  if (answered) return;
+  answered = true;
+  const q = room.questions[currentQ];
+  const startedAt = room.questionStartedAt || Date.now();
+  const elapsed = (Date.now() - startedAt) / 1000;
+  const ratio = Math.max(0, 1 - elapsed / (room.timePerQ||20));
+  const isCorrect = checkCorrect(q, value);
+  const scoring = room.scoring || "correct";
+  const points = isCorrect ? (scoring === "speed" ? Math.round(500+500*ratio) : 1000) : 0;
+  myScore += points;
+  document.getElementById("my-score").textContent = myScore.toLocaleString("uk");
+
+  await set(ref(db, `rooms/${code}/answers/${currentQ}/${pid}`), {
+    value, answeredAt: Date.now(), isCorrect, points
+  });
+
+  // Lock buttons
+  document.querySelectorAll(".ans").forEach(b => { b.disabled = true; b.classList.add("locked"); });
+  document.getElementById("lock-banner").classList.add("show");
+  document.getElementById("text-inp") && (document.getElementById("text-inp").disabled = true);
+  document.getElementById("text-submit") && (document.getElementById("text-submit").disabled = true);
+}
+
+window.submitText = async () => {
+  const val = document.getElementById("text-inp").value.trim();
+  if (!val || answered) return;
+  await submitAnswer(val);
+};
+
+function checkCorrect(q, value) {
+  if (q.type === "single") return Number(value) === Number(Array.isArray(q.correct)?q.correct[0]:q.correct);
+  if (q.type === "multi") {
+    const correct = (Array.isArray(q.correct)?q.correct:[q.correct]).map(Number).sort();
+    const ans = (Array.isArray(value)?value:[value]).map(Number).sort();
+    return JSON.stringify(ans) === JSON.stringify(correct);
+  }
+  if (q.type === "text") return String(value).trim().toLowerCase() === String(q.correct||"").trim().toLowerCase();
+  return false;
+}
+
+function showReveal(qi, r) {
+  const q = r.questions[qi];
+  if (!q || q.type === "text") return;
+  const correct = Array.isArray(q.correct) ? q.correct.map(Number) : [Number(q.correct)];
+  document.querySelectorAll(".ans").forEach((btn, i) => {
+    btn.disabled = true;
+    btn.classList.remove("selected","locked");
+    btn.classList.add(correct.includes(i) ? "correct-ans" : "wrong-ans");
+  });
+  document.getElementById("lock-banner").classList.remove("show");
+}
+
+function startTimer(r) {
+  clearInterval(timerInterval);
+  const total = r.timePerQ || 20;
+  const startedAt = r.questionStartedAt || Date.now();
+  function tick() {
+    const left = Math.max(0, total - (Date.now()-startedAt)/1000);
+    const el = document.getElementById("timer");
+    el.textContent = Math.ceil(left);
+    el.className = "timer" + (left<=5?" danger":left<=10?" warn":"");
+    if (left<=0) clearInterval(timerInterval);
+  }
+  tick();
+  timerInterval = setInterval(tick, 200);
+}
+
+// Main room listener
+onValue(ref(db, `rooms/${code}`), snap => {
+  if (!snap.exists()) return;
+  const r = snap.val();
+  room = r;
+  applyTheme(r.theme);
+
+  const overlay = document.getElementById("lobby-overlay");
+  const pauseOv = document.getElementById("pause-overlay");
+
+  if (r.status === "lobby") {
+    overlay.classList.remove("hidden");
+    pauseOv.classList.remove("show");
+    return;
+  }
+  overlay.classList.add("hidden");
+
+  if (r.status === "paused") {
+    clearInterval(timerInterval);
+    pauseOv.classList.add("show");
+    return;
+  }
+  pauseOv.classList.remove("show");
+
+  if (r.status === "question" || r.status === "reveal") {
+    const qi = r.currentQ || 0;
+    if (qi !== currentQ) {
+      currentQ = qi;
+      answered = false;
+      multiSel = [];
+      renderQuestion(qi, r);
+      if (r.status === "question") startTimer(r);
+    }
+    if (r.status === "reveal") {
+      clearInterval(timerInterval);
+      document.getElementById("timer").textContent = "0";
+      document.getElementById("timer").className = "timer danger";
+      showReveal(qi, r);
+    }
+  }
+
+  if (r.status === "leaderboard" || r.status === "finished") {
+    clearInterval(timerInterval);
+    location.href = `student-result.html?code=${code}&pid=${pid}&surname=${encodeURIComponent(surname)}&name=${encodeURIComponent(name)}&score=${myScore}`;
+  }
+});
+
+// Keyboard
+document.addEventListener("keydown", e => {
+  if (answered) return;
+  const map = {"1":0,"2":1,"3":2,"4":3,"a":0,"b":1,"c":2,"d":3,"A":0,"B":1,"C":2,"D":3};
+  if (e.key in map) {
+    const btns = document.querySelectorAll(".ans");
+    if (btns.length > map[e.key]) btns[map[e.key]].click();
+  }
+});
+</script>
+</body>
+</html>

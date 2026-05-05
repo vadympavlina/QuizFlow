@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1280"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><circle cx='16' cy='16' r='9' fill='none' stroke='white' stroke-width='2'/><circle cx='16' cy='16' r='4' fill='white'/></svg>">
+<title>QuizFlow Live · Налаштування гри</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  :root{
+    --bg:#0A0F2C; --bg2:#0F1844; --card:#131C4F; --card2:#1A245C;
+    --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.16);
+    --ink:#F4F5FB; --ink-d:#A6B0D6; --ink-dd:#6E7AAD;
+    --violet:#7C3AED; --violet-2:#A78BFA;
+  }
+  html,body{margin:0;padding:0}
+  body{
+    font-family:Manrope,system-ui,sans-serif; color:var(--ink);
+    background:
+      radial-gradient(1200px 800px at 20% 0%, rgba(124,58,237,.16), transparent 60%),
+      radial-gradient(900px 600px at 100% 100%, rgba(59,130,246,.18), transparent 65%),
+      linear-gradient(180deg,#070B22,#0A0F2C 40%, #0E1640);
+    min-height:100vh; padding:48px 24px;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  }
+
+  .wrap{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 380px;gap:24px;position:relative;z-index:1}
+
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:24px;grid-column:1 / -1}
+  .brand .logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#A78BFA,#7C3AED);display:grid;place-items:center;box-shadow:0 8px 24px rgba(124,58,237,.4)}
+  .brand .logo svg{width:22px;height:22px;color:#fff}
+  .brand .t{font-weight:800;font-size:18px;letter-spacing:-.01em}
+  .brand .t span{color:var(--violet-2);font-weight:500}
+  .brand .pill{margin-left:auto;display:inline-flex;align-items:center;gap:7px;padding:6px 12px;background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.4);border-radius:999px;font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#C4B5FD}
+  .brand .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:#A78BFA;box-shadow:0 0 0 4px rgba(167,139,250,.18)}
+
+  .panel{background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));border:1px solid var(--line);border-radius:22px;padding:28px;backdrop-filter: blur(8px)}
+  h1{margin:0 0 4px;font-size:28px;font-weight:800;letter-spacing:-.02em}
+  h1 + p{margin:0 0 22px;color:var(--ink-d);font-size:14px}
+
+  .quiz-card{
+    display:flex;align-items:center;gap:14px;padding:16px;border-radius:14px;
+    background:linear-gradient(135deg, rgba(124,58,237,.18), rgba(59,130,246,.12));
+    border:1px solid rgba(124,58,237,.3);
+    margin-bottom:24px;
+  }
+  .quiz-card .ico{width:48px;height:48px;border-radius:13px;background:linear-gradient(135deg,#7C3AED,#5B21B6);display:grid;place-items:center;flex:0 0 auto}
+  .quiz-card .ico svg{width:22px;height:22px;color:#fff}
+  .quiz-card .l{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--violet-2)}
+  .quiz-card .name{font-size:18px;font-weight:800;margin-top:2px}
+  .quiz-card .meta{font-size:12px;color:var(--ink-d);margin-top:3px;font-family:"Geist Mono",monospace}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px}
+  .field label{display:block;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--violet-2);margin-bottom:8px}
+  .field .input{
+    width:100%;background:rgba(0,0,0,.25);border:1px solid var(--line2);border-radius:12px;
+    padding:14px 16px;color:#fff;font:inherit;font-size:18px;font-weight:700;outline:none;
+    transition:border-color .15s, box-shadow .15s;
+    font-family:"Geist Mono",monospace;
+  }
+  .field .input:focus{border-color:#A78BFA;box-shadow:0 0 0 4px rgba(167,139,250,.18)}
+  .field .select{
+    width:100%;background:rgba(0,0,0,.25);border:1px solid var(--line2);border-radius:12px;
+    padding:13px 16px;color:#fff;font:inherit;font-size:14px;font-weight:600;
+    appearance:none;outline:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23A78BFA' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 14px center;padding-right:42px;
+  }
+
+  .duo{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+  .duo button{padding:10px 0;border-radius:9px;background:rgba(0,0,0,.25);border:1px solid var(--line2);color:var(--ink-d);font:inherit;font-size:13px;font-weight:700;cursor:pointer;font-family:"Geist Mono",monospace;transition:.15s}
+  .duo button:hover{color:#fff;border-color:#A78BFA}
+  .duo button.on{background:linear-gradient(135deg,#7C3AED,#5B21B6);border-color:#A78BFA;color:#fff;box-shadow:0 4px 12px rgba(124,58,237,.4)}
+
+  .section-title{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--violet-2);margin:24px 0 12px;display:flex;align-items:center;gap:8px}
+  .section-title::before{content:"";width:3px;height:14px;background:linear-gradient(180deg,#A78BFA,#7C3AED);border-radius:2px}
+
+  .grad-row{display:flex;flex-wrap:wrap;gap:10px}
+  .grad{
+    width:54px;height:54px;border-radius:14px;cursor:pointer;
+    border:2px solid transparent;outline:2px solid var(--line2); outline-offset:-2px;
+    transition:transform .12s, outline-color .15s;
+    position:relative;
+  }
+  .grad:hover{transform:translateY(-2px)}
+  .grad.on{outline-color:#fff;outline-width:3px;outline-offset:2px}
+  .grad.on::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-weight:900;text-shadow:0 1px 4px rgba(0,0,0,.4);font-size:18px}
+
+  .pat-row{display:grid;grid-template-columns:repeat(8,1fr);gap:10px}
+  .pat{
+    aspect-ratio:1;background:rgba(0,0,0,.3);border:1px solid var(--line2);border-radius:12px;
+    cursor:pointer; display:grid;place-items:center;color:#A78BFA;
+    transition:border-color .15s, transform .12s;
+  }
+  .pat:hover{border-color:#A78BFA;transform:translateY(-2px)}
+  .pat.on{border-color:#fff;background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(59,130,246,.2));color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+
+  .toggles{display:flex;flex-direction:column;gap:8px}
+  .tgl{display:flex;align-items:center;gap:14px;padding:14px;background:rgba(0,0,0,.2);border:1px solid var(--line);border-radius:13px;cursor:pointer;user-select:none}
+  .tgl .ico{width:36px;height:36px;border-radius:10px;background:rgba(124,58,237,.18);color:#A78BFA;display:grid;place-items:center;flex:0 0 auto}
+  .tgl .t{font-weight:700;font-size:13.5px}
+  .tgl .s{font-size:11.5px;color:var(--ink-dd);margin-top:2px;line-height:1.4}
+  .tgl .switch{margin-left:auto;width:38px;height:22px;background:rgba(255,255,255,.12);border-radius:999px;position:relative;cursor:pointer;flex:0 0 auto;transition:background .2s}
+  .tgl .switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
+  .tgl.on .switch{background:#7C3AED}
+  .tgl.on .switch::after{transform:translateX(16px)}
+
+  .preview-wrap{position:relative;top:0;display:flex;flex-direction:column;gap:14px}
+  .preview{
+    aspect-ratio: 16 / 10; border-radius:18px; overflow:hidden;
+    background:linear-gradient(135deg,#1E3A8A,#0F1844);
+    border:1px solid var(--line2);
+    display:grid;place-items:center;position:relative;
+    box-shadow:0 24px 60px rgba(0,0,0,.4);
+  }
+  .preview-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);background-size:24px 24px}
+  .preview-content{position:relative;z-index:1;text-align:center;padding:20px}
+  .preview-code{font-family:"Geist Mono",monospace;font-size:11px;color:rgba(255,255,255,.5);letter-spacing:.16em;text-transform:uppercase;font-weight:700}
+  .preview-title{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-top:6px}
+  .preview-cta{margin-top:14px;display:inline-block;padding:8px 14px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+
+  .info-card{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .info-card h4{margin:0 0 10px;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--violet-2)}
+  .summary-row{display:flex;justify-content:space-between;padding:7px 0;font-size:13px;border-bottom:1px dashed var(--line)}
+  .summary-row:last-child{border-bottom:0}
+  .summary-row .k{color:var(--ink-d)}
+  .summary-row .v{font-weight:700;font-family:"Geist Mono",monospace}
+
+  .launch-bar{
+    grid-column:1 / -1;
+    display:flex;align-items:center;gap:14px;
+    padding:16px 20px;
+    background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.015));
+    border:1px solid var(--line);border-radius:18px;
+    margin-top:8px;
+    position:relative;z-index:10;
+  }
+  .launch-bar .info{font-size:13px;color:var(--ink-d)}
+  .launch-bar .info b{color:#fff}
+  .launch-bar .actions{margin-left:auto;display:flex;gap:10px}
+  .btn-ghost{
+    background:rgba(255,255,255,.05);border:1px solid var(--line2);color:#fff;
+    padding:13px 22px;border-radius:13px;font:inherit;font-weight:700;font-size:14px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg,#A78BFA,#7C3AED);border:0;color:#fff;
+    padding:13px 28px;border-radius:13px;font:inherit;font-weight:800;font-size:15px;cursor:pointer;
+    box-shadow:0 12px 30px rgba(124,58,237,.45), inset 0 1px 0 rgba(255,255,255,.25);
+    display:inline-flex;align-items:center;gap:10px;
+  }
+  .btn-primary:hover{transform:translateY(-1px)}
+  .btn-primary:disabled{opacity:.55;cursor:not-allowed;transform:none}
+
+  .g-default{background:linear-gradient(135deg,#1E3A8A,#0F1844)}
+  .g-night{background:linear-gradient(135deg,#0A0F2C,#1F1F3F)}
+  .g-forest{background:linear-gradient(135deg,#064E3B,#022C22)}
+  .g-amber{background:linear-gradient(135deg,#9A3412,#7C2D12)}
+  .g-grape{background:linear-gradient(135deg,#581C87,#312E81)}
+  .g-sun{background:linear-gradient(135deg,#F59E0B,#B45309)}
+  .g-ocean{background:linear-gradient(135deg,#0E7490,#1E3A8A)}
+  .g-violet{background:linear-gradient(135deg,#7C3AED,#4338CA)}
+  .g-mint{background:linear-gradient(135deg,#10B981,#047857)}
+  .g-sky{background:linear-gradient(135deg,#60A5FA,#2563EB)}
+  .g-jade{background:linear-gradient(135deg,#34D399,#0F766E)}
+  .g-rose{background:linear-gradient(135deg,#FB7185,#BE185D)}
+  .g-magenta{background:linear-gradient(135deg,#E879F9,#A21CAF)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg></div>
+    <div class="t">quizflow <span>· live</span></div>
+    <span class="pill">Налаштування гри</span>
+  </div>
+
+  <div class="panel">
+    <h1>Налаштуйте гру</h1>
+    <p>Останні штрихи перед запуском гри в реальному часі</p>
+
+    <div class="quiz-card">
+      <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
+      <div>
+        <div class="l">Тест</div>
+        <div class="name" id="quiz-name">—</div>
+        <div class="meta" id="quiz-meta">—</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label>Час на питання</label>
+        <input class="input" id="inp-time" type="number" value="20" min="5" max="120">
+        <div class="duo" id="time-presets">
+          <button data-t="10">10с</button>
+          <button class="on" data-t="20">20с</button>
+          <button data-t="30">30с</button>
+          <button data-t="60">60с</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Бальна система</label>
+        <select class="select" id="sel-scoring">
+          <option value="speed">За швидкість (1000 балів макс)</option>
+          <option value="correct">За правильність (1000 балів)</option>
+        </select>
+        <div style="margin-top:8px;font-size:12px;color:var(--ink-dd);line-height:1.5">
+          Бал = base × (1 − t/T × 0.5) — чим швидше, тим більше.
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Градієнт фону</div>
+    <div class="grad-row" id="grad-row"></div>
+
+    <div class="section-title">Патерн</div>
+    <div class="pat-row" id="pat-row"></div>
+
+    <div class="section-title">Опції гри</div>
+    <div class="toggles" id="toggles-wrap"></div>
+  </div>
+
+  <div class="preview-wrap">
+    <div class="info-card" style="padding:0;overflow:hidden;border-radius:18px">
+      <div class="preview g-default" id="preview-bg" style="aspect-ratio:16/10;border-radius:0;border:0;box-shadow:none">
+        <div class="preview-grid" id="preview-grid-el"></div>
+        <div class="preview-content">
+          <div class="preview-code">КОД ГРИ · — — — —</div>
+          <div class="preview-title" id="preview-title">—</div>
+          <div class="preview-cta">› Очікуємо гравців</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h4>Превʼю налаштувань</h4>
+      <div class="summary-row"><span class="k">Тест</span><span class="v" id="sum-test">—</span></div>
+      <div class="summary-row"><span class="k">Питань</span><span class="v" id="sum-q">—</span></div>
+      <div class="summary-row"><span class="k">Час / питання</span><span class="v" id="sum-time">20с</span></div>
+      <div class="summary-row"><span class="k">Орієнтовно</span><span class="v" id="sum-dur">—</span></div>
+      <div class="summary-row"><span class="k">Тема</span><span class="v" id="sum-theme">—</span></div>
+    </div>
+
+    <div class="info-card" style="display:flex;gap:12px;align-items:center;background:linear-gradient(135deg, rgba(124,58,237,.22), rgba(59,130,246,.14));border:1px solid rgba(167,139,250,.4)">
+      <div style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.12);display:grid;place-items:center;color:#C4B5FD">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+      </div>
+      <div style="font-size:12px;line-height:1.45">
+        <b>Підказка:</b> учасники зайдуть на<br>
+        <span style="font-family:'Geist Mono',monospace;color:#C4B5FD">quizflow.space/play</span> та введуть код
+      </div>
+    </div>
+  </div>
+
+  <div class="launch-bar">
+    <div class="info">
+      Все готово. <b>1 клік</b> — і код гри з'являється на екрані. Поділіться ним зі студентами.
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="launch-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="6 4 20 12 6 20 6 4" fill="currentColor"/></svg>
+        Створити кімнату
+      </button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const FC = {apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",authDomain:"quizflow-8a978.firebaseapp.com",databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",projectId:"quizflow-8a978",storageBucket:"quizflow-8a978.firebasestorage.app",messagingSenderId:"206469794166",appId:"1:206469794166:web:55cd7007b429607acd5257"};
+const app  = getApps().length ? getApps()[0] : initializeApp(FC);
+const auth = getAuth(app);
+const db   = getDatabase(app);
+
+const fbUser = await new Promise(r => { const u = onAuthStateChanged(auth, x => { u(); r(x); }); });
+if (!fbUser) { location.href = "../login.html"; throw new Error(); }
+const uid = fbUser.uid;
+
+const params  = new URLSearchParams(location.search);
+const testId  = params.get("testId");
+if (!testId) { alert("Не вказано testId"); location.href = "../index.html"; throw new Error(); }
+
+const testSnap = await get(ref(db, `teachers/${uid}/tests/${testId}`));
+if (!testSnap.exists()) { alert("Тест не знайдено"); location.href = "../index.html"; throw new Error(); }
+const testData = { id: testId, ...testSnap.val() };
+const EXCLUDED_TYPES = ["long", "number", "matching", "ordering"];
+const questions = (testData.questions || []).filter(q => !EXCLUDED_TYPES.includes(q.type));
+
+// Fill test info
+document.getElementById("quiz-name").textContent = testData.title || "—";
+document.getElementById("quiz-meta").textContent = `${questions.length} питань · тільки single/multi/text`;
+document.getElementById("preview-title").textContent = testData.title || "—";
+document.getElementById("sum-test").textContent = testData.title || "—";
+document.getElementById("sum-q").textContent = questions.length;
+
+// ─── State ─────────────────────────────────────────────────────────────────
+let selGrad = "g-default";
+let selPat  = "grid";
+let timeVal = 20;
+
+// ─── Gradients ─────────────────────────────────────────────────────────────
+const GRADS = [
+  ["g-default","Океан"],["g-night","Ніч"],["g-forest","Ліс"],["g-amber","Янтар"],
+  ["g-grape","Виноград"],["g-sun","Сонце"],["g-ocean","Глибина"],["g-violet","Електрик"],
+  ["g-mint","Мʼята"],["g-sky","Небо"],["g-jade","Джейд"],["g-rose","Троянда"],["g-magenta","Магента"]
+];
+const gradRow = document.getElementById("grad-row");
+GRADS.forEach(([cls,name]) => {
+  const d = document.createElement("div");
+  d.className = "grad " + cls + (cls === selGrad ? " on" : "");
+  d.title = name;
+  d.addEventListener("click", () => {
+    selGrad = cls;
+    document.querySelectorAll(".grad").forEach(el => el.classList.toggle("on", el === d));
+    updatePreview();
+  });
+  gradRow.appendChild(d);
+});
+
+// ─── Patterns ──────────────────────────────────────────────────────────────
+const PATS = [
+  {id:"grid",   svg:`<g stroke="currentColor" stroke-width="1.5" fill="none"><path d="M5 5h14v14H5zM5 12h14M12 5v14"/></g>`},
+  {id:"dots",   svg:`<g fill="currentColor"><circle cx="7" cy="7" r="1.6"/><circle cx="12" cy="7" r="1.6"/><circle cx="17" cy="7" r="1.6"/><circle cx="7" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="17" cy="12" r="1.6"/><circle cx="7" cy="17" r="1.6"/><circle cx="12" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/></g>`},
+  {id:"waves",  svg:`<g stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"><path d="M4 9c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M4 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/></g>`},
+  {id:"hex",    svg:`<polygon points="12,3 21,8 21,16 12,21 3,16 3,8" stroke="currentColor" stroke-width="1.5" fill="none"/>`},
+  {id:"diag",   svg:`<g stroke="currentColor" stroke-width="2"><path d="M3 19L19 3"/><path d="M8 21L21 8"/><path d="M-2 14L14 -2"/></g>`},
+  {id:"target", svg:`<g stroke="currentColor" stroke-width="1.5" fill="none"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="3"/></g>`},
+  {id:"star",   svg:`<polygon points="12,3 15,10 22,10 16,15 18,22 12,18 6,22 8,15 2,10 9,10" stroke="currentColor" stroke-width="1.5" fill="none"/>`},
+  {id:"snow",   svg:`<g stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 3v18M3 12h18M5 5l14 14M19 5L5 19"/></g>`},
+  {id:"heart",  svg:`<path d="M12 21s-7-5-7-11a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 6-7 11-7 11" fill="currentColor" opacity=".9"/>`},
+  {id:"flower", svg:`<g stroke="currentColor" stroke-width="1.5" fill="none"><circle cx="12" cy="6" r="3"/><circle cx="12" cy="18" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="12" r="3"/><circle cx="12" cy="12" r="2"/></g>`},
+  {id:"leaf",   svg:`<path d="M5 19c0-10 6-16 16-16 0 10-6 16-16 16M5 19l4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>`},
+  {id:"prism",  svg:`<polygon points="12,3 22,21 2,21" stroke="currentColor" stroke-width="1.5" fill="none"/>`},
+  {id:"wave2",  svg:`<path d="M3 10c3-3 6 3 9 0s6-3 9 0M3 16c3-3 6 3 9 0s6-3 9 0" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>`},
+];
+const patRow = document.getElementById("pat-row");
+PATS.forEach(p => {
+  const d = document.createElement("div");
+  d.className = "pat" + (p.id === selPat ? " on" : "");
+  d.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24">${p.svg}</svg>`;
+  d.addEventListener("click", () => {
+    selPat = p.id;
+    document.querySelectorAll(".pat").forEach(el => el.classList.toggle("on", el === d));
+    updatePreview();
+  });
+  patRow.appendChild(d);
+});
+
+// ─── Toggles ───────────────────────────────────────────────────────────────
+const TOGGLES = [
+  {k:"shuffle", t:"Перемішувати варіанти", s:"Кожен студент бачить різний порядок A/B/C/D", on:true, icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>`},
+  {k:"podium",  t:"Показати топ-3 у фіналі", s:"Анімований подіум з конфеті", on:true, icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="11" width="8" height="10" rx="1"/><rect x="2" y="14" width="6" height="7" rx="1"/><rect x="16" y="13" width="6" height="8" rx="1"/></svg>`},
+];
+const togglesWrap = document.getElementById("toggles-wrap");
+const toggleState = {};
+TOGGLES.forEach(o => {
+  toggleState[o.k] = o.on;
+  const d = document.createElement("div");
+  d.className = "tgl" + (o.on ? " on" : "");
+  d.innerHTML = `<div class="ico">${o.icon}</div><div><div class="t">${o.t}</div><div class="s">${o.s}</div></div><div class="switch"></div>`;
+  d.addEventListener("click", () => { toggleState[o.k] = !toggleState[o.k]; d.classList.toggle("on", toggleState[o.k]); });
+  togglesWrap.appendChild(d);
+});
+
+// ─── Time presets ──────────────────────────────────────────────────────────
+function setTime(v) {
+  timeVal = v;
+  document.getElementById("inp-time").value = v;
+  document.querySelectorAll("#time-presets button").forEach(b => b.classList.toggle("on", +b.dataset.t === v));
+  updateSummary();
+}
+document.querySelectorAll("#time-presets button").forEach(b => {
+  b.addEventListener("click", () => setTime(+b.dataset.t));
+});
+document.getElementById("inp-time").addEventListener("input", e => {
+  timeVal = parseInt(e.target.value) || 20;
+  document.querySelectorAll("#time-presets button").forEach(b => b.classList.remove("on"));
+  updateSummary();
+});
+
+const PAT_CSS = {
+  "grid": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCc+PGxpbmUgeDE9JzAnIHkxPScwJyB4Mj0nNjQnIHkyPScwJyBzdHJva2U9J3JnYmEoMjU1LDI1NSwyNTUsLjEyKScgc3Ryb2tlLXdpZHRoPScxJy8+PGxpbmUgeDE9JzAnIHkxPScwJyB4Mj0nMCcgeTI9JzY0JyBzdHJva2U9J3JnYmEoMjU1LDI1NSwyNTUsLjEyKScgc3Ryb2tlLXdpZHRoPScxJy8+PC9zdmc+")`, size: "64px 64px" },
+  "dots": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNicgaGVpZ2h0PScxNic+PGNpcmNsZSBjeD0nNCcgY3k9JzQnIHI9JzIuNScgZmlsbD0ncmdiYSgyNTUsMjU1LDI1NSwuMjIpJy8+PC9zdmc+")`, size: "16px 16px" },
+  "waves": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc0OCc+PHBhdGggZD0nTTAgMTYgUTE2IDYgMzIgMTYgUTQ4IDI2IDY0IDE2JyBzdHJva2U9J3JnYmEoMjU1LDI1NSwyNTUsLjE2KScgc3Ryb2tlLXdpZHRoPScyJyBmaWxsPSdub25lJy8+PHBhdGggZD0nTTAgMzIgUTE2IDIyIDMyIDMyIFE0OCA0MiA2NCAzMicgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4wOCknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PC9zdmc+")`, size: "64px 48px" },
+  "hex": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2MCcgaGVpZ2h0PSc2Nic+PHBvbHlnb24gcG9pbnRzPSczMCwzIDU3LDE4IDU3LDQ4IDMwLDYzIDMsNDggMywxOCcgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xNCknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PC9zdmc+")`, size: "60px 66px" },
+  "diag": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0OCcgaGVpZ2h0PSc0OCc+PGxpbmUgeDE9JzAnIHkxPScyNCcgeDI9JzI0JyB5Mj0nMCcgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xNiknIHN0cm9rZS13aWR0aD0nMS41Jy8+PGxpbmUgeDE9JzI0JyB5MT0nNDgnIHgyPSc0OCcgeTI9JzI0JyBzdHJva2U9J3JnYmEoMjU1LDI1NSwyNTUsLjA4KScgc3Ryb2tlLXdpZHRoPScxJy8+PC9zdmc+")`, size: "48px 48px" },
+  "target": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCc+PGNpcmNsZSBjeD0nMzInIGN5PSczMicgcj0nMjgnIHN0cm9rZT0ncmdiYSgyNTUsMjU1LDI1NSwuMTMpJyBzdHJva2Utd2lkdGg9JzEuNScgZmlsbD0nbm9uZScvPjxjaXJjbGUgY3g9JzMyJyBjeT0nMzInIHI9JzE2JyBzdHJva2U9J3JnYmEoMjU1LDI1NSwyNTUsLjA3KScgc3Ryb2tlLXdpZHRoPScxJyBmaWxsPSdub25lJy8+PC9zdmc+")`, size: "64px 64px" },
+  "star": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0MCcgaGVpZ2h0PSc0MCc+PHBvbHlnb24gcG9pbnRzPScyMCwyIDI0LDE0IDM2LDE0IDI2LDIyIDMwLDM0IDIwLDI2IDEwLDM0IDE0LDIyIDQsMTQgMTYsMTQnIHN0cm9rZT0ncmdiYSgyNTUsMjU1LDI1NSwuMTYpJyBzdHJva2Utd2lkdGg9JzEuMicgZmlsbD0nbm9uZScvPjwvc3ZnPg==")`, size: "40px 40px" },
+  "snow": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSczMicgaGVpZ2h0PSczMic+PGxpbmUgeDE9JzE2JyB5MT0nMicgeDI9JzE2JyB5Mj0nMzAnIHN0cm9rZT0ncmdiYSgyNTUsMjU1LDI1NSwuMiknIHN0cm9rZS13aWR0aD0nMS41JyBzdHJva2UtbGluZWNhcD0ncm91bmQnLz48bGluZSB4MT0nMicgeTE9JzE2JyB4Mj0nMzAnIHkyPScxNicgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4yKScgc3Ryb2tlLXdpZHRoPScxLjUnIHN0cm9rZS1saW5lY2FwPSdyb3VuZCcvPjxsaW5lIHgxPSc1JyB5MT0nNScgeDI9JzI3JyB5Mj0nMjcnIHN0cm9rZT0ncmdiYSgyNTUsMjU1LDI1NSwuMTIpJyBzdHJva2Utd2lkdGg9JzEuMicgc3Ryb2tlLWxpbmVjYXA9J3JvdW5kJy8+PGxpbmUgeDE9JzI3JyB5MT0nNScgeDI9JzUnIHkyPScyNycgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xMiknIHN0cm9rZS13aWR0aD0nMS4yJyBzdHJva2UtbGluZWNhcD0ncm91bmQnLz48L3N2Zz4=")`, size: "32px 32px" },
+  "heart": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0MCcgaGVpZ2h0PSczMic+PHBhdGggZD0nTTIwIDI4IEMxMCAyMCwyIDEzLDIgOCBDMiA0LDUsMiw5LDIgQzEyLDIsMTUsNCwyMCw4IEMyNSw0LDI4LDIsMzEsMiBDMzUsMiwzOCw1LDM4LDggQzM4LDEzLDMwLDIwLDIwLDI4Wicgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xNiknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PC9zdmc+")`, size: "40px 32px" },
+  "flower": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0OCcgaGVpZ2h0PSc0OCc+PGNpcmNsZSBjeD0nMjQnIGN5PScxMicgcj0nNycgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xMyknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PGNpcmNsZSBjeD0nMjQnIGN5PSczNicgcj0nNycgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xMyknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PGNpcmNsZSBjeD0nMTAnIGN5PScyNCcgcj0nNycgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xMyknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PGNpcmNsZSBjeD0nMzgnIGN5PScyNCcgcj0nNycgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xMyknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PGNpcmNsZSBjeD0nMjQnIGN5PScyNCcgcj0nNScgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4yKScgc3Ryb2tlLXdpZHRoPScxLjUnIGZpbGw9J25vbmUnLz48L3N2Zz4=")`, size: "48px 48px" },
+  "leaf": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0OCcgaGVpZ2h0PSc0OCc+PHBhdGggZD0nTTQgNDQgUTI0IDQgNDQgNCBRNDQgMjQgNCA0NFonIHN0cm9rZT0ncmdiYSgyNTUsMjU1LDI1NSwuMTUpJyBzdHJva2Utd2lkdGg9JzEuNScgZmlsbD0nbm9uZScvPjxwYXRoIGQ9J000IDQ0IFEyNCAyNCA0NCA0JyBzdHJva2U9J3JnYmEoMjU1LDI1NSwyNTUsLjA3KScgc3Ryb2tlLXdpZHRoPScxJyBmaWxsPSdub25lJy8+PC9zdmc+")`, size: "48px 48px" },
+  "prism": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0MCcgaGVpZ2h0PSczNic+PHBvbHlnb24gcG9pbnRzPScyMCwzIDM3LDMzIDMsMzMnIHN0cm9rZT0ncmdiYSgyNTUsMjU1LDI1NSwuMTUpJyBzdHJva2Utd2lkdGg9JzEuNScgZmlsbD0nbm9uZScvPjwvc3ZnPg==")`, size: "40px 36px" },
+  "wave2": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0OCcgaGVpZ2h0PSc0OCc+PHBvbHlsaW5lIHBvaW50cz0nMCwwIDEyLDI0IDI0LDAgMzYsMjQgNDgsMCcgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xOCknIHN0cm9rZS13aWR0aD0nMicgZmlsbD0nbm9uZScgc3Ryb2tlLWxpbmVqb2luPSdyb3VuZCcgc3Ryb2tlLWxpbmVjYXA9J3JvdW5kJy8+PHBvbHlsaW5lIHBvaW50cz0nMCwyNCAxMiw0OCAyNCwyNCAzNiw0OCA0OCwyNCcgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4wOSknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJyBzdHJva2UtbGluZWpvaW49J3JvdW5kJyBzdHJva2UtbGluZWNhcD0ncm91bmQnLz48L3N2Zz4=")`, size: "48px 48px" },
+};
+
+function updatePreview() {
+  document.getElementById("preview-bg").className = "preview " + selGrad;
+  const pg = document.getElementById("preview-grid-el");
+  const pat = PAT_CSS[selPat];
+  if (pg && pat) {
+    pg.style.backgroundImage = pat.bg;
+    pg.style.backgroundSize = pat.size;
+    pg.style.backgroundRepeat = "repeat";
+  }
+  updateSummary();
+}
+function updateSummary() {
+  document.getElementById("sum-time").textContent = timeVal + "с";
+  document.getElementById("sum-dur").textContent = Math.ceil(questions.length * (timeVal + 3) / 60) + " хв";
+  document.getElementById("sum-theme").textContent = (GRADS.find(g=>g[0]===selGrad)||["","—"])[1] + " · " + selPat;
+}
+updateSummary();
+updatePreview();
+
+// ─── Launch button ──────────────────────────────────────────────────────────
+document.getElementById("launch-btn").addEventListener("click", createRoom);
+
+async function createRoom() {
+  const btn = document.getElementById("launch-btn");
+  btn.disabled = true; btn.innerHTML = "Створення...";
+
+  let code;
+  for (let i = 0; i < 10; i++) {
+    code = String(Math.floor(10000000 + Math.random() * 90000000));
+    const ex = await get(ref(db, `rooms/${code}/status`));
+    if (!ex.exists() || ex.val() === "finished") break;
+  }
+
+  const time = parseInt(document.getElementById("inp-time").value) || 20;
+  const scoring = document.getElementById("sel-scoring").value;
+
+  await set(ref(db, `rooms/${code}`), {
+    hostUid: uid, testId, status: "lobby", currentQ: 0,
+    timePerQ: time, scoring,
+    theme: { grad: selGrad, pat: selPat },
+    questions: questions.map(q => ({
+      id: q.id||"", type: q.type, text: q.text||"",
+      options: q.options||null, correct: q.correct??null,
+    })),
+    testTitle: testData.title || "",
+    createdAt: Date.now(),
+  });
+
+  location.href = `lobby.html?code=${code}`;
+}
+</script>
+</body>
+</html>
