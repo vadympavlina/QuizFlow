@@ -2059,7 +2059,7 @@ selectAnalyticsDrop(field, value, label){
   renderAttempts();
 },
 
-  copyUrl:async url=>{try{await navigator.clipboard.writeText(url);}catch{if(window.toast)toast("Не вдалось скопіювати","err");}},
+  copyUrl:async url=>{try{await navigator.clipboard.writeText(url);toast("Скопійовано!");}catch{toast("Не вдалось скопіювати","err");}},
   // Attempts
   rAttempts:renderAttempts,
 
@@ -4364,7 +4364,10 @@ function renderObStep(){
     +'<div style="font-size:15px;color:var(--muted);line-height:1.7">'+step.text+'</div>';
   const prev = document.getElementById("ob-prev");
   const next = document.getElementById("ob-next");
-  if(prev) prev.style.display = _obStep === 0 ? "none" : "";
+  if(prev){
+    prev.style.display = _obStep === 0 ? "none" : "";
+    prev.onclick = () => window.obNav(-1);
+  }
   if(next){
     if(isLast){
       next.textContent = "Розпочати роботу ✓";
@@ -4377,6 +4380,11 @@ function renderObStep(){
     }
   }
 }
+
+window.obNav = function(dir){
+  _obStep = Math.max(0, Math.min(OB_STEPS.length - 1, _obStep + dir));
+  renderObStep();
+};
 
 async function checkOnboarding(){
   try{
