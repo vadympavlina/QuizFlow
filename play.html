@@ -252,53 +252,80 @@ body{font-family:"Manrope",system-ui,sans-serif;-webkit-font-smoothing:antialias
 .pause-sub{font-size:14px;color:rgba(255,255,255,.5);line-height:1.5}
 
 /* ══════════════════════ LEADERBOARD SCREEN ══════════════════════ */
-#s-leaderboard{min-height:100dvh;padding:24px}
-.lb-header{text-align:center;margin-bottom:24px;padding-top:10px}
-.lb-title{font-size:22px;font-weight:800;margin-bottom:4px}
+#s-leaderboard{min-height:100dvh;padding:24px 20px;overflow-y:auto}
+.lb-header{text-align:center;padding-top:16px;margin-bottom:20px}
+.lb-title{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-bottom:4px}
 .lb-sub{font-size:13px;color:rgba(255,255,255,.5)}
 
+/* Мій результат */
 .lb-my-result{
-  background:rgba(167,139,250,.15);border:1.5px solid rgba(167,139,250,.35);
-  border-radius:16px;padding:20px;margin-bottom:20px;text-align:center;
+  background:rgba(167,139,250,.12);
+  border:1.5px solid rgba(167,139,250,.3);
+  border-radius:18px;padding:22px 20px;margin-bottom:20px;text-align:center;
+  animation:cardIn .4s cubic-bezier(.34,1.56,.64,1) both;
 }
-.lb-my-place{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.5);font-weight:700;margin-bottom:6px}
-.lb-my-num{font-family:"Geist Mono",monospace;font-size:52px;font-weight:700;color:#A78BFA;line-height:1}
-.lb-my-score{font-size:14px;color:rgba(255,255,255,.6);margin-top:6px}
-.lb-my-name{font-size:16px;font-weight:700;margin-top:10px}
+.lb-my-place-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.45);font-weight:700;margin-bottom:8px}
+.lb-my-num{
+  font-family:"Geist Mono",monospace;font-size:68px;font-weight:700;
+  color:#A78BFA;line-height:1;letter-spacing:-.03em;
+}
+.lb-my-score{
+  font-size:15px;color:rgba(255,255,255,.65);margin-top:8px;font-weight:600;
+  font-family:"Geist Mono",monospace;
+}
+.lb-my-name{
+  font-size:17px;font-weight:800;margin-top:12px;
+  padding-top:12px;border-top:1px solid rgba(255,255,255,.1);
+}
 
-.lb-top3{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+/* Секція заголовок */
+.lb-section-title{
+  font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;
+  color:rgba(255,255,255,.4);font-weight:700;margin-bottom:10px;padding-left:2px;
+}
+
+/* Топ-3 */
+.lb-top3{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
 .lb-item{
-  display:flex;align-items:center;gap:14px;
-  padding:13px 16px;border-radius:13px;
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  display:flex;align-items:center;gap:12px;
+  padding:13px 16px;border-radius:14px;
+  animation:cardIn .35s ease both;
 }
-.lb-item.top1{background:rgba(255,215,0,.12);border-color:rgba(255,215,0,.3)}
-.lb-item.top2{background:rgba(192,192,192,.1);border-color:rgba(192,192,192,.25)}
-.lb-item.top3{background:rgba(205,127,50,.1);border-color:rgba(205,127,50,.25)}
-.lb-place{
-  font-family:"Geist Mono",monospace;font-weight:700;font-size:18px;
-  min-width:28px;text-align:center;
+.lb-item.top1{background:rgba(255,215,0,.14);border:1.5px solid rgba(255,215,0,.3)}
+.lb-item.top2{background:rgba(192,192,192,.1);border:1.5px solid rgba(192,192,192,.22)}
+.lb-item.top3{background:rgba(205,127,50,.1);border:1.5px solid rgba(205,127,50,.22)}
+.lb-item:nth-child(1){animation-delay:0s}
+.lb-item:nth-child(2){animation-delay:.06s}
+.lb-item:nth-child(3){animation-delay:.12s}
+.lb-medal{font-size:22px;flex-shrink:0;width:28px;text-align:center}
+.lb-ava{
+  width:40px;height:40px;border-radius:50%;
+  display:grid;place-items:center;font-size:14px;font-weight:800;
+  flex-shrink:0;
 }
-.lb-place.top1{color:#FFD700}
-.lb-place.top2{color:#C0C0C0}
-.lb-place.top3{color:#CD7F32}
-.lb-name{flex:1;font-size:14px;font-weight:700}
-.lb-score{font-family:"Geist Mono",monospace;font-size:15px;font-weight:700;color:#A78BFA}
+.top1 .lb-ava{background:rgba(255,215,0,.2);color:#FFD700;border:1.5px solid rgba(255,215,0,.4)}
+.top2 .lb-ava{background:rgba(192,192,192,.15);color:#E5E7EB;border:1.5px solid rgba(192,192,192,.3)}
+.top3 .lb-ava{background:rgba(205,127,50,.15);color:#FED7AA;border:1.5px solid rgba(205,127,50,.3)}
+.lb-name{flex:1;font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-score{font-family:"Geist Mono",monospace;font-size:15px;font-weight:700}
+.top1 .lb-score{color:#FFD700}
+.top2 .lb-score{color:#E5E7EB}
+.top3 .lb-score{color:#FED7AA}
 
-.lb-rest{display:flex;flex-direction:column;gap:6px;margin-bottom:24px}
+/* Решта */
+.lb-rest{display:flex;flex-direction:column;gap:6px;margin-bottom:20px}
 .lb-rest-item{
   display:flex;align-items:center;gap:10px;
-  padding:10px 14px;border-radius:10px;
-  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
-  font-size:13px;
+  padding:10px 14px;border-radius:11px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+  font-size:13px;animation:cardIn .3s ease both;
 }
-.lb-rest-place{font-family:"Geist Mono",monospace;color:rgba(255,255,255,.4);font-weight:600;min-width:22px}
-.lb-rest-name{flex:1}
-.lb-rest-score{font-family:"Geist Mono",monospace;color:rgba(255,255,255,.6);font-size:13px}
+.lb-rest-place{font-family:"Geist Mono",monospace;color:rgba(255,255,255,.35);font-weight:700;min-width:24px;text-align:center}
+.lb-rest-ava{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.1);display:grid;place-items:center;font-size:11px;font-weight:800;color:rgba(255,255,255,.7);flex-shrink:0}
+.lb-rest-name{flex:1;font-weight:600}
+.lb-rest-score{font-family:"Geist Mono",monospace;color:rgba(255,255,255,.55);font-size:13px}
 
-.lb-done-lbl{
-  text-align:center;font-size:13px;color:rgba(255,255,255,.4);padding-bottom:20px;
-}
+.lb-done-lbl{text-align:center;font-size:13px;color:rgba(255,255,255,.35);padding-bottom:24px;font-weight:500}
 
 /* ══════════════════════ KICKED SCREEN ══════════════════════ */
 #s-kicked{align-items:center;justify-content:center;padding:24px;min-height:100dvh}
@@ -438,18 +465,20 @@ body{font-family:"Manrope",system-ui,sans-serif;-webkit-font-smoothing:antialias
 <!-- LEADERBOARD -->
 <div class="screen" id="s-leaderboard">
   <div class="lb-header">
-    <div class="lb-title">Фінальний результат</div>
+    <div class="lb-title">🏆 Фінальний результат</div>
     <div class="lb-sub">Гра завершена</div>
   </div>
   <div class="lb-my-result">
-    <div class="lb-my-place">Ваше місце</div>
+    <div class="lb-my-place-lbl">Ваше місце</div>
     <div class="lb-my-num" id="lb-my-place">—</div>
     <div class="lb-my-score" id="lb-my-score"></div>
     <div class="lb-my-name" id="lb-my-name"></div>
   </div>
+  <div class="lb-section-title">Топ-3</div>
   <div class="lb-top3" id="lb-top3"></div>
+  <div class="lb-section-title" id="lb-rest-title" style="display:none">Інші учасники</div>
   <div class="lb-rest" id="lb-rest"></div>
-  <div class="lb-done-lbl">Дякуємо за участь!</div>
+  <div class="lb-done-lbl">Дякуємо за участь! 🎉</div>
 </div>
 
 <!-- KICKED -->
@@ -881,51 +910,69 @@ function onReveal(room) {
 function onLeaderboard(room) {
   clearInterval(timerInterval);
   const players = room.players || {};
-
-  // Calc total scores from answers
-  const scores = {};
   const answers = room.answers || {};
-  Object.values(answers).forEach(qAnswers => {
-    Object.entries(qAnswers || {}).forEach(([pid, ans]) => {
+
+  // Calc scores
+  const scores = {};
+  Object.values(answers).forEach(qA => {
+    Object.entries(qA || {}).forEach(([pid, ans]) => {
       scores[pid] = (scores[pid] || 0) + (ans.points || 0);
     });
   });
 
-  // Build sorted list
   const list = Object.entries(players)
     .filter(([,p]) => p.active !== false)
-    .map(([pid, p]) => ({ pid, name:`${p.surname} ${p.name}`, score: scores[pid] || 0 }))
+    .map(([pid,p]) => ({
+      pid,
+      name: `${p.surname} ${p.name}`,
+      initials: ((p.surname||"?")[0]+(p.name||"?")[0]).toUpperCase(),
+      score: scores[pid] || 0
+    }))
     .sort((a,b) => b.score - a.score);
 
-  const myIdx = list.findIndex(p => p.pid === playerId);
+  const myIdx  = list.findIndex(p => p.pid === playerId);
   const myPlace = myIdx >= 0 ? myIdx + 1 : "—";
   const myFinal = list[myIdx]?.score || 0;
 
-  document.getElementById("lb-my-place").textContent = myPlace;
+  // My result block
+  const placeEl = document.getElementById("lb-my-place");
+  placeEl.textContent = myPlace;
+  // Color by place
+  if (myPlace === 1) placeEl.style.color = "#FFD700";
+  else if (myPlace === 2) placeEl.style.color = "#E5E7EB";
+  else if (myPlace === 3) placeEl.style.color = "#FED7AA";
+  else placeEl.style.color = "#A78BFA";
+
   document.getElementById("lb-my-score").textContent = `${myFinal} балів`;
   document.getElementById("lb-my-name").textContent = `${playerSurname} ${playerName}`;
 
   // Top 3
-  const top3El = document.getElementById("lb-top3");
   const medals = ["🥇","🥈","🥉"];
-  const placeClass = ["top1","top2","top3"];
-  top3El.innerHTML = list.slice(0,3).map((p,i) =>
-    `<div class="lb-item ${placeClass[i]}">
-      <span class="lb-place ${placeClass[i]}">${medals[i]}</span>
+  const topCls = ["top1","top2","top3"];
+  document.getElementById("lb-top3").innerHTML = list.slice(0,3).map((p,i) =>
+    `<div class="lb-item ${topCls[i]}" style="animation-delay:${i*0.08}s">
+      <span class="lb-medal">${medals[i]}</span>
+      <div class="lb-ava">${p.initials}</div>
       <span class="lb-name">${esc(p.name)}</span>
       <span class="lb-score">${p.score}</span>
     </div>`
   ).join("");
 
   // Rest
+  const rest = list.slice(3);
   const restEl = document.getElementById("lb-rest");
-  restEl.innerHTML = list.slice(3).map((p,i) =>
-    `<div class="lb-rest-item">
-      <span class="lb-rest-place">${i+4}</span>
-      <span class="lb-rest-name">${esc(p.name)}</span>
-      <span class="lb-rest-score">${p.score}</span>
-    </div>`
-  ).join("");
+  const restTitle = document.getElementById("lb-rest-title");
+  if (rest.length) {
+    restTitle.style.display = "";
+    restEl.innerHTML = rest.map((p,i) =>
+      `<div class="lb-rest-item" style="animation-delay:${i*0.04}s">
+        <span class="lb-rest-place">${i+4}</span>
+        <div class="lb-rest-ava">${p.initials}</div>
+        <span class="lb-rest-name">${esc(p.name)}</span>
+        <span class="lb-rest-score">${p.score}</span>
+      </div>`
+    ).join("");
+  }
 
   show("s-leaderboard");
 }
