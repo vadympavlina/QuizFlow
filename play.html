@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<title>QuizFlow Live · Приєднатись</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><circle cx='16' cy='16' r='9' fill='none' stroke='white' stroke-width='2'/><circle cx='16' cy='16' r='4' fill='white'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800;900&family=Geist+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;touch-action:manipulation}
+body{font-family:"Manrope",system-ui,sans-serif;color:#fff;background:linear-gradient(160deg,#0F1844 0%,#1E3A8A 100%);min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(ellipse at center,black 30%,transparent 90%)}
+.card{background:rgba(255,255,255,.07);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:36px 26px;width:100%;max-width:400px;animation:cardIn .45s cubic-bezier(.34,1.56,.64,1) both;position:relative;z-index:1}
+@keyframes cardIn{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:none}}
+.logo-wrap{display:flex;align-items:center;gap:10px;margin-bottom:24px;justify-content:center}
+.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#A78BFA,#7C3AED);display:grid;place-items:center;box-shadow:0 8px 20px rgba(124,58,237,.4)}
+.logo-text{font-size:16px;font-weight:800}
+.logo-text em{font-style:normal;color:#A78BFA;font-weight:500}
+.code-display{text-align:center;padding:14px;margin-bottom:20px;background:rgba(255,255,255,.05);border-radius:14px;border:1px solid rgba(255,255,255,.1)}
+.code-display .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.4);font-weight:700;margin-bottom:5px}
+.code-display .val{font-family:"Geist Mono",monospace;font-size:26px;font-weight:700;letter-spacing:.15em;color:#A78BFA}
+.field{margin-bottom:12px}
+.field-label{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.5);font-weight:700;margin-bottom:6px;display:block}
+.field-input{width:100%;padding:13px 16px;border-radius:11px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);font-family:"Manrope",sans-serif;font-size:15px;color:#fff;outline:none;transition:all .15s}
+.field-input::placeholder{color:rgba(255,255,255,.3)}
+.field-input:focus{border-color:#A78BFA;box-shadow:0 0 0 3px rgba(167,139,250,.18);background:rgba(255,255,255,.1)}
+#inp-code{font-family:"Geist Mono",monospace;font-size:20px;letter-spacing:.08em}
+.join-btn{width:100%;padding:15px;border:none;border-radius:12px;background:linear-gradient(135deg,#A78BFA,#7C3AED);color:#fff;font-family:"Manrope",sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:6px;box-shadow:0 8px 24px rgba(124,58,237,.4)}
+.join-btn:hover{filter:brightness(1.08)}
+.join-btn:disabled{opacity:.55;cursor:not-allowed}
+.err{margin-top:12px;padding:10px 14px;border-radius:10px;background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.3);color:#FCA5A5;font-size:13px;font-weight:600;text-align:center;display:none}
+.err.on{display:block}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo-wrap">
+    <div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg></div>
+    <div class="logo-text">quiz<em>flow</em> live</div>
+  </div>
+  <div class="code-display" id="code-display" style="display:none">
+    <div class="lbl">Код кімнати</div>
+    <div class="val" id="code-val"></div>
+  </div>
+  <div class="field" id="code-field">
+    <label class="field-label">Код кімнати</label>
+    <input class="field-input" id="inp-code" type="text" inputmode="numeric" maxlength="8" placeholder="12345678" autocomplete="off">
+  </div>
+  <div class="field">
+    <label class="field-label">Прізвище</label>
+    <input class="field-input" id="inp-surname" type="text" placeholder="Іваненко" autocomplete="family-name">
+  </div>
+  <div class="field">
+    <label class="field-label">Ім'я</label>
+    <input class="field-input" id="inp-name" type="text" placeholder="Іван" autocomplete="given-name">
+  </div>
+  <div class="err" id="err"></div>
+  <button class="join-btn" id="join-btn" onclick="doJoin()">Приєднатись →</button>
+</div>
+<script type="module">
+import{initializeApp,getApps}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import{getDatabase,ref,get,set}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+const FC={apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",authDomain:"quizflow-8a978.firebaseapp.com",databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",projectId:"quizflow-8a978",storageBucket:"quizflow-8a978.firebasestorage.app",messagingSenderId:"206469794166",appId:"1:206469794166:web:55cd7007b429607acd5257"};
+const app=getApps().length?getApps()[0]:initializeApp(FC);
+const db=getDatabase(app);
+const urlCode=new URLSearchParams(location.search).get("code");
+if(urlCode){document.getElementById("code-field").style.display="none";document.getElementById("code-display").style.display="";document.getElementById("code-val").textContent=urlCode;}
+function showErr(msg){const el=document.getElementById("err");el.textContent=msg;el.classList.add("on");document.getElementById("join-btn").disabled=false;document.getElementById("join-btn").textContent="Приєднатись →";}
+window.doJoin=async()=>{
+  const code=(urlCode||document.getElementById("inp-code").value||"").trim();
+  const surname=document.getElementById("inp-surname").value.trim();
+  const name=document.getElementById("inp-name").value.trim();
+  document.getElementById("err").classList.remove("on");
+  if(!code||code.length!==8)return showErr("Введіть 8-значний код кімнати");
+  if(!surname)return showErr("Введіть прізвище");
+  if(!name)return showErr("Введіть ім'я");
+  const btn=document.getElementById("join-btn");
+  btn.disabled=true;btn.textContent="Підключення...";
+  try{
+    const snap=await get(ref(db,`rooms/${code}`));
+    if(!snap.exists())return showErr("Кімнату не знайдено");
+    const room=snap.val();
+    if(room.status==="finished")return showErr("Гра вже завершена");
+    const players=room.players||{};
+    const existing=Object.entries(players).find(([,p])=>p.surname?.toLowerCase()===surname.toLowerCase()&&p.name?.toLowerCase()===name.toLowerCase());
+    if(existing&&existing[1].active===false)return showErr("Вас було видалено з гри");
+    const pid=existing?existing[0]:Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    await set(ref(db,`rooms/${code}/players/${pid}`),{name,surname,score:0,joinedAt:Date.now(),active:true});
+    location.href=`live/play-student.html?code=${code}&pid=${pid}&surname=${encodeURIComponent(surname)}&name=${encodeURIComponent(name)}`;
+  }catch(e){showErr("Помилка: "+e.message);}
+};
+document.addEventListener("keydown",e=>{if(e.key==="Enter")doJoin();});
+</script>
+</body>
+</html>
