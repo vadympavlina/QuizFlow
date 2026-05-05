@@ -181,24 +181,36 @@
     <div class="card">
       <div class="card-h">
         <div class="filters-bar">
-          <!-- Search -->
+          <!-- 1. Пошук -->
           <div class="search-wrap" id="att-srch-wrap">
             <span class="search-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
-            <input class="input" id="att-srch" style="padding-left:32px;padding-right:28px;width:240px" placeholder="Пошук студента або тесту..." autocomplete="off" oninput="renderAttempts(true)">
+            <input class="input" id="att-srch" style="padding-left:32px;padding-right:28px;width:220px" placeholder="Пошук студента або тесту..." autocomplete="off" oninput="renderAttempts(true)">
             <button class="search-clear" id="att-srch-clear" onclick="resetAttSearch()" aria-label="Очистити">×</button>
           </div>
 
-          <!-- Test filter -->
-          <select class="select" id="ft" onchange="renderAttempts(true)">
-            <option value="">Всі тести</option>
-          </select>
+          <!-- 2. Група (кастомний дропдаун) -->
+          <div class="cd-wrap" id="cd-fgrp">
+            <button class="cd-btn" onclick="G.toggleDrop('cd-fgrp')">
+              <span class="cd-label" id="cd-fgrp-label">Всі групи</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="cd-menu" id="cd-fgrp-menu"></div>
+          </div>
+          <!-- Прихований select для сумісності з renderAttempts -->
+          <select id="fgrp" style="display:none"><option value="">Всі групи</option></select>
 
-          <!-- Group filter -->
-          <select class="select" id="fgrp" onchange="renderAttempts(true)">
-            <option value="">Всі групи</option>
-          </select>
+          <!-- 3. Тест (кастомний дропдаун) -->
+          <div class="cd-wrap" id="cd-ft">
+            <button class="cd-btn" onclick="G.toggleDrop('cd-ft')">
+              <span class="cd-label" id="cd-ft-label">Всі тести</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="cd-menu" id="cd-ft-menu" style="max-height:320px;overflow-y:auto;min-width:260px"></div>
+          </div>
+          <!-- Прихований select для сумісності з renderAttempts -->
+          <select id="ft" style="display:none"><option value="">Всі тести</option></select>
 
-          <!-- Status tabs -->
+          <!-- Статус таби -->
           <div class="tabs" id="fst-tabs">
             <button class="tab active" data-status="" onclick="setAttStatusTab(this)">Всі</button>
             <button class="tab" data-status="completed" onclick="setAttStatusTab(this)">Завершено</button>
@@ -208,9 +220,9 @@
           </div>
 
           <button class="btn-reset" onclick="resetAttFilters()" title="Скинути всі фільтри">
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v6h6"/><path d="M3 13a9 9 0 1 0 3-7.7L3 8"/></svg>
-  Скинути
-</button>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v6h6"/><path d="M3 13a9 9 0 1 0 3-7.7L3 8"/></svg>
+            Скинути
+          </button>
         </div>
 
         <div class="muted mono" id="att-count-right" style="font-size:12px">0 / 0</div>
@@ -270,6 +282,16 @@ window.resetAttFilters = function(){
   if (w) w.classList.remove("has-q");
   if (ft) ft.value = "";
   if (fgrp) fgrp.value = "";
+  // Скидаємо лейбли кастомних дропдаунів
+  const ftLbl = document.getElementById("cd-ft-label");
+  const grpLbl = document.getElementById("cd-fgrp-label");
+  if (ftLbl) ftLbl.textContent = "Всі тести";
+  if (grpLbl) grpLbl.textContent = "Всі групи";
+  // Скидаємо active items
+  document.querySelectorAll("#cd-ft-menu .cd-item").forEach(i => i.classList.remove("cd-active"));
+  document.querySelectorAll("#cd-fgrp-menu .cd-item").forEach(i => i.classList.remove("cd-active"));
+  document.querySelector("#cd-ft-menu .cd-item")?.classList.add("cd-active");
+  document.querySelector("#cd-fgrp-menu .cd-item")?.classList.add("cd-active");
   window._attStatus = "";
   document.querySelectorAll("#fst-tabs .tab").forEach(t => t.classList.remove("active"));
   document.querySelector("#fst-tabs .tab[data-status='']")?.classList.add("active");
