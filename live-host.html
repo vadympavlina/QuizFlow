@@ -35,10 +35,11 @@ body{
   overflow-y:auto;
 }
 .setup-card{
-  background:rgba(255,255,255,.07);backdrop-filter:blur(24px);
-  border:1px solid rgba(255,255,255,.14);border-radius:22px;
+  background:rgba(15,12,30,.88);backdrop-filter:blur(24px);
+  border:1px solid rgba(255,255,255,.1);border-radius:22px;
   padding:36px 32px;width:100%;max-width:560px;
   animation:cardIn .4s cubic-bezier(.34,1.56,.64,1) both;
+  box-shadow:0 24px 60px rgba(0,0,0,.5);
 }
 .setup-logo{display:flex;align-items:center;gap:10px;margin-bottom:24px}
 .setup-logo .lm{
@@ -458,19 +459,53 @@ let revealMode = false;
 
 // ─── Themes ───────────────────────────────────────────────────────────────────
 const GRADIENTS = [
-  {label:"Темно-синій",      bg:"linear-gradient(160deg,#0A0F2C 0%,#1E3A8A 50%,#3B82F6 100%)"},
-  {label:"Фіолетовий",       bg:"linear-gradient(160deg,#1A0533 0%,#5B21B6 50%,#A78BFA 100%)"},
-  {label:"Смарагдовий",      bg:"linear-gradient(160deg,#064E3B 0%,#059669 50%,#34D399 100%)"},
-  {label:"Захід сонця",      bg:"linear-gradient(160deg,#7C2D12 0%,#EA580C 50%,#FCD34D 100%)"},
-  {label:"Індиго-рожевий",   bg:"linear-gradient(160deg,#312E81 0%,#6D28D9 50%,#EC4899 100%)"},
-  {label:"Чорний космос",    bg:"linear-gradient(160deg,#000000 0%,#1A1A2E 50%,#16213E 100%)"},
-  {label:"Весна",            bg:"linear-gradient(160deg,#065F46 0%,#16A34A 50%,#86EFAC 100%)"},
-  {label:"Літо",             bg:"linear-gradient(160deg,#075985 0%,#0284C7 50%,#38BDF8 100%)"},
-  {label:"Осінь",            bg:"linear-gradient(160deg,#92400E 0%,#D97706 50%,#FCD34D 100%)"},
-  {label:"Зима",             bg:"linear-gradient(160deg,#1E3A8A 0%,#7C3AED 50%,#C4B5FD 100%)"},
-  {label:"Новий рік",        bg:"linear-gradient(160deg,#134E4A 0%,#0F766E 50%,#5EEAD4 100%)"},
-  {label:"День Валентина",   bg:"linear-gradient(160deg,#9D174D 0%,#EC4899 50%,#FBCFE8 100%)"},
-  {label:"8 березня",        bg:"linear-gradient(160deg,#6B21A8 0%,#A855F7 50%,#F0ABFC 100%)"},
+  // Темні
+  {label:"Темно-синій",    bg:"linear-gradient(160deg,#0A0F2C 0%,#1E3A8A 60%,#2563EB 100%)"},
+  {label:"Чорний космос",  bg:"linear-gradient(160deg,#000000 0%,#0F172A 60%,#1E1B4B 100%)"},
+  {label:"Темно-зелений",  bg:"linear-gradient(160deg,#022c22 0%,#064E3B 60%,#065F46 100%)"},
+  {label:"Темна осінь",    bg:"linear-gradient(160deg,#1c0500 0%,#7C2D12 60%,#9A3412 100%)"},
+  // Яскраві
+  {label:"Індиго-рожевий", bg:"linear-gradient(160deg,#312E81 0%,#6D28D9 50%,#EC4899 100%)"},
+  {label:"Захід сонця",    bg:"linear-gradient(160deg,#EA580C 0%,#F59E0B 60%,#FCD34D 100%)"},
+  {label:"Океан",          bg:"linear-gradient(160deg,#075985 0%,#0284C7 50%,#38BDF8 100%)"},
+  {label:"Фіолетовий",     bg:"linear-gradient(160deg,#4C1D95 0%,#7C3AED 50%,#A78BFA 100%)"},
+  // Світлі/пастельні
+  {label:"Весна",          bg:"linear-gradient(160deg,#16A34A 0%,#4ADE80 50%,#BBF7D0 100%)"},
+  {label:"Зима",           bg:"linear-gradient(160deg,#1D4ED8 0%,#60A5FA 50%,#BFDBFE 100%)"},
+  // Святкові
+  {label:"Новий рік",      bg:"linear-gradient(160deg,#134E4A 0%,#0F766E 40%,#5EEAD4 80%,#FCD34D 100%)"},
+  {label:"День Валентина", bg:"linear-gradient(160deg,#9D174D 0%,#EC4899 50%,#FBCFE8 100%)"},
+  {label:"8 березня",      bg:"linear-gradient(160deg,#6B21A8 0%,#C026D3 50%,#F0ABFC 100%)"},
+];
+
+// Свотчі патернів — кожен зі своїм кольоровим фоном щоб бачити різницю
+const PATTERN_PREVIEWS = [
+  // Grid - синій
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1E3A8A'/><line x1='0' y1='12' x2='36' y2='12' stroke='rgba(255,255,255,.6)' stroke-width='1'/><line x1='0' y1='24' x2='36' y2='24' stroke='rgba(255,255,255,.6)' stroke-width='1'/><line x1='12' y1='0' x2='12' y2='36' stroke='rgba(255,255,255,.6)' stroke-width='1'/><line x1='24' y1='0' x2='24' y2='36' stroke='rgba(255,255,255,.6)' stroke-width='1'/></svg>`,
+  // Dots - фіолетовий
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#5B21B6'/><circle cx='6' cy='6' r='2.5' fill='rgba(255,255,255,.7)'/><circle cx='18' cy='6' r='2.5' fill='rgba(255,255,255,.7)'/><circle cx='30' cy='6' r='2.5' fill='rgba(255,255,255,.7)'/><circle cx='6' cy='18' r='2.5' fill='rgba(255,255,255,.7)'/><circle cx='18' cy='18' r='2.5' fill='rgba(255,255,255,.7)'/><circle cx='30' cy='18' r='2.5' fill='rgba(255,255,255,.7)'/><circle cx='6' cy='30' r='2.5' fill='rgba(255,255,255,.7)'/><circle cx='18' cy='30' r='2.5' fill='rgba(255,255,255,.7)'/><circle cx='30' cy='30' r='2.5' fill='rgba(255,255,255,.7)'/></svg>`,
+  // Waves - зелений
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#065F46'/><path d='M0 12 Q9 4 18 12 Q27 20 36 12' stroke='rgba(255,255,255,.65)' stroke-width='2' fill='none'/><path d='M0 24 Q9 16 18 24 Q27 32 36 24' stroke='rgba(255,255,255,.4)' stroke-width='1.5' fill='none'/></svg>`,
+  // Hexagon - темно-синій
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1E1B4B'/><polygon points='18,3 31,10 31,26 18,33 5,26 5,10' stroke='rgba(255,255,255,.65)' stroke-width='1.5' fill='none'/></svg>`,
+  // Diagonal - помаранчевий
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#92400E'/><line x1='0' y1='36' x2='36' y2='0' stroke='rgba(255,255,255,.65)' stroke-width='1.5'/><line x1='-12' y1='36' x2='24' y2='0' stroke='rgba(255,255,255,.35)' stroke-width='1'/><line x1='12' y1='36' x2='48' y2='0' stroke='rgba(255,255,255,.35)' stroke-width='1'/></svg>`,
+  // Circles - синьо-блакитний
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#0369A1'/><circle cx='18' cy='18' r='14' stroke='rgba(255,255,255,.6)' stroke-width='1.5' fill='none'/><circle cx='18' cy='18' r='8' stroke='rgba(255,255,255,.35)' stroke-width='1' fill='none'/></svg>`,
+  // Stars - темно-фіолетовий
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#3B0764'/><polygon points='18,3 21,13 31,13 23,19 26,29 18,23 10,29 13,19 5,13 15,13' stroke='rgba(255,255,255,.65)' stroke-width='1.5' fill='none'/></svg>`,
+  // Snowflakes - темно-синій
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1E3A8A'/><line x1='18' y1='4' x2='18' y2='32' stroke='rgba(255,255,255,.65)' stroke-width='1.5'/><line x1='4' y1='18' x2='32' y2='18' stroke='rgba(255,255,255,.65)' stroke-width='1.5'/><line x1='7' y1='7' x2='29' y2='29' stroke='rgba(255,255,255,.4)' stroke-width='1.2'/><line x1='29' y1='7' x2='7' y2='29' stroke='rgba(255,255,255,.4)' stroke-width='1.2'/></svg>`,
+  // Hearts - червоно-рожевий
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#9D174D'/><path d='M18 28 C10 21,5 16,5 11 C5 8,8,5,11,5 C13,5,15,7,18,10 C21,7,23,5,25,5 C28,5,31,8,31,11 C31,16,26,21,18,28Z' stroke='rgba(255,255,255,.65)' stroke-width='1.5' fill='none'/></svg>`,
+  // Flowers - рожево-бузковий
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#86198F'/><circle cx='18' cy='10' r='5' stroke='rgba(255,255,255,.6)' stroke-width='1.5' fill='none'/><circle cx='18' cy='26' r='5' stroke='rgba(255,255,255,.6)' stroke-width='1.5' fill='none'/><circle cx='10' cy='18' r='5' stroke='rgba(255,255,255,.6)' stroke-width='1.5' fill='none'/><circle cx='26' cy='18' r='5' stroke='rgba(255,255,255,.6)' stroke-width='1.5' fill='none'/></svg>`,
+  // Leaves - темно-зелений
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#14532D'/><path d='M6 30 Q18 6 30 6 Q30 18 6 30Z' stroke='rgba(255,255,255,.65)' stroke-width='1.5' fill='none'/><path d='M4 33 Q16 9 28 9' stroke='rgba(255,255,255,.3)' stroke-width='1' fill='none'/></svg>`,
+  // Triangles - темно-бурштиновий
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#78350F'/><polygon points='18,4 30,26 6,26' stroke='rgba(255,255,255,.65)' stroke-width='1.5' fill='none'/><polygon points='18,10 26,24 10,24' stroke='rgba(255,255,255,.3)' stroke-width='1' fill='none'/></svg>`,
+  // Zigzag - темно-індиго
+  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#312E81'/><polyline points='0,6 9,20 18,6 27,20 36,6' stroke='rgba(255,255,255,.65)' stroke-width='2' fill='none'/><polyline points='0,22 9,36 18,22 27,36 36,22' stroke='rgba(255,255,255,.35)' stroke-width='1.5' fill='none'/></svg>`,
 ];
 
 // Патерни для відображення на фоні (низька opacity)
@@ -490,22 +525,6 @@ const PATTERN_SVGS = [
   `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='16'><polyline points='0,0 10,16 20,0 30,16 40,0' stroke='rgba(255,255,255,.08)' stroke-width='1.5' fill='none'/></svg>`,
 ];
 
-// Окремі SVG для свотчів — темний фон + видима біла лінія
-const PATTERN_PREVIEWS = [
-  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><line x1='0' y1='12' x2='36' y2='12' stroke='rgba(255,255,255,.5)' stroke-width='1'/><line x1='0' y1='24' x2='36' y2='24' stroke='rgba(255,255,255,.5)' stroke-width='1'/><line x1='12' y1='0' x2='12' y2='36' stroke='rgba(255,255,255,.5)' stroke-width='1'/><line x1='24' y1='0' x2='24' y2='36' stroke='rgba(255,255,255,.5)' stroke-width='1'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><circle cx='6' cy='6' r='2' fill='rgba(255,255,255,.6)'/><circle cx='18' cy='6' r='2' fill='rgba(255,255,255,.6)'/><circle cx='30' cy='6' r='2' fill='rgba(255,255,255,.6)'/><circle cx='6' cy='18' r='2' fill='rgba(255,255,255,.6)'/><circle cx='18' cy='18' r='2' fill='rgba(255,255,255,.6)'/><circle cx='30' cy='18' r='2' fill='rgba(255,255,255,.6)'/><circle cx='6' cy='30' r='2' fill='rgba(255,255,255,.6)'/><circle cx='18' cy='30' r='2' fill='rgba(255,255,255,.6)'/><circle cx='30' cy='30' r='2' fill='rgba(255,255,255,.6)'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><path d='M0 18 Q9 6 18 18 Q27 30 36 18' stroke='rgba(255,255,255,.55)' stroke-width='2' fill='none'/><path d='M0 30 Q9 18 18 30 Q27 42 36 30' stroke='rgba(255,255,255,.3)' stroke-width='1.5' fill='none'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><polygon points='18,4 32,12 32,28 18,36 4,28 4,12' stroke='rgba(255,255,255,.55)' stroke-width='1.5' fill='none'/><polygon points='18,10 26,15 26,25 18,30 10,25 10,15' stroke='rgba(255,255,255,.25)' stroke-width='1' fill='none'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><line x1='0' y1='36' x2='36' y2='0' stroke='rgba(255,255,255,.5)' stroke-width='1.5'/><line x1='-12' y1='36' x2='24' y2='0' stroke='rgba(255,255,255,.25)' stroke-width='1'/><line x1='12' y1='36' x2='48' y2='0' stroke='rgba(255,255,255,.25)' stroke-width='1'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><circle cx='18' cy='18' r='14' stroke='rgba(255,255,255,.5)' stroke-width='1.5' fill='none'/><circle cx='18' cy='18' r='8' stroke='rgba(255,255,255,.3)' stroke-width='1' fill='none'/><circle cx='18' cy='18' r='3' stroke='rgba(255,255,255,.4)' stroke-width='1' fill='none'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><polygon points='18,4 21,14 31,14 23,20 26,30 18,24 10,30 13,20 5,14 15,14' stroke='rgba(255,255,255,.55)' stroke-width='1.5' fill='none'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><line x1='18' y1='4' x2='18' y2='32' stroke='rgba(255,255,255,.55)' stroke-width='1.5'/><line x1='4' y1='18' x2='32' y2='18' stroke='rgba(255,255,255,.55)' stroke-width='1.5'/><line x1='7' y1='7' x2='29' y2='29' stroke='rgba(255,255,255,.35)' stroke-width='1.2'/><line x1='29' y1='7' x2='7' y2='29' stroke='rgba(255,255,255,.35)' stroke-width='1.2'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><path d='M18 28 C10 21,5 16,5 11 C5 8,8,5,11,5 C13,5,15,6,18,10 C21,6,23,5,25,5 C28,5,31,8,31,11 C31,16,26,21,18,28Z' stroke='rgba(255,255,255,.55)' stroke-width='1.5' fill='none'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><circle cx='18' cy='10' r='5' stroke='rgba(255,255,255,.5)' stroke-width='1.5' fill='none'/><circle cx='18' cy='26' r='5' stroke='rgba(255,255,255,.5)' stroke-width='1.5' fill='none'/><circle cx='10' cy='18' r='5' stroke='rgba(255,255,255,.5)' stroke-width='1.5' fill='none'/><circle cx='26' cy='18' r='5' stroke='rgba(255,255,255,.5)' stroke-width='1.5' fill='none'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><path d='M6 30 Q18 6 30 6 Q30 18 6 30Z' stroke='rgba(255,255,255,.55)' stroke-width='1.5' fill='none'/><path d='M3 33 Q15 9 27 9 Q27 21 3 33Z' stroke='rgba(255,255,255,.25)' stroke-width='1' fill='none'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><polygon points='18,4 30,26 6,26' stroke='rgba(255,255,255,.55)' stroke-width='1.5' fill='none'/><polygon points='18,10 26,24 10,24' stroke='rgba(255,255,255,.25)' stroke-width='1' fill='none'/></svg>`,
-  `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='#1A1A2E'/><polyline points='0,4 9,20 18,4 27,20 36,4' stroke='rgba(255,255,255,.55)' stroke-width='2' fill='none'/><polyline points='0,18 9,34 18,18 27,34 36,18' stroke='rgba(255,255,255,.25)' stroke-width='1.5' fill='none'/></svg>`,
-];
 const PATTERN_LABELS = ["Grid","Dots","Waves","Hexagon","Diagonal","Circles","Stars","Snowflakes","Hearts","Flowers","Leaves","Triangles","Zigzag"];
 const OPT_COLORS = ["#E53E3E","#DD6B20","#38A169","#3182CE","#805AD5","#D53F8C"];
 
