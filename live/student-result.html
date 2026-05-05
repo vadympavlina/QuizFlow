@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>QuizFlow Live · Ваш результат</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    font-family:Manrope,system-ui,sans-serif;color:#fff;
+    background:
+      radial-gradient(800px 600px at 50% -10%, rgba(167,139,250,.3), transparent 60%),
+      linear-gradient(160deg,#0A1240,#0F1844 60%,#1E1A6E);
+    min-height:100vh;
+  }
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);background-size:48px 48px;mask-image:radial-gradient(ellipse at center, black 30%, transparent 90%)}
+
+  .wrap{max-width:540px;margin:0 auto;padding:32px 22px 60px;position:relative;z-index:1}
+
+  .brand{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:24px}
+  .brand .logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#A78BFA,#7C3AED);display:grid;place-items:center;color:#fff}
+  .brand b{font-weight:800;font-size:14px}
+  .brand small{color:#A78BFA;font-weight:500}
+
+  .hero{
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:32px 24px;text-align:center;
+    backdrop-filter:blur(10px);position:relative;overflow:hidden;
+  }
+  .hero::before{
+    content:"";position:absolute;inset:-1px;border-radius:24px;padding:1px;
+    background:linear-gradient(135deg, rgba(252,211,77,.5), transparent 40%, rgba(167,139,250,.5));
+    -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;
+  }
+
+  .place-badge{
+    display:inline-flex;align-items:center;gap:8px;
+    background:linear-gradient(135deg,#FCD34D,#D97706);color:#451A03;
+    padding:8px 18px;border-radius:999px;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+    box-shadow:0 10px 24px rgba(252,211,77,.35);margin-bottom:14px;
+  }
+
+  .player-info{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:18px}
+  .player-info .av{width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,#FACC15,#CA8A04);display:grid;place-items:center;color:#451A03;font-weight:800;font-size:18px;box-shadow:0 8px 20px rgba(0,0,0,.3)}
+  .player-info .name{font-size:20px;font-weight:800;letter-spacing:-.01em;text-align:left}
+
+  .place-num{
+    font-family:"Geist Mono",monospace;font-size:96px;font-weight:900;line-height:1;letter-spacing:-.04em;
+    background:linear-gradient(135deg,#FCD34D 0%, #FB923C 50%, #A78BFA 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    margin:8px 0;
+  }
+  .place-meta{font-size:13px;color:#A6B0D6;font-weight:600}
+  .place-meta b{color:#fff;font-weight:800}
+
+  .score-strip{
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);
+    border-radius:18px;overflow:hidden;margin-top:24px;
+  }
+  .score-strip > div{background:rgba(15,24,68,.7);padding:16px 12px;text-align:center}
+  .score-strip .l{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#A78BFA}
+  .score-strip .v{font-family:"Geist Mono",monospace;font-size:24px;font-weight:800;letter-spacing:-.02em;margin-top:4px}
+  .score-strip .v.green{color:#86EFAC}
+  .score-strip .v.red{color:#FCA5A5}
+  .score-strip .v.gold{color:#FCD34D}
+
+  .total-points{
+    margin-top:24px;background:linear-gradient(135deg,rgba(252,211,77,.18),rgba(124,58,237,.18));
+    border:1px solid rgba(252,211,77,.3);border-radius:18px;padding:20px 22px;
+    display:flex;align-items:center;gap:16px;
+  }
+  .total-points .ico{font-size:32px}
+  .total-points .lbl{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#FCD34D}
+  .total-points .pts{font-family:"Geist Mono",monospace;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1;margin-top:2px}
+
+  .recap{margin-top:28px}
+  .recap h3{font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#A78BFA;margin:0 0 12px}
+  .pips{display:grid;grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:6px;margin-bottom:16px}
+  .pip{aspect-ratio:1;border-radius:8px;display:grid;place-items:center;font-family:"Geist Mono",monospace;font-size:11px;font-weight:800;color:#fff;border:1px solid rgba(255,255,255,.08)}
+  .pip.ok{background:linear-gradient(135deg,#10B981,#047857)}
+  .pip.no{background:linear-gradient(135deg,#EF4444,#B91C1C)}
+  .pip.skip{background:rgba(255,255,255,.08);color:#7B85B5}
+
+  .legend{display:flex;justify-content:center;gap:18px;font-size:11px;color:#A6B0D6;margin-bottom:8px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:10px;height:10px;border-radius:3px}
+
+  .leaders-snippet{
+    margin-top:20px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+    border-radius:16px;padding:16px;
+  }
+  .leaders-snippet h4{margin:0 0 10px;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#A78BFA;display:flex;align-items:center;gap:8px}
+  .leaders-snippet h4 small{margin-left:auto;font-weight:700;color:#7B85B5;letter-spacing:.06em}
+  .lr-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+  .lr-row:last-child{border-bottom:0}
+  .lr-row.you{background:linear-gradient(90deg, rgba(124,58,237,.15), transparent);margin:0 -10px;padding-left:10px;padding-right:10px;border-radius:8px}
+  .lr-rank{font-family:"Geist Mono",monospace;font-weight:800;font-size:13px;color:#A6B0D6;width:28px}
+  .lr-rank.gold{color:#FCD34D}
+  .lr-name{flex:1;font-weight:700;font-size:13.5px}
+  .lr-row.you .lr-name::after{content:" · ВИ";color:#C4B5FD;font-weight:800;font-size:10.5px;letter-spacing:.08em}
+  .lr-pts{font-family:"Geist Mono",monospace;font-weight:800;font-size:13px;color:#FCD34D}
+
+  .footer-msg{margin-top:24px;text-align:center;font-size:12px;color:#7B85B5;line-height:1.6}
+  .footer-msg b{color:#A78BFA}
+
+  .spinner-wrap{display:flex;align-items:center;justify-content:center;padding:60px}
+  .spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.1);border-top-color:#A78BFA;border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <div class="logo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg></div>
+    <b>quizflow</b>
+    <small>· live</small>
+  </div>
+
+  <div id="content">
+    <div class="spinner-wrap"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const FC = {apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",authDomain:"quizflow-8a978.firebaseapp.com",databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",projectId:"quizflow-8a978",storageBucket:"quizflow-8a978.firebasestorage.app",messagingSenderId:"206469794166",appId:"1:206469794166:web:55cd7007b429607acd5257"};
+const app = getApps().length ? getApps()[0] : initializeApp(FC);
+const db  = getDatabase(app);
+
+const params  = new URLSearchParams(location.search);
+const code    = params.get("code");
+const pid     = params.get("pid");
+const surname = params.get("surname") || "";
+const name    = params.get("name")    || "";
+const myScore = parseInt(params.get("score")) || 0;
+
+if (!code || !pid) { location.href = "../index.html"; throw new Error(); }
+
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+// Wait for leaderboard/finished status
+const roomRef = ref(db, `rooms/${code}`);
+const unsub = onValue(roomRef, async snap => {
+  if (!snap.exists()) return;
+  const room = snap.val();
+  const status = room.status;
+  if (status !== "leaderboard" && status !== "finished") return;
+  unsub();
+  await renderResult(room);
+});
+
+async function renderResult(room) {
+  const ansSnap = await get(ref(db, `rooms/${code}/answers`));
+  const allAns = ansSnap.val() || {};
+  const totalQ = (room.questions||[]).length;
+
+  // Calc scores and per-question correctness for this player
+  const scores = {};
+  const myAnswers = {}; // qi -> {isCorrect}
+  Object.entries(allAns).forEach(([qi, qA]) => {
+    Object.entries(qA||{}).forEach(([p, ans]) => {
+      scores[p] = (scores[p]||0) + (ans.points||0);
+      if (p === pid) myAnswers[Number(qi)] = ans;
+    });
+  });
+
+  const players = room.players || {};
+  const list = Object.entries(players)
+    .filter(([,p]) => p.active !== false)
+    .map(([p, pl]) => ({ pid:p, name:`${pl.surname} ${pl.name}`, score: scores[p]||0 }))
+    .sort((a,b) => b.score - a.score);
+
+  const myIdx   = list.findIndex(p => p.pid === pid);
+  const myPlace = myIdx >= 0 ? myIdx+1 : "—";
+  const myCorrect = Object.values(myAnswers).filter(a=>a.isCorrect).length;
+  const myWrong   = Object.values(myAnswers).filter(a=>!a.isCorrect && a.value !== undefined).length;
+  const mySkipped = totalQ - myCorrect - myWrong;
+
+  const initials = ((surname||"?")[0]+(name||"?")[0]).toUpperCase();
+  const placeBadge = myPlace <= 3 ? `🏆 Топ-${myPlace} в грі!` : `Місце #${myPlace}`;
+  const top7 = list.slice(0,7);
+
+  // Pip recap
+  const pips = Array.from({length:totalQ}, (_,i) => {
+    const ans = myAnswers[i];
+    if (!ans) return `<div class="pip skip">${i+1}</div>`;
+    return `<div class="pip ${ans.isCorrect?"ok":"no"}">${i+1}</div>`;
+  }).join("");
+
+  // Leaderboard top7
+  const lrRows = top7.map((p,i) =>
+    `<div class="lr-row${p.pid===pid?" you":""}">
+      <span class="lr-rank${i===0?" gold":""}">#${i+1}</span>
+      <span class="lr-name">${esc(p.name)}</span>
+      <span class="lr-pts">${p.score.toLocaleString("uk")}</span>
+    </div>`
+  ).join("");
+
+  document.getElementById("content").innerHTML = `
+    <div class="hero">
+      <div class="place-badge">${placeBadge}</div>
+      <div class="player-info">
+        <div class="av">${initials}</div>
+        <div>
+          <div class="name">${esc(surname)} ${esc(name)}</div>
+        </div>
+      </div>
+      <div class="place-num">#${myPlace}</div>
+      <div class="place-meta">з <b>${list.length}</b> гравців у грі <b>«${esc(room.testTitle||"—")}»</b></div>
+      <div class="score-strip">
+        <div><div class="l">Правильні</div><div class="v green">${myCorrect}</div></div>
+        <div><div class="l">Помилки</div><div class="v red">${myWrong}</div></div>
+        <div><div class="l">Пропущено</div><div class="v gold">${mySkipped}</div></div>
+      </div>
+      <div class="total-points">
+        <div class="ico">⚡</div>
+        <div>
+          <div class="lbl">Ваші бали</div>
+          <div class="pts">${myScore.toLocaleString("uk")}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="recap">
+      <h3>📋 Розбір питань</h3>
+      <div class="legend">
+        <span><i style="background:#10B981"></i> Правильно</span>
+        <span><i style="background:#EF4444"></i> Помилка</span>
+        <span><i style="background:rgba(255,255,255,.08)"></i> Пропущено</span>
+      </div>
+      <div class="pips">${pips}</div>
+    </div>
+
+    <div class="leaders-snippet">
+      <h4>👑 Лідерборд <small>топ-${top7.length}</small></h4>
+      ${lrRows}
+    </div>
+
+    <div class="footer-msg">
+      Дякуємо за гру! Код гри: <b>${code}</b>
+    </div>
+  `;
+}
+</script>
+</body>
+</html>

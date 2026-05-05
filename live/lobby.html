@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1920"/>
+<title>QuizFlow Live · Лобі</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    font-family:Manrope,system-ui,sans-serif;color:#F4F5FB;
+    background:
+      radial-gradient(1200px 800px at 20% 0%, rgba(124,58,237,.18), transparent 60%),
+      radial-gradient(900px 600px at 100% 100%, rgba(59,130,246,.22), transparent 65%),
+      linear-gradient(160deg,#0A1240 0%, #0E1648 40%, #112B7A 100%);
+    min-height:100vh;overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+    background-size:64px 64px;
+    mask-image:radial-gradient(ellipse at center, black 30%, transparent 90%);
+  }
+  .topbar{
+    position:relative; z-index:2;
+    display:grid; grid-template-columns: 360px 1fr 360px;
+    gap:24px; padding:24px 36px; align-items:center;
+    background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.0));
+    border-bottom:1px solid rgba(255,255,255,.06);
+  }
+  .code-box{
+    display:flex; flex-direction:column; gap:6px;
+    background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);
+    border-radius:18px; padding:14px 20px; backdrop-filter: blur(8px);
+  }
+  .code-box .label{font-size:10.5px;font-weight:800;letter-spacing:.16em;color:#A78BFA;text-transform:uppercase}
+  .code-box .digits{display:flex;gap:8px}
+  .code-box .digit{
+    width:42px;height:54px;display:grid;place-items:center;
+    background:linear-gradient(180deg,#1A245C,#0F1844);
+    border:1px solid rgba(167,139,250,.3);
+    border-radius:10px;font-family:"Geist Mono",monospace;
+    font-weight:800;font-size:28px;color:#fff;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  .center-info{text-align:center}
+  .center-info .url{font-size:13px;color:#A6B0D6}
+  .center-info .url b{color:#fff;font-weight:800}
+  .center-info .qpill{margin-top:8px;display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#7C3AED,#5B21B6);padding:7px 14px;border-radius:999px;font-size:13px;font-weight:800}
+  .center-info .qpill::before{content:"";width:8px;height:8px;border-radius:50%;background:#A78BFA;box-shadow:0 0 0 4px rgba(167,139,250,.25)}
+  .actions-right{display:flex; gap:10px; justify-content:flex-end; align-items:center}
+  .btn{
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);
+    color:#fff;padding:11px 18px;border-radius:13px;font:inherit;font-weight:700;font-size:13px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .btn:hover{background:rgba(255,255,255,.1)}
+  .btn-primary{
+    background:linear-gradient(135deg,#A78BFA,#7C3AED);border:0;
+    box-shadow:0 12px 30px rgba(124,58,237,.45), inset 0 1px 0 rgba(255,255,255,.25);
+    padding:12px 22px;font-size:14px;font-weight:800;
+  }
+  .hero{
+    position:relative;z-index:1;
+    display:grid;grid-template-columns:1fr 1fr;gap:36px;
+    padding:36px 36px 0; align-items:center;
+  }
+  .hero h1{font-size:64px;font-weight:900;letter-spacing:-.04em;margin:0;line-height:1}
+  .hero h1 span{color:#A78BFA}
+  .hero p{margin-top:16px;font-size:17px;color:#B8C0E0;line-height:1.6;max-width:560px}
+  .qr-card{
+    background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.1);border-radius:24px;
+    padding:24px;display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;
+    backdrop-filter: blur(8px);max-width:520px;margin-left:auto;
+  }
+  .qr-img{width:160px;height:160px;background:#fff;border-radius:14px;padding:12px;display:grid;place-items:center}
+  .qr-info .l{font-size:11px;font-weight:800;letter-spacing:.16em;color:#A78BFA;text-transform:uppercase}
+  .qr-info .t{font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:4px}
+  .qr-info .s{font-size:13.5px;color:#B8C0E0;margin-top:6px;line-height:1.5}
+  .stats{
+    margin-top:36px;
+    display:grid;grid-template-columns:repeat(4,1fr);gap:18px;padding:0 36px;
+  }
+  .stat{
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+    border-radius:18px; padding:18px 22px; display:flex; flex-direction:column;
+    backdrop-filter:blur(6px); position:relative; overflow:hidden;
+  }
+  .stat::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg, rgba(167,139,250,.08), transparent 50%);pointer-events:none}
+  .stat .l{font-size:11px;font-weight:800;letter-spacing:.14em;color:#A78BFA;text-transform:uppercase}
+  .stat .v{font-family:"Geist Mono",monospace;font-size:42px;font-weight:800;letter-spacing:-.02em;line-height:1;margin-top:8px}
+  .stat .s{font-size:12.5px;color:#9098C2;margin-top:6px;display:flex;align-items:center;gap:6px}
+  .section-h{
+    margin:36px 36px 16px;display:flex;align-items:center;gap:14px;
+  }
+  .section-h .pulse{
+    width:10px;height:10px;border-radius:50%;background:#22C55E;
+    box-shadow:0 0 0 4px rgba(34,197,94,.25);
+    animation: pulse 1.6s infinite;
+  }
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(34,197,94,.25)}50%{box-shadow:0 0 0 8px rgba(34,197,94,.05)}}
+  .section-h h2{margin:0;font-size:20px;font-weight:800}
+  .section-h .count{font-family:"Geist Mono",monospace;font-size:14px;color:#A78BFA;font-weight:800;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);padding:5px 11px;border-radius:999px}
+  .section-h .right{margin-left:auto;display:flex;gap:8px;align-items:center;font-size:13px;color:#9098C2}
+  .players{
+    display:grid;grid-template-columns:repeat(6, 1fr);gap:16px;padding:0 36px 48px;
+  }
+  .player{
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+    border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;position:relative;
+    transition:transform .25s, border-color .15s;
+    animation: pop .35s ease-out backwards;
+  }
+  @keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+  .player:hover{border-color:rgba(167,139,250,.4)}
+  .player .av{
+    width:42px;height:42px;border-radius:12px;display:grid;place-items:center;color:#fff;
+    font-weight:800;font-size:14px;flex:0 0 auto;
+  }
+  .player .name{font-weight:800;font-size:14px}
+  .player .meta{font-size:11px;color:#A6B0D6;margin-top:1px;font-family:"Geist Mono",monospace}
+  .player .x{
+    position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:7px;
+    background:rgba(255,255,255,.08);color:#A6B0D6;border:0;cursor:pointer;
+    display:grid;place-items:center;font-size:14px;line-height:1;
+  }
+  .player .x:hover{background:rgba(239,68,68,.2);color:#fff}
+  .empty-card{
+    border:2px dashed rgba(255,255,255,.14);background:rgba(255,255,255,.02);
+    border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;color:#7B85B5;
+  }
+  .empty-card .av{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.05);display:grid;place-items:center;color:#525B86}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="code-box">
+    <div class="label">Код гри</div>
+    <div class="digits" id="code-digits"></div>
+  </div>
+  <div class="center-info">
+    <div class="url">Зайдіть на <b>www.quizflow.space/play</b> та введіть код гри</div>
+    <div class="qpill" id="lobby-pill">0 гравців у лобі</div>
+  </div>
+  <div class="actions-right">
+    <button class="btn" onclick="copyLink()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Скопіювати посилання
+    </button>
+    <button class="btn btn-primary" onclick="startGame()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="6 4 20 12 6 20 6 4" fill="currentColor"/></svg>
+      Почати гру
+    </button>
+  </div>
+</div>
+
+<div class="hero">
+  <div>
+    <div id="lobby-waiting-pill" style="display:inline-flex;align-items:center;gap:10px;padding:6px 14px;background:rgba(124,58,237,.18);border:1px solid rgba(167,139,250,.4);border-radius:999px;font-size:11.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#C4B5FD;margin-bottom:18px">
+      <span style="width:8px;height:8px;border-radius:50%;background:#A78BFA;box-shadow:0 0 0 4px rgba(167,139,250,.25)"></span>
+      Очікуємо гравців
+    </div>
+    <h1 id="game-title">—</h1>
+    <p id="game-desc">Гравці вже можуть підключатись. Натисніть "Почати гру" коли всі готові.</p>
+  </div>
+  <div>
+    <div class="qr-card">
+      <div class="qr-img">
+        <svg viewBox="0 0 29 29" shape-rendering="crispEdges" width="136" height="136" id="qr-svg"></svg>
+      </div>
+      <div class="qr-info">
+        <div class="l">Швидкий вхід</div>
+        <div class="t">Скануй та грай</div>
+        <div class="s" id="qr-hint">Або введіть код на quizflow.space/play</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="l">Гравців</div>
+    <div class="v" id="stat-players">0</div>
+    <div class="s">приєднуються в реальному часі</div>
+  </div>
+  <div class="stat">
+    <div class="l">Питань</div>
+    <div class="v" id="stat-q">—</div>
+    <div class="s">4 варіанти на кожне</div>
+  </div>
+  <div class="stat">
+    <div class="l">Час / питання</div>
+    <div class="v" id="stat-time">—<span style="font-size:18px;color:#7B85B5">с</span></div>
+    <div class="s">налаштовано в setup</div>
+  </div>
+  <div class="stat">
+    <div class="l">Система балів</div>
+    <div class="v" style="font-size:22px" id="stat-scoring">—</div>
+    <div class="s"></div>
+  </div>
+</div>
+
+<div class="section-h">
+  <span class="pulse"></span>
+  <h2>Гравці у лобі</h2>
+  <span class="count" id="count-lbl">0</span>
+  <div class="right" id="last-joined"></div>
+</div>
+
+<div class="players" id="players-grid"></div>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const FC = {apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",authDomain:"quizflow-8a978.firebaseapp.com",databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",projectId:"quizflow-8a978",storageBucket:"quizflow-8a978.firebasestorage.app",messagingSenderId:"206469794166",appId:"1:206469794166:web:55cd7007b429607acd5257"};
+const app  = getApps().length ? getApps()[0] : initializeApp(FC);
+const auth = getAuth(app);
+const db   = getDatabase(app);
+
+const fbUser = await new Promise(r => { const u = onAuthStateChanged(auth, x => { u(); r(x); }); });
+if (!fbUser) { location.href = "../login.html"; throw new Error(); }
+
+const code = new URLSearchParams(location.search).get("code");
+if (!code) { location.href = "../index.html"; throw new Error(); }
+
+// Fill code digits
+const digitsEl = document.getElementById("code-digits");
+code.split("").forEach(d => {
+  const el = document.createElement("div");
+  el.className = "digit"; el.textContent = d;
+  digitsEl.appendChild(el);
+});
+
+// Load room info
+const roomSnap = await get(ref(db, `rooms/${code}`));
+if (!roomSnap.exists()) { alert("Кімната не знайдена"); location.href = "../index.html"; throw new Error(); }
+const room = roomSnap.val();
+
+document.getElementById("game-title").textContent = room.testTitle || "—";
+document.getElementById("stat-q").textContent = (room.questions||[]).length;
+document.getElementById("stat-time").innerHTML = (room.timePerQ||20) + '<span style="font-size:18px;color:#7B85B5">с</span>';
+document.getElementById("stat-scoring").textContent = room.scoring === "speed" ? "Швидкість" : "Точність";
+document.getElementById("qr-hint").innerHTML = `Або введіть код <b style="color:#A78BFA;font-family:'Geist Mono',monospace">${code}</b> на quizflow.space/play`;
+
+// Simple QR placeholder
+document.getElementById("qr-svg").innerHTML = `<rect width="29" height="29" fill="#fff"/><text x="14.5" y="16" text-anchor="middle" font-size="4" fill="#0A0F2C" font-family="monospace">${code.slice(0,4)} ${code.slice(4)}</text>`;
+
+const AV_COLORS = ["linear-gradient(135deg,#F59E0B,#B45309)","linear-gradient(135deg,#3B82F6,#1D4ED8)","linear-gradient(135deg,#10B981,#047857)","linear-gradient(135deg,#EF4444,#B91C1C)","linear-gradient(135deg,#A78BFA,#6D28D9)","linear-gradient(135deg,#EC4899,#BE185D)","linear-gradient(135deg,#06B6D4,#0E7490)","linear-gradient(135deg,#FACC15,#CA8A04)"];
+function playerColor(name) { return AV_COLORS[(name||"?").charCodeAt(0) % AV_COLORS.length]; }
+
+window.kickPlayer = async (pid) => {
+  await update(ref(db, `rooms/${code}/players/${pid}`), { active: false });
+};
+window.copyLink = () => {
+  const url = `${location.origin}/play.html?code=${code}`;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = event.currentTarget;
+    btn.textContent = "Скопійовано!";
+    setTimeout(() => { btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Скопіювати посилання`; }, 2000);
+  });
+};
+window.startGame = async () => {
+  await update(ref(db, `rooms/${code}`), {
+    status: "question", currentQ: 0, questionStartedAt: Date.now()
+  });
+  location.href = `play-teacher.html?code=${code}`;
+};
+
+// Realtime players listener
+onValue(ref(db, `rooms/${code}/players`), snap => {
+  const players = snap.val() || {};
+  const active = Object.entries(players).filter(([,p]) => p.active !== false);
+
+  document.getElementById("lobby-pill").textContent = active.length + " гравців у лобі";
+  document.getElementById("stat-players").textContent = active.length;
+  document.getElementById("count-lbl").textContent = active.length;
+
+  if (active.length > 0) {
+    const last = active[active.length - 1][1];
+    document.getElementById("last-joined").textContent = `Останній: ${last.surname} ${last.name}`;
+  }
+
+  const grid = document.getElementById("players-grid");
+  grid.innerHTML = active.map(([pid, p], i) => {
+    const initials = ((p.surname||"?")[0]+(p.name||"?")[0]).toUpperCase();
+    return `<div class="player" style="animation-delay:${i*30}ms">
+      <div class="av" style="background:${playerColor(p.name)}">${initials}</div>
+      <div style="min-width:0;flex:1">
+        <div class="name">${p.surname} ${p.name}</div>
+        <div class="meta">підключено</div>
+      </div>
+      <button class="x" onclick="kickPlayer('${pid}')">×</button>
+    </div>`;
+  }).join("") + Array.from({length: Math.max(0, 4 - active.length)}).map(() =>
+    `<div class="empty-card">
+      <div class="av"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div style="flex:1"><div style="font-weight:700;font-size:13px">Вільне місце</div><div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;margin-top:6px;width:70%"></div></div>
+    </div>`
+  ).join("");
+});
+
+// Watch for game start from another tab
+onValue(ref(db, `rooms/${code}/status`), snap => {
+  if (snap.val() === "question") location.href = `play-teacher.html?code=${code}`;
+});
+</script>
+</body>
+</html>
