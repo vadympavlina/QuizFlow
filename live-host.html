@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><circle cx='16' cy='16' r='9' fill='none' stroke='white' stroke-width='2'/><circle cx='16' cy='16' r='4' fill='white'/></svg>">
 <title>QuizFlow Live — Хост</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800;900&family=Geist+Mono:wght@400;600;700&display=swap" rel="stylesheet">
@@ -68,11 +69,33 @@ body{
   font-family:"Manrope",sans-serif;font-size:14px;color:#fff;outline:none;
   transition:all .15s;
 }
-.setup-field select{cursor:pointer}
-.setup-field select option{background:#1A1A2E;color:#fff}
-.setup-field input:focus,.setup-field select:focus{
-  border-color:#A78BFA;box-shadow:0 0 0 3px rgba(167,139,250,.18);
+.setup-field input:focus{border-color:#A78BFA;box-shadow:0 0 0 3px rgba(167,139,250,.18)}
+
+/* Custom scoring dropdown */
+.setup-cd{position:relative}
+.setup-cd-btn{
+  width:100%;padding:11px 14px;border-radius:10px;
+  border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);
+  font-family:"Manrope",sans-serif;font-size:14px;color:#fff;
+  cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;
 }
+.setup-cd-btn:hover,.setup-cd-btn.open{border-color:#A78BFA;background:rgba(255,255,255,.1)}
+.setup-cd-menu{
+  position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:100;
+  background:#1A1035;border:1.5px solid rgba(167,139,250,.3);border-radius:11px;
+  overflow:hidden;display:none;
+  box-shadow:0 12px 32px rgba(0,0,0,.4);
+}
+.setup-cd-menu.open{display:block;animation:cardIn .15s ease}
+.setup-cd-item{
+  padding:12px 14px;font-size:13px;font-weight:600;color:rgba(255,255,255,.8);
+  cursor:pointer;transition:background .12s;display:flex;align-items:center;gap:10px;
+}
+.setup-cd-item:hover{background:rgba(167,139,250,.15)}
+.setup-cd-item.active{color:#A78BFA}
+.setup-cd-item svg{flex-shrink:0;opacity:.6}
+.setup-cd-item.active svg{opacity:1;color:#A78BFA}
 
 /* Theme picker */
 .theme-section{margin-bottom:20px}
@@ -290,10 +313,23 @@ body{
       </div>
       <div class="setup-field">
         <div class="sf-lbl">Бальна система</div>
-        <select id="setup-scoring">
-          <option value="correct">За правильність (1000 балів)</option>
-          <option value="speed">За швидкість (500–1000)</option>
-        </select>
+        <div class="setup-cd" id="scoring-wrap">
+          <button class="setup-cd-btn" onclick="toggleScoringDrop()" id="scoring-btn">
+            <span id="scoring-label">За правильність (1000 балів)</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="setup-cd-menu" id="scoring-menu">
+            <div class="setup-cd-item active" onclick="selectScoring('correct','За правильність (1000 балів)')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              За правильність — 1000 балів
+            </div>
+            <div class="setup-cd-item" onclick="selectScoring('speed','За швидкість (500–1000)')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              За швидкість — 500–1000 балів
+            </div>
+          </div>
+        </div>
+        <input type="hidden" id="setup-scoring" value="correct">
       </div>
     </div>
 
@@ -406,7 +442,7 @@ const db   = getDatabase(app);
 const auth = getAuth(app);
 
 // ─── Auth guard ───────────────────────────────────────────────────────────────
-const fbUser = await new Promise(r => { const u = onAuthStateChanged(auth, u => { u(); r(u); }); });
+const fbUser = await new Promise(r => { const unsub = onAuthStateChanged(auth, user => { unsub(); r(user); }); });
 if (!fbUser) { location.href = "../login.html"; throw new Error("no auth"); }
 
 const uid = fbUser.uid;
@@ -516,13 +552,41 @@ document.getElementById("setup-test-meta").textContent = `${questions.length} п
 buildPickers();
 applyTheme(0, 0);
 
+window.toggleScoringDrop = () => {
+  const menu = document.getElementById("scoring-menu");
+  const btn  = document.getElementById("scoring-btn");
+  const isOpen = menu.classList.contains("open");
+  menu.classList.toggle("open", !isOpen);
+  btn.classList.toggle("open", !isOpen);
+  if (!isOpen) {
+    setTimeout(() => {
+      document.addEventListener("click", function h(e) {
+        if (!document.getElementById("scoring-wrap").contains(e.target)) {
+          menu.classList.remove("open");
+          btn.classList.remove("open");
+          document.removeEventListener("click", h);
+        }
+      });
+    }, 0);
+  }
+};
+
+window.selectScoring = (value, label) => {
+  document.getElementById("setup-scoring").value = value;
+  document.getElementById("scoring-label").textContent = label;
+  document.getElementById("scoring-menu").classList.remove("open");
+  document.getElementById("scoring-btn").classList.remove("open");
+  document.querySelectorAll(".setup-cd-item").forEach(el => el.classList.remove("active"));
+  event.currentTarget?.classList.add("active");
+};
+
 // ─── Create room ──────────────────────────────────────────────────────────────
 window.createRoom = async () => {
   const btn = document.getElementById("setup-start-btn");
   btn.disabled = true; btn.textContent = "Створення...";
 
   const time    = parseInt(document.getElementById("setup-time").value) || 20;
-  const scoring = document.getElementById("setup-scoring").value;
+  const scoring = document.getElementById("setup-scoring").value || "correct";
 
   // Generate unique 8-digit code
   let code;
