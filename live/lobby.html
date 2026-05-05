@@ -145,11 +145,10 @@
     <div class="digits" id="code-digits"></div>
   </div>
   <div class="center-info">
-    <div class="url">Зайдіть на <b>www.quizflow.space/play</b> та введіть код гри</div>
     <div class="qpill" id="lobby-pill">0 гравців у лобі</div>
   </div>
   <div class="actions-right">
-    <button class="btn" onclick="copyLink()">
+    <button class="btn" onclick="copyLink(this)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
       Скопіювати посилання
     </button>
@@ -160,28 +159,14 @@
   </div>
 </div>
 
-<div class="hero">
-  <div>
+<div style="padding:36px 36px 0">
     <div id="lobby-waiting-pill" style="display:inline-flex;align-items:center;gap:10px;padding:6px 14px;background:rgba(124,58,237,.18);border:1px solid rgba(167,139,250,.4);border-radius:999px;font-size:11.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#C4B5FD;margin-bottom:18px">
       <span style="width:8px;height:8px;border-radius:50%;background:#A78BFA;box-shadow:0 0 0 4px rgba(167,139,250,.25)"></span>
       Очікуємо гравців
     </div>
-    <h1 id="game-title">—</h1>
-    <p id="game-desc">Гравці вже можуть підключатись. Натисніть "Почати гру" коли всі готові.</p>
-  </div>
-  <div>
-    <div class="qr-card">
-      <div class="qr-img">
-        <svg viewBox="0 0 29 29" shape-rendering="crispEdges" width="136" height="136" id="qr-svg"></svg>
-      </div>
-      <div class="qr-info">
-        <div class="l">Швидкий вхід</div>
-        <div class="t">Скануй та грай</div>
-        <div class="s" id="qr-hint">Або введіть код на quizflow.space/play</div>
-      </div>
-    </div>
-  </div>
-</div>
+    <h1 id="game-title" style="font-size:64px;font-weight:900;letter-spacing:-.04em;margin:0;line-height:1">—</h1>
+    <p style="margin-top:16px;font-size:17px;color:#B8C0E0;line-height:1.6;max-width:760px">Гравці вже можуть підключатись. Натисніть <b style="color:#fff">«Почати гру»</b> коли всі готові.</p>
+  </div></div>
 
 <div class="stats">
   <div class="stat">
@@ -248,10 +233,8 @@ document.getElementById("game-title").textContent = room.testTitle || "—";
 document.getElementById("stat-q").textContent = (room.questions||[]).length;
 document.getElementById("stat-time").innerHTML = (room.timePerQ||20) + '<span style="font-size:18px;color:#7B85B5">с</span>';
 document.getElementById("stat-scoring").textContent = room.scoring === "speed" ? "Швидкість" : "Точність";
-document.getElementById("qr-hint").innerHTML = `Або введіть код <b style="color:#A78BFA;font-family:'Geist Mono',monospace">${code}</b> на quizflow.space/play`;
 
 // Simple QR placeholder
-document.getElementById("qr-svg").innerHTML = `<rect width="29" height="29" fill="#fff"/><text x="14.5" y="16" text-anchor="middle" font-size="4" fill="#0A0F2C" font-family="monospace">${code.slice(0,4)} ${code.slice(4)}</text>`;
 
 const AV_COLORS = ["linear-gradient(135deg,#F59E0B,#B45309)","linear-gradient(135deg,#3B82F6,#1D4ED8)","linear-gradient(135deg,#10B981,#047857)","linear-gradient(135deg,#EF4444,#B91C1C)","linear-gradient(135deg,#A78BFA,#6D28D9)","linear-gradient(135deg,#EC4899,#BE185D)","linear-gradient(135deg,#06B6D4,#0E7490)","linear-gradient(135deg,#FACC15,#CA8A04)"];
 function playerColor(name) { return AV_COLORS[(name||"?").charCodeAt(0) % AV_COLORS.length]; }
@@ -259,12 +242,12 @@ function playerColor(name) { return AV_COLORS[(name||"?").charCodeAt(0) % AV_COL
 window.kickPlayer = async (pid) => {
   await update(ref(db, `rooms/${code}/players/${pid}`), { active: false });
 };
-window.copyLink = () => {
+window.copyLink = (btn) => {
   const url = `${location.origin}/play.html?code=${code}`;
   navigator.clipboard.writeText(url).then(() => {
-    const btn = event.currentTarget;
+    const orig = btn.innerHTML;
     btn.textContent = "Скопійовано!";
-    setTimeout(() => { btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Скопіювати посилання`; }, 2000);
+    setTimeout(() => { btn.innerHTML = orig; }, 2000);
   });
 };
 window.startGame = async () => {
