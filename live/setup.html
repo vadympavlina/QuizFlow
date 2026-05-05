@@ -201,10 +201,10 @@
         <label>Час на питання</label>
         <input class="input" id="inp-time" type="number" value="20" min="5" max="120">
         <div class="duo" id="time-presets">
-          <button onclick="setTime(10)">10с</button>
-          <button class="on" onclick="setTime(20)">20с</button>
-          <button onclick="setTime(30)">30с</button>
-          <button onclick="setTime(60)">60с</button>
+          <button data-t="10">10с</button>
+          <button class="on" data-t="20">20с</button>
+          <button data-t="30">30с</button>
+          <button data-t="60">60с</button>
         </div>
       </div>
       <div class="field">
@@ -266,7 +266,7 @@
       Все готово. <b>1 клік</b> — і код гри з'являється на екрані. Поділіться ним зі студентами.
     </div>
     <div class="actions">
-      <button class="btn-primary" id="launch-btn" onclick="createRoom()">
+      <button class="btn-primary" id="launch-btn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="6 4 20 12 6 20 6 4" fill="currentColor"/></svg>
         Створити кімнату
       </button>
@@ -320,7 +320,11 @@ GRADS.forEach(([cls,name]) => {
   const d = document.createElement("div");
   d.className = "grad " + cls + (cls === selGrad ? " on" : "");
   d.title = name;
-  d.onclick = () => { selGrad = cls; document.querySelectorAll(".grad").forEach(el => el.classList.toggle("on", el === d)); updatePreview(); };
+  d.addEventListener("click", () => {
+    selGrad = cls;
+    document.querySelectorAll(".grad").forEach(el => el.classList.toggle("on", el === d));
+    updatePreview();
+  });
   gradRow.appendChild(d);
 });
 
@@ -345,7 +349,11 @@ PATS.forEach(p => {
   const d = document.createElement("div");
   d.className = "pat" + (p.id === selPat ? " on" : "");
   d.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24">${p.svg}</svg>`;
-  d.onclick = () => { selPat = p.id; document.querySelectorAll(".pat").forEach(el => el.classList.toggle("on", el === d)); updateSummary(); };
+  d.addEventListener("click", () => {
+    selPat = p.id;
+    document.querySelectorAll(".pat").forEach(el => el.classList.toggle("on", el === d));
+    updateSummary();
+  });
   patRow.appendChild(d);
 });
 
@@ -361,20 +369,23 @@ TOGGLES.forEach(o => {
   const d = document.createElement("div");
   d.className = "tgl" + (o.on ? " on" : "");
   d.innerHTML = `<div class="ico">${o.icon}</div><div><div class="t">${o.t}</div><div class="s">${o.s}</div></div><div class="switch"></div>`;
-  d.onclick = () => { toggleState[o.k] = !toggleState[o.k]; d.classList.toggle("on", toggleState[o.k]); };
+  d.addEventListener("click", () => { toggleState[o.k] = !toggleState[o.k]; d.classList.toggle("on", toggleState[o.k]); });
   togglesWrap.appendChild(d);
 });
 
-// ─── Time ──────────────────────────────────────────────────────────────────
-window.setTime = (v) => {
+// ─── Time presets ──────────────────────────────────────────────────────────
+function setTime(v) {
   timeVal = v;
   document.getElementById("inp-time").value = v;
-  document.querySelectorAll(".duo button").forEach(b => b.classList.toggle("on", parseInt(b.textContent) === v));
+  document.querySelectorAll("#time-presets button").forEach(b => b.classList.toggle("on", +b.dataset.t === v));
   updateSummary();
-};
+}
+document.querySelectorAll("#time-presets button").forEach(b => {
+  b.addEventListener("click", () => setTime(+b.dataset.t));
+});
 document.getElementById("inp-time").addEventListener("input", e => {
   timeVal = parseInt(e.target.value) || 20;
-  document.querySelectorAll(".duo button").forEach(b => b.classList.remove("on"));
+  document.querySelectorAll("#time-presets button").forEach(b => b.classList.remove("on"));
   updateSummary();
 });
 
@@ -389,8 +400,10 @@ function updateSummary() {
 }
 updateSummary();
 
-// ─── Create room ───────────────────────────────────────────────────────────
-window.createRoom = async () => {
+// ─── Launch button ──────────────────────────────────────────────────────────
+document.getElementById("launch-btn").addEventListener("click", createRoom);
+
+async function createRoom() {
   const btn = document.getElementById("launch-btn");
   btn.disabled = true; btn.innerHTML = "Створення...";
 
@@ -417,7 +430,7 @@ window.createRoom = async () => {
   });
 
   location.href = `lobby.html?code=${code}`;
-};
+}
 </script>
 </body>
 </html>
