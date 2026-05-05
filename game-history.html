@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><circle cx='16' cy='16' r='9' fill='none' stroke='white' stroke-width='2'/><circle cx='16' cy='16' r='4' fill='white'/></svg>">
+<title>QuizFlow — Історія ігор</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Manrope",system-ui,sans-serif;background:#F4F6FB;color:#0B1437;-webkit-font-smoothing:antialiased;min-height:100vh}
+.main{max-width:860px;margin:0 auto;padding:32px 24px}
+
+/* Header */
+.page-header{display:flex;align-items:center;gap:16px;margin-bottom:28px}
+.back-btn{
+  display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;
+  border:1.5px solid #E3E8F2;background:#fff;color:#5B6A8F;
+  font-family:"Manrope",sans-serif;font-size:13px;font-weight:700;cursor:pointer;
+  text-decoration:none;transition:all .15s;
+}
+.back-btn:hover{border-color:#1E3A8A;color:#1E3A8A}
+.back-btn svg{width:14px;height:14px}
+.page-title{font-size:24px;font-weight:800;letter-spacing:-.02em;color:#0B1437}
+.page-sub{font-size:14px;color:#5B6A8F;margin-top:3px}
+
+/* Empty state */
+.empty{
+  text-align:center;padding:60px 20px;
+  background:#fff;border-radius:18px;border:1px solid #E3E8F2;
+}
+.empty-ico{font-size:48px;margin-bottom:16px}
+.empty-title{font-size:18px;font-weight:700;color:#0B1437;margin-bottom:8px}
+.empty-sub{font-size:14px;color:#5B6A8F}
+
+/* Game list */
+.game-list{display:flex;flex-direction:column;gap:12px}
+.game-card{
+  background:#fff;border-radius:16px;border:1px solid #E3E8F2;
+  overflow:hidden;cursor:pointer;transition:all .2s;
+  box-shadow:0 2px 8px rgba(11,20,55,.04);
+}
+.game-card:hover{border-color:#1E3A8A;box-shadow:0 4px 16px rgba(30,58,138,.1)}
+.game-card-head{
+  display:flex;align-items:center;gap:16px;padding:18px 20px;
+}
+.game-icon{
+  width:44px;height:44px;border-radius:12px;flex-shrink:0;
+  background:linear-gradient(135deg,#7C3AED,#4F46E5);
+  display:grid;place-items:center;
+}
+.game-icon svg{width:22px;height:22px;color:#fff}
+.game-info{flex:1;min-width:0}
+.game-title{font-size:15px;font-weight:800;color:#0B1437;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.game-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.game-meta-item{
+  display:flex;align-items:center;gap:4px;font-size:12px;color:#5B6A8F;font-weight:600;
+}
+.game-meta-item svg{width:12px;height:12px;opacity:.6}
+.game-code{
+  font-family:"Geist Mono",monospace;font-size:12px;font-weight:700;
+  padding:3px 10px;border-radius:7px;background:#EEF2FB;color:#1E3A8A;
+  letter-spacing:.06em;
+}
+.game-card-actions{
+  display:flex;align-items:center;gap:8px;flex-shrink:0;
+}
+.game-action-btn{
+  padding:7px 14px;border-radius:9px;font-family:"Manrope",sans-serif;
+  font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;border:none;
+  display:flex;align-items:center;gap:5px;
+}
+.game-action-btn svg{width:13px;height:13px}
+.btn-view{background:#F4F6FB;color:#1E3A8A;border:1.5px solid #E3E8F2}
+.btn-view:hover{background:#EEF2FB;border-color:#1E3A8A}
+.btn-del{background:#FEE2E2;color:#B91C1C;border:1.5px solid #FCA5A5}
+.btn-del:hover{background:#FECACA}
+
+/* Expanded results panel */
+.game-results{
+  display:none;border-top:1px solid #E3E8F2;padding:16px 20px;
+  background:#FAFBFE;
+}
+.game-results.open{display:block;animation:slideDown .2s ease}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.results-title{
+  font-size:10px;text-transform:uppercase;letter-spacing:.08em;
+  color:#8691AC;font-weight:700;margin-bottom:12px;
+}
+.results-podium{display:flex;align-items:flex-end;gap:10px;margin-bottom:16px;justify-content:center}
+.pod-item{display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center}
+.pod-medal{font-size:18px}
+.pod-ava{
+  width:40px;height:40px;border-radius:50%;
+  display:grid;place-items:center;font-size:13px;font-weight:800;border:2px solid;
+}
+.pod-ava.p1{background:rgba(255,215,0,.15);border-color:#FFD700;color:#B45309}
+.pod-ava.p2{background:rgba(192,192,192,.15);border-color:#9CA3AF;color:#374151}
+.pod-ava.p3{background:rgba(205,127,50,.12);border-color:#D97706;color:#92400E}
+.pod-name{font-size:11px;font-weight:700;color:#0B1437;max-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pod-score{font-family:"Geist Mono",monospace;font-size:12px;font-weight:700;color:#5B6A8F}
+.pod-bar{width:54px;border-radius:6px 6px 0 0;margin-top:4px}
+.pod-bar.p1{background:linear-gradient(180deg,#FCD34D,rgba(252,211,77,.3));height:60px}
+.pod-bar.p2{background:linear-gradient(180deg,#D1D5DB,rgba(209,213,219,.3));height:44px}
+.pod-bar.p3{background:linear-gradient(180deg,#FCA5A5,rgba(252,165,165,.3));height:32px}
+
+.results-list{display:flex;flex-direction:column;gap:5px}
+.result-row{
+  display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;
+  background:#fff;border:1px solid #E3E8F2;font-size:13px;
+}
+.result-pl{font-family:"Geist Mono",monospace;font-size:12px;font-weight:700;color:#8691AC;min-width:20px;text-align:center}
+.result-name{flex:1;font-weight:600;color:#0B1437}
+.result-score{font-family:"Geist Mono",monospace;font-size:13px;font-weight:700;color:#1E3A8A}
+
+/* Loader */
+.loader{display:flex;align-items:center;justify-content:center;padding:40px}
+.loader-spin{width:32px;height:32px;border:3px solid #E3E8F2;border-top-color:#1E3A8A;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Delete confirm */
+.del-overlay{
+  position:fixed;inset:0;background:rgba(11,20,55,.4);z-index:100;
+  display:none;align-items:center;justify-content:center;padding:20px;
+  backdrop-filter:blur(4px);
+}
+.del-overlay.show{display:flex}
+.del-card{
+  background:#fff;border-radius:18px;padding:28px;max-width:380px;width:100%;
+  box-shadow:0 20px 60px rgba(11,20,55,.2);text-align:center;
+}
+.del-ico{font-size:36px;margin-bottom:12px}
+.del-title{font-size:18px;font-weight:800;margin-bottom:8px}
+.del-sub{font-size:14px;color:#5B6A8F;margin-bottom:20px;line-height:1.5}
+.del-btns{display:flex;gap:10px}
+.del-btn{
+  flex:1;padding:12px;border-radius:11px;font-family:"Manrope",sans-serif;
+  font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;border:none;
+}
+.del-btn.cancel{background:#F4F6FB;color:#5B6A8F;border:1.5px solid #E3E8F2}
+.del-btn.cancel:hover{background:#EEF2FB}
+.del-btn.confirm{background:#DC2626;color:#fff;box-shadow:0 4px 12px rgba(220,38,38,.3)}
+.del-btn.confirm:hover{background:#B91C1C}
+</style>
+</head>
+<body>
+
+<div class="main">
+  <div class="page-header">
+    <a href="index.html" class="back-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Назад
+    </a>
+    <div>
+      <div class="page-title">Історія Live ігор</div>
+      <div class="page-sub">Результати всіх проведених live сесій</div>
+    </div>
+  </div>
+
+  <div id="content">
+    <div class="loader"><div class="loader-spin"></div></div>
+  </div>
+</div>
+
+<!-- Delete confirm -->
+<div class="del-overlay" id="del-overlay">
+  <div class="del-card">
+    <div class="del-ico">🗑️</div>
+    <div class="del-title">Видалити гру?</div>
+    <div class="del-sub">Результати гри <strong id="del-code-lbl"></strong> будуть видалені назавжди.</div>
+    <div class="del-btns">
+      <button class="del-btn cancel" onclick="closeDelModal()">Скасувати</button>
+      <button class="del-btn confirm" onclick="confirmDelete()">Видалити</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const FC = {
+  apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",
+  authDomain:"quizflow-8a978.firebaseapp.com",
+  databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"quizflow-8a978",
+  storageBucket:"quizflow-8a978.firebasestorage.app",
+  messagingSenderId:"206469794166",
+  appId:"1:206469794166:web:55cd7007b429607acd5257"
+};
+const app  = getApps().length ? getApps()[0] : initializeApp(FC);
+const auth = getAuth(app);
+const db   = getDatabase(app);
+
+// Auth guard
+const fbUser = await new Promise(r => { const u = onAuthStateChanged(auth, u => { u(); r(u); }); });
+if (!fbUser) { location.href = "login.html"; throw new Error("no auth"); }
+const uid = fbUser.uid;
+
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function fmtDate(ts){
+  if (!ts) return "—";
+  return new Date(ts).toLocaleString("uk-UA",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+}
+
+// Load history
+const snap = await get(ref(db, `teachers/${uid}/gameHistory`));
+const content = document.getElementById("content");
+
+if (!snap.exists()) {
+  content.innerHTML = `<div class="empty">
+    <div class="empty-ico">🎮</div>
+    <div class="empty-title">Ще немає ігор</div>
+    <div class="empty-sub">Проведіть першу Live гру — результати з'являться тут</div>
+  </div>`;
+} else {
+  const games = Object.entries(snap.val())
+    .map(([code, g]) => ({ code, ...g }))
+    .sort((a,b) => (b.playedAt||0) - (a.playedAt||0));
+
+  content.innerHTML = `<div class="game-list">${games.map(g => renderGameCard(g)).join("")}</div>`;
+}
+
+function renderGameCard(g) {
+  const results = Array.isArray(g.results) ? g.results : [];
+  const top3 = results.slice(0,3);
+  const medals = ["🥇","🥈","🥉"];
+  const pCls = ["p1","p2","p3"];
+  const barCls = ["p1","p2","p3"];
+
+  const podiumHtml = top3.map((r,i) => {
+    const initials = ((r.surname||r.name||"?")[0]+(r.name||"?")[0]).toUpperCase();
+    return `<div class="pod-item">
+      <div class="pod-medal">${medals[i]}</div>
+      <div class="pod-ava ${pCls[i]}">${initials}</div>
+      <div class="pod-name">${esc((r.surname||"")+" "+(r.name||"")).trim()}</div>
+      <div class="pod-score">${r.score||0} балів</div>
+      <div class="pod-bar ${barCls[i]}"></div>
+    </div>`;
+  }).join("");
+
+  const listHtml = results.slice(3).map((r,i) =>
+    `<div class="result-row">
+      <span class="result-pl">${i+4}</span>
+      <span class="result-name">${esc((r.surname||"")+" "+(r.name||"")).trim()}</span>
+      <span class="result-score">${r.score||0}</span>
+    </div>`
+  ).join("");
+
+  return `<div class="game-card" id="card-${g.code}">
+    <div class="game-card-head">
+      <div class="game-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
+      </div>
+      <div class="game-info">
+        <div class="game-title">${esc(g.testTitle||"Без назви")}</div>
+        <div class="game-meta">
+          <span class="game-code">${g.code}</span>
+          <span class="game-meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            ${g.playerCount||0} гравців
+          </span>
+          <span class="game-meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            ${fmtDate(g.playedAt)}
+          </span>
+        </div>
+      </div>
+      <div class="game-card-actions">
+        <button class="game-action-btn btn-view" onclick="toggleResults('${g.code}',event)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          Результати
+        </button>
+        <button class="game-action-btn btn-del" onclick="openDelModal('${g.code}',event)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          Видалити
+        </button>
+      </div>
+    </div>
+    <div class="game-results" id="results-${g.code}">
+      ${results.length ? `
+        <div class="results-title">Результати — ${results.length} учасників</div>
+        ${top3.length ? `<div class="results-podium">${podiumHtml}</div>` : ""}
+        ${results.slice(3).length ? `<div class="results-list">${listHtml}</div>` : ""}
+      ` : `<div style="text-align:center;font-size:13px;color:#8691AC;padding:8px">Немає даних</div>`}
+    </div>
+  </div>`;
+}
+
+window.toggleResults = (code, e) => {
+  e.stopPropagation();
+  const el = document.getElementById(`results-${code}`);
+  const btn = e.currentTarget;
+  const isOpen = el.classList.contains("open");
+  el.classList.toggle("open", !isOpen);
+  btn.innerHTML = isOpen
+    ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg> Результати`
+    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg> Сховати`;
+};
+
+let _delCode = "";
+window.openDelModal = (code, e) => {
+  e.stopPropagation();
+  _delCode = code;
+  document.getElementById("del-code-lbl").textContent = code;
+  document.getElementById("del-overlay").classList.add("show");
+};
+window.closeDelModal = () => {
+  document.getElementById("del-overlay").classList.remove("show");
+};
+window.confirmDelete = async () => {
+  await remove(ref(db, `teachers/${uid}/gameHistory/${_delCode}`));
+  document.getElementById(`card-${_delCode}`)?.remove();
+  closeDelModal();
+
+  // Check if list is empty
+  if (!document.querySelector(".game-card")) {
+    document.querySelector(".game-list").innerHTML = `<div class="empty">
+      <div class="empty-ico">🎮</div>
+      <div class="empty-title">Ще немає ігор</div>
+      <div class="empty-sub">Проведіть першу Live гру — результати з'являться тут</div>
+    </div>`;
+  }
+};
+
+document.getElementById("del-overlay").addEventListener("click", e => {
+  if (e.target === e.currentTarget) closeDelModal();
+});
+</script>
+</body>
+</html>
