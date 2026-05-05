@@ -23,7 +23,6 @@
       radial-gradient(900px 600px at 100% 100%, rgba(59,130,246,.18), transparent 65%),
       linear-gradient(180deg,#070B22,#0A0F2C 40%, #0E1640);
     min-height:100vh; padding:48px 24px;
-    background-attachment: fixed;
   }
   body::before{
     content:""; position:fixed; inset:0; pointer-events:none;
@@ -114,7 +113,7 @@
   .tgl.on .switch{background:#7C3AED}
   .tgl.on .switch::after{transform:translateX(16px)}
 
-  .preview-wrap{position:sticky;top:32px;display:flex;flex-direction:column;gap:14px}
+  .preview-wrap{position:relative;top:0;display:flex;flex-direction:column;gap:14px}
   .preview{
     aspect-ratio: 16 / 10; border-radius:18px; overflow:hidden;
     background:linear-gradient(135deg,#1E3A8A,#0F1844);
@@ -142,6 +141,7 @@
     background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.015));
     border:1px solid var(--line);border-radius:18px;
     margin-top:8px;
+    position:relative;z-index:10;
   }
   .launch-bar .info{font-size:13px;color:var(--ink-d)}
   .launch-bar .info b{color:#fff}
