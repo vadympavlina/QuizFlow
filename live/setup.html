@@ -292,20 +292,35 @@ const uid = fbUser.uid;
 // ─── Cleanup старих кімнат при відкритті setup ───────────────────────────────
 (async () => {
   try {
-    const roomsSnap = await get(ref(db, "rooms"));
-    if (roomsSnap.exists()) {
-      const now = Date.now();
-      const DEAD = ["finished", "leaderboard"];
-      const toDelete = [];
-      roomsSnap.forEach(child => {
-        const r = child.val();
-        if (r.hostUid === uid && (DEAD.includes(r.status) || now - (r.createdAt||0) > 86400000)) {
-          toDelete.push(child.key);
+    // Читаємо тільки свої коди кімнат (не весь /rooms/)
+    const myRoomsSnap = await get(ref(db, `teachers/${uid}/liveRooms`));
+    if (!myRoomsSnap.exists()) return;
+
+    const now = Date.now();
+    const DEAD = ["finished", "leaderboard"];
+    const toDelete = [];
+
+    // Для кожного свого коду — перевіряємо статус
+    const checks = [];
+    myRoomsSnap.forEach(child => {
+      const code = child.key;
+      checks.push(get(ref(db, `rooms/${code}/status`)).then(async snap => {
+        const createdSnap = await get(ref(db, `rooms/${code}/createdAt`));
+        const status = snap.val();
+        const createdAt = createdSnap.val() || 0;
+        if (!snap.exists() || DEAD.includes(status) || now - createdAt > 86400000) {
+          toDelete.push(code);
         }
-      });
-      await Promise.all(toDelete.map(key => remove(ref(db, `rooms/${key}`))));
-      if (toDelete.length) console.log(`[cleanup] видалено ${toDelete.length} кімнат`);
-    }
+      }).catch(() => toDelete.push(code)));
+    });
+    await Promise.all(checks);
+
+    // Видаляємо кімнати і записи
+    await Promise.all(toDelete.map(async key => {
+      await remove(ref(db, `rooms/${key}`)).catch(()=>{});
+      await remove(ref(db, `teachers/${uid}/liveRooms/${key}`)).catch(()=>{});
+    }));
+    if (toDelete.length) console.log(`[cleanup] видалено ${toDelete.length} кімнат`);
   } catch(e) { console.warn("cleanup:", e.message); }
 })();
 
@@ -474,6 +489,9 @@ async function createRoom() {
     testTitle: testData.title || "",
     createdAt: Date.now(),
   });
+
+  // Зберігаємо код кімнати у власному списку викладача
+  await set(ref(db, `teachers/${uid}/liveRooms/${code}`), Date.now());
 
   location.href = `lobby.html?code=${code}`;
 }
