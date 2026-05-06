@@ -731,7 +731,7 @@ function buildTestCard(t, idx){
     <!-- Cover -->
     <div class="t-qc-cover" style="background:${grad}" onclick="location.href='constructor.html?id=${t.id}'">
       <span class="t-qc-code">${esc(abbr)}</span>
-      <span class="t-qc-status"><span class="t-pill ${sc.cls}">${sc.label}</span></span>
+      <span class="t-qc-status"></span>
     </div>
     <!-- Title + meta -->
     <div>
@@ -769,10 +769,6 @@ function buildTestCard(t, idx){
             <div class="t-tmenu-item" onclick="G.qLink('${t.id}')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
               Нове посилання
-            </div>
-            <div class="t-tmenu-item" onclick="G.toggleTestStatus('${t.id}','${t.status}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              Змінити статус
             </div>
             <div class="t-tmenu-item" onclick="G.showStats('${t.id}')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
@@ -827,9 +823,7 @@ function buildTestRow(t, idx){
       </div>
     </td>
     <td style="white-space:nowrap">
-      <button onclick="G.toggleTestStatus('${t.id}','${t.status}')" style="background:transparent;border:0;padding:0;cursor:pointer" title="Змінити статус">
-        <span class="t-pill ${sc.cls}">${sc.label}</span>
-      </button>
+      
     </td>
     <td class="t-mono">${qCnt} <span class="t-muted" style="font-size:11px">пит.</span></td>
     <td class="t-mono" style="color:${cnt > 0 ? "var(--ink-700)" : "var(--ink-400)"};font-weight:600">${cnt}</td>
@@ -916,18 +910,18 @@ renderTests = function(q = ""){
     const folderName = inFolder ? (folder?.name || "Папка") : "Без папки";
     const folderColor = inFolder ? _folderColor(folder) : "#8691AC";
     let fTests = inFolder ? lst.filter(t => t.folderId === _fFilter) : noFolderTests;
-    if (window._testsStatus) fTests = fTests.filter(t => t.status === window._testsStatus);
+    // status filter removed
 
     const allCnt = inFolder ? lst.filter(t => t.folderId === _fFilter).length : noFolderTests.length;
     const activeCnt = inFolder
-      ? lst.filter(t => t.folderId === _fFilter && t.status === "active").length
-      : noFolderTests.filter(t => t.status === "active").length;
+      ? lst.filter(t => t.folderId === _fFilter).length
+      : noFolderTests.length;
     const draftCnt = inFolder
-      ? lst.filter(t => t.folderId === _fFilter && t.status === "draft").length
-      : noFolderTests.filter(t => t.status === "draft").length;
+      ? 0
+      : 0;
     const closedCnt = inFolder
-      ? lst.filter(t => t.folderId === _fFilter && t.status === "closed").length
-      : noFolderTests.filter(t => t.status === "closed").length;
+      ? 0
+      : 0;
 
     c.innerHTML = `
       <div class="t-card">
@@ -1797,8 +1791,8 @@ selectAnalyticsDrop(field, value, label){
   },
   async restoreTest(id){
     try{
-      await dbUpd(`tests/${id}`,{status:"draft",archivedAt:null});
-      tests=tests.map(t=>t.id===id?{...t,status:"draft",archivedAt:null}:t);
+      await dbUpd(`tests/${id}`,{status:"active",archivedAt:null});
+      tests=tests.map(t=>t.id===id?{...t,status:"active",archivedAt:null}:t);
       renderAll(); G.renderArchive(); toast("Тест відновлено як чернетка");
     }catch(e){toast("Помилка: "+e.message,"err");}
   },
@@ -1862,7 +1856,7 @@ selectAnalyticsDrop(field, value, label){
     const desc=$("nt-d").value.trim(),tags=$("nt-tg").value.split(",").map(s=>s.trim()).filter(Boolean),tl=(parseInt($("nt-tm").value)||10)*60;
     ldr(true);closeM("m-test");
     try{
-      const id=await dbPush("tests",{title:n,description:desc,folderId:_fid||null,tags,timeLimit:tl,status:"draft",questions:[],createdAt:ts()});
+      const id=await dbPush("tests",{title:n,description:desc,folderId:_fid||null,tags,timeLimit:tl,status:"active",questions:[],createdAt:ts()});
       location.href=`constructor.html?id=${id}`;
     }catch(e){toast("Помилка: "+e.message,"err");ldr(false);}
   },
