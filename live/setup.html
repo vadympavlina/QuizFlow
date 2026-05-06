@@ -441,7 +441,8 @@ async function createRoom() {
       const updates = {};
       roomsSnap.forEach(child => {
         const r = child.val();
-        if (r.hostUid === uid && (r.status === "finished" || now - (r.createdAt||0) > 86400000)) {
+        const DEAD_STATUSES = ["finished", "leaderboard"];
+        if (r.hostUid === uid && (DEAD_STATUSES.includes(r.status) || now - (r.createdAt||0) > 86400000)) {
           updates[`rooms/${child.key}`] = null;
         }
       });
