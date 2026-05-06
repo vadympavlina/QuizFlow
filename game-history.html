@@ -148,8 +148,8 @@
 
 <script type="module">
 import { getDatabase, ref, get, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-const { initApp } = await import("./shared/app.js?v=15");
-await initApp("history");
+const { initApp, appReady } = await import("./shared/app.js?v=15");
+await initApp("history", { skipData: true });
 
 const db = getDatabase();
 const uid = window._currentUser?.id || "";
@@ -177,6 +177,7 @@ if (snap.exists()) {
 } else {
   showEmpty("Ще не проводили жодної гри");
 }
+appReady();
 
 function showEmpty(msg="Нічого не знайдено") {
   document.getElementById("history-sub").textContent = msg;
