@@ -427,7 +427,10 @@ updateSummary();
 updatePreview();
 
 // ─── Launch button ──────────────────────────────────────────────────────────
-document.getElementById("launch-btn").addEventListener("click", createRoom);
+document.getElementById("launch-btn").addEventListener("click", () => {
+  console.log("[DEBUG] launch-btn clicked, uid=", uid);
+  createRoom();
+});
 
 async function createRoom() {
   const btn = document.getElementById("launch-btn");
