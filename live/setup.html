@@ -277,7 +277,7 @@
 
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const FC = {apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",authDomain:"quizflow-8a978.firebaseapp.com",databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",projectId:"quizflow-8a978",storageBucket:"quizflow-8a978.firebasestorage.app",messagingSenderId:"206469794166",appId:"1:206469794166:web:55cd7007b429607acd5257"};
@@ -432,6 +432,24 @@ document.getElementById("launch-btn").addEventListener("click", createRoom);
 async function createRoom() {
   const btn = document.getElementById("launch-btn");
   btn.disabled = true; btn.innerHTML = "Створення...";
+
+  // Очищаємо старі кімнати цього викладача
+  try {
+    const roomsSnap = await get(ref(db, "rooms"));
+    if (roomsSnap.exists()) {
+      const now = Date.now();
+      const updates = {};
+      roomsSnap.forEach(child => {
+        const r = child.val();
+        if (r.hostUid === uid && (r.status === "finished" || now - (r.createdAt||0) > 86400000)) {
+          updates[`rooms/${child.key}`] = null;
+        }
+      });
+      if (Object.keys(updates).length) {
+        await update(ref(db, "/"), updates);
+      }
+    }
+  } catch(e) { console.warn("cleanup rooms:", e.message); }
 
   let code;
   for (let i = 0; i < 10; i++) {
