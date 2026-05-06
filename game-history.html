@@ -75,13 +75,13 @@
 #sec-history .pod-name{flex:1;font-weight:700;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #sec-history .pod-pts{font-family:"Geist Mono",monospace;font-weight:800;font-size:12px;color:#7C3AED}
 #sec-history .empty{text-align:center;padding:60px 20px;color:var(--ink-500)}
-#sec-history .empty .e-ico{font-size:48px;margin-bottom:12px}
+#sec-history .empty svg{display:block;margin:0 auto 12px}
 #sec-history .empty h3{font-size:17px;font-weight:700;color:var(--ink-900);margin:0 0 6px}
 #sec-history .empty p{font-size:13px;margin:0}
 .h-del-bg{position:fixed;inset:0;background:rgba(11,20,55,.35);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
 .h-del-bg.show{display:flex}
 .h-del-modal{background:#fff;border-radius:18px;padding:28px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(11,20,55,.18);text-align:center}
-.h-del-modal .d-ico{font-size:36px;margin-bottom:10px}
+.h-del-modal>div:first-child{display:flex;justify-content:center}
 .h-del-modal h3{font-size:17px;font-weight:800;margin:0 0 8px;color:#0B1437}
 .h-del-modal p{font-size:13px;color:#5B6A8F;margin:0 0 18px;line-height:1.5}
 .h-del-modal .d-btns{display:flex;gap:10px}
@@ -93,6 +93,7 @@
 </style>
 </head>
 <body>
+<main class="main">
 <div class="sec" id="sec-history">
   <div class="page-title">
     <div>
@@ -133,10 +134,11 @@
 
   <div class="games" id="games-list"></div>
 </div>
+</main>
 
 <div class="h-del-bg" id="del-bg">
   <div class="h-del-modal">
-    <div class="d-ico">🗑️</div>
+    
     <h3>Видалити гру?</h3>
     <p>Результати гри <b id="del-code-label"></b> будуть видалені назавжди.</p>
     <div class="d-btns">
@@ -152,7 +154,7 @@ const { initApp, appReady } = await import("./shared/app.js?v=15");
 await initApp("history", { skipData: true });
 
 const db = getDatabase();
-const uid = window._currentUser?.id || "";
+const uid = window._user?.id || window._uid || "";
 
 function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 function fmtDate(ts) {
@@ -181,7 +183,7 @@ appReady();
 
 function showEmpty(msg="Нічого не знайдено") {
   document.getElementById("history-sub").textContent = msg;
-  document.getElementById("games-list").innerHTML = `<div class="empty"><div class="e-ico">🎮</div><h3>${msg}</h3><p>Проведіть першу Live гру — результати з'являться тут</p></div>`;
+  document.getElementById("games-list").innerHTML = `<div class="empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--ink-400);margin-bottom:12px"><circle cx="12" cy="12" r="9"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/></svg><h3>${msg}</h3><p>Проведіть першу Live гру — результати з'являться тут</p></div>`;
 }
 
 function updateStats() {
@@ -204,7 +206,7 @@ function renderGames() {
   if (search) list = list.filter(g => g.code?.includes(search) || g.testTitle?.toLowerCase().includes(search));
 
   if (!list.length) {
-    document.getElementById("games-list").innerHTML = `<div class="empty"><div class="e-ico">🔍</div><h3>Нічого не знайдено</h3><p>Спробуйте інший пошук або фільтр</p></div>`;
+    document.getElementById("games-list").innerHTML = `<div class="empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--ink-400);margin-bottom:12px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><h3>Нічого не знайдено</h3><p>Спробуйте інший пошук або фільтр</p></div>`;
     return;
   }
 
@@ -215,7 +217,7 @@ function renderGames() {
     const maxScore = top3.length ? Math.max(...(g.results||[]).map(r=>r.score||0)) : 0;
 
     const podHtml = top3.length
-      ? `<h4>🏆 Топ-3</h4>` + top3.map((r,j) =>
+      ? `<h4>Топ-3</h4>` + top3.map((r,j) =>
           `<div class="pod-row">
             <span class="pod-rank r${j+1}">#${j+1}</span>
             <span class="pod-name">${esc(((r.surname||"")+" "+(r.name||"")).trim())}</span>
