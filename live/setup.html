@@ -289,6 +289,26 @@ const fbUser = await new Promise(r => { const u = onAuthStateChanged(auth, x => 
 if (!fbUser) { location.href = "../login.html"; throw new Error(); }
 const uid = fbUser.uid;
 
+// ─── Cleanup старих кімнат при відкритті setup ───────────────────────────────
+(async () => {
+  try {
+    const roomsSnap = await get(ref(db, "rooms"));
+    if (roomsSnap.exists()) {
+      const now = Date.now();
+      const DEAD = ["finished", "leaderboard"];
+      const toDelete = [];
+      roomsSnap.forEach(child => {
+        const r = child.val();
+        if (r.hostUid === uid && (DEAD.includes(r.status) || now - (r.createdAt||0) > 86400000)) {
+          toDelete.push(child.key);
+        }
+      });
+      await Promise.all(toDelete.map(key => remove(ref(db, `rooms/${key}`))));
+      if (toDelete.length) console.log(`[cleanup] видалено ${toDelete.length} кімнат`);
+    }
+  } catch(e) { console.warn("cleanup:", e.message); }
+})();
+
 const params  = new URLSearchParams(location.search);
 const testId  = params.get("testId");
 if (!testId) { alert("Не вказано testId"); location.href = "../index.html"; throw new Error(); }
@@ -427,35 +447,11 @@ updateSummary();
 updatePreview();
 
 // ─── Launch button ──────────────────────────────────────────────────────────
-document.getElementById("launch-btn").addEventListener("click", () => {
-  console.log("[DEBUG] launch-btn clicked, uid=", uid);
-  createRoom();
-});
+document.getElementById("launch-btn").addEventListener("click", createRoom);
 
 async function createRoom() {
   const btn = document.getElementById("launch-btn");
   btn.disabled = true; btn.innerHTML = "Створення...";
-
-  // Очищаємо старі кімнати цього викладача
-  try {
-    const roomsSnap = await get(ref(db, "rooms"));
-    if (roomsSnap.exists()) {
-      const now = Date.now();
-      const DEAD = ["finished", "leaderboard"];
-      const toDelete = [];
-      roomsSnap.forEach(child => {
-        const r = child.val();
-        const isMyRoom = r.hostUid === uid;
-        const isDead = DEAD.includes(r.status);
-        const isOld = now - (r.createdAt||0) > 86400000;
-        console.log(`[cleanup] ${child.key}: hostUid=${r.hostUid} status=${r.status} mine=${isMyRoom} dead=${isDead} old=${isOld}`);
-        if (isMyRoom && (isDead || isOld)) toDelete.push(child.key);
-      });
-      console.log(`[cleanup] uid=${uid} знайдено=${toDelete.length}`);
-      await Promise.all(toDelete.map(key => remove(ref(db, `rooms/${key}`))));
-      if (toDelete.length) console.log(`[cleanup] видалено: ${toDelete.join(", ")}`);
-    }
-  } catch(e) { console.error("cleanup rooms:", e); }
 
   let code;
   for (let i = 0; i < 10; i++) {
