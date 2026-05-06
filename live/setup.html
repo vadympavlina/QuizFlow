@@ -442,14 +442,17 @@ async function createRoom() {
       const toDelete = [];
       roomsSnap.forEach(child => {
         const r = child.val();
-        if (r.hostUid === uid && (DEAD.includes(r.status) || now - (r.createdAt||0) > 86400000)) {
-          toDelete.push(child.key);
-        }
+        const isMyRoom = r.hostUid === uid;
+        const isDead = DEAD.includes(r.status);
+        const isOld = now - (r.createdAt||0) > 86400000;
+        console.log(`[cleanup] ${child.key}: hostUid=${r.hostUid} status=${r.status} mine=${isMyRoom} dead=${isDead} old=${isOld}`);
+        if (isMyRoom && (isDead || isOld)) toDelete.push(child.key);
       });
+      console.log(`[cleanup] uid=${uid} знайдено=${toDelete.length}`);
       await Promise.all(toDelete.map(key => remove(ref(db, `rooms/${key}`))));
-      if (toDelete.length) console.log(`[cleanup] видалено ${toDelete.length} кімнат`);
+      if (toDelete.length) console.log(`[cleanup] видалено: ${toDelete.join(", ")}`);
     }
-  } catch(e) { console.warn("cleanup rooms:", e.message); }
+  } catch(e) { console.error("cleanup rooms:", e); }
 
   let code;
   for (let i = 0; i < 10; i++) {
