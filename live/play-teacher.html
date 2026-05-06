@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=1920"/>
+<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><circle cx='16' cy='16' r='9' fill='none' stroke='white' stroke-width='2'/><circle cx='16' cy='16' r='4' fill='white'/></svg>">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAzMiAzMic+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSdnJyB4MT0nMCcgeTE9JzAnIHgyPScxJyB5Mj0nMSc+PHN0b3Agb2Zmc2V0PScwJyBzdG9wLWNvbG9yPSclMjM3QzNBRUQnLz48c3RvcCBvZmZzZXQ9JzEnIHN0b3AtY29sb3I9JyUyMzRGNDZFNScvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSczMicgaGVpZ2h0PSczMicgcng9JzgnIGZpbGw9J3VybCglMjNnKScvPjxjaXJjbGUgY3g9JzE2JyBjeT0nMTYnIHI9JzknIGZpbGw9J25vbmUnIHN0cm9rZT0nd2hpdGUnIHN0cm9rZS13aWR0aD0nMicvPjxjaXJjbGUgY3g9JzE2JyBjeT0nMTYnIHI9JzQnIGZpbGw9J3doaXRlJy8+PC9zdmc+">
 <title>QuizFlow Live · Викладач</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -184,19 +186,19 @@ function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")
 
 // Apply theme
 const PAT_CSS = {
-  "grid": { bg: `url("<svg%20xmlns='http://www.w3.org/2000/svg'%20width='64'%20height='64'><line%20x1='0'%20y1='0'%20x2='64'%20y2='0'%20stroke='rgba(255%2C255%2C255%2C.12)'%20stroke-width='1'/><line%20x1='0'%20y1='0'%20x2='0'%20y2='64'%20stroke='rgba(255%2C255%2C255%2C.12)'%20stroke-width='1'/></svg>")`, size: "64px 64px" },
-  "dots": { bg: `url("<svg%20xmlns='http://www.w3.org/2000/svg'%20width='16'%20height='16'><circle%20cx='4'%20cy='4'%20r='2.5'%20fill='rgba(255%2C255%2C255%2C.22)'/></svg>")`, size: "16px 16px" },
-  "waves": { bg: `url("<svg%20xmlns='http://www.w3.org/2000/svg'%20width='64'%20height='48'><path%20d='M0%2016%20Q16%206%2032%2016%20Q48%2026%2064%2016'%20stroke='rgba(255%2C255%2C255%2C.16)'%20stroke-width='2'%20fill='none'/><path%20d='M0%2032%20Q16%2022%2032%2032%20Q48%2042%2064%2032'%20stroke='rgba(255%2C255%2C255%2C.08)'%20stroke-width='1.5'%20fill='none'/></svg>")`, size: "64px 48px" },
-  "hex": { bg: `url("<svg%20xmlns='http://www.w3.org/2000/svg'%20width='60'%20height='66'><polygon%20points='30%2C3%2057%2C18%2057%2C48%2030%2C63%203%2C48%203%2C18'%20stroke='rgba(255%2C255%2C255%2C.14)'%20stroke-width='1.5'%20fill='none'/></svg>")`, size: "60px 66px" },
-  "diag": { bg: `url("<svg%20xmlns='http://www.w3.org/2000/svg'%20width='48'%20height='48'><line%20x1='0'%20y1='24'%20x2='24'%20y2='0'%20stroke='rgba(255%2C255%2C255%2C.16)'%20stroke-width='1.5'/><line%20x1='24'%20y1='48'%20x2='48'%20y2='24'%20stroke='rgba(255%2C255%2C255%2C.08)'%20stroke-width='1'/></svg>")`, size: "48px 48px" },
-  "target": { bg: `url("<svg%20xmlns='http://www.w3.org/2000/svg'%20width='64'%20height='64'><circle%20cx='32'%20cy='32'%20r='28'%20stroke='rgba(255%2C255%2C255%2C.13)'%20stroke-width='1.5'%20fill='none'/><circle%20cx='32'%20cy='32'%20r='16'%20stroke='rgba(255%2C255%2C255%2C.07)'%20stroke-width='1'%20fill='none'/></svg>")`, size: "64px 64px" },
-  "star": { bg: `url("<svg%20xmlns='http://www.w3.org/2000/svg'%20width='40'%20height='40'><polygon%20points='20%2C2%2024%2C14%2036%2C14%2026%2C22%2030%2C34%2020%2C26%2010%2C34%2014%2C22%204%2C14%2016%2C14'%20stroke='rgba(255%2C255%2C255%2C.16)'%20stroke-width='1.2'%20fill='none'/></svg>")`, size: "40px 40px" },
-  "snow": { bg: `url("<svg%20xmlns='http://www.w3.org/2000/svg'%20width='32'%20height='32'><line%20x1='16'%20y1='2'%20x2='16'%20y2='30'%20stroke='rgba(255%2C255%2C255%2C.2)'%20stroke-width='1.5'%20stroke-linecap='round'/><line%20x1='2'%20y1='16'%20x2='30'%20y2='16'%20stroke='rgba(255%2C255%2C255%2C.2)'%20stroke-width='1.5'%20stroke-linecap='round'/><line%20x1='5'%20y1='5'%20x2='27'%20y2='27'%20stroke='rgba(255%2C255%2C255%2C.12)'%20stroke-width='1.2'%20stroke-linecap='round'/><line%20x1='27'%20y1='5'%20x2='5'%20y2='27'%20stroke='rgba(255%2C255%2C255%2C.12)'%20stroke-width='1.2'%20stroke-linecap='round'/></svg>")`, size: "32px 32px" },
-  "heart": { bg: `url("<svg%20xmlns='http://www.w3.org/2000/svg'%20width='40'%20height='32'><path%20d='M20%2028%20C10%2020%2C2%2013%2C2%208%20C2%204%2C5%2C2%2C9%2C2%20C12%2C2%2C15%2C4%2C20%2C8%20C25%2C4%2C28%2C2%2C31%2C2%20C35%2C2%2C38%2C5%2C38%2C8%20C38%2C13%2C30%2C20%2C20%2C28Z'%20stroke='rgba(255%2C255%2C255%2C.16)'%20stroke-width='1.5'%20fill='none'/></svg>")`, size: "40px 32px" },
-  "flower": { bg: `url("<svg%20xmlns='http://www.w3.org/2000/svg'%20width='48'%20height='48'><circle%20cx='24'%20cy='12'%20r='7'%20stroke='rgba(255%2C255%2C255%2C.13)'%20stroke-width='1.5'%20fill='none'/><circle%20cx='24'%20cy='36'%20r='7'%20stroke='rgba(255%2C255%2C255%2C.13)'%20stroke-width='1.5'%20fill='none'/><circle%20cx='10'%20cy='24'%20r='7'%20stroke='rgba(255%2C255%2C255%2C.13)'%20stroke-width='1.5'%20fill='none'/><circle%20cx='38'%20cy='24'%20r='7'%20stroke='rgba(255%2C255%2C255%2C.13)'%20stroke-width='1.5'%20fill='none'/><circle%20cx='24'%20cy='24'%20r='5'%20stroke='rgba(255%2C255%2C255%2C.2)'%20stroke-width='1.5'%20fill='none'/></svg>")`, size: "48px 48px" },
-  "leaf": { bg: `url("<svg%20xmlns='http://www.w3.org/2000/svg'%20width='48'%20height='48'><path%20d='M4%2044%20Q24%204%2044%204%20Q44%2024%204%2044Z'%20stroke='rgba(255%2C255%2C255%2C.15)'%20stroke-width='1.5'%20fill='none'/><path%20d='M4%2044%20Q24%2024%2044%204'%20stroke='rgba(255%2C255%2C255%2C.07)'%20stroke-width='1'%20fill='none'/></svg>")`, size: "48px 48px" },
-  "prism": { bg: `url("<svg%20xmlns='http://www.w3.org/2000/svg'%20width='40'%20height='36'><polygon%20points='20%2C3%2037%2C33%203%2C33'%20stroke='rgba(255%2C255%2C255%2C.15)'%20stroke-width='1.5'%20fill='none'/></svg>")`, size: "40px 36px" },
-  "wave2": { bg: `url("<svg%20xmlns='http://www.w3.org/2000/svg'%20width='48'%20height='48'><polyline%20points='0%2C0%2012%2C24%2024%2C0%2036%2C24%2048%2C0'%20stroke='rgba(255%2C255%2C255%2C.18)'%20stroke-width='2'%20fill='none'%20stroke-linejoin='round'%20stroke-linecap='round'/><polyline%20points='0%2C24%2012%2C48%2024%2C24%2036%2C48%2048%2C24'%20stroke='rgba(255%2C255%2C255%2C.09)'%20stroke-width='1.5'%20fill='none'%20stroke-linejoin='round'%20stroke-linecap='round'/></svg>")`, size: "48px 48px" },
+  "grid": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCc+PGxpbmUgeDE9JzAnIHkxPScwJyB4Mj0nNjQnIHkyPScwJyBzdHJva2U9J3JnYmEoMjU1LDI1NSwyNTUsLjEyKScgc3Ryb2tlLXdpZHRoPScxJy8+PGxpbmUgeDE9JzAnIHkxPScwJyB4Mj0nMCcgeTI9JzY0JyBzdHJva2U9J3JnYmEoMjU1LDI1NSwyNTUsLjEyKScgc3Ryb2tlLXdpZHRoPScxJy8+PC9zdmc+")`, size: "64px 64px" },
+  "dots": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNicgaGVpZ2h0PScxNic+PGNpcmNsZSBjeD0nNCcgY3k9JzQnIHI9JzIuNScgZmlsbD0ncmdiYSgyNTUsMjU1LDI1NSwuMjIpJy8+PC9zdmc+")`, size: "16px 16px" },
+  "waves": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc0OCc+PHBhdGggZD0nTTAgMTYgUTE2IDYgMzIgMTYgUTQ4IDI2IDY0IDE2JyBzdHJva2U9J3JnYmEoMjU1LDI1NSwyNTUsLjE2KScgc3Ryb2tlLXdpZHRoPScyJyBmaWxsPSdub25lJy8+PHBhdGggZD0nTTAgMzIgUTE2IDIyIDMyIDMyIFE0OCA0MiA2NCAzMicgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4wOCknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PC9zdmc+")`, size: "64px 48px" },
+  "hex": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2MCcgaGVpZ2h0PSc2Nic+PHBvbHlnb24gcG9pbnRzPSczMCwzIDU3LDE4IDU3LDQ4IDMwLDYzIDMsNDggMywxOCcgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xNCknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PC9zdmc+")`, size: "60px 66px" },
+  "diag": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0OCcgaGVpZ2h0PSc0OCc+PGxpbmUgeDE9JzAnIHkxPScyNCcgeDI9JzI0JyB5Mj0nMCcgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xNiknIHN0cm9rZS13aWR0aD0nMS41Jy8+PGxpbmUgeDE9JzI0JyB5MT0nNDgnIHgyPSc0OCcgeTI9JzI0JyBzdHJva2U9J3JnYmEoMjU1LDI1NSwyNTUsLjA4KScgc3Ryb2tlLXdpZHRoPScxJy8+PC9zdmc+")`, size: "48px 48px" },
+  "target": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCc+PGNpcmNsZSBjeD0nMzInIGN5PSczMicgcj0nMjgnIHN0cm9rZT0ncmdiYSgyNTUsMjU1LDI1NSwuMTMpJyBzdHJva2Utd2lkdGg9JzEuNScgZmlsbD0nbm9uZScvPjxjaXJjbGUgY3g9JzMyJyBjeT0nMzInIHI9JzE2JyBzdHJva2U9J3JnYmEoMjU1LDI1NSwyNTUsLjA3KScgc3Ryb2tlLXdpZHRoPScxJyBmaWxsPSdub25lJy8+PC9zdmc+")`, size: "64px 64px" },
+  "star": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0MCcgaGVpZ2h0PSc0MCc+PHBvbHlnb24gcG9pbnRzPScyMCwyIDI0LDE0IDM2LDE0IDI2LDIyIDMwLDM0IDIwLDI2IDEwLDM0IDE0LDIyIDQsMTQgMTYsMTQnIHN0cm9rZT0ncmdiYSgyNTUsMjU1LDI1NSwuMTYpJyBzdHJva2Utd2lkdGg9JzEuMicgZmlsbD0nbm9uZScvPjwvc3ZnPg==")`, size: "40px 40px" },
+  "snow": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSczMicgaGVpZ2h0PSczMic+PGxpbmUgeDE9JzE2JyB5MT0nMicgeDI9JzE2JyB5Mj0nMzAnIHN0cm9rZT0ncmdiYSgyNTUsMjU1LDI1NSwuMiknIHN0cm9rZS13aWR0aD0nMS41JyBzdHJva2UtbGluZWNhcD0ncm91bmQnLz48bGluZSB4MT0nMicgeTE9JzE2JyB4Mj0nMzAnIHkyPScxNicgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4yKScgc3Ryb2tlLXdpZHRoPScxLjUnIHN0cm9rZS1saW5lY2FwPSdyb3VuZCcvPjxsaW5lIHgxPSc1JyB5MT0nNScgeDI9JzI3JyB5Mj0nMjcnIHN0cm9rZT0ncmdiYSgyNTUsMjU1LDI1NSwuMTIpJyBzdHJva2Utd2lkdGg9JzEuMicgc3Ryb2tlLWxpbmVjYXA9J3JvdW5kJy8+PGxpbmUgeDE9JzI3JyB5MT0nNScgeDI9JzUnIHkyPScyNycgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xMiknIHN0cm9rZS13aWR0aD0nMS4yJyBzdHJva2UtbGluZWNhcD0ncm91bmQnLz48L3N2Zz4=")`, size: "32px 32px" },
+  "heart": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0MCcgaGVpZ2h0PSczMic+PHBhdGggZD0nTTIwIDI4IEMxMCAyMCwyIDEzLDIgOCBDMiA0LDUsMiw5LDIgQzEyLDIsMTUsNCwyMCw4IEMyNSw0LDI4LDIsMzEsMiBDMzUsMiwzOCw1LDM4LDggQzM4LDEzLDMwLDIwLDIwLDI4Wicgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xNiknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PC9zdmc+")`, size: "40px 32px" },
+  "flower": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0OCcgaGVpZ2h0PSc0OCc+PGNpcmNsZSBjeD0nMjQnIGN5PScxMicgcj0nNycgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xMyknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PGNpcmNsZSBjeD0nMjQnIGN5PSczNicgcj0nNycgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xMyknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PGNpcmNsZSBjeD0nMTAnIGN5PScyNCcgcj0nNycgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xMyknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PGNpcmNsZSBjeD0nMzgnIGN5PScyNCcgcj0nNycgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xMyknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJy8+PGNpcmNsZSBjeD0nMjQnIGN5PScyNCcgcj0nNScgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4yKScgc3Ryb2tlLXdpZHRoPScxLjUnIGZpbGw9J25vbmUnLz48L3N2Zz4=")`, size: "48px 48px" },
+  "leaf": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0OCcgaGVpZ2h0PSc0OCc+PHBhdGggZD0nTTQgNDQgUTI0IDQgNDQgNCBRNDQgMjQgNCA0NFonIHN0cm9rZT0ncmdiYSgyNTUsMjU1LDI1NSwuMTUpJyBzdHJva2Utd2lkdGg9JzEuNScgZmlsbD0nbm9uZScvPjxwYXRoIGQ9J000IDQ0IFEyNCAyNCA0NCA0JyBzdHJva2U9J3JnYmEoMjU1LDI1NSwyNTUsLjA3KScgc3Ryb2tlLXdpZHRoPScxJyBmaWxsPSdub25lJy8+PC9zdmc+")`, size: "48px 48px" },
+  "prism": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0MCcgaGVpZ2h0PSczNic+PHBvbHlnb24gcG9pbnRzPScyMCwzIDM3LDMzIDMsMzMnIHN0cm9rZT0ncmdiYSgyNTUsMjU1LDI1NSwuMTUpJyBzdHJva2Utd2lkdGg9JzEuNScgZmlsbD0nbm9uZScvPjwvc3ZnPg==")`, size: "40px 36px" },
+  "wave2": { bg: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0OCcgaGVpZ2h0PSc0OCc+PHBvbHlsaW5lIHBvaW50cz0nMCwwIDEyLDI0IDI0LDAgMzYsMjQgNDgsMCcgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4xOCknIHN0cm9rZS13aWR0aD0nMicgZmlsbD0nbm9uZScgc3Ryb2tlLWxpbmVqb2luPSdyb3VuZCcgc3Ryb2tlLWxpbmVjYXA9J3JvdW5kJy8+PHBvbHlsaW5lIHBvaW50cz0nMCwyNCAxMiw0OCAyNCwyNCAzNiw0OCA0OCwyNCcgc3Ryb2tlPSdyZ2JhKDI1NSwyNTUsMjU1LC4wOSknIHN0cm9rZS13aWR0aD0nMS41JyBmaWxsPSdub25lJyBzdHJva2UtbGluZWpvaW49J3JvdW5kJyBzdHJva2UtbGluZWNhcD0ncm91bmQnLz48L3N2Zz4=")`, size: "48px 48px" },
 };
 
 function applyTheme(theme) {
@@ -220,6 +222,100 @@ function applyTheme(theme) {
     po.style.backgroundSize = pat.size;
     po.style.backgroundRepeat = "repeat";
     po.style.opacity = "1";
+  }
+}
+applyTheme(room.theme);
+
+function renderQuestion(qi) {
+  const q = questions[qi];
+  if (!q) return;
+  currentQ = qi;
+  revealMode = false;
+  const opts = q.options || [];
+  document.getElementById("q-lbl").textContent = `${qi+1} / ${totalQ}`;
+  document.getElementById("q-bar").style.width = `${((qi+1)/totalQ)*100}%`;
+  document.getElementById("q-text").innerHTML = q.text || "";
+  document.getElementById("answered-bar").style.display = "";
+  document.getElementById("distrib").style.display = "none";
+  document.getElementById("next-btn").textContent = "Розкрити →";
+  document.getElementById("pause-btn").style.display = "";
+  document.getElementById("skip-btn").style.display = "";
+  const cols = opts.length <= 2 ? "1fr" : "1fr 1fr";
+  document.getElementById("answers-grid").style.gridTemplateColumns = cols;
+  document.getElementById("answers-grid").innerHTML = opts.map((o,i) =>
+    `<div class="ans ${CLASSES[i]||"a"}">
+      <span class="letter">${LETTERS[i]}</span>
+      <span style="flex:1">${esc(o)}</span>
+      <span class="count-badge"><span id="cnt-${i}">—</span></span>
+    </div>`
+  ).join("");
+}
+
+function revealAnswers() {
+  const q = questions[currentQ];
+  if (!q || q.type === "text") { revealMode = true; clearInterval(timerInterval); return; }
+  revealMode = true;
+  clearInterval(timerInterval);
+  const opts = q.options || [];
+  const correct = Array.isArray(q.correct) ? q.correct.map(Number) : [Number(q.correct)];
+  const counts = Array(opts.length).fill(0);
+  Object.values(answersData).forEach(ans => {
+    const vals = Array.isArray(ans.value) ? ans.value : [ans.value];
+    vals.forEach(v => { if(counts[Number(v)] !== undefined) counts[Number(v)]++; });
+  });
+  const max = Math.max(...counts, 1);
+  document.querySelectorAll(".ans").forEach((el, i) => {
+    const span = el.querySelector(".count-badge span");
+    if (span) span.textContent = counts[i];
+    if (correct.includes(i)) { el.classList.add("correct"); }
+    else { el.classList.add("wrong-dim"); }
+  });
+  document.getElementById("answered-bar").style.display = "none";
+  document.getElementById("pause-btn").style.display = "none";
+  document.getElementById("skip-btn").style.display = "none";
+  const distrib = document.getElementById("distrib");
+  distrib.style.gridTemplateColumns = `repeat(${opts.length},1fr)`;
+  distrib.style.display = "grid";
+  distrib.innerHTML = opts.map((o,i) => {
+    const h = Math.round((counts[i]/max)*100);
+    return `<div class="dcol">
+      <div class="vnum">${counts[i]}</div>
+      <div class="vbar ${CLASSES[i]||"a"}"><i style="height:${Math.max(h,4)}%"></i></div>
+      <div class="lbl">${LETTERS[i]} · ${Math.round(counts[i]/Math.max(Object.keys(answersData).length,1)*100)}%</div>
+    </div>`;
+  }).join("");
+  document.getElementById("next-btn").textContent = "➜ Наступне";
+  document.getElementById("timer").textContent = "0";
+  document.getElementById("timer").className = "timer-mini danger";
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  function tick() {
+    if (isPaused) return;
+    const elapsed = (Date.now() - questionStartedAt) / 1000;
+    const left = Math.max(0, timePerQ - elapsed);
+    const el = document.getElementById("timer");
+    el.textContent = Math.ceil(left);
+    el.className = "timer-mini" + (left <= 5 ? " danger" : left <= 10 ? " warn" : "");
+    if (left <= 0) { clearInterval(timerInterval); revealAnswers(); update(ref(db,`rooms/${code}`),{status:"reveal"}); }
+  }
+  tick();
+  timerInterval = setInterval(tick, 200);
+}
+
+window.togglePause = async () => {
+  isPaused = !isPaused;
+  const btn = document.getElementById("pause-btn");
+  if (isPaused) {
+    pausedLeft = timePerQ - (Date.now() - questionStartedAt) / 1000;
+    await update(ref(db, `rooms/${code}`), { status: "paused" });
+    btn.textContent = "▶ Продовжити";
+  } else {
+    questionStartedAt = Date.now() - (timePerQ - pausedLeft) * 1000;
+    await update(ref(db, `rooms/${code}`), { status: "question", questionStartedAt });
+    btn.textContent = "⏸ Пауза";
+    startTimer();
   }
 };
 
