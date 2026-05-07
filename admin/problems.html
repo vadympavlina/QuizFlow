@@ -4,274 +4,473 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjN0MzQUVEIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNEY0NkU1Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjkiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjQiIGZpbGw9IndoaXRlIi8+PC9zdmc+">
-<title>QuizFlow Admin · Задачі</title>
+<title>QuizFlow Admin &middot; Задачі</title>
 <link rel="stylesheet" href="shared/admin-shell.css?v=1">
 <style>
-.kanban-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:start;padding-bottom:32px}
-.kb-col{background:#F4F6FB;border-radius:16px;min-height:200px;display:flex;flex-direction:column;overflow:hidden}
-.kb-col-head{display:flex;align-items:center;gap:10px;padding:14px 16px 12px;border-bottom:1px solid #E3E8F2}
-.kb-col-head .col-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.kb-col-head h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#0B1437;flex:1}
-.kb-col-head .col-count{font-family:"Geist Mono",monospace;font-size:11px;font-weight:700;background:#fff;border:1px solid #E3E8F2;padding:2px 8px;border-radius:999px;color:#5B6A8F}
-.kb-col-body{padding:10px;display:flex;flex-direction:column;gap:8px;flex:1;min-height:80px;transition:background .15s}
-.kb-col-body.drag-over{background:#EEF2FB}
-.kb-add-btn{display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:10px;background:transparent;border:1.5px dashed #CDD6E8;color:#8691AC;font-size:13px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;transition:all .15s;margin:2px 10px 10px}
-.kb-add-btn:hover{background:#fff;border-color:#1E3A8A;color:#1E3A8A}
-.kb-add-btn svg{width:14px;height:14px}
-.kb-card{background:#fff;border:1px solid #E3E8F2;border-radius:12px;padding:12px 14px;cursor:grab;transition:box-shadow .15s,transform .15s,border-color .15s;user-select:none;position:relative}
-.kb-card:hover{border-color:#CDD6E8;box-shadow:0 4px 12px rgba(11,20,55,.07)}
-.kb-card.dragging{opacity:.5;transform:scale(.97);cursor:grabbing}
-.card-type{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:5px;margin-bottom:7px}
-.card-type.bug{background:#FEE2E2;color:#B91C1C}
-.card-type.task{background:#EDE9FE;color:#6D28D9}
-.card-title{font-size:13.5px;font-weight:700;color:#0B1437;margin:0 0 8px;line-height:1.4}
-.card-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:11px;color:#8691AC;font-family:"Geist Mono",monospace}
-.card-meta-item{display:flex;align-items:center;gap:4px}
-.card-meta-item svg{width:11px;height:11px;flex-shrink:0}
-.card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid #F4F6FB}
-.card-assignee{display:flex;align-items:center;gap:6px;font-size:11.5px;color:#5B6A8F;font-weight:600}
-.assignee-av{width:22px;height:22px;border-radius:50%;background:#1E3A8A;color:#fff;display:grid;place-items:center;font-size:9px;font-weight:800;flex-shrink:0}
-.card-actions{display:flex;gap:4px;opacity:0;transition:opacity .15s}
-.kb-card:hover .card-actions{opacity:1}
-.card-act-btn{width:22px;height:22px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:#8691AC;display:grid;place-items:center;transition:all .12s;padding:0}
-.card-act-btn:hover{background:#F4F6FB;color:#0B1437}
-.card-act-btn.del:hover{background:#FEE2E2;color:#B91C1C}
-.card-act-btn svg{width:13px;height:13px}
-.card-date{font-size:10.5px;font-family:"Geist Mono",monospace;padding:2px 7px;border-radius:5px;font-weight:700}
-.card-date.done{background:#DCFCE7;color:#15803D}
-.card-date.overdue{background:#FEE2E2;color:#B91C1C}
-.card-date.pending{background:#F4F6FB;color:#8691AC}
-.col-new{border:1px solid #FEE2E2}
-.col-new .kb-col-head{border-bottom-color:#FEE2E2;background:#FFF5F5}
-.col-new .col-dot{background:#EF4444}
-.col-progress{border:1px solid #FEF3C7}
-.col-progress .kb-col-head{border-bottom-color:#FEF3C7;background:#FFFBEB}
-.col-progress .col-dot{background:#F59E0B}
-.col-done{border:1px solid #DCFCE7}
-.col-done .kb-col-head{border-bottom-color:#DCFCE7;background:#F0FDF4}
-.col-done .col-dot{background:#10B981}
-.task-modal-bg{position:fixed;inset:0;background:rgba(11,20,55,.4);z-index:500;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
-.task-modal-bg.open{display:flex}
-.task-modal{background:#fff;border-radius:18px;padding:28px;max-width:460px;width:100%;box-shadow:0 20px 60px rgba(11,20,55,.15)}
-.task-modal h3{margin:0 0 18px;font-size:17px;font-weight:800;color:#0B1437}
-.task-modal .field{margin-bottom:14px}
-.task-modal label{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5B6A8F;margin-bottom:6px}
-.task-modal input,.task-modal textarea,.task-modal select{width:100%;padding:10px 12px;border:1.5px solid #E3E8F2;border-radius:10px;font-family:Manrope,sans-serif;font-size:14px;color:#0B1437;outline:none;transition:border-color .15s;box-sizing:border-box}
-.task-modal input:focus,.task-modal textarea:focus,.task-modal select:focus{border-color:#1E3A8A}
-.task-modal textarea{min-height:80px;resize:vertical}
-.task-modal .modal-btns{display:flex;gap:10px;margin-top:20px}
-.task-modal .modal-btn{flex:1;padding:11px;border-radius:10px;font-family:Manrope,sans-serif;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:all .12s}
-.task-modal .modal-btn.cancel{background:#F4F6FB;color:#5B6A8F;border:1px solid #E3E8F2}
-.task-modal .modal-btn.cancel:hover{background:#EEF2FB}
-.task-modal .modal-btn.save{background:#1E3A8A;color:#fff}
-.task-modal .modal-btn.save:hover{background:#152C6E}
+/* ═══ KANBAN ═══════════════════════════════════════════════════════ */
+.kb-board{display:grid;grid-template-columns:repeat(3,340px);gap:20px;align-items:start;padding-bottom:40px;overflow-x:auto}
+.kb-col{border-radius:18px;display:flex;flex-direction:column;min-height:120px;overflow:hidden}
+
+/* Column header */
+.kb-head{
+  display:flex;align-items:center;gap:10px;padding:16px 18px 14px;
+  border-radius:18px 18px 0 0;border-bottom:2px solid transparent;
+}
+.col-new .kb-head{background:linear-gradient(135deg,#FFF1F0,#FEE2E2);border-bottom-color:#FECACA}
+.col-prog .kb-head{background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border-bottom-color:#FDE68A}
+.col-done .kb-head{background:linear-gradient(135deg,#F0FDF4,#DCFCE7);border-bottom-color:#A7F3D0}
+.col-new{border:1.5px solid #FEE2E2;background:#FFFAFA}
+.col-prog{border:1.5px solid #FEF3C7;background:#FFFDF5}
+.col-done{border:1.5px solid #DCFCE7;background:#F9FFFC}
+
+.kb-head .col-label{font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;flex:1}
+.col-new .col-label{color:#991B1B}
+.col-prog .col-label{color:#92400E}
+.col-done .col-label{color:#065F46}
+.kb-head .col-pip{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.col-new .col-pip{background:#EF4444}
+.col-prog .col-pip{background:#F59E0B}
+.col-done .col-pip{background:#10B981}
+.col-cnt{
+  font-family:"Geist Mono",monospace;font-size:11px;font-weight:800;
+  padding:3px 9px;border-radius:999px;
+}
+.col-new .col-cnt{background:#FEE2E2;color:#B91C1C}
+.col-prog .col-cnt{background:#FEF3C7;color:#B45309}
+.col-done .col-cnt{background:#D1FAE5;color:#065F46}
+
+/* Body */
+.kb-body{padding:12px;display:flex;flex-direction:column;gap:10px;flex:1;min-height:80px;transition:background .2s}
+.kb-body.drag-over{background:rgba(30,58,138,.05);border-radius:10px}
+
+/* Add button */
+.kb-add{
+  display:flex;align-items:center;gap:8px;
+  margin:0 12px 12px;padding:9px 12px;
+  border-radius:11px;border:1.5px dashed #CDD6E8;
+  background:transparent;color:#8691AC;
+  font-size:13px;font-weight:600;cursor:pointer;
+  font-family:Manrope,sans-serif;transition:all .15s;
+}
+.kb-add:hover{background:#fff;border-color:#1E3A8A;color:#1E3A8A;box-shadow:0 2px 8px rgba(30,58,138,.08)}
+.kb-add svg{width:14px;height:14px;flex-shrink:0}
+
+/* ═══ CARD ══════════════════════════════════════════════════════ */
+.kb-card{
+  background:#fff;border:1px solid #E8EDF5;border-radius:14px;
+  padding:14px 16px;cursor:grab;
+  box-shadow:0 1px 3px rgba(11,20,55,.05),0 1px 2px rgba(11,20,55,.03);
+  transition:box-shadow .2s,transform .15s,border-color .2s;
+  user-select:none;position:relative;
+}
+.kb-card:hover{
+  border-color:#C0CDE8;
+  box-shadow:0 4px 16px rgba(11,20,55,.1),0 2px 6px rgba(11,20,55,.05);
+  transform:translateY(-1px);
+}
+.kb-card.dragging{opacity:.45;transform:scale(.97) rotate(1deg);cursor:grabbing;box-shadow:0 12px 30px rgba(11,20,55,.15)}
+
+/* Card top row */
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.card-badges{display:flex;gap:5px;flex-wrap:wrap}
+.badge{font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:6px}
+.badge-bug{background:#FEE2E2;color:#B91C1C}
+.badge-task{background:#EDE9FE;color:#6D28D9}
+.badge-urgent{background:#FFF7ED;color:#C2410C}
+
+.card-menu{
+  width:22px;height:22px;border-radius:6px;border:none;
+  background:transparent;cursor:pointer;color:#CDD6E8;
+  display:grid;place-items:center;padding:0;
+  transition:all .12s;opacity:0;flex-shrink:0;
+}
+.kb-card:hover .card-menu{opacity:1;color:#8691AC}
+.card-menu:hover{background:#F4F6FB;color:#0B1437!important}
+.card-menu svg{width:14px;height:14px}
+
+/* Context menu */
+.ctx-menu{
+  position:fixed;z-index:300;background:#fff;border:1px solid #E3E8F2;
+  border-radius:12px;padding:6px;min-width:160px;
+  box-shadow:0 8px 24px rgba(11,20,55,.12);
+  display:none;
+}
+.ctx-menu.open{display:block}
+.ctx-item{
+  display:flex;align-items:center;gap:9px;padding:8px 10px;
+  border-radius:7px;font-size:13px;font-weight:600;color:#0B1437;
+  cursor:pointer;transition:background .1s;border:none;background:none;width:100%;text-align:left;font-family:Manrope,sans-serif;
+}
+.ctx-item:hover{background:#F4F6FB}
+.ctx-item.danger{color:#B91C1C}
+.ctx-item.danger:hover{background:#FEE2E2}
+.ctx-item svg{width:14px;height:14px;color:#8691AC;flex-shrink:0}
+.ctx-item.danger svg{color:#EF4444}
+
+.card-title{font-size:13.5px;font-weight:700;color:#0B1437;margin:0 0 10px;line-height:1.45}
+
+/* Card meta chips */
+.card-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11px;color:#5B6A8F;background:#F4F6FB;
+  border:1px solid #E8EDF5;border-radius:6px;padding:2px 7px;
+  font-family:"Geist Mono",monospace;font-weight:600;
+}
+.chip svg{width:10px;height:10px;flex-shrink:0}
+
+/* Card footer */
+.card-ft{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid #F4F6FB}
+.assignee-row{display:flex;align-items:center;gap:6px}
+.av{
+  width:24px;height:24px;border-radius:50%;
+  display:grid;place-items:center;
+  font-size:9px;font-weight:800;color:#fff;flex-shrink:0;
+}
+.av-sm{font-size:11px;color:#5B6A8F;font-weight:600}
+.card-dl{
+  font-size:10.5px;font-family:"Geist Mono",monospace;font-weight:700;
+  padding:3px 8px;border-radius:6px;
+}
+.dl-ok{background:#D1FAE5;color:#065F46}
+.dl-late{background:#FEE2E2;color:#B91C1C}
+.dl-soon{background:#FEF3C7;color:#92400E}
+.dl-done{background:#EDE9FE;color:#6D28D9}
+
+/* ═══ MODAL ══════════════════════════════════════════════════════ */
+.m-bg{position:fixed;inset:0;background:rgba(11,20,55,.45);z-index:400;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(5px)}
+.m-bg.open{display:flex}
+.m-box{background:#fff;border-radius:20px;padding:0;max-width:480px;width:100%;box-shadow:0 24px 64px rgba(11,20,55,.18);overflow:hidden}
+.m-header{padding:22px 24px 18px;border-bottom:1px solid #F0F3F9}
+.m-header h3{margin:0;font-size:18px;font-weight:800;color:#0B1437}
+.m-header p{margin:4px 0 0;font-size:13px;color:#8691AC}
+.m-body{padding:20px 24px}
+.m-field{margin-bottom:16px}
+.m-label{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5B6A8F;margin-bottom:7px}
+.m-input{
+  width:100%;padding:11px 14px;border:1.5px solid #E3E8F2;border-radius:12px;
+  font-family:Manrope,sans-serif;font-size:14px;color:#0B1437;outline:none;
+  transition:border-color .15s,box-shadow .15s;box-sizing:border-box;background:#fff;
+}
+.m-input:focus{border-color:#1E3A8A;box-shadow:0 0 0 3px rgba(30,58,138,.08)}
+textarea.m-input{min-height:80px;resize:vertical;line-height:1.5}
+
+/* Custom dropdown */
+.cdd-wrap{position:relative}
+.cdd-trigger{
+  width:100%;padding:11px 14px;border:1.5px solid #E3E8F2;border-radius:12px;
+  font-family:Manrope,sans-serif;font-size:14px;color:#0B1437;outline:none;
+  background:#fff;cursor:pointer;display:flex;align-items:center;gap:10px;
+  transition:border-color .15s,box-shadow .15s;box-sizing:border-box;text-align:left;
+}
+.cdd-trigger:hover,.cdd-trigger.open{border-color:#1E3A8A;box-shadow:0 0 0 3px rgba(30,58,138,.08)}
+.cdd-trigger .cdd-av{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0}
+.cdd-trigger .cdd-name{flex:1;font-size:14px}
+.cdd-trigger .cdd-chevron{margin-left:auto;color:#8691AC;transition:transform .2s;flex-shrink:0}
+.cdd-trigger.open .cdd-chevron{transform:rotate(180deg)}
+.cdd-dropdown{
+  position:absolute;top:calc(100% + 6px);left:0;right:0;
+  background:#fff;border:1.5px solid #E3E8F2;border-radius:14px;
+  box-shadow:0 12px 32px rgba(11,20,55,.13);z-index:500;
+  overflow:hidden;display:none;
+}
+.cdd-dropdown.open{display:block}
+.cdd-search-wrap{padding:10px 12px;border-bottom:1px solid #F0F3F9}
+.cdd-search{
+  width:100%;padding:8px 12px 8px 34px;border:1.5px solid #E3E8F2;border-radius:9px;
+  font-family:Manrope,sans-serif;font-size:13px;color:#0B1437;outline:none;
+  background:#F8FAFC url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238691AC' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 10px center;
+  box-sizing:border-box;transition:border-color .15s;
+}
+.cdd-search:focus{border-color:#1E3A8A;background:#fff}
+.cdd-list{max-height:200px;overflow-y:auto;padding:6px}
+.cdd-opt{
+  display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;
+  cursor:pointer;transition:background .1s;
+}
+.cdd-opt:hover,.cdd-opt.selected{background:#F0F4FF}
+.cdd-opt .cdd-av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+.cdd-opt-info .name{font-size:13.5px;font-weight:700;color:#0B1437}
+.cdd-opt-info .role{font-size:11px;color:#8691AC;text-transform:capitalize;margin-top:1px}
+.cdd-opt-none{display:flex;align-items:center;gap:8px;padding:9px 10px;font-size:13px;color:#8691AC;cursor:pointer;border-radius:9px;transition:background .1s}
+.cdd-opt-none:hover{background:#F4F6FB}
+.cdd-empty{padding:16px;text-align:center;font-size:13px;color:#8691AC}
+
+.m-footer{padding:16px 24px 20px;border-top:1px solid #F0F3F9;display:flex;gap:10px}
+.m-btn{flex:1;padding:12px;border-radius:12px;font-family:Manrope,sans-serif;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:all .12s}
+.m-btn.cancel{background:#F4F6FB;color:#5B6A8F;border:1px solid #E3E8F2}
+.m-btn.cancel:hover{background:#EEF2FB}
+.m-btn.primary{background:#1E3A8A;color:#fff}
+.m-btn.primary:hover{background:#152C6E}
+.m-btn.primary:disabled{opacity:.5;cursor:not-allowed}
 </style>
 </head>
 <body>
 <div id="admin-root"></div>
 
-<div class="task-modal-bg" id="task-modal-bg">
-  <div class="task-modal">
-    <h3 id="modal-title">Нова задача</h3>
-    <div class="field"><label>Назва задачі</label><input id="t-name" type="text" placeholder="Опишіть задачу..."></div>
-    <div class="field"><label>Відповідальний</label><select id="t-assignee"><option value="">— Не призначено —</option></select></div>
-    <div class="field"><label>Дедлайн</label><input id="t-deadline" type="date"></div>
-    <input type="hidden" id="t-col" value="new">
-    <div class="modal-btns">
-      <button class="modal-btn cancel" onclick="closeTaskModal()">Скасувати</button>
-      <button class="modal-btn save" onclick="saveTask()">Зберегти</button>
+<!-- Context menu -->
+<div class="ctx-menu" id="ctx-menu">
+  <button class="ctx-item" id="ctx-edit">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    Редагувати
+  </button>
+  <button class="ctx-item danger" id="ctx-delete">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+    Видалити
+  </button>
+</div>
+
+<!-- Task modal -->
+<div class="m-bg" id="m-bg">
+  <div class="m-box">
+    <div class="m-header">
+      <h3 id="m-title">Нова задача</h3>
+      <p id="m-sub">Заповніть деталі задачі</p>
+    </div>
+    <div class="m-body">
+      <div class="m-field">
+        <label class="m-label">Назва задачі</label>
+        <textarea id="t-name" class="m-input" placeholder="Опишіть що треба зробити..."></textarea>
+      </div>
+      <div class="m-field">
+        <label class="m-label">Відповідальний</label>
+        <div class="cdd-wrap" id="cdd-wrap">
+          <button type="button" class="cdd-trigger" id="cdd-trigger" onclick="toggleDropdown()">
+            <span class="cdd-av" id="cdd-sel-av" style="display:none;background:#1E3A8A"></span>
+            <span class="cdd-name" id="cdd-sel-name" style="color:#8691AC">— Не призначено —</span>
+            <svg class="cdd-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="cdd-dropdown" id="cdd-dropdown">
+            <div class="cdd-search-wrap">
+              <input type="text" class="cdd-search" id="cdd-search" placeholder="Пошук..." oninput="filterStaff(this.value)">
+            </div>
+            <div class="cdd-list" id="cdd-list"></div>
+          </div>
+        </div>
+        <input type="hidden" id="t-assignee-val">
+      </div>
+      <div class="m-field">
+        <label class="m-label">Дедлайн</label>
+        <input type="date" id="t-deadline" class="m-input">
+      </div>
+    </div>
+    <div class="m-footer">
+      <button class="m-btn cancel" onclick="closeModal()">Скасувати</button>
+      <button class="m-btn primary" id="m-save" onclick="saveTask()">Зберегти задачу</button>
     </div>
   </div>
 </div>
 
 <script type="module">
 import { initAdminShell, esc, formatTimeAgo, toast, hideLoader } from "./shared/admin-shell.js?v=2";
-import { getDatabase, ref, update, remove, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, update, remove, onValue, push, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const AV_COLORS = ["#1E3A8A","#0F766E","#7C3AED","#B45309","#BE185D","#0369A1","#15803D","#9A3412"];
+const avColor = name => AV_COLORS[(name||"?").charCodeAt(0) % AV_COLORS.length];
 
 const content = `
   <div class="page-head">
-    <div><h1>Задачі</h1><p id="kb-sub">Помилки та завдання команди</p></div>
+    <div><h1>Задачі</h1><p id="kb-sub">Завантаження...</p></div>
     <div style="display:flex;gap:10px">
-      <button class="tb-btn" onclick="openTaskModal('new')">
+      <button class="tb-btn" onclick="openModal()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Нова задача
       </button>
     </div>
   </div>
-  <div class="kanban-wrap">
-    <div class="kb-col col-new">
-      <div class="kb-col-head"><span class="col-dot"></span><h2>Нові</h2><span class="col-count" id="cnt-new">0</span></div>
-      <div class="kb-col-body" id="body-new" data-col="new"></div>
-      <button class="kb-add-btn" onclick="openTaskModal('new')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Додати задачу</button>
+  <div class="kb-board">
+    <div class="kb-col col-new" id="col-new">
+      <div class="kb-head"><span class="col-pip"></span><span class="col-label">Нові</span><span class="col-cnt" id="cnt-new">0</span></div>
+      <div class="kb-body" id="body-new" data-col="new"></div>
+      <button class="kb-add" onclick="openModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Додати задачу
+      </button>
     </div>
-    <div class="kb-col col-progress">
-      <div class="kb-col-head"><span class="col-dot"></span><h2>В роботі</h2><span class="col-count" id="cnt-prog">0</span></div>
-      <div class="kb-col-body" id="body-in_progress" data-col="in_progress"></div>
-
+    <div class="kb-col col-prog" id="col-in_progress">
+      <div class="kb-head"><span class="col-pip"></span><span class="col-label">В роботі</span><span class="col-cnt" id="cnt-prog">0</span></div>
+      <div class="kb-body" id="body-in_progress" data-col="in_progress"></div>
     </div>
-    <div class="kb-col col-done">
-      <div class="kb-col-head"><span class="col-dot"></span><h2>Виконано</h2><span class="col-count" id="cnt-done">0</span></div>
-      <div class="kb-col-body" id="body-done" data-col="done"></div>
-
+    <div class="kb-col col-done" id="col-done">
+      <div class="kb-head"><span class="col-pip"></span><span class="col-label">Виконано</span><span class="col-cnt" id="cnt-done">0</span></div>
+      <div class="kb-body" id="body-done" data-col="done"></div>
     </div>
   </div>
 `;
 
-const { _user } = await initAdminShell({ activeId:"problems", crumbs:["Задачі"], content, topbarRight:"" });
+const { _user } = await initAdminShell({ activeId:"problems", crumbs:["\u0417\u0430\u0434\u0430\u0447\u0456"], content, topbarRight:"" });
 const db = getDatabase();
+let allItems = {}, staffUsers = [], dragId = null, ctxId = null, editingId = null, selAssignee = null;
 
-// Load admins/managers for assignee dropdown
-let staffUsers = [];
-async function loadStaff() {
-  const { get } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
-  try {
-    const snap = await get(ref(db, "users"));
-    if (!snap.exists()) return;
-    snap.forEach(child => {
-      const u = child.val();
-      if (u.role === "admin" || u.role === "manager") {
-        staffUsers.push({ id: child.key, name: u.name || u.login || u.email || child.key, role: u.role });
-      }
-    });
-  } catch(e) { console.warn("loadStaff:", e.message); }
-}
-await loadStaff();
-let allItems = {};
-let dragId = null;
+// Load staff
+try {
+  const snap = await get(ref(db,"users"));
+  if (snap.exists()) snap.forEach(c => {
+    const u=c.val();
+    if (u.role==="admin"||u.role==="manager") staffUsers.push({id:c.key,name:u.name||u.login||u.email||c.key,role:u.role});
+  });
+} catch(e){}
 
-function subscribe() {
-  onValue(ref(db, "bugReports"), snap => {
-    const bugs = snap.exists() ? snap.val() : {};
-    Object.keys(allItems).filter(id => allItems[id].type === "bug").forEach(id => delete allItems[id]);
-    Object.entries(bugs).forEach(([id, b]) => {
-      const col = b.status === "in_progress" ? "in_progress" : b.status === "resolved" ? "done" : "new";
-      allItems[id] = { ...b, id, type:"bug", col };
-    });
-    renderAll();
-    hideLoader();
+// Realtime
+onValue(ref(db,"bugReports"), snap => {
+  const bugs = snap.exists()?snap.val():{};
+  Object.keys(allItems).filter(id=>allItems[id].type==="bug").forEach(id=>delete allItems[id]);
+  Object.entries(bugs).forEach(([id,b])=>{
+    const col=b.status==="in_progress"?"in_progress":b.status==="resolved"?"done":"new";
+    allItems[id]={...b,id,type:"bug",col};
   });
-  onValue(ref(db, "adminTasks"), snap => {
-    const tasks = snap.exists() ? snap.val() : {};
-    Object.keys(allItems).filter(id => allItems[id].type === "task").forEach(id => delete allItems[id]);
-    Object.entries(tasks).forEach(([id, t]) => { allItems[id] = { ...t, id, type:"task" }; });
-    renderAll();
-  });
-}
+  renderAll(); hideLoader();
+});
+onValue(ref(db,"adminTasks"), snap => {
+  const tasks=snap.exists()?snap.val():{};
+  Object.keys(allItems).filter(id=>allItems[id].type==="task").forEach(id=>delete allItems[id]);
+  Object.entries(tasks).forEach(([id,t])=>{ allItems[id]={...t,id,type:"task"}; });
+  renderAll();
+});
 
 function renderAll() {
-  const cols = { new:[], in_progress:[], done:[] };
-  Object.values(allItems).forEach(item => { const c=item.col||"new"; if(cols[c]) cols[c].push(item); });
-  Object.entries(cols).forEach(([colId, items]) => {
-    const body = document.getElementById("body-"+colId);
-    if (!body) return;
-    items.sort((a,b) => (b.createdAt||0)-(a.createdAt||0));
-    body.innerHTML = items.map(renderCard).join("");
+  const cols={new:[],in_progress:[],done:[]};
+  Object.values(allItems).forEach(item=>{ const c=item.col||"new"; if(cols[c]) cols[c].push(item); });
+  [["new","cnt-new"],["in_progress","cnt-prog"],["done","cnt-done"]].forEach(([col,cnt])=>{
+    const body=document.getElementById("body-"+col); if(!body) return;
+    cols[col].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    body.innerHTML=cols[col].map(renderCard).join("");
     body.querySelectorAll(".kb-card").forEach(attachDrag);
+    document.getElementById(cnt).textContent=cols[col].length;
   });
-  document.getElementById("cnt-new").textContent = cols.new.length;
-  document.getElementById("cnt-prog").textContent = cols.in_progress.length;
-  document.getElementById("cnt-done").textContent = cols.done.length;
-  const kb = document.getElementById("kb-sub");
-  if (kb) kb.textContent = Object.keys(allItems).length + " задач · " + cols.new.length + " нових";
+  const sub=document.getElementById("kb-sub");
+  if(sub) sub.textContent=`${Object.keys(allItems).length} задач \xb7 ${cols.new.length} нових`;
 }
 
 function renderCard(item) {
-  const isBug = item.type === "bug";
-  const typeBadge = isBug ? `<span class="card-type bug">Помилка</span>` : `<span class="card-type task">Задача</span>`;
-  const meta = [];
-  if (item.userName) meta.push(`<span class="card-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${esc(item.userName)}</span>`);
-  if (item.page) meta.push(`<span class="card-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2 2"/></svg>${esc(item.page)}</span>`);
-  if (item.createdAt) meta.push(`<span class="card-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/></svg>${formatTimeAgo(item.createdAt)}</span>`);
-  let dateHtml = "";
-  if (item.deadline) {
-    const dl = new Date(item.deadline), now = new Date();
-    const cls = item.col==="done" ? "done" : dl < now ? "overdue" : "pending";
-    dateHtml = `<span class="card-date ${cls}">${dl.toLocaleDateString("uk-UA",{day:"2-digit",month:"short"})}</span>`;
-  } else if (item.col==="done" && item.completedAt) {
-    const d = new Date(item.completedAt);
-    dateHtml = `<span class="card-date done">Вик. ${d.toLocaleDateString("uk-UA",{day:"2-digit",month:"short"})}</span>`;
+  const isBug=item.type==="bug";
+  const badge=isBug?`<span class="badge badge-bug">\u041f\u043e\u043c\u0438\u043b\u043a\u0430</span>`:`<span class="badge badge-task">\u0417\u0430\u0434\u0430\u0447\u0430</span>`;
+  const chips=[];
+  if(item.userName) chips.push(`<span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${esc(item.userName)}</span>`);
+  if(item.page) chips.push(`<span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2 2"/></svg>${esc(item.page)}</span>`);
+  if(item.createdAt) chips.push(`<span class="chip">${formatTimeAgo(item.createdAt)}</span>`);
+
+  let dlHtml="";
+  if(item.deadline){
+    const dl=new Date(item.deadline),now=new Date();
+    const diff=(dl-now)/(1000*86400);
+    const cls=item.col==="done"?"dl-done":diff<0?"dl-late":diff<3?"dl-soon":"dl-ok";
+    dlHtml=`<span class="card-dl ${cls}">${dl.toLocaleDateString("uk-UA",{day:"2-digit",month:"short"})}</span>`;
+  } else if(item.col==="done"&&item.completedAt){
+    dlHtml=`<span class="card-dl dl-done">\u0412\u0438\u043a. ${new Date(item.completedAt).toLocaleDateString("uk-UA",{day:"2-digit",month:"short"})}</span>`;
   }
-  const assignee = item.assignee ? `<div class="card-assignee"><div class="assignee-av">${item.assignee.slice(0,2).toUpperCase()}</div>${esc(item.assignee)}</div>` : `<div></div>`;
-  const editBtn = !isBug ? `<button class="card-act-btn" onclick="editCard('${item.id}')" title="Редагувати"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>` : "";
-  return `<div class="kb-card" id="card-${item.id}" draggable="true" data-id="${item.id}">${typeBadge}<p class="card-title">${esc(item.message||item.title||"—")}</p>${meta.length?`<div class="card-meta">${meta.join("")}</div>`:""}<div class="card-footer">${assignee}<div style="display:flex;align-items:center;gap:6px">${dateHtml}<div class="card-actions">${editBtn}<button class="card-act-btn del" onclick="deleteCard('${item.id}')" title="Видалити"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button></div></div></div></div>`;
+
+  const assigneeHtml=item.assignee
+    ?`<div class="assignee-row"><div class="av" style="background:${avColor(item.assignee)}">${item.assignee.slice(0,2).toUpperCase()}</div><span class="av-sm">${esc(item.assignee)}</span></div>`
+    :`<div></div>`;
+
+  return `<div class="kb-card" id="card-${item.id}" draggable="true" data-id="${item.id}">
+    <div class="card-top"><div class="card-badges">${badge}</div>
+      <button class="card-menu" onclick="openCtx(event,'${item.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="19" r="1.2" fill="currentColor"/></svg></button>
+    </div>
+    <p class="card-title">${esc(item.message||item.title||"\u2014")}</p>
+    ${chips.length?`<div class="card-chips">${chips.join("")}</div>`:""}
+    <div class="card-ft">${assigneeHtml}<div style="display:flex;align-items:center;gap:6px">${dlHtml}</div></div>
+  </div>`;
 }
 
 function attachDrag(card) {
-  card.addEventListener("dragstart", e => { dragId=card.dataset.id; card.classList.add("dragging"); e.dataTransfer.effectAllowed="move"; });
-  card.addEventListener("dragend", () => { card.classList.remove("dragging"); document.querySelectorAll(".kb-col-body").forEach(b=>b.classList.remove("drag-over")); });
+  card.addEventListener("dragstart",e=>{ dragId=card.dataset.id; card.classList.add("dragging"); e.dataTransfer.effectAllowed="move"; });
+  card.addEventListener("dragend",()=>{ card.classList.remove("dragging"); document.querySelectorAll(".kb-body").forEach(b=>b.classList.remove("drag-over")); });
 }
 
-document.addEventListener("dragover", e => {
-  const col = e.target.closest(".kb-col-body"); if(!col) return;
+document.addEventListener("dragover",e=>{
+  const col=e.target.closest(".kb-body"); if(!col) return;
   e.preventDefault();
-  document.querySelectorAll(".kb-col-body").forEach(b=>b.classList.remove("drag-over"));
+  document.querySelectorAll(".kb-body").forEach(b=>b.classList.remove("drag-over"));
   col.classList.add("drag-over");
 });
-
-document.addEventListener("drop", async e => {
-  const col = e.target.closest(".kb-col-body"); if(!col||!dragId) return;
+document.addEventListener("drop",async e=>{
+  const col=e.target.closest(".kb-body"); if(!col||!dragId) return;
   e.preventDefault(); col.classList.remove("drag-over");
-  const newCol = col.dataset.col;
-  const item = allItems[dragId];
-  if (!item || item.col===newCol) { dragId=null; return; }
-  item.col = newCol;
-  if (item.type==="bug") {
-    const sm={new:"new",in_progress:"in_progress",done:"resolved"};
-    await update(ref(db,`bugReports/${dragId}`),{status:sm[newCol]});
-  } else {
-    const upd = {col:newCol};
-    if (newCol==="done") upd.completedAt=Date.now();
-    await update(ref(db,`adminTasks/${dragId}`),upd);
-  }
-  dragId=null; toast("Переміщено");
+  const newCol=col.dataset.col, item=allItems[dragId];
+  if(!item||item.col===newCol){dragId=null;return;}
+  item.col=newCol;
+  if(item.type==="bug"){const sm={new:"new",in_progress:"in_progress",done:"resolved"};await update(ref(db,`bugReports/${dragId}`),{status:sm[newCol]});}
+  else{const u={col:newCol};if(newCol==="done")u.completedAt=Date.now();await update(ref(db,`adminTasks/${dragId}`),u);}
+  dragId=null; toast("\u041f\u0435\u0440\u0435\u043c\u0456\u0449\u0435\u043d\u043e");
 });
 
-let editingId=null;
-window.openTaskModal=(colId="new")=>{
-  editingId=null;
-  document.getElementById("modal-title").textContent="Нова задача";
-  document.getElementById("t-name").value="";
-  document.getElementById("t-assignee").value="";
-  // Fill dropdown
-  const sel = document.getElementById("t-assignee");
-  sel.innerHTML = "<option value=''>— Не призначено —</option>" +
-    staffUsers.map(u => `<option value="${esc(u.name)}">${esc(u.name)} (${u.role})</option>`).join("");
-  document.getElementById("t-deadline").value="";
-  document.getElementById("t-col").value=colId;
-  document.getElementById("task-modal-bg").classList.add("open");
-  setTimeout(()=>document.getElementById("t-name").focus(),50);
+// Context menu
+window.openCtx=(e,id)=>{
+  e.stopPropagation(); ctxId=id;
+  const m=document.getElementById("ctx-menu");
+  m.style.top=e.clientY+"px"; m.style.left=e.clientX+"px";
+  m.classList.add("open");
+  const item=allItems[id];
+  document.getElementById("ctx-edit").style.display=(!item||item.type==="bug")?"none":"flex";
 };
-window.editCard=(id)=>{
-  const item=allItems[id]; if(!item||item.type==="bug") return;
-  editingId=id;
-  document.getElementById("modal-title").textContent="Редагувати задачу";
-  document.getElementById("t-name").value=item.title||item.message||"";
-  // Fill dropdown for edit
-  const selE = document.getElementById("t-assignee");
-  selE.innerHTML = "<option value=''>— Не призначено —</option>" +
-    staffUsers.map(u => `<option value="${esc(u.name)}">${esc(u.name)} (${u.role})</option>`).join("");
-  selE.value = item.assignee || "";
-  document.getElementById("t-deadline").value=item.deadline||"";
-  document.getElementById("t-col").value=item.col||"new";
-  document.getElementById("task-modal-bg").classList.add("open");
+document.getElementById("ctx-edit").onclick=()=>{ document.getElementById("ctx-menu").classList.remove("open"); openModal(ctxId); };
+document.getElementById("ctx-delete").onclick=async()=>{
+  document.getElementById("ctx-menu").classList.remove("open");
+  const item=allItems[ctxId]; if(!item) return;
+  if(!confirm("\u0412\u0438\u0434\u0430\u043b\u0438\u0442\u0438?")) return;
+  if(item.type==="bug") await remove(ref(db,`bugReports/${ctxId}`));
+  else await remove(ref(db,`adminTasks/${ctxId}`));
+  toast("\u0412\u0438\u0434\u0430\u043b\u0435\u043d\u043e");
 };
-window.closeTaskModal=()=>{ document.getElementById("task-modal-bg").classList.remove("open"); editingId=null; };
+document.addEventListener("click",e=>{
+  if(!e.target.closest("#ctx-menu")&&!e.target.closest(".card-menu")) document.getElementById("ctx-menu").classList.remove("open");
+  if(!e.target.closest("#cdd-wrap")) closeDropdown();
+});
+
+// Custom dropdown
+window.toggleDropdown=()=>{
+  const t=document.getElementById("cdd-trigger"),d=document.getElementById("cdd-dropdown");
+  const isOpen=d.classList.contains("open");
+  if(isOpen){closeDropdown();} else{t.classList.add("open");d.classList.add("open");document.getElementById("cdd-search").value="";filterStaff("");}
+};
+window.closeDropdown=()=>{
+  document.getElementById("cdd-trigger")?.classList.remove("open");
+  document.getElementById("cdd-dropdown")?.classList.remove("open");
+};
+window.filterStaff=(q)=>{
+  const list=document.getElementById("cdd-list"); if(!list) return;
+  const filtered=staffUsers.filter(u=>u.name.toLowerCase().includes(q.toLowerCase())||u.role.toLowerCase().includes(q.toLowerCase()));
+  list.innerHTML=`<div class="cdd-opt-none" onclick="selectAssignee(null,null)">\u2014 \u041d\u0435 \u043f\u0440\u0438\u0437\u043d\u0430\u0447\u0435\u043d\u043e</div>`
+    +(filtered.length?filtered.map(u=>`<div class="cdd-opt${selAssignee===u.name?" selected":""}" onclick="selectAssignee('${u.name}','${u.role}')">
+        <div class="cdd-av" style="background:${avColor(u.name)}">${u.name.slice(0,2).toUpperCase()}</div>
+        <div class="cdd-opt-info"><div class="name">${esc(u.name)}</div><div class="role">${u.role}</div></div>
+      </div>`).join(""):`<div class="cdd-empty">\u041d\u0456\u0447\u043e\u0433\u043e \u043d\u0435 \u0437\u043d\u0430\u0439\u0434\u0435\u043d\u043e</div>`);
+};
+window.selectAssignee=(name,role)=>{
+  selAssignee=name;
+  document.getElementById("t-assignee-val").value=name||"";
+  const av=document.getElementById("cdd-sel-av"),nm=document.getElementById("cdd-sel-name");
+  if(name){av.style.display="grid";av.style.background=avColor(name);av.textContent=name.slice(0,2).toUpperCase();nm.textContent=name;nm.style.color="#0B1437";}
+  else{av.style.display="none";nm.textContent="\u2014 \u041d\u0435 \u043f\u0440\u0438\u0437\u043d\u0430\u0447\u0435\u043d\u043e";nm.style.color="#8691AC";}
+  closeDropdown();
+};
+
+// Modal
+window.openModal=(editId=null)=>{
+  editingId=editId;
+  const item=editId?allItems[editId]:null;
+  document.getElementById("m-title").textContent=editId?"\u0420\u0435\u0434\u0430\u0433\u0443\u0432\u0430\u0442\u0438 \u0437\u0430\u0434\u0430\u0447\u0443":"\u041d\u043e\u0432\u0430 \u0437\u0430\u0434\u0430\u0447\u0430";
+  document.getElementById("m-sub").textContent=editId?"\u0417\u043c\u0456\u043d\u0456\u0442\u044c \u0434\u0435\u0442\u0430\u043b\u0456 \u0437\u0430\u0434\u0430\u0447\u0456":"\u0417\u0430\u043f\u043e\u0432\u043d\u0456\u0442\u044c \u0434\u0435\u0442\u0430\u043b\u0456 \u0437\u0430\u0434\u0430\u0447\u0456";
+  document.getElementById("t-name").value=item?item.title||item.message||"":"";
+  document.getElementById("t-deadline").value=item?.deadline||"";
+  selectAssignee(item?.assignee||null,null);
+  filterStaff("");
+  document.getElementById("m-bg").classList.add("open");
+  setTimeout(()=>document.getElementById("t-name").focus(),60);
+};
+window.closeModal=()=>{ document.getElementById("m-bg").classList.remove("open"); editingId=null; selAssignee=null; };
 window.saveTask=async()=>{
   const title=document.getElementById("t-name").value.trim(); if(!title){document.getElementById("t-name").focus();return;}
-  const data={title,assignee:document.getElementById("t-assignee").value.trim()||null,deadline:document.getElementById("t-deadline").value||null,col:document.getElementById("t-col").value,type:"task",createdAt:editingId?(allItems[editingId]?.createdAt||Date.now()):Date.now()};
-  if(editingId){await update(ref(db,`adminTasks/${editingId}`),data);toast("Збережено");}
-  else{await push(ref(db,"adminTasks"),data);toast("Задачу додано");}
-  closeTaskModal();
+  const btn=document.getElementById("m-save"); btn.disabled=true; btn.textContent="\u0417\u0431\u0435\u0440\u0456\u0433\u0430\u0454\u043c\u043e...";
+  const data={title,assignee:document.getElementById("t-assignee-val").value||null,deadline:document.getElementById("t-deadline").value||null,type:"task",col:"new",createdAt:editingId?(allItems[editingId]?.createdAt||Date.now()):Date.now()};
+  if(editingId){await update(ref(db,`adminTasks/${editingId}`),data);toast("\u0417\u0431\u0435\u0440\u0435\u0436\u0435\u043d\u043e");}
+  else{await push(ref(db,"adminTasks"),data);toast("\u0417\u0430\u0434\u0430\u0447\u0443 \u0434\u043e\u0434\u0430\u043d\u043e");}
+  btn.disabled=false; btn.textContent="\u0417\u0431\u0435\u0440\u0435\u0433\u0442\u0438 \u0437\u0430\u0434\u0430\u0447\u0443";
+  closeModal();
 };
-window.deleteCard=async(id)=>{
-  const item=allItems[id]; if(!item) return;
-  if(!confirm("Видалити цю задачу?")) return;
-  if(item.type==="bug") await remove(ref(db,`bugReports/${id}`));
-  else await remove(ref(db,`adminTasks/${id}`));
-  toast("Видалено");
-};
-document.getElementById("task-modal-bg").addEventListener("click",e=>{if(e.target===e.currentTarget)closeTaskModal();});
-subscribe();
+document.getElementById("m-bg").addEventListener("click",e=>{ if(e.target===e.currentTarget) closeModal(); });
 </script>
 </body>
 </html>
