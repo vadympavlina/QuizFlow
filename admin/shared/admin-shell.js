@@ -129,6 +129,7 @@ const NAV_ITEMS = [
   { sec:"ПАНЕЛЬ", items:[
     { id:"overview",    icon:"overview", label:"Огляд",            href:"overview.html" },
     { id:"teachers",    icon:"teachers", label:"Викладачі",        href:"teachers.html" },
+    { id:"problems",    icon:"problems",  label:"Проблеми",         href:"problems.html" },
     { id:"stats",       icon:"stats",    label:"Статистика",       href:"stats.html" },
     { id:"news",        icon:"news",     label:"Новини",           href:"news.html" },
     { id:"navigation",  icon:"menu",     label:"Навігація",        href:"navigation.html" },
@@ -145,6 +146,7 @@ const ICONS = {
   teachers:  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.6 2-4.8 4.5-5"/></svg>',
   stats:     '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M3 20h18"/></svg>',
   news:      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h6M7 17h4"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/></svg>',
+  problems:  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>',
   ai:        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><rect x="6" y="3" width="12" height="14" rx="3"/><path d="M9 9h.01M15 9h.01"/><path d="M9 13c1 1 2 1.5 3 1.5s2-.5 3-1.5"/><path d="M12 17v3"/><path d="M9 21h6"/></svg>',
   menu:      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>',
   dashboard: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
@@ -182,6 +184,7 @@ function renderSidebar(activeId, user){
           return `<a href="${it.href}" ${onClick} class="sb-item${activeId === it.id ? " on" : ""}">
             <span class="ico">${ICONS[it.icon] || ""}</span>
             <span class="lbl">${it.label}</span>
+            ${it.id === "problems" ? `<span class="sb-badge" id="admin-problems-badge" style="display:none;background:#EF4444;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:999px;margin-left:auto;font-family:'Geist Mono',monospace"></span>` : ""}
           </a>`;
         }).join("")}
       </div>
@@ -299,6 +302,18 @@ export async function initAdminShell({ activeId, crumbs, content, topbarRight })
       hideLoader();
     }
   }, 15000);
+
+  // Realtime badge для нових проблем
+  const { onValue, ref: dbRef } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+  onValue(dbRef(db, "bugReports"), snap => {
+    const badge = document.getElementById("admin-problems-badge");
+    if (!badge) return;
+    const newCount = snap.exists()
+      ? Object.values(snap.val()).filter(p => p.status === "new").length
+      : 0;
+    badge.textContent = newCount || "";
+    badge.style.display = newCount ? "" : "none";
+  });
 
   return { _user };
 }
