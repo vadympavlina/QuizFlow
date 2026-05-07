@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuizFlow Admin · Проблеми</title>
+<link rel="stylesheet" href="shared/admin-shell.css?v=1">
+<style>
+.problems-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.ps{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:14px}
+.ps .ico{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto}
+.ps.new .ico{background:#FEE2E2;color:#B91C1C}
+.ps.inprog .ico{background:#FEF3C7;color:#B45309}
+.ps.done .ico{background:#DCFCE7;color:#15803D}
+.ps .v{font-family:"Geist Mono",monospace;font-size:22px;font-weight:800;line-height:1}
+.ps .l{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--muted);margin-top:3px}
+
+.filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.seg{display:inline-flex;background:#F4F6FB;border:1px solid var(--line);border-radius:10px;padding:3px}
+.seg button{background:transparent;border:0;padding:7px 13px;border-radius:8px;font:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.seg button.on{background:#fff;color:#0B1437;box-shadow:0 1px 2px rgba(0,0,0,.04),0 0 0 1px var(--line)}
+.seg .ct{font-family:"Geist Mono",monospace;font-size:11px;background:#EDE9FE;color:#6D28D9;padding:1px 6px;border-radius:999px;font-weight:700}
+
+.problems-list{display:flex;flex-direction:column;gap:10px}
+.prob-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start;transition:border-color .15s}
+.prob-card:hover{border-color:var(--border-strong)}
+.prob-card.status-new{border-left:3px solid #EF4444}
+.prob-card.status-in_progress{border-left:3px solid #F59E0B}
+.prob-card.status-resolved{border-left:3px solid #10B981;opacity:.6}
+.prob-msg{font-size:14px;font-weight:600;color:#0B1437;margin:0 0 8px;line-height:1.5}
+.prob-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.prob-meta-item{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);font-family:"Geist Mono",monospace}
+.prob-meta-item svg{width:12px;height:12px;flex-shrink:0}
+.prob-actions{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.status-pill{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:6px}
+.status-pill.new{background:#FEE2E2;color:#B91C1C}
+.status-pill.in_progress{background:#FEF3C7;color:#B45309}
+.status-pill.resolved{background:#DCFCE7;color:#15803D}
+.prob-btn{padding:5px 11px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--line);background:#F4F6FB;color:#0B1437;font-family:'Manrope',sans-serif;transition:all .12s}
+.prob-btn:hover{background:#EEF2FB;border-color:var(--border-strong)}
+.prob-btn.danger{background:#FEE2E2;color:#B91C1C;border-color:#FCA5A5}
+.prob-btn.danger:hover{background:#FECACA}
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty h3{font-size:16px;font-weight:700;color:#0B1437;margin:12px 0 6px}
+.empty p{font-size:13px;margin:0}
+</style>
+</head>
+<body>
+<div id="admin-root"></div>
+
+<script type="module">
+import { initAdminShell, esc, formatTimeAgo, dbGet, dbSet, dbUpd, dbRemove, toast, hideLoader } from "./shared/admin-shell.js?v=2";
+import { getDatabase, ref, get, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const content = `
+  <div class="page-head">
+    <div>
+      <h1>Проблеми</h1>
+      <p id="problems-sub">Повідомлення від викладачів про помилки</p>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="tb-btn danger" onclick="clearResolved()">Очистити вирішені</button>
+    </div>
+  </div>
+
+  <div class="problems-stats">
+    <div class="ps new">
+      <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>
+      <div><div class="v" id="cnt-new">0</div><div class="l">Нових</div></div>
+    </div>
+    <div class="ps inprog">
+      <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+      <div><div class="v" id="cnt-prog">0</div><div class="l">В роботі</div></div>
+    </div>
+    <div class="ps done">
+      <div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div><div class="v" id="cnt-done">0</div><div class="l">Вирішено</div></div>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <div class="seg" id="tab-seg">
+      <button class="on" data-tab="all">Всі <span class="ct" id="ct-all">0</span></button>
+      <button data-tab="new">Нові <span class="ct" id="ct-new">0</span></button>
+      <button data-tab="in_progress">В роботі <span class="ct" id="ct-prog-tab">0</span></button>
+      <button data-tab="resolved">Вирішені <span class="ct" id="ct-res">0</span></button>
+    </div>
+  </div>
+
+  <div class="problems-list" id="problems-list"></div>
+`;
+
+const { _user } = await initAdminShell({
+  activeId: "problems",
+  crumbs: ["Проблеми"],
+  content,
+  topbarRight: ""
+});
+
+const db = getDatabase();
+let allProblems = [];
+let currentTab = "all";
+
+// Realtime listener
+onValue(ref(db, "bugReports"), snap => {
+  allProblems = snap.exists()
+    ? Object.entries(snap.val()).map(([id, p]) => ({ id, ...p })).sort((a,b) => (b.createdAt||0)-(a.createdAt||0))
+    : [];
+  updateStats();
+  renderProblems();
+  hideLoader();
+});
+
+function updateStats() {
+  const nw = allProblems.filter(p=>p.status==="new").length;
+  const ip = allProblems.filter(p=>p.status==="in_progress").length;
+  const rs = allProblems.filter(p=>p.status==="resolved").length;
+  document.getElementById("cnt-new").textContent = nw;
+  document.getElementById("cnt-prog").textContent = ip;
+  document.getElementById("cnt-done").textContent = rs;
+  document.getElementById("ct-all").textContent = allProblems.length;
+  document.getElementById("ct-new").textContent = nw;
+  document.getElementById("ct-prog-tab").textContent = ip;
+  document.getElementById("ct-res").textContent = rs;
+  document.getElementById("problems-sub").textContent = `${allProblems.length} повідомлень від викладачів`;
+}
+
+function renderProblems() {
+  const list = currentTab === "all" ? allProblems : allProblems.filter(p=>p.status===currentTab);
+  const el = document.getElementById("problems-list");
+  if (!list.length) {
+    el.innerHTML = `<div class="empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#CDD6E8" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg>
+      <h3>Немає повідомлень</h3>
+      <p>${currentTab==="all"?"Поки жодного повідомлення":"Немає в цій категорії"}</p>
+    </div>`;
+    return;
+  }
+  const STATUS_LABELS = { new:"Нова", in_progress:"В роботі", resolved:"Вирішено" };
+  el.innerHTML = list.map(p => `
+    <div class="prob-card status-${p.status||"new"}" id="pc-${p.id}">
+      <div>
+        <p class="prob-msg">${esc(p.message||"—")}</p>
+        <div class="prob-meta">
+          <span class="prob-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${esc(p.userName||"—")}</span>
+          <span class="prob-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/></svg>${formatTimeAgo(p.createdAt)}</span>
+          <span class="prob-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2 2"/></svg>${esc(p.page||"—")}</span>
+        </div>
+      </div>
+      <div class="prob-actions">
+        <span class="status-pill ${p.status||"new"}">${STATUS_LABELS[p.status]||"Нова"}</span>
+        ${p.status==="new" ? `<button class="prob-btn" onclick="setStatus('${p.id}','in_progress')">В роботу</button>` : ""}
+        ${p.status==="in_progress" ? `<button class="prob-btn" onclick="setStatus('${p.id}','resolved')">Вирішено</button>` : ""}
+        <button class="prob-btn danger" onclick="deleteReport('${p.id}')">Видалити</button>
+      </div>
+    </div>`).join("");
+}
+
+window.setStatus = async (id, status) => {
+  await update(ref(db, `bugReports/${id}`), { status });
+  toast("Статус оновлено");
+};
+window.deleteReport = async (id) => {
+  if (!confirm("Видалити це повідомлення?")) return;
+  await remove(ref(db, `bugReports/${id}`));
+  toast("Видалено");
+};
+window.clearResolved = async () => {
+  const resolved = allProblems.filter(p=>p.status==="resolved");
+  if (!resolved.length) { toast("Немає вирішених"); return; }
+  if (!confirm(`Видалити ${resolved.length} вирішених повідомлень?`)) return;
+  await Promise.all(resolved.map(p => remove(ref(db, `bugReports/${p.id}`))));
+  toast(`Видалено ${resolved.length}`);
+};
+
+document.getElementById("tab-seg").addEventListener("click", e => {
+  const btn = e.target.closest("button[data-tab]");
+  if (!btn) return;
+  currentTab = btn.dataset.tab;
+  document.querySelectorAll("#tab-seg button").forEach(b => b.classList.toggle("on", b===btn));
+  renderProblems();
+});
+</script>
+</body>
+</html>
