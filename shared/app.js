@@ -382,9 +382,9 @@ async function buildDynamicSidebar(navData, activePage) {
         <span class="ni-label">Адмін-панель</span>
         <svg class="ni-ext sb-bottom-labels" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
       </a>
-      <button class="ni ni-help" data-tip="Інструкція" onclick="window.openOnboarding && window.openOnboarding()">
-        <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.5 9a2.5 2.5 0 015 0c0 1.5-2.5 2-2.5 4"/><path d="M12 17h.01"/></svg></span>
-        <span class="ni-label">Інструкція</span>
+      <button class="ni ni-report" data-tip="Повідомити про помилку" onclick="window.openBugReport && window.openBugReport()">
+        <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></span>
+        <span class="ni-label">Повідомити про помилку</span>
       </button>
       <div class="sb-foot-inner">
         <div class="ava" id="sb-ava">ВЧ</div>
