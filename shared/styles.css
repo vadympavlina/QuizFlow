@@ -790,46 +790,35 @@ textarea.fi{resize:vertical;min-height:72px}
   #m-attempt .mb.wd{ width:100vw!important; max-width:100vw!important }
 }
 
-/* ── Bottom buttons: row + icon only ──────────────────────── */
+/* ── Bottom icon row ───────────────────────────────────────── */
+.sb-bottom {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  padding: 8px 10px !important;
+}
+/* Row for the 3 icon buttons */
+.sb-bottom::before {
+  content: "";
+  display: none;
+}
+.sb-icon-strip {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+}
 .sb-bottom .ni.ni-live,
 .sb-bottom .ni.ni-admin,
 .sb-bottom .ni.ni-report {
-  flex-direction: row;
-  justify-content: center;
-  min-height: 36px;
-  height: 36px;
-  padding: 0;
-  flex: 1;
-  border-radius: 10px;
+  flex: 1 !important;
+  min-height: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  justify-content: center !important;
+  border-radius: 10px !important;
 }
 .sb-bottom .ni.ni-live .ni-label,
 .sb-bottom .ni.ni-admin .ni-label,
 .sb-bottom .ni.ni-report .ni-label,
 .sb-bottom .ni.ni-live .ni-ext,
 .sb-bottom .ni.ni-admin .ni-ext { display: none !important; }
-
-.sb-bottom > .ni.ni-live,
-.sb-bottom > .ni.ni-admin,
-.sb-bottom > .ni.ni-report {
-  display: flex;
-}
-
-/* Wrap the 3 buttons in a flex row */
-.sb-bottom { position: relative; }
-.sb-bottom .ni.ni-live { order: 1; }
-.sb-bottom .ni.ni-admin { order: 2; }
-.sb-bottom .ni.ni-report { order: 3; }
-.sb-bottom .sb-foot-inner { order: 10; }
-
-/* Make sb-bottom flex and wrap buttons in a row */
-.sb-bottom {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding: 8px 10px;
-}
-.sb-bottom .sb-foot-inner {
-  width: 100%;
-  padding: 0;
-  margin-top: 2px;
-}

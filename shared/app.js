@@ -372,20 +372,20 @@ async function buildDynamicSidebar(navData, activePage) {
     </button>
     <nav class="sb-scroll"><div class="sb-section">${sectionsHtml}</div></nav>
     <div class="sb-bottom">
-      <a href="live.html" target="_blank" data-tip="Live (нова вкладка)" class="ni ni-live">
-        <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg></span>
-        <span class="ni-label">Live</span>
-        <svg class="ni-ext sb-bottom-labels" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
-      </a>
-      <a href="/admin/overview.html" id="admin-panel-btn" target="_blank" rel="noopener" data-tip="Адмін (нова вкладка)" class="ni ni-admin" style="display:none">
-        <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
-        <span class="ni-label">Адмін-панель</span>
-        <svg class="ni-ext sb-bottom-labels" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
-      </a>
-      <button class="ni ni-report" data-tip="Повідомити про помилку" onclick="window.openBugReport && window.openBugReport()">
-        <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></span>
-        <span class="ni-label">Повідомити про помилку</span>
-      </button>
+      <div class="sb-icon-strip">
+        <a href="live.html" target="_blank" data-tip="Live (нова вкладка)" class="ni ni-live">
+          <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg></span>
+          <span class="ni-label">Live</span>
+        </a>
+        <a href="/admin/overview.html" id="admin-panel-btn" target="_blank" rel="noopener" data-tip="Адмін (нова вкладка)" class="ni ni-admin" style="display:none">
+          <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+          <span class="ni-label">Адмін-панель</span>
+        </a>
+        <button class="ni ni-report" data-tip="Повідомити про помилку" onclick="window.openBugReport && window.openBugReport()">
+          <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></span>
+          <span class="ni-label">Повідомити про помилку</span>
+        </button>
+      </div>
       <div class="sb-foot-inner">
         <div class="ava" id="sb-ava">ВЧ</div>
         <div class="sb-texts">
