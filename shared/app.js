@@ -7,6 +7,7 @@
 
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, set, push, update, remove, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // ─── Firebase ──────────────────────────────────────────────────────────
 const FC = {
@@ -15,47 +16,61 @@ const FC = {
   databaseURL: "https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "quizflow-8a978",
   storageBucket: "quizflow-8a978.firebasestorage.app",
-  messagingSenderId: "206469794166",
+  messagingSenderId: "206469794216",
   appId: "1:206469794166:web:55cd7007b429607acd5257"
 };
-const app = getApps().length ? getApps()[0] : initializeApp(FC);
-const db = getDatabase(app);
+const app  = getApps().length ? getApps()[0] : initializeApp(FC);
+const db   = getDatabase(app);
+const auth = getAuth(app);
 
 // Експонуємо на window — щоб features.js міг використати без імпорту
 window._fb = { db, ref, get, set, push, update, remove, onValue, off };
 
 export { db, ref, get, set, push, update, remove, onValue, off };
 
-// ─── Auth ──────────────────────────────────────────────────────────────
-// Читаємо обидва сховища: localStorage основне, sessionStorage — fallback (legacy).
-// Так сесія переживає закриття вкладки/браузера.
-const _sess = localStorage.getItem("qf_user") || sessionStorage.getItem("qf_user");
-if (!_sess) { location.href = "login.html"; throw new Error("no session"); }
-let _user;
-try { _user = JSON.parse(_sess); }
-catch {
-  localStorage.removeItem("qf_user");
-  sessionStorage.removeItem("qf_user");
+// ─── Auth через Firebase Auth ──────────────────────────────────────────
+// Чекаємо поки Firebase відновить сесію з IndexedDB
+const _fbUser = await new Promise((resolve) => {
+  const unsub = onAuthStateChanged(auth, (u) => { unsub(); resolve(u); });
+});
+
+if (!_fbUser) {
   location.href = "login.html";
-  throw new Error("bad session");
-}
-if (!_user || !_user.id) {
-  localStorage.removeItem("qf_user");
-  sessionStorage.removeItem("qf_user");
-  location.href = "login.html";
-  throw new Error("no user id");
+  throw new Error("no auth");
 }
 
-// Якщо знайшли в sessionStorage — мігруємо в localStorage щоб надалі не губилось
-if (!localStorage.getItem("qf_user")) {
-  try { localStorage.setItem("qf_user", _sess); } catch {}
+// Зчитуємо профіль з Realtime DB
+const _userSnap = await get(ref(db, `users/${_fbUser.uid}`));
+if (!_userSnap.exists()) {
+  await signOut(auth);
+  location.href = "login.html";
+  throw new Error("no user profile");
 }
+
+const _userDb = _userSnap.val();
+
+// Перевіряємо чи не заблокований
+if (_userDb.blocked === true) {
+  await signOut(auth);
+  alert("Ваш акаунт заблоковано. Зверніться до адміністратора.");
+  location.href = "login.html";
+  throw new Error("blocked");
+}
+
+// Збираємо _user з Firebase UID + даними з DB
+const _user = {
+  id:      _fbUser.uid,
+  email:   _fbUser.email,
+  name:    _userDb.name    || "",
+  surname: _userDb.surname || "",
+  role:    _userDb.role    || "teacher",
+};
 
 export const user = _user;
-export const uid = _user.id;
+export const uid  = _fbUser.uid;
 
 window._user = _user;
-window._uid = uid;
+window._uid  = uid;
 
 // ─── Path / DB helpers ─────────────────────────────────────────────────
 export function tp(path) {
@@ -89,10 +104,12 @@ window.ts = ts;
 window.toArr = toArr;
 
 // ─── Logout ────────────────────────────────────────────────────────────
-window.doLogout = () => {
-  // Чистимо обидва сховища (qf_user + кеші)
-  localStorage.removeItem("qf_user");
+window.doLogout = async () => {
+  // Чистимо кеші навігації
+  localStorage.removeItem("qf_nav_cache");
+  localStorage.removeItem("qf_nav_ts");
   sessionStorage.clear();
+  await signOut(auth);
   location.href = "login.html";
 };
 
@@ -355,20 +372,20 @@ async function buildDynamicSidebar(navData, activePage) {
     </button>
     <nav class="sb-scroll"><div class="sb-section">${sectionsHtml}</div></nav>
     <div class="sb-bottom">
-      <div class="sb-icon-row">
-        <a href="live.html" target="_blank" class="sb-icon-btn" data-tip="Live">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
-        </a>
-        <a href="/admin/overview.html" id="admin-panel-btn" target="_blank" rel="noopener" class="sb-icon-btn" data-tip="Адмін" style="display:none">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        </a>
-        <button class="sb-icon-btn" data-tip="Інструкція" onclick="window.openOnboarding && window.openOnboarding()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.5 9a2.5 2.5 0 015 0c0 1.5-2.5 2-2.5 4"/><path d="M12 17h.01"/></svg>
-        </button>
-        <button class="sb-icon-btn sb-icon-btn--report" data-tip="Повідомити про помилку" onclick="openBugReport()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
-        </button>
-      </div>
+      <a href="live.html" target="_blank" data-tip="Live (нова вкладка)" class="ni ni-live">
+        <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg></span>
+        <span class="ni-label">Live</span>
+        <svg class="ni-ext sb-bottom-labels" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
+      </a>
+      <a href="/admin/overview.html" id="admin-panel-btn" target="_blank" rel="noopener" data-tip="Адмін (нова вкладка)" class="ni ni-admin" style="display:none">
+        <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+        <span class="ni-label">Адмін-панель</span>
+        <svg class="ni-ext sb-bottom-labels" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
+      </a>
+      <button class="ni ni-help" data-tip="Інструкція" onclick="window.openOnboarding && window.openOnboarding()">
+        <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.5 9a2.5 2.5 0 015 0c0 1.5-2.5 2-2.5 4"/><path d="M12 17h.01"/></svg></span>
+        <span class="ni-label">Інструкція</span>
+      </button>
       <div class="sb-foot-inner">
         <div class="ava" id="sb-ava">ВЧ</div>
         <div class="sb-texts">
@@ -472,47 +489,31 @@ window.invalidateQfCache = function() {
 
 async function loadAllData() {
   try {
-    const uSnap = await get(ref(db, `users/${uid}`));
-    if (uSnap.exists() && uSnap.val().blocked === true) {
-      localStorage.removeItem("qf_user");
-      sessionStorage.clear();
-      alert("Ваш акаунт заблоковано. Зверніться до адміністратора.");
-      location.href = "login.html";
+    // ─── 1) Пробуємо sessionStorage-кеш ─────────────────────────────────
+    const CACHE_KEY = "qf_cache_v1";
+    const CACHE_MAX_AGE = 60 * 1000;
+
+    const cached = tryLoadCache(CACHE_KEY, CACHE_MAX_AGE);
+    if (cached) {
+      window.folders  = cached.folders;
+      window.tests    = cached.tests;
+      window.links    = cached.links;
+      window.attempts = cached.attempts;
+      console.log(`⚡ [app.js] з кешу (${cached.tests.length} тестів, вік ${Math.round((Date.now()-cached.savedAt)/1000)}с)`);
+      notifyReady();
       return;
     }
-  } catch (e) { console.warn("[app.js] block check failed:", e.message); }
 
-  // ─── 1) Пробуємо sessionStorage-кеш ─────────────────────────────────
-  // Кеш живе поки вкладка відкрита і не старше 60 секунд.
-  // При навігації між сторінками — дані показуються МИТТЄВО з кешу.
-  const CACHE_KEY = "qf_cache_v1";
-  const CACHE_MAX_AGE = 60 * 1000; // 60 сек
-
-  const cached = tryLoadCache(CACHE_KEY, CACHE_MAX_AGE);
-  if (cached) {
-    window.folders = cached.folders;
-    window.tests = cached.tests;
-    window.links = cached.links;
-    window.attempts = cached.attempts;
-    console.log(`⚡ [app.js] з кешу (${cached.tests.length} тестів, вік ${Math.round((Date.now()-cached.savedAt)/1000)}с)`);
-    notifyReady();
-    // Фонове оновлення — realtime listeners з features.js все одно підпишуться,
-    // тому окремий запит не потрібен. Дані автоматично оновляться через onValue.
-    return;
-  }
-
-  // ─── 2) Кешу немає — тягнемо свіже з Firebase ───────────────────────
-  try {
+    // ─── 2) Кешу немає — тягнемо свіже з Firebase ───────────────────────
     const [fs, ts_, ls, as] = await Promise.all([
       dbGet("folders"), dbGet("tests"), dbGet("links"), dbGet("attempts")
     ]);
-    window.folders = toArr(fs).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-    window.tests = toArr(ts_).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    window.links = toArr(ls).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    window.folders  = toArr(fs).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    window.tests    = toArr(ts_).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    window.links    = toArr(ls).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     window.attempts = toArr(as).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     console.log(`✅ [app.js] data loaded (${window.tests.length} tests, ${window.attempts.length} attempts)`);
 
-    // Зберігаємо в кеш для наступної сторінки
     saveCache(CACHE_KEY);
     notifyReady();
   } catch (e) {
@@ -541,73 +542,6 @@ export async function initApp(pageName, options = {}) {
 }
 
 // Явна функція щоб показати "все готово" — сторінка викликає після renderAll
-// ─── Bug Report ────────────────────────────────────────────────────────────
-function injectBugModal() {
-  if (document.getElementById("bug-overlay")) return;
-  const el = document.createElement("div");
-  el.id = "bug-overlay";
-  el.className = "bug-overlay";
-  el.innerHTML = `
-    <div class="bug-modal">
-      <h3>Повідомити про помилку</h3>
-      <p class="bug-sub">Опишіть що сталось — ми розглянемо якомога швидше</p>
-      <div class="bug-page">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2 2"/></svg>
-        <span id="bug-page-label">—</span>
-      </div>
-      <textarea id="bug-text" placeholder="Опишіть помилку або проблему..."></textarea>
-      <div class="bug-btns">
-        <button class="bug-btn cancel" onclick="closeBugReport()">Скасувати</button>
-        <button class="bug-btn send" id="bug-send-btn" onclick="sendBugReport()">Надіслати</button>
-      </div>
-      <div class="bug-ok" id="bug-ok">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-        Дякуємо! Повідомлення надіслано.
-      </div>
-    </div>`;
-  el.addEventListener("click", e => { if (e.target === el) closeBugReport(); });
-  document.body.appendChild(el);
-}
-
-window.openBugReport = () => {
-  injectBugModal();
-  const page = document.body.dataset.page || location.pathname.split("/").pop() || "—";
-  document.getElementById("bug-page-label").textContent = page;
-  document.getElementById("bug-text").value = "";
-  document.getElementById("bug-ok").style.display = "none";
-  document.querySelector(".bug-modal .bug-btns").style.display = "flex";
-  document.querySelector(".bug-modal textarea").style.display = "block";
-  document.getElementById("bug-overlay").classList.add("open");
-};
-window.closeBugReport = () => {
-  document.getElementById("bug-overlay")?.classList.remove("open");
-};
-window.sendBugReport = async () => {
-  const text = document.getElementById("bug-text").value.trim();
-  if (!text) { document.getElementById("bug-text").focus(); return; }
-  const btn = document.getElementById("bug-send-btn");
-  btn.disabled = true; btn.textContent = "Надсилаємо...";
-  try {
-    const { push, ref: dbRef } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
-    await push(dbRef(db, "bugReports"), {
-      message: text,
-      page: document.body.dataset.page || location.pathname.split("/").pop() || "—",
-      url: location.href,
-      uid: uid || "—",
-      userName: document.getElementById("sb-teacher-name")?.textContent || "—",
-      createdAt: Date.now(),
-      status: "new"
-    });
-    document.querySelector(".bug-modal .bug-btns").style.display = "none";
-    document.querySelector(".bug-modal textarea").style.display = "none";
-    document.getElementById("bug-ok").style.display = "block";
-    setTimeout(() => closeBugReport(), 2000);
-  } catch(e) {
-    btn.disabled = false; btn.textContent = "Надіслати";
-    alert("Помилка: " + e.message);
-  }
-};
-
 export function appReady() {
   ldr(false);
 }
