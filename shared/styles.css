@@ -822,3 +822,13 @@ textarea.fi{resize:vertical;min-height:72px}
 .sb-bottom .ni.ni-report .ni-label,
 .sb-bottom .ni.ni-live .ni-ext,
 .sb-bottom .ni.ni-admin .ni-ext { display: none !important; }
+
+/* Collapsed sidebar — icon strip vertical */
+.sb.collapsed .sb-icon-strip {
+  flex-direction: column;
+  align-items: center;
+}
+.sb.collapsed .sb-icon-strip .ni {
+  width: 36px !important;
+  flex: none !important;
+}
