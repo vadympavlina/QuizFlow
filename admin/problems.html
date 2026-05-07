@@ -74,9 +74,9 @@
   <div class="task-modal">
     <h3 id="modal-title">Нова задача</h3>
     <div class="field"><label>Назва задачі</label><input id="t-name" type="text" placeholder="Опишіть задачу..."></div>
-    <div class="field"><label>Відповідальний</label><input id="t-assignee" type="text" placeholder="Ім'я або нікнейм"></div>
+    <div class="field"><label>Відповідальний</label><select id="t-assignee"><option value="">— Не призначено —</option></select></div>
     <div class="field"><label>Дедлайн</label><input id="t-deadline" type="date"></div>
-    <div class="field"><label>Колонка</label><select id="t-col"><option value="new">Нові</option><option value="in_progress">В роботі</option><option value="done">Виконано</option></select></div>
+    <input type="hidden" id="t-col" value="new">
     <div class="modal-btns">
       <button class="modal-btn cancel" onclick="closeTaskModal()">Скасувати</button>
       <button class="modal-btn save" onclick="saveTask()">Зберегти</button>
@@ -107,18 +107,35 @@ const content = `
     <div class="kb-col col-progress">
       <div class="kb-col-head"><span class="col-dot"></span><h2>В роботі</h2><span class="col-count" id="cnt-prog">0</span></div>
       <div class="kb-col-body" id="body-in_progress" data-col="in_progress"></div>
-      <button class="kb-add-btn" onclick="openTaskModal('in_progress')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Додати задачу</button>
+
     </div>
     <div class="kb-col col-done">
       <div class="kb-col-head"><span class="col-dot"></span><h2>Виконано</h2><span class="col-count" id="cnt-done">0</span></div>
       <div class="kb-col-body" id="body-done" data-col="done"></div>
-      <button class="kb-add-btn" onclick="openTaskModal('done')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Додати задачу</button>
+
     </div>
   </div>
 `;
 
 const { _user } = await initAdminShell({ activeId:"problems", crumbs:["Задачі"], content, topbarRight:"" });
 const db = getDatabase();
+
+// Load admins/managers for assignee dropdown
+let staffUsers = [];
+async function loadStaff() {
+  const { get } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+  try {
+    const snap = await get(ref(db, "users"));
+    if (!snap.exists()) return;
+    snap.forEach(child => {
+      const u = child.val();
+      if (u.role === "admin" || u.role === "manager") {
+        staffUsers.push({ id: child.key, name: u.name || u.login || u.email || child.key, role: u.role });
+      }
+    });
+  } catch(e) { console.warn("loadStaff:", e.message); }
+}
+await loadStaff();
 let allItems = {};
 let dragId = null;
 
@@ -215,6 +232,10 @@ window.openTaskModal=(colId="new")=>{
   document.getElementById("modal-title").textContent="Нова задача";
   document.getElementById("t-name").value="";
   document.getElementById("t-assignee").value="";
+  // Fill dropdown
+  const sel = document.getElementById("t-assignee");
+  sel.innerHTML = "<option value=''>— Не призначено —</option>" +
+    staffUsers.map(u => `<option value="${esc(u.name)}">${esc(u.name)} (${u.role})</option>`).join("");
   document.getElementById("t-deadline").value="";
   document.getElementById("t-col").value=colId;
   document.getElementById("task-modal-bg").classList.add("open");
@@ -225,7 +246,11 @@ window.editCard=(id)=>{
   editingId=id;
   document.getElementById("modal-title").textContent="Редагувати задачу";
   document.getElementById("t-name").value=item.title||item.message||"";
-  document.getElementById("t-assignee").value=item.assignee||"";
+  // Fill dropdown for edit
+  const selE = document.getElementById("t-assignee");
+  selE.innerHTML = "<option value=''>— Не призначено —</option>" +
+    staffUsers.map(u => `<option value="${esc(u.name)}">${esc(u.name)} (${u.role})</option>`).join("");
+  selE.value = item.assignee || "";
   document.getElementById("t-deadline").value=item.deadline||"";
   document.getElementById("t-col").value=item.col||"new";
   document.getElementById("task-modal-bg").classList.add("open");
