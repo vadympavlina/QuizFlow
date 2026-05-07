@@ -542,6 +542,63 @@ export async function initApp(pageName, options = {}) {
 }
 
 // Явна функція щоб показати "все готово" — сторінка викликає після renderAll
+
+// ─── Bug Report ────────────────────────────────────────────────────────────
+window.openBugReport = () => {
+  let ov = document.getElementById("qf-bug-ov");
+  if (!ov) {
+    ov = document.createElement("div");
+    ov.id = "qf-bug-ov";
+    ov.style.cssText = "position:fixed;inset:0;background:rgba(11,20,55,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(5px)";
+    ov.innerHTML = `<div style="background:#fff;border-radius:18px;padding:28px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(11,20,55,.2)">
+      <h3 style="margin:0 0 4px;font-size:17px;font-weight:800;color:#0B1437;font-family:Manrope,sans-serif">Повідомити про помилку</h3>
+      <p style="font-size:13px;color:#5B6A8F;margin:0 0 14px;font-family:Manrope,sans-serif">Опишіть що сталось — розглянемо якнайшвидше</p>
+      <div style="font-size:12px;font-family:monospace;background:#F4F6FB;border:1px solid #E3E8F2;border-radius:7px;padding:6px 10px;color:#1E3A8A;margin-bottom:12px" id="qf-bug-pg"></div>
+      <textarea id="qf-bug-txt" placeholder="Опишіть помилку..." style="width:100%;min-height:90px;border:1.5px solid #E3E8F2;border-radius:11px;padding:10px 12px;font-family:Manrope,sans-serif;font-size:14px;resize:vertical;outline:none;box-sizing:border-box;color:#0B1437"></textarea>
+      <div style="display:flex;gap:10px;margin-top:12px">
+        <button onclick="window.closeBugReport()" style="flex:1;padding:10px;border-radius:9px;font-family:Manrope,sans-serif;font-size:14px;font-weight:700;cursor:pointer;border:1px solid #E3E8F2;background:#F4F6FB;color:#5B6A8F">Скасувати</button>
+        <button id="qf-bug-sb" onclick="window.sendBugReport()" style="flex:1;padding:10px;border-radius:9px;font-family:Manrope,sans-serif;font-size:14px;font-weight:700;cursor:pointer;border:none;background:#1E3A8A;color:#fff">Надіслати</button>
+      </div>
+      <div id="qf-bug-ok" style="display:none;text-align:center;padding:16px;font-size:14px;font-weight:700;color:#059669;font-family:Manrope,sans-serif">Дякуємо! Повідомлення надіслано.</div>
+    </div>`;
+    ov.addEventListener("click", e => { if (e.target === ov) window.closeBugReport(); });
+    document.body.appendChild(ov);
+  }
+  document.getElementById("qf-bug-pg").textContent = document.body.dataset.page || location.pathname.split("/").pop() || "—";
+  document.getElementById("qf-bug-txt").value = "";
+  document.getElementById("qf-bug-ok").style.display = "none";
+  const sb = document.getElementById("qf-bug-sb");
+  if (sb) { sb.disabled = false; sb.textContent = "Надіслати"; }
+  ov.style.display = "flex";
+};
+window.closeBugReport = () => {
+  const ov = document.getElementById("qf-bug-ov");
+  if (ov) ov.style.display = "none";
+};
+window.sendBugReport = async () => {
+  const text = (document.getElementById("qf-bug-txt")?.value || "").trim();
+  if (!text) { document.getElementById("qf-bug-txt")?.focus(); return; }
+  const btn = document.getElementById("qf-bug-sb");
+  if (btn) { btn.disabled = true; btn.textContent = "Надсилаємо..."; }
+  try {
+    const { push, ref: fbR } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+    await push(fbR(db, "bugReports"), {
+      message: text,
+      page: document.body.dataset.page || location.pathname.split("/").pop() || "—",
+      uid: uid || "—",
+      userName: document.getElementById("sb-teacher-name")?.textContent || "—",
+      createdAt: Date.now(),
+      status: "new"
+    });
+    const ok = document.getElementById("qf-bug-ok");
+    if (ok) ok.style.display = "block";
+    setTimeout(() => window.closeBugReport(), 2000);
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = "Надіслати"; }
+    alert("Помилка: " + e.message);
+  }
+};
+
 export function appReady() {
   ldr(false);
 }

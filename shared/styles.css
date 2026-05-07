@@ -789,3 +789,6 @@ textarea.fi{resize:vertical;min-height:72px}
 @media (max-width:560px){
   #m-attempt .mb.wd{ width:100vw!important; max-width:100vw!important }
 }
+
+.ni.ni-report:hover{background:rgba(239,68,68,.1)}
+.ni.ni-report:hover .sb-ico svg{stroke:#FCA5A5}
