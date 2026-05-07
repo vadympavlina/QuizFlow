@@ -355,20 +355,20 @@ async function buildDynamicSidebar(navData, activePage) {
     </button>
     <nav class="sb-scroll"><div class="sb-section">${sectionsHtml}</div></nav>
     <div class="sb-bottom">
-      <a href="live.html" target="_blank" data-tip="Live (нова вкладка)" class="ni ni-live">
-        <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg></span>
-        <span class="ni-label">Live</span>
-        <svg class="ni-ext sb-bottom-labels" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
-      </a>
-      <a href="/admin/overview.html" id="admin-panel-btn" target="_blank" rel="noopener" data-tip="Адмін (нова вкладка)" class="ni ni-admin" style="display:none">
-        <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
-        <span class="ni-label">Адмін-панель</span>
-        <svg class="ni-ext sb-bottom-labels" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
-      </a>
-      <button class="ni ni-help" data-tip="Інструкція" onclick="window.openOnboarding && window.openOnboarding()">
-        <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.5 9a2.5 2.5 0 015 0c0 1.5-2.5 2-2.5 4"/><path d="M12 17h.01"/></svg></span>
-        <span class="ni-label">Інструкція</span>
-      </button>
+      <div class="sb-icon-row">
+        <a href="live.html" target="_blank" class="sb-icon-btn" data-tip="Live">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="/admin/overview.html" id="admin-panel-btn" target="_blank" rel="noopener" class="sb-icon-btn" data-tip="Адмін" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </a>
+        <button class="sb-icon-btn" data-tip="Інструкція" onclick="window.openOnboarding && window.openOnboarding()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.5 9a2.5 2.5 0 015 0c0 1.5-2.5 2-2.5 4"/><path d="M12 17h.01"/></svg>
+        </button>
+        <button class="sb-icon-btn sb-icon-btn--report" data-tip="Повідомити про помилку" onclick="openBugReport()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+        </button>
+      </div>
       <div class="sb-foot-inner">
         <div class="ava" id="sb-ava">ВЧ</div>
         <div class="sb-texts">
@@ -542,45 +542,54 @@ export async function initApp(pageName, options = {}) {
 
 // Явна функція щоб показати "все готово" — сторінка викликає після renderAll
 // ─── Bug Report ────────────────────────────────────────────────────────────
-window.openBugReport = () => {
-  let ov = document.getElementById("qf-bug-overlay");
-  if (!ov) {
-    ov = document.createElement("div");
-    ov.id = "qf-bug-overlay";
-    ov.style.cssText = "position:fixed;inset:0;background:rgba(11,20,55,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)";
-    ov.innerHTML = `<div style="background:#fff;border-radius:18px;padding:28px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(11,20,55,.2)">
-      <h3 style="margin:0 0 4px;font-size:17px;font-weight:800;color:#0B1437">Повідомити про помилку</h3>
-      <p style="font-size:13px;color:#5B6A8F;margin:0 0 14px">Опишіть що сталось — розглянемо якнайшвидше</p>
-      <div style="font-size:11.5px;font-family:monospace;background:#F4F6FB;border:1px solid #E3E8F2;border-radius:7px;padding:6px 10px;color:#1E3A8A;margin-bottom:12px" id="qf-bug-page"></div>
-      <textarea id="qf-bug-text" placeholder="Опишіть помилку або проблему..." style="width:100%;min-height:90px;border:1.5px solid #E3E8F2;border-radius:11px;padding:10px 12px;font-family:inherit;font-size:14px;resize:vertical;outline:none;box-sizing:border-box"></textarea>
-      <div style="display:flex;gap:10px;margin-top:12px">
-        <button onclick="window.closeBugReport()" style="flex:1;padding:10px;border-radius:9px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;border:1px solid #E3E8F2;background:#F4F6FB;color:#5B6A8F">Скасувати</button>
-        <button id="qf-bug-send" onclick="window.sendBugReport()" style="flex:1;padding:10px;border-radius:9px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;border:none;background:#1E3A8A;color:#fff">Надіслати</button>
+function injectBugModal() {
+  if (document.getElementById("bug-overlay")) return;
+  const el = document.createElement("div");
+  el.id = "bug-overlay";
+  el.className = "bug-overlay";
+  el.innerHTML = `
+    <div class="bug-modal">
+      <h3>Повідомити про помилку</h3>
+      <p class="bug-sub">Опишіть що сталось — ми розглянемо якомога швидше</p>
+      <div class="bug-page">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2 2"/></svg>
+        <span id="bug-page-label">—</span>
       </div>
-      <div id="qf-bug-ok" style="display:none;text-align:center;padding:16px;font-size:14px;font-weight:700;color:#059669">Дякуємо! Повідомлення надіслано.</div>
+      <textarea id="bug-text" placeholder="Опишіть помилку або проблему..."></textarea>
+      <div class="bug-btns">
+        <button class="bug-btn cancel" onclick="closeBugReport()">Скасувати</button>
+        <button class="bug-btn send" id="bug-send-btn" onclick="sendBugReport()">Надіслати</button>
+      </div>
+      <div class="bug-ok" id="bug-ok">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Дякуємо! Повідомлення надіслано.
+      </div>
     </div>`;
-    ov.addEventListener("click", e => { if (e.target === ov) window.closeBugReport(); });
-    document.body.appendChild(ov);
-  }
-  document.getElementById("qf-bug-page").textContent = document.body.dataset.page || location.pathname.split("/").pop() || "—";
-  document.getElementById("qf-bug-text").value = "";
-  document.getElementById("qf-bug-ok").style.display = "none";
-  document.getElementById("qf-bug-send").disabled = false;
-  document.getElementById("qf-bug-send").textContent = "Надіслати";
-  ov.style.display = "flex";
+  el.addEventListener("click", e => { if (e.target === el) closeBugReport(); });
+  document.body.appendChild(el);
+}
+
+window.openBugReport = () => {
+  injectBugModal();
+  const page = document.body.dataset.page || location.pathname.split("/").pop() || "—";
+  document.getElementById("bug-page-label").textContent = page;
+  document.getElementById("bug-text").value = "";
+  document.getElementById("bug-ok").style.display = "none";
+  document.querySelector(".bug-modal .bug-btns").style.display = "flex";
+  document.querySelector(".bug-modal textarea").style.display = "block";
+  document.getElementById("bug-overlay").classList.add("open");
 };
 window.closeBugReport = () => {
-  const ov = document.getElementById("qf-bug-overlay");
-  if (ov) ov.style.display = "none";
+  document.getElementById("bug-overlay")?.classList.remove("open");
 };
 window.sendBugReport = async () => {
-  const text = document.getElementById("qf-bug-text").value.trim();
-  if (!text) { document.getElementById("qf-bug-text").focus(); return; }
-  const btn = document.getElementById("qf-bug-send");
+  const text = document.getElementById("bug-text").value.trim();
+  if (!text) { document.getElementById("bug-text").focus(); return; }
+  const btn = document.getElementById("bug-send-btn");
   btn.disabled = true; btn.textContent = "Надсилаємо...";
   try {
-    const { push, ref: fbRef } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
-    await push(fbRef(db, "bugReports"), {
+    const { push, ref: dbRef } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+    await push(dbRef(db, "bugReports"), {
       message: text,
       page: document.body.dataset.page || location.pathname.split("/").pop() || "—",
       url: location.href,
@@ -589,8 +598,10 @@ window.sendBugReport = async () => {
       createdAt: Date.now(),
       status: "new"
     });
-    document.getElementById("qf-bug-ok").style.display = "block";
-    setTimeout(() => window.closeBugReport(), 2000);
+    document.querySelector(".bug-modal .bug-btns").style.display = "none";
+    document.querySelector(".bug-modal textarea").style.display = "none";
+    document.getElementById("bug-ok").style.display = "block";
+    setTimeout(() => closeBugReport(), 2000);
   } catch(e) {
     btn.disabled = false; btn.textContent = "Надіслати";
     alert("Помилка: " + e.message);
