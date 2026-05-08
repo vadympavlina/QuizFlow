@@ -774,13 +774,13 @@ function buildTestCard(t, idx){
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               Змінити статус
             </div>
+            <div class="t-tmenu-item" onclick="G.showStats('${t.id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              Статистика
+            </div>
             <div class="t-tmenu-item" onclick="G.openShareModal('${t.id}','${esc(t.title)}')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
               Поділитись
-            </div>
-            <div class="t-tmenu-item" onclick="G.startLiveGame('${t.id}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
-              Live гра
             </div>
             <div class="t-tmenu-sep"></div>
             <div class="t-tmenu-item d" onclick="G.confDelTest('${t.id}','${esc(t.title)}')">
@@ -842,6 +842,9 @@ function buildTestRow(t, idx){
         </button>
         <button class="t-ib" title="Нове посилання" onclick="G.qLink('${t.id}')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        </button>
+        <button class="t-ib" title="Статистика" onclick="G.showStats('${t.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         </button>
         <button class="t-ib" title="Поділитись" onclick="G.openShareModal('${t.id}','${esc(t.title)}')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -913,18 +916,16 @@ renderTests = function(q = ""){
     const folderName = inFolder ? (folder?.name || "Папка") : "Без папки";
     const folderColor = inFolder ? _folderColor(folder) : "#8691AC";
     let fTests = inFolder ? lst.filter(t => t.folderId === _fFilter) : noFolderTests;
-    if (window._testsStatus) fTests = fTests.filter(t => t.status === window._testsStatus);
+    // status filter removed
 
     const allCnt = inFolder ? lst.filter(t => t.folderId === _fFilter).length : noFolderTests.length;
     const activeCnt = inFolder
-      ? lst.filter(t => t.folderId === _fFilter && t.status === "active").length
-      : noFolderTests.filter(t => t.status === "active").length;
+      ? lst.filter(t => t.folderId === _fFilter).length
+      : noFolderTests.length;
     const draftCnt = inFolder
-      ? lst.filter(t => t.folderId === _fFilter && t.status === "draft").length
-      : noFolderTests.filter(t => t.status === "draft").length;
+      ? 0 : 0;
     const closedCnt = inFolder
-      ? lst.filter(t => t.folderId === _fFilter && t.status === "closed").length
-      : noFolderTests.filter(t => t.status === "closed").length;
+      ? 0 : 0;
 
     c.innerHTML = `
       <div class="t-card">
@@ -1270,14 +1271,14 @@ renderAttempts = function(resetPage = false){
   // ── Фільтрація ──
   let lst = attempts;
   if (tF)   lst = lst.filter(a => a.testId === tF);
-  if (grpF) lst = lst.filter(a => { const l = links.find(x => x.id === a.linkId); return (l?.group || "") === grpF; });
+  if (grpF) lst = lst.filter(a => (a.group || links.find(x => x.id === a.linkId)?.group || "") === grpF);
   if (sF === "flagged")  lst = lst.filter(a => _attViolation(a) > 0);
   else if (sF)           lst = lst.filter(a => a.status === sF);
   if (q){
     lst = lst.filter(a => {
       const fullName  = `${a.name || ""} ${a.surname || ""}`.toLowerCase();
       const testTitle = (tests.find(t => t.id === a.testId)?.title || "").toLowerCase();
-      const group     = (links.find(l => l.id === a.linkId)?.group || "").toLowerCase();
+      const group     = (a.group || links.find(l => l.id === a.linkId)?.group || "").toLowerCase();
       return fullName.includes(q) || testTitle.includes(q) || group.includes(q);
     });
   }
@@ -1637,8 +1638,7 @@ window.G = {
   _toggleTestMenu(id){
     const menu=document.getElementById("tmenu-"+id);
     if(!menu) return;
-    // offsetParent === null означає що елемент прихований (display:none через CSS або style)
-    const isOpen = menu.offsetParent !== null || menu.style.display === "block";
+    const isOpen=menu.style.display!=="none";
     document.querySelectorAll("[id^='tmenu-']").forEach(m=>m.style.display="none");
     if(!isOpen){
       menu.style.display="block";
@@ -1858,17 +1858,15 @@ selectAnalyticsDrop(field, value, label){
     const n=$("nt-n").value.trim();
     if(!n){$("nt-n").classList.add("er");$("nt-n").focus();return;}
     const desc=$("nt-d").value.trim(),tags=$("nt-tg").value.split(",").map(s=>s.trim()).filter(Boolean),tl=(parseInt($("nt-tm").value)||10)*60;
+    // Якщо юзер у папці — автоматично прив'язуємо до неї
+    const effectiveFid = _fid || (_fFilter && _fFilter !== "all" && _fFilter !== "none" ? _fFilter : null);
     ldr(true);closeM("m-test");
     try{
-      const id=await dbPush("tests",{title:n,description:desc,folderId:_fid||null,tags,timeLimit:tl,status:"draft",questions:[],createdAt:ts()});
+      const id=await dbPush("tests",{title:n,description:desc,folderId:effectiveFid,tags,timeLimit:tl,status:"active",questions:[],createdAt:ts()});
       location.href=`constructor.html?id=${id}`;
     }catch(e){toast("Помилка: "+e.message,"err");ldr(false);}
   },
   confDelTest(id,name){_pid=id;$("del-tn").textContent=name;openM("m-del-test");},
-  startLiveGame(testId){
-    document.querySelectorAll("[id^='tmenu-']").forEach(m=>m.style.display="none");
-    window.open(`live/setup.html?testId=${testId}`,"_blank","noopener");
-  },
   async doDelTest(mode="archive"){
     const id=_pid;_pid=null;closeM("m-del-test");ldr(true);
     try{
@@ -1998,8 +1996,12 @@ selectAnalyticsDrop(field, value, label){
   async togLink(id,st){
     const ns=st==="active"?"closed":"active";
     try{
-      await dbUpd(`links/${id}`,{status:ns});
-      links=links.map(l=>l.id===id?{...l,status:ns}:l);
+      // При повторному відкритті (closed → active) — очищаємо closeAt
+      // щоб автозакриття не спрацювало одразу якщо дата вже в минулому
+      const upd = { status: ns };
+      if (ns === "active") upd.closeAt = null;
+      await dbUpd(`links/${id}`, upd);
+      links=links.map(l=>l.id===id?{...l,status:ns, ...(ns==="active"?{closeAt:null}:{})}:l);
       renderLinks();renderDashLinks();updateBadges();toast(ns==="active"?"Посилання відкрито":"Посилання закрито");
     }catch(e){toast("Помилка: "+e.message,"err");}
   },
@@ -3783,7 +3785,7 @@ selectAnalyticsDrop(field, value, label){
     const groupF=activeGrpEl?.dataset?.val||"";
 
     let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
-    if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
+    if(groupF) att=att.filter(a=>(a.group||links.find(x=>x.id===a.linkId)?.group||"")===groupF);
     if(testF)  att=att.filter(a=>a.testId===testF);
 
     if(!att.length){
@@ -3902,7 +3904,7 @@ selectAnalyticsDrop(field, value, label){
     const testF=activeTestEl?.dataset?.val||"";
     const groupF=activeGrpEl?.dataset?.val||"";
     let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
-    if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
+    if(groupF) att=att.filter(a=>(a.group||links.find(x=>x.id===a.linkId)?.group||"")===groupF);
     if(testF)  att=att.filter(a=>a.testId===testF);
     if(!att.length){toast("Немає даних для експорту","err");return;}
 
@@ -4105,7 +4107,7 @@ selectAnalyticsDrop(field, value, label){
     // Фільтруємо спроби
     let att = attempts.filter(a => a.status === "completed" || a.status === "pending_review");
     if(testId)  att = att.filter(a => a.testId === testId);
-    if(groupF){ att = att.filter(a => { const l=links.find(x=>x.id===a.linkId); return (l?.group||"") === groupF; }); }
+    if(groupF){ att = att.filter(a => (a.group||links.find(x=>x.id===a.linkId)?.group||"") === groupF); }
  
     if(!att.length){
       body.innerHTML = `<div class="a-empty">
