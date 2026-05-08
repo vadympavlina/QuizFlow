@@ -74,56 +74,46 @@ const dbDel  = async path => { const r = await remove(ref(db, tp(path))); _bust(
 // Стан (деякі модалки/функції з G використовують ці змінні)
 let _students = [], _fid = null, _pid = null;
 
-// ─── buildChips: відображає вибрану папку у модалці m-test ───────────────────
+// ─── buildChips: відображає вибрану папку у модалці m-test (в існуючий #nt-chips) ─
 function buildChips(){
-  const modal = document.getElementById("m-test");
-  if(!modal) return;
-
-  // Знаходимо або створюємо контейнер chips у модалці
-  let panel = modal.querySelector("#nt-folder-chips");
-  if(!panel){
-    // Вставляємо перед першим полем вводу в модалці
-    const firstField = modal.querySelector("input, textarea");
-    if(!firstField) return;
-    panel = document.createElement("div");
-    panel.id = "nt-folder-chips";
-    panel.style.cssText = "margin-bottom:14px";
-    firstField.closest(".mo-field, .setting-field, div") ? firstField.closest("[class]")?.before(panel) : firstField.before(panel);
-  }
+  // Рендеримо в елемент #nt-chips який вже є в modals.html
+  const panel = document.getElementById("nt-chips");
+  if(!panel) return;
 
   const sel = folders.find(f => f.id === _fid);
   const folderColor = sel?.color || "#2d5be3";
   const label = sel ? sel.name : "Без папки";
 
   panel.innerHTML = `
-    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#8691AC;margin-bottom:6px">Папка</div>
-    <div style="position:relative;display:inline-block;width:100%">
+    <div style="position:relative">
       <button id="nt-folder-btn" onclick="window._toggleFolderChips()" type="button"
-        style="width:100%;display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:10px;border:1.5px solid #E3E8F2;background:#fff;font-size:13px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s;font-family:inherit;color:${sel?"#0B1437":"#8691AC"}">
+        style="width:100%;display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:10px;border:1.5px solid #E3E8F2;background:#fff;font-size:13px;font-weight:500;cursor:pointer;text-align:left;transition:border-color .15s;font-family:inherit;color:${sel?"#0B1437":"#8691AC"}">
         ${sel
           ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:5px;background:${folderColor};flex-shrink:0">
                <svg width="11" height="11" viewBox="0 0 24 24" fill="white"><path d="M3 8a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
              </span>${esc(label)}`
           : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.4"><path d="M3 8a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>Без папки`}
-        <svg style="margin-left:auto;flex-shrink:0;opacity:.5" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        <svg style="margin-left:auto;flex-shrink:0;opacity:.4" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
-      <div id="nt-folder-drop" style="display:none;position:absolute;top:calc(100% + 5px);left:0;right:0;background:#fff;border:1.5px solid #E3E8F2;border-radius:12px;box-shadow:0 8px 24px rgba(30,58,138,.1);z-index:300;max-height:220px;overflow:hidden">
+      <div id="nt-folder-drop" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1.5px solid #E3E8F2;border-radius:12px;box-shadow:0 8px 24px rgba(30,58,138,.1);z-index:400;overflow:hidden">
         <div style="padding:6px 8px 4px">
-          <input id="nt-folder-search" type="text" placeholder="Пошук..." autocomplete="off" oninput="window._filterFolderChips(this.value)"
+          <input id="nt-folder-search" type="text" placeholder="Пошук папки..." autocomplete="off" oninput="window._filterFolderChips(this.value)"
             style="width:100%;padding:6px 10px;border-radius:8px;border:1.5px solid #E3E8F2;font-size:13px;outline:none;font-family:inherit"
             onfocus="this.style.borderColor='#3B82F6'" onblur="this.style.borderColor='#E3E8F2'">
         </div>
-        <div id="nt-folder-list" style="overflow-y:auto;max-height:160px;padding:4px 0">
-          <div class="_fc-item${!_fid?" _fc-on":""}" onclick="window._selectFolderChip(null)"
-            style="display:flex;align-items:center;gap:8px;padding:9px 13px;cursor:pointer;font-size:13px;color:${!_fid?"#1E3A8A":"#5B6A8F"};background:${!_fid?"#EEF2FB":"transparent"};font-weight:${!_fid?"600":"400"}">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Без папки
+        <div id="nt-folder-list" style="overflow-y:auto;max-height:180px;padding:4px 0">
+          <div onclick="window._selectFolderChip(null)"
+            style="display:flex;align-items:center;gap:8px;padding:9px 13px;cursor:pointer;font-size:13px;color:${!_fid?"#1E3A8A":"#5B6A8F"};background:${!_fid?"#EEF2FB":"transparent"};font-weight:${!_fid?"600":"400"};transition:background .1s">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.4;flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Без папки
+            ${!_fid?'<svg style="margin-left:auto" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>':""}
           </div>
           ${folders.map(f=>`
-            <div class="_fc-item" data-id="${f.id}" data-name="${esc(f.name.toLowerCase())}" onclick="window._selectFolderChip('${f.id}')"
-              style="display:flex;align-items:center;gap:8px;padding:9px 13px;cursor:pointer;font-size:13px;color:${_fid===f.id?"#1E3A8A":"#5B6A8F"};background:${_fid===f.id?"#EEF2FB":"transparent"};font-weight:${_fid===f.id?"600":"400"}">
+            <div data-fid="${f.id}" data-fname="${esc(f.name.toLowerCase())}" onclick="window._selectFolderChip('${f.id}')"
+              style="display:flex;align-items:center;gap:8px;padding:9px 13px;cursor:pointer;font-size:13px;color:${_fid===f.id?"#1E3A8A":"#5B6A8F"};background:${_fid===f.id?"#EEF2FB":"transparent"};font-weight:${_fid===f.id?"600":"400"};transition:background .1s">
               <span style="width:18px;height:18px;border-radius:5px;background:${f.color||"#2d5be3"};flex-shrink:0;display:inline-flex;align-items:center;justify-content:center">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M3 8a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
               </span>${esc(f.name)}
+              ${_fid===f.id?'<svg style="margin-left:auto" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>':""}
             </div>`).join("")}
         </div>
       </div>
@@ -135,25 +125,26 @@ window._toggleFolderChips = function(){
   if(!drop) return;
   const isOpen = drop.style.display !== "none";
   drop.style.display = isOpen ? "none" : "block";
-  if(!isOpen) document.getElementById("nt-folder-search")?.focus();
+  if(!isOpen) setTimeout(()=>document.getElementById("nt-folder-search")?.focus(), 50);
 };
 
 window._filterFolderChips = function(q){
   const lq = q.toLowerCase();
-  document.querySelectorAll("#nt-folder-list ._fc-item[data-id]").forEach(el=>{
-    el.style.display = el.dataset.name?.includes(lq) ? "" : "none";
+  document.querySelectorAll("#nt-folder-list [data-fid]").forEach(el=>{
+    el.style.display = (el.dataset.fname||"").includes(lq) ? "" : "none";
   });
 };
 
 window._selectFolderChip = function(fid){
   _fid = fid || null;
-  document.getElementById("nt-folder-drop").style.display = "none";
-  buildChips(); // перемалювати кнопку
+  const drop = document.getElementById("nt-folder-drop");
+  if(drop) drop.style.display = "none";
+  buildChips();
 };
 
-// Закриваємо дроп при кліку поза
+// Закриваємо дроп при кліку поза #nt-chips
 document.addEventListener("click", e=>{
-  if(!e.target.closest("#nt-folder-chips")) {
+  if(!e.target.closest("#nt-chips")){
     const drop = document.getElementById("nt-folder-drop");
     if(drop) drop.style.display = "none";
   }
