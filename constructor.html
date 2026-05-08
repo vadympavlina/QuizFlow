@@ -316,22 +316,7 @@
       <input class="test-name-input" type="text" id="testTitle" placeholder="Назва тесту..." style="flex:1;min-width:0">
       <div id="dirtyIndicator" title="Є незбережені зміни" style="width:8px;height:8px;border-radius:50%;background:var(--amber);display:none;flex-shrink:0"></div>
     </div>
-    <div class="con-cd-wrap" id="con-cd-status" style="display:none">
-      <button class="con-cd-btn" onclick="conToggleDrop('con-cd-status')">
-        <span id="con-cd-status-label">📝 Чернетка</span>
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="con-cd-menu" id="con-cd-status-menu">
-        <div class="con-cd-item con-cd-active" onclick="conSelectStatus('draft','📝 Чернетка')">📝 Чернетка</div>
-        <div class="con-cd-item" onclick="conSelectStatus('active','✅ Активний')">✅ Активний</div>
-        <div class="con-cd-item" onclick="conSelectStatus('closed','🔒 Закритий')">🔒 Закритий</div>
-      </div>
-    </div>
-    <select class="status-select" id="testStatus" style="display:none">
-      <option value="active">Чернетка</option>
-      <option value="active">Активний</option>
-      <option value="closed">Закритий</option>
-    </select>
+
     <div style="display:flex;gap:6px;flex-shrink:0">
       <button class="btn btn-ghost" onclick="window.openAiModal()" style="gap:6px;font-size:13px">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>AI
@@ -643,7 +628,7 @@ window.previewTest = async () => {
       title:     document.getElementById("testTitle")?.value.trim()||"",
       folderId:  window._selectedFolderId ?? testData.folderId ?? null,
       timeLimit: (()=>{ const v=Number(document.getElementById("testTimeLimit")?.value); return v===0?0:(v||10)*60; })(),
-      status:    document.getElementById("testStatus")?.value||"draft",
+      status:    "active",
       tags,
       questions: testData.questions
     });
@@ -1019,16 +1004,7 @@ window.conToggleDrop = function(wrapId){
   if(!isOpen){ menu?.classList.add("open"); btn?.classList.add("open"); }
 };
 
-window.conSelectStatus = function(value, label){
-  document.getElementById("testStatus").value = value;
-  // status hidden: document.getElementById("con-cd-status-label").textContent = label;
-  document.querySelectorAll("#con-cd-status-menu .con-cd-item").forEach(el=>{
-    el.classList.toggle("con-cd-active", el.textContent.trim()===label.trim());
-  });
-  document.querySelector("#con-cd-status .con-cd-btn")?.classList.remove("open");
-  document.getElementById("con-cd-status-menu")?.classList.remove("open");
-  markDirty();
-};
+
 
 window.conSelectAI = function(selId, wrapId, value, label){
   const sel = document.getElementById(selId);
@@ -1055,16 +1031,6 @@ document.addEventListener("click", (e)=>{
   }
 });
 
-// Синхронізуємо кастомний статус при завантаженні тесту
-function syncStatusDropdown(value){
-  const labels = {draft:"📝 Чернетка", active:"✅ Активний", closed:"🔒 Закритий"};
-  const label = labels[value] || "📝 Чернетка";
-  const lbl = document.getElementById("con-cd-status-label");
-  if(lbl) lbl.textContent = label;
-  document.querySelectorAll("#con-cd-status-menu .con-cd-item").forEach(el=>{
-    el.classList.toggle("con-cd-active", el.textContent.trim()===label.trim());
-  });
-}
 
 window.navTo = (section) => {
   if (section) sessionStorage.setItem("qf_nav", section);
@@ -1378,7 +1344,6 @@ async function loadTest() {
     document.getElementById("testTitle").value     = testData.title || "";
     document.getElementById("testTimeLimit").value = testData.timeLimit === 0 ? 0 : Math.round((testData.timeLimit || 600) / 60);
     window.syncNoTimerToggle && window.syncNoTimerToggle();
-    document.getElementById("testStatus").value    = testData.status || "draft";
     document.getElementById("tagsInput").value     = (testData.tags || []).join(", ");
 
     renderFolderChips();
@@ -1969,7 +1934,7 @@ window.saveTest = async () => {
       title:     document.getElementById("testTitle").value.trim(),
       folderId:  window._selectedFolderId ?? testData.folderId ?? null,
       timeLimit: (()=>{ const v=Number(document.getElementById("testTimeLimit").value); return v===0?0:(v||10)*60; })(),
-      status:    document.getElementById("testStatus").value,
+      status:    "active",
       tags,
       questions: testData.questions
     });
@@ -2069,7 +2034,7 @@ window.previewTest = async () => {
       title:     document.getElementById("testTitle")?.value.trim()||"",
       folderId:  window._selectedFolderId ?? testData.folderId ?? null,
       timeLimit: (()=>{ const v=Number(document.getElementById("testTimeLimit")?.value); return v===0?0:(v||10)*60; })(),
-      status:    document.getElementById("testStatus")?.value||"draft",
+      status:    "active",
       tags,
       questions: testData.questions
     });
@@ -2150,7 +2115,7 @@ function autosave(){
       title:     document.getElementById("testTitle")?.value||"",
       folderId:  window._selectedFolderId ?? testData?.folderId ?? null,
       timeLimit: (()=>{ const v=Number(document.getElementById("testTimeLimit")?.value); return v===0?0:(v||10)*60; })(),
-      status:    document.getElementById("testStatus")?.value||"draft",
+      status:    "active",
       questions: testData?.questions||[],
       savedAt:   Date.now()
     }));
@@ -2174,7 +2139,6 @@ function checkAutosave(){
     if(confirm(`Знайдено незбережену версію (${age < 1 ? "щойно" : age + " хв тому"}). Відновити?`)){
       if(document.getElementById("testTitle")) document.getElementById("testTitle").value = data.title||"";
       if(data.questions) testData.questions = data.questions;
-      if(data.status) document.getElementById("testStatus").value = data.status;
       isDirty = true;
       renderQuestionList();
       if(testData.questions.length>0) renderEditor(0);

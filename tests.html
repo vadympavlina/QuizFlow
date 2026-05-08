@@ -81,9 +81,9 @@
 /* Pills */
 #sec-tests .t-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;font-size:11.5px;font-weight:600;border-radius:999px;white-space:nowrap;font-family:'Manrope',sans-serif}
 #sec-tests .t-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.9}
-#sec-tests 
-#sec-tests 
-#sec-tests 
+#sec-tests .t-pill.on{background:#DCFCE7;color:#15803D}
+#sec-tests .t-pill.draft{background:#FEF3C7;color:#92400E}
+#sec-tests .t-pill.closed{background:#FEE2E2;color:#B91C1C}
 #sec-tests .t-pill.info{background:#DBEAFE;color:#1E40AF}
 #sec-tests .t-pill.off{background:#E5EAF5;color:var(--ink-500)}
 
@@ -263,7 +263,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/><path d="M12 11v6M9 14h6"/></svg>
           Нова папка
         </button>
-        <button class="t-btn primary" onclick="openM('m-test')">
+        <button class="t-btn primary" onclick="G.openTestInFolder(window._fFilter && window._fFilter !== 'all' && window._fFilter !== 'none' ? window._fFilter : null)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Новий тест
         </button>
