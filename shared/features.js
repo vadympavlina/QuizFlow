@@ -74,6 +74,91 @@ const dbDel  = async path => { const r = await remove(ref(db, tp(path))); _bust(
 // Стан (деякі модалки/функції з G використовують ці змінні)
 let _students = [], _fid = null, _pid = null;
 
+// ─── buildChips: відображає вибрану папку у модалці m-test ───────────────────
+function buildChips(){
+  const modal = document.getElementById("m-test");
+  if(!modal) return;
+
+  // Знаходимо або створюємо контейнер chips у модалці
+  let panel = modal.querySelector("#nt-folder-chips");
+  if(!panel){
+    // Вставляємо перед першим полем вводу в модалці
+    const firstField = modal.querySelector("input, textarea");
+    if(!firstField) return;
+    panel = document.createElement("div");
+    panel.id = "nt-folder-chips";
+    panel.style.cssText = "margin-bottom:14px";
+    firstField.closest(".mo-field, .setting-field, div") ? firstField.closest("[class]")?.before(panel) : firstField.before(panel);
+  }
+
+  const sel = folders.find(f => f.id === _fid);
+  const folderColor = sel?.color || "#2d5be3";
+  const label = sel ? sel.name : "Без папки";
+
+  panel.innerHTML = `
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#8691AC;margin-bottom:6px">Папка</div>
+    <div style="position:relative;display:inline-block;width:100%">
+      <button id="nt-folder-btn" onclick="window._toggleFolderChips()" type="button"
+        style="width:100%;display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:10px;border:1.5px solid #E3E8F2;background:#fff;font-size:13px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s;font-family:inherit;color:${sel?"#0B1437":"#8691AC"}">
+        ${sel
+          ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:5px;background:${folderColor};flex-shrink:0">
+               <svg width="11" height="11" viewBox="0 0 24 24" fill="white"><path d="M3 8a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
+             </span>${esc(label)}`
+          : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.4"><path d="M3 8a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>Без папки`}
+        <svg style="margin-left:auto;flex-shrink:0;opacity:.5" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div id="nt-folder-drop" style="display:none;position:absolute;top:calc(100% + 5px);left:0;right:0;background:#fff;border:1.5px solid #E3E8F2;border-radius:12px;box-shadow:0 8px 24px rgba(30,58,138,.1);z-index:300;max-height:220px;overflow:hidden">
+        <div style="padding:6px 8px 4px">
+          <input id="nt-folder-search" type="text" placeholder="Пошук..." autocomplete="off" oninput="window._filterFolderChips(this.value)"
+            style="width:100%;padding:6px 10px;border-radius:8px;border:1.5px solid #E3E8F2;font-size:13px;outline:none;font-family:inherit"
+            onfocus="this.style.borderColor='#3B82F6'" onblur="this.style.borderColor='#E3E8F2'">
+        </div>
+        <div id="nt-folder-list" style="overflow-y:auto;max-height:160px;padding:4px 0">
+          <div class="_fc-item${!_fid?" _fc-on":""}" onclick="window._selectFolderChip(null)"
+            style="display:flex;align-items:center;gap:8px;padding:9px 13px;cursor:pointer;font-size:13px;color:${!_fid?"#1E3A8A":"#5B6A8F"};background:${!_fid?"#EEF2FB":"transparent"};font-weight:${!_fid?"600":"400"}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Без папки
+          </div>
+          ${folders.map(f=>`
+            <div class="_fc-item" data-id="${f.id}" data-name="${esc(f.name.toLowerCase())}" onclick="window._selectFolderChip('${f.id}')"
+              style="display:flex;align-items:center;gap:8px;padding:9px 13px;cursor:pointer;font-size:13px;color:${_fid===f.id?"#1E3A8A":"#5B6A8F"};background:${_fid===f.id?"#EEF2FB":"transparent"};font-weight:${_fid===f.id?"600":"400"}">
+              <span style="width:18px;height:18px;border-radius:5px;background:${f.color||"#2d5be3"};flex-shrink:0;display:inline-flex;align-items:center;justify-content:center">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M3 8a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
+              </span>${esc(f.name)}
+            </div>`).join("")}
+        </div>
+      </div>
+    </div>`;
+}
+
+window._toggleFolderChips = function(){
+  const drop = document.getElementById("nt-folder-drop");
+  if(!drop) return;
+  const isOpen = drop.style.display !== "none";
+  drop.style.display = isOpen ? "none" : "block";
+  if(!isOpen) document.getElementById("nt-folder-search")?.focus();
+};
+
+window._filterFolderChips = function(q){
+  const lq = q.toLowerCase();
+  document.querySelectorAll("#nt-folder-list ._fc-item[data-id]").forEach(el=>{
+    el.style.display = el.dataset.name?.includes(lq) ? "" : "none";
+  });
+};
+
+window._selectFolderChip = function(fid){
+  _fid = fid || null;
+  document.getElementById("nt-folder-drop").style.display = "none";
+  buildChips(); // перемалювати кнопку
+};
+
+// Закриваємо дроп при кліку поза
+document.addEventListener("click", e=>{
+  if(!e.target.closest("#nt-folder-chips")) {
+    const drop = document.getElementById("nt-folder-drop");
+    if(drop) drop.style.display = "none";
+  }
+}, true);
+
 async function loadStoredNotifs(){
   try {
     const snap = await dbGet("notifications");
@@ -615,7 +700,7 @@ function renderDashLinks(){
 // TESTS & FOLDERS
 let _fFilter = "all";
 
-function setFolderFilter(v){ _fFilter=v; renderTests(document.getElementById("srch")?.value||""); }
+function setFolderFilter(v){ _fFilter=v; window._fFilter=v; renderTests(document.getElementById("srch")?.value||""); }
 
 
 // Палітра для превью карток тестів (по черзі якщо немає теми)
@@ -774,13 +859,13 @@ function buildTestCard(t, idx){
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               Змінити статус
             </div>
-            <div class="t-tmenu-item" onclick="G.showStats('${t.id}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-              Статистика
-            </div>
             <div class="t-tmenu-item" onclick="G.openShareModal('${t.id}','${esc(t.title)}')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
               Поділитись
+            </div>
+            <div class="t-tmenu-item" onclick="G.startLiveGame('${t.id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
+              Live гра
             </div>
             <div class="t-tmenu-sep"></div>
             <div class="t-tmenu-item d" onclick="G.confDelTest('${t.id}','${esc(t.title)}')">
@@ -842,9 +927,6 @@ function buildTestRow(t, idx){
         </button>
         <button class="t-ib" title="Нове посилання" onclick="G.qLink('${t.id}')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-        </button>
-        <button class="t-ib" title="Статистика" onclick="G.showStats('${t.id}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         </button>
         <button class="t-ib" title="Поділитись" onclick="G.openShareModal('${t.id}','${esc(t.title)}')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -916,16 +998,18 @@ renderTests = function(q = ""){
     const folderName = inFolder ? (folder?.name || "Папка") : "Без папки";
     const folderColor = inFolder ? _folderColor(folder) : "#8691AC";
     let fTests = inFolder ? lst.filter(t => t.folderId === _fFilter) : noFolderTests;
-    // status filter removed
+    if (window._testsStatus) fTests = fTests.filter(t => t.status === window._testsStatus);
 
     const allCnt = inFolder ? lst.filter(t => t.folderId === _fFilter).length : noFolderTests.length;
     const activeCnt = inFolder
-      ? lst.filter(t => t.folderId === _fFilter).length
-      : noFolderTests.length;
+      ? lst.filter(t => t.folderId === _fFilter && t.status === "active").length
+      : noFolderTests.filter(t => t.status === "active").length;
     const draftCnt = inFolder
-      ? 0 : 0;
+      ? lst.filter(t => t.folderId === _fFilter && t.status === "draft").length
+      : noFolderTests.filter(t => t.status === "draft").length;
     const closedCnt = inFolder
-      ? 0 : 0;
+      ? lst.filter(t => t.folderId === _fFilter && t.status === "closed").length
+      : noFolderTests.filter(t => t.status === "closed").length;
 
     c.innerHTML = `
       <div class="t-card">
@@ -1271,14 +1355,14 @@ renderAttempts = function(resetPage = false){
   // ── Фільтрація ──
   let lst = attempts;
   if (tF)   lst = lst.filter(a => a.testId === tF);
-  if (grpF) lst = lst.filter(a => (a.group || links.find(x => x.id === a.linkId)?.group || "") === grpF);
+  if (grpF) lst = lst.filter(a => { const l = links.find(x => x.id === a.linkId); return (l?.group || "") === grpF; });
   if (sF === "flagged")  lst = lst.filter(a => _attViolation(a) > 0);
   else if (sF)           lst = lst.filter(a => a.status === sF);
   if (q){
     lst = lst.filter(a => {
       const fullName  = `${a.name || ""} ${a.surname || ""}`.toLowerCase();
       const testTitle = (tests.find(t => t.id === a.testId)?.title || "").toLowerCase();
-      const group     = (a.group || links.find(l => l.id === a.linkId)?.group || "").toLowerCase();
+      const group     = (links.find(l => l.id === a.linkId)?.group || "").toLowerCase();
       return fullName.includes(q) || testTitle.includes(q) || group.includes(q);
     });
   }
@@ -1634,11 +1718,12 @@ async function callGroq(messages, maxTokens=800, temp=0.5){
 
 window.G = {
   // Folders
-  setFF(v){ _fFilter=v; renderTests(document.getElementById("srch")?.value||""); },
+  setFF(v){ _fFilter=v; window._fFilter=v; renderTests(document.getElementById("srch")?.value||""); },
   _toggleTestMenu(id){
     const menu=document.getElementById("tmenu-"+id);
     if(!menu) return;
-    const isOpen=menu.style.display!=="none";
+    // offsetParent === null означає що елемент прихований (display:none через CSS або style)
+    const isOpen = menu.offsetParent !== null || menu.style.display === "block";
     document.querySelectorAll("[id^='tmenu-']").forEach(m=>m.style.display="none");
     if(!isOpen){
       menu.style.display="block";
@@ -1853,20 +1938,26 @@ selectAnalyticsDrop(field, value, label){
     }catch(e){toast("Помилка: "+e.message,"err");}
   },
   // Tests
-  openTestInFolder(fid){_fid=fid||null;openM("m-test");buildChips();},
+  openTestInFolder(fid){
+    _fid = fid || null;
+    openM("m-test");
+    buildChips();
+  },
   async submitTest(){
     const n=$("nt-n").value.trim();
     if(!n){$("nt-n").classList.add("er");$("nt-n").focus();return;}
     const desc=$("nt-d").value.trim(),tags=$("nt-tg").value.split(",").map(s=>s.trim()).filter(Boolean),tl=(parseInt($("nt-tm").value)||10)*60;
-    // Якщо юзер у папці — автоматично прив'язуємо до неї
-    const effectiveFid = _fid || (_fFilter && _fFilter !== "all" && _fFilter !== "none" ? _fFilter : null);
     ldr(true);closeM("m-test");
     try{
-      const id=await dbPush("tests",{title:n,description:desc,folderId:effectiveFid,tags,timeLimit:tl,status:"active",questions:[],createdAt:ts()});
+      const id=await dbPush("tests",{title:n,description:desc,folderId:_fid||null,tags,timeLimit:tl,status:"draft",questions:[],createdAt:ts()});
       location.href=`constructor.html?id=${id}`;
     }catch(e){toast("Помилка: "+e.message,"err");ldr(false);}
   },
   confDelTest(id,name){_pid=id;$("del-tn").textContent=name;openM("m-del-test");},
+  startLiveGame(testId){
+    document.querySelectorAll("[id^='tmenu-']").forEach(m=>m.style.display="none");
+    window.open(`live/setup.html?testId=${testId}`,"_blank","noopener");
+  },
   async doDelTest(mode="archive"){
     const id=_pid;_pid=null;closeM("m-del-test");ldr(true);
     try{
@@ -1996,12 +2087,8 @@ selectAnalyticsDrop(field, value, label){
   async togLink(id,st){
     const ns=st==="active"?"closed":"active";
     try{
-      // При повторному відкритті (closed → active) — очищаємо closeAt
-      // щоб автозакриття не спрацювало одразу якщо дата вже в минулому
-      const upd = { status: ns };
-      if (ns === "active") upd.closeAt = null;
-      await dbUpd(`links/${id}`, upd);
-      links=links.map(l=>l.id===id?{...l,status:ns, ...(ns==="active"?{closeAt:null}:{})}:l);
+      await dbUpd(`links/${id}`,{status:ns});
+      links=links.map(l=>l.id===id?{...l,status:ns}:l);
       renderLinks();renderDashLinks();updateBadges();toast(ns==="active"?"Посилання відкрито":"Посилання закрито");
     }catch(e){toast("Помилка: "+e.message,"err");}
   },
@@ -3785,7 +3872,7 @@ selectAnalyticsDrop(field, value, label){
     const groupF=activeGrpEl?.dataset?.val||"";
 
     let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
-    if(groupF) att=att.filter(a=>(a.group||links.find(x=>x.id===a.linkId)?.group||"")===groupF);
+    if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
     if(testF)  att=att.filter(a=>a.testId===testF);
 
     if(!att.length){
@@ -3904,7 +3991,7 @@ selectAnalyticsDrop(field, value, label){
     const testF=activeTestEl?.dataset?.val||"";
     const groupF=activeGrpEl?.dataset?.val||"";
     let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
-    if(groupF) att=att.filter(a=>(a.group||links.find(x=>x.id===a.linkId)?.group||"")===groupF);
+    if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
     if(testF)  att=att.filter(a=>a.testId===testF);
     if(!att.length){toast("Немає даних для експорту","err");return;}
 
@@ -4107,7 +4194,7 @@ selectAnalyticsDrop(field, value, label){
     // Фільтруємо спроби
     let att = attempts.filter(a => a.status === "completed" || a.status === "pending_review");
     if(testId)  att = att.filter(a => a.testId === testId);
-    if(groupF){ att = att.filter(a => (a.group||links.find(x=>x.id===a.linkId)?.group||"") === groupF); }
+    if(groupF){ att = att.filter(a => { const l=links.find(x=>x.id===a.linkId); return (l?.group||"") === groupF; }); }
  
     if(!att.length){
       body.innerHTML = `<div class="a-empty">
