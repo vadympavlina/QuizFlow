@@ -48,7 +48,16 @@
   }
   .btn:hover{background:rgba(255,255,255,.1)}
   .btn-primary{background:linear-gradient(135deg,#A78BFA,#7C3AED);border:0;box-shadow:0 12px 30px rgba(124,58,237,.4)}
-  .btn-danger{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.4);color:#FCA5A5}
+  .btn-music{
+    background:rgba(167,139,250,.15);border-color:rgba(167,139,250,.35);
+    font-size:13px;padding:9px 14px;gap:6px;
+    transition:all .2s;
+  }
+  .btn-music.off{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.4)}
+  .btn-music .note-icon{font-size:15px;line-height:1;transition:transform .3s}
+  .btn-music:not(.off) .note-icon{animation:noteBounce 0.8s ease-in-out infinite alternate}
+  @keyframes noteBounce{from{transform:rotate(-8deg) scale(.95)}to{transform:rotate(8deg) scale(1.05)}}
+
   .stage{padding:36px 32px;max-width:1640px;margin:0 auto;position:relative;z-index:1}
   .answered-bar{
     background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);
@@ -121,6 +130,9 @@
   </div>
   <div class="timer-mini" id="timer">—</div>
   <div class="actions">
+    <button class="btn btn-music" id="music-btn" onclick="toggleMusic()">
+      <span class="note-icon">♪</span> Музика
+    </button>
     <button class="btn" id="pause-btn" onclick="togglePause()">⏸ Пауза</button>
     <button class="btn" id="skip-btn" onclick="skipQuestion()">⏭ Пропустити</button>
     <button class="btn btn-primary" id="next-btn" onclick="nextQuestion()">Розкрити →</button>
@@ -226,6 +238,182 @@ function applyTheme(theme) {
 }
 applyTheme(room.theme);
 
+// ─── 🎵 Audio Engine (Web Audio API, без зовнішніх файлів) ──────────────────
+let _ac = null;
+let _musicStop = null;
+let _musicOn = true;
+let _lastTickSec = -1;
+
+function getAC() {
+  if (!_ac) _ac = new (window.AudioContext || window.webkitAudioContext)();
+  if (_ac.state === "suspended") _ac.resume();
+  return _ac;
+}
+
+// ── Тік-звук (останні 5 секунд) ─────────────────────────────────────────────
+function playTick(isLast) {
+  if (!_musicOn) return;
+  const ctx = getAC();
+  const t = ctx.currentTime;
+  const freq  = isLast ? 1047 : 784; // C6 на останній секунді, G5 на решті
+  const vol   = isLast ? 0.28 : 0.16;
+  const dur   = isLast ? 0.18 : 0.10;
+
+  const osc  = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = "square";
+  osc.frequency.value = freq;
+  // Короткий attack + decay
+  gain.gain.setValueAtTime(0, t);
+  gain.gain.linearRampToValueAtTime(vol, t + 0.005);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(t);
+  osc.stop(t + dur + 0.05);
+
+  // Другий оберт — "ехо" для об'єму
+  const osc2  = ctx.createOscillator();
+  const gain2 = ctx.createGain();
+  osc2.type = "sine";
+  osc2.frequency.value = freq * 0.5;
+  gain2.gain.setValueAtTime(0, t);
+  gain2.gain.linearRampToValueAtTime(vol * 0.4, t + 0.008);
+  gain2.gain.exponentialRampToValueAtTime(0.001, t + dur * 1.5);
+  osc2.connect(gain2);
+  gain2.connect(ctx.destination);
+  osc2.start(t);
+  osc2.stop(t + dur * 1.5 + 0.05);
+}
+
+// ── Фонова музика під час питання ───────────────────────────────────────────
+function startQuestionMusic() {
+  stopMusic();
+  if (!_musicOn) return;
+  const ctx = getAC();
+
+  // BPM 124 — бадьоро але не нав'язливо
+  const BPM  = 124;
+  const BEAT = 60 / BPM;        // тривалість одного удару
+  const BAR  = BEAT * 4;        // один такт = 4 удари
+  const LOOP = BAR * 4;         // петля = 4 такти (~7.7с)
+
+  // Master gain — плавний fade-in при старті
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(0, ctx.currentTime);
+  master.gain.linearRampToValueAtTime(1, ctx.currentTime + 1.2);
+  master.connect(ctx.destination);
+
+  let stopped = false;
+  let loopTimer = null;
+
+  // Ноти: Am pentatonic — звучить добре і не нав'язливо
+  // A3  C4   E4   G4   A4   C5
+  const PENTA = [220, 261.63, 329.63, 392, 440, 523.25];
+
+  // Патерн мелодії (індекси в PENTA, -1 = пауза)
+  const MEL = [4,5,4,3, 2,3,2,1, 0,1,2,3, 4,-1,3,2];
+  // Довжини (в долях удару)
+  const MEL_LEN = [1,.5,.5,1, 1,.5,.5,1, 1,.5,.5,.5, 1,.5,.5,1];
+
+  function note(freq, start, dur, type, vol, masterG) {
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    const t0 = start, t1 = start + dur * 0.85, t2 = start + dur;
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(vol, t0 + 0.015);
+    gain.gain.setValueAtTime(vol, t1);
+    gain.gain.linearRampToValueAtTime(0, t2);
+    osc.connect(gain); gain.connect(masterG);
+    osc.start(t0); osc.stop(t2 + 0.05);
+  }
+
+  function scheduleLoop(loopStart) {
+    if (stopped) return;
+
+    // ── Мелодія (sine, тихо) ─────────────────────────────────
+    let cursor = loopStart;
+    MEL.forEach((ni, i) => {
+      const dur = MEL_LEN[i] * BEAT;
+      if (ni >= 0) note(PENTA[ni], cursor, dur, "sine", 0.10, master);
+      cursor += dur;
+    });
+
+    // ── Акорди (triangle pad, Am-F-C-G) ──────────────────────
+    const CHORDS = [
+      [220, 261.63, 329.63], // Am
+      [174.61, 261.63, 349.23], // F
+      [261.63, 329.63, 392], // C
+      [196, 293.66, 392],   // G
+    ];
+    CHORDS.forEach((chord, ci) => {
+      chord.forEach(freq => {
+        note(freq, loopStart + ci * BAR, BAR * 0.95, "triangle", 0.055, master);
+      });
+    });
+
+    // ── Бас (sine, низько) ────────────────────────────────────
+    const BASS = [110, 87.31, 130.81, 98]; // Am F C G
+    BASS.forEach((freq, bi) => {
+      // Два удари на акорд
+      [0, BEAT * 2].forEach(offset => {
+        note(freq, loopStart + bi * BAR + offset, BEAT * 1.7, "sine", 0.22, master);
+      });
+    });
+
+    // ── Ритм-клік (triangle) ─────────────────────────────────
+    for (let b = 0; b < 16; b++) {
+      const isBeat = b % 4 === 0;
+      const isOffbeat = b % 2 === 1;
+      if (!isBeat && !isOffbeat) continue;
+      const vol = isBeat ? 0.05 : 0.025;
+      const freq = isBeat ? 400 : 300;
+      note(freq, loopStart + b * BEAT, 0.06, "triangle", vol, master);
+    }
+
+    // Плануємо наступну петлю за ~100мс до кінця поточної
+    const nextAt = loopStart + LOOP;
+    const delay  = (nextAt - ctx.currentTime) * 1000 - 100;
+    loopTimer = setTimeout(() => scheduleLoop(nextAt), Math.max(delay, 50));
+  }
+
+  // Перша петля — починається через 0.1с щоб уникнути кліків
+  scheduleLoop(ctx.currentTime + 0.1);
+
+  _musicStop = () => {
+    stopped = true;
+    clearTimeout(loopTimer);
+    // Fade-out
+    const now = ctx.currentTime;
+    master.gain.cancelScheduledValues(now);
+    master.gain.setValueAtTime(master.gain.value, now);
+    master.gain.linearRampToValueAtTime(0, now + 0.6);
+  };
+}
+
+function stopMusic() {
+  if (_musicStop) { _musicStop(); _musicStop = null; }
+  _lastTickSec = -1;
+}
+
+window.toggleMusic = () => {
+  _musicOn = !_musicOn;
+  const btn = document.getElementById("music-btn");
+  if (_musicOn) {
+    btn.innerHTML = `<span class="note-icon">♪</span> Музика`;
+    btn.classList.remove("off");
+    // Якщо питання активне — відразу запустити
+    if (!revealMode && !isPaused) startQuestionMusic();
+  } else {
+    btn.innerHTML = `<span class="note-icon" style="animation:none">🔇</span> Музика`;
+    btn.classList.add("off");
+    stopMusic();
+  }
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 function renderQuestion(qi) {
   const q = questions[qi];
   if (!q) return;
@@ -253,6 +441,7 @@ function renderQuestion(qi) {
 
 function revealAnswers() {
   const q = questions[currentQ];
+  stopMusic(); // ← зупиняємо музику при розкритті
   if (!q || q.type === "text") { revealMode = true; clearInterval(timerInterval); return; }
   revealMode = true;
   clearInterval(timerInterval);
@@ -291,13 +480,23 @@ function revealAnswers() {
 
 function startTimer() {
   clearInterval(timerInterval);
+  _lastTickSec = -1;
+  startQuestionMusic(); // ← запускаємо музику
   function tick() {
     if (isPaused) return;
     const elapsed = (Date.now() - questionStartedAt) / 1000;
     const left = Math.max(0, timePerQ - elapsed);
+    const leftCeil = Math.ceil(left);
     const el = document.getElementById("timer");
     el.textContent = Math.ceil(left);
     el.className = "timer-mini" + (left <= 5 ? " danger" : left <= 10 ? " warn" : "");
+
+    // Тік-звук — один раз на секунду в останні 5с
+    if (left > 0 && left <= 5 && leftCeil !== _lastTickSec) {
+      _lastTickSec = leftCeil;
+      playTick(leftCeil === 1);
+    }
+
     if (left <= 0) { clearInterval(timerInterval); revealAnswers(); update(ref(db,`rooms/${code}`),{status:"reveal"}); }
   }
   tick();
@@ -309,13 +508,14 @@ window.togglePause = async () => {
   const btn = document.getElementById("pause-btn");
   if (isPaused) {
     pausedLeft = timePerQ - (Date.now() - questionStartedAt) / 1000;
+    stopMusic(); // ← зупиняємо на паузі
     await update(ref(db, `rooms/${code}`), { status: "paused" });
     btn.textContent = "▶ Продовжити";
   } else {
     questionStartedAt = Date.now() - (timePerQ - pausedLeft) * 1000;
     await update(ref(db, `rooms/${code}`), { status: "question", questionStartedAt });
     btn.textContent = "⏸ Пауза";
-    startTimer();
+    startTimer(); // ← startTimer сам запускає музику
   }
 };
 
