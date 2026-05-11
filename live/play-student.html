@@ -118,6 +118,47 @@
   }
   .hint kbd{font-family:"Geist Mono",monospace;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:6px;padding:2px 7px;font-size:11.5px;color:#fff;font-weight:800}
 
+  /* Type badge */
+  .type-badge{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:5px 13px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.06em;
+    border:1.5px solid;
+  }
+  .type-badge.single{background:rgba(167,139,250,.15);border-color:rgba(167,139,250,.4);color:#C4B5FD}
+  .type-badge.multi{background:rgba(52,211,153,.13);border-color:rgba(52,211,153,.4);color:#6EE7B7}
+  .type-badge.text{background:rgba(251,191,36,.13);border-color:rgba(251,191,36,.35);color:#FCD34D}
+  .type-badge.number{background:rgba(96,165,250,.13);border-color:rgba(96,165,250,.35);color:#93C5FD}
+
+  /* Confirm button for multi-select */
+  .confirm-wrap{
+    position:fixed;bottom:32px;left:50%;transform:translateX(-50%);
+    z-index:15;display:none;align-items:center;
+  }
+  .confirm-wrap.show{display:flex}
+  .confirm-btn{
+    padding:16px 36px;border-radius:999px;border:none;
+    background:linear-gradient(135deg,#34D399,#059669);color:#fff;
+    font-family:"Manrope",sans-serif;font-size:16px;font-weight:800;cursor:pointer;
+    box-shadow:0 12px 32px rgba(5,150,105,.5);transition:all .15s;
+    display:flex;align-items:center;gap:10px;white-space:nowrap;
+  }
+  .confirm-btn:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(5,150,105,.6)}
+  .confirm-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  .confirm-cnt{
+    background:rgba(255,255,255,.25);border-radius:999px;
+    width:26px;height:26px;display:grid;place-items:center;
+    font-family:"Geist Mono",monospace;font-size:13px;font-weight:900;
+  }
+
+  /* Multi selected state */
+  .ans.multi-selected{outline:4px solid #34D399;outline-offset:3px;transform:translateY(-2px) scale(1.02)}
+  .ans.multi-selected .letter{background:#34D399;color:#064E3B}
+  .ans.multi-selected .check{display:block}
+  /* reveal states */
+  .ans.correct-ans{outline:4px solid #86EFAC !important;outline-offset:3px;filter:none !important}
+  .ans.wrong-ans{filter:saturate(.3) opacity(.35)}
+  .ans.my-wrong{outline:4px solid #F87171 !important;outline-offset:3px;filter:saturate(.55) opacity(.7) !important}
+
   /* Waiting state */
   .lock-banner{
     position:fixed;left:50%;bottom:32px;transform:translateX(-50%);
@@ -192,7 +233,7 @@
     <span class="dot"></span>
     <span id="q-meta-time">— сек на відповідь</span>
     <span class="dot"></span>
-    <span id="q-meta-type">1 правильна</span>
+    <span class="type-badge single" id="q-type-badge">☑ 1 правильна</span>
   </div>
   <div class="question-text qf-rich" id="q-text"></div>
 
@@ -202,9 +243,17 @@
     <button class="text-submit" id="text-submit" onclick="submitText()">Відповісти</button>
   </div>
 
-  <div class="hint">
-    <span><kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd> <kbd>D</kbd> або 1–4 — обрати</span>
+  <div class="hint" id="q-hint">
+    <span><kbd>A</kbd><kbd>B</kbd>… або <kbd>1</kbd><kbd>2</kbd>… — обрати</span>
   </div>
+</div>
+
+<!-- Confirm button (multi-select) -->
+<div class="confirm-wrap" id="confirm-wrap">
+  <button class="confirm-btn" id="confirm-btn" onclick="confirmMulti()">
+    Підтвердити
+    <span class="confirm-cnt" id="confirm-cnt">0</span>
+  </button>
 </div>
 
 <div class="lock-banner" id="lock-banner">
@@ -291,30 +340,63 @@ function renderQuestion(qi, r) {
   if (!q) return;
   const total = r.questions.length;
   answered = false;
+  multiSel = [];
 
   document.getElementById("q-lbl").textContent   = `${qi+1} / ${total}`;
   document.getElementById("q-bar").style.width   = `${((qi+1)/total)*100}%`;
   document.getElementById("q-text").innerHTML    = q.text || "";
   document.getElementById("q-meta-n").textContent = `Питання ${qi+1} з ${total}`;
   document.getElementById("q-meta-time").textContent = `${r.timePerQ||20} сек на відповідь`;
-  document.getElementById("q-meta-type").textContent = q.type === "multi" ? "Кілька правильних" : q.type === "text" ? "Текстова" : "1 правильна";
   document.getElementById("lock-banner").classList.remove("show");
+  document.getElementById("confirm-wrap").classList.remove("show");
+
+  // Type badge
+  const badge = document.getElementById("q-type-badge");
+  const typeMap = {
+    multi:  {cls:"multi",  label:"☑ Кілька правильних"},
+    text:   {cls:"text",   label:"✏ Текстова"},
+    number: {cls:"number", label:"🔢 Числова"},
+    single: {cls:"single", label:"◉ 1 правильна"},
+  };
+  const t = typeMap[q.type] || typeMap.single;
+  badge.className = `type-badge ${t.cls}`;
+  badge.textContent = t.label;
+
+  // Hint text
+  const hint = document.getElementById("q-hint");
+  if (q.type === "multi") {
+    hint.innerHTML = `<span>Оберіть всі правильні варіанти, потім натисніть <strong>Підтвердити</strong></span>`;
+  } else if (q.type === "text" || q.type === "number") {
+    hint.innerHTML = `<span>Введіть відповідь і натисніть <strong>Відповісти</strong></span>`;
+  } else {
+    const cnt = (q.options||[]).length;
+    const kbdList = ["A","B","C","D","E","F"].slice(0,cnt).map(k=>`<kbd>${k}</kbd>`).join("");
+    hint.innerHTML = `<span>${kbdList} або натисніть картку</span>`;
+  }
 
   const opts = q.options || [];
-  if (q.type === "text") {
+  if (q.type === "text" || q.type === "number") {
     document.getElementById("answers-grid").style.display = "none";
     document.getElementById("text-answer-wrap").style.display = "";
-    document.getElementById("text-inp").value = "";
-    document.getElementById("text-inp").disabled = false;
+    const inp = document.getElementById("text-inp");
+    inp.value = "";
+    inp.disabled = false;
+    inp.type = q.type === "number" ? "number" : "text";
+    inp.inputMode = q.type === "number" ? "numeric" : "text";
+    inp.placeholder = q.type === "number" ? "Введіть число..." : "Введіть відповідь...";
     document.getElementById("text-submit").disabled = false;
   } else {
     document.getElementById("text-answer-wrap").style.display = "none";
     const grid = document.getElementById("answers-grid");
     grid.style.display = "";
+    // Dynamic columns: 1 col for ≤2, 2 col otherwise
     grid.style.gridTemplateColumns = opts.length <= 2 ? "1fr" : "1fr 1fr";
+    // For 5+ options make buttons slightly smaller
+    const isMany = opts.length >= 5;
     grid.innerHTML = opts.map((o,i) =>
-      `<button class="ans ${CLASSES[i]||"a"}" onclick="selectOpt(${i},${q.type==='multi'})" data-i="${i}">
-        <span class="letter">${LETTERS[i]}</span>
+      `<button class="ans ${CLASSES[i]||"a"}${isMany?" compact":""}" onclick="selectOpt(${i})" data-i="${i}"
+        style="${isMany?"padding:14px 20px;min-height:72px;font-size:18px":""}">
+        <span class="letter" style="${isMany?"width:36px;height:36px;font-size:15px":""}">${LETTERS[i]}</span>
         <span style="flex:1">${esc(o)}</span>
         <span class="check">✓</span>
       </button>`
@@ -323,17 +405,34 @@ function renderQuestion(qi, r) {
 }
 
 let multiSel = [];
-window.selectOpt = async (idx, isMulti) => {
+window.selectOpt = async (idx) => {
   if (answered) return;
+  const q = room.questions[currentQ];
+  const isMulti = q && q.type === "multi";
+
   if (isMulti) {
     const btns = document.querySelectorAll(".ans");
-    if (multiSel.includes(idx)) { multiSel = multiSel.filter(i=>i!==idx); btns[idx].classList.remove("selected"); }
-    else { multiSel.push(idx); btns[idx].classList.add("selected"); }
-    clearTimeout(window._mt);
-    window._mt = setTimeout(() => submitAnswer(multiSel), 600);
+    if (multiSel.includes(idx)) {
+      multiSel = multiSel.filter(i => i !== idx);
+      btns[idx].classList.remove("multi-selected");
+    } else {
+      multiSel.push(idx);
+      btns[idx].classList.add("multi-selected");
+    }
+    // Update confirm button
+    const wrap = document.getElementById("confirm-wrap");
+    const cnt  = document.getElementById("confirm-cnt");
+    cnt.textContent = multiSel.length;
+    wrap.classList.toggle("show", multiSel.length > 0);
     return;
   }
   await submitAnswer(idx);
+};
+
+window.confirmMulti = async () => {
+  if (answered || multiSel.length === 0) return;
+  document.getElementById("confirm-wrap").classList.remove("show");
+  await submitAnswer([...multiSel].sort((a,b)=>a-b));
 };
 
 async function submitAnswer(value) {
@@ -355,6 +454,7 @@ async function submitAnswer(value) {
 
   // Lock buttons
   document.querySelectorAll(".ans").forEach(b => { b.disabled = true; b.classList.add("locked"); });
+  document.getElementById("confirm-wrap").classList.remove("show");
   document.getElementById("lock-banner").classList.add("show");
   document.getElementById("text-inp") && (document.getElementById("text-inp").disabled = true);
   document.getElementById("text-submit") && (document.getElementById("text-submit").disabled = true);
@@ -373,20 +473,34 @@ function checkCorrect(q, value) {
     const ans = (Array.isArray(value)?value:[value]).map(Number).sort();
     return JSON.stringify(ans) === JSON.stringify(correct);
   }
+  if (q.type === "number") {
+    const cv = parseFloat(String(q.correct||"").replace(",","."));
+    const uv = parseFloat(String(value||"").replace(",","."));
+    return !isNaN(cv) && !isNaN(uv) && Math.abs(cv - uv) < 1e-9;
+  }
   if (q.type === "text") return String(value).trim().toLowerCase() === String(q.correct||"").trim().toLowerCase();
   return false;
 }
 
 function showReveal(qi, r) {
   const q = r.questions[qi];
-  if (!q || q.type === "text") return;
+  if (!q || q.type === "text" || q.type === "number") return;
   const correct = Array.isArray(q.correct) ? q.correct.map(Number) : [Number(q.correct)];
   document.querySelectorAll(".ans").forEach((btn, i) => {
     btn.disabled = true;
-    btn.classList.remove("selected","locked");
-    btn.classList.add(correct.includes(i) ? "correct-ans" : "wrong-ans");
+    btn.classList.remove("selected","locked","multi-selected");
+    if (correct.includes(i)) {
+      btn.classList.add("correct-ans");
+      btn.classList.remove("wrong-ans","my-wrong");
+    } else if (multiSel.includes(i)) {
+      // Student selected this but it's wrong
+      btn.classList.add("my-wrong");
+    } else {
+      btn.classList.add("wrong-ans");
+    }
   });
   document.getElementById("lock-banner").classList.remove("show");
+  document.getElementById("confirm-wrap").classList.remove("show");
 }
 
 function startTimer(r) {
@@ -453,8 +567,13 @@ onValue(ref(db, `rooms/${code}`), snap => {
 
 // Keyboard
 document.addEventListener("keydown", e => {
+  // Space = confirm multi
+  if (e.code === "Space" || e.key === " ") {
+    const wrap = document.getElementById("confirm-wrap");
+    if (wrap.classList.contains("show")) { e.preventDefault(); confirmMulti(); return; }
+  }
   if (answered) return;
-  const map = {"1":0,"2":1,"3":2,"4":3,"a":0,"b":1,"c":2,"d":3,"A":0,"B":1,"C":2,"D":3};
+  const map = {"1":0,"2":1,"3":2,"4":3,"5":4,"6":5,"a":0,"b":1,"c":2,"d":3,"e":4,"f":5,"A":0,"B":1,"C":2,"D":3,"E":4,"F":5};
   if (e.key in map) {
     const btns = document.querySelectorAll(".ans");
     if (btns.length > map[e.key]) btns[map[e.key]].click();
