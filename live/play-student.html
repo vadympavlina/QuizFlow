@@ -50,8 +50,25 @@
   @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 
   .question-wrap{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 28px;max-width:1100px;margin:0 auto;width:100%;position:relative;z-index:2}
-  .question-meta{display:flex;justify-content:center;gap:10px;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#A78BFA;margin-bottom:14px}
-  .question-meta .dot{width:5px;height:5px;border-radius:50%;background:#A78BFA;align-self:center}
+  .question-meta{
+    display:flex;align-items:center;justify-content:center;
+    flex-wrap:wrap;gap:6px 14px;
+    font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+    color:rgba(167,139,250,.7);margin-bottom:18px;
+  }
+  .question-meta .sep{
+    width:3px;height:3px;border-radius:50%;
+    background:rgba(167,139,250,.4);flex-shrink:0;
+  }
+  .type-badge{
+    display:inline-flex;align-items:center;gap:5px;
+    padding:4px 11px;border-radius:999px;font-size:11px;font-weight:700;
+    letter-spacing:.05em;text-transform:none;border:1px solid;flex-shrink:0;
+  }
+  .type-badge.single {background:rgba(167,139,250,.18);border-color:rgba(167,139,250,.4);color:#C4B5FD}
+  .type-badge.multi  {background:rgba(52,211,153,.15); border-color:rgba(52,211,153,.4); color:#6EE7B7}
+  .type-badge.text   {background:rgba(251,191,36,.13); border-color:rgba(251,191,36,.35);color:#FCD34D}
+  .type-badge.number {background:rgba(96,165,250,.15); border-color:rgba(96,165,250,.35); color:#93C5FD}
   .question-text{
     text-align:center;font-size:36px;font-weight:800;letter-spacing:-.02em;line-height:1.2;
     margin:0 auto;max-width:880px;
@@ -117,17 +134,6 @@
     display:flex;justify-content:center;gap:18px;font-weight:600;position:relative;z-index:2;
   }
   .hint kbd{font-family:"Geist Mono",monospace;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:6px;padding:2px 7px;font-size:11.5px;color:#fff;font-weight:800}
-
-  /* Type badge */
-  .type-badge{
-    display:inline-flex;align-items:center;gap:6px;
-    padding:5px 13px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.06em;
-    border:1.5px solid;
-  }
-  .type-badge.single{background:rgba(167,139,250,.15);border-color:rgba(167,139,250,.4);color:#C4B5FD}
-  .type-badge.multi{background:rgba(52,211,153,.13);border-color:rgba(52,211,153,.4);color:#6EE7B7}
-  .type-badge.text{background:rgba(251,191,36,.13);border-color:rgba(251,191,36,.35);color:#FCD34D}
-  .type-badge.number{background:rgba(96,165,250,.13);border-color:rgba(96,165,250,.35);color:#93C5FD}
 
   /* Confirm button for multi-select */
   .confirm-wrap{
@@ -230,10 +236,10 @@
 <div class="question-wrap">
   <div class="question-meta" id="q-meta">
     <span id="q-meta-n">Питання — з —</span>
-    <span class="dot"></span>
-    <span id="q-meta-time">— сек на відповідь</span>
-    <span class="dot"></span>
-    <span class="type-badge single" id="q-type-badge">☑ 1 правильна</span>
+    <span class="sep"></span>
+    <span id="q-meta-time">— сек</span>
+    <span class="sep"></span>
+    <span class="type-badge single" id="q-type-badge">◉ 1 правильна</span>
   </div>
   <div class="question-text qf-rich" id="q-text"></div>
 
@@ -346,7 +352,7 @@ function renderQuestion(qi, r) {
   document.getElementById("q-bar").style.width   = `${((qi+1)/total)*100}%`;
   document.getElementById("q-text").innerHTML    = q.text || "";
   document.getElementById("q-meta-n").textContent = `Питання ${qi+1} з ${total}`;
-  document.getElementById("q-meta-time").textContent = `${r.timePerQ||20} сек на відповідь`;
+  document.getElementById("q-meta-time").textContent = `${r.timePerQ||20}с`;
   document.getElementById("lock-banner").classList.remove("show");
   document.getElementById("confirm-wrap").classList.remove("show");
 

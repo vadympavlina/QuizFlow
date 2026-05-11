@@ -48,15 +48,31 @@
   }
   .btn:hover{background:rgba(255,255,255,.1)}
   .btn-primary{background:linear-gradient(135deg,#A78BFA,#7C3AED);border:0;box-shadow:0 12px 30px rgba(124,58,237,.4)}
-  .btn-music{
-    background:rgba(167,139,250,.15);border-color:rgba(167,139,250,.35);
-    font-size:13px;padding:9px 14px;gap:6px;
-    transition:all .2s;
+  /* ── Volume control ── */
+  .vol-wrap{
+    display:flex;align-items:center;gap:8px;
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);
+    padding:8px 14px;border-radius:13px;
   }
-  .btn-music.off{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.4)}
-  .btn-music .note-icon{font-size:15px;line-height:1;transition:transform .3s}
-  .btn-music:not(.off) .note-icon{animation:noteBounce 0.8s ease-in-out infinite alternate}
-  @keyframes noteBounce{from{transform:rotate(-8deg) scale(.95)}to{transform:rotate(8deg) scale(1.05)}}
+  .vol-icon{font-size:16px;cursor:pointer;user-select:none;line-height:1;width:20px;text-align:center;transition:opacity .2s}
+  .vol-icon.muted{opacity:.35}
+  .vol-slider{
+    -webkit-appearance:none;appearance:none;
+    width:90px;height:4px;border-radius:999px;outline:none;cursor:pointer;
+    background:linear-gradient(90deg,#A78BFA var(--vol,70%),rgba(255,255,255,.15) var(--vol,70%));
+  }
+  .vol-slider::-webkit-slider-thumb{
+    -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+    background:#A78BFA;box-shadow:0 0 0 3px rgba(167,139,250,.25);cursor:pointer;
+    transition:transform .1s;
+  }
+  .vol-slider::-webkit-slider-thumb:hover{transform:scale(1.2)}
+  .vol-slider::-moz-range-thumb{width:14px;height:14px;border:none;border-radius:50%;background:#A78BFA;cursor:pointer}
+  .btn-music-note{
+    font-size:14px;animation:noteBounce 0.9s ease-in-out infinite alternate;
+  }
+  .vol-wrap.muted .btn-music-note{animation:none;opacity:.3}
+  @keyframes noteBounce{from{transform:rotate(-10deg)}to{transform:rotate(10deg)}}
 
   .stage{padding:36px 32px;max-width:1640px;margin:0 auto;position:relative;z-index:1}
   .answered-bar{
@@ -130,9 +146,12 @@
   </div>
   <div class="timer-mini" id="timer">—</div>
   <div class="actions">
-    <button class="btn btn-music" id="music-btn" onclick="toggleMusic()">
-      <span class="note-icon">♪</span> Музика
-    </button>
+    <div class="vol-wrap" id="vol-wrap">
+      <span class="btn-music-note">♪</span>
+      <span class="vol-icon" id="vol-icon" onclick="toggleMute()" title="Вкл/Викл">🔊</span>
+      <input class="vol-slider" id="vol-slider" type="range" min="0" max="100" value="70"
+        oninput="setVolume(this.value)" title="Гучність">
+    </div>
     <button class="btn" id="pause-btn" onclick="togglePause()">⏸ Пауза</button>
     <button class="btn" id="skip-btn" onclick="skipQuestion()">⏭ Пропустити</button>
     <button class="btn btn-primary" id="next-btn" onclick="nextQuestion()">Розкрити →</button>
@@ -238,158 +257,196 @@ function applyTheme(theme) {
 }
 applyTheme(room.theme);
 
-// ─── 🎵 Audio Engine (Web Audio API, без зовнішніх файлів) ──────────────────
+// ─── 🎵 Audio Engine ─────────────────────────────────────────────────────────
 let _ac = null;
-let _musicStop = null;
-let _musicOn = true;
+let _masterGain = null;   // глобальний gain для гучності
+let _musicStop  = null;
+let _volLevel   = 0.7;    // 0..1
+let _muted      = false;
 let _lastTickSec = -1;
 
 function getAC() {
-  if (!_ac) _ac = new (window.AudioContext || window.webkitAudioContext)();
+  if (!_ac) {
+    _ac = new (window.AudioContext || window.webkitAudioContext)();
+    // Master gain — через нього йде весь звук
+    _masterGain = _ac.createGain();
+    _masterGain.gain.value = _volLevel;
+    _masterGain.connect(_ac.destination);
+  }
   if (_ac.state === "suspended") _ac.resume();
   return _ac;
 }
 
-// ── Тік-звук (останні 5 секунд) ─────────────────────────────────────────────
-function playTick(isLast) {
-  if (!_musicOn) return;
-  const ctx = getAC();
-  const t = ctx.currentTime;
-  const freq  = isLast ? 1047 : 784; // C6 на останній секунді, G5 на решті
-  const vol   = isLast ? 0.28 : 0.16;
-  const dur   = isLast ? 0.18 : 0.10;
+// ── Гучність ────────────────────────────────────────────────────────────────
+window.setVolume = (val) => {
+  _volLevel = val / 100;
+  _muted = _volLevel === 0;
+  if (_masterGain) _masterGain.gain.setTargetAtTime(_muted ? 0 : _volLevel, _ac.currentTime, 0.05);
+  // CSS gradient на слайдері
+  const slider = document.getElementById("vol-slider");
+  slider.style.setProperty("--vol", val + "%");
+  // Іконка
+  const icon = document.getElementById("vol-icon");
+  const wrap = document.getElementById("vol-wrap");
+  if (_muted) { icon.textContent = "🔇"; wrap.classList.add("muted"); }
+  else if (val < 40) { icon.textContent = "🔈"; wrap.classList.remove("muted"); }
+  else if (val < 75) { icon.textContent = "🔉"; wrap.classList.remove("muted"); }
+  else               { icon.textContent = "🔊"; wrap.classList.remove("muted"); }
+};
 
+window.toggleMute = () => {
+  const slider = document.getElementById("vol-slider");
+  if (_muted) {
+    const restoreVol = _volLevel > 0 ? _volLevel : 0.7;
+    slider.value = Math.round(restoreVol * 100);
+    setVolume(slider.value);
+  } else {
+    slider.value = 0;
+    setVolume(0);
+  }
+};
+
+// ── Утиліта: одна нота ──────────────────────────────────────────────────────
+function note(ctx, out, freq, start, dur, type, vol, {attack=0.015, rel=0.08}={}) {
   const osc  = ctx.createOscillator();
   const gain = ctx.createGain();
-  osc.type = "square";
-  osc.frequency.value = freq;
-  // Короткий attack + decay
-  gain.gain.setValueAtTime(0, t);
-  gain.gain.linearRampToValueAtTime(vol, t + 0.005);
-  gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start(t);
-  osc.stop(t + dur + 0.05);
-
-  // Другий оберт — "ехо" для об'єму
-  const osc2  = ctx.createOscillator();
-  const gain2 = ctx.createGain();
-  osc2.type = "sine";
-  osc2.frequency.value = freq * 0.5;
-  gain2.gain.setValueAtTime(0, t);
-  gain2.gain.linearRampToValueAtTime(vol * 0.4, t + 0.008);
-  gain2.gain.exponentialRampToValueAtTime(0.001, t + dur * 1.5);
-  osc2.connect(gain2);
-  gain2.connect(ctx.destination);
-  osc2.start(t);
-  osc2.stop(t + dur * 1.5 + 0.05);
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, start);
+  gain.gain.setValueAtTime(0, start);
+  gain.gain.linearRampToValueAtTime(vol, start + attack);
+  gain.gain.setValueAtTime(vol, start + dur - rel);
+  gain.gain.linearRampToValueAtTime(0, start + dur);
+  osc.connect(gain); gain.connect(out);
+  osc.start(start); osc.stop(start + dur + 0.05);
 }
 
-// ── Фонова музика під час питання ───────────────────────────────────────────
+// ── Тік-звук ─────────────────────────────────────────────────────────────────
+function playTick(isLast) {
+  const ctx = getAC();
+  const t   = ctx.currentTime;
+  note(ctx, _masterGain, isLast ? 1047 : 784, t, isLast ? 0.15 : 0.09, "square", isLast ? 0.35 : 0.18, {attack:0.004, rel:0.04});
+  if (isLast) note(ctx, _masterGain, 1047*1.5, t+0.06, 0.10, "sine", 0.12, {attack:0.004, rel:0.04});
+}
+
+// ── Динамічна музика ─────────────────────────────────────────────────────────
 function startQuestionMusic() {
   stopMusic();
-  if (!_musicOn) return;
   const ctx = getAC();
 
-  // BPM 124 — бадьоро але не нав'язливо
-  const BPM  = 124;
-  const BEAT = 60 / BPM;        // тривалість одного удару
-  const BAR  = BEAT * 4;        // один такт = 4 удари
-  const LOOP = BAR * 4;         // петля = 4 такти (~7.7с)
+  const BPM  = 128;
+  const B    = 60 / BPM;   // тривалість удару
+  const BAR  = B * 4;      // такт
+  const LOOP = BAR * 8;    // петля = 8 тактів (~15с)
 
-  // Master gain — плавний fade-in при старті
-  const master = ctx.createGain();
-  master.gain.setValueAtTime(0, ctx.currentTime);
-  master.gain.linearRampToValueAtTime(1, ctx.currentTime + 1.2);
-  master.connect(ctx.destination);
+  // Локальний gain для fade-in/out (підключений до master)
+  const localGain = ctx.createGain();
+  localGain.gain.setValueAtTime(0, ctx.currentTime);
+  localGain.gain.linearRampToValueAtTime(1, ctx.currentTime + 1.4);
+  localGain.connect(_masterGain);
 
-  let stopped = false;
-  let loopTimer = null;
+  let stopped = false, loopTimer = null, loopCount = 0;
 
-  // Ноти: Am pentatonic — звучить добре і не нав'язливо
-  // A3  C4   E4   G4   A4   C5
-  const PENTA = [220, 261.63, 329.63, 392, 440, 523.25];
+  // Акорди по 4 такти (2 прогресії що чергуються)
+  const PROG_A = [ // Am  F  C  G
+    [[110,220,277,330], [87,175,220,262], [131,262,330,392], [98,196,247,294]],
+  ];
+  const PROG_B = [ // Am  G  F  Em
+    [[110,220,277,330], [98,196,247,294], [87,175,220,262], [82,165,208,247]],
+  ];
 
-  // Патерн мелодії (індекси в PENTA, -1 = пауза)
-  const MEL = [4,5,4,3, 2,3,2,1, 0,1,2,3, 4,-1,3,2];
-  // Довжини (в долях удару)
-  const MEL_LEN = [1,.5,.5,1, 1,.5,.5,1, 1,.5,.5,.5, 1,.5,.5,1];
+  // Мелодії (частоти)
+  const MEL_A = [392,440,494,440, 392,349,392,440, 523,494,440,392, 440,392,349,330];
+  const MEL_B = [330,349,392,440, 494,523,494,440, 392,349,330,294, 330,392,440,392];
 
-  function note(freq, start, dur, type, vol, masterG) {
-    const osc  = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = type;
-    osc.frequency.value = freq;
-    const t0 = start, t1 = start + dur * 0.85, t2 = start + dur;
-    gain.gain.setValueAtTime(0, t0);
-    gain.gain.linearRampToValueAtTime(vol, t0 + 0.015);
-    gain.gain.setValueAtTime(vol, t1);
-    gain.gain.linearRampToValueAtTime(0, t2);
-    osc.connect(gain); gain.connect(masterG);
-    osc.start(t0); osc.stop(t2 + 0.05);
+  // Барабани (індекси ударів 0..31 для 8/4 ритму у 8 тактах)
+  function drums(loopStart, variation) {
+    for (let b = 0; b < 32; b++) {
+      const t = loopStart + b * B * 0.5;
+      const isBeat    = b % 8 === 0;                  // кік
+      const isSnare   = b % 8 === 4;                  // снейр
+      const isHihat   = b % 2 === 0;                  // хетс на кожну чверть
+      const isOHihat  = b % 4 === 2 && variation > 0; // відкритий хет у варіації
+
+      if (isBeat) {
+        // Кік — sine з pitch-envelope
+        const osc = ctx.createOscillator(); const g = ctx.createGain();
+        osc.type = "sine"; osc.frequency.setValueAtTime(160, t);
+        osc.frequency.exponentialRampToValueAtTime(40, t + 0.15);
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.5, t + 0.005);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+        osc.connect(g); g.connect(localGain); osc.start(t); osc.stop(t + 0.3);
+      }
+      if (isSnare) {
+        // Снейр — шум + tone
+        const buf = ctx.createBuffer(1, ctx.sampleRate * 0.12, ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = (Math.random()*2-1);
+        const src = ctx.createBufferSource(); const g = ctx.createGain();
+        const flt = ctx.createBiquadFilter(); flt.type = "bandpass"; flt.frequency.value = 2000;
+        src.buffer = buf;
+        g.gain.setValueAtTime(0.22, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+        src.connect(flt); flt.connect(g); g.connect(localGain); src.start(t);
+      }
+      if (isHihat || isOHihat) {
+        const buf = ctx.createBuffer(1, ctx.sampleRate * (isOHihat ? 0.18 : 0.04), ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = (Math.random()*2-1);
+        const src = ctx.createBufferSource(); const g = ctx.createGain();
+        const flt = ctx.createBiquadFilter(); flt.type = "highpass"; flt.frequency.value = 8000;
+        src.buffer = buf;
+        g.gain.setValueAtTime(isOHihat ? 0.08 : 0.05, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + (isOHihat ? 0.18 : 0.04));
+        src.connect(flt); flt.connect(g); g.connect(localGain); src.start(t);
+      }
+    }
   }
 
   function scheduleLoop(loopStart) {
     if (stopped) return;
+    const isB     = loopCount % 2 === 1;        // чергуємо прогресії
+    const variation = Math.floor(loopCount / 2); // кожні 2 петлі додаємо варіацію
+    const prog    = isB ? PROG_B[0] : PROG_A[0];
+    const mel     = isB ? MEL_B : MEL_A;
 
-    // ── Мелодія (sine, тихо) ─────────────────────────────────
-    let cursor = loopStart;
-    MEL.forEach((ni, i) => {
-      const dur = MEL_LEN[i] * BEAT;
-      if (ni >= 0) note(PENTA[ni], cursor, dur, "sine", 0.10, master);
-      cursor += dur;
-    });
-
-    // ── Акорди (triangle pad, Am-F-C-G) ──────────────────────
-    const CHORDS = [
-      [220, 261.63, 329.63], // Am
-      [174.61, 261.63, 349.23], // F
-      [261.63, 329.63, 392], // C
-      [196, 293.66, 392],   // G
-    ];
-    CHORDS.forEach((chord, ci) => {
-      chord.forEach(freq => {
-        note(freq, loopStart + ci * BAR, BAR * 0.95, "triangle", 0.055, master);
+    // ── Акорди (pad) ─────────────────────────────────────────
+    prog.forEach((chord, ci) => {
+      chord.forEach((freq, fi) => {
+        const vol = fi === 0 ? 0.18 : 0.07; // бас гучніше
+        const type = fi === 0 ? "sine" : "triangle";
+        note(ctx, localGain, freq, loopStart + ci * BAR * 2, BAR * 2 * 0.92, type, vol, {attack:0.06, rel:0.2});
       });
     });
 
-    // ── Бас (sine, низько) ────────────────────────────────────
-    const BASS = [110, 87.31, 130.81, 98]; // Am F C G
-    BASS.forEach((freq, bi) => {
-      // Два удари на акорд
-      [0, BEAT * 2].forEach(offset => {
-        note(freq, loopStart + bi * BAR + offset, BEAT * 1.7, "sine", 0.22, master);
-      });
+    // ── Мелодія ───────────────────────────────────────────────
+    mel.forEach((freq, i) => {
+      note(ctx, localGain, freq, loopStart + i * B * 0.5, B * 0.45, "sine", 0.13, {attack:0.01, rel:0.05});
     });
 
-    // ── Ритм-клік (triangle) ─────────────────────────────────
-    for (let b = 0; b < 16; b++) {
-      const isBeat = b % 4 === 0;
-      const isOffbeat = b % 2 === 1;
-      if (!isBeat && !isOffbeat) continue;
-      const vol = isBeat ? 0.05 : 0.025;
-      const freq = isBeat ? 400 : 300;
-      note(freq, loopStart + b * BEAT, 0.06, "triangle", vol, master);
+    // ── Контрмелодія у варіації ───────────────────────────────
+    if (variation > 0) {
+      const cm = isB ? MEL_A : MEL_B;
+      cm.slice(8).forEach((freq, i) => {
+        note(ctx, localGain, freq*2, loopStart + LOOP*0.5 + i * B * 0.5, B * 0.42, "triangle", 0.06, {attack:0.01, rel:0.04});
+      });
     }
 
-    // Плануємо наступну петлю за ~100мс до кінця поточної
-    const nextAt = loopStart + LOOP;
-    const delay  = (nextAt - ctx.currentTime) * 1000 - 100;
-    loopTimer = setTimeout(() => scheduleLoop(nextAt), Math.max(delay, 50));
+    // ── Ударні ────────────────────────────────────────────────
+    drums(loopStart, variation);
+
+    loopCount++;
+    const delay = (loopStart + LOOP - ctx.currentTime) * 1000 - 120;
+    loopTimer = setTimeout(() => scheduleLoop(loopStart + LOOP), Math.max(delay, 50));
   }
 
-  // Перша петля — починається через 0.1с щоб уникнути кліків
-  scheduleLoop(ctx.currentTime + 0.1);
+  scheduleLoop(ctx.currentTime + 0.05);
 
   _musicStop = () => {
     stopped = true;
     clearTimeout(loopTimer);
-    // Fade-out
     const now = ctx.currentTime;
-    master.gain.cancelScheduledValues(now);
-    master.gain.setValueAtTime(master.gain.value, now);
-    master.gain.linearRampToValueAtTime(0, now + 0.6);
+    localGain.gain.cancelScheduledValues(now);
+    localGain.gain.setValueAtTime(localGain.gain.value, now);
+    localGain.gain.linearRampToValueAtTime(0, now + 0.55);
   };
 }
 
@@ -398,20 +455,8 @@ function stopMusic() {
   _lastTickSec = -1;
 }
 
-window.toggleMusic = () => {
-  _musicOn = !_musicOn;
-  const btn = document.getElementById("music-btn");
-  if (_musicOn) {
-    btn.innerHTML = `<span class="note-icon">♪</span> Музика`;
-    btn.classList.remove("off");
-    // Якщо питання активне — відразу запустити
-    if (!revealMode && !isPaused) startQuestionMusic();
-  } else {
-    btn.innerHTML = `<span class="note-icon" style="animation:none">🔇</span> Музика`;
-    btn.classList.add("off");
-    stopMusic();
-  }
-};
+// Ця функція більше не потрібна (замінена слайдером), але залишаємо stub
+window.toggleMusic = () => window.toggleMute();
 // ─────────────────────────────────────────────────────────────────────────────
 
 function renderQuestion(qi) {
