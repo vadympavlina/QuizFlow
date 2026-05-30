@@ -67,10 +67,46 @@
   <div style="font-size:26px;margin-bottom:8px">🔗</div>
   <div class="mtl">Об'єднати картки</div>
   <div class="msu" id="m-merge-sub">Вибери картку з якою об'єднати</div>
-  <div id="m-merge-list" style="max-height:280px;overflow-y:auto;margin:16px 0;display:flex;flex-direction:column;gap:8px"></div>
-  <div class="ma">
+  <div style="position:relative;margin:14px 0 8px">
+    <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#8691AC;pointer-events:none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input id="merge-search" type="text" placeholder="Пошук студента..." autocomplete="off"
+      oninput="G.filterMergeList(this.value)"
+      style="width:100%;padding:9px 12px 9px 32px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:13px;outline:none;color:var(--ink-900)"
+      onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
+  </div>
+  <div id="m-merge-list" style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:8px"></div>
+  <div class="ma" style="margin-top:14px">
     <button class="btn bs" onclick="closeM('m-merge')">Скасувати</button>
     <button class="btn bp" id="merge-confirm-btn" onclick="G.confirmMerge()" disabled>Об'єднати →</button>
+  </div>
+</div></div>
+
+<!-- EDIT STUDENT NAME -->
+<div class="mo" id="m-edit-student"><div class="mb" style="max-width:380px">
+  <button class="mcl" onclick="closeM('m-edit-student')">×</button>
+  <div style="font-size:26px;margin-bottom:8px">✏️</div>
+  <div class="mtl">Редагувати студента</div>
+  <div class="msu">Виправ прізвище або ім'я</div>
+  <div style="display:flex;flex-direction:column;gap:10px;margin:18px 0 4px">
+    <div>
+      <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8691AC;display:block;margin-bottom:5px">Прізвище</label>
+      <input id="es-surname" type="text" placeholder="Шевченко"
+        style="width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;outline:none"
+        onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"
+        onkeydown="if(event.key==='Enter')document.getElementById('es-name').focus()">
+    </div>
+    <div>
+      <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8691AC;display:block;margin-bottom:5px">Ім'я</label>
+      <input id="es-name" type="text" placeholder="Тарас"
+        style="width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;outline:none"
+        onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"
+        onkeydown="if(event.key==='Enter')G.saveStudentName()">
+    </div>
+    <div id="es-err" style="font-size:12px;color:#DC2626;min-height:16px"></div>
+  </div>
+  <div class="ma">
+    <button class="btn bs" onclick="closeM('m-edit-student')">Скасувати</button>
+    <button class="btn bp" id="es-save-btn" onclick="G.saveStudentName()">Зберегти</button>
   </div>
 </div></div>
 

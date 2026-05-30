@@ -3132,7 +3132,15 @@ selectAnalyticsDrop(field, value, label){
           <!-- Ім'я -->
           <div style="flex:1;min-width:0;padding-top:4px">
             <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;opacity:.5;margin-bottom:6px">Студент</div>
-            <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:21px;line-height:1.2">${esc(s.surname)} ${esc(s.name)}</div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:21px;line-height:1.2" id="sc-fullname">${esc(s.surname)} ${esc(s.name)}</div>
+              <button onclick="G.editStudentName('${s.id}')" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s"
+                onmouseover="this.style.background='rgba(255,255,255,.2)'"
+                onmouseout="this.style.background='rgba(255,255,255,.1)'">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Редагувати
+              </button>
+            </div>
             <div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap">
               ${groups.length
                 ?groups.map(g=>`<span style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500">${esc(g)}</span>`).join("")
@@ -3229,7 +3237,7 @@ selectAnalyticsDrop(field, value, label){
     } else {
       list.innerHTML = others.map(s=>{
         const att = Array.isArray(s.attempts)?s.attempts:[];
-        return `<div class="merge-item" id="mi-${s.id}" onclick="G.selectMergeTarget('${s.id}')"
+        return `<div class="merge-item" id="mi-${s.id}" data-name="${esc((s.surname||'')+ ' '+(s.name||''))}" onclick="G.selectMergeTarget('${s.id}')"
           style="padding:12px 14px;border:1.5px solid var(--border);border-radius:13px;cursor:pointer;transition:all .15s;display:flex;justify-content:space-between;align-items:center">
           <div>
             <div style="font-weight:600;font-size:14px">${esc(s.surname)} ${esc(s.name)}</div>
@@ -3240,7 +3248,16 @@ selectAnalyticsDrop(field, value, label){
       }).join("");
       document.getElementById("merge-confirm-btn").disabled=true;
     }
+    document.getElementById("merge-search").value = "";
     openM("m-merge");
+  },
+
+  filterMergeList(q){
+    const lq = q.toLowerCase();
+    document.querySelectorAll(".merge-item").forEach(el=>{
+      const name = (el.dataset.name||"").toLowerCase();
+      el.style.display = name.includes(lq) ? "" : "none";
+    });
   },
 
   selectMergeTarget(targetId){
@@ -3297,6 +3314,47 @@ selectAnalyticsDrop(field, value, label){
     G.renderStudents();
     toast(`Картки об'єднано: ${merged.length} спроб`);
     btn.disabled=false; btn.textContent="Об'єднати →";
+  },
+
+  editStudentName(sid){
+    const s = _students.find(x=>x.id===sid);
+    if(!s) return;
+    openM("m-edit-student");
+    document.getElementById("es-surname").value = s.surname || "";
+    document.getElementById("es-name").value    = s.name    || "";
+    document.getElementById("es-err").textContent = "";
+    window._editStudentId = sid;
+    setTimeout(()=>document.getElementById("es-surname").focus(), 120);
+  },
+
+  async saveStudentName(){
+    const sid     = window._editStudentId;
+    const surname = document.getElementById("es-surname").value.trim();
+    const name    = document.getElementById("es-name").value.trim();
+    const errEl   = document.getElementById("es-err");
+    if(!surname || !name){ errEl.textContent = "Заповни обидва поля"; return; }
+
+    const btn = document.getElementById("es-save-btn");
+    btn.disabled = true; btn.textContent = "Збереження...";
+    errEl.textContent = "";
+
+    try {
+      await dbUpd(`students/${sid}`, { surname, name });
+      const idx = _students.findIndex(x=>x.id===sid);
+      if(idx>=0) _students[idx] = { ..._students[idx], surname, name };
+
+      // Оновлюємо відображення в картці якщо вона відкрита
+      const nameEl = document.getElementById("sc-fullname");
+      if(nameEl) nameEl.textContent = `${surname} ${name}`;
+
+      closeM("m-edit-student");
+      G.renderStudents();
+      toast("Ім'я збережено ✓");
+    } catch(e){
+      errEl.textContent = "Помилка: " + e.message;
+    }
+    btn.disabled = false; btn.textContent = "Зберегти";
+  },
   },
 
   deleteStudent(id){
