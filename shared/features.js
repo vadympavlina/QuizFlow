@@ -3319,6 +3319,7 @@ selectAnalyticsDrop(field, value, label){
   editStudentName(sid){
     const s = _students.find(x=>x.id===sid);
     if(!s) return;
+    closeM("m-student");
     openM("m-edit-student");
     document.getElementById("es-surname").value = s.surname || "";
     document.getElementById("es-name").value    = s.name    || "";
@@ -3343,13 +3344,11 @@ selectAnalyticsDrop(field, value, label){
       const idx = _students.findIndex(x=>x.id===sid);
       if(idx>=0) _students[idx] = { ..._students[idx], surname, name };
 
-      // Оновлюємо відображення в картці якщо вона відкрита
-      const nameEl = document.getElementById("sc-fullname");
-      if(nameEl) nameEl.textContent = `${surname} ${name}`;
-
       closeM("m-edit-student");
       G.renderStudents();
       toast("Ім'я збережено ✓");
+      // Повертаємо картку студента з оновленими даними
+      G.openStudentCard(sid);
     } catch(e){
       errEl.textContent = "Помилка: " + e.message;
     }
