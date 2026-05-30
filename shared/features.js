@@ -3355,7 +3355,6 @@ selectAnalyticsDrop(field, value, label){
     }
     btn.disabled = false; btn.textContent = "Зберегти";
   },
-  },
 
   deleteStudent(id){
     const s=_students.find(x=>x.id===id);
