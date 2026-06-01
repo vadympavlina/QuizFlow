@@ -355,8 +355,7 @@ function renderQuestion(qi, r) {
   document.getElementById("q-meta-time").textContent = `${r.timePerQ||20}с`;
   document.getElementById("lock-banner").classList.remove("show");
   document.getElementById("confirm-wrap").classList.remove("show");
-
-  // Type badge
+  document.getElementById("text-reveal-block")?.remove();
   const badge = document.getElementById("q-type-badge");
   const typeMap = {
     multi:  {cls:"multi",  label:"☑ Кілька правильних"},
@@ -490,7 +489,47 @@ function checkCorrect(q, value) {
 
 function showReveal(qi, r) {
   const q = r.questions[qi];
-  if (!q || q.type === "text" || q.type === "number") return;
+  if (!q) return;
+  document.getElementById("lock-banner").classList.remove("show");
+  document.getElementById("confirm-wrap").classList.remove("show");
+
+  // ── Text / Number — показуємо правильну відповідь ────────────────────────
+  if (q.type === "text" || q.type === "number") {
+    const correct = String(q.correct || "").trim();
+    const myVal   = document.getElementById("text-inp")?.value?.trim() || "";
+    const isRight = q.type === "number"
+      ? Math.abs(parseFloat(myVal.replace(",",".")) - parseFloat(correct.replace(",","."))) < 1e-9
+      : myVal.toLowerCase() === correct.toLowerCase();
+
+    // Блокуємо поля
+    const inp = document.getElementById("text-inp");
+    const btn = document.getElementById("text-submit");
+    if (inp) inp.disabled = true;
+    if (btn) btn.disabled = true;
+
+    // Показуємо блок з правильною відповіддю
+    let revBlock = document.getElementById("text-reveal-block");
+    if (!revBlock) {
+      revBlock = document.createElement("div");
+      revBlock.id = "text-reveal-block";
+      document.getElementById("text-answer-wrap")?.appendChild(revBlock);
+    }
+    revBlock.style.cssText = `
+      margin-top:14px;padding:14px 18px;border-radius:14px;text-align:center;
+      background:${isRight ? "rgba(16,185,129,.18)" : "rgba(239,68,68,.15)"};
+      border:1.5px solid ${isRight ? "rgba(52,211,153,.5)" : "rgba(248,113,113,.4)"};
+    `;
+    revBlock.innerHTML = `
+      <div style="font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+        color:${isRight?"#6EE7B7":"#FCA5A5"};margin-bottom:6px">
+        ${isRight ? "✓ Правильно!" : "✗ Неправильно"}
+      </div>
+      <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:4px">Правильна відповідь:</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:22px;font-weight:800;color:#fff">${esc(correct)}</div>`;
+    return;
+  }
+
+  // ── Single / Multi — підсвічуємо варіанти ────────────────────────────────
   const correct = Array.isArray(q.correct) ? q.correct.map(Number) : [Number(q.correct)];
   document.querySelectorAll(".ans").forEach((btn, i) => {
     btn.disabled = true;
@@ -499,14 +538,11 @@ function showReveal(qi, r) {
       btn.classList.add("correct-ans");
       btn.classList.remove("wrong-ans","my-wrong");
     } else if (multiSel.includes(i)) {
-      // Student selected this but it's wrong
       btn.classList.add("my-wrong");
     } else {
       btn.classList.add("wrong-ans");
     }
   });
-  document.getElementById("lock-banner").classList.remove("show");
-  document.getElementById("confirm-wrap").classList.remove("show");
 }
 
 function startTimer(r) {

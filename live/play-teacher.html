@@ -505,27 +505,78 @@ function renderQuestion(qi) {
 
 function revealAnswers() {
   const q = questions[currentQ];
-  stopMusic(); // ← зупиняємо музику при розкритті
-  if (!q || q.type === "text") { revealMode = true; clearInterval(timerInterval); return; }
+  stopMusic();
   revealMode = true;
   clearInterval(timerInterval);
-  const opts = q.options || [];
+  document.getElementById("answered-bar").style.display = "none";
+  document.getElementById("pause-btn").style.display = "none";
+  document.getElementById("skip-btn").style.display = "none";
+  document.getElementById("next-btn").textContent = "➜ Наступне";
+  document.getElementById("timer").textContent = "0";
+  document.getElementById("timer").className = "timer-mini danger";
+
+  if (!q) return;
+
+  // ── Text / Number ─────────────────────────────────────────────────────────
+  if (q.type === "text" || q.type === "number") {
+    const correct = String(q.correct || "").trim();
+    const answers = Object.values(answersData);
+    const total   = answers.length;
+
+    // Групуємо відповіді
+    const groups = {};
+    answers.forEach(a => {
+      const v = String(a.value || "").trim();
+      groups[v] = (groups[v] || 0) + 1;
+    });
+    const sorted = Object.entries(groups).sort((a,b) => b[1]-a[1]);
+
+    const isCorrect = v => {
+      if (q.type === "number") {
+        const cv = parseFloat(correct.replace(",","."));
+        const uv = parseFloat(String(v).replace(",","."));
+        return !isNaN(cv) && !isNaN(uv) && Math.abs(cv-uv) < 1e-9;
+      }
+      return v.toLowerCase() === correct.toLowerCase();
+    };
+
+    const distrib = document.getElementById("distrib");
+    distrib.style.display = "block";
+    distrib.style.gridTemplateColumns = "";
+    distrib.innerHTML = `
+      <div style="margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#A78BFA">Правильна відповідь:</span>
+        <span style="font-family:'Geist Mono',monospace;font-size:18px;font-weight:800;color:#86EFAC">${esc(correct||"—")}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto">
+        ${sorted.length ? sorted.map(([v, cnt]) => {
+          const ok = isCorrect(v);
+          const pct = Math.round(cnt/Math.max(total,1)*100);
+          return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;background:${ok?"rgba(16,185,129,.15)":"rgba(255,255,255,.05)"}">
+            <span style="font-family:'Geist Mono',monospace;font-weight:700;font-size:14px;min-width:24px;color:${ok?"#86EFAC":"#FCA5A5"}">${ok?"✓":"✗"}</span>
+            <span style="flex:1;font-size:14px;font-weight:600">${esc(v)}</span>
+            <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A6B0D6">${cnt} · ${pct}%</span>
+          </div>`;
+        }).join("") : `<div style="color:#7B85B5;font-size:13px;padding:8px">Ніхто не відповів</div>`}
+      </div>`;
+    return;
+  }
+
+  // ── Single / Multi (варіанти) ─────────────────────────────────────────────
+  const opts    = q.options || [];
   const correct = Array.isArray(q.correct) ? q.correct.map(Number) : [Number(q.correct)];
-  const counts = Array(opts.length).fill(0);
+  const counts  = Array(opts.length).fill(0);
   Object.values(answersData).forEach(ans => {
     const vals = Array.isArray(ans.value) ? ans.value : [ans.value];
-    vals.forEach(v => { if(counts[Number(v)] !== undefined) counts[Number(v)]++; });
+    vals.forEach(v => { if (counts[Number(v)] !== undefined) counts[Number(v)]++; });
   });
   const max = Math.max(...counts, 1);
   document.querySelectorAll(".ans").forEach((el, i) => {
     const span = el.querySelector(".count-badge span");
     if (span) span.textContent = counts[i];
-    if (correct.includes(i)) { el.classList.add("correct"); }
-    else { el.classList.add("wrong-dim"); }
+    if (correct.includes(i)) el.classList.add("correct");
+    else el.classList.add("wrong-dim");
   });
-  document.getElementById("answered-bar").style.display = "none";
-  document.getElementById("pause-btn").style.display = "none";
-  document.getElementById("skip-btn").style.display = "none";
   const distrib = document.getElementById("distrib");
   distrib.style.gridTemplateColumns = `repeat(${opts.length},1fr)`;
   distrib.style.display = "grid";
@@ -537,9 +588,6 @@ function revealAnswers() {
       <div class="lbl">${LETTERS[i]} · ${Math.round(counts[i]/Math.max(Object.keys(answersData).length,1)*100)}%</div>
     </div>`;
   }).join("");
-  document.getElementById("next-btn").textContent = "➜ Наступне";
-  document.getElementById("timer").textContent = "0";
-  document.getElementById("timer").className = "timer-mini danger";
 }
 
 function startTimer() {
@@ -675,11 +723,25 @@ function subscribeAnswers(qi) {
     }
 
     // Accuracy footer
-    const correct = Array.isArray(questions[currentQ]?.correct) ? questions[currentQ].correct.map(Number) : [Number(questions[currentQ]?.correct)];
-    const correctCount = Object.values(answersData).filter(a => {
-      const vals = Array.isArray(a.value)?a.value.map(Number):[Number(a.value)];
-      return JSON.stringify(vals.sort()) === JSON.stringify([...correct].sort());
-    }).length;
+    const q = questions[currentQ];
+    let correctCount = 0;
+    if (q?.type === "text" || q?.type === "number") {
+      const correct = String(q.correct || "").trim().toLowerCase();
+      correctCount = Object.values(answersData).filter(a => {
+        const v = String(a.value || "").trim().toLowerCase();
+        if (q.type === "number") {
+          const cv = parseFloat(correct.replace(",",".")), uv = parseFloat(v.replace(",","."));
+          return !isNaN(cv) && !isNaN(uv) && Math.abs(cv-uv) < 1e-9;
+        }
+        return v === correct;
+      }).length;
+    } else {
+      const correct = Array.isArray(q?.correct) ? q.correct.map(Number) : [Number(q?.correct)];
+      correctCount = Object.values(answersData).filter(a => {
+        const vals = Array.isArray(a.value) ? a.value.map(Number) : [Number(a.value)];
+        return JSON.stringify(vals.sort()) === JSON.stringify([...correct].sort());
+      }).length;
+    }
     document.getElementById("footer-acc").textContent = answered ? Math.round(correctCount/answered*100)+"%" : "—";
 
     // Auto-reveal when all answered
