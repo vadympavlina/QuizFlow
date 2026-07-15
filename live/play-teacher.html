@@ -108,6 +108,31 @@
     margin:0 auto 44px;max-width:1280px;
     text-shadow:0 4px 20px rgba(0,0,0,.4);
   }
+  .q-type-wrap{display:flex;justify-content:center;margin-bottom:18px}
+  .q-type-badge{
+    display:inline-flex;align-items:center;gap:7px;
+    padding:7px 18px;border-radius:999px;font-size:13.5px;font-weight:800;
+    letter-spacing:.05em;border:1.5px solid;
+  }
+  .q-type-badge.single {background:rgba(167,139,250,.18);border-color:rgba(167,139,250,.5);color:#C4B5FD}
+  .q-type-badge.multi  {background:rgba(52,211,153,.15); border-color:rgba(52,211,153,.5); color:#6EE7B7}
+  .q-type-badge.text   {background:rgba(251,191,36,.13); border-color:rgba(251,191,36,.5);color:#FCD34D}
+  .q-type-badge.number {background:rgba(96,165,250,.15); border-color:rgba(96,165,250,.5); color:#93C5FD}
+  .text-wait-hint{
+    max-width:640px;margin:0 auto;text-align:center;padding:44px 32px;
+    border:2px dashed rgba(255,255,255,.15);border-radius:22px;color:#A6B0D6;font-size:16px;font-weight:600;line-height:1.6;
+  }
+  .text-wait-hint b{color:#fff}
+  .grade-btn{
+    font-family:"Geist Mono",monospace;font-size:12px;font-weight:800;
+    padding:7px 14px;border-radius:9px;border:1.5px solid;cursor:pointer;
+    background:transparent;transition:all .15s;white-space:nowrap;flex:0 0 auto;
+  }
+  .grade-btn.accept{border-color:rgba(52,211,153,.5);color:#6EE7B7}
+  .grade-btn.accept:hover{background:rgba(16,185,129,.18)}
+  .grade-btn.revoke{border-color:rgba(248,113,113,.5);color:#FCA5A5}
+  .grade-btn.revoke:hover{background:rgba(239,68,68,.18)}
+  .distrib-hint{font-size:11.5px;color:#7B85B5;margin-left:auto;font-weight:600}
   .answers{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1400px;margin:0 auto}
   .ans{
     position:relative;display:flex;align-items:center;gap:24px;padding:32px 36px;
@@ -183,8 +208,10 @@
     <div class="bar"><i id="answered-fill" style="width:0%"></i></div>
     <span class="nums"><span id="answered-num">0</span> <span class="dim">/ <span id="answered-total">0</span></span></span>
   </div>
+  <div class="q-type-wrap"><span class="q-type-badge single" id="q-type-badge">◉ Одна правильна</span></div>
   <div class="question-text qf-rich" id="q-text"></div>
   <div class="answers" id="answers-grid"></div>
+  <div class="text-wait-hint" id="text-wait-hint" style="display:none">✏️ Учні вводять власну відповідь<br><b>Слідкуйте за прогресом відповідей вище</b></div>
   <div class="distrib" id="distrib" style="display:none"></div>
 </div>
 
@@ -478,12 +505,20 @@ function stopMusic() {
 window.toggleMusic = () => window.toggleMute();
 // ─────────────────────────────────────────────────────────────────────────────
 
+const TYPE_BADGE = {
+  single: {cls:"single", label:"◉ Одна правильна"},
+  multi:  {cls:"multi",  label:"☑ Кілька правильних"},
+  text:   {cls:"text",   label:"✏ Текстова відповідь"},
+  number: {cls:"number", label:"🔢 Числова відповідь"},
+};
+
 function renderQuestion(qi) {
   const q = questions[qi];
   if (!q) return;
   currentQ = qi;
   revealMode = false;
   const opts = q.options || [];
+  const isFreeform = q.type === "text" || q.type === "number";
   document.getElementById("q-lbl").textContent = `${qi+1} / ${totalQ}`;
   document.getElementById("q-bar").style.width = `${((qi+1)/totalQ)*100}%`;
   document.getElementById("q-text").innerHTML = q.text || "";
@@ -492,15 +527,26 @@ function renderQuestion(qi) {
   document.getElementById("next-btn").textContent = "Розкрити →";
   document.getElementById("pause-btn").style.display = "";
   document.getElementById("skip-btn").style.display = "";
-  const cols = opts.length <= 2 ? "1fr" : "1fr 1fr";
-  document.getElementById("answers-grid").style.gridTemplateColumns = cols;
-  document.getElementById("answers-grid").innerHTML = opts.map((o,i) =>
-    `<div class="ans ${CLASSES[i]||"a"}">
-      <span class="letter">${LETTERS[i]}</span>
-      <span style="flex:1">${esc(o)}</span>
-      <span class="count-badge"><span id="cnt-${i}">—</span></span>
-    </div>`
-  ).join("");
+
+  const t = TYPE_BADGE[q.type] || TYPE_BADGE.single;
+  const badge = document.getElementById("q-type-badge");
+  badge.className = "q-type-badge " + t.cls;
+  badge.textContent = t.label;
+
+  document.getElementById("text-wait-hint").style.display = isFreeform ? "" : "none";
+  document.getElementById("answers-grid").style.display = isFreeform ? "none" : "";
+
+  if (!isFreeform) {
+    const cols = opts.length <= 2 ? "1fr" : "1fr 1fr";
+    document.getElementById("answers-grid").style.gridTemplateColumns = cols;
+    document.getElementById("answers-grid").innerHTML = opts.map((o,i) =>
+      `<div class="ans ${CLASSES[i]||"a"}">
+        <span class="letter">${LETTERS[i]}</span>
+        <span style="flex:1">${esc(o)}</span>
+        <span class="count-badge"><span id="cnt-${i}">—</span></span>
+      </div>`
+    ).join("");
+  }
 }
 
 function revealAnswers() {
@@ -519,46 +565,7 @@ function revealAnswers() {
 
   // ── Text / Number ─────────────────────────────────────────────────────────
   if (q.type === "text" || q.type === "number") {
-    const correct = String(q.correct || "").trim();
-    const answers = Object.values(answersData);
-    const total   = answers.length;
-
-    // Групуємо відповіді
-    const groups = {};
-    answers.forEach(a => {
-      const v = String(a.value || "").trim();
-      groups[v] = (groups[v] || 0) + 1;
-    });
-    const sorted = Object.entries(groups).sort((a,b) => b[1]-a[1]);
-
-    const isCorrect = v => {
-      if (q.type === "number") {
-        const cv = parseFloat(correct.replace(",","."));
-        const uv = parseFloat(String(v).replace(",","."));
-        return !isNaN(cv) && !isNaN(uv) && Math.abs(cv-uv) < 1e-9;
-      }
-      return v.toLowerCase() === correct.toLowerCase();
-    };
-
-    const distrib = document.getElementById("distrib");
-    distrib.style.display = "block";
-    distrib.style.gridTemplateColumns = "";
-    distrib.innerHTML = `
-      <div style="margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#A78BFA">Правильна відповідь:</span>
-        <span style="font-family:'Geist Mono',monospace;font-size:18px;font-weight:800;color:#86EFAC">${esc(correct||"—")}</span>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto">
-        ${sorted.length ? sorted.map(([v, cnt]) => {
-          const ok = isCorrect(v);
-          const pct = Math.round(cnt/Math.max(total,1)*100);
-          return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;background:${ok?"rgba(16,185,129,.15)":"rgba(255,255,255,.05)"}">
-            <span style="font-family:'Geist Mono',monospace;font-weight:700;font-size:14px;min-width:24px;color:${ok?"#86EFAC":"#FCA5A5"}">${ok?"✓":"✗"}</span>
-            <span style="flex:1;font-size:14px;font-weight:600">${esc(v)}</span>
-            <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A6B0D6">${cnt} · ${pct}%</span>
-          </div>`;
-        }).join("") : `<div style="color:#7B85B5;font-size:13px;padding:8px">Ніхто не відповів</div>`}
-      </div>`;
+    renderTextDistrib();
     return;
   }
 
@@ -588,6 +595,81 @@ function revealAnswers() {
       <div class="lbl">${LETTERS[i]} · ${Math.round(counts[i]/Math.max(Object.keys(answersData).length,1)*100)}%</div>
     </div>`;
   }).join("");
+}
+
+// ── Ручна перевірка текстових / числових відповідей ─────────────────────────
+let _lastTextGroups = [];
+
+function renderTextDistrib() {
+  const q = questions[currentQ];
+  if (!q || (q.type !== "text" && q.type !== "number")) return;
+  const correct = String(q.correct || "").trim();
+  const entries = Object.values(answersData);
+  const total   = entries.length;
+
+  // Групуємо відповіді за текстом; correct беремо зі збереженого isCorrect
+  // (щоб врахувати ручні виправлення викладача), а не перераховуємо заново.
+  const groups = {};
+  entries.forEach(a => {
+    const v = String(a.value ?? "").trim();
+    if (!groups[v]) groups[v] = { count: 0, correct: !!a.isCorrect };
+    groups[v].count++;
+  });
+  const sorted = Object.entries(groups).sort((a,b) => b[1].count - a[1].count);
+  _lastTextGroups = sorted;
+
+  const distrib = document.getElementById("distrib");
+  distrib.style.display = "block";
+  distrib.style.gridTemplateColumns = "";
+  distrib.innerHTML = `
+    <div style="margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#A78BFA">Правильна відповідь:</span>
+      <span style="font-family:'Geist Mono',monospace;font-size:18px;font-weight:800;color:#86EFAC">${esc(correct||"—")}</span>
+      <span class="distrib-hint">Можна вручну зарахувати чи скасувати будь-яку відповідь</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto">
+      ${sorted.length ? sorted.map(([v, g], idx) => {
+        const pct = Math.round(g.count/Math.max(total,1)*100);
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;background:${g.correct?"rgba(16,185,129,.15)":"rgba(255,255,255,.05)"}">
+          <span style="font-family:'Geist Mono',monospace;font-weight:700;font-size:14px;min-width:24px;color:${g.correct?"#86EFAC":"#FCA5A5"}">${g.correct?"✓":"✗"}</span>
+          <span style="flex:1;font-size:14px;font-weight:600">${v ? esc(v) : '<i style="color:#7B85B5">порожньо</i>'}</span>
+          <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A6B0D6">${g.count} · ${pct}%</span>
+          <button class="grade-btn ${g.correct?"revoke":"accept"}" data-idx="${idx}">${g.correct ? "✗ Скасувати" : "✓ Зарахувати"}</button>
+        </div>`;
+      }).join("") : `<div style="color:#7B85B5;font-size:13px;padding:8px">Ніхто не відповів</div>`}
+    </div>`;
+}
+
+document.getElementById("distrib").addEventListener("click", (e) => {
+  const btn = e.target.closest(".grade-btn");
+  if (!btn) return;
+  const g = _lastTextGroups[Number(btn.dataset.idx)];
+  if (!g) return;
+  const [v, info] = g;
+  btn.disabled = true;
+  toggleGroupCorrect(v, !info.correct).finally(() => { btn.disabled = false; });
+});
+
+async function toggleGroupCorrect(v, makeCorrect) {
+  const scoring = room.scoring || "correct";
+  const updates = {};
+  Object.entries(answersData).forEach(([pid, a]) => {
+    if (String(a.value ?? "").trim() !== v) return;
+    let points = 0;
+    if (makeCorrect) {
+      if (scoring === "speed") {
+        const elapsed = Math.max(0, ((a.answeredAt || questionStartedAt) - questionStartedAt) / 1000);
+        const ratio = Math.max(0, 1 - elapsed / timePerQ);
+        points = Math.round(500 + 500 * ratio);
+      } else {
+        points = 1000;
+      }
+    }
+    updates[`rooms/${code}/answers/${currentQ}/${pid}/isCorrect`]      = makeCorrect;
+    updates[`rooms/${code}/answers/${currentQ}/${pid}/points`]         = points;
+    updates[`rooms/${code}/answers/${currentQ}/${pid}/gradedByTeacher`] = true;
+  });
+  if (Object.keys(updates).length) await update(ref(db), updates);
 }
 
 function startTimer() {
@@ -726,15 +808,8 @@ function subscribeAnswers(qi) {
     const q = questions[currentQ];
     let correctCount = 0;
     if (q?.type === "text" || q?.type === "number") {
-      const correct = String(q.correct || "").trim().toLowerCase();
-      correctCount = Object.values(answersData).filter(a => {
-        const v = String(a.value || "").trim().toLowerCase();
-        if (q.type === "number") {
-          const cv = parseFloat(correct.replace(",",".")), uv = parseFloat(v.replace(",","."));
-          return !isNaN(cv) && !isNaN(uv) && Math.abs(cv-uv) < 1e-9;
-        }
-        return v === correct;
-      }).length;
+      // Беремо збережений isCorrect (враховує ручні виправлення викладача)
+      correctCount = Object.values(answersData).filter(a => a.isCorrect).length;
     } else {
       const correct = Array.isArray(q?.correct) ? q.correct.map(Number) : [Number(q?.correct)];
       correctCount = Object.values(answersData).filter(a => {
@@ -743,6 +818,11 @@ function subscribeAnswers(qi) {
       }).length;
     }
     document.getElementById("footer-acc").textContent = answered ? Math.round(correctCount/answered*100)+"%" : "—";
+
+    // Live-оновлення розподілу відповідей після ручного зарахування
+    if (revealMode && (q?.type === "text" || q?.type === "number")) {
+      renderTextDistrib();
+    }
 
     // Auto-reveal when all answered
     if (answered >= total && total > 0 && !revealMode) {
