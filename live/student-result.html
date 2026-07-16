@@ -182,6 +182,8 @@ async function renderResult(room) {
 
   const myIdx   = list.findIndex(p => p.pid === pid);
   const myPlace = myIdx >= 0 ? myIdx+1 : "—";
+  // Перерахований бал з Firebase (враховує ручне зарахування вчителем), а не застарілий URL-параметр
+  const finalScore = myIdx >= 0 ? list[myIdx].score : myScore;
   const myCorrect = Object.values(myAnswers).filter(a=>a.isCorrect).length;
   const myWrong   = Object.values(myAnswers).filter(a=>!a.isCorrect && a.value !== undefined).length;
   const mySkipped = totalQ - myCorrect - myWrong;
@@ -226,7 +228,7 @@ async function renderResult(room) {
         <div class="ico">⚡</div>
         <div>
           <div class="lbl">Ваші бали</div>
-          <div class="pts">${myScore.toLocaleString("uk")}</div>
+          <div class="pts">${finalScore.toLocaleString("uk")}</div>
         </div>
       </div>
     </div>

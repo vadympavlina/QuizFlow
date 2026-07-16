@@ -292,6 +292,8 @@ const CLASSES = ["a","b","c","d","e","f"];
 const LETTERS  = ["A","B","C","D","E","F"];
 let currentQ  = -1;
 let myScore   = 0;
+let myPointsByQ = {};   // qi -> бали, зараховані зараз (щоб коректно рахувати дельту при ручному перезарахуванні)
+let unsubMyAnswer = null;
 let answered  = false;
 let timerInterval = null;
 let timePerQ  = 20;
@@ -450,6 +452,7 @@ async function submitAnswer(value) {
   const isCorrect = checkCorrect(q, value);
   const scoring = room.scoring || "correct";
   const points = isCorrect ? (scoring === "speed" ? Math.round(500+500*ratio) : 1000) : 0;
+  myPointsByQ[currentQ] = points;
   myScore += points;
   document.getElementById("my-score").textContent = myScore.toLocaleString("uk");
 
@@ -487,6 +490,44 @@ function checkCorrect(q, value) {
   return false;
 }
 
+let myLastAnswer = null; // останній відомий стан моєї відповіді з Firebase (isCorrect/points/gradedByTeacher)
+
+function renderTextRevealBadge(correctText) {
+  const myVal = document.getElementById("text-inp")?.value?.trim() || "";
+  // Пріоритет — реальний стан з Firebase (враховує ручне зарахування вчителем).
+  // Якщо ще не встигло прийти — рахуємо орієнтовно локально.
+  let isRight;
+  if (myLastAnswer && typeof myLastAnswer.isCorrect === "boolean") {
+    isRight = myLastAnswer.isCorrect;
+  } else {
+    const q = room.questions[currentQ];
+    isRight = q.type === "number"
+      ? Math.abs(parseFloat(myVal.replace(",",".")) - parseFloat(correctText.replace(",","."))) < 1e-9
+      : myVal.toLowerCase() === correctText.toLowerCase();
+  }
+  const graded = myLastAnswer?.gradedByTeacher;
+
+  let revBlock = document.getElementById("text-reveal-block");
+  if (!revBlock) {
+    revBlock = document.createElement("div");
+    revBlock.id = "text-reveal-block";
+    document.getElementById("text-answer-wrap")?.appendChild(revBlock);
+  }
+  revBlock.style.cssText = `
+    margin-top:14px;padding:14px 18px;border-radius:14px;text-align:center;
+    transition:background .3s,border-color .3s;
+    background:${isRight ? "rgba(16,185,129,.18)" : "rgba(239,68,68,.15)"};
+    border:1.5px solid ${isRight ? "rgba(52,211,153,.5)" : "rgba(248,113,113,.4)"};
+  `;
+  revBlock.innerHTML = `
+    <div style="font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+      color:${isRight?"#6EE7B7":"#FCA5A5"};margin-bottom:6px">
+      ${isRight ? "✓ Правильно!" : "✗ Неправильно"}${graded ? " · перевірено вчителем" : ""}
+    </div>
+    <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:4px">Правильна відповідь:</div>
+    <div style="font-family:'Geist Mono',monospace;font-size:22px;font-weight:800;color:#fff">${esc(correctText)}</div>`;
+}
+
 function showReveal(qi, r) {
   const q = r.questions[qi];
   if (!q) return;
@@ -496,10 +537,6 @@ function showReveal(qi, r) {
   // ── Text / Number — показуємо правильну відповідь ────────────────────────
   if (q.type === "text" || q.type === "number") {
     const correct = String(q.correct || "").trim();
-    const myVal   = document.getElementById("text-inp")?.value?.trim() || "";
-    const isRight = q.type === "number"
-      ? Math.abs(parseFloat(myVal.replace(",",".")) - parseFloat(correct.replace(",","."))) < 1e-9
-      : myVal.toLowerCase() === correct.toLowerCase();
 
     // Блокуємо поля
     const inp = document.getElementById("text-inp");
@@ -507,25 +544,7 @@ function showReveal(qi, r) {
     if (inp) inp.disabled = true;
     if (btn) btn.disabled = true;
 
-    // Показуємо блок з правильною відповіддю
-    let revBlock = document.getElementById("text-reveal-block");
-    if (!revBlock) {
-      revBlock = document.createElement("div");
-      revBlock.id = "text-reveal-block";
-      document.getElementById("text-answer-wrap")?.appendChild(revBlock);
-    }
-    revBlock.style.cssText = `
-      margin-top:14px;padding:14px 18px;border-radius:14px;text-align:center;
-      background:${isRight ? "rgba(16,185,129,.18)" : "rgba(239,68,68,.15)"};
-      border:1.5px solid ${isRight ? "rgba(52,211,153,.5)" : "rgba(248,113,113,.4)"};
-    `;
-    revBlock.innerHTML = `
-      <div style="font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
-        color:${isRight?"#6EE7B7":"#FCA5A5"};margin-bottom:6px">
-        ${isRight ? "✓ Правильно!" : "✗ Неправильно"}
-      </div>
-      <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:4px">Правильна відповідь:</div>
-      <div style="font-family:'Geist Mono',monospace;font-size:22px;font-weight:800;color:#fff">${esc(correct)}</div>`;
+    renderTextRevealBadge(correct);
     return;
   }
 
@@ -590,8 +609,28 @@ onValue(ref(db, `rooms/${code}`), snap => {
       currentQ = qi;
       answered = false;
       multiSel = [];
+      myLastAnswer = null;
+      if (unsubMyAnswer) { unsubMyAnswer(); unsubMyAnswer = null; }
       renderQuestion(qi, r);
       if (r.status === "question") startTimer(r);
+
+      // Слухаємо власну відповідь у Firebase: якщо вчитель вручну
+      // зарахує/скасує текстову/числову відповідь — оновлюємо бали й бейдж одразу.
+      unsubMyAnswer = onValue(ref(db, `rooms/${code}/answers/${qi}/${pid}`), s => {
+        const a = s.val();
+        if (!a || typeof a.points !== "number") return;
+        const prevPoints = myPointsByQ[qi] ?? 0;
+        myLastAnswer = a;
+        if (a.points !== prevPoints) {
+          myScore += (a.points - prevPoints);
+          myPointsByQ[qi] = a.points;
+          document.getElementById("my-score").textContent = myScore.toLocaleString("uk");
+        }
+        const q = room?.questions?.[qi];
+        if (q && (q.type === "text" || q.type === "number") && document.getElementById("text-reveal-block")) {
+          renderTextRevealBadge(String(q.correct || "").trim());
+        }
+      });
     }
     if (r.status === "reveal") {
       clearInterval(timerInterval);
@@ -603,6 +642,7 @@ onValue(ref(db, `rooms/${code}`), snap => {
 
   if (r.status === "leaderboard" || r.status === "finished") {
     clearInterval(timerInterval);
+    if (unsubMyAnswer) { unsubMyAnswer(); unsubMyAnswer = null; }
     location.href = `student-result.html?code=${code}&pid=${pid}&surname=${encodeURIComponent(surname)}&name=${encodeURIComponent(name)}&score=${myScore}`;
   }
 });
