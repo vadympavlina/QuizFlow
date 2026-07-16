@@ -452,9 +452,9 @@ async function submitAnswer(value) {
   const isCorrect = checkCorrect(q, value);
   const scoring = room.scoring || "correct";
   const points = isCorrect ? (scoring === "speed" ? Math.round(500+500*ratio) : 1000) : 0;
-  myPointsByQ[currentQ] = points;
-  myScore += points;
-  document.getElementById("my-score").textContent = myScore.toLocaleString("uk");
+  // Бали НЕ показуємо і НЕ додаємо до myScore тут — інакше зміна цифри зверху
+  // одразу видає, чи відповідь правильна, ще до того як вчитель розкриє її.
+  // Синхронізація myScore відбувається у syncScoreForQuestion() під час reveal.
 
   await set(ref(db, `rooms/${code}/answers/${currentQ}/${pid}`), {
     value, answeredAt: Date.now(), isCorrect, points
@@ -491,6 +491,17 @@ function checkCorrect(q, value) {
 }
 
 let myLastAnswer = null; // останній відомий стан моєї відповіді з Firebase (isCorrect/points/gradedByTeacher)
+
+// Додає бали до myScore і оновлює цифру на екрані — викликається ЛИШЕ під час
+// reveal, щоб зміна балів не виказувала правильність відповіді заздалегідь.
+function syncScoreForQuestion(qi) {
+  if (!myLastAnswer || typeof myLastAnswer.points !== "number") return;
+  const prev = myPointsByQ[qi] ?? 0;
+  if (myLastAnswer.points === prev) return;
+  myScore += (myLastAnswer.points - prev);
+  myPointsByQ[qi] = myLastAnswer.points;
+  document.getElementById("my-score").textContent = myScore.toLocaleString("uk");
+}
 
 function renderTextRevealBadge(correctText) {
   const myVal = document.getElementById("text-inp")?.value?.trim() || "";
@@ -531,6 +542,7 @@ function renderTextRevealBadge(correctText) {
 function showReveal(qi, r) {
   const q = r.questions[qi];
   if (!q) return;
+  syncScoreForQuestion(qi);
   document.getElementById("lock-banner").classList.remove("show");
   document.getElementById("confirm-wrap").classList.remove("show");
 
@@ -615,17 +627,15 @@ onValue(ref(db, `rooms/${code}`), snap => {
       if (r.status === "question") startTimer(r);
 
       // Слухаємо власну відповідь у Firebase: якщо вчитель вручну
-      // зарахує/скасує текстову/числову відповідь — оновлюємо бали й бейдж одразу.
+      // зарахує/скасує текстову/числову відповідь — оновлюємо бали й бейдж.
+      // Бали при цьому показуємо тільки якщо reveal вже почався (room.status === "reveal") —
+      // щоб сам факт зміни цифри не видавав правильність відповіді заздалегідь.
       unsubMyAnswer = onValue(ref(db, `rooms/${code}/answers/${qi}/${pid}`), s => {
         const a = s.val();
         if (!a || typeof a.points !== "number") return;
-        const prevPoints = myPointsByQ[qi] ?? 0;
         myLastAnswer = a;
-        if (a.points !== prevPoints) {
-          myScore += (a.points - prevPoints);
-          myPointsByQ[qi] = a.points;
-          document.getElementById("my-score").textContent = myScore.toLocaleString("uk");
-        }
+        if (room?.status !== "reveal") return; // ще не розкрито — не чіпаємо myScore/UI
+        syncScoreForQuestion(qi);
         const q = room?.questions?.[qi];
         if (q && (q.type === "text" || q.type === "number") && document.getElementById("text-reveal-block")) {
           renderTextRevealBadge(String(q.correct || "").trim());
