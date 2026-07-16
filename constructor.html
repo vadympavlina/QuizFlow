@@ -309,7 +309,7 @@
 
 <div class="main">
   <div class="con-topbar">
-    <a class="back-btn" onclick="window.navGuard('')">
+    <a class="back-btn" onclick="window.navBack()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>Назад
     </a>
     <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
@@ -1109,6 +1109,54 @@ window.navGuard = (section) => {
   } else {
     if(section) sessionStorage.setItem("qf_nav", section);
     location.href = "index.html";
+  }
+};
+
+// ─── "Назад" — повертаємось туди, звідки прийшли, а не завжди на index.html ──
+function _goBack(){
+  // 1) Якщо є same-origin referrer і це не сама конструкторна сторінка — йдемо туди
+  try {
+    if (document.referrer) {
+      const refUrl = new URL(document.referrer);
+      const isSelf = /constructor\.html$/.test(refUrl.pathname);
+      if (refUrl.origin === window.location.origin && !isSelf) {
+        location.href = document.referrer;
+        return;
+      }
+    }
+  } catch {}
+  // 2) Немає надійного referrer — але в браузерній історії щось є (напр. відкрили
+  //    з тієї ж вкладки переходом, а не з нового таба/закладки) — тоді history.back()
+  if (window.history.length > 1) {
+    window.history.back();
+    // Підстраховка: якщо за 600мс сторінка так і не змінилась (SPA-роутер
+    // з'їв подію, чи history порожня попри length>1) — падаємо на дашборд
+    const fallbackAt = location.href;
+    setTimeout(() => {
+      if (location.href === fallbackAt) location.href = "index.html";
+    }, 600);
+    return;
+  }
+  // 3) Прямий заход за посиланням (нема ні referrer, ні історії) — єдиний
+  //    осмислений варіант це дашборд
+  location.href = "index.html";
+}
+
+window.navBack = () => {
+  if(isDirty){
+    document.getElementById("unsavedModal")?.classList.add("open");
+    document.getElementById("unsavedSaveBtn").onclick = async () => {
+      await window.saveTest();
+      document.getElementById("unsavedModal")?.classList.remove("open");
+      _goBack();
+    };
+    document.getElementById("unsavedLeaveBtn").onclick = () => {
+      isDirty = false;
+      document.getElementById("unsavedModal")?.classList.remove("open");
+      _goBack();
+    };
+  } else {
+    _goBack();
   }
 };
 
