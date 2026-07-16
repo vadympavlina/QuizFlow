@@ -194,6 +194,16 @@
   #lobby-overlay.hidden{display:none}
   .spinner{width:48px;height:48px;border:3px solid rgba(255,255,255,.15);border-top-color:#A78BFA;border-radius:50%;animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* Kicked overlay */
+  #kicked-overlay{
+    position:fixed;inset:0;z-index:30;background:rgba(10,10,20,.92);backdrop-filter:blur(16px);
+    display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:24px;
+  }
+  #kicked-overlay.show{display:flex}
+  #kicked-overlay .ico{font-size:56px}
+  #kicked-overlay h2{font-size:24px;font-weight:800;margin:0;color:#FCA5A5}
+  #kicked-overlay p{font-size:14px;color:rgba(255,255,255,.6);margin:0;max-width:320px}
 </style>
 </head>
 <body>
@@ -215,6 +225,13 @@
   <div class="ico">⏸</div>
   <h2>Гра на паузі</h2>
   <p>Зачекайте, викладач скоро продовжить</p>
+</div>
+
+<!-- Kicked overlay -->
+<div id="kicked-overlay">
+  <div class="ico">🚫</div>
+  <h2>Вас видалено з гри</h2>
+  <p>Викладач прибрав вас зі списку учасників. Щоб зіграти знову, приєднайтесь заново за кодом кімнати.</p>
 </div>
 
 <div class="topbar">
@@ -597,6 +614,14 @@ onValue(ref(db, `rooms/${code}`), snap => {
   const r = snap.val();
   room = r;
   applyTheme(r.theme);
+
+  // Викладач видалив студента з лоббі — миттєво блокуємо гру
+  if (r.players?.[pid]?.active === false) {
+    clearInterval(timerInterval);
+    if (unsubMyAnswer) { unsubMyAnswer(); unsubMyAnswer = null; }
+    document.getElementById("kicked-overlay").classList.add("show");
+    return;
+  }
 
   const overlay = document.getElementById("lobby-overlay");
   const pauseOv = document.getElementById("pause-overlay");
