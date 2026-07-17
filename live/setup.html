@@ -45,8 +45,7 @@
   .brand .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:#A78BFA;box-shadow:0 0 0 4px rgba(167,139,250,.18)}
 
   .panel{background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));border:1px solid var(--line);border-radius:22px;padding:28px;backdrop-filter: blur(8px)}
-  h1{margin:0 0 4px;font-size:28px;font-weight:800;letter-spacing:-.02em}
-  h1 + p{margin:0 0 22px;color:var(--ink-d);font-size:14px}
+  h1{margin:0 0 22px;font-size:28px;font-weight:800;letter-spacing:-.02em}
 
   .quiz-card{
     display:flex;align-items:center;gap:14px;padding:16px;border-radius:14px;
@@ -61,7 +60,12 @@
   .quiz-card .meta{font-size:12px;color:var(--ink-d);margin-top:3px;font-family:"Geist Mono",monospace}
 
   .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px}
-  .field label{display:block;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--violet-2);margin-bottom:8px}
+  .field label{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--violet-2);margin-bottom:8px}
+  .info-i{
+    width:15px;height:15px;border-radius:50%;background:rgba(167,139,250,.18);color:#A78BFA;
+    display:inline-grid;place-items:center;font-size:10px;font-weight:800;font-style:normal;
+    letter-spacing:0;text-transform:none;cursor:help;flex:0 0 auto;
+  }
   .field .input{
     width:100%;background:rgba(0,0,0,.25);border:1px solid var(--line2);border-radius:12px;
     padding:14px 16px;color:#fff;font:inherit;font-size:18px;font-weight:700;outline:none;
@@ -202,7 +206,6 @@
 
   <div class="panel">
     <h1>Налаштуйте гру</h1>
-    <p>Останні штрихи перед запуском гри в реальному часі</p>
 
     <div class="quiz-card">
       <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
@@ -225,14 +228,11 @@
         </div>
       </div>
       <div class="field">
-        <label>Бальна система</label>
+        <label>Бальна система <span class="info-i" title="Бал = base × (1 − t/T × 0.5) — чим швидше відповідь, тим більше балів">i</span></label>
         <select class="select" id="sel-scoring">
           <option value="speed">За швидкість (1000 балів макс)</option>
           <option value="correct">За правильність (1000 балів)</option>
         </select>
-        <div style="margin-top:8px;font-size:12px;color:var(--ink-dd);line-height:1.5">
-          Бал = base × (1 − t/T × 0.5) — чим швидше, тим більше.
-        </div>
       </div>
     </div>
 
@@ -256,15 +256,13 @@
           <div class="preview-cta">› Очікуємо гравців</div>
         </div>
       </div>
-    </div>
-
-    <div class="info-card">
-      <h4>Превʼю налаштувань</h4>
-      <div class="summary-row"><span class="k">Тест</span><span class="v" id="sum-test">—</span></div>
-      <div class="summary-row"><span class="k">Питань</span><span class="v" id="sum-q">—</span></div>
-      <div class="summary-row"><span class="k">Час / питання</span><span class="v" id="sum-time">20с</span></div>
-      <div class="summary-row"><span class="k">Орієнтовно</span><span class="v" id="sum-dur">—</span></div>
-      <div class="summary-row"><span class="k">Тема</span><span class="v" id="sum-theme">—</span></div>
+      <div style="padding:16px;border-top:1px solid var(--line)">
+        <div class="summary-row"><span class="k">Тест</span><span class="v" id="sum-test">—</span></div>
+        <div class="summary-row"><span class="k">Питань</span><span class="v" id="sum-q">—</span></div>
+        <div class="summary-row"><span class="k">Час / питання</span><span class="v" id="sum-time">20с</span></div>
+        <div class="summary-row"><span class="k">Орієнтовно</span><span class="v" id="sum-dur">—</span></div>
+        <div class="summary-row"><span class="k">Тема</span><span class="v" id="sum-theme">—</span></div>
+      </div>
     </div>
 
     <div class="info-card" style="display:flex;gap:12px;align-items:center;background:linear-gradient(135deg, rgba(124,58,237,.22), rgba(59,130,246,.14));border:1px solid rgba(167,139,250,.4)">
@@ -279,9 +277,7 @@
   </div>
 
   <div class="launch-bar">
-    <div class="info">
-      Все готово. <b>1 клік</b> — і код гри з'являється на екрані. Поділіться ним зі студентами.
-    </div>
+    <div class="info">Все готово — код з'явиться одразу після створення</div>
     <div class="actions">
       <button class="btn-primary" id="launch-btn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="6 4 20 12 6 20 6 4" fill="currentColor"/></svg>
