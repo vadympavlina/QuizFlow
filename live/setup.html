@@ -174,6 +174,22 @@
   .g-jade{background:linear-gradient(135deg,#34D399,#0F766E)}
   .g-rose{background:linear-gradient(135deg,#FB7185,#BE185D)}
   .g-magenta{background:linear-gradient(135deg,#E879F9,#A21CAF)}
+
+  /* ── Accessibility polish: клавіатурна навігація, focus-стани, тактильний відгук ── */
+  .grad, .pat, .tgl, .duo button, .btn-primary, .btn-ghost{font-family:inherit; -webkit-appearance:none; appearance:none}
+  .grad, .pat{padding:0;font-size:0}
+  .tgl{text-align:left;width:100%}
+  .grad:focus-visible, .pat:focus-visible, .duo button:focus-visible,
+  .tgl:focus-visible, .btn-primary:focus-visible, .btn-ghost:focus-visible{
+    outline:2px solid #A78BFA; outline-offset:2px;
+    box-shadow:0 0 0 4px rgba(167,139,250,.22);
+  }
+  .grad:active, .pat:active, .duo button:active, .tgl:active{transform:scale(.96)}
+  .btn-primary:active{transform:translateY(0) scale(.98)}
+  @media (prefers-reduced-motion: reduce){
+    .grad, .pat, .duo button, .tgl, .btn-primary, .btn-ghost{transition:none !important}
+    .grad:hover, .pat:hover, .grad:active, .pat:active, .duo button:active, .tgl:active, .btn-primary:hover{transform:none !important}
+  }
 </style>
 </head>
 <body>
@@ -333,12 +349,19 @@ const GRADS = [
 ];
 const gradRow = document.getElementById("grad-row");
 GRADS.forEach(([cls,name]) => {
-  const d = document.createElement("div");
+  const d = document.createElement("button");
+  d.type = "button";
   d.className = "grad " + cls + (cls === selGrad ? " on" : "");
   d.title = name;
+  d.setAttribute("aria-label", "Градієнт: " + name);
+  d.setAttribute("aria-pressed", cls === selGrad ? "true" : "false");
   d.addEventListener("click", () => {
     selGrad = cls;
-    document.querySelectorAll(".grad").forEach(el => el.classList.toggle("on", el === d));
+    document.querySelectorAll(".grad").forEach(el => {
+      const active = el === d;
+      el.classList.toggle("on", active);
+      el.setAttribute("aria-pressed", active ? "true" : "false");
+    });
     updatePreview();
   });
   gradRow.appendChild(d);
@@ -360,14 +383,27 @@ const PATS = [
   {id:"prism",  svg:`<polygon points="12,3 22,21 2,21" stroke="currentColor" stroke-width="1.5" fill="none"/>`},
   {id:"wave2",  svg:`<path d="M3 10c3-3 6 3 9 0s6-3 9 0M3 16c3-3 6 3 9 0s6-3 9 0" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>`},
 ];
+const PAT_NAMES = {
+  grid:"Сітка", dots:"Крапки", waves:"Хвилі", hex:"Соти", diag:"Діагоналі",
+  target:"Мішень", star:"Зірки", snow:"Сніжинки", heart:"Серця",
+  flower:"Квіти", leaf:"Листя", prism:"Призма", wave2:"Хвилі 2",
+};
 const patRow = document.getElementById("pat-row");
 PATS.forEach(p => {
-  const d = document.createElement("div");
+  const d = document.createElement("button");
+  d.type = "button";
   d.className = "pat" + (p.id === selPat ? " on" : "");
+  d.title = PAT_NAMES[p.id] || p.id;
+  d.setAttribute("aria-label", "Патерн: " + (PAT_NAMES[p.id] || p.id));
+  d.setAttribute("aria-pressed", p.id === selPat ? "true" : "false");
   d.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24">${p.svg}</svg>`;
   d.addEventListener("click", () => {
     selPat = p.id;
-    document.querySelectorAll(".pat").forEach(el => el.classList.toggle("on", el === d));
+    document.querySelectorAll(".pat").forEach(el => {
+      const active = el === d;
+      el.classList.toggle("on", active);
+      el.setAttribute("aria-pressed", active ? "true" : "false");
+    });
     updatePreview();
   });
   patRow.appendChild(d);
@@ -382,10 +418,18 @@ const togglesWrap = document.getElementById("toggles-wrap");
 const toggleState = {};
 TOGGLES.forEach(o => {
   toggleState[o.k] = o.on;
-  const d = document.createElement("div");
+  const d = document.createElement("button");
+  d.type = "button";
   d.className = "tgl" + (o.on ? " on" : "");
+  d.setAttribute("role", "switch");
+  d.setAttribute("aria-checked", o.on ? "true" : "false");
+  d.setAttribute("aria-label", o.t);
   d.innerHTML = `<div class="ico">${o.icon}</div><div><div class="t">${o.t}</div><div class="s">${o.s}</div></div><div class="switch"></div>`;
-  d.addEventListener("click", () => { toggleState[o.k] = !toggleState[o.k]; d.classList.toggle("on", toggleState[o.k]); });
+  d.addEventListener("click", () => {
+    toggleState[o.k] = !toggleState[o.k];
+    d.classList.toggle("on", toggleState[o.k]);
+    d.setAttribute("aria-checked", toggleState[o.k] ? "true" : "false");
+  });
   togglesWrap.appendChild(d);
 });
 
