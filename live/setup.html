@@ -15,6 +15,7 @@
     --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.16);
     --ink:#F4F5FB; --ink-d:#A6B0D6; --ink-dd:#6E7AAD;
     --violet:#7C3AED; --violet-2:#A78BFA;
+    --amber:#FCD34D;
   }
   html,body{margin:0;padding:0}
   body{
@@ -34,9 +35,9 @@
     mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
   }
 
-  .wrap{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 380px;gap:24px;position:relative;z-index:1}
+  .wrap{max-width:860px;margin:0 auto;position:relative;z-index:1}
 
-  .brand{display:flex;align-items:center;gap:10px;margin-bottom:24px;grid-column:1 / -1}
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}
   .brand .logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#A78BFA,#7C3AED);display:grid;place-items:center;box-shadow:0 8px 24px rgba(124,58,237,.4)}
   .brand .logo svg{width:22px;height:22px;color:#fff}
   .brand .t{font-weight:800;font-size:18px;letter-spacing:-.01em}
@@ -44,8 +45,7 @@
   .brand .pill{margin-left:auto;display:inline-flex;align-items:center;gap:7px;padding:6px 12px;background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.4);border-radius:999px;font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#C4B5FD}
   .brand .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:#A78BFA;box-shadow:0 0 0 4px rgba(167,139,250,.18)}
 
-  .panel{background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));border:1px solid var(--line);border-radius:22px;padding:28px;backdrop-filter: blur(8px)}
-  h1{margin:0 0 22px;font-size:28px;font-weight:800;letter-spacing:-.02em}
+  .panel{background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));border:1px solid var(--line);border-radius:22px;padding:26px;backdrop-filter: blur(8px)}
 
   .quiz-card{
     display:flex;align-items:center;gap:14px;padding:16px;border-radius:14px;
@@ -66,13 +66,13 @@
     display:inline-grid;place-items:center;font-size:10px;font-weight:800;font-style:normal;
     letter-spacing:0;text-transform:none;cursor:help;flex:0 0 auto;
   }
-  .field .input{
-    width:100%;background:rgba(0,0,0,.25);border:1px solid var(--line2);border-radius:12px;
-    padding:14px 16px;color:#fff;font:inherit;font-size:18px;font-weight:700;outline:none;
-    transition:border-color .15s, box-shadow .15s;
-    font-family:"Geist Mono",monospace;
+  .custom-time{display:flex;align-items:center;gap:7px;margin-top:9px;font-size:11.5px;color:var(--ink-dd);font-weight:600}
+  .input-mini{
+    width:60px;background:rgba(0,0,0,.25);border:1px solid var(--line2);border-radius:8px;
+    padding:6px 4px;color:#fff;font:inherit;font-size:13px;font-weight:700;outline:none;
+    text-align:center;font-family:"Geist Mono",monospace;transition:border-color .15s, box-shadow .15s;
   }
-  .field .input:focus{border-color:#A78BFA;box-shadow:0 0 0 4px rgba(167,139,250,.18)}
+  .input-mini:focus{border-color:#A78BFA;box-shadow:0 0 0 3px rgba(167,139,250,.18)}
   .field .select{
     width:100%;background:rgba(0,0,0,.25);border:1px solid var(--line2);border-radius:12px;
     padding:13px 16px;color:#fff;font:inherit;font-size:14px;font-weight:600;
@@ -80,7 +80,7 @@
     background-repeat:no-repeat;background-position:right 14px center;padding-right:42px;
   }
 
-  .duo{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+  .duo{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
   .duo button{padding:10px 0;border-radius:9px;background:rgba(0,0,0,.25);border:1px solid var(--line2);color:var(--ink-d);font:inherit;font-size:13px;font-weight:700;cursor:pointer;font-family:"Geist Mono",monospace;transition:.15s}
   .duo button:hover{color:#fff;border-color:#A78BFA}
   .duo button.on{background:linear-gradient(135deg,#7C3AED,#5B21B6);border-color:#A78BFA;color:#fff;box-shadow:0 4px 12px rgba(124,58,237,.4)}
@@ -96,17 +96,23 @@
     position:relative;
   }
   .grad:hover{transform:translateY(-2px)}
-  .grad.on{outline-color:#fff;outline-width:3px;outline-offset:2px}
-  .grad.on::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-weight:900;text-shadow:0 1px 4px rgba(0,0,0,.4);font-size:18px}
+  .grad.on{outline-color:#A78BFA;outline-width:3px;outline-offset:2px;box-shadow:0 0 0 4px rgba(167,139,250,.3), 0 10px 24px rgba(124,58,237,.4)}
+  .grad.on::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-weight:900;text-shadow:0 1px 4px rgba(0,0,0,.5);font-size:18px}
 
   .pat-row{display:grid;grid-template-columns:repeat(8,1fr);gap:10px}
   .pat{
-    aspect-ratio:1;background:rgba(0,0,0,.3);border:1px solid var(--line2);border-radius:12px;
-    cursor:pointer; display:grid;place-items:center;color:#A78BFA;
+    aspect-ratio:1;background:radial-gradient(circle at 50% 30%, rgba(124,58,237,.22), rgba(0,0,0,.35));
+    border:1px solid var(--line2);border-radius:12px;position:relative;
+    cursor:pointer; background-repeat:repeat;
     transition:border-color .15s, transform .12s;
   }
   .pat:hover{border-color:#A78BFA;transform:translateY(-2px)}
-  .pat.on{border-color:#fff;background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(59,130,246,.2));color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+  .pat.on{border-color:#A78BFA;box-shadow:0 0 0 3px rgba(167,139,250,.28)}
+  .pat.on::after{
+    content:"✓";position:absolute;top:5px;right:5px;width:17px;height:17px;border-radius:50%;
+    background:#7C3AED;color:#fff;font-size:10px;font-weight:900;display:grid;place-items:center;
+    box-shadow:0 2px 8px rgba(0,0,0,.5);
+  }
 
   .toggles{display:flex;flex-direction:column;gap:8px}
   .tgl{display:flex;align-items:center;gap:14px;padding:14px;background:rgba(0,0,0,.2);border:1px solid var(--line);border-radius:13px;cursor:pointer;user-select:none}
@@ -118,34 +124,51 @@
   .tgl.on .switch{background:#7C3AED}
   .tgl.on .switch::after{transform:translateX(16px)}
 
-  .preview-wrap{position:relative;top:0;display:flex;flex-direction:column;gap:14px}
+  /* ── Монітор-прев'ю: домінантний "екран" замість бічної картки ── */
+  .monitor-shell{
+    background:linear-gradient(180deg, #161d4a, #0c1230);
+    border:1px solid rgba(255,255,255,.08); border-radius:24px; padding:16px;
+    box-shadow:0 40px 90px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.05);
+    margin-bottom:20px;
+  }
+  .monitor-topbar{display:flex;align-items:center;justify-content:space-between;padding:2px 8px 14px}
+  .monitor-live{display:inline-flex;align-items:center;gap:7px;font-family:"Geist Mono",monospace;font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--amber)}
+  .monitor-live .dot{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 4px rgba(252,211,77,.22);animation:blink 1.5s infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+  .monitor-hint{font-size:11.5px;color:var(--ink-dd);font-weight:600}
+  .monitor-screen{border-radius:14px;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.5)}
+
   .preview{
-    aspect-ratio: 16 / 10; border-radius:18px; overflow:hidden;
+    aspect-ratio: 16 / 7.5; overflow:hidden;
     background:linear-gradient(135deg,#1E3A8A,#0F1844);
-    border:1px solid var(--line2);
     display:grid;place-items:center;position:relative;
-    box-shadow:0 24px 60px rgba(0,0,0,.4);
   }
   .preview-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);background-size:24px 24px}
   .preview-content{position:relative;z-index:1;text-align:center;padding:20px}
   .preview-code{font-family:"Geist Mono",monospace;font-size:11px;color:rgba(255,255,255,.5);letter-spacing:.16em;text-transform:uppercase;font-weight:700}
-  .preview-title{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-top:6px}
+  .preview-title{font-size:26px;font-weight:800;letter-spacing:-.02em;margin-top:6px}
   .preview-cta{margin-top:14px;display:inline-block;padding:8px 14px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
 
-  .info-card{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;padding:16px}
-  .info-card h4{margin:0 0 10px;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--violet-2)}
-  .summary-row{display:flex;justify-content:space-between;padding:7px 0;font-size:13px;border-bottom:1px dashed var(--line)}
-  .summary-row:last-child{border-bottom:0}
-  .summary-row .k{color:var(--ink-d)}
-  .summary-row .v{font-weight:700;font-family:"Geist Mono",monospace}
+  .readouts{display:grid;grid-template-columns:repeat(5,1fr);margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
+  .readout{padding:0 10px;text-align:center;border-right:1px solid rgba(255,255,255,.08);min-width:0}
+  .readout:last-child{border-right:0}
+  .readout .k{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dd);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .readout .v{font-family:"Geist Mono",monospace;font-weight:800;font-size:14.5px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  .tip-bar{
+    display:flex;align-items:center;gap:12px;margin-top:16px;padding:13px 16px;
+    background:rgba(124,58,237,.1);border:1px solid rgba(167,139,250,.25);border-radius:13px;
+    font-size:12.5px;color:var(--ink-d);
+  }
+  .tip-bar b{color:#fff}
+  .tip-bar code{font-family:"Geist Mono",monospace;color:#C4B5FD;background:rgba(0,0,0,.25);padding:2px 6px;border-radius:5px}
 
   .launch-bar{
-    grid-column:1 / -1;
     display:flex;align-items:center;gap:14px;
     padding:16px 20px;
     background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.015));
     border:1px solid var(--line);border-radius:18px;
-    margin-top:8px;
+    margin-top:20px;
     position:relative;z-index:10;
   }
   .launch-bar .info{font-size:13px;color:var(--ink-d)}
@@ -204,9 +227,31 @@
     <span class="pill">Налаштування гри</span>
   </div>
 
-  <div class="panel">
-    <h1>Налаштуйте гру</h1>
+  <div class="monitor-shell">
+    <div class="monitor-topbar">
+      <span class="monitor-live"><span class="dot"></span>PREVIEW</span>
+      <span class="monitor-hint">Так побачать студенти на своєму екрані</span>
+    </div>
+    <div class="monitor-screen">
+      <div class="preview g-default" id="preview-bg">
+        <div class="preview-grid" id="preview-grid-el"></div>
+        <div class="preview-content">
+          <div class="preview-code">КОД ГРИ · — — — —</div>
+          <div class="preview-title" id="preview-title">—</div>
+          <div class="preview-cta">› Очікуємо гравців</div>
+        </div>
+      </div>
+    </div>
+    <div class="readouts">
+      <div class="readout"><div class="k">Тест</div><div class="v" id="sum-test">—</div></div>
+      <div class="readout"><div class="k">Питань</div><div class="v" id="sum-q">—</div></div>
+      <div class="readout"><div class="k">Час/пит.</div><div class="v" id="sum-time">20с</div></div>
+      <div class="readout"><div class="k">Тривалість</div><div class="v" id="sum-dur">—</div></div>
+      <div class="readout"><div class="k">Тема</div><div class="v" id="sum-theme">—</div></div>
+    </div>
+  </div>
 
+  <div class="panel">
     <div class="quiz-card">
       <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
       <div>
@@ -219,12 +264,16 @@
     <div class="grid-2">
       <div class="field">
         <label>Час на питання</label>
-        <input class="input" id="inp-time" type="number" value="20" min="5" max="120">
         <div class="duo" id="time-presets">
           <button data-t="10">10с</button>
           <button class="on" data-t="20">20с</button>
           <button data-t="30">30с</button>
           <button data-t="60">60с</button>
+        </div>
+        <div class="custom-time">
+          <span>або своє:</span>
+          <input class="input-mini" id="inp-time" type="number" value="20" min="5" max="120">
+          <span>сек</span>
         </div>
       </div>
       <div class="field">
@@ -244,35 +293,10 @@
 
     <div class="section-title">Опції гри</div>
     <div class="toggles" id="toggles-wrap"></div>
-  </div>
 
-  <div class="preview-wrap">
-    <div class="info-card" style="padding:0;overflow:hidden;border-radius:18px">
-      <div class="preview g-default" id="preview-bg" style="aspect-ratio:16/10;border-radius:0;border:0;box-shadow:none">
-        <div class="preview-grid" id="preview-grid-el"></div>
-        <div class="preview-content">
-          <div class="preview-code">КОД ГРИ · — — — —</div>
-          <div class="preview-title" id="preview-title">—</div>
-          <div class="preview-cta">› Очікуємо гравців</div>
-        </div>
-      </div>
-      <div style="padding:16px;border-top:1px solid var(--line)">
-        <div class="summary-row"><span class="k">Тест</span><span class="v" id="sum-test">—</span></div>
-        <div class="summary-row"><span class="k">Питань</span><span class="v" id="sum-q">—</span></div>
-        <div class="summary-row"><span class="k">Час / питання</span><span class="v" id="sum-time">20с</span></div>
-        <div class="summary-row"><span class="k">Орієнтовно</span><span class="v" id="sum-dur">—</span></div>
-        <div class="summary-row"><span class="k">Тема</span><span class="v" id="sum-theme">—</span></div>
-      </div>
-    </div>
-
-    <div class="info-card" style="display:flex;gap:12px;align-items:center;background:linear-gradient(135deg, rgba(124,58,237,.22), rgba(59,130,246,.14));border:1px solid rgba(167,139,250,.4)">
-      <div style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.12);display:grid;place-items:center;color:#C4B5FD">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
-      </div>
-      <div style="font-size:12px;line-height:1.45">
-        <b>Підказка:</b> учасники зайдуть на<br>
-        <span style="font-family:'Geist Mono',monospace;color:#C4B5FD">quizflow.space/play</span> та введуть код
-      </div>
+    <div class="tip-bar">
+      <span>👁</span>
+      <span><b>Підказка:</b> учасники зайдуть на <code>quizflow.space/play</code> та введуть код</span>
     </div>
   </div>
 
@@ -330,6 +354,7 @@ document.getElementById("quiz-name").textContent = testData.title || "—";
 document.getElementById("quiz-meta").textContent = `${questions.length} питань · single / multi / text / number`;
 document.getElementById("preview-title").textContent = testData.title || "—";
 document.getElementById("sum-test").textContent = testData.title || "—";
+document.getElementById("sum-test").title = testData.title || "";
 document.getElementById("sum-q").textContent = questions.length;
 
 // ─── State ─────────────────────────────────────────────────────────────────
@@ -364,20 +389,24 @@ GRADS.forEach(([cls,name]) => {
 });
 
 // ─── Patterns ──────────────────────────────────────────────────────────────
+const PAT_CSS = {
+  "grid":   { bg: `url("/live/patterns/grid.svg")`,   size: "64px 64px" },
+  "dots":   { bg: `url("/live/patterns/dots.svg")`,   size: "16px 16px" },
+  "waves":  { bg: `url("/live/patterns/waves.svg")`,  size: "64px 48px" },
+  "hex":    { bg: `url("/live/patterns/hex.svg")`,    size: "60px 66px" },
+  "diag":   { bg: `url("/live/patterns/diag.svg")`,   size: "48px 48px" },
+  "target": { bg: `url("/live/patterns/target.svg")`, size: "64px 64px" },
+  "star":   { bg: `url("/live/patterns/star.svg")`,   size: "40px 40px" },
+  "snow":   { bg: `url("/live/patterns/snow.svg")`,   size: "32px 32px" },
+  "heart":  { bg: `url("/live/patterns/heart.svg")`,  size: "40px 32px" },
+  "flower": { bg: `url("/live/patterns/flower.svg")`, size: "48px 48px" },
+  "leaf":   { bg: `url("/live/patterns/leaf.svg")`,   size: "48px 48px" },
+  "prism":  { bg: `url("/live/patterns/prism.svg")`,  size: "40px 36px" },
+  "wave2":  { bg: `url("/live/patterns/wave2.svg")`,  size: "48px 48px" },
+};
 const PATS = [
-  {id:"grid",   svg:`<g stroke="currentColor" stroke-width="1.5" fill="none"><path d="M5 5h14v14H5zM5 12h14M12 5v14"/></g>`},
-  {id:"dots",   svg:`<g fill="currentColor"><circle cx="7" cy="7" r="1.6"/><circle cx="12" cy="7" r="1.6"/><circle cx="17" cy="7" r="1.6"/><circle cx="7" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="17" cy="12" r="1.6"/><circle cx="7" cy="17" r="1.6"/><circle cx="12" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/></g>`},
-  {id:"waves",  svg:`<g stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"><path d="M4 9c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M4 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/></g>`},
-  {id:"hex",    svg:`<polygon points="12,3 21,8 21,16 12,21 3,16 3,8" stroke="currentColor" stroke-width="1.5" fill="none"/>`},
-  {id:"diag",   svg:`<g stroke="currentColor" stroke-width="2"><path d="M3 19L19 3"/><path d="M8 21L21 8"/><path d="M-2 14L14 -2"/></g>`},
-  {id:"target", svg:`<g stroke="currentColor" stroke-width="1.5" fill="none"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="3"/></g>`},
-  {id:"star",   svg:`<polygon points="12,3 15,10 22,10 16,15 18,22 12,18 6,22 8,15 2,10 9,10" stroke="currentColor" stroke-width="1.5" fill="none"/>`},
-  {id:"snow",   svg:`<g stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 3v18M3 12h18M5 5l14 14M19 5L5 19"/></g>`},
-  {id:"heart",  svg:`<path d="M12 21s-7-5-7-11a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 6-7 11-7 11" fill="currentColor" opacity=".9"/>`},
-  {id:"flower", svg:`<g stroke="currentColor" stroke-width="1.5" fill="none"><circle cx="12" cy="6" r="3"/><circle cx="12" cy="18" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="12" r="3"/><circle cx="12" cy="12" r="2"/></g>`},
-  {id:"leaf",   svg:`<path d="M5 19c0-10 6-16 16-16 0 10-6 16-16 16M5 19l4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>`},
-  {id:"prism",  svg:`<polygon points="12,3 22,21 2,21" stroke="currentColor" stroke-width="1.5" fill="none"/>`},
-  {id:"wave2",  svg:`<path d="M3 10c3-3 6 3 9 0s6-3 9 0M3 16c3-3 6 3 9 0s6-3 9 0" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>`},
+  {id:"grid"},{id:"dots"},{id:"waves"},{id:"hex"},{id:"diag"},{id:"target"},
+  {id:"star"},{id:"snow"},{id:"heart"},{id:"flower"},{id:"leaf"},{id:"prism"},{id:"wave2"},
 ];
 const PAT_NAMES = {
   grid:"Сітка", dots:"Крапки", waves:"Хвилі", hex:"Соти", diag:"Діагоналі",
@@ -392,7 +421,12 @@ PATS.forEach(p => {
   d.title = PAT_NAMES[p.id] || p.id;
   d.setAttribute("aria-label", "Патерн: " + (PAT_NAMES[p.id] || p.id));
   d.setAttribute("aria-pressed", p.id === selPat ? "true" : "false");
-  d.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24">${p.svg}</svg>`;
+  const pc = PAT_CSS[p.id];
+  if (pc) {
+    d.style.backgroundImage = `${pc.bg}, radial-gradient(circle at 50% 30%, rgba(124,58,237,.28), rgba(8,12,38,.9))`;
+    d.style.backgroundSize = `${pc.size}, cover`;
+    d.style.backgroundRepeat = "repeat, no-repeat";
+  }
   d.addEventListener("click", () => {
     selPat = p.id;
     document.querySelectorAll(".pat").forEach(el => {
@@ -444,22 +478,6 @@ document.getElementById("inp-time").addEventListener("input", e => {
   document.querySelectorAll("#time-presets button").forEach(b => b.classList.remove("on"));
   updateSummary();
 });
-
-const PAT_CSS = {
-  "grid":   { bg: `url("/live/patterns/grid.svg")`,   size: "64px 64px" },
-  "dots":   { bg: `url("/live/patterns/dots.svg")`,   size: "16px 16px" },
-  "waves":  { bg: `url("/live/patterns/waves.svg")`,  size: "64px 48px" },
-  "hex":    { bg: `url("/live/patterns/hex.svg")`,    size: "60px 66px" },
-  "diag":   { bg: `url("/live/patterns/diag.svg")`,   size: "48px 48px" },
-  "target": { bg: `url("/live/patterns/target.svg")`, size: "64px 64px" },
-  "star":   { bg: `url("/live/patterns/star.svg")`,   size: "40px 40px" },
-  "snow":   { bg: `url("/live/patterns/snow.svg")`,   size: "32px 32px" },
-  "heart":  { bg: `url("/live/patterns/heart.svg")`,  size: "40px 32px" },
-  "flower": { bg: `url("/live/patterns/flower.svg")`, size: "48px 48px" },
-  "leaf":   { bg: `url("/live/patterns/leaf.svg")`,   size: "48px 48px" },
-  "prism":  { bg: `url("/live/patterns/prism.svg")`,  size: "40px 36px" },
-  "wave2":  { bg: `url("/live/patterns/wave2.svg")`,  size: "48px 48px" },
-};
 
 function updatePreview() {
   document.getElementById("preview-bg").className = "preview " + selGrad;
