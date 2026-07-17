@@ -744,7 +744,7 @@ window.goLeaderboard = async () => {
   const scores = {};
   Object.values(allAns).forEach(qA => { Object.entries(qA||{}).forEach(([pid,a]) => { scores[pid]=(scores[pid]||0)+(a.points||0); }); });
   const results = Object.entries(roomPlayers).filter(([,p])=>p.active!==false)
-    .map(([pid,p])=>({name:p.name,surname:p.surname,score:scores[pid]||0}))
+    .map(([pid,p])=>({nickname:p.nickname,score:scores[pid]||0}))
     .sort((a,b)=>b.score-a.score);
   await set(ref(db, `teachers/${uid}/gameHistory/${code}`), {
     code, testId: room.testId, testTitle: room.testTitle||"",
@@ -766,7 +766,7 @@ onValue(ref(db, `rooms/${code}/players`), snap => {
   // Top player footer
   const scores = {};
   // ... simplified footer
-  document.getElementById("footer-top").textContent = active[0] ? `${active[0][1].surname} ${active[0][1].name}` : "—";
+  document.getElementById("footer-top").textContent = active[0] ? active[0][1].nickname : "—";
 });
 
 // Room listener

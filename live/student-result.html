@@ -140,13 +140,17 @@ const db  = getDatabase(app);
 const params  = new URLSearchParams(location.search);
 const code    = params.get("code");
 const pid     = params.get("pid");
-const surname = params.get("surname") || "";
-const name    = params.get("name")    || "";
+const nickname = params.get("nickname") || "";
 const myScore = parseInt(params.get("score")) || 0;
 
 if (!code || !pid) { location.href = "../index.html"; throw new Error(); }
 
 function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function initialsOf(nick){
+  const parts = String(nick||"").trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0]+parts[1][0]).toUpperCase();
+  return (nick||"??").slice(0,2).toUpperCase();
+}
 
 // Wait for leaderboard/finished status
 const roomRef = ref(db, `rooms/${code}`);
@@ -177,7 +181,7 @@ async function renderResult(room) {
   const players = room.players || {};
   const list = Object.entries(players)
     .filter(([,p]) => p.active !== false)
-    .map(([p, pl]) => ({ pid:p, name:`${pl.surname} ${pl.name}`, score: scores[p]||0 }))
+    .map(([p, pl]) => ({ pid:p, name: pl.nickname, score: scores[p]||0 }))
     .sort((a,b) => b.score - a.score);
 
   const myIdx   = list.findIndex(p => p.pid === pid);
@@ -188,7 +192,7 @@ async function renderResult(room) {
   const myWrong   = Object.values(myAnswers).filter(a=>!a.isCorrect && a.value !== undefined).length;
   const mySkipped = totalQ - myCorrect - myWrong;
 
-  const initials = ((surname||"?")[0]+(name||"?")[0]).toUpperCase();
+  const initials = initialsOf(nickname);
   const placeBadge = myPlace <= 3 ? `🏆 Топ-${myPlace} в грі!` : `Місце #${myPlace}`;
   const top7 = list.slice(0,7);
 
@@ -214,7 +218,7 @@ async function renderResult(room) {
       <div class="player-info">
         <div class="av">${initials}</div>
         <div>
-          <div class="name">${esc(surname)} ${esc(name)}</div>
+          <div class="name">${esc(nickname)}</div>
         </div>
       </div>
       <div class="place-num">#${myPlace}</div>

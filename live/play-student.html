@@ -294,16 +294,21 @@ const db  = getDatabase(app);
 const params   = new URLSearchParams(location.search);
 const code     = params.get("code");
 const pid      = params.get("pid");
-const surname  = params.get("surname") || "";
-const name     = params.get("name")    || "";
+const nickname = params.get("nickname") || "";
 
 if (!code || !pid) { location.href = "../index.html"; throw new Error(); }
 
+function initialsOf(nick) {
+  const parts = String(nick||"").trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0]+parts[1][0]).toUpperCase();
+  return (nick||"??").slice(0,2).toUpperCase();
+}
+
 // Player UI
-const initials = ((surname||"?")[0]+(name||"?")[0]).toUpperCase();
+const initials = initialsOf(nickname);
 document.getElementById("my-av").textContent   = initials;
-document.getElementById("my-name").textContent = `${surname} ${name}`;
-document.getElementById("lo-name").textContent = `${surname} ${name}`;
+document.getElementById("my-name").textContent = nickname;
+document.getElementById("lo-name").textContent = nickname;
 
 const CLASSES = ["a","b","c","d","e","f"];
 const LETTERS  = ["A","B","C","D","E","F"];
@@ -678,7 +683,7 @@ onValue(ref(db, `rooms/${code}`), snap => {
   if (r.status === "leaderboard" || r.status === "finished") {
     clearInterval(timerInterval);
     if (unsubMyAnswer) { unsubMyAnswer(); unsubMyAnswer = null; }
-    location.href = `student-result.html?code=${code}&pid=${pid}&surname=${encodeURIComponent(surname)}&name=${encodeURIComponent(name)}&score=${myScore}`;
+    location.href = `student-result.html?code=${code}&pid=${pid}&nickname=${encodeURIComponent(nickname)}&score=${myScore}`;
   }
 });
 
