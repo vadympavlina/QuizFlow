@@ -49,12 +49,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;background-im
     <input class="field-input" id="inp-code" type="text" inputmode="numeric" maxlength="8" placeholder="12345678" autocomplete="off">
   </div>
   <div class="field">
-    <label class="field-label">Прізвище</label>
-    <input class="field-input" id="inp-surname" type="text" placeholder="Іваненко" autocomplete="family-name">
-  </div>
-  <div class="field">
-    <label class="field-label">Ім'я</label>
-    <input class="field-input" id="inp-name" type="text" placeholder="Іван" autocomplete="given-name">
+    <label class="field-label">Нік</label>
+    <input class="field-input" id="inp-nick" type="text" placeholder="Як вас називати в грі" autocomplete="nickname" maxlength="24">
   </div>
   <div class="err" id="err"></div>
   <button class="join-btn" id="join-btn" onclick="doJoin()">Приєднатись →</button>
@@ -70,12 +66,10 @@ if(urlCode){document.getElementById("code-field").style.display="none";document.
 function showErr(msg){const el=document.getElementById("err");el.textContent=msg;el.classList.add("on");document.getElementById("join-btn").disabled=false;document.getElementById("join-btn").textContent="Приєднатись →";}
 window.doJoin=async()=>{
   const code=(urlCode||document.getElementById("inp-code").value||"").trim();
-  const surname=document.getElementById("inp-surname").value.trim();
-  const name=document.getElementById("inp-name").value.trim();
+  const nickname=document.getElementById("inp-nick").value.trim();
   document.getElementById("err").classList.remove("on");
   if(!code||code.length!==8)return showErr("Введіть 8-значний код кімнати");
-  if(!surname)return showErr("Введіть прізвище");
-  if(!name)return showErr("Введіть ім'я");
+  if(!nickname)return showErr("Введіть нік");
   const btn=document.getElementById("join-btn");
   btn.disabled=true;btn.textContent="Підключення...";
   try{
@@ -84,11 +78,11 @@ window.doJoin=async()=>{
     const room=snap.val();
     if(room.status==="finished")return showErr("Гра вже завершена");
     const players=room.players||{};
-    const existing=Object.entries(players).find(([,p])=>p.surname?.toLowerCase()===surname.toLowerCase()&&p.name?.toLowerCase()===name.toLowerCase());
+    const existing=Object.entries(players).find(([,p])=>p.nickname?.toLowerCase()===nickname.toLowerCase());
     if(existing&&existing[1].active===false)return showErr("Вас було видалено з гри");
     const pid=existing?existing[0]:Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-    await set(ref(db,`rooms/${code}/players/${pid}`),{name,surname,score:0,joinedAt:Date.now(),active:true});
-    location.href=`live/play-student.html?code=${code}&pid=${pid}&surname=${encodeURIComponent(surname)}&name=${encodeURIComponent(name)}`;
+    await set(ref(db,`rooms/${code}/players/${pid}`),{nickname,score:0,joinedAt:Date.now(),active:true});
+    location.href=`live/play-student.html?code=${code}&pid=${pid}&nickname=${encodeURIComponent(nickname)}`;
   }catch(e){showErr("Помилка: "+e.message);}
 };
 document.addEventListener("keydown",e=>{if(e.key==="Enter")doJoin();});
