@@ -38,10 +38,10 @@ body{margin:0;padding:0}
   .header .quiz{margin-top:8px;font-size:18px;color:#A6B0D6}
 
   .podium-wrap{
-    position:relative;z-index:2;display:grid;grid-template-columns:repeat(3, 1fr);gap:22px;
+    position:relative;z-index:2;display:flex;gap:22px;justify-content:center;flex-wrap:wrap;
     max-width:1180px;margin:32px auto 12px;padding:0 32px;align-items:flex-end;
   }
-  .pod-col{display:flex;flex-direction:column;align-items:center}
+  .pod-col{display:flex;flex-direction:column;align-items:center;width:340px;flex:0 0 auto}
   .pod-card{
     width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
     border-radius:22px;padding:24px;text-align:center;backdrop-filter:blur(8px);
@@ -54,6 +54,23 @@ body{margin:0;padding:0}
   .pod-card .name{font-size:22px;font-weight:800;letter-spacing:-.01em}
   .pod-card .score{margin-top:12px;font-family:"Geist Mono",monospace;font-size:34px;font-weight:800;letter-spacing:-.02em}
   .pod-card .extra{margin-top:6px;font-size:11.5px;color:#9098C2;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+
+  /* Кілька гравців на одному щаблі (нічия) */
+  .tie-badge{
+    display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+    color:#FCD34D;background:rgba(252,211,77,.15);border:1px solid rgba(252,211,77,.3);
+    padding:4px 11px;border-radius:999px;margin-bottom:12px;
+  }
+  .pod-score-shared{font-family:"Geist Mono",monospace;font-size:30px;font-weight:800;margin-bottom:14px}
+  .pod-players{display:flex;flex-direction:column;gap:9px;max-height:280px;overflow-y:auto;padding-right:2px}
+  .pod-player{display:flex;align-items:center;gap:10px;text-align:left}
+  .pod-player .av{
+    width:38px;height:38px;border-radius:11px;margin:0;display:grid;place-items:center;
+    color:#fff;font-weight:800;font-size:13px;flex:0 0 auto;box-shadow:0 6px 14px rgba(0,0,0,.3);
+  }
+  .pod-player .info{min-width:0;flex:1}
+  .pod-player .name{font-size:14.5px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pod-player .sub{font-size:10px;color:#9098C2;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-top:1px}
 
   .pod-step{
     width:100%;border-radius:22px 22px 0 0;display:grid;place-items:center;
@@ -170,6 +187,15 @@ const list = Object.entries(players)
   }))
   .sort((a,b) => b.score - a.score);
 
+// Щільне ранжування: однаковий бал = однакове місце, але наступний
+// відмінний результат завжди йде на +1 місце (1,1,2,3 — а не 1,1,3,4).
+// Завдяки цьому 1/2/3 місця на подіумі ніколи не "згорають" через нічию.
+let _rank = 0, _prevScore = null;
+list.forEach((p) => {
+  if (p.score !== _prevScore) { _rank++; _prevScore = p.score; }
+  p.rank = _rank;
+});
+
 const totalQ = (room.questions||[]).length;
 document.getElementById("game-meta").textContent = `${totalQ} питань · ${list.length} гравців`;
 document.getElementById("total-lbl").textContent = `${list.length} учасників`;
@@ -203,30 +229,52 @@ function initialsOf(nick){
   return (nick||"??").slice(0,2).toUpperCase();
 }
 
-// Podium — order 2,1,3
-const top3 = list.slice(0,3);
-const podOrder = [1,0,2]; // display: 2nd left, 1st center, 3rd right
+// Групуємо гравців за місцем (rank), окремо топ-3 для подіуму й решта для списку
+const groups = {};
+list.forEach(p => { (groups[p.rank] = groups[p.rank] || []).push(p); });
+
+const podiumRanks = Object.keys(groups).map(Number).filter(r => r <= 3).sort((a,b) => a-b);
+// Класичний порядок відображення 2-1-3, коли присутні всі три місця;
+// якщо через нічию якогось місця немає — просто зліва направо за зростанням.
+const displayRanks = podiumRanks.length === 3 ? [podiumRanks[1], podiumRanks[0], podiumRanks[2]] : podiumRanks;
+
 const podEl = document.getElementById("podium-wrap");
-podEl.innerHTML = podOrder.filter(i => top3[i]).map(i => {
-  const p = top3[i];
-  const rank = i+1;
+podEl.innerHTML = displayRanks.map(rank => {
+  const group = groups[rank];
+  const tied = group.length > 1;
+  const scoreLbl = group[0].score.toLocaleString("uk");
+
+  const body = tied
+    ? `${rank===1?'<span class="crown">👑</span>':""}
+       <div class="tie-badge">⚖ Нічия · ${group.length} ${group.length===2?"гравці":"гравців"}</div>
+       <div class="pod-score-shared">${scoreLbl}</div>
+       <div class="pod-players">
+         ${group.map(p => `<div class="pod-player">
+           <div class="av" style="background:${avColor(p.nickname)}">${p.initials}</div>
+           <div class="info">
+             <div class="name">${esc(p.nickname)}</div>
+             <div class="sub">${p.correct} / ${totalQ} правильно</div>
+           </div>
+         </div>`).join("")}
+       </div>`
+    : `${rank===1?'<span class="crown">👑</span>':""}
+       <div class="av" style="${rank>1?`background:${avColor(group[0].nickname)}`:""}">${group[0].initials}</div>
+       <div class="name">${esc(group[0].nickname)}</div>
+       <div class="score">${scoreLbl}</div>
+       <div class="extra">${group[0].correct} / ${totalQ} правильно</div>`;
+
   return `<div class="pod-col pod-${rank}">
-    <div class="pod-card" style="position:relative">
-      ${rank===1?'<span class="crown">👑</span>':""}
-      <div class="av" style="${rank>1?`background:${avColor(p.nickname)}`:""}">${p.initials}</div>
-      <div class="name">${esc(p.nickname)}</div>
-      <div class="score">${p.score.toLocaleString("uk")}</div>
-      <div class="extra">${p.correct} / ${totalQ} правильно</div>
-    </div>
+    <div class="pod-card" style="position:relative">${body}</div>
     <div class="pod-step">${rank}</div>
   </div>`;
 }).join("");
 
-// Standings (4th+)
+// Standings — усі гравці за межами подіуму (rank > 3), з правильними місцями
 const standingsEl = document.getElementById("standings-list");
-standingsEl.innerHTML = list.slice(3).map((p,i) =>
+const rest = list.filter(p => p.rank > 3);
+standingsEl.innerHTML = rest.map(p =>
   `<div class="row">
-    <div class="rank">#${i+4}</div>
+    <div class="rank">#${p.rank}</div>
     <div class="who">
       <div class="av" style="background:${avColor(p.nickname)}">${p.initials}</div>
       <div>
