@@ -45,16 +45,19 @@ body{margin:0;padding:0}
   .podium-wrap.single .pod-col{width:460px}
   .pod-card{
     width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
-    border-radius:22px;padding:24px;text-align:center;backdrop-filter:blur(8px);
+    border-radius:22px;overflow:hidden;backdrop-filter:blur(8px);
+    display:flex;flex-direction:column;position:relative;
   }
-  .pod-card > .av{
+  .pod-1 .pod-card{border-color:rgba(252,211,77,.35);box-shadow:0 24px 60px rgba(0,0,0,.35)}
+  .pod-body{padding:24px;text-align:center;flex:1}
+  .pod-body > .av{
     width:84px;height:84px;border-radius:22px;margin:0 auto 14px;display:grid;place-items:center;
     color:#fff;font-weight:800;font-size:30px;
     box-shadow:0 14px 30px rgba(0,0,0,.35);
   }
-  .pod-card .name{font-size:22px;font-weight:800;letter-spacing:-.01em}
-  .pod-card .score{margin-top:12px;font-family:"Geist Mono",monospace;font-size:34px;font-weight:800;letter-spacing:-.02em}
-  .pod-card .extra{margin-top:6px;font-size:11.5px;color:#9098C2;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+  .pod-body .name{font-size:22px;font-weight:800;letter-spacing:-.01em}
+  .pod-body .score{margin-top:12px;font-family:"Geist Mono",monospace;font-size:34px;font-weight:800;letter-spacing:-.02em}
+  .pod-body .extra{margin-top:6px;font-size:11.5px;color:#9098C2;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
 
   /* Кілька гравців на одному щаблі (нічия) */
   .tie-badge{
@@ -63,8 +66,8 @@ body{margin:0;padding:0}
     padding:4px 11px;border-radius:999px;margin-bottom:12px;
   }
   .pod-score-shared{font-family:"Geist Mono",monospace;font-size:30px;font-weight:800;margin-bottom:14px}
-  .pod-players{display:flex;flex-direction:column;gap:9px;max-height:280px;overflow-y:auto;padding-right:2px}
-  .pod-player{display:flex;align-items:center;gap:10px;text-align:left}
+  .pod-players{display:flex;flex-direction:column;gap:9px;max-height:240px;overflow-y:auto;padding:2px 2px 2px 0;text-align:left}
+  .pod-player{display:flex;align-items:center;gap:10px}
   .pod-player .av{
     width:38px;height:38px;border-radius:11px;margin:0;display:grid;place-items:center;
     color:#fff;font-weight:800;font-size:13px;flex:0 0 auto;box-shadow:0 6px 14px rgba(0,0,0,.3);
@@ -74,32 +77,32 @@ body{margin:0;padding:0}
   .pod-player .sub{font-size:10px;color:#9098C2;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-top:1px}
   .pod-1 .pod-player .av{outline:2px solid rgba(252,211,77,.65)}
 
-  .pod-step{
-    width:100%;border-radius:22px 22px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    background:linear-gradient(180deg,#5B21B6,#312E81);
-    color:#fff;font-family:"Geist Mono",monospace;font-weight:900;line-height:1;
-    border:1px solid rgba(255,255,255,.08);border-bottom:0;
-    position:relative;overflow:hidden;
+  /* Смуга місця — тепер частина тієї ж картки, не окремий блок */
+  .pod-rank{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    padding:14px 20px;position:relative;overflow:hidden;
+    font-family:"Geist Mono",monospace;font-weight:900;
   }
-  .pod-step::before{
+  .pod-rank::before{
     content:"";position:absolute;top:0;left:-35%;width:55%;height:100%;
     background:linear-gradient(105deg, transparent 25%, rgba(255,255,255,.28) 45%, transparent 65%);
     pointer-events:none;
   }
-  .pod-step::after{
+  .pod-rank::after{
     content:"";position:absolute;inset:0;
-    box-shadow:inset 0 -36px 44px -24px rgba(0,0,0,.3), inset 0 2px 0 rgba(255,255,255,.18);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.2), inset 0 -14px 20px -12px rgba(0,0,0,.25);
     pointer-events:none;
   }
-  .pod-step .num{font-size:72px;position:relative;z-index:1;text-shadow:0 4px 12px rgba(0,0,0,.35)}
-  .pod-step .lbl{font-size:10.5px;letter-spacing:.18em;font-weight:800;opacity:.65;position:relative;z-index:1;margin-top:2px;text-transform:uppercase}
-  .pod-1 .pod-step{height:190px;background:linear-gradient(180deg,#FCD34D,#D97706);color:#451A03}
-  .pod-2 .pod-step{height:150px;background:linear-gradient(180deg,#E5E7EB,#9CA3AF);color:#111827}
-  .pod-3 .pod-step{height:120px;background:linear-gradient(180deg,#FB923C,#9A3412);color:#451A03}
-  .pod-1 .pod-card > .av{background:linear-gradient(135deg,#FCD34D,#D97706);color:#451A03;outline:4px solid #FCD34D;outline-offset:4px}
-  .pod-2 .pod-card > .av{background:linear-gradient(135deg,#9CA3AF,#4B5563)}
-  .pod-3 .pod-card > .av{background:linear-gradient(135deg,#FB923C,#9A3412)}
-  .crown{position:absolute;top:-26px;left:50%;transform:translateX(-50%);font-size:48px;filter:drop-shadow(0 6px 14px rgba(252,211,77,.5))}
+  .pod-rank .num{font-size:30px;position:relative;z-index:1;line-height:1}
+  .pod-rank .lbl{font-size:10px;letter-spacing:.16em;font-weight:800;opacity:.7;position:relative;z-index:1;text-transform:uppercase}
+  .pod-1 .pod-rank{background:linear-gradient(135deg,#FCD34D,#D97706);color:#451A03;padding-top:22px;padding-bottom:22px}
+  .pod-1 .pod-rank .num{font-size:40px}
+  .pod-2 .pod-rank{background:linear-gradient(135deg,#E5E7EB,#9CA3AF);color:#111827}
+  .pod-3 .pod-rank{background:linear-gradient(135deg,#FB923C,#9A3412);color:#451A03;padding-top:11px;padding-bottom:11px}
+  .pod-1 .pod-body > .av{background:linear-gradient(135deg,#FCD34D,#D97706);color:#451A03;outline:4px solid #FCD34D;outline-offset:4px}
+  .pod-2 .pod-body > .av{background:linear-gradient(135deg,#9CA3AF,#4B5563)}
+  .pod-3 .pod-body > .av{background:linear-gradient(135deg,#FB923C,#9A3412)}
+  .crown{position:absolute;top:-26px;left:50%;transform:translateX(-50%);font-size:48px;filter:drop-shadow(0 6px 14px rgba(252,211,77,.5));z-index:2}
   .pod-1 .pod-card{background:linear-gradient(180deg, rgba(252,211,77,.18), rgba(255,255,255,.05));border-color:rgba(252,211,77,.35)}
 
   .standings{
@@ -279,8 +282,10 @@ podEl.innerHTML = displayRanks.map(rank => {
        <div class="extra">${group[0].correct} / ${totalQ} правильно</div>`;
 
   return `<div class="pod-col pod-${rank}">
-    <div class="pod-card" style="position:relative">${body}</div>
-    <div class="pod-step"><span class="num">${rank}</span><span class="lbl">місце</span></div>
+    <div class="pod-card">
+      <div class="pod-body">${body}</div>
+      <div class="pod-rank"><span class="num">${rank}</span><span class="lbl">місце</span></div>
+    </div>
   </div>`;
 }).join("");
 
