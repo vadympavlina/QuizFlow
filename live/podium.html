@@ -42,11 +42,12 @@ body{margin:0;padding:0}
     max-width:1180px;margin:32px auto 12px;padding:0 32px;align-items:flex-end;
   }
   .pod-col{display:flex;flex-direction:column;align-items:center;width:340px;flex:0 0 auto}
+  .podium-wrap.single .pod-col{width:460px}
   .pod-card{
     width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
     border-radius:22px;padding:24px;text-align:center;backdrop-filter:blur(8px);
   }
-  .pod-card .av{
+  .pod-card > .av{
     width:84px;height:84px;border-radius:22px;margin:0 auto 14px;display:grid;place-items:center;
     color:#fff;font-weight:800;font-size:30px;
     box-shadow:0 14px 30px rgba(0,0,0,.35);
@@ -71,6 +72,7 @@ body{margin:0;padding:0}
   .pod-player .info{min-width:0;flex:1}
   .pod-player .name{font-size:14.5px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pod-player .sub{font-size:10px;color:#9098C2;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-top:1px}
+  .pod-1 .pod-player .av{outline:2px solid rgba(252,211,77,.65)}
 
   .pod-step{
     width:100%;border-radius:22px 22px 0 0;display:grid;place-items:center;
@@ -82,9 +84,9 @@ body{margin:0;padding:0}
   .pod-1 .pod-step{height:240px;background:linear-gradient(180deg,#FCD34D,#D97706);color:#451A03}
   .pod-2 .pod-step{height:180px;background:linear-gradient(180deg,#E5E7EB,#9CA3AF);color:#111827}
   .pod-3 .pod-step{height:140px;background:linear-gradient(180deg,#FB923C,#9A3412);color:#451A03}
-  .pod-1 .av{background:linear-gradient(135deg,#FCD34D,#D97706);color:#451A03;outline:4px solid #FCD34D;outline-offset:4px}
-  .pod-2 .av{background:linear-gradient(135deg,#9CA3AF,#4B5563)}
-  .pod-3 .av{background:linear-gradient(135deg,#FB923C,#9A3412)}
+  .pod-1 .pod-card > .av{background:linear-gradient(135deg,#FCD34D,#D97706);color:#451A03;outline:4px solid #FCD34D;outline-offset:4px}
+  .pod-2 .pod-card > .av{background:linear-gradient(135deg,#9CA3AF,#4B5563)}
+  .pod-3 .pod-card > .av{background:linear-gradient(135deg,#FB923C,#9A3412)}
   .crown{position:absolute;top:-26px;left:50%;transform:translateX(-50%);font-size:48px;filter:drop-shadow(0 6px 14px rgba(252,211,77,.5))}
   .pod-1 .pod-card{background:linear-gradient(180deg, rgba(252,211,77,.18), rgba(255,255,255,.05));border-color:rgba(252,211,77,.35)}
 
@@ -239,6 +241,7 @@ const podiumRanks = Object.keys(groups).map(Number).filter(r => r <= 3).sort((a,
 const displayRanks = podiumRanks.length === 3 ? [podiumRanks[1], podiumRanks[0], podiumRanks[2]] : podiumRanks;
 
 const podEl = document.getElementById("podium-wrap");
+podEl.classList.toggle("single", displayRanks.length === 1);
 podEl.innerHTML = displayRanks.map(rank => {
   const group = groups[rank];
   const tied = group.length > 1;
