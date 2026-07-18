@@ -75,15 +75,27 @@ body{margin:0;padding:0}
   .pod-1 .pod-player .av{outline:2px solid rgba(252,211,77,.65)}
 
   .pod-step{
-    width:100%;border-radius:22px 22px 0 0;display:grid;place-items:center;
+    width:100%;border-radius:22px 22px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;
     background:linear-gradient(180deg,#5B21B6,#312E81);
-    color:#fff;font-family:"Geist Mono",monospace;font-size:88px;font-weight:900;line-height:1;
+    color:#fff;font-family:"Geist Mono",monospace;font-weight:900;line-height:1;
     border:1px solid rgba(255,255,255,.08);border-bottom:0;
-    text-shadow:0 4px 12px rgba(0,0,0,.4);
+    position:relative;overflow:hidden;
   }
-  .pod-1 .pod-step{height:240px;background:linear-gradient(180deg,#FCD34D,#D97706);color:#451A03}
-  .pod-2 .pod-step{height:180px;background:linear-gradient(180deg,#E5E7EB,#9CA3AF);color:#111827}
-  .pod-3 .pod-step{height:140px;background:linear-gradient(180deg,#FB923C,#9A3412);color:#451A03}
+  .pod-step::before{
+    content:"";position:absolute;top:0;left:-35%;width:55%;height:100%;
+    background:linear-gradient(105deg, transparent 25%, rgba(255,255,255,.28) 45%, transparent 65%);
+    pointer-events:none;
+  }
+  .pod-step::after{
+    content:"";position:absolute;inset:0;
+    box-shadow:inset 0 -36px 44px -24px rgba(0,0,0,.3), inset 0 2px 0 rgba(255,255,255,.18);
+    pointer-events:none;
+  }
+  .pod-step .num{font-size:72px;position:relative;z-index:1;text-shadow:0 4px 12px rgba(0,0,0,.35)}
+  .pod-step .lbl{font-size:10.5px;letter-spacing:.18em;font-weight:800;opacity:.65;position:relative;z-index:1;margin-top:2px;text-transform:uppercase}
+  .pod-1 .pod-step{height:190px;background:linear-gradient(180deg,#FCD34D,#D97706);color:#451A03}
+  .pod-2 .pod-step{height:150px;background:linear-gradient(180deg,#E5E7EB,#9CA3AF);color:#111827}
+  .pod-3 .pod-step{height:120px;background:linear-gradient(180deg,#FB923C,#9A3412);color:#451A03}
   .pod-1 .pod-card > .av{background:linear-gradient(135deg,#FCD34D,#D97706);color:#451A03;outline:4px solid #FCD34D;outline-offset:4px}
   .pod-2 .pod-card > .av{background:linear-gradient(135deg,#9CA3AF,#4B5563)}
   .pod-3 .pod-card > .av{background:linear-gradient(135deg,#FB923C,#9A3412)}
@@ -268,7 +280,7 @@ podEl.innerHTML = displayRanks.map(rank => {
 
   return `<div class="pod-col pod-${rank}">
     <div class="pod-card" style="position:relative">${body}</div>
-    <div class="pod-step">${rank}</div>
+    <div class="pod-step"><span class="num">${rank}</span><span class="lbl">місце</span></div>
   </div>`;
 }).join("");
 
