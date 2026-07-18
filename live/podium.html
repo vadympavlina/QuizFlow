@@ -41,7 +41,7 @@ body{margin:0;padding:0}
     position:relative;z-index:2;display:flex;gap:22px;justify-content:center;flex-wrap:wrap;
     max-width:1180px;margin:32px auto 12px;padding:0 32px;align-items:flex-end;
   }
-  .pod-col{display:flex;flex-direction:column;align-items:center;width:340px;flex:0 0 auto}
+  .pod-col{display:flex;flex-direction:column;align-items:center;width:340px;flex:0 0 auto;position:relative}
   .podium-wrap.single .pod-col{width:460px}
   .pod-card{
     width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
@@ -263,8 +263,7 @@ podEl.innerHTML = displayRanks.map(rank => {
   const scoreLbl = group[0].score.toLocaleString("uk");
 
   const body = tied
-    ? `${rank===1?'<span class="crown">👑</span>':""}
-       <div class="tie-badge">⚖ Нічия · ${group.length} ${group.length===2?"гравці":"гравців"}</div>
+    ? `<div class="tie-badge">⚖ Нічия · ${group.length} ${group.length===2?"гравці":"гравців"}</div>
        <div class="pod-score-shared">${scoreLbl}</div>
        <div class="pod-players">
          ${group.map(p => `<div class="pod-player">
@@ -275,13 +274,13 @@ podEl.innerHTML = displayRanks.map(rank => {
            </div>
          </div>`).join("")}
        </div>`
-    : `${rank===1?'<span class="crown">👑</span>':""}
-       <div class="av" style="${rank>1?`background:${avColor(group[0].nickname)}`:""}">${group[0].initials}</div>
+    : `<div class="av" style="${rank>1?`background:${avColor(group[0].nickname)}`:""}">${group[0].initials}</div>
        <div class="name">${esc(group[0].nickname)}</div>
        <div class="score">${scoreLbl}</div>
        <div class="extra">${group[0].correct} / ${totalQ} правильно</div>`;
 
   return `<div class="pod-col pod-${rank}">
+    ${rank===1?'<span class="crown">👑</span>':""}
     <div class="pod-card">
       <div class="pod-body">${body}</div>
       <div class="pod-rank"><span class="num">${rank}</span><span class="lbl">місце</span></div>
