@@ -2394,41 +2394,10 @@ selectAnalyticsDrop(field, value, label){
       });
     }
  
-    // Підрахунок груп
-    const groups = [...new Set(_students.flatMap(s => s.groups || []).filter(Boolean))].sort();
- 
-    // Заповнюємо chip-фільтр (нова розмітка)
-    const chipsEl = document.getElementById("st-chips");
-    if (chipsEl){
-      chipsEl.innerHTML =
-        `<span class="st-chip on" data-val="">Всі групи</span>` +
-        groups.map(g => `<span class="st-chip" data-val="${esc(g)}">${esc(g)}</span>`).join("");
-      chipsEl.querySelectorAll(".st-chip").forEach(el => {
-        el.addEventListener("click", () => {
-          const val = el.dataset.val || "";
-          const lbl = el.textContent;
-          G.selectStFilter(val, lbl);
-        });
-      });
-    }
- // Заповнюємо прихований <select id="st-group"> опціями груп —
-    // він використовується як джерело значення фільтра в renderStudents
-    const sel = document.getElementById("st-group");
-    if (sel){
-      const cur = sel.value;
-      sel.innerHTML = `<option value="">Всі групи</option>` +
-        groups.map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join("");
-      // Зберігаємо обране значення якщо воно є серед нових опцій
-      if (groups.includes(cur)) sel.value = cur; else sel.value = "";
-    }
- 
- 
- // Заповнюємо приховане старе меню для сумісності з G.toggleDrop / window.G API
-    const menu = document.getElementById("cd-st-group-menu");
-    if (menu){
-      menu.innerHTML = `<div class="cd-item cd-active" data-val="" onclick="G.selectStFilter('','Всі групи')">Всі групи</div>` +
-        groups.map(g => `<div class="cd-item" data-val="${esc(g)}" onclick="G.selectStFilter('${esc(g)}','${esc(g)}')">${esc(g)}</div>`).join("");
-    }
+    // Групи — рахуємо ЗАНОВО щоразу (не кешуємо), і лише з активної вкладки
+    // (Активні/Архів), щоб видалена чи повністю заархівована група одразу
+    // зникала з фільтрів і на цій сторінці.
+    G.refreshStGroupFilters();
  
  // Підсумок у заголовку
     const summary = document.getElementById("st-summary");
@@ -2474,7 +2443,43 @@ selectAnalyticsDrop(field, value, label){
   
  // ─── ЗАМІНИТИ метод renderStudents: ──────────────────────────────────────────
  
+  refreshStGroupFilters(){
+    const tab = window._stTab || "active";
+    const pool = _students.filter(s => tab === "archived" ? !!s.archived : !s.archived);
+    const groups = [...new Set(pool.flatMap(s => s.groups || []).filter(Boolean))].sort();
+    const curSel = document.getElementById("st-group")?.value || "";
+
+    const chipsEl = document.getElementById("st-chips");
+    if (chipsEl){
+      chipsEl.innerHTML =
+        `<span class="st-chip${curSel?"":" on"}" data-val="">Всі групи</span>` +
+        groups.map(g => `<span class="st-chip${curSel===g?" on":""}" data-val="${esc(g)}">${esc(g)}</span>`).join("");
+      chipsEl.querySelectorAll(".st-chip").forEach(el => {
+        el.addEventListener("click", () => {
+          G.selectStFilter(el.dataset.val || "", el.textContent);
+        });
+      });
+    }
+
+    const sel = document.getElementById("st-group");
+    if (sel){
+      sel.innerHTML = `<option value="">Всі групи</option>` +
+        groups.map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join("");
+      // Якщо група, що була обрана, більше не існує в цій вкладці — скидаємо фільтр
+      if (groups.includes(curSel)) sel.value = curSel;
+      else { sel.value = ""; window._stFiltersChanged = true; }
+    }
+
+    const menu = document.getElementById("cd-st-group-menu");
+    if (menu){
+      menu.innerHTML = `<div class="cd-item cd-active" data-val="" onclick="G.selectStFilter('','Всі групи')">Всі групи</div>` +
+        groups.map(g => `<div class="cd-item" data-val="${esc(g)}" onclick="G.selectStFilter('${esc(g)}','${esc(g)}')">${esc(g)}</div>`).join("");
+    }
+    const lblEl = document.getElementById("cd-st-group-label");
+    if (lblEl && !groups.includes(curSel)) lblEl.textContent = "Всі групи";
+  },
   renderStudents(){
+    G.refreshStGroupFilters();
     const body = document.getElementById("students-body");
     if (!body) return;
     const q = (document.getElementById("student-srch")?.value || "").toLowerCase().trim();
