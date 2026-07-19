@@ -84,6 +84,7 @@
 #sec-students .st-group-bar{
   display:none;align-items:center;gap:10px;padding:10px 18px;
   background:#FFF7ED;border-bottom:1px solid #FDE4BC;font-size:12.5px;color:#9A3412;
+  transform:none !important;animation:none !important;position:relative;z-index:1;
 }
 #sec-students .st-group-bar.show{display:flex}
 #sec-students .st-group-bar b{font-weight:700}
@@ -91,8 +92,10 @@
 #sec-students .st-gbtn{
   border:1px solid #FDE4BC;background:#fff;color:#9A3412;padding:6px 12px;border-radius:8px;
   font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;
+  transform:none !important;animation:none !important;rotate:none !important;
+  display:inline-flex;align-items:center;line-height:1.2;
 }
-#sec-students .st-gbtn:hover{background:#FFEDD5}
+#sec-students .st-gbtn:hover{background:#FFEDD5;transform:none !important}
 #sec-students .st-gbtn.danger{border-color:#FCA5A5;color:#B91C1C}
 #sec-students .st-gbtn.danger:hover{background:#FEE2E2}
 
@@ -204,15 +207,17 @@
 #sec-students .pf-list-item .pf-li-date{font-size:11px;color:var(--ink-400);font-family:'Geist Mono',monospace;margin-top:2px}
 #sec-students .pf-list-item .pf-li-grade{flex:0 0 auto;font-family:'Geist Mono',monospace;font-weight:800;font-size:14px;letter-spacing:-.01em}
 
-#sec-students .pf-foot{padding:14px 18px;display:flex;gap:8px;border-top:1px solid var(--line);background:#FAFBFE}
+#sec-students .pf-foot{padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:8px;border-top:1px solid var(--line);background:#FAFBFE}
 #sec-students .pf-btn{
-  flex:1;background:#fff;border:1px solid var(--line);border-radius:9px;height:34px;
+  background:#fff;border:1px solid var(--line);border-radius:9px;height:34px;
   font-family:'Manrope',sans-serif;font-weight:600;font-size:12.5px;color:var(--ink-700);cursor:pointer;
-  display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:all .12s;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:all .12s;white-space:nowrap;
 }
 #sec-students .pf-btn:hover{border-color:var(--line-strong);color:var(--ink-900)}
 #sec-students .pf-btn.primary{background:var(--nav-600);border-color:var(--nav-600);color:#fff}
 #sec-students .pf-btn.primary:hover{background:#1E40AF;border-color:#1E40AF}
+#sec-students .pf-btn.danger{color:#B91C1C;border-color:#FCA5A5}
+#sec-students .pf-btn.danger:hover{background:#FEE2E2;border-color:#F87171}
 #sec-students .pf-btn svg{width:13px;height:13px}
 
 /* No-selection state */
