@@ -401,7 +401,7 @@ function renderGames() {
       ? top3.map((r,j) =>
           `<div class="pod-row">
             <span class="pod-medal">${MEDALS[j]}</span>
-            <span class="pod-name">${esc(((r.surname||"")+" "+(r.name||"")).trim()||"—")}</span>
+            <span class="pod-name">${esc(r.nickname || "—")}</span>
             <span class="pod-pts">${(r.score||0).toLocaleString("uk")}</span>
           </div>`).join("")
       : `<div style="font-size:12px;color:var(--ink-500);padding:8px 0;text-align:center">Немає результатів</div>`;
@@ -440,6 +440,10 @@ function renderGames() {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
               Всі результати (${results.length})
             </button>` : ""}
+            ${hasResults ? `<button class="view-all" onclick="window.open('live/podium.html?code=${g.code}','_blank')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><path d="M4 22h16"/><path d="M10 14v-4a2 2 0 0 1 2-2v0a2 2 0 0 1 2 2v4"/><path d="M6 22V13a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v9"/><path d="M14 22v-6a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v6"/></svg>
+              Відкрити подіум
+            </button>` : ""}
             <button class="danger" onclick="openDelModal('${g.code}')">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
               Видалити
@@ -467,7 +471,7 @@ window.openResModal = code => {
   document.getElementById("res-sub").textContent = `${results.length} гравців · ${fmtDate(g.playedAt)}`;
   document.getElementById("res-body").innerHTML = results.length
     ? results.map((r,i) => {
-        const name = ((r.surname||"")+" "+(r.name||"")).trim() || "—";
+        const name = r.nickname || "—";
         const topCls = i===0?"top1":i===1?"top2":i===2?"top3":"";
         const rankHtml = i < 3
           ? `<span class="res-rank ${["gold","silver","bronze"][i]}">${MEDALS[i]}</span>`
