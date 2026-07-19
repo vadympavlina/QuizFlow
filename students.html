@@ -80,25 +80,6 @@
 #sec-students .st-seg button .ct{font-family:'Geist Mono',monospace;font-size:10.5px;background:rgba(0,0,0,.06);padding:1px 6px;border-radius:999px}
 #sec-students .st-seg button.on .ct{background:#E7EEFC;color:var(--nav-600)}
 
-/* Панель масових дій по групі */
-#sec-students .st-group-bar{
-  display:none;align-items:center;gap:10px;padding:10px 18px;
-  background:#FFF7ED;border-bottom:1px solid #FDE4BC;font-size:12.5px;color:#9A3412;
-  transform:none !important;animation:none !important;position:relative;z-index:1;
-}
-#sec-students .st-group-bar.show{display:flex}
-#sec-students .st-group-bar b{font-weight:700}
-#sec-students .st-group-bar .sp{margin-left:auto;display:flex;gap:8px}
-#sec-students .st-gbtn{
-  border:1px solid #FDE4BC;background:#fff;color:#9A3412;padding:6px 12px;border-radius:8px;
-  font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;
-  transform:none !important;animation:none !important;rotate:none !important;
-  display:inline-flex;align-items:center;line-height:1.2;
-}
-#sec-students .st-gbtn:hover{background:#FFEDD5;transform:none !important}
-#sec-students .st-gbtn.danger{border-color:#FCA5A5;color:#B91C1C}
-#sec-students .st-gbtn.danger:hover{background:#FEE2E2}
-
 /* Hidden but functional dropdown (зберігаємо для G.toggleDrop / G.selectStFilter) */
 #sec-students .cd-wrap{position:relative;display:inline-block}
 #sec-students .cd-btn{display:none}
@@ -292,11 +273,11 @@
           </div>
           <span class="st-meta" id="st-list-count"></span>
         </div>
-        <div class="st-group-bar" id="st-group-bar">
-          <span>Група <b id="st-gbar-name"></b> · <b id="st-gbar-count">0</b> студентів</span>
-          <div class="sp">
-            <button class="st-gbtn" onclick="G.archiveGroupBulk()">Архівувати групу</button>
-            <button class="st-gbtn danger" onclick="G.deleteGroupBulk()">Видалити групу</button>
+        <div id="st-group-bar" style="display:none !important;align-items:center !important;gap:10px !important;padding:10px 18px !important;background:#FFF7ED !important;border-bottom:1px solid #FDE4BC !important;font-size:12.5px !important;color:#9A3412 !important;font-family:'Manrope',sans-serif !important;transform:none !important;position:static !important;box-sizing:border-box !important;width:100% !important;">
+          <span style="all:unset !important;font-size:12.5px !important;color:#9A3412 !important;font-family:'Manrope',sans-serif !important;">Група <b id="st-gbar-name" style="font-weight:700 !important;color:#9A3412 !important;">—</b> · <b id="st-gbar-count" style="font-weight:700 !important;color:#9A3412 !important;">0</b> студентів</span>
+          <div style="all:unset !important;display:flex !important;gap:8px !important;margin-left:auto !important;">
+            <button onclick="G.archiveGroupBulk()" style="all:unset !important;box-sizing:border-box !important;border:1px solid #FDE4BC !important;background:#fff !important;color:#9A3412 !important;padding:6px 12px !important;border-radius:8px !important;font-family:'Manrope',sans-serif !important;font-size:12px !important;font-weight:600 !important;cursor:pointer !important;white-space:nowrap !important;transform:none !important;display:inline-block !important;line-height:1.4 !important;">Архівувати групу</button>
+            <button onclick="G.deleteGroupBulk()" style="all:unset !important;box-sizing:border-box !important;border:1px solid #FCA5A5 !important;background:#fff !important;color:#B91C1C !important;padding:6px 12px !important;border-radius:8px !important;font-family:'Manrope',sans-serif !important;font-size:12px !important;font-weight:600 !important;cursor:pointer !important;white-space:nowrap !important;transform:none !important;display:inline-block !important;line-height:1.4 !important;">Видалити групу</button>
           </div>
         </div>
         <div id="students-body"></div>
