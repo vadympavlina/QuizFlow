@@ -2489,11 +2489,11 @@ selectAnalyticsDrop(field, value, label){
     const gbar = document.getElementById("st-group-bar");
     if (gbar){
       if (grp){
-        gbar.classList.add("show");
+        gbar.style.display = "flex";
         document.getElementById("st-gbar-name").textContent = grp;
         document.getElementById("st-gbar-count").textContent = list.length;
       } else {
-        gbar.classList.remove("show");
+        gbar.style.display = "none";
       }
     }
  
