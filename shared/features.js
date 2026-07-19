@@ -2770,7 +2770,7 @@ selectAnalyticsDrop(field, value, label){
         <button class="pf-btn" title="${s.archived ? 'Повернути у список активних' : 'Приховати зі списку активних, дані збережуться'}" onclick="G.archiveStudent('${s.id}', ${s.archived ? 'false' : 'true'})">
           ${s.archived ? '↩ Відновити' : '🗄 Архівувати'}
         </button>
-        <button class="pf-btn" style="color:#B91C1C" onclick="G.deleteStudent('${s.id}')">
+        <button class="pf-btn danger" onclick="G.deleteStudent('${s.id}')">
           🗑 Видалити
         </button>
       </div>`;
