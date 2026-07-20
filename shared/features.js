@@ -1245,8 +1245,8 @@ fillSelects = function(){
   }
   const nlT = $("nl-t");
   if (nlT) nlT.innerHTML=tests.map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
-  // Групи з посилань
-  const groups=[...new Set(links.map(l=>l.group).filter(Boolean))].sort();
+  // Групи з посилань (без прихованих через архівацію студентської групи)
+  const groups=[...new Set(links.filter(l=>!l.groupHidden).map(l=>l.group).filter(Boolean))].sort();
   const fgrp = $("fgrp");
   if (fgrp) fgrp.innerHTML=`<option value="">Всі групи</option>`+groups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join("");
   // Кастомний дропдаун груп
@@ -2477,6 +2477,18 @@ selectAnalyticsDrop(field, value, label){
     }
     const lblEl = document.getElementById("cd-st-group-label");
     if (lblEl && !groups.includes(curSel)) lblEl.textContent = "Всі групи";
+
+    // Кнопка "Архівувати/Відновити групу" — залежить від активної вкладки
+    const archBtn = document.getElementById("st-gbar-archive-btn");
+    if (archBtn){
+      if (tab === "archived"){
+        archBtn.textContent = "Відновити групу";
+        archBtn.onclick = () => G.restoreGroupBulk();
+      } else {
+        archBtn.textContent = "Архівувати групу";
+        archBtn.onclick = () => G.archiveGroupBulk();
+      }
+    }
   },
   renderStudents(){
     G.refreshStGroupFilters();
@@ -2794,11 +2806,38 @@ selectAnalyticsDrop(field, value, label){
     if (!grp) return;
     const targets = _students.filter(s => (s.groups||[]).includes(grp) && !s.archived);
     if (!targets.length){ toast("Немає активних студентів у цій групі","err"); return; }
-    if (!confirm(`Архівувати ${targets.length} студентів групи «${grp}»?\n\nЇх можна буде відновити з вкладки «Архів».`)) return;
-    await Promise.all(targets.map(s => dbUpd(`students/${s.id}`, { archived: true, archivedAt: Date.now() })));
+    if (!confirm(`Архівувати ${targets.length} студентів групи «${grp}»?\n\nГрупа зникне з фільтрів усюди (спроби, аналітика). Відновити можна з вкладки «Архів».`)) return;
+    const grpLinks = links.filter(l => l.group === grp && !l.groupHidden);
+    await Promise.all([
+      ...targets.map(s => dbUpd(`students/${s.id}`, { archived: true, archivedAt: Date.now() })),
+      ...grpLinks.map(l => dbUpd(`links/${l.id}`, { groupHidden: true })),
+    ]);
     const ids = new Set(targets.map(s => s.id));
+    const linkIds = new Set(grpLinks.map(l => l.id));
     _students = _students.map(s => ids.has(s.id) ? { ...s, archived: true, archivedAt: Date.now() } : s);
+    links = links.map(l => linkIds.has(l.id) ? { ...l, groupHidden: true } : l);
+    window.links = links;
     toast(`Архівовано ${targets.length} студентів`);
+    window._selectedStId = null;
+    G.renderStudents();
+  },
+  async restoreGroupBulk(){
+    const grp = document.getElementById("st-group")?.value || "";
+    if (!grp) return;
+    const targets = _students.filter(s => (s.groups||[]).includes(grp) && s.archived);
+    if (!targets.length){ toast("Немає архівних студентів у цій групі","err"); return; }
+    if (!confirm(`Відновити ${targets.length} студентів групи «${grp}»?\n\nГрупа знову з'явиться у фільтрах усюди.`)) return;
+    const grpLinks = links.filter(l => l.group === grp && l.groupHidden);
+    await Promise.all([
+      ...targets.map(s => dbUpd(`students/${s.id}`, { archived: false, archivedAt: null })),
+      ...grpLinks.map(l => dbUpd(`links/${l.id}`, { groupHidden: false })),
+    ]);
+    const ids = new Set(targets.map(s => s.id));
+    const linkIds = new Set(grpLinks.map(l => l.id));
+    _students = _students.map(s => ids.has(s.id) ? { ...s, archived: false, archivedAt: null } : s);
+    links = links.map(l => linkIds.has(l.id) ? { ...l, groupHidden: false } : l);
+    window.links = links;
+    toast(`Відновлено ${targets.length} студентів`);
     window._selectedStId = null;
     G.renderStudents();
   },
@@ -2808,18 +2847,24 @@ selectAnalyticsDrop(field, value, label){
     const tab = window._stTab || "active";
     const targets = _students.filter(s => (s.groups||[]).includes(grp) && (tab === "archived" ? !!s.archived : !s.archived));
     if (!targets.length){ toast("Немає студентів для видалення в цій групі","err"); return; }
-    const attemptsTotal = targets.reduce((n,s) => n + (s.attempts||[]).length, 0);
-    if (!confirm(`Видалити НАЗАВЖДИ ${targets.length} студентів групи «${grp}»?\n\nРазом з ними буде видалено ${attemptsTotal} записів про спроби. Це незворотно.`)) return;
-    const attemptIds = targets.flatMap(s => (s.attempts||[]).map(a => a.attemptId || a.id).filter(Boolean));
+    const grpLinks = links.filter(l => l.group === grp);
+    const linkAttemptIds = attempts.filter(a => grpLinks.some(l => l.id === a.linkId)).map(a => a.id);
+    const studentAttemptIds = targets.flatMap(s => (s.attempts||[]).map(a => a.attemptId || a.id).filter(Boolean));
+    const attemptIds = [...new Set([...studentAttemptIds, ...linkAttemptIds])];
+    if (!confirm(`Видалити НАЗАВЖДИ ${targets.length} студентів і всю групу «${grp}»?\n\nРазом з ними буде видалено ${grpLinks.length} посилань-запрошень і ${attemptIds.length} записів про спроби. Група зникне звідусіль. Це незворотно.`)) return;
     await Promise.all([
       ...targets.map(s => dbDel(`students/${s.id}`)),
+      ...grpLinks.map(l => dbDel(`links/${l.id}`)),
       ...attemptIds.map(aid => dbDel(`attempts/${aid}`)),
     ]);
     const ids = new Set(targets.map(s => s.id));
+    const linkIds = new Set(grpLinks.map(l => l.id));
     _students = _students.filter(s => !ids.has(s.id));
+    links = links.filter(l => !linkIds.has(l.id));
     attempts = attempts.filter(a => !attemptIds.includes(a.id));
+    window.links = links;
     window.attempts = attempts;
-    toast(`Видалено ${targets.length} студентів і ${attemptIds.length} спроб`);
+    toast(`Видалено групу «${grp}»: ${targets.length} студентів, ${grpLinks.length} посилань, ${attemptIds.length} спроб`);
     window._selectedStId = null;
     G.selectStFilter && G.selectStFilter("", "Всі групи");
     G.renderStudents();
@@ -3719,7 +3764,7 @@ selectAnalyticsDrop(field, value, label){
           `<div class="it" data-val="${t.id}" onclick="G.setSuspTest('${t.id}','${esc(t.title).replace(/'/g,"&#39;")}')">${esc(t.title)}</div>`
         ).join("");
  
-      const groupsList = [...new Set(links.map(l => l.group).filter(Boolean))].sort();
+      const groupsList = [...new Set(links.filter(l=>!l.groupHidden).map(l => l.group).filter(Boolean))].sort();
       const groupOpts = `<div class="it on" data-val="" onclick="G.setSuspGroup('','Усі групи')">Усі групи</div>` +
         groupsList.map(g =>
           `<div class="it" data-val="${esc(g)}" onclick="G.setSuspGroup('${esc(g).replace(/'/g,"&#39;")}','${esc(g).replace(/'/g,"&#39;")}')">${esc(g)}</div>`
@@ -3793,7 +3838,7 @@ selectAnalyticsDrop(field, value, label){
       const gMenu = document.getElementById("susp-group-menu");
       if (gMenu){
         const cur = document.getElementById("susp-filter-group")?.value || "";
-        const groupsList = [...new Set(links.map(l => l.group).filter(Boolean))].sort();
+        const groupsList = [...new Set(links.filter(l=>!l.groupHidden).map(l => l.group).filter(Boolean))].sort();
         gMenu.innerHTML = `<div class="it${!cur?" on":""}" data-val="" onclick="G.setSuspGroup('','Усі групи')">Усі групи</div>` +
           groupsList.map(g =>
             `<div class="it${cur===g?" on":""}" data-val="${esc(g)}" onclick="G.setSuspGroup('${esc(g).replace(/'/g,"&#39;")}','${esc(g).replace(/'/g,"&#39;")}')">${esc(g)}</div>`
@@ -3922,8 +3967,8 @@ selectAnalyticsDrop(field, value, label){
       const lbl=document.getElementById("cd-gb-test-label");
       if(lbl&&curTestF){const t=tests.find(x=>x.id===curTestF);if(t)lbl.textContent=t.title;}
     }
-    // Заповнюємо групи
-    const groups=[...new Set(links.map(l=>l.group).filter(Boolean))].sort();
+    // Заповнюємо групи (без прихованих через архівацію студентської групи)
+    const groups=[...new Set(links.filter(l=>!l.groupHidden).map(l=>l.group).filter(Boolean))].sort();
     const gbGrpMenu=document.getElementById("cd-gb-group-menu");
     if(gbGrpMenu){
       gbGrpMenu.innerHTML=`<div class="cd-item${!curGrpF?" cd-active":""}" data-val="" onclick="G.selectGbFilter('group','','Всі групи')">Всі групи</div>`+
@@ -4882,6 +4927,7 @@ function startRealtimeListeners(){
     if (typeof updateBadges === "function") try { updateBadges(); } catch {}
     const sec = document.querySelector(".sec.on")?.id;
     if(sec==="sec-analytics" && window.G?.renderAnalytics) try { window.G.renderAnalytics(); } catch {}
+    if(sec==="sec-students" && window.G?.renderStudents) try { window.G.renderStudents(); } catch {}
   });
 
   let _prevNotifCount = 0;
@@ -4922,6 +4968,8 @@ function startRealtimeListeners(){
     if (typeof renderDashLinks === "function") try { renderDashLinks(); } catch {}
     if (typeof updateBadges === "function") try { updateBadges(); } catch {}
     if (typeof fillSelects === "function") try { fillSelects(); } catch {}
+    const sec2 = document.querySelector(".sec.on")?.id;
+    if(sec2==="sec-students" && window.G?.renderStudents) try { window.G.renderStudents(); } catch {}
   });
 }
 
