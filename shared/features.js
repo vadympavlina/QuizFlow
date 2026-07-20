@@ -2399,10 +2399,11 @@ selectAnalyticsDrop(field, value, label){
     // зникала з фільтрів і на цій сторінці.
     G.refreshStGroupFilters();
  
- // Підсумок у заголовку
+    // Підсумок у заголовку
     const summary = document.getElementById("st-summary");
     if (summary){
-      summary.innerHTML = `<b>${_students.length}</b> ${_students.length === 1 ? "студент" : (_students.length>=2 && _students.length<=4) ? "студенти" : "студентів"} у <b>${groups.length}</b> ${groups.length === 1 ? "групі" : "групах"}`;
+      const allGroupsCount = new Set(_students.flatMap(s => s.groups || []).filter(Boolean)).size;
+      summary.innerHTML = `<b>${_students.length}</b> ${_students.length === 1 ? "студент" : (_students.length>=2 && _students.length<=4) ? "студенти" : "студентів"} у <b>${allGroupsCount}</b> ${allGroupsCount === 1 ? "групі" : "групах"}`;
     }
     const chip = document.getElementById("st-page-chip");
     if (chip){
