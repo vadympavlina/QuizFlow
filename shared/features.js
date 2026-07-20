@@ -2449,6 +2449,13 @@ selectAnalyticsDrop(field, value, label){
     const groups = [...new Set(pool.flatMap(s => s.groups || []).filter(Boolean))].sort();
     const curSel = document.getElementById("st-group")?.value || "";
 
+    // Лічильники на вкладках — рахуємо заново щоразу, щоб не залежати від
+    // initStudents() (яка виконується лише один раз при завантаженні сторінки)
+    const ctActive = document.getElementById("st-ct-active");
+    const ctArchived = document.getElementById("st-ct-archived");
+    if (ctActive) ctActive.textContent = _students.filter(s=>!s.archived).length;
+    if (ctArchived) ctArchived.textContent = _students.filter(s=>s.archived).length;
+
     const chipsEl = document.getElementById("st-chips");
     if (chipsEl){
       chipsEl.innerHTML =
