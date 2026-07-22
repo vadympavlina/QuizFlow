@@ -599,17 +599,22 @@ window.sendBugReport = async () => {
   if (!text) { document.getElementById("qf-bug-txt")?.focus(); return; }
   const btn = document.getElementById("qf-bug-sb");
   if (btn) { btn.disabled = true; btn.textContent = "Надсилаємо..."; }
+  const page = document.body.dataset.page || location.pathname.split("/").pop() || "—";
+  const userName = document.getElementById("sb-teacher-name")?.textContent || "—";
   try {
     const { push, ref: fbR } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
     await push(fbR(db, "bugReports"), {
       message: text,
       reportType: _bugType,
-      page: document.body.dataset.page || location.pathname.split("/").pop() || "—",
+      page,
       uid: uid || "—",
-      userName: document.getElementById("sb-teacher-name")?.textContent || "—",
+      userName,
       createdAt: Date.now(),
       status: "new"
     });
+    // Дублюємо в Telegram (не блокує основний флоу — помилка тут не заважає
+    // самому репорту, який уже успішно збережено вище)
+    notifyTelegramBugReport({ text, reportType: _bugType, page, userName }).catch(() => {});
     const ok = document.getElementById("qf-bug-ok");
     if (ok) ok.style.display = "block";
     setTimeout(() => window.closeBugReport(), 2000);
@@ -618,6 +623,32 @@ window.sendBugReport = async () => {
     alert("Помилка: " + e.message);
   }
 };
+
+// ─── Дублювання репортів у Telegram ────────────────────────────────────────
+// Читає settings/telegramBot (токен + увімкнено) і telegramChats (кому надсилати,
+// notify:true) — те саме сховище, яким керує адмінська сторінка shared/telegram.html.
+async function notifyTelegramBugReport({ text, reportType, page, userName }) {
+  const { get: fbGet, ref: fbR } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+  const cfgSnap = await fbGet(fbR(db, "settings/telegramBot"));
+  const cfg = cfgSnap.exists() ? cfgSnap.val() : null;
+  if (!cfg?.enabled || !cfg?.token) return;
+
+  const chatsSnap = await fbGet(fbR(db, "telegramChats"));
+  const chats = chatsSnap.exists() ? chatsSnap.val() : {};
+  const recipients = Object.keys(chats).filter(id => chats[id]?.notify);
+  if (!recipients.length) return;
+
+  const typeLabel = reportType === "improvement" ? "💡 Покращення" : "🐞 Проблема";
+  const msg = `${typeLabel}\n\n${text}\n\n— ${userName}\n📄 ${page}`;
+
+  await Promise.all(recipients.map(chatId =>
+    fetch(`https://api.telegram.org/bot${cfg.token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text: msg })
+    }).catch(() => {})
+  ));
+}
 
 export function appReady() {
   ldr(false);
