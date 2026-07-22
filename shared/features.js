@@ -4090,12 +4090,23 @@ selectAnalyticsDrop(field, value, label){
     const testF=activeTestEl?.dataset?.val||"";
     const groupF=activeGrpEl?.dataset?.val||"";
 
+    // Поки не обрано групу — не рахуємо і не рендеримо журнал по УСІХ спробах
+    // одразу (це і є те, що гальмувало сторінку при завантаженні).
+    if(!groupF){
+      body.innerHTML=`<div class="empty" style="padding:80px 20px">
+        <div class="ei">👥</div>
+        <div class="et">Оберіть групу</div>
+        <div class="es">Журнал будується окремо по групі, щоб сторінка відкривалась миттєво</div>
+      </div>`;
+      return;
+    }
+
     let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
-    if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
+    att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
     if(testF)  att=att.filter(a=>a.testId===testF);
 
     if(!att.length){
-      body.innerHTML=`<div class="empty" style="padding:80px 20px"><div class="ei">📋</div><div class="et">Немає завершених спроб</div><div class="es">Оберіть групу або тест для перегляду</div></div>`;
+      body.innerHTML=`<div class="empty" style="padding:80px 20px"><div class="ei">📋</div><div class="et">Немає завершених спроб</div><div class="es">У цій групі поки немає результатів для журналу</div></div>`;
       return;
     }
 
