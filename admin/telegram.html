@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%2329A9EA'/><stop offset='1' stop-color='%230C7CBF'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><path d='M7 16l17-7-3 16-6-5-3 4-1-6z' fill='white'/></svg>">
+<title>QuizFlow Admin — Telegram</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/admin-shell.css?v=1">
+<style>
+/* ─── Page-specific styles for telegram ─── */
+
+.tg-settings-card{
+  background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;
+  display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;
+}
+.tg-field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:220px}
+.tg-field label{font-size:10.5px;font-weight:700;color:var(--ink-400);text-transform:uppercase;letter-spacing:.06em}
+.tg-field-row{display:flex;gap:8px}
+.tg-field-row .input{flex:1;font-family:'Geist Mono',monospace;font-size:12.5px}
+.tg-eye{
+  background:#F4F6FB;border:1px solid var(--line);border-radius:9px;width:38px;height:38px;
+  display:grid;place-items:center;cursor:pointer;color:var(--ink-500);flex:0 0 auto;
+}
+.tg-toggle-wrap{display:flex;align-items:center;gap:9px;padding-bottom:8px;cursor:pointer;user-select:none;white-space:nowrap}
+.tg-toggle-wrap input{display:none}
+.tg-toggle-sw{width:38px;height:22px;background:var(--line-strong);border-radius:999px;position:relative;transition:background .2s;flex:0 0 auto}
+.tg-toggle-sw::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.tg-toggle-wrap input:checked + .tg-toggle-sw{background:#22C55E}
+.tg-toggle-wrap input:checked + .tg-toggle-sw::after{transform:translateX(16px)}
+.tg-toggle-wrap span{font-size:12.5px;font-weight:600;color:var(--ink-700)}
+.tg-hint{
+  width:100%;font-size:12px;color:var(--ink-500);background:#F4F6FB;border:1px solid var(--line);
+  border-radius:10px;padding:9px 12px;line-height:1.5;
+}
+.tg-hint b{color:var(--ink-900)}
+.tg-status{width:100%;font-size:12.5px;font-weight:600;padding:8px 12px;border-radius:9px;display:none}
+.tg-status.ok{display:block;background:#DCFCE7;color:#15803D}
+.tg-status.err{display:block;background:#FEE2E2;color:#B91C1C}
+
+/* ─── Chat layout ─── */
+.tg-layout{display:grid;grid-template-columns:320px 1fr;gap:14px;flex:1;min-height:0;height:calc(100vh - 320px);min-height:480px}
+.tg-list{background:#fff;border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
+.tg-list-h{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line)}
+.tg-list-h b{font-size:13.5px;font-weight:800}
+.tg-list-h .cnt{font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-400)}
+.tg-refresh{background:transparent;border:0;color:var(--ink-400);cursor:pointer;width:26px;height:26px;border-radius:7px;display:grid;place-items:center;transition:transform .3s}
+.tg-refresh:hover{color:var(--ink-900);background:#F1F5FB}
+.tg-refresh.spin{animation:tgSpin 1s linear infinite}
+@keyframes tgSpin{to{transform:rotate(360deg)}}
+.tg-list-body{flex:1;overflow-y:auto}
+.tg-empty-mini{padding:40px 16px;text-align:center;color:var(--ink-400);font-size:12.5px;line-height:1.6}
+.tg-chat-item{
+  display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;
+  border-bottom:1px solid var(--line);position:relative;transition:background .12s;
+}
+.tg-chat-item:hover{background:#FAFBFE}
+.tg-chat-item.active{background:#EFF6FF}
+.tg-chat-item .av{
+  width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:#fff;
+  font-weight:800;font-size:13px;flex:0 0 auto;
+}
+.tg-chat-item .meta{min-width:0;flex:1}
+.tg-chat-item .nm{font-size:13px;font-weight:700;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tg-chat-item .lm{font-size:11.5px;color:var(--ink-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.tg-bell{
+  flex:0 0 auto;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+  background:transparent;border:1px solid transparent;color:var(--ink-300);cursor:pointer;transition:.15s;
+}
+.tg-bell:hover{background:#F1F5FB;color:var(--ink-500)}
+.tg-bell.on{background:#FEF3C7;color:#B45309;border-color:#FDE4BC}
+.tg-unread{
+  position:absolute;top:8px;right:8px;background:#3B82F6;color:#fff;font-size:10px;font-weight:800;
+  min-width:16px;height:16px;border-radius:999px;display:grid;place-items:center;padding:0 4px;
+}
+
+.tg-thread{background:#fff;border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
+.tg-thread-empty{flex:1;display:grid;place-items:center;color:var(--ink-400);font-size:13.5px;text-align:center;padding:20px}
+.tg-thread-h{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line)}
+.tg-thread-h .av{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:12px}
+.tg-thread-h .nm{font-size:14px;font-weight:800}
+.tg-thread-h .un{font-size:11.5px;color:var(--ink-400);font-family:'Geist Mono',monospace}
+.tg-thread-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px}
+.tg-msg{max-width:70%;padding:9px 13px;border-radius:14px;font-size:13.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.tg-msg.in{align-self:flex-start;background:#F1F5FB;color:var(--ink-900);border-bottom-left-radius:4px}
+.tg-msg.out{align-self:flex-end;background:#3B82F6;color:#fff;border-bottom-right-radius:4px}
+.tg-msg .ts{display:block;font-size:10px;opacity:.6;margin-top:4px;font-family:'Geist Mono',monospace}
+.tg-thread-input{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--line)}
+.tg-thread-input textarea{
+  flex:1;border:1.5px solid var(--line);border-radius:11px;padding:9px 12px;font:inherit;font-size:13.5px;
+  resize:none;outline:none;max-height:100px;min-height:38px;font-family:'Manrope',sans-serif;
+}
+.tg-thread-input textarea:focus{border-color:#7C3AED}
+.tg-send-btn{
+  background:#1E3A8A;color:#fff;border:0;border-radius:11px;padding:0 18px;font-weight:700;font-size:13px;
+  cursor:pointer;flex:0 0 auto;
+}
+.tg-send-btn:disabled{opacity:.5;cursor:not-allowed}
+</style>
+</head>
+<body>
+
+<div id="admin-root"></div>
+
+<script type="module">
+import { initAdminShell, dbGet, dbSet, dbUpd, db, ref as fbR, toast, hideLoader } from "./shared/admin-shell.js?v=2";
+import { push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const content = `
+  <div class="tg-settings-card">
+    <div class="tg-field">
+      <label>Токен бота</label>
+      <div class="tg-field-row">
+        <input class="input" id="tg-token-inp" type="password" placeholder="123456789:AAG-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+        <button class="tg-eye" onclick="toggleTgTokenVisibility()" title="Показати/сховати">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <label class="tg-toggle-wrap">
+      <input type="checkbox" id="tg-enabled-chk">
+      <span class="tg-toggle-sw"></span>
+      <span>Сповіщення увімкнено</span>
+    </label>
+    <button class="tb-btn primary" onclick="saveTgSettings()">Зберегти</button>
+    <div class="tg-hint">
+      <b>Як це працює:</b> бот не може написати першим — це обмеження самого Telegram. Щоб людина з'явилась у списку чатів праворуч, вона має спочатку сама написати боту (наприклад <code>/start</code>). Після цього можна позначити її дзвіночком 🔔 — і саме вона отримуватиме сповіщення про нові репорти з кнопки «Повідомити про помилку».
+    </div>
+    <div class="tg-status" id="tg-status"></div>
+  </div>
+
+  <div class="tg-layout">
+    <div class="tg-list">
+      <div class="tg-list-h">
+        <b>Чати</b>
+        <span style="display:flex;align-items:center;gap:8px">
+          <span class="cnt" id="tg-chat-count">0</span>
+          <button class="tg-refresh" id="tg-refresh-btn" onclick="pollTelegramUpdates(true)" title="Оновити">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.7L4 16"/><path d="M4 20v-4h4"/></svg>
+          </button>
+        </span>
+      </div>
+      <div class="tg-list-body" id="tg-list-body">
+        <div class="tg-empty-mini">Завантаження…</div>
+      </div>
+    </div>
+    <div class="tg-thread" id="tg-thread">
+      <div class="tg-thread-empty">Оберіть чат зліва,<br>щоб побачити переписку</div>
+    </div>
+  </div>
+`;
+
+const { _user } = await initAdminShell({
+  activeId: "telegram",
+  crumbs: ["Telegram"],
+  content
+});
+
+const contentEl = document.getElementById("admin-content");
+if (contentEl){
+  const pageHead = document.createElement("div");
+  pageHead.className = "page-head";
+  pageHead.innerHTML = `
+    <div>
+      <h1>Telegram</h1>
+      <p>Бот, список чатів і кому надсилати сповіщення про репорти</p>
+    </div>
+  `;
+  contentEl.insertBefore(pageHead, contentEl.firstChild);
+}
+
+// ─── State ───────────────────────────────────────────────────────────────
+const AV_COLORS = ["#3B82F6","#10B981","#EF4444","#A78BFA","#F59E0B","#EC4899","#06B6D4","#84CC16"];
+const avColor = seed => AV_COLORS[String(seed||"?").charCodeAt(0) % AV_COLORS.length];
+const initialsOf = name => {
+  const parts = String(name||"").trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0]+parts[1][0]).toUpperCase();
+  return (name||"??").slice(0,2).toUpperCase();
+};
+
+let tgConfig = { token: "", enabled: false };
+let tgChats = {};       // chatId -> {firstName,lastName,username,lastMessageAt,lastMessageText,lastMessageFrom,notify,unread}
+let activeChatId = null;
+let pollTimer = null;
+let tokenVisible = false;
+
+window.toggleTgTokenVisibility = () => {
+  tokenVisible = !tokenVisible;
+  document.getElementById("tg-token-inp").type = tokenVisible ? "text" : "password";
+};
+
+function showTgStatus(msg, ok){
+  const el = document.getElementById("tg-status");
+  el.textContent = msg;
+  el.className = "tg-status " + (ok ? "ok" : "err");
+  setTimeout(() => { el.className = "tg-status"; }, 4000);
+}
+
+window.saveTgSettings = async () => {
+  const token = document.getElementById("tg-token-inp").value.trim();
+  const enabled = document.getElementById("tg-enabled-chk").checked;
+  if (enabled && !token){ showTgStatus("Введіть токен, щоб увімкнути сповіщення", false); return; }
+  try {
+    await dbSet("settings/telegramBot", { token, enabled, updatedAt: Date.now() });
+    tgConfig = { token, enabled };
+    showTgStatus("Збережено", true);
+    if (token) pollTelegramUpdates(true);
+  } catch(e) {
+    showTgStatus("Помилка збереження: " + e.message, false);
+  }
+};
+
+// ─── Завантаження початкового стану ─────────────────────────────────────
+async function loadTgConfig(){
+  const cfg = await dbGet("settings/telegramBot") || {};
+  tgConfig = { token: cfg.token || "", enabled: !!cfg.enabled };
+  document.getElementById("tg-token-inp").value = tgConfig.token;
+  document.getElementById("tg-enabled-chk").checked = tgConfig.enabled;
+}
+
+async function loadChats(){
+  tgChats = await dbGet("telegramChats") || {};
+  renderChatList();
+}
+
+function renderChatList(){
+  const body = document.getElementById("tg-list-body");
+  const ids = Object.keys(tgChats).sort((a,b) => (tgChats[b].lastMessageAt||0) - (tgChats[a].lastMessageAt||0));
+  document.getElementById("tg-chat-count").textContent = ids.length;
+
+  if (!ids.length){
+    body.innerHTML = `<div class="tg-empty-mini">Поки жоден чат не написав боту.<br>Напишіть боту в Telegram будь-що — чат з'явиться тут.</div>`;
+    return;
+  }
+
+  body.innerHTML = ids.map(id => {
+    const c = tgChats[id];
+    const name = [c.firstName, c.lastName].filter(Boolean).join(" ") || c.username || ("Чат " + id);
+    const lastFrom = c.lastMessageFrom === "admin" ? "Ви: " : "";
+    return `<div class="tg-chat-item${activeChatId===id?" active":""}" onclick="openTgChat('${id}')">
+      <div class="av" style="background:${avColor(name)}">${initialsOf(name)}</div>
+      <div class="meta">
+        <div class="nm">${esc(name)}</div>
+        <div class="lm">${esc(lastFrom + (c.lastMessageText||""))}</div>
+      </div>
+      <button class="tg-bell${c.notify?" on":""}" title="${c.notify?"Отримує сповіщення":"Не отримує сповіщень"}" onclick="event.stopPropagation();toggleTgNotify('${id}')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="${c.notify?"currentColor":"none"}" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+      ${c.unread ? `<span class="tg-unread">${c.unread}</span>` : ""}
+    </div>`;
+  }).join("");
+}
+
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+window.toggleTgNotify = async (chatId) => {
+  const cur = !!tgChats[chatId]?.notify;
+  tgChats[chatId] = { ...tgChats[chatId], notify: !cur };
+  renderChatList();
+  try {
+    await dbUpd(`telegramChats/${chatId}`, { notify: !cur });
+  } catch(e) { toast("Помилка: " + e.message); }
+};
+
+window.openTgChat = async (chatId) => {
+  activeChatId = chatId;
+  renderChatList();
+  const c = tgChats[chatId] || {};
+  const name = [c.firstName, c.lastName].filter(Boolean).join(" ") || c.username || ("Чат " + chatId);
+
+  const threadEl = document.getElementById("tg-thread");
+  threadEl.innerHTML = `
+    <div class="tg-thread-h">
+      <div class="av" style="background:${avColor(name)}">${initialsOf(name)}</div>
+      <div>
+        <div class="nm">${esc(name)}</div>
+        ${c.username ? `<div class="un">@${esc(c.username)}</div>` : ""}
+      </div>
+    </div>
+    <div class="tg-thread-msgs" id="tg-thread-msgs"><div class="tg-empty-mini">Завантаження…</div></div>
+    <div class="tg-thread-input">
+      <textarea id="tg-msg-inp" placeholder="Повідомлення…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendTgMessage('${chatId}')}"></textarea>
+      <button class="tg-send-btn" id="tg-send-btn" onclick="sendTgMessage('${chatId}')">Надіслати</button>
+    </div>
+  `;
+
+  // Позначаємо прочитаним
+  if (c.unread){
+    tgChats[chatId] = { ...c, unread: 0 };
+    dbUpd(`telegramChats/${chatId}`, { unread: 0 }).catch(()=>{});
+    renderChatList();
+  }
+
+  const msgsObj = await dbGet(`telegramChats/${chatId}/messages`);
+  const msgs = msgsObj ? Object.values(msgsObj) : [];
+  msgs.sort((a,b) => (a.ts||0) - (b.ts||0));
+  const msgsEl = document.getElementById("tg-thread-msgs");
+  if (!msgsEl) return; // користувач встиг перейти в інший чат
+  msgsEl.innerHTML = msgs.length
+    ? msgs.map(m => `<div class="tg-msg ${m.from==="admin"?"out":"in"}">${esc(m.text)}<span class="ts">${new Date(m.ts).toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</span></div>`).join("")
+    : `<div class="tg-empty-mini">Повідомлень ще немає</div>`;
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+};
+
+window.sendTgMessage = async (chatId) => {
+  const inp = document.getElementById("tg-msg-inp");
+  const text = (inp?.value || "").trim();
+  if (!text || !tgConfig.token) return;
+  const btn = document.getElementById("tg-send-btn");
+  if (btn) btn.disabled = true;
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${tgConfig.token}/sendMessage`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text })
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.description || "Telegram API помилка");
+
+    const ts = Date.now();
+    await push(fbR(db, `telegramChats/${chatId}/messages`), { text, from: "admin", ts });
+    await dbUpd(`telegramChats/${chatId}`, { lastMessageAt: ts, lastMessageText: text, lastMessageFrom: "admin" });
+
+    tgChats[chatId] = { ...tgChats[chatId], lastMessageAt: ts, lastMessageText: text, lastMessageFrom: "admin" };
+    renderChatList();
+    if (inp) inp.value = "";
+    const msgsEl = document.getElementById("tg-thread-msgs");
+    if (msgsEl){
+      const empty = msgsEl.querySelector(".tg-empty-mini");
+      if (empty) empty.remove();
+      msgsEl.insertAdjacentHTML("beforeend", `<div class="tg-msg out">${esc(text)}<span class="ts">${new Date(ts).toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</span></div>`);
+      msgsEl.scrollTop = msgsEl.scrollHeight;
+    }
+  } catch(e) {
+    toast("Не вдалося надіслати: " + e.message);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+};
+
+// ─── Опитування Telegram getUpdates (доки ця сторінка відкрита) ────────────
+window.pollTelegramUpdates = async (manual) => {
+  if (!tgConfig.token) return;
+  const refreshBtn = document.getElementById("tg-refresh-btn");
+  if (manual && refreshBtn) refreshBtn.classList.add("spin");
+  try {
+    const lastId = (await dbGet("settings/telegramBot/lastUpdateId")) || 0;
+    const url = `https://api.telegram.org/bot${tgConfig.token}/getUpdates?timeout=0${lastId ? `&offset=${lastId+1}` : ""}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.description || "Telegram API помилка");
+
+    let maxId = lastId;
+
+    for (const upd of (data.result || [])){
+      if (upd.update_id > maxId) maxId = upd.update_id;
+      const msg = upd.message;
+      if (!msg || !msg.chat) continue;
+      const chatId = String(msg.chat.id);
+      const ts = (msg.date || Date.now()/1000) * 1000;
+      const text = msg.text || (msg.caption || "[не текстове повідомлення]");
+
+      const prev = tgChats[chatId] || {};
+      const meta = {
+        firstName: msg.chat.first_name || "",
+        lastName: msg.chat.last_name || "",
+        username: msg.chat.username || "",
+        type: msg.chat.type || "private",
+        lastMessageAt: ts,
+        lastMessageText: text,
+        lastMessageFrom: "user",
+        notify: prev.notify || false,
+        unread: (prev.unread || 0) + (activeChatId === chatId ? 0 : 1),
+      };
+      tgChats[chatId] = meta;
+      await dbUpd(`telegramChats/${chatId}`, meta);
+      await push(fbR(db, `telegramChats/${chatId}/messages`), { text, from: "user", ts });
+
+      if (activeChatId === chatId){
+        const msgsEl = document.getElementById("tg-thread-msgs");
+        if (msgsEl){
+          const empty = msgsEl.querySelector(".tg-empty-mini");
+          if (empty) empty.remove();
+          msgsEl.insertAdjacentHTML("beforeend", `<div class="tg-msg in">${esc(text)}<span class="ts">${new Date(ts).toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</span></div>`);
+          msgsEl.scrollTop = msgsEl.scrollHeight;
+        }
+      }
+    }
+
+    if (maxId !== lastId) await dbSet("settings/telegramBot/lastUpdateId", maxId);
+    renderChatList();
+    if (manual) showTgStatus("Оновлено", true);
+  } catch(e) {
+    if (manual) showTgStatus("Помилка опитування: " + e.message, false);
+  } finally {
+    if (manual && refreshBtn) refreshBtn.classList.remove("spin");
+  }
+};
+
+// ─── Ініціалізація ──────────────────────────────────────────────────────
+await loadTgConfig();
+await loadChats();
+if (tgConfig.token){
+  pollTelegramUpdates();
+  pollTimer = setInterval(() => pollTelegramUpdates(), 4000);
+}
+
+hideLoader && hideLoader();
+</script>
+</body>
+</html>
