@@ -4090,6 +4090,12 @@ selectAnalyticsDrop(field, value, label){
     const testF=activeTestEl?.dataset?.val||"";
     const groupF=activeGrpEl?.dataset?.val||"";
 
+    // Кнопки експорту працюють лише коли обрано групу
+    const csvBtn=document.getElementById("gb-export-csv");
+    const htmlBtn=document.getElementById("gb-export-html");
+    if(csvBtn)  csvBtn.disabled=!groupF;
+    if(htmlBtn) htmlBtn.disabled=!groupF;
+
     // Поки не обрано групу — не рахуємо і не рендеримо журнал по УСІХ спробах
     // одразу (це і є те, що гальмувало сторінку при завантаженні).
     if(!groupF){
@@ -4220,8 +4226,9 @@ selectAnalyticsDrop(field, value, label){
     const activeGrpEl=document.querySelector("#cd-gb-group-menu .cd-item.cd-active");
     const testF=activeTestEl?.dataset?.val||"";
     const groupF=activeGrpEl?.dataset?.val||"";
+    if(!groupF){ toast("Спочатку виберіть групу","err"); return; }
     let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
-    if(groupF) att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
+    att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
     if(testF)  att=att.filter(a=>a.testId===testF);
     if(!att.length){toast("Немає даних для експорту","err");return;}
 
