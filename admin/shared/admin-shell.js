@@ -134,6 +134,7 @@ const NAV_ITEMS = [
     { id:"news",        icon:"news",     label:"Новини",           href:"news.html" },
     { id:"navigation",  icon:"menu",     label:"Навігація",        href:"navigation.html" },
     { id:"ai",          icon:"ai",       label:"AI Налаштування",  href:"ai-settings.html" },
+    { id:"ai",          icon:"ai",       label:"TELEGRAM",  href:"telegram.html" },
   ]},
   { sec:"АКАУНТ", items:[
     { id:"dashboard", icon:"dashboard", label:"Дашборд викладача", href:"../index.html" },
