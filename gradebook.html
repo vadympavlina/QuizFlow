@@ -46,6 +46,7 @@
 #sec-gradebook .gb-btn.primary{background:var(--nav-600);border-color:var(--nav-600);color:#fff;box-shadow:0 6px 14px -8px rgba(30,58,138,.8)}
 #sec-gradebook .gb-btn.primary:hover{background:#1E40AF;border-color:#1E40AF;color:#fff}
 #sec-gradebook .gb-btn svg{width:13px;height:13px;flex:0 0 auto}
+#sec-gradebook .gb-btn:disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
 
 /* Custom dropdowns — нові стилі */
 #sec-gradebook .cd-wrap{position:relative;display:inline-block}
@@ -198,11 +199,11 @@
 
       <div class="gb-spacer"></div>
 
-      <button class="gb-btn" onclick="G.exportGradebook('csv')">
+      <button class="gb-btn" id="gb-export-csv" onclick="G.exportGradebook('csv')" title="Спочатку виберіть групу">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         CSV
       </button>
-      <button class="gb-btn primary" onclick="G.exportGradebook('html')">
+      <button class="gb-btn primary" id="gb-export-html" onclick="G.exportGradebook('html')" title="Спочатку виберіть групу">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         HTML-звіт
       </button>
