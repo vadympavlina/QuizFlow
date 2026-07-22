@@ -2814,7 +2814,15 @@ selectAnalyticsDrop(field, value, label){
     if (!grp) return;
     const targets = _students.filter(s => (s.groups||[]).includes(grp) && !s.archived);
     if (!targets.length){ toast("Немає активних студентів у цій групі","err"); return; }
-    if (!confirm(`Архівувати ${targets.length} студентів групи «${grp}»?\n\nГрупа зникне з фільтрів усюди (спроби, аналітика). Відновити можна з вкладки «Архів».`)) return;
+    const ok = window.stConfirm
+      ? await window.stConfirm({
+          variant: "warn",
+          title: "Архівувати групу?",
+          text: `Буде архівовано <b>${targets.length}</b> студентів групи «<b>${esc(grp)}</b>».<br>Група зникне з фільтрів усюди (спроби, аналітика). Відновити можна з вкладки «Архів».`,
+          okLabel: "Архівувати",
+        })
+      : confirm(`Архівувати ${targets.length} студентів групи «${grp}»?\n\nГрупа зникне з фільтрів усюди (спроби, аналітика). Відновити можна з вкладки «Архів».`);
+    if (!ok) return;
     const grpLinks = links.filter(l => l.group === grp && !l.groupHidden);
     await Promise.all([
       ...targets.map(s => dbUpd(`students/${s.id}`, { archived: true, archivedAt: Date.now() })),
@@ -2834,7 +2842,15 @@ selectAnalyticsDrop(field, value, label){
     if (!grp) return;
     const targets = _students.filter(s => (s.groups||[]).includes(grp) && s.archived);
     if (!targets.length){ toast("Немає архівних студентів у цій групі","err"); return; }
-    if (!confirm(`Відновити ${targets.length} студентів групи «${grp}»?\n\nГрупа знову з'явиться у фільтрах усюди.`)) return;
+    const ok = window.stConfirm
+      ? await window.stConfirm({
+          variant: "info",
+          title: "Відновити групу?",
+          text: `Буде відновлено <b>${targets.length}</b> студентів групи «<b>${esc(grp)}</b>».<br>Група знову з'явиться у фільтрах усюди.`,
+          okLabel: "Відновити",
+        })
+      : confirm(`Відновити ${targets.length} студентів групи «${grp}»?\n\nГрупа знову з'явиться у фільтрах усюди.`);
+    if (!ok) return;
     const grpLinks = links.filter(l => l.group === grp && l.groupHidden);
     await Promise.all([
       ...targets.map(s => dbUpd(`students/${s.id}`, { archived: false, archivedAt: null })),
@@ -2859,7 +2875,15 @@ selectAnalyticsDrop(field, value, label){
     const linkAttemptIds = attempts.filter(a => grpLinks.some(l => l.id === a.linkId)).map(a => a.id);
     const studentAttemptIds = targets.flatMap(s => (s.attempts||[]).map(a => a.attemptId || a.id).filter(Boolean));
     const attemptIds = [...new Set([...studentAttemptIds, ...linkAttemptIds])];
-    if (!confirm(`Видалити НАЗАВЖДИ ${targets.length} студентів і всю групу «${grp}»?\n\nРазом з ними буде видалено ${grpLinks.length} посилань-запрошень і ${attemptIds.length} записів про спроби. Група зникне звідусіль. Це незворотно.`)) return;
+    const ok = window.stConfirm
+      ? await window.stConfirm({
+          variant: "danger",
+          title: "Видалити групу назавжди?",
+          text: `Буде видалено <b>${targets.length}</b> студентів, <b>${grpLinks.length}</b> посилань-запрошень і <b>${attemptIds.length}</b> записів про спроби групи «<b>${esc(grp)}</b>».<br>Група зникне звідусіль. Це незворотно.`,
+          okLabel: "Видалити назавжди",
+        })
+      : confirm(`Видалити НАЗАВЖДИ ${targets.length} студентів і всю групу «${grp}»?\n\nРазом з ними буде видалено ${grpLinks.length} посилань-запрошень і ${attemptIds.length} записів про спроби. Група зникне звідусіль. Це незворотно.`);
+    if (!ok) return;
     await Promise.all([
       ...targets.map(s => dbDel(`students/${s.id}`)),
       ...grpLinks.map(l => dbDel(`links/${l.id}`)),
