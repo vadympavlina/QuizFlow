@@ -4096,7 +4096,7 @@ selectAnalyticsDrop(field, value, label){
       body.innerHTML=`<div class="empty" style="padding:80px 20px">
         <div class="ei">👥</div>
         <div class="et">Оберіть групу</div>
-        <div class="es">Журнал будується окремо по групі, щоб сторінка відкривалась миттєво</div>
+        <div class="es">Щоб побачити журнал, виберіть групу</div>
       </div>`;
       return;
     }
@@ -4410,9 +4410,23 @@ selectAnalyticsDrop(field, value, label){
     const groupF = document.getElementById("an-group")?.value || "";
     const body   = document.getElementById("analytics-body");
     if(!body) return;
- 
+
     // Оновлюємо chip-meta
     const chip = document.getElementById("a-chip");
+
+    // Поки не обрано групу — не рахуємо аналітику по УСІХ спробах одразу
+    // (саме це гальмувало відкриття сторінки).
+    if(!groupF){
+      if (chip) chip.textContent = "Оберіть групу";
+      body.innerHTML = `<div class="a-empty">
+        <div class="a-empty-ico">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="a-empty-title">Оберіть групу</div>
+        <div class="a-empty-hint">Щоб побачити аналітику, виберіть групу</div>
+      </div>`;
+      return;
+    }
     if (chip){
       const t = tests.find(x => x.id === testId);
       const parts = [];
@@ -4420,11 +4434,11 @@ selectAnalyticsDrop(field, value, label){
       if (groupF) parts.push(groupF);
       chip.textContent = parts.length ? parts.join(" · ") : "Дані за весь період";
     }
- 
+
     // Фільтруємо спроби
     let att = attempts.filter(a => a.status === "completed" || a.status === "pending_review");
     if(testId)  att = att.filter(a => a.testId === testId);
-    if(groupF){ att = att.filter(a => { const l=links.find(x=>x.id===a.linkId); return (l?.group||"") === groupF; }); }
+    att = att.filter(a => { const l=links.find(x=>x.id===a.linkId); return (l?.group||"") === groupF; });
  
     if(!att.length){
       body.innerHTML = `<div class="a-empty">
