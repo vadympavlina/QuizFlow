@@ -206,6 +206,41 @@
 #sec-students .pf-none-ico{width:50px;height:50px;margin:0 auto 12px;border-radius:14px;background:#EEF2FB;display:grid;place-items:center;color:var(--nav-600)}
 #sec-students .pf-none-title{font-size:14px;font-weight:700;color:var(--ink-900);margin-bottom:4px;font-family:'Manrope',sans-serif}
 #sec-students .pf-none-hint{font-size:12.5px}
+/* ── Кастомна модалка підтвердження (архів/відновлення/видалення групи) ── */
+.st-cf-bg{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(17,24,39,.5);backdrop-filter:blur(3px);
+  align-items:center;justify-content:center;padding:20px;
+}
+.st-cf-bg.show{display:flex}
+.st-cf-modal{
+  background:#fff;border-radius:18px;width:100%;max-width:420px;overflow:hidden;
+  box-shadow:0 30px 80px rgba(0,0,0,.35);animation:stCfIn .18s ease-out;
+}
+@keyframes stCfIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+.st-cf-icowrap{padding:26px 24px 0;display:flex;justify-content:center}
+.st-cf-ico{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-size:24px}
+.st-cf-modal.warn .st-cf-ico{background:#FFF7ED;color:#9A3412}
+.st-cf-modal.danger .st-cf-ico{background:#FEF2F2;color:#B91C1C}
+.st-cf-modal.info .st-cf-ico{background:#EFF6FF;color:#1D4ED8}
+.st-cf-body{padding:14px 26px 22px;text-align:center}
+.st-cf-body h3{margin:0 0 8px;font-size:17px;font-weight:800;color:var(--ink-900);letter-spacing:-.01em}
+.st-cf-body p{margin:0;font-size:13.5px;color:var(--ink-500);line-height:1.55}
+.st-cf-body p b{color:var(--ink-700);font-weight:700}
+.st-cf-foot{display:flex;gap:9px;padding:0 22px 22px}
+.st-cf-btn{
+  flex:1;height:40px;border-radius:11px;font-family:'Manrope',sans-serif;font-size:13.5px;font-weight:700;
+  cursor:pointer;transition:filter .12s, background .12s;
+}
+.st-cf-btn.cancel{background:#F3F4F8;border:1px solid var(--line);color:var(--ink-700)}
+.st-cf-btn.cancel:hover{background:#E9ECF3}
+.st-cf-btn.ok{border:0;color:#fff}
+.st-cf-modal.warn .st-cf-btn.ok{background:#D97706}
+.st-cf-modal.warn .st-cf-btn.ok:hover{background:#B45309}
+.st-cf-modal.danger .st-cf-btn.ok{background:#DC2626}
+.st-cf-modal.danger .st-cf-btn.ok:hover{background:#B91C1C}
+.st-cf-modal.info .st-cf-btn.ok{background:var(--nav-600)}
+.st-cf-modal.info .st-cf-btn.ok:hover{background:#1E40AF}
 </style>
 </head>
 <body>
@@ -351,6 +386,47 @@ document.addEventListener("keydown", e => {
     });
   }
 });
+
+// ─── Кастомна модалка підтвердження ──────────────────────────────────────
+// window.stConfirm({ title, text, okLabel, variant:'warn'|'danger'|'info', ico })
+// повертає Promise<boolean> — true якщо підтвердили, false якщо скасували.
+window.stConfirm = (opts) => {
+  return new Promise(resolve => {
+    const { title = "Підтвердіть дію", text = "", okLabel = "Підтвердити", variant = "warn", ico } = opts || {};
+    const modal = document.getElementById("st-cf-modal");
+    modal.className = "st-cf-modal " + variant;
+    document.getElementById("st-cf-title").textContent = title;
+    document.getElementById("st-cf-text").innerHTML = text;
+    document.getElementById("st-cf-ico").textContent = ico || (variant === "danger" ? "🗑" : variant === "info" ? "ℹ️" : "⚠️");
+    const okBtn = document.getElementById("st-cf-ok-btn");
+    okBtn.textContent = okLabel;
+    const bg = document.getElementById("st-cf-bg");
+    bg.classList.add("show");
+
+    const cleanup = (result) => {
+      bg.classList.remove("show");
+      okBtn.onclick = null;
+      window.stCfCancel = () => {};
+      resolve(result);
+    };
+    okBtn.onclick = () => cleanup(true);
+    window.stCfCancel = () => cleanup(false);
+  });
+};
 </script>
+<!-- Кастомна модалка підтвердження дій над групою -->
+<div class="st-cf-bg" id="st-cf-bg" onclick="if(event.target===this) stCfCancel()">
+  <div class="st-cf-modal warn" id="st-cf-modal">
+    <div class="st-cf-icowrap"><div class="st-cf-ico" id="st-cf-ico">⚠️</div></div>
+    <div class="st-cf-body">
+      <h3 id="st-cf-title">Підтвердіть дію</h3>
+      <p id="st-cf-text"></p>
+    </div>
+    <div class="st-cf-foot">
+      <button class="st-cf-btn cancel" onclick="stCfCancel()">Скасувати</button>
+      <button class="st-cf-btn ok" id="st-cf-ok-btn">Підтвердити</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
