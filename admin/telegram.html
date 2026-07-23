@@ -82,6 +82,21 @@
 .tg-thread-h .av{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:12px}
 .tg-thread-h .nm{font-size:14px;font-weight:800}
 .tg-thread-h .un{font-size:11.5px;color:var(--ink-400);font-family:'Geist Mono',monospace}
+.tg-clear-btn{
+  flex:0 0 auto;width:32px;height:32px;border-radius:9px;background:transparent;border:1px solid var(--line);
+  color:var(--ink-400);cursor:pointer;display:grid;place-items:center;transition:.15s;
+}
+.tg-clear-btn:hover{background:#FEE2E2;border-color:#FCA5A5;color:#B91C1C}
+.tg-msg{position:relative}
+.tg-msg-del{
+  position:absolute;top:-8px;width:20px;height:20px;border-radius:50%;background:#fff;
+  border:1px solid var(--line);color:var(--ink-400);display:none;place-items:center;cursor:pointer;
+  box-shadow:0 2px 6px rgba(0,0,0,.15);transition:.12s;
+}
+.tg-msg.in .tg-msg-del{right:-6px}
+.tg-msg.out .tg-msg-del{left:-6px}
+.tg-msg:hover .tg-msg-del{display:grid}
+.tg-msg-del:hover{background:#FEE2E2;border-color:#FCA5A5;color:#B91C1C}
 .tg-thread-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px}
 .tg-msg{max-width:70%;padding:9px 13px;border-radius:14px;font-size:13.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
 .tg-msg.in{align-self:flex-start;background:#F1F5FB;color:var(--ink-900);border-bottom-left-radius:4px}
@@ -105,7 +120,7 @@
 <div id="admin-root"></div>
 
 <script type="module">
-import { initAdminShell, dbGet, dbSet, dbUpd, db, ref as fbR, toast, hideLoader } from "./shared/admin-shell.js?v=2";
+import { initAdminShell, dbGet, dbSet, dbUpd, dbRemove, db, ref as fbR, toast, hideLoader } from "./shared/admin-shell.js?v=2";
 import { push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const content = `
@@ -182,6 +197,7 @@ const initialsOf = name => {
 
 let tgConfig = { token: "", enabled: false };
 let tgChats = {};       // chatId -> {firstName,lastName,username,lastMessageAt,lastMessageText,lastMessageFrom,notify,unread}
+let tgThreadCache = {}; // chatId -> { msgKey -> {text,from,ts,tgMessageId} } — для швидкого видалення без повторного читання з бази
 let activeChatId = null;
 let pollTimer = null;
 let tokenVisible = false;
@@ -274,10 +290,13 @@ window.openTgChat = async (chatId) => {
   threadEl.innerHTML = `
     <div class="tg-thread-h">
       <div class="av" style="background:${avColor(name)}">${initialsOf(name)}</div>
-      <div>
+      <div style="flex:1;min-width:0">
         <div class="nm">${esc(name)}</div>
         ${c.username ? `<div class="un">@${esc(c.username)}</div>` : ""}
       </div>
+      <button class="tg-clear-btn" title="Очистити всю переписку" onclick="clearTgThread('${chatId}')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+      </button>
     </div>
     <div class="tg-thread-msgs" id="tg-thread-msgs"><div class="tg-empty-mini">Завантаження…</div></div>
     <div class="tg-thread-input">
@@ -293,15 +312,64 @@ window.openTgChat = async (chatId) => {
     renderChatList();
   }
 
-  const msgsObj = await dbGet(`telegramChats/${chatId}/messages`);
-  const msgs = msgsObj ? Object.values(msgsObj) : [];
-  msgs.sort((a,b) => (a.ts||0) - (b.ts||0));
+  const msgsObj = await dbGet(`telegramChats/${chatId}/messages`) || {};
+  tgThreadCache[chatId] = msgsObj;
+  const entries = Object.entries(msgsObj).sort((a,b) => (a[1].ts||0) - (b[1].ts||0));
   const msgsEl = document.getElementById("tg-thread-msgs");
   if (!msgsEl) return; // користувач встиг перейти в інший чат
-  msgsEl.innerHTML = msgs.length
-    ? msgs.map(m => `<div class="tg-msg ${m.from==="admin"?"out":"in"}">${esc(m.text)}<span class="ts">${new Date(m.ts).toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</span></div>`).join("")
+  msgsEl.innerHTML = entries.length
+    ? entries.map(([key, m]) => renderMsgBubble(chatId, key, m)).join("")
     : `<div class="tg-empty-mini">Повідомлень ще немає</div>`;
   msgsEl.scrollTop = msgsEl.scrollHeight;
+};
+
+function renderMsgBubble(chatId, msgKey, m){
+  const time = new Date(m.ts).toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+  return `<div class="tg-msg ${m.from==="admin"?"out":"in"}" data-key="${msgKey}">
+    <button class="tg-msg-del" title="Видалити повідомлення" onclick="deleteTgMessage('${chatId}','${msgKey}')">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+    ${esc(m.text)}<span class="ts">${time}</span>
+  </div>`;
+}
+
+window.deleteTgMessage = async (chatId, msgKey) => {
+  const bubble = document.querySelector(`.tg-msg[data-key="${msgKey}"]`);
+  const m = tgThreadCache[chatId]?.[msgKey];
+  if (!confirm("Видалити це повідомлення?")) return;
+  // Прибираємо з архіву в Firebase — завжди
+  try { await dbRemove(`telegramChats/${chatId}/messages/${msgKey}`); }
+  catch(e){ toast("Помилка видалення: " + e.message); return; }
+  if (bubble) bubble.remove();
+  if (tgThreadCache[chatId]) delete tgThreadCache[chatId][msgKey];
+
+  // Якщо це наше власне повідомлення (надіслане ботом) — пробуємо видалити
+  // і на боці Telegram теж. Для вхідних повідомлень від користувача бот
+  // здебільшого не має на це прав у приватному чаті, тому не намагаємось.
+  if (m?.from === "admin" && m?.tgMessageId && tgConfig.token){
+    fetch(`https://api.telegram.org/bot${tgConfig.token}/deleteMessage`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, message_id: m.tgMessageId })
+    }).catch(() => {});
+  }
+};
+
+window.clearTgThread = async (chatId) => {
+  const c = tgChats[chatId] || {};
+  const name = [c.firstName, c.lastName].filter(Boolean).join(" ") || c.username || ("Чат " + chatId);
+  if (!confirm(`Очистити всю переписку з «${name}»?\n\nЦе видалить збережену історію повідомлень у QuizFlow (сам чат і контакт лишаться). Незворотно.`)) return;
+  try {
+    await dbRemove(`telegramChats/${chatId}/messages`);
+  } catch(e){ toast("Помилка: " + e.message); return; }
+  tgThreadCache[chatId] = {};
+  await dbUpd(`telegramChats/${chatId}`, { lastMessageText: "", lastMessageAt: c.lastMessageAt || 0 });
+  tgChats[chatId] = { ...c, lastMessageText: "" };
+  renderChatList();
+  if (activeChatId === chatId){
+    const msgsEl = document.getElementById("tg-thread-msgs");
+    if (msgsEl) msgsEl.innerHTML = `<div class="tg-empty-mini">Переписку очищено</div>`;
+  }
+  toast("Переписку очищено");
 };
 
 window.sendTgMessage = async (chatId) => {
@@ -319,7 +387,11 @@ window.sendTgMessage = async (chatId) => {
     if (!data.ok) throw new Error(data.description || "Telegram API помилка");
 
     const ts = Date.now();
-    await push(fbR(db, `telegramChats/${chatId}/messages`), { text, from: "admin", ts });
+    const tgMessageId = data.result?.message_id || null;
+    const newMsg = { text, from: "admin", ts, tgMessageId };
+    const msgRef = await push(fbR(db, `telegramChats/${chatId}/messages`), newMsg);
+    if (!tgThreadCache[chatId]) tgThreadCache[chatId] = {};
+    tgThreadCache[chatId][msgRef.key] = newMsg;
     await dbUpd(`telegramChats/${chatId}`, { lastMessageAt: ts, lastMessageText: text, lastMessageFrom: "admin" });
 
     tgChats[chatId] = { ...tgChats[chatId], lastMessageAt: ts, lastMessageText: text, lastMessageFrom: "admin" };
@@ -329,7 +401,7 @@ window.sendTgMessage = async (chatId) => {
     if (msgsEl){
       const empty = msgsEl.querySelector(".tg-empty-mini");
       if (empty) empty.remove();
-      msgsEl.insertAdjacentHTML("beforeend", `<div class="tg-msg out">${esc(text)}<span class="ts">${new Date(ts).toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</span></div>`);
+      msgsEl.insertAdjacentHTML("beforeend", renderMsgBubble(chatId, msgRef.key, newMsg));
       msgsEl.scrollTop = msgsEl.scrollHeight;
     }
   } catch(e) {
@@ -375,14 +447,17 @@ window.pollTelegramUpdates = async (manual) => {
       };
       tgChats[chatId] = meta;
       await dbUpd(`telegramChats/${chatId}`, meta);
-      await push(fbR(db, `telegramChats/${chatId}/messages`), { text, from: "user", ts });
+      const newMsg = { text, from: "user", ts, tgMessageId: msg.message_id || null };
+      const msgRef = await push(fbR(db, `telegramChats/${chatId}/messages`), newMsg);
+      if (!tgThreadCache[chatId]) tgThreadCache[chatId] = {};
+      tgThreadCache[chatId][msgRef.key] = newMsg;
 
       if (activeChatId === chatId){
         const msgsEl = document.getElementById("tg-thread-msgs");
         if (msgsEl){
           const empty = msgsEl.querySelector(".tg-empty-mini");
           if (empty) empty.remove();
-          msgsEl.insertAdjacentHTML("beforeend", `<div class="tg-msg in">${esc(text)}<span class="ts">${new Date(ts).toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</span></div>`);
+          msgsEl.insertAdjacentHTML("beforeend", renderMsgBubble(chatId, msgRef.key, newMsg));
           msgsEl.scrollTop = msgsEl.scrollHeight;
         }
       }
