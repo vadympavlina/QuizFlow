@@ -627,6 +627,10 @@ window.sendBugReport = async () => {
 // ─── Дублювання репортів у Telegram ────────────────────────────────────────
 // Читає settings/telegramBot (токен + увімкнено) і telegramChats (кому надсилати,
 // notify:true) — те саме сховище, яким керує адмінська сторінка shared/telegram.html.
+function escTg(s){
+  return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
 async function notifyTelegramBugReport({ text, reportType, page, userName }) {
   const { get: fbGet, ref: fbR } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
   const cfgSnap = await fbGet(fbR(db, "settings/telegramBot"));
@@ -638,14 +642,21 @@ async function notifyTelegramBugReport({ text, reportType, page, userName }) {
   const recipients = Object.keys(chats).filter(id => chats[id]?.notify);
   if (!recipients.length) return;
 
-  const typeLabel = reportType === "improvement" ? "💡 Покращення" : "🐞 Проблема";
-  const msg = `${typeLabel}\n\n${text}\n\n— ${userName}\n📄 ${page}`;
+  const isImprovement = reportType === "improvement";
+  const emoji = isImprovement ? "💡" : "🐞";
+  const label = isImprovement ? "Ідея покращення" : "Проблема";
+  const now = new Date().toLocaleString("uk-UA", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" });
+
+  const msg =
+    `<b>${emoji} QuizFlow · ${label}</b>\n` +
+    `<blockquote>${escTg(text)}</blockquote>\n` +
+    `${escTg(userName)} · <code>${escTg(page)}</code> · ${now}`;
 
   await Promise.all(recipients.map(chatId =>
     fetch(`https://api.telegram.org/bot${cfg.token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text: msg })
+      body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: "HTML" })
     }).catch(() => {})
   ));
 }
