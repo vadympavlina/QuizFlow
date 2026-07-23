@@ -87,7 +87,6 @@
   color:var(--ink-400);cursor:pointer;display:grid;place-items:center;transition:.15s;
 }
 .tg-clear-btn:hover{background:#FEE2E2;border-color:#FCA5A5;color:#B91C1C}
-.tg-msg{position:relative}
 .tg-msg-del{
   position:absolute;top:-8px;width:20px;height:20px;border-radius:50%;background:#fff;
   border:1px solid var(--line);color:var(--ink-400);display:none;place-items:center;cursor:pointer;
@@ -98,7 +97,8 @@
 .tg-msg:hover .tg-msg-del{display:grid}
 .tg-msg-del:hover{background:#FEE2E2;border-color:#FCA5A5;color:#B91C1C}
 .tg-thread-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px}
-.tg-msg{max-width:70%;padding:9px 13px;border-radius:14px;font-size:13.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.tg-msg{max-width:70%;padding:9px 13px;border-radius:14px;font-size:13.5px;line-height:1.5;position:relative}
+.tg-msg-text{white-space:pre-wrap;word-break:break-word}
 .tg-msg.in{align-self:flex-start;background:#F1F5FB;color:var(--ink-900);border-bottom-left-radius:4px}
 .tg-msg.out{align-self:flex-end;background:#3B82F6;color:#fff;border-bottom-right-radius:4px}
 .tg-msg .ts{display:block;font-size:10px;opacity:.6;margin-top:4px;font-family:'Geist Mono',monospace}
@@ -325,12 +325,7 @@ window.openTgChat = async (chatId) => {
 
 function renderMsgBubble(chatId, msgKey, m){
   const time = new Date(m.ts).toLocaleString("uk-UA",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
-  return `<div class="tg-msg ${m.from==="admin"?"out":"in"}" data-key="${msgKey}">
-    <button class="tg-msg-del" title="Видалити повідомлення" onclick="deleteTgMessage('${chatId}','${msgKey}')">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-    </button>
-    ${esc(m.text)}<span class="ts">${time}</span>
-  </div>`;
+  return `<div class="tg-msg ${m.from==="admin"?"out":"in"}" data-key="${msgKey}"><button class="tg-msg-del" title="Видалити повідомлення" onclick="deleteTgMessage('${chatId}','${msgKey}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button><span class="tg-msg-text">${esc(m.text)}</span><span class="ts">${time}</span></div>`;
 }
 
 window.deleteTgMessage = async (chatId, msgKey) => {
