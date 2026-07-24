@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><path d='M16 8l2.5 5 5.5.8-4 3.9.9 5.5L16 20.7l-4.9 2.5.9-5.5-4-3.9 5.5-.8z' fill='white'/></svg>">
+<title>QuizFlow Admin — Ролі</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/admin-shell.css?v=1">
+<style>
+.rl-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.rl-toolbar p{margin:2px 0 0;color:var(--ink-500);font-size:13px}
+
+.field-input{
+  width:100%; padding:10px 12px; border-radius:10px;
+  border:1.5px solid var(--line); background:#fff;
+  font-family:"Manrope",sans-serif; font-size:14px; color:var(--ink-900);
+  outline:none; transition:all .15s;
+}
+.field-input:focus{
+  border-color:#7C3AED; box-shadow:0 0 0 3px rgba(124,58,237,.12);
+}
+
+.rl-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:14px}
+.rl-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;position:relative;overflow:hidden}
+.rl-card::before{content:"";position:absolute;top:0;left:0;width:4px;height:100%;background:var(--rc, #7C3AED)}
+.rl-card-h{display:flex;align-items:center;gap:10px}
+.rl-dot{width:10px;height:10px;border-radius:50%;background:var(--rc, #7C3AED);flex:0 0 auto}
+.rl-name{font-size:15px;font-weight:800;color:var(--ink-900);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rl-desc{font-size:12.5px;color:var(--ink-500);margin-top:6px;line-height:1.5;min-height:18px}
+.rl-meta{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.rl-count{font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink-500)}
+.rl-count b{color:var(--ink-900)}
+.rl-acts{display:flex;gap:6px}
+.rl-act{
+  background:#F4F6FB;border:1px solid var(--line);border-radius:8px;width:28px;height:28px;
+  display:grid;place-items:center;cursor:pointer;color:var(--ink-500);transition:.15s;
+}
+.rl-act:hover{background:#EFF6FF;color:#1D4ED8;border-color:#BFDBFE}
+.rl-act.danger:hover{background:#FEE2E2;color:#B91C1C;border-color:#FCA5A5}
+.rl-act svg{width:13px;height:13px}
+
+.rl-empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--ink-400)}
+.rl-empty svg{margin-bottom:10px;opacity:.5}
+.rl-empty .et{font-size:14px;font-weight:700;color:var(--ink-700)}
+
+.rl-swatches{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.rl-sw{width:28px;height:28px;border-radius:9px;cursor:pointer;border:2px solid transparent;transition:.12s}
+.rl-sw.on{border-color:var(--ink-900);transform:scale(1.08)}
+
+.rl-del-warn{
+  background:#FFF7ED;border:1px solid #FDE4BC;color:#9A3412;border-radius:10px;
+  padding:10px 12px;font-size:12.5px;line-height:1.5;margin-top:4px;
+}
+
+.mod-err{
+  background:rgba(220,38,38,.06);
+  border:1px solid rgba(220,38,38,.18);
+  border-radius:8px; padding:9px 12px;
+  color:#B91C1C; font-size:12.5px; font-weight:600;
+  display:none;
+}
+.mod-err.show{display:block; animation:rlErrIn .2s ease}
+@keyframes rlErrIn{from{opacity:0; transform:translateY(-4px)} to{opacity:1; transform:none}}
+</style>
+</head>
+<body>
+
+<div id="admin-root"></div>
+
+<script type="module">
+import { initAdminShell, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=2";
+
+const content = `
+  <div class="rl-toolbar">
+    <div>
+      <h1>Ролі</h1>
+      <p>Кастомні ролі викладачів — призначаються на сторінці «Викладачі», функціонал за ролями буде додано далі</p>
+    </div>
+    <button class="tb-btn primary" onclick="openRoleModal()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      Нова роль
+    </button>
+  </div>
+
+  <div class="rl-grid" id="rl-grid">
+    <div class="rl-empty">Завантаження…</div>
+  </div>
+`;
+
+const { _user } = await initAdminShell({
+  activeId: "roles",
+  crumbs: ["Ролі"],
+  content
+});
+
+const ROLE_COLORS = ["#7C3AED","#2563EB","#0891B2","#059669","#D97706","#DC2626","#DB2777","#4B5563"];
+
+let roles = {};       // roleId -> {name, color, description, createdAt}
+let userCounts = {};  // roleId -> кількість викладачів з цією роллю
+let editingRoleId = null;
+let pickedColor = ROLE_COLORS[0];
+
+async function loadRoles(){
+  roles = await dbGet("roles") || {};
+  const users = await dbGet("users") || {};
+  userCounts = {};
+  Object.values(users).forEach(u => {
+    if (u.customRoleId) userCounts[u.customRoleId] = (userCounts[u.customRoleId] || 0) + 1;
+  });
+  renderRoles();
+}
+
+function renderRoles(){
+  const grid = document.getElementById("rl-grid");
+  const ids = Object.keys(roles).sort((a,b) => (roles[a].name||"").localeCompare(roles[b].name||"", "uk"));
+
+  if (!ids.length){
+    grid.innerHTML = `<div class="rl-empty">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      <div class="et">Ще немає жодної ролі</div>
+      <div style="font-size:12.5px;margin-top:4px">Створіть першу, щоб призначати її викладачам</div>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = ids.map(id => {
+    const r = roles[id];
+    const cnt = userCounts[id] || 0;
+    return `<div class="rl-card" style="--rc:${r.color || ROLE_COLORS[0]}">
+      <div class="rl-card-h">
+        <span class="rl-dot"></span>
+        <span class="rl-name">${esc(r.name || "—")}</span>
+      </div>
+      <div class="rl-desc">${esc(r.description || "Без опису")}</div>
+      <div class="rl-meta">
+        <span class="rl-count"><b>${cnt}</b> ${cnt===1?"викладач":"викладачів"}</span>
+        <div class="rl-acts">
+          <button class="rl-act" title="Редагувати" onclick="openRoleModal('${id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+          </button>
+          <button class="rl-act danger" title="Видалити" onclick="openDeleteRole('${id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ─── Створення / редагування ролі ──────────────────────────────────────────
+window.openRoleModal = (roleId) => {
+  editingRoleId = roleId || null;
+  const r = roleId ? roles[roleId] : null;
+  pickedColor = r?.color || ROLE_COLORS[0];
+
+  document.getElementById("role-modal-title").textContent = roleId ? "Редагувати роль" : "Нова роль";
+  document.getElementById("role-name-inp").value = r?.name || "";
+  document.getElementById("role-desc-inp").value = r?.description || "";
+  document.getElementById("role-err").textContent = "";
+  document.getElementById("role-err").classList.remove("show");
+  renderSwatches();
+  openModal("m-role");
+  setTimeout(() => document.getElementById("role-name-inp")?.focus(), 50);
+};
+
+function renderSwatches(){
+  document.getElementById("role-swatches").innerHTML = ROLE_COLORS.map(c =>
+    `<span class="rl-sw${c===pickedColor?" on":""}" style="background:${c}" onclick="pickRoleColor('${c}')"></span>`
+  ).join("");
+}
+window.pickRoleColor = (c) => { pickedColor = c; renderSwatches(); };
+
+window.saveRole = async () => {
+  const name = document.getElementById("role-name-inp").value.trim();
+  const description = document.getElementById("role-desc-inp").value.trim();
+  const errEl = document.getElementById("role-err");
+  if (!name){ errEl.textContent = "Введіть назву ролі"; errEl.classList.add("show"); return; }
+
+  const btn = document.getElementById("role-save-btn");
+  btn.disabled = true;
+  try {
+    const id = editingRoleId || ("role_" + Date.now().toString(36) + Math.random().toString(36).slice(2,6));
+    await dbSet(`roles/${id}`, {
+      name, description, color: pickedColor,
+      createdAt: roles[id]?.createdAt || Date.now()
+    });
+    closeModal("m-role");
+    toast(editingRoleId ? "Роль оновлено" : "Роль створено");
+    await loadRoles();
+  } catch(e) {
+    errEl.textContent = "Помилка: " + e.message;
+    errEl.classList.add("show");
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+// ─── Видалення ролі ─────────────────────────────────────────────────────
+let _delRoleId = null;
+window.openDeleteRole = (roleId) => {
+  _delRoleId = roleId;
+  const r = roles[roleId];
+  const cnt = userCounts[roleId] || 0;
+  document.getElementById("del-role-name").textContent = r?.name || "—";
+  document.getElementById("del-role-warn").innerHTML = cnt > 0
+    ? `Цю роль зараз мають <b>${cnt}</b> ${cnt===1?"викладач":"викладачів"} — після видалення в них просто не буде ролі (жодні інші дані не постраждають).`
+    : "Цю роль наразі не має жоден викладач.";
+  openModal("m-del-role");
+};
+window.confirmDeleteRole = async () => {
+  if (!_delRoleId) return;
+  const btn = document.getElementById("del-role-confirm-btn");
+  btn.disabled = true;
+  try {
+    // Знімаємо роль з усіх, хто її мав
+    const users = await dbGet("users") || {};
+    const affected = Object.entries(users).filter(([,u]) => u.customRoleId === _delRoleId).map(([id]) => id);
+    await Promise.all(affected.map(uid => dbUpd(`users/${uid}`, { customRoleId: null })));
+    await dbRemove(`roles/${_delRoleId}`);
+    closeModal("m-del-role");
+    toast("Роль видалено");
+    await loadRoles();
+  } catch(e) {
+    toast("Помилка: " + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+await loadRoles();
+hideLoader && hideLoader();
+</script>
+
+<!-- Модалка створення/редагування ролі -->
+<div class="modal-bd" id="m-role">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-h">
+      <h3 id="role-modal-title">Нова роль</h3>
+      <button class="close" onclick="closeModal('m-role')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-b">
+      <div class="field">
+        <div class="field-l">Назва *</div>
+        <input class="field-input" id="role-name-inp" placeholder="Наприклад: Куратор">
+      </div>
+      <div class="field">
+        <div class="field-l">Опис (необов'язково)</div>
+        <input class="field-input" id="role-desc-inp" placeholder="Коротко, для чого ця роль">
+      </div>
+      <div class="field">
+        <div class="field-l">Колір</div>
+        <div class="rl-swatches" id="role-swatches"></div>
+      </div>
+      <div class="mod-err" id="role-err"></div>
+    </div>
+    <div class="modal-f">
+      <button class="tb-btn" onclick="closeModal('m-role')">Скасувати</button>
+      <button class="tb-btn primary" id="role-save-btn" onclick="saveRole()">Зберегти</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модалка видалення ролі -->
+<div class="modal-bd" id="m-del-role">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-h">
+      <h3>Видалити роль «<span id="del-role-name"></span>»?</h3>
+      <button class="close" onclick="closeModal('m-del-role')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-b">
+      <div class="rl-del-warn" id="del-role-warn"></div>
+    </div>
+    <div class="modal-f">
+      <button class="tb-btn" onclick="closeModal('m-del-role')">Скасувати</button>
+      <button class="tb-btn danger" id="del-role-confirm-btn" onclick="confirmDeleteRole()">Видалити</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
