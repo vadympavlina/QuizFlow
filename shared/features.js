@@ -1285,14 +1285,9 @@ fillSelects = function(){
       groups.map(g=>`<div class="cd-item${curGrpAn===g?" cd-active":""}" data-val="${esc(g)}" onclick="G.selectAnalyticsDrop('group','${esc(g)}','${esc(g)}')">${esc(g)}</div>`
       ).join("");
   }
-  // Посилання - тест у модалі
-  const nlMenu=document.getElementById("cd-nl-t-menu");
-  if(nlMenu){
-    const curNl=$("nl-t")?.value||"";
-    nlMenu.innerHTML=tests.filter(t=>t.status!=="archived").map(t=>
-      `<div class="cd-item${curNl===t.id?" cd-active":""}" data-val="${t.id}" onclick="G.selectLinkTest('${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
-    ).join("") || `<div class="cd-item" style="color:var(--muted)">Немає тестів</div>`;
-  }
+  // Посилання - тест у модалі (тепер окремий пошук+папки+список; оновлюємо
+  // лише якщо модалка зараз відкрита, щоб список був актуальний після змін)
+  if (document.getElementById("nl-t-list")) G.renderLinkTestPicker();
 }
 
 
@@ -1532,7 +1527,7 @@ renderLinks = function(){
       </div>
       <div class="l-empty-title">${isFiltered ? "Нічого не знайдено" : "Ще немає посилань"}</div>
       <div class="l-empty-hint">${isFiltered ? "Спробуйте змінити запит або скиньте фільтри" : "Створіть перше посилання, щоб поділитися тестом зі студентами"}</div>
-      ${!isFiltered ? `<button class="l-btn primary" onclick="openM('m-link')" style="margin:0 auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Нове посилання</button>` : ""}
+      ${!isFiltered ? `<button class="l-btn primary" onclick="G.newLink()" style="margin:0 auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Новий іспит</button>` : ""}
     </div>`;
     return;
   }
@@ -1826,16 +1821,67 @@ selectAnalyticsDrop(field, value, label){
     G.renderAnalytics();
   },
 
+  renderLinkTestPicker(){
+    const foldersEl = document.getElementById("nl-t-folders");
+    const listEl = document.getElementById("nl-t-list");
+    if (!listEl) return;
+    const q = (document.getElementById("nl-t-search")?.value || "").trim().toLowerCase();
+    const activeTests = tests.filter(t => t.status !== "archived");
+
+    if (foldersEl){
+      const usedFolderIds = [...new Set(activeTests.map(t => t.folderId).filter(Boolean))];
+      const chips = [{ id: "", name: "Усі" }, ...folders.filter(f => usedFolderIds.includes(f.id))];
+      if (activeTests.some(t => !t.folderId)) chips.push({ id: "_none", name: "Без папки" });
+      foldersEl.innerHTML = chips.map(f => {
+        const on = (window._nlFolderF || "") === f.id;
+        return `<span onclick="G.setNlFolder('${f.id}')" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${on?"#2d5be3":"#E3E8F2"};background:${on?"#EEF2FB":"#fff"};color:${on?"#1E3A8A":"#5B6A8F"}">${f.color?`<span style="width:7px;height:7px;border-radius:50%;background:${f.color};flex:0 0 auto"></span>`:""}${esc(f.name)}</span>`;
+      }).join("");
+    }
+
+    const folderF = window._nlFolderF || "";
+    let list = activeTests;
+    if (folderF === "_none") list = list.filter(t => !t.folderId);
+    else if (folderF) list = list.filter(t => t.folderId === folderF);
+    if (q) list = list.filter(t => (t.title||"").toLowerCase().includes(q));
+
+    const selectedId = document.getElementById("nl-t")?.value || "";
+    listEl.innerHTML = list.length ? list.map(t => {
+      const on = t.id === selectedId;
+      const safeTitle = esc(t.title).replace(/'/g,"\\'");
+      return `<div onclick="G.selectLinkTest('${t.id}','${safeTitle}')"
+        style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;background:${on?"#EEF2FB":"transparent"}">
+        <div style="width:30px;height:30px;border-radius:8px;background:#EFF3FE;display:grid;place-items:center;flex:0 0 auto;color:#2D5BE3">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13.5px;font-weight:700;color:#0B1437;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.title)}</div>
+          <div style="font-size:11px;color:#8691AC">${(t.questions||[]).length} питань</div>
+        </div>
+        ${on ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2d5be3" stroke-width="2.5" style="flex:0 0 auto"><polyline points="20 6 9 17 4 12"/></svg>` : ""}
+      </div>`;
+    }).join("") : `<div style="padding:24px 12px;text-align:center;color:#8691AC;font-size:12.5px">Нічого не знайдено</div>`;
+  },
+  setNlFolder(fid){
+    window._nlFolderF = fid;
+    G.renderLinkTestPicker();
+  },
   selectLinkTest(testId, title){
-    document.getElementById("cd-nl-t-label").textContent=title;
-    document.getElementById("nl-t").value=testId;
-    const menu=document.getElementById("cd-nl-t-menu");
-    menu?.querySelectorAll(".cd-item").forEach(el=>{
-      el.classList.toggle("cd-active", el.dataset.val===testId);
-    });
-    const btn=document.querySelector("#cd-nl-t .cd-btn");
-    btn?.classList.toggle("active", !!testId);
-    menu?.classList.remove("open");
+    document.getElementById("nl-t").value = testId;
+    G.renderLinkTestPicker();
+  },
+  newLink(){
+    window._editLinkId=null;
+    $("m-link-title").textContent="Новий іспит";
+    $("m-link-sub").textContent="Для студентів на тест";
+    $("m-link-test-wrap").style.display="";
+    $("nl-submit-btn").textContent="Створити →";
+    $("nl-t").value=""; $("nl-m").value="30"; $("nl-g").value="";
+    $("nl-sq").checked=false; $("nl-sa").checked=false;
+    if($("nl-close")) $("nl-close").value="";
+    const search=document.getElementById("nl-t-search"); if(search) search.value="";
+    window._nlFolderF="";
+    G.renderLinkTestPicker();
+    openM("m-link");
   },
   toggleArchive(){
     const list=document.getElementById("archive-list");
@@ -2017,24 +2063,15 @@ selectAnalyticsDrop(field, value, label){
 
   qLink(tid){
     window._editLinkId=null;
-    $("m-link-title").textContent="Нове посилання";
+    $("m-link-title").textContent="Новий іспит";
     $("m-link-sub").textContent="Для студентів на тест";
     $("m-link-test-wrap").style.display="";
-    $("cd-nl-t").style.display="block";
     $("nl-submit-btn").textContent="Створити →";
     $("nl-t").value=tid; $("nl-m").value="30"; $("nl-g").value="";
-    // Оновлюємо label кастомного дропдауну
-    const selT=tests.find(x=>x.id===tid);
-    if(selT&&$("cd-nl-t-label")) $("cd-nl-t-label").textContent=selT.title;
-    else if($("cd-nl-t-label")) $("cd-nl-t-label").textContent="Оберіть тест...";
     $("nl-sq").checked=false; $("nl-sa").checked=false;
-    // Оновлюємо кастомний дропдаун
-    const selTest=tests.find(t=>t.id===tid);
-    if(selTest){ G.selectLinkTest(tid,selTest.title); }
-    else {
-      const lbl=document.getElementById("cd-nl-t-label");
-      if(lbl) lbl.textContent="Оберіть тест...";
-    }
+    const search=document.getElementById("nl-t-search"); if(search) search.value="";
+    window._nlFolderF="";
+    G.renderLinkTestPicker();
     openM("m-link");
   },
   editLink(id){
@@ -2043,7 +2080,6 @@ selectAnalyticsDrop(field, value, label){
     $("m-link-title").textContent="Редагувати посилання";
     $("m-link-sub").textContent="Змінити налаштування";
     $("m-link-test-wrap").style.display="none";
-    $("cd-nl-t").style.display="none";
     $("nl-submit-btn").textContent="Зберегти →";
     $("nl-m").value=l.maxAttempts||30; $("nl-g").value=l.group||"";
     $("nl-sq").checked=l.shuffleQuestions||false;

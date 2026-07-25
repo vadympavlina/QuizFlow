@@ -161,7 +161,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
         </div>
         <div>
-          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff" id="m-link-title">Нове посилання</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#fff" id="m-link-title">Новий іспит</div>
           <div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:2px" id="m-link-sub">Для студентів на тест</div>
         </div>
       </div>
@@ -173,14 +173,16 @@
       <!-- Тест -->
       <div id="m-link-test-wrap" class="fl" style="margin:0">
         <label>Тест *</label>
-        <div class="cd-wrap" id="cd-nl-t" style="display:block">
-          <button class="cd-btn" style="width:100%;justify-content:space-between;padding:11px 14px;border-radius:11px" onclick="G.toggleDrop('cd-nl-t')">
-            <span class="cd-label" id="cd-nl-t-label" style="font-size:14px">Оберіть тест...</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div class="cd-menu" id="cd-nl-t-menu" style="width:100%"></div>
+        <div style="border:1.5px solid #E3E8F2;border-radius:12px;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #E3E8F2;background:#FAFBFE">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8691AC" stroke-width="2" style="flex:0 0 auto"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input id="nl-t-search" placeholder="Пошук тесту..." autocomplete="off" oninput="G.renderLinkTestPicker()"
+              style="border:0;outline:0;background:transparent;font:inherit;font-size:13.5px;width:100%;color:#0B1437">
+          </div>
+          <div id="nl-t-folders" style="display:flex;gap:6px;flex-wrap:wrap;padding:9px 12px;border-bottom:1px solid #E3E8F2"></div>
+          <div id="nl-t-list" style="max-height:200px;overflow-y:auto;padding:6px"></div>
         </div>
-        <select class="fi" id="nl-t" style="display:none"></select>
+        <input type="hidden" id="nl-t" value="">
       </div>
 
       <!-- Група + Ліміт в ряд -->
