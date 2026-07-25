@@ -64,6 +64,11 @@ const _user = {
   name:    _userDb.name    || "",
   surname: _userDb.surname || "",
   role:    _userDb.role    || "teacher",
+  // Кастомні ролі (окремий шар над системним admin/teacher, керується з admin/roles.html).
+  // customRoleIds — мапа {roleId:true,...}; customRoleId — старе одиничне поле для сумісності.
+  customRoleIds: _userDb.customRoleIds && typeof _userDb.customRoleIds === "object"
+    ? Object.keys(_userDb.customRoleIds).filter(k => _userDb.customRoleIds[k])
+    : (_userDb.customRoleId ? [_userDb.customRoleId] : []),
 };
 
 export const user = _user;
@@ -330,7 +335,17 @@ async function buildDynamicSidebar(navData, activePage) {
 
   let sectionsHtml = "";
   navData.forEach(sec => {
-    const enabledItems = sec.items.filter(it => it.enabled !== false);
+    const enabledItems = sec.items.filter(it => {
+      if (it.enabled === false) return false;
+      // Обмеження за кастомною роллю: якщо на пункті є roleIds — видно лише
+      // тим, у кого перетинається бодай одна роль. Без roleIds — видно всім
+      // (те саме, що й раніше). Системний admin бачить усе завжди.
+      if (Array.isArray(it.roleIds) && it.roleIds.length > 0){
+        if (_user.role === "admin") return true;
+        return it.roleIds.some(rid => _user.customRoleIds.includes(rid));
+      }
+      return true;
+    });
     if (!enabledItems.length) return;
 
     const itemsHtml = enabledItems.map(item => {
