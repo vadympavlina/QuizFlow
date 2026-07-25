@@ -134,6 +134,32 @@
   text-transform:uppercase;
 }
 
+.ni-roles-btn{
+  display:flex; align-items:center; gap:5px; flex:0 0 auto;
+  height:30px; padding:0 9px; border-radius:8px;
+  border:1.5px solid var(--line); background:#FAFBFE; color:var(--ink-500);
+  font:inherit; font-size:11.5px; font-weight:700; cursor:pointer;
+  transition:all .15s;
+}
+.ni-roles-btn:hover:not(:disabled){border-color:#7C3AED; background:#F5F3FF; color:#6D28D9}
+.ni-roles-btn:disabled{opacity:.35; cursor:not-allowed}
+.ni-roles-btn svg{width:13px; height:13px; flex:0 0 auto}
+.ni-roles-btn.restricted{border-color:#7C3AED; background:#F5F3FF; color:#6D28D9}
+.ni-roles-dots{display:flex; gap:2px}
+.ni-roles-dots i{width:7px; height:7px; border-radius:50%; display:block}
+
+.role-pick-list{padding:14px 16px; display:flex; flex-direction:column; gap:2px; max-height:320px; overflow-y:auto}
+.role-pick-row{
+  display:flex; align-items:center; gap:10px; padding:9px 8px; border-radius:9px; cursor:pointer;
+  font-size:13.5px; font-weight:600; color:var(--ink-900); transition:background .12s;
+}
+.role-pick-row:hover{background:#FAFBFE}
+.role-pick-row input{width:16px; height:16px; accent-color:#7C3AED; flex:0 0 auto}
+.role-pick-dot{width:9px; height:9px; border-radius:50%; flex:0 0 auto}
+.role-pick-empty{padding:20px 16px; text-align:center; color:var(--ink-500); font-size:12.5px; line-height:1.6}
+.role-pick-empty a{color:#7C3AED; font-weight:700}
+.role-pick-hint{padding:11px 16px; border-top:1px solid var(--line); font-size:11.5px; color:var(--ink-500); line-height:1.5}
+
 /* ── Add item button ── */
 .ns-add-btn{
   margin:4px 6px 10px;
@@ -260,6 +286,18 @@
       <div class="icon-grid" id="icon-grid"></div>
     </div>
   </div>
+
+  <!-- Role picker -->
+  <div class="modal-bd" id="m-role-picker">
+    <div class="modal" style="max-width:360px">
+      <div class="modal-h">
+        <h3>Хто бачить цей пункт?</h3>
+        <button class="close" id="role-picker-close"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="role-pick-list" id="role-pick-list"></div>
+      <div class="role-pick-hint">Якщо не обрати жодної ролі — пункт бачать усі викладачі, як і зараз.</div>
+    </div>
+  </div>
 </div>
 <div id="admin-toast" class="toast"></div>
 
@@ -344,6 +382,8 @@ const DEFAULT_NAV = [
 // ─── State ────────────────────────────────────────────────────────────────
 let navData = [];
 let _iconPickerTarget = null; // { secIdx, itemIdx }
+let _rolePickerTarget = null; // { secIdx, itemIdx }
+let allRoles = {}; // roleId -> {name, color, description}
 let _dragState = null;
 let _activeCat = Object.keys(ICON_CATS)[0];
 
@@ -411,6 +451,54 @@ function buildIconPicker(){
   });
 }
 
+// ─── Role picker ──────────────────────────────────────────────────────────
+async function loadRoles(){
+  try { allRoles = await dbGet("roles") || {}; }
+  catch(e) { allRoles = {}; }
+}
+
+function buildRolePicker(){
+  document.getElementById("role-picker-close").addEventListener("click", closeRolePicker);
+  document.getElementById("m-role-picker").addEventListener("click", e => {
+    if (e.target === document.getElementById("m-role-picker")) closeRolePicker();
+  });
+}
+
+function closeRolePicker(){
+  document.getElementById("m-role-picker").classList.remove("on");
+  _rolePickerTarget = null;
+  renderEditor();
+  renderPreview();
+}
+
+function renderRolePickList(){
+  const listEl = document.getElementById("role-pick-list");
+  const ids = Object.keys(allRoles).sort((a,b) => (allRoles[a].name||"").localeCompare(allRoles[b].name||"", "uk"));
+  if (!ids.length){
+    listEl.innerHTML = `<div class="role-pick-empty">Ще немає жодної створеної ролі.<br><a href="roles.html">Створити на сторінці «Ролі»</a></div>`;
+    return;
+  }
+  const { secIdx, itemIdx } = _rolePickerTarget;
+  const current = navData[secIdx].items[itemIdx].roleIds || [];
+  listEl.innerHTML = ids.map(id => {
+    const r = allRoles[id];
+    return `<label class="role-pick-row">
+      <input type="checkbox" value="${id}" ${current.includes(id) ? "checked" : ""}>
+      <span class="role-pick-dot" style="background:${esc(r.color || '#7C3AED')}"></span>
+      <span>${esc(r.name || "—")}</span>
+    </label>`;
+  }).join("");
+  listEl.querySelectorAll('input[type=checkbox]').forEach(cb => {
+    cb.addEventListener("change", () => {
+      const item = navData[secIdx].items[itemIdx];
+      let roleIds = item.roleIds ? [...item.roleIds] : [];
+      if (cb.checked) { if (!roleIds.includes(cb.value)) roleIds.push(cb.value); }
+      else { roleIds = roleIds.filter(id => id !== cb.value); }
+      item.roleIds = roleIds;
+    });
+  });
+}
+
 // ─── Editor render ────────────────────────────────────────────────────────
 function renderEditor(){
   const container = document.getElementById("nav-editor");
@@ -451,7 +539,8 @@ function renderEditor(){
         label: "Новий пункт",
         file: "",
         icon: "file",
-        enabled: true
+        enabled: true,
+        roleIds: []
       });
       renderEditor();
       renderPreview();
@@ -489,7 +578,12 @@ function renderEditor(){
         </button>
         <input class="ni-name" type="text" value="${esc(item.label)}" placeholder="Назва" data-sec-idx="${si}" data-item-idx="${ii}">
         <input class="ni-file" type="text" value="${esc(item.file || "")}" placeholder="index.html" data-sec-idx="${si}" data-item-idx="${ii}" ${item.protected ? "readonly" : ""}>
-        ${item.protected ? `<span class="ni-protected-tag" title="Завжди відображається">Захищено</span>` : ""}
+        ${item.protected ? `<span class="ni-protected-tag" title="Завжди відображається">Захищено</span>` : `
+        <button class="ni-roles-btn${(item.roleIds && item.roleIds.length) ? " restricted" : ""}" data-sec-idx="${si}" data-item-idx="${ii}" title="Хто бачить цей пункт">
+          ${(item.roleIds && item.roleIds.length)
+            ? `<span class="ni-roles-dots">${item.roleIds.slice(0,4).map(rid => `<i style="background:${esc(allRoles[rid]?.color || '#7C3AED')}"></i>`).join("")}</span><span>${item.roleIds.length}</span>`
+            : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span>Всі</span>`}
+        </button>`}
         <label class="ni-toggle" title="${item.enabled ? "Вимкнути" : "Увімкнути"}">
           <input type="checkbox" ${item.enabled ? "checked" : ""} ${item.protected ? "disabled" : ""} data-sec-idx="${si}" data-item-idx="${ii}">
           <span class="ni-toggle-sl"></span>
@@ -503,6 +597,15 @@ function renderEditor(){
         _iconPickerTarget = { secIdx: si, itemIdx: ii };
         document.getElementById("m-icon-picker").classList.add("on");
       });
+
+      // Role picker
+      if (!item.protected){
+        row.querySelector(".ni-roles-btn").addEventListener("click", () => {
+          _rolePickerTarget = { secIdx: si, itemIdx: ii };
+          renderRolePickList();
+          document.getElementById("m-role-picker").classList.add("on");
+        });
+      }
 
       // Name edit
       row.querySelector(".ni-name").addEventListener("input", e => {
@@ -780,8 +883,10 @@ document.getElementById("btn-save-nav").addEventListener("click", saveNav);
 document.getElementById("btn-reset-nav").addEventListener("click", resetNav);
 
 buildIconPicker();
+buildRolePicker();
 
 try {
+  await loadRoles();
   await loadNav();
 } catch(e) {
   console.error("[navigation] load failed:", e);
