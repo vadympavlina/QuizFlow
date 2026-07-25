@@ -159,6 +159,20 @@
   border-color:#7C3AED; box-shadow:0 0 0 3px rgba(124,58,237,.12);
 }
 
+.role-check-list{
+  display:flex; flex-direction:column; gap:6px; max-height:180px; overflow-y:auto;
+  border:1.5px solid var(--line); border-radius:10px; padding:8px;
+}
+.role-check-row{
+  display:flex; align-items:center; gap:9px; padding:6px 8px; border-radius:8px; cursor:pointer;
+  transition:background .12s;
+}
+.role-check-row:hover{background:#FAFBFE}
+.role-check-row input{width:15px; height:15px; accent-color:#7C3AED; cursor:pointer; flex:0 0 auto}
+.role-check-dot{width:9px; height:9px; border-radius:50%; flex:0 0 auto}
+.role-check-row span.rn{font-size:13px; font-weight:600; color:var(--ink-900)}
+.role-check-empty{padding:10px 4px; font-size:12.5px; color:var(--ink-500)}
+
 .pass-box{
   background:linear-gradient(135deg, #F5F3FF, #EDE9FE);
   border:1.5px solid #DDD6FE; border-radius:12px;
@@ -295,10 +309,8 @@
           </select>
         </div>
         <div class="field">
-          <div class="field-l">Кастомна роль (необов'язково)</div>
-          <select class="field-input" id="new-custom-role">
-            <option value="">— без ролі —</option>
-          </select>
+          <div class="field-l">Кастомні ролі (необов'язково)</div>
+          <div class="role-check-list" id="new-custom-roles"></div>
         </div>
 
         <div class="mod-err" id="create-err"></div>
@@ -362,9 +374,8 @@
       <div class="modal-b">
         <div style="font-size:13px;color:var(--ink-500);margin-top:-4px">Для <strong id="assign-role-name"></strong></div>
         <div class="field">
-          <div class="field-l">Роль</div>
-          <select class="field-input" id="assign-role-sel"></select>
-          <div class="field-h" id="assign-role-empty" style="display:none">Ще немає жодної створеної ролі — <a href="roles.html" style="color:#7C3AED;font-weight:700">створити на сторінці «Ролі»</a></div>
+          <div class="field-l">Ролі</div>
+          <div class="role-check-list" id="assign-role-list"></div>
         </div>
       </div>
       <div class="modal-f">
@@ -633,55 +644,75 @@ let _aiTeacherId = "";
 
 // ─── Render ───────────────────────────────────────────────────────────────
 // ─── Кастомні ролі (окремий шар над системним admin/teacher) ─────────────
+// У викладача тепер може бути КІЛЬКА ролей одночасно: зберігаємо як мапу
+// { roleId: true, ... } (а не масив — так природніше для Realtime DB).
+// Для старих акаунтів, де могло лишитись одиничне поле customRoleId
+// (попередня версія функціоналу), продовжуємо його розуміти при читанні.
 async function loadRoles(){
   window._roles = await dbGet("roles") || {};
-  fillCustomRoleSelect();
 }
 
-function fillCustomRoleSelect(){
-  const sel = document.getElementById("new-custom-role");
-  if (!sel) return;
+function getUserRoleIds(u){
+  if (u.customRoleIds && typeof u.customRoleIds === "object") return Object.keys(u.customRoleIds).filter(k => u.customRoleIds[k]);
+  if (u.customRoleId) return [u.customRoleId]; // сумісність зі старими записами
+  return [];
+}
+
+function renderRoleCheckboxes(containerId, selectedIds){
+  const el = document.getElementById(containerId);
+  if (!el) return;
   const roles = window._roles || {};
   const ids = Object.keys(roles).sort((a,b) => (roles[a].name||"").localeCompare(roles[b].name||"", "uk"));
-  sel.innerHTML = `<option value="">— без ролі —</option>` +
-    ids.map(id => `<option value="${id}">${esc(roles[id].name || "—")}</option>`).join("");
+  if (!ids.length){
+    el.innerHTML = `<div class="role-check-empty">Ще немає жодної створеної ролі — <a href="roles.html" style="color:#7C3AED;font-weight:700">створити на сторінці «Ролі»</a></div>`;
+    return;
+  }
+  const selSet = new Set(selectedIds || []);
+  el.innerHTML = ids.map(id => {
+    const r = roles[id];
+    return `<label class="role-check-row">
+      <input type="checkbox" value="${id}" ${selSet.has(id) ? "checked" : ""}>
+      <span class="role-check-dot" style="background:${esc(r.color||'#7C3AED')}"></span>
+      <span class="rn">${esc(r.name || "—")}</span>
+    </label>`;
+  }).join("");
 }
 
-function customRoleBadge(roleId){
-  const r = (window._roles || {})[roleId];
-  if (!r) return "";
-  return `<span class="badge-role" style="background:${esc(r.color||'#7C3AED')};color:#fff;border:0">${esc(r.name)}</span>`;
+function getCheckedRoleIds(containerId){
+  return [...document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`)].map(cb => cb.value);
+}
+
+function customRoleBadges(u){
+  const ids = getUserRoleIds(u);
+  const roles = window._roles || {};
+  return ids.map(id => {
+    const r = roles[id];
+    if (!r) return "";
+    return `<span class="badge-role" style="background:${esc(r.color||'#7C3AED')};color:#fff;border:0">${esc(r.name)}</span>`;
+  }).join("");
 }
 
 let _assignRoleUid = null;
-window.openAssignRoleModal = (uid, name, currentRoleId) => {
+window.openAssignRoleModal = (uid, name, currentRoleIds) => {
   _assignRoleUid = uid;
   document.getElementById("assign-role-name").textContent = name;
-  const roles = window._roles || {};
-  const ids = Object.keys(roles).sort((a,b) => (roles[a].name||"").localeCompare(roles[b].name||"", "uk"));
-  const sel = document.getElementById("assign-role-sel");
-  sel.innerHTML = `<option value="">— без ролі —</option>` +
-    ids.map(id => `<option value="${id}">${esc(roles[id].name || "—")}</option>`).join("");
-  sel.value = currentRoleId || "";
-  if (!ids.length){
-    document.getElementById("assign-role-empty").style.display = "block";
-    sel.style.display = "none";
-  } else {
-    document.getElementById("assign-role-empty").style.display = "none";
-    sel.style.display = "";
-  }
+  renderRoleCheckboxes("assign-role-list", currentRoleIds);
   openModal("m-assign-role");
 };
 
 window.saveAssignedRole = async () => {
   if (!_assignRoleUid) return;
-  const roleId = document.getElementById("assign-role-sel").value || null;
+  const ids = getCheckedRoleIds("assign-role-list");
+  const customRoleIds = {};
+  ids.forEach(id => { customRoleIds[id] = true; });
   const btn = document.getElementById("assign-role-btn");
   btn.disabled = true;
   try {
-    await dbUpd(`users/${_assignRoleUid}`, { customRoleId: roleId });
+    // customRoleId (старе одиничне поле) прибираємо, щоб не лишалось дублю
+    // з новою мапою customRoleIds — джерело істини тепер одне.
+    await dbUpd(`users/${_assignRoleUid}`, { customRoleIds, customRoleId: null });
     closeModal("m-assign-role");
-    toast("Роль оновлено");
+    toast("Ролі оновлено");
     await loadAllTeachers();
     renderAll();
   } catch(e) {
@@ -803,7 +834,7 @@ function renderGrid(){
             <span class="name">${esc((u.surname ? u.surname+' '+u.name : u.name) || "—")}</span>
             ${isMe ? '<span class="me-tag">(ви)</span>' : ""}
             ${roleLabel}
-            ${customRoleBadge(u.customRoleId)}
+            ${customRoleBadges(u)}
             ${statusEl}
           </div>
           <div class="user">${esc(u.email || "")}</div>
@@ -831,9 +862,9 @@ function renderGrid(){
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.5 6 6 1.5-6 1.5L12 17l-1.5-6-6-1.5 6-1.5z"/></svg>
           AI
         </button>
-        <button class="tc-act" onclick="openAssignRoleModal('${u.id}','${safeName}','${u.customRoleId||''}')" title="Змінити кастомну роль">
+        <button class="tc-act" data-role-ids='${esc(JSON.stringify(getUserRoleIds(u)))}' onclick="openAssignRoleModal('${u.id}','${safeName}', JSON.parse(this.dataset.roleIds))" title="Змінити кастомні ролі">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-          Роль
+          Ролі
         </button>
         ${!isMe ? `<button class="tc-act" onclick="openResetModal('${u.id}','${safeName}','${(u.email||'').replace(/'/g,"\\'")}')" title="Скинути пароль">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
@@ -900,8 +931,7 @@ window.openCreateModal = () => {
   document.getElementById("new-email").value = "";
   document.getElementById("new-pass").value = genPass();
   document.getElementById("new-role").value = "teacher";
-  fillCustomRoleSelect();
-  document.getElementById("new-custom-role").value = "";
+  renderRoleCheckboxes("new-custom-roles", []);
   document.getElementById("created-box").style.display = "none";
   document.getElementById("create-btn").style.display = "";
   document.getElementById("create-err").classList.remove("show");
@@ -918,7 +948,7 @@ window.createTeacher = async () => {
   const email   = document.getElementById("new-email").value.trim();
   const pass    = document.getElementById("new-pass").value.trim();
   const role    = document.getElementById("new-role").value;
-  const customRoleId = document.getElementById("new-custom-role")?.value || null;
+  const roleIdsArr = getCheckedRoleIds("new-custom-roles");
   const errEl   = document.getElementById("create-err");
 
   const showErr = (msg) => { errEl.textContent = msg; errEl.classList.add("show"); };
@@ -943,8 +973,10 @@ window.createTeacher = async () => {
     await signOutAuth(secAuth);
 
     // Пишемо профіль у Realtime DB
+    const customRoleIds = {};
+    roleIdsArr.forEach(id => { customRoleIds[id] = true; });
     await dbSet(`users/${uid}`, {
-      name, surname, email, role, customRoleId,
+      name, surname, email, role, customRoleIds,
       createdAt: Date.now(),
       blocked: false
     });

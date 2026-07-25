@@ -103,12 +103,20 @@ let userCounts = {};  // roleId -> кількість викладачів з ц
 let editingRoleId = null;
 let pickedColor = ROLE_COLORS[0];
 
+// Той самий контракт, що й у teachers.html: customRoleIds — мапа {roleId:true},
+// з підтримкою старого одиничного customRoleId для сумісності при читанні.
+function getUserRoleIds(u){
+  if (u.customRoleIds && typeof u.customRoleIds === "object") return Object.keys(u.customRoleIds).filter(k => u.customRoleIds[k]);
+  if (u.customRoleId) return [u.customRoleId];
+  return [];
+}
+
 async function loadRoles(){
   roles = await dbGet("roles") || {};
   const users = await dbGet("users") || {};
   userCounts = {};
   Object.values(users).forEach(u => {
-    if (u.customRoleId) userCounts[u.customRoleId] = (userCounts[u.customRoleId] || 0) + 1;
+    getUserRoleIds(u).forEach(id => { userCounts[id] = (userCounts[id] || 0) + 1; });
   });
   renderRoles();
 }
@@ -206,7 +214,7 @@ window.openDeleteRole = (roleId) => {
   const cnt = userCounts[roleId] || 0;
   document.getElementById("del-role-name").textContent = r?.name || "—";
   document.getElementById("del-role-warn").innerHTML = cnt > 0
-    ? `Цю роль зараз мають <b>${cnt}</b> ${cnt===1?"викладач":"викладачів"} — після видалення в них просто не буде ролі (жодні інші дані не постраждають).`
+    ? `Цю роль зараз мають <b>${cnt}</b> ${cnt===1?"викладач":"викладачів"} — після видалення вона просто зникне саме в них (інші ролі й дані не постраждають).`
     : "Цю роль наразі не має жоден викладач.";
   openModal("m-del-role");
 };
@@ -215,10 +223,17 @@ window.confirmDeleteRole = async () => {
   const btn = document.getElementById("del-role-confirm-btn");
   btn.disabled = true;
   try {
-    // Знімаємо роль з усіх, хто її мав
+    // Знімаємо саме цю роль з усіх, хто її мав — не чіпаючи решту їхніх ролей
     const users = await dbGet("users") || {};
-    const affected = Object.entries(users).filter(([,u]) => u.customRoleId === _delRoleId).map(([id]) => id);
-    await Promise.all(affected.map(uid => dbUpd(`users/${uid}`, { customRoleId: null })));
+    const updates = Object.entries(users)
+      .filter(([,u]) => getUserRoleIds(u).includes(_delRoleId))
+      .map(([uid, u]) => {
+        const remaining = getUserRoleIds(u).filter(id => id !== _delRoleId);
+        const customRoleIds = {};
+        remaining.forEach(id => { customRoleIds[id] = true; });
+        return dbUpd(`users/${uid}`, { customRoleIds, customRoleId: null });
+      });
+    await Promise.all(updates);
     await dbRemove(`roles/${_delRoleId}`);
     closeModal("m-del-role");
     toast("Роль видалено");
