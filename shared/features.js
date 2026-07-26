@@ -1834,7 +1834,7 @@ selectAnalyticsDrop(field, value, label){
       if (activeTests.some(t => !t.folderId)) chips.push({ id: "_none", name: "Без папки" });
       foldersEl.innerHTML = chips.map(f => {
         const on = (window._nlFolderF || "") === f.id;
-        return `<span onclick="G.setNlFolder('${f.id}')" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${on?"#2d5be3":"#E3E8F2"};background:${on?"#EEF2FB":"#fff"};color:${on?"#1E3A8A":"#5B6A8F"}">${f.color?`<span style="width:7px;height:7px;border-radius:50%;background:${f.color};flex:0 0 auto"></span>`:""}${esc(f.name)}</span>`;
+        return `<span onclick="G.setNlFolder('${f.id}')" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${on?"#2d5be3":"#E3E8F2"};background:${on?"#EEF2FB":"#fff"};color:${on?"#1E3A8A":"#5B6A8F"};white-space:nowrap;flex:0 0 auto"><span style="width:7px;height:7px;border-radius:50%;background:${f.color||"#C7CFE0"};flex:0 0 auto"></span>${esc(f.name)}</span>`;
       }).join("");
     }
 
@@ -1849,15 +1849,15 @@ selectAnalyticsDrop(field, value, label){
       const on = t.id === selectedId;
       const safeTitle = esc(t.title).replace(/'/g,"\\'");
       return `<div onclick="G.selectLinkTest('${t.id}','${safeTitle}')"
-        style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;background:${on?"#EEF2FB":"transparent"}">
-        <div style="width:30px;height:30px;border-radius:8px;background:#EFF3FE;display:grid;place-items:center;flex:0 0 auto;color:#2D5BE3">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+        style="display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:9px;cursor:pointer;background:${on?"#EEF2FB":"transparent"}">
+        <div style="width:26px;height:26px;border-radius:7px;background:#EFF3FE;display:grid;place-items:center;flex:0 0 auto;color:#2D5BE3">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
         </div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:13.5px;font-weight:700;color:#0B1437;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.title)}</div>
-          <div style="font-size:11px;color:#8691AC">${(t.questions||[]).length} питань</div>
+          <div style="font-size:13px;font-weight:700;color:#0B1437;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.title)}</div>
+          <div style="font-size:10.5px;color:#8691AC">${(t.questions||[]).length} питань</div>
         </div>
-        ${on ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2d5be3" stroke-width="2.5" style="flex:0 0 auto"><polyline points="20 6 9 17 4 12"/></svg>` : ""}
+        ${on ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2d5be3" stroke-width="2.5" style="flex:0 0 auto"><polyline points="20 6 9 17 4 12"/></svg>` : ""}
       </div>`;
     }).join("") : `<div style="padding:24px 12px;text-align:center;color:#8691AC;font-size:12.5px">Нічого не знайдено</div>`;
   },
