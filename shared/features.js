@@ -1822,48 +1822,53 @@ selectAnalyticsDrop(field, value, label){
   },
 
   renderLinkTestPicker(){
-    const foldersEl = document.getElementById("nl-t-folders");
     const listEl = document.getElementById("nl-t-list");
     if (!listEl) return;
     const q = (document.getElementById("nl-t-search")?.value || "").trim().toLowerCase();
     const activeTests = tests.filter(t => t.status !== "archived");
-
-    if (foldersEl){
-      const usedFolderIds = [...new Set(activeTests.map(t => t.folderId).filter(Boolean))];
-      const chips = [{ id: "", name: "Усі" }, ...folders.filter(f => usedFolderIds.includes(f.id))];
-      if (activeTests.some(t => !t.folderId)) chips.push({ id: "_none", name: "Без папки" });
-      foldersEl.innerHTML = chips.map(f => {
-        const on = (window._nlFolderF || "") === f.id;
-        return `<span onclick="G.setNlFolder('${f.id}')" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${on?"#2d5be3":"#E3E8F2"};background:${on?"#EEF2FB":"#fff"};color:${on?"#1E3A8A":"#5B6A8F"};white-space:nowrap;flex:0 0 auto"><span style="width:7px;height:7px;border-radius:50%;background:${f.color||"#C7CFE0"};flex:0 0 auto"></span>${esc(f.name)}</span>`;
-      }).join("");
-    }
-
-    const folderF = window._nlFolderF || "";
-    let list = activeTests;
-    if (folderF === "_none") list = list.filter(t => !t.folderId);
-    else if (folderF) list = list.filter(t => t.folderId === folderF);
-    if (q) list = list.filter(t => (t.title||"").toLowerCase().includes(q));
-
     const selectedId = document.getElementById("nl-t")?.value || "";
-    listEl.innerHTML = list.length ? list.map(t => {
-      const on = t.id === selectedId;
-      const safeTitle = esc(t.title).replace(/'/g,"\\'");
-      return `<div onclick="G.selectLinkTest('${t.id}','${safeTitle}')"
-        style="display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:9px;cursor:pointer;background:${on?"#EEF2FB":"transparent"}">
-        <div style="width:26px;height:26px;border-radius:7px;background:#EFF3FE;display:grid;place-items:center;flex:0 0 auto;color:#2D5BE3">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
-        </div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:700;color:#0B1437;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.title)}</div>
-          <div style="font-size:10.5px;color:#8691AC">${(t.questions||[]).length} питань</div>
-        </div>
-        ${on ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2d5be3" stroke-width="2.5" style="flex:0 0 auto"><polyline points="20 6 9 17 4 12"/></svg>` : ""}
+
+    // Групуємо тести за папкою — один вертикальний список замість
+    // окремого рядка чіпів (який доводилось гортати горизонтально)
+    const byFolder = {};
+    activeTests.forEach(t => {
+      const fid = t.folderId || "_none";
+      (byFolder[fid] = byFolder[fid] || []).push(t);
+    });
+    const groups = [
+      ...folders.filter(f => byFolder[f.id]),
+      ...(byFolder["_none"] ? [{ id: "_none", name: "Без папки", color: "#C7CFE0" }] : [])
+    ];
+
+    let html = "";
+    groups.forEach(f => {
+      let list = byFolder[f.id] || [];
+      if (q){
+        const folderMatches = (f.name || "").toLowerCase().includes(q);
+        if (!folderMatches) list = list.filter(t => (t.title || "").toLowerCase().includes(q));
+      }
+      if (!list.length) return;
+      html += `<div style="padding:9px 10px 5px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#8691AC;display:flex;align-items:center;gap:6px;position:sticky;top:0;background:#fff;z-index:1">
+        <span style="width:7px;height:7px;border-radius:50%;background:${f.color||"#C7CFE0"};flex:0 0 auto"></span>${esc(f.name)}
       </div>`;
-    }).join("") : `<div style="padding:24px 12px;text-align:center;color:#8691AC;font-size:12.5px">Нічого не знайдено</div>`;
-  },
-  setNlFolder(fid){
-    window._nlFolderF = fid;
-    G.renderLinkTestPicker();
+      html += list.map(t => {
+        const on = t.id === selectedId;
+        const safeTitle = esc(t.title).replace(/'/g,"\\'");
+        return `<div onclick="G.selectLinkTest('${t.id}','${safeTitle}')"
+          style="display:flex;align-items:center;gap:9px;padding:7px 10px;margin:0 2px;border-radius:9px;cursor:pointer;background:${on?"#EEF2FB":"transparent"}">
+          <div style="width:26px;height:26px;border-radius:7px;background:#EFF3FE;display:grid;place-items:center;flex:0 0 auto;color:#2D5BE3">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:700;color:#0B1437;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.title)}</div>
+            <div style="font-size:10.5px;color:#8691AC">${(t.questions||[]).length} питань</div>
+          </div>
+          ${on ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2d5be3" stroke-width="2.5" style="flex:0 0 auto"><polyline points="20 6 9 17 4 12"/></svg>` : ""}
+        </div>`;
+      }).join("");
+    });
+
+    listEl.innerHTML = html || `<div style="padding:28px 12px;text-align:center;color:#8691AC;font-size:12.5px">Нічого не знайдено</div>`;
   },
   selectLinkTest(testId, title){
     document.getElementById("nl-t").value = testId;
@@ -1879,7 +1884,6 @@ selectAnalyticsDrop(field, value, label){
     $("nl-sq").checked=false; $("nl-sa").checked=false;
     if($("nl-close")) $("nl-close").value="";
     const search=document.getElementById("nl-t-search"); if(search) search.value="";
-    window._nlFolderF="";
     G.renderLinkTestPicker();
     openM("m-link");
   },
@@ -2070,7 +2074,6 @@ selectAnalyticsDrop(field, value, label){
     $("nl-t").value=tid; $("nl-m").value="30"; $("nl-g").value="";
     $("nl-sq").checked=false; $("nl-sa").checked=false;
     const search=document.getElementById("nl-t-search"); if(search) search.value="";
-    window._nlFolderF="";
     G.renderLinkTestPicker();
     openM("m-link");
   },
