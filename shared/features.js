@@ -1285,9 +1285,9 @@ fillSelects = function(){
       groups.map(g=>`<div class="cd-item${curGrpAn===g?" cd-active":""}" data-val="${esc(g)}" onclick="G.selectAnalyticsDrop('group','${esc(g)}','${esc(g)}')">${esc(g)}</div>`
       ).join("");
   }
-  // Посилання - тест у модалі (тепер окремий пошук+папки+список; оновлюємо
-  // лише якщо модалка зараз відкрита, щоб список був актуальний після змін)
-  if (document.getElementById("nl-t-list")) G.renderLinkTestPicker();
+  // Посилання - тест у модалі (тепер покроковий пікер папка→тест; оновлюємо
+  // лише якщо модалка зараз відкрита і пікер видимий, щоб список був актуальний після змін)
+  if (document.getElementById("nl-picker-content") && document.getElementById("nl-picker-box")?.style.display !== "none") G.renderNlPicker();
 }
 
 
@@ -1821,58 +1821,116 @@ selectAnalyticsDrop(field, value, label){
     G.renderAnalytics();
   },
 
-  renderLinkTestPicker(){
-    const listEl = document.getElementById("nl-t-list");
-    if (!listEl) return;
-    const q = (document.getElementById("nl-t-search")?.value || "").trim().toLowerCase();
-    const activeTests = tests.filter(t => t.status !== "archived");
-    const selectedId = document.getElementById("nl-t")?.value || "";
-
-    // Групуємо тести за папкою — один вертикальний список замість
-    // окремого рядка чіпів (який доводилось гортати горизонтально)
-    const byFolder = {};
-    activeTests.forEach(t => {
-      const fid = t.folderId || "_none";
-      (byFolder[fid] = byFolder[fid] || []).push(t);
-    });
-    const groups = [
-      ...folders.filter(f => byFolder[f.id]),
-      ...(byFolder["_none"] ? [{ id: "_none", name: "Без папки", color: "#C7CFE0" }] : [])
-    ];
-
-    let html = "";
-    groups.forEach(f => {
-      let list = byFolder[f.id] || [];
-      if (q){
-        const folderMatches = (f.name || "").toLowerCase().includes(q);
-        if (!folderMatches) list = list.filter(t => (t.title || "").toLowerCase().includes(q));
-      }
-      if (!list.length) return;
-      html += `<div style="padding:9px 10px 5px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#8691AC;display:flex;align-items:center;gap:6px;position:sticky;top:0;background:#fff;z-index:1">
-        <span style="width:7px;height:7px;border-radius:50%;background:${f.color||"#C7CFE0"};flex:0 0 auto"></span>${esc(f.name)}
-      </div>`;
-      html += list.map(t => {
-        const on = t.id === selectedId;
-        const safeTitle = esc(t.title).replace(/'/g,"\\'");
-        return `<div onclick="G.selectLinkTest('${t.id}','${safeTitle}')"
-          style="display:flex;align-items:center;gap:9px;padding:7px 10px;margin:0 2px;border-radius:9px;cursor:pointer;background:${on?"#EEF2FB":"transparent"}">
-          <div style="width:26px;height:26px;border-radius:7px;background:#EFF3FE;display:grid;place-items:center;flex:0 0 auto;color:#2D5BE3">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
-          </div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:13px;font-weight:700;color:#0B1437;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.title)}</div>
-            <div style="font-size:10.5px;color:#8691AC">${(t.questions||[]).length} питань</div>
-          </div>
-          ${on ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2d5be3" stroke-width="2.5" style="flex:0 0 auto"><polyline points="20 6 9 17 4 12"/></svg>` : ""}
-        </div>`;
-      }).join("");
-    });
-
-    listEl.innerHTML = html || `<div style="padding:28px 12px;text-align:center;color:#8691AC;font-size:12.5px">Нічого не знайдено</div>`;
+  // ─── Крок 1: список папок ────────────────────────────────────────────
+  renderNlPicker(){
+    const box = document.getElementById("nl-picker-content");
+    if (!box) return;
+    if ((window._nlStep || "folder") === "test") G.renderNlTestStep(box);
+    else G.renderNlFolderStep(box);
   },
+  renderNlFolderStep(box){
+    const activeTests = tests.filter(t => t.status !== "archived");
+    const countIn = fid => activeTests.filter(t => (t.folderId || "_none") === fid).length;
+    const usedFolders = folders.filter(f => countIn(f.id) > 0);
+    const noneCount = countIn("_none");
+    const q = (document.getElementById("nl-fsearch")?.value || "").trim().toLowerCase();
+
+    let rows = [{ id: "", name: "Усі тести", color: "#7C3AED", count: activeTests.length, pin: true }];
+    rows = rows.concat(usedFolders.map(f => ({ id: f.id, name: f.name, color: f.color || "#C7CFE0", count: countIn(f.id) })));
+    if (noneCount) rows.push({ id: "_none", name: "Без папки", color: "#C7CFE0", count: noneCount });
+    if (q) rows = rows.filter(r => r.pin || (r.name || "").toLowerCase().includes(q));
+
+    box.innerHTML = `
+      <div style="padding:7px 8px;border-bottom:1px solid var(--line, #E3E8F2)">
+        <input id="nl-fsearch" type="text" placeholder="Пошук папки..." autocomplete="off" value="${esc(q)}" oninput="G.renderNlPicker()"
+          style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--line, #E3E8F2);font-size:13px;outline:none;font-family:inherit;box-sizing:border-box"
+          onfocus="this.style.borderColor='#3B82F6'" onblur="this.style.borderColor='var(--line, #E3E8F2)'">
+      </div>
+      <div style="max-height:360px;overflow-y:auto;padding:4px">
+        ${rows.length ? rows.map(r => `
+          <div onclick="G.pickNlFolder('${r.id}')" style="display:flex;align-items:center;gap:11px;padding:11px 12px;margin:2px 0;border-radius:10px;cursor:pointer;transition:background .12s" onmouseover="this.style.background='#EFF3FE'" onmouseout="this.style.background='transparent'">
+            <span style="width:9px;height:9px;border-radius:50%;background:${r.color};flex:0 0 auto"></span>
+            <span style="flex:1;font-size:13.5px;font-weight:700;color:#0B1437">${esc(r.name)}</span>
+            <span style="font-size:12px;color:#8691AC">${r.count} ${r.count===1?"тест":"тестів"}</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C7CFE0" stroke-width="2.2" style="flex:0 0 auto"><polyline points="9 6 15 12 9 18"/></svg>
+          </div>`).join("") : `<div style="padding:28px 12px;text-align:center;color:#8691AC;font-size:12.5px">Нічого не знайдено</div>`}
+      </div>`;
+  },
+  pickNlFolder(fid){
+    window._nlFolderF = fid;
+    window._nlStep = "test";
+    G.renderNlPicker();
+  },
+  backToNlFolders(){
+    window._nlStep = "folder";
+    G.renderNlPicker();
+  },
+
+  // ─── Крок 2: список тестів усередині обраної папки ──────────────────
+  renderNlTestStep(box){
+    const fid = window._nlFolderF ?? "";
+    const activeTests = tests.filter(t => t.status !== "archived");
+    let list = fid === "" ? activeTests
+      : fid === "_none" ? activeTests.filter(t => !t.folderId)
+      : activeTests.filter(t => t.folderId === fid);
+    const q = (document.getElementById("nl-tsearch")?.value || "").trim().toLowerCase();
+    if (q) list = list.filter(t => (t.title || "").toLowerCase().includes(q));
+    const label = fid === "" ? "Усі тести" : fid === "_none" ? "Без папки" : (folders.find(f => f.id === fid)?.name || "Папка");
+
+    box.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;padding:9px 10px;border-bottom:1px solid var(--line, #E3E8F2);background:#fff">
+        <button onclick="G.backToNlFolders()" title="Назад до папок" style="border:0;background:#EFF3FE;color:#2D5BE3;width:28px;height:28px;border-radius:8px;cursor:pointer;display:grid;place-items:center;flex:0 0 auto">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div style="font-size:13px;font-weight:800;color:#0B1437;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(label)}</div>
+      </div>
+      <div style="padding:7px 8px;border-bottom:1px solid var(--line, #E3E8F2)">
+        <input id="nl-tsearch" type="text" placeholder="Пошук тесту..." autocomplete="off" value="${esc(q)}" oninput="G.renderNlPicker()"
+          style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--line, #E3E8F2);font-size:13px;outline:none;font-family:inherit;box-sizing:border-box"
+          onfocus="this.style.borderColor='#3B82F6'" onblur="this.style.borderColor='var(--line, #E3E8F2)'">
+      </div>
+      <div style="max-height:300px;overflow-y:auto;padding:4px">
+        ${list.length ? list.map(t => {
+          const safeTitle = esc(t.title).replace(/'/g,"\\'");
+          return `<div onclick="G.selectLinkTest('${t.id}','${safeTitle}')"
+            style="display:flex;align-items:center;gap:9px;padding:8px 10px;margin:2px 0;border-radius:9px;cursor:pointer;transition:background .12s" onmouseover="this.style.background='#EFF3FE'" onmouseout="this.style.background='transparent'">
+            <div style="width:28px;height:28px;border-radius:8px;background:#EFF3FE;display:grid;place-items:center;flex:0 0 auto;color:#2D5BE3">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13.5px;font-weight:700;color:#0B1437;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.title)}</div>
+              <div style="font-size:10.5px;color:#8691AC">${(t.questions||[]).length} питань</div>
+            </div>
+          </div>`;
+        }).join("") : `<div style="padding:28px 12px;text-align:center;color:#8691AC;font-size:12.5px">Нічого не знайдено</div>`}
+      </div>`;
+  },
+
+  // ─── Вибір тесту: ховаємо пікер, показуємо підсумок і решту полів ───
   selectLinkTest(testId, title){
     document.getElementById("nl-t").value = testId;
-    G.renderLinkTestPicker();
+    const summary = document.getElementById("nl-test-summary");
+    const box = document.getElementById("nl-picker-box");
+    const details = document.getElementById("nl-details-wrap");
+    if (summary){
+      summary.style.display = "flex";
+      summary.innerHTML = `
+        <div style="width:30px;height:30px;border-radius:8px;background:#EFF3FE;display:grid;place-items:center;flex:0 0 auto;color:#2D5BE3">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+        </div>
+        <div style="flex:1;font-size:13.5px;font-weight:700;color:#0B1437;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(title)}</div>
+        <button onclick="G.changeNlTest()" style="border:0;background:transparent;color:#2D5BE3;font-size:12.5px;font-weight:700;cursor:pointer;flex:0 0 auto">Змінити</button>`;
+    }
+    if (box) box.style.display = "none";
+    if (details) details.style.display = "flex";
+  },
+  changeNlTest(){
+    const summary = document.getElementById("nl-test-summary");
+    const box = document.getElementById("nl-picker-box");
+    if (summary) summary.style.display = "none";
+    if (box) box.style.display = "";
+    window._nlStep = "folder";
+    G.renderNlPicker();
   },
   newLink(){
     window._editLinkId=null;
@@ -1883,8 +1941,12 @@ selectAnalyticsDrop(field, value, label){
     $("nl-t").value=""; $("nl-m").value="30"; $("nl-g").value="";
     $("nl-sq").checked=false; $("nl-sa").checked=false;
     if($("nl-close")) $("nl-close").value="";
-    const search=document.getElementById("nl-t-search"); if(search) search.value="";
-    G.renderLinkTestPicker();
+    window._nlStep = "folder";
+    window._nlFolderF = "";
+    const summary=document.getElementById("nl-test-summary"); if(summary) summary.style.display="none";
+    const box=document.getElementById("nl-picker-box"); if(box) box.style.display="";
+    const details=document.getElementById("nl-details-wrap"); if(details) details.style.display="none";
+    G.renderNlPicker();
     openM("m-link");
   },
   toggleArchive(){
@@ -2073,8 +2135,11 @@ selectAnalyticsDrop(field, value, label){
     $("nl-submit-btn").textContent="Створити →";
     $("nl-t").value=tid; $("nl-m").value="30"; $("nl-g").value="";
     $("nl-sq").checked=false; $("nl-sa").checked=false;
-    const search=document.getElementById("nl-t-search"); if(search) search.value="";
-    G.renderLinkTestPicker();
+    if($("nl-close")) $("nl-close").value="";
+    const t = tests.find(x => x.id === tid);
+    window._nlStep = "folder";
+    window._nlFolderF = "";
+    G.selectLinkTest(tid, t?.title || "Тест"); // одразу показує підсумок і відкриває решту полів
     openM("m-link");
   },
   editLink(id){
@@ -2083,6 +2148,7 @@ selectAnalyticsDrop(field, value, label){
     $("m-link-title").textContent="Редагувати посилання";
     $("m-link-sub").textContent="Змінити налаштування";
     $("m-link-test-wrap").style.display="none";
+    const details=document.getElementById("nl-details-wrap"); if(details) details.style.display="flex";
     $("nl-submit-btn").textContent="Зберегти →";
     $("nl-m").value=l.maxAttempts||30; $("nl-g").value=l.group||"";
     $("nl-sq").checked=l.shuffleQuestions||false;
