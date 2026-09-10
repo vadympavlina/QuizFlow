@@ -7,112 +7,120 @@
 <title>QuizFlow Live · Ваш результат</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
   *,*::before,*::after{box-sizing:border-box}
   html{margin:0;padding:0}
 body{margin:0;padding:0}
+
+  :root{
+    --ink:#17140F;
+    --card:#221D16;
+    --card-2:#2A241A;
+    --card-line:#3A3226;
+    --paper:#F4EEE1;
+    --paper-dim:#B7AC97;
+    --gold:#E3A53E;
+    --gold-ink:#2B1C05;
+    --good:#83A66F;
+    --bad:#CB8468;
+    --pip-ok:#3C4F33;
+    --pip-no:#5A362A;
+  }
+
   body{
-    font-family:Manrope,system-ui,sans-serif;color:#fff;
-    background:
-      radial-gradient(800px 600px at 50% -10%, rgba(167,139,250,.3), transparent 60%),
-      linear-gradient(160deg,#0A1240,#0F1844 60%,#1E1A6E);
+    font-family:"Space Grotesk",system-ui,sans-serif;color:var(--paper);
+    background:var(--ink);
     min-height:100vh;
   }
-  body::before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);background-size:48px 48px;mask-image:radial-gradient(ellipse at center, black 30%, transparent 90%)}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;background-image:radial-gradient(rgba(244,238,225,.06) 1px, transparent 1px);background-size:26px 26px;mask-image:radial-gradient(ellipse at center, black 30%, transparent 90%)}
 
   .wrap{max-width:540px;margin:0 auto;padding:32px 22px 60px;position:relative;z-index:1}
 
-  .brand{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:24px}
-  .brand .logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#A78BFA,#7C3AED);display:grid;place-items:center;color:#fff}
-  .brand b{font-weight:800;font-size:14px}
-  .brand small{color:#A78BFA;font-weight:500}
+  .brand{display:flex;align-items:center;gap:9px;justify-content:center;margin-bottom:26px}
+  .brand .logo{width:28px;height:28px;border-radius:8px;background:var(--gold);display:grid;place-items:center;color:var(--gold-ink)}
+  .brand b{font-weight:700;font-size:14px}
+  .brand small{color:var(--paper-dim);font-weight:500;display:inline-flex;align-items:center;gap:5px}
+  .brand small::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold)}
 
   .hero{
-    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-    border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:32px 24px;text-align:center;
-    backdrop-filter:blur(10px);position:relative;overflow:hidden;
-  }
-  .hero::before{
-    content:"";position:absolute;inset:-1px;border-radius:24px;padding:1px;
-    background:linear-gradient(135deg, rgba(252,211,77,.5), transparent 40%, rgba(167,139,250,.5));
-    -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;
+    background:var(--card);
+    border:2px solid var(--card-line);border-radius:16px;padding:30px 24px;text-align:center;
+    position:relative;box-shadow:6px 6px 0 rgba(0,0,0,.25);
   }
 
   .place-badge{
     display:inline-flex;align-items:center;gap:8px;
-    background:linear-gradient(135deg,#FCD34D,#D97706);color:#451A03;
-    padding:8px 18px;border-radius:999px;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
-    box-shadow:0 10px 24px rgba(252,211,77,.35);margin-bottom:14px;
+    background:var(--gold);color:var(--gold-ink);
+    padding:7px 16px;border-radius:7px;font-size:13px;font-weight:600;
+    margin-bottom:16px;
   }
 
-  .player-info{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:18px}
-  .player-info .av{width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,#FACC15,#CA8A04);display:grid;place-items:center;color:#451A03;font-weight:800;font-size:18px;box-shadow:0 8px 20px rgba(0,0,0,.3)}
-  .player-info .name{font-size:20px;font-weight:800;letter-spacing:-.01em;text-align:left}
+  .player-info{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px}
+  .player-info .av{width:52px;height:52px;border-radius:10px;background:var(--gold);display:grid;place-items:center;color:var(--gold-ink);font-weight:700;font-size:17px}
+  .player-info .name{font-size:19px;font-weight:700;letter-spacing:-.01em;text-align:left}
 
   .place-num{
-    font-family:"Geist Mono",monospace;font-size:96px;font-weight:900;line-height:1;letter-spacing:-.04em;
-    background:linear-gradient(135deg,#FCD34D 0%, #FB923C 50%, #A78BFA 100%);
-    -webkit-background-clip:text;background-clip:text;color:transparent;
-    margin:8px 0;
+    font-family:"JetBrains Mono",monospace;font-size:80px;font-weight:700;line-height:1;letter-spacing:-.03em;
+    color:var(--gold);
+    margin:6px 0;
   }
-  .place-meta{font-size:13px;color:#A6B0D6;font-weight:600}
-  .place-meta b{color:#fff;font-weight:800}
+  .place-meta{font-size:13.5px;color:var(--paper-dim);font-weight:500}
+  .place-meta b{color:var(--paper);font-weight:700}
 
   .score-strip{
     display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;
-    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);
-    border-radius:18px;overflow:hidden;margin-top:24px;
+    background:var(--card-line);border:2px solid var(--card-line);
+    border-radius:12px;overflow:hidden;margin-top:22px;
   }
-  .score-strip > div{background:rgba(15,24,68,.7);padding:16px 12px;text-align:center}
-  .score-strip .l{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#A78BFA}
-  .score-strip .v{font-family:"Geist Mono",monospace;font-size:24px;font-weight:800;letter-spacing:-.02em;margin-top:4px}
-  .score-strip .v.green{color:#86EFAC}
-  .score-strip .v.red{color:#FCA5A5}
-  .score-strip .v.gold{color:#FCD34D}
+  .score-strip > div{background:var(--card-2);padding:14px 10px;text-align:center}
+  .score-strip .l{font-size:11px;font-weight:500;color:var(--paper-dim)}
+  .score-strip .v{font-family:"JetBrains Mono",monospace;font-size:22px;font-weight:700;letter-spacing:-.02em;margin-top:5px}
+  .score-strip .v.green{color:var(--good)}
+  .score-strip .v.red{color:var(--bad)}
+  .score-strip .v.gold{color:var(--gold)}
 
   .total-points{
-    margin-top:24px;background:linear-gradient(135deg,rgba(252,211,77,.18),rgba(124,58,237,.18));
-    border:1px solid rgba(252,211,77,.3);border-radius:18px;padding:20px 22px;
+    margin-top:22px;background:var(--card-2);
+    border:2px solid var(--gold);border-radius:12px;padding:18px 20px;
     display:flex;align-items:center;gap:16px;
   }
-  .total-points .ico{font-size:32px}
-  .total-points .lbl{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#FCD34D}
-  .total-points .pts{font-family:"Geist Mono",monospace;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1;margin-top:2px}
+  .total-points .ico{font-size:28px}
+  .total-points .lbl{font-size:11.5px;font-weight:500;color:var(--paper-dim)}
+  .total-points .pts{font-family:"JetBrains Mono",monospace;font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.2;margin-top:3px;color:var(--paper)}
 
   .recap{margin-top:28px}
-  .recap h3{font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#A78BFA;margin:0 0 12px}
+  .recap h3{font-size:14px;font-weight:600;color:var(--paper);margin:0 0 14px}
   .pips{display:grid;grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:6px;margin-bottom:16px}
-  .pip{aspect-ratio:1;border-radius:8px;display:grid;place-items:center;font-family:"Geist Mono",monospace;font-size:11px;font-weight:800;color:#fff;border:1px solid rgba(255,255,255,.08)}
-  .pip.ok{background:linear-gradient(135deg,#10B981,#047857)}
-  .pip.no{background:linear-gradient(135deg,#EF4444,#B91C1C)}
-  .pip.skip{background:rgba(255,255,255,.08);color:#7B85B5}
+  .pip{aspect-ratio:1;border-radius:7px;display:grid;place-items:center;font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:700;color:var(--paper)}
+  .pip.ok{background:var(--pip-ok)}
+  .pip.no{background:var(--pip-no)}
+  .pip.skip{background:var(--card-2);color:var(--paper-dim);border:1px solid var(--card-line)}
 
-  .legend{display:flex;justify-content:center;gap:18px;font-size:11px;color:#A6B0D6;margin-bottom:8px}
+  .legend{display:flex;justify-content:center;gap:18px;font-size:12px;color:var(--paper-dim);margin-bottom:8px}
   .legend span{display:inline-flex;align-items:center;gap:6px}
   .legend i{width:10px;height:10px;border-radius:3px}
 
   .leaders-snippet{
-    margin-top:20px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
-    border-radius:16px;padding:16px;
+    margin-top:22px;background:var(--card);border:2px solid var(--card-line);
+    border-radius:14px;padding:16px 18px;
   }
-  .leaders-snippet h4{margin:0 0 10px;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#A78BFA;display:flex;align-items:center;gap:8px}
-  .leaders-snippet h4 small{margin-left:auto;font-weight:700;color:#7B85B5;letter-spacing:.06em}
-  .lr-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+  .leaders-snippet h4{margin:0 0 10px;font-size:13px;font-weight:600;color:var(--paper);display:flex;align-items:center;gap:8px}
+  .leaders-snippet h4 small{margin-left:auto;font-weight:500;color:var(--paper-dim);font-size:12px}
+  .lr-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--card-line)}
   .lr-row:last-child{border-bottom:0}
-  .lr-row.you{background:linear-gradient(90deg, rgba(124,58,237,.15), transparent);margin:0 -10px;padding-left:10px;padding-right:10px;border-radius:8px}
-  .lr-rank{font-family:"Geist Mono",monospace;font-weight:800;font-size:13px;color:#A6B0D6;width:28px}
-  .lr-rank.gold{color:#FCD34D}
-  .lr-name{flex:1;font-weight:700;font-size:13.5px}
-  .lr-row.you .lr-name::after{content:" · ВИ";color:#C4B5FD;font-weight:800;font-size:10.5px;letter-spacing:.08em}
-  .lr-pts{font-family:"Geist Mono",monospace;font-weight:800;font-size:13px;color:#FCD34D}
+  .lr-row.you{background:var(--card-2);margin:0 -10px;padding-left:10px;padding-right:10px;border-radius:8px;border-left:3px solid var(--gold)}
+  .lr-rank{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:13px;color:var(--paper-dim);width:28px}
+  .lr-rank.gold{color:var(--gold)}
+  .lr-name{flex:1;font-weight:600;font-size:13.5px}
+  .lr-row.you .lr-name::after{content:" · ви";color:var(--gold);font-weight:600;font-size:11px}
+  .lr-pts{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:13px;color:var(--gold)}
 
-  .footer-msg{margin-top:24px;text-align:center;font-size:12px;color:#7B85B5;line-height:1.6}
-  .footer-msg b{color:#A78BFA}
+  .footer-msg{margin-top:26px;text-align:center;font-size:12.5px;color:var(--paper-dim);line-height:1.6}
+  .footer-msg b{color:var(--gold)}
 
   .spinner-wrap{display:flex;align-items:center;justify-content:center;padding:60px}
-  .spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.1);border-top-color:#A78BFA;border-radius:50%;animation:spin .8s linear infinite}
+  .spinner{width:36px;height:36px;border:3px solid var(--card-line);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
@@ -121,7 +129,7 @@ body{margin:0;padding:0}
   <div class="brand">
     <div class="logo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg></div>
     <b>quizflow</b>
-    <small>· live</small>
+    <small>live</small>
   </div>
 
   <div id="content">
@@ -240,9 +248,9 @@ async function renderResult(room) {
     <div class="recap">
       <h3>📋 Розбір питань</h3>
       <div class="legend">
-        <span><i style="background:#10B981"></i> Правильно</span>
-        <span><i style="background:#EF4444"></i> Помилка</span>
-        <span><i style="background:rgba(255,255,255,.08)"></i> Пропущено</span>
+        <span><i style="background:#3C4F33"></i> Правильно</span>
+        <span><i style="background:#5A362A"></i> Помилка</span>
+        <span><i style="background:#2A241A"></i> Пропущено</span>
       </div>
       <div class="pips">${pips}</div>
     </div>
