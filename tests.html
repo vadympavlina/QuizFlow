@@ -5,13 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/><circle cx='24' cy='22' r='5' fill='none' stroke='white' stroke-width='2.2'/><line x1='27.5' y1='25.5' x2='29.5' y2='27.5' stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>">
 <title>QuizFlow — Тести</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
 <link rel="modulepreload" href="shared/app.js?v=14">
-<link rel="preload" as="fetch" href="shared/layout?v=14" crossorigin>
 <link rel="modulepreload" href="shared/features.js?v=14">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
@@ -210,6 +209,92 @@
 #sec-tests .t-empty .t-empty-title{font-size:15px;font-weight:700;color:var(--ink-900);margin-bottom:4px;font-family:'Manrope',sans-serif}
 #sec-tests .t-empty .t-empty-hint{font-size:13px;margin-bottom:18px}
 
+/* ── Нове: тулбар, хлібні крихти, плаваюче меню, кнопки-картки ── */
+#sec-tests .t-top{display:flex;flex-direction:column;gap:12px}
+#sec-tests .t-crumbs{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-500);flex-wrap:wrap}
+#sec-tests .t-crumbs[hidden]{display:none}
+#sec-tests .t-crumb{cursor:pointer;padding:6px 10px;border-radius:8px;display:inline-flex;align-items:center;gap:7px;background:transparent;border:0;color:var(--ink-500);font:600 13px 'Manrope',sans-serif}
+#sec-tests .t-crumb svg{width:14px;height:14px}
+#sec-tests .t-crumb:hover{background:#EEF2FB;color:var(--ink-900)}
+#sec-tests .t-crumb.active{color:var(--ink-900);background:#fff;border:1px solid var(--line);cursor:default;font-weight:700}
+#sec-tests .t-dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+#sec-tests .t-crumb-actions{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+#sec-tests .t-btn.danger{color:#B91C1C}
+#sec-tests .t-btn.danger:hover{background:#FEE2E2;color:#991B1B}
+#sec-tests .t-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#sec-tests .t-toolbar .t-search{flex:1;min-width:240px;max-width:460px}
+#sec-tests .t-toolbar .t-input{width:100%;padding-left:34px;padding-right:32px;height:38px;font-size:13.5px}
+#sec-tests .t-search-clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:24px;height:24px;border:0;border-radius:6px;background:transparent;color:var(--ink-400);cursor:pointer;font-size:16px;line-height:1}
+#sec-tests .t-search-clear:hover{background:#EEF2FB;color:var(--ink-900)}
+#sec-tests .t-toolbar [hidden]{display:none!important}
+#sec-tests .t-toolbar .t-select{height:38px;cursor:pointer}
+#sec-tests .t-toolbar .t-spacer{flex:1}
+#sec-tests .t-folders-grid{padding:0 18px 18px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+#sec-tests .t-quizzes-grid{padding:4px 18px 18px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+#sec-tests .t-card + .t-card{margin-top:0}
+#tc{display:flex;flex-direction:column;gap:16px}
+/* Кнопки, що виглядають як частина картки */
+#sec-tests .t-qc-cover,#sec-tests .t-qc-title,#sec-tests .t-row-title,#sec-tests .t-pill-btn{font:inherit;border:0;text-align:left;width:100%;cursor:pointer}
+#sec-tests .t-qc-title{background:none;padding:0;font-weight:700;font-size:15px;color:var(--ink-900)}
+#sec-tests .t-qc-title:hover,#sec-tests .t-row-title:hover{color:var(--nav-600)}
+#sec-tests .t-row-title{background:none;padding:0;font-weight:600;font-size:14px;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px;display:block}
+#sec-tests .t-row-sub{font-size:12px;color:var(--ink-400);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:320px}
+#sec-tests .t-pill-btn{background:none;padding:0;width:auto}
+#sec-tests .t-qc-folder{display:inline-flex;align-items:center;gap:5px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sec-tests .t-qc-folder::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--fc);flex:0 0 auto}
+#sec-tests .t-menu-btn svg{width:15px;height:15px}
+#sec-tests .t-menu-btn[aria-expanded="true"]{background:#EEF2FB;color:var(--ink-900)}
+#sec-tests .t-folder-card:focus-visible,#sec-tests button:focus-visible{outline:2px solid var(--nav-accent);outline-offset:2px}
+#sec-tests .t-fc-actions button svg{width:13px;height:13px}
+#sec-tests .t-fc-actions{opacity:.001}
+#sec-tests .t-folder-card:hover .t-fc-actions,#sec-tests .t-folder-card:focus-within .t-fc-actions{opacity:1}
+#sec-tests .t-fc-title{overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;padding-right:52px;overflow-wrap:anywhere}
+#sec-tests .t-fc-meta-row svg{width:12px;height:12px}
+#sec-tests .t-fc-ico svg{width:22px;height:22px;color:#fff}
+#sec-tests .t-nf-ico svg{width:22px;height:22px}
+#sec-tests .t-qc-folder{font-weight:500}
+#sec-tests .t-fc-cta svg{width:13px;height:13px}
+#sec-tests .t-new-folder{font:inherit;width:100%}
+#sec-tests .t-dtable tbody tr:focus-within .t-ra{opacity:1}
+#sec-tests .t-empty .t-empty-ico svg{width:26px;height:26px}
+#sec-archive .t-card{background:#fff;border:1px solid #E3E8F2;border-radius:16px;overflow:hidden}
+#sec-archive .t-btn{background:#fff;border:1px solid #E3E8F2;padding:0 12px;height:32px;border-radius:9px;font:500 12.5px 'Manrope',sans-serif;color:#24335A;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+#sec-archive .t-btn:hover{border-color:#CDD6E8}
+#sec-archive .t-btn.danger{color:#B91C1C;border-color:transparent;background:transparent}
+#sec-archive .t-btn.danger:hover{background:#FEE2E2}
+#sec-archive .t-btn svg{width:13px;height:13px}
+#sec-archive .t-dtable{width:100%;border-collapse:separate;border-spacing:0}
+#sec-archive .t-dtable th,#sec-archive .t-dtable td{padding:12px 18px;text-align:left;font:13px 'Manrope',sans-serif;border-bottom:1px solid #E3E8F2}
+#sec-archive .t-dtable th{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8691AC;background:#FAFBFE}
+#sec-archive .t-dtable tbody tr:last-child td{border-bottom:0}
+#sec-archive .t-tile{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;font:800 11px 'Geist Mono',monospace;color:#fff;flex:0 0 auto}
+#sec-archive .t-row-title{font-weight:600;font-size:14px;color:#0B1437;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:320px}
+#sec-archive .t-row-sub{font-size:12px;color:#8691AC;margin-top:2px}
+#sec-archive .t-muted{color:#8691AC}
+#sec-archive .t-mono{font-family:'Geist Mono',monospace}
+#sec-archive .t-empty{padding:56px 24px;text-align:center;color:#5B6A8F}
+#sec-archive .t-empty-ico{width:56px;height:56px;margin:0 auto 14px;border-radius:14px;background:#EEF2FB;display:grid;place-items:center;color:#1E3A8A}
+#sec-archive .t-empty-ico svg{width:26px;height:26px}
+#sec-archive .t-empty-title{font:700 15px 'Manrope',sans-serif;color:#0B1437;margin-bottom:4px}
+/* Плаваюче меню дій (одне на сторінку, живе в body) */
+.t-float-menu{position:fixed;z-index:300;min-width:236px;max-width:300px;background:#fff;border:1px solid #E3E8F2;border-radius:14px;box-shadow:0 16px 40px -12px rgba(11,20,55,.28);padding:6px;font-family:'Manrope',sans-serif;animation:tfmIn .12s ease-out}
+@keyframes tfmIn{from{opacity:0;transform:translateY(-4px)}}
+.t-fm-head{padding:8px 10px 6px;font-size:11.5px;font-weight:700;color:#8691AC;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-fm-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border:0;background:none;border-radius:9px;font:500 13.5px 'Manrope',sans-serif;color:#24335A;cursor:pointer;text-align:left}
+.t-fm-item svg{width:15px;height:15px;flex:0 0 auto;color:#5B6A8F}
+.t-fm-item:hover,.t-fm-item:focus-visible{background:#F1F5FB;color:#0B1437;outline:none}
+.t-fm-item.d,.t-fm-item.d svg{color:#B91C1C}
+.t-fm-item.d:hover,.t-fm-item.d:focus-visible{background:#FEE2E2}
+.t-fm-sep{height:1px;background:#E3E8F2;margin:5px 4px}
+.t-fm-label{padding:4px 10px 2px;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8691AC}
+.t-fm-statuses{display:flex;gap:4px;padding:4px 6px 6px;flex-wrap:wrap}
+.t-fm-status{border:1.5px solid transparent;background:none;border-radius:999px;padding:1px;cursor:pointer}
+.t-fm-status .t-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;font-size:11.5px;font-weight:600;border-radius:999px}
+.t-fm-status .t-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.t-fm-status .t-pill.on{background:#DCFCE7;color:#15803D}.t-fm-status .t-pill.draft{background:#FEF3C7;color:#92400E}.t-fm-status .t-pill.closed{background:#FEE2E2;color:#B91C1C}
+.t-fm-status.cur{border-color:currentColor;cursor:default}
+.t-fm-status:hover:not(.cur),.t-fm-status:focus-visible{border-color:#CDD6E8;outline:none}
+
 /* Responsive */
 @media (max-width:1200px){
   #sec-tests .t-folders-grid{grid-template-columns:repeat(2,1fr)!important}
@@ -255,22 +340,53 @@
         <p id="t-subtitle">Папки та тести · організуйте свої матеріали</p>
       </div>
       <div class="t-actions">
-        <button class="t-btn ghost" onclick="showSec('archive')">
+        <button class="t-btn ghost" onclick="showSec('archive')" title="Архівовані тести">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="5" rx="2"/><path d="M4 9v9a2 2 0 002 2h12a2 2 0 002-2V9"/><line x1="10" y1="13" x2="14" y2="13"/></svg>
           Архів <span class="t-mini-badge" id="nb-archive">0</span>
         </button>
-        <button class="t-btn" onclick="openM('m-folder')">
+        <button class="t-btn" data-act="new-folder">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/><path d="M12 11v6M9 14h6"/></svg>
           Нова папка
         </button>
-        <button class="t-btn primary" onclick="G.openTestInFolder(window._fFilter && window._fFilter !== 'all' && window._fFilter !== 'none' ? window._fFilter : null)">
+        <button class="t-btn primary" data-act="add-test" data-id="" id="t-new-test">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Новий тест
         </button>
       </div>
     </div>
 
-    <!-- Контейнер — сюди renderTests() рендерить все (card, breadcrumb, toolbar, content) -->
+    <!-- Хлібні крихти (у папці) + тулбар. Тулбар статичний: поле пошуку не
+         перестворюється під час введення і не втрачає фокус. -->
+    <div class="t-top">
+      <nav class="t-crumbs" id="t-crumbs" aria-label="Шлях" hidden></nav>
+      <div class="t-toolbar" id="t-toolbar">
+        <div class="t-search">
+          <span class="t-search-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+          <input class="t-input" id="srch" type="search" placeholder="Пошук тестів у всіх папках…" autocomplete="off" aria-label="Пошук тестів">
+          <button class="t-search-clear" id="srch-clear" type="button" aria-label="Очистити пошук" hidden>×</button>
+        </div>
+        <div class="t-tabs" role="group" aria-label="Статус" data-tests-only hidden>
+          <button class="t-tab" data-status="">Всі <span class="t-tab-n">0</span></button>
+          <button class="t-tab" data-status="active">Активні <span class="t-tab-n">0</span></button>
+          <button class="t-tab" data-status="draft">Чернетки <span class="t-tab-n">0</span></button>
+          <button class="t-tab" data-status="closed">Закриті <span class="t-tab-n">0</span></button>
+        </div>
+        <span class="t-spacer"></span>
+        <select class="t-select" id="t-sort" aria-label="Сортування" data-tests-only hidden>
+          <option value="new">Спершу нові</option>
+          <option value="act">За активністю</option>
+          <option value="name">За назвою</option>
+          <option value="att">За кількістю спроб</option>
+          <option value="old">Спершу старі</option>
+        </select>
+        <div class="t-view" role="group" aria-label="Вигляд" data-tests-only hidden>
+          <button data-view="grid" title="Сітка" aria-label="Сітка"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></button>
+          <button data-view="list" title="Список" aria-label="Список"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Сюди renderTests() рендерить папки / тести -->
     <div id="tc"></div>
 
   </div>
@@ -343,18 +459,6 @@ requestAnimationFrame(() => {
   });
 });
 
-// Esc — закриття модалок + popup-меню тестів
-document.addEventListener("keydown", e => {
-  if (e.key === "Escape"){
-    document.querySelectorAll(".mo.on").forEach(m => {
-      m.classList.remove("on");
-      setTimeout(() => { if (!m.classList.contains("on")) m.style.display = "none"; }, 200);
-    });
-    document.querySelectorAll(".t-tmenu").forEach(m => {
-      if (m.style.display === "block") m.style.display = "none";
-    });
-  }
-});
 </script>
 </body>
 </html>

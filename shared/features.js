@@ -12,6 +12,10 @@ const tp = window.tp;
 const dbGet = window.dbGet;
 const $ = window.$;
 const esc = window.esc;
+// Рядок як JS-літерал для inline-обробників: onclick="G.fn(${jsq(title)})".
+// '${esc(x)}' ламався на апострофі («Об'єкти»), а &#39; браузер декодує назад в '
+// ще до виконання JS — тож кнопки мовчки не працювали.
+const jsq = s => esc(JSON.stringify(String(s ?? "")));
 const ts = window.ts;
 const toArr = window.toArr;
 const toast = window.toast;
@@ -379,7 +383,7 @@ function renderStats(){
   const srEl=$("s-passrate"); if(srEl) srEl.textContent=cp.length?passRate+"%":"—";
 }
 function updateBadges(){
-  const nbt = $("nb-t"); if(nbt) nbt.textContent=tests.length;
+  const nbt = $("nb-t"); if(nbt) nbt.textContent=tests.filter(t=>t.status!=="archived").length;
   const nba = $("nb-a"); if(nba) nba.textContent=attempts.length;
   const nbl = $("nb-l"); if(nbl) nbl.textContent=links.filter(l=>l.status==="active").length;
   // Підозрілі
@@ -688,546 +692,516 @@ function renderDashLinks(){
   }).join("");
 }
 
-// TESTS & FOLDERS
+// ═══════════════════════════════════════════════════════════════════════════
+// TESTS & FOLDERS — сторінка «Тести»
+//
+// Усі дії — через data-act + data-id і ОДИН делегований обробник кліків.
+// Назви тестів/папок більше не вставляються в onclick="...('назва')":
+// апостроф у назві («Об'єкти», «м'яч») ламав JS і кнопки мовчки не працювали.
+// ═══════════════════════════════════════════════════════════════════════════
 let _fFilter = "all";
+function setFolderFilter(v){ G.setFF(v); }
 
-function setFolderFilter(v){ _fFilter=v; window._fFilter=v; renderTests(document.getElementById("srch")?.value||""); }
+const _TSTORE = "qf_tests_ui";
+const TS = (() => {
+  let s = {};
+  try { s = JSON.parse(localStorage.getItem(_TSTORE) || "{}"); } catch {}
+  return { q: "", status: "", sort: s.sort || "new", view: s.view === "list" ? "list" : "grid" };
+})();
+const _saveTS = () => { try { localStorage.setItem(_TSTORE, JSON.stringify({ sort: TS.sort, view: TS.view })); } catch {} };
+// Сумісність зі старим кодом, що читає ці глобали
+window._testsView = TS.view;
+window._testsStatus = TS.status;
 
+const _plural = (n, one, few, many) => {
+  const a = Math.abs(n) % 100, b = a % 10;
+  if (a > 10 && a < 20) return many;
+  if (b === 1) return one;
+  if (b >= 2 && b <= 4) return few;
+  return many;
+};
+const _nTests = n => `${n} ${_plural(n, "тест", "тести", "тестів")}`;
+const _fmtDate = t => t ? new Date(t).toLocaleDateString("uk-UA", { day: "numeric", month: "short" }) : "";
+const _ICON = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const I = {
+  edit: _ICON('<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>'),
+  link: _ICON('<path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>'),
+  live: _ICON('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/>'),
+  share: _ICON('<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>'),
+  move: _ICON('<path d="M3 8a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/><path d="M12 11l3 3-3 3M9 14h6"/>'),
+  dup: _ICON('<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>'),
+  del: _ICON('<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/>'),
+  more: `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>`,
+  folder: _ICON('<path d="M3 8a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>'),
+  plus: _ICON('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'),
+  cal: _ICON('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'),
+  clock: _ICON('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'),
+  users: _ICON('<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/>'),
+  restore: _ICON('<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/>'),
+  home: _ICON('<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>'),
+  search: _ICON('<circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>'),
+  archive: _ICON('<rect x="2" y="4" width="20" height="5" rx="2"/><path d="M4 9v9a2 2 0 002 2h12a2 2 0 002-2V9"/><line x1="10" y1="13" x2="14" y2="13"/>'),
+};
 
-// Палітра для превью карток тестів (по черзі якщо немає теми)
+// Палітра для превью тестів без папки
 const _testPalette = [
-  ["#a8c8f8","#c9b8f5","#6b9ef0"],  // блакитно-фіолетовий
-  ["#b8f0e0","#a0e8d0","#5dd4b0"],  // зелений
-  ["#ffd6a0","#ffb8b8","#ff9a6c"],  // помаранчевий
-  ["#f5b8d8","#e8a0f0","#d06bc0"],  // рожево-фіолетовий
-  ["#a0d8f8","#b8eaf8","#5bb8e8"],  // блакитний
-  ["#c8f0a0","#e8f8b0","#8acc50"],  // жовто-зелений
+  ["#a8c8f8","#c9b8f5","#6b9ef0"], ["#b8f0e0","#a0e8d0","#5dd4b0"], ["#ffd6a0","#ffb8b8","#ff9a6c"],
+  ["#f5b8d8","#e8a0f0","#d06bc0"], ["#a0d8f8","#b8eaf8","#5bb8e8"], ["#c8f0a0","#e8f8b0","#8acc50"],
 ];
-
-function _testThemeGradient(t, idx){
-  const theme = t.theme||"";
-  if(theme==="ocean")   return "linear-gradient(135deg,#7ec8e3,#0ea5e9)";
-  if(theme==="forest")  return "linear-gradient(135deg,#6ee7b7,#16a34a)";
-  if(theme==="sunset")  return "linear-gradient(135deg,#fca5a5,#ea580c)";
-  if(theme==="midnight")return "linear-gradient(135deg,#818cf8,#1e1b4b)";
-  if(theme==="default") return "linear-gradient(135deg,#6b9ef0,#2d5be3)";
-  const p = _testPalette[idx % _testPalette.length];
-  return `linear-gradient(135deg,${p[0]},${p[1]})`;
-}
-
-function _testAbbr(title){
-  const words = title.trim().split(/\s+/);
-  if(words.length===1) return title.substring(0,3).toUpperCase();
-  return words.slice(0,3).map(w=>w[0]).join("").toUpperCase();
-}
-// ═══════════════════════════════════════════════════════════════════════════
-// HELPERS — вставити перед buildTestCard (поруч із _testPalette / _testAbbr)
-// ═══════════════════════════════════════════════════════════════════════════
-
-// Палітра для папок (fallback якщо немає f.color)
 const _folderFallbacks = ["#2d5be3","#0d9e85","#9333ea","#f59e0b","#f43f5e","#0ea5e9"];
 
-// Освітлити hex-колір (шукає світліший варіант для градієнта)
-function _lightenHex(hex, amt = 0.35){
-  const h = hex.replace("#","");
-  const r = parseInt(h.substring(0,2),16);
-  const g = parseInt(h.substring(2,4),16);
-  const b = parseInt(h.substring(4,6),16);
-  const mix = (c) => Math.round(c + (255 - c) * amt);
-  const toHex = (n) => n.toString(16).padStart(2,"0");
-  return `#${toHex(mix(r))}${toHex(mix(g))}${toHex(mix(b))}`;
+// Абревіатура лише з літер і цифр (раніше «CSS Grid <script>» давало «CG<»)
+function _testAbbr(title){
+  const words = String(title || "").match(/[\p{L}\p{N}]+/gu) || ["?"];
+  if (words.length === 1) return words[0].substring(0, 3).toUpperCase();
+  return words.slice(0, 3).map(w => w[0]).join("").toUpperCase();
 }
-
-// Темніший варіант (для тексту "Відкрити →" на папці)
-function _darkenHex(hex, amt = 0.25){
-  const h = hex.replace("#","");
-  const r = parseInt(h.substring(0,2),16);
-  const g = parseInt(h.substring(2,4),16);
-  const b = parseInt(h.substring(4,6),16);
-  const mix = (c) => Math.round(c * (1 - amt));
-  const toHex = (n) => n.toString(16).padStart(2,"0");
-  return `#${toHex(mix(r))}${toHex(mix(g))}${toHex(mix(b))}`;
+function _mixHex(hex, amt, toWhite){
+  const h = String(hex || "#2d5be3").replace("#", "").padEnd(6, "0");
+  const ch = i => parseInt(h.substring(i, i + 2), 16) || 0;
+  const f = c => Math.round(toWhite ? c + (255 - c) * amt : c * (1 - amt)).toString(16).padStart(2, "0");
+  return `#${f(ch(0))}${f(ch(2))}${f(ch(4))}`;
 }
-
-// Повертає колір папки з fallback по індексу
+const _lightenHex = (hex, amt = 0.35) => _mixHex(hex, amt, true);
+const _darkenHex = (hex, amt = 0.25) => _mixHex(hex, amt, false);
 function _folderColor(f){
   if (f?.color) return f.color;
   const idx = folders.indexOf(f);
   return _folderFallbacks[Math.max(0, idx) % _folderFallbacks.length];
 }
-
-// Градієнт cover картки тесту — базується на кольорі папки (якщо є) або на _testPalette
+const _folderOf = t => folders.find(f => f.id === t.folderId) || null;
 function _quizCoverGradient(t, idx){
-  const folder = folders.find(f => f.id === t.folderId);
-  if (folder){
-    const c = _folderColor(folder);
-    return `linear-gradient(135deg, ${_lightenHex(c, 0.5)}, ${c})`;
-  }
-  // Без папки — беремо з palette за idx
+  const folder = _folderOf(t);
+  if (folder){ const c = _folderColor(folder); return `linear-gradient(135deg, ${_lightenHex(c, 0.5)}, ${c})`; }
   const p = _testPalette[idx % _testPalette.length];
   return `linear-gradient(135deg, ${p[0]}, ${p[2]})`;
 }
 
-// Колір акценту тесту (для thumb у папці)
-function _quizAccentColor(t, idx){
-  const folder = folders.find(f => f.id === t.folderId);
-  if (folder) return _folderColor(folder);
-  const p = _testPalette[idx % _testPalette.length];
-  return p[2];
+// ─── Статистика: ОДИН прохід по всіх спробах замість трьох фільтрів на кожну картку ──
+function _testStats(){
+  const m = new Map();
+  for (const a of attempts){
+    let s = m.get(a.testId);
+    if (!s) m.set(a.testId, s = { cnt: 0, passed: 0, sum: 0, graded: 0, last: 0 });
+    s.cnt++;
+    if ((a.grade12 || 0) >= 4) s.passed++;
+    if (a.grade12 != null){ s.sum += a.grade12; s.graded++; }
+    if ((a.createdAt || 0) > s.last) s.last = a.createdAt;
+  }
+  for (const s of m.values()) s.avg = s.graded ? Math.round(s.sum / s.graded / 12 * 100) : null;
+  return m;
+}
+const _EMPTY_STATS = { cnt: 0, passed: 0, avg: null, last: 0 };
+const _activity = (t, st) => Math.max(t.updatedAt || 0, t.createdAt || 0, st?.last || 0);
+const _avgColor = v => v == null ? "var(--ink-400)" : v >= 70 ? "#15803D" : v >= 40 ? "#1E40AF" : "#B91C1C";
+const STATUS = {
+  active: { cls: "on",     label: "Активний" },
+  draft:  { cls: "draft",  label: "Чернетка" },
+  closed: { cls: "closed", label: "Закритий" },
+};
+const _sc = t => STATUS[t.status] || STATUS.draft;
+
+function _matches(t, q){
+  if (!q) return true;
+  const hay = [t.title, t.description, ...(t.tags || [])].join(" ").toLowerCase();
+  return q.toLowerCase().split(/\s+/).filter(Boolean).every(w => hay.includes(w));
+}
+function _sortTests(lst, stats){
+  const by = {
+    new:  (a, b) => (b.createdAt || 0) - (a.createdAt || 0),
+    old:  (a, b) => (a.createdAt || 0) - (b.createdAt || 0),
+    name: (a, b) => String(a.title || "").localeCompare(String(b.title || ""), "uk"),
+    att:  (a, b) => (stats.get(b.id)?.cnt || 0) - (stats.get(a.id)?.cnt || 0),
+    act:  (a, b) => _activity(b, stats.get(b.id)) - _activity(a, stats.get(a.id)),
+  }[TS.sort] || ((a, b) => 0);
+  return [...lst].sort(by);
 }
 
-// END HELPERS
-// Картка тесту (грід вю)
-// ═══════════════════════════════════════════════════════════════════════════
-// REPLACE: buildTestCard — нова картка тесту у вигляді "quiz-card"
-// ═══════════════════════════════════════════════════════════════════════════
-
-function buildTestCard(t, idx){
-  const cnt = attempts.filter(a => a.testId === t.id).length;
-  const passed = attempts.filter(a => a.testId === t.id && (a.grade12 || 0) >= 4).length;
-  const allGrades = attempts.filter(a => a.testId === t.id && a.grade12 != null).map(a => a.grade12);
-  const avgPct = allGrades.length ? Math.round(allGrades.reduce((s,g) => s+g, 0) / allGrades.length / 12 * 100) : null;
+// ─── Картка тесту (сітка) ──────────────────────────────────────────────
+function buildTestCard(t, idx, stats, showFolder){
+  const st = stats?.get(t.id) || _EMPTY_STATS;
+  const sc = _sc(t);
   const qCnt = (t.questions || []).length;
-  const timeLimit = t.timeLimit ? `${Math.round(t.timeLimit / 60)} хв` : null;
-  const abbr = _testAbbr(t.title);
-  const grad = _quizCoverGradient(t, idx);
-
-  const statusCfg = {
-    active: { cls:"on",     label:"Активний" },
-    draft:  { cls:"draft",  label:"Чернетка" },
-    closed: { cls:"closed", label:"Закритий" },
-  };
-  const sc = statusCfg[t.status] || statusCfg.draft;
-  const dateStr = t.createdAt ? new Date(t.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"short" }) : "";
-  const avgColor = avgPct != null
-    ? (avgPct >= 70 ? "#15803D" : avgPct >= 40 ? "#1E40AF" : "#B91C1C")
-    : "var(--ink-400)";
-
-  return `<div class="t-quiz-card">
-    <!-- Cover -->
-    <div class="t-qc-cover" style="background:${grad}" onclick="location.href='constructor?id=${t.id}'">
-      <span class="t-qc-code">${esc(abbr)}</span>
+  const folder = showFolder ? _folderOf(t) : null;
+  return `<div class="t-quiz-card" data-id="${esc(t.id)}">
+    <button class="t-qc-cover" style="background:${_quizCoverGradient(t, idx)}" data-act="edit" data-id="${esc(t.id)}" aria-label="Редагувати ${esc(t.title)}">
+      <span class="t-qc-code">${esc(_testAbbr(t.title))}</span>
       <span class="t-qc-status"><span class="t-pill ${sc.cls}">${sc.label}</span></span>
-    </div>
-    <!-- Title + meta -->
+    </button>
     <div>
-      <div class="t-qc-title" onclick="location.href='constructor?id=${t.id}'">${esc(t.title)}</div>
+      <button class="t-qc-title" data-act="edit" data-id="${esc(t.id)}" title="${esc(t.title)}">${esc(t.title)}</button>
       <div class="t-qc-meta">
-        <span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          ${qCnt} пит.
-        </span>
-        ${timeLimit ? `<span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          ${timeLimit}
-        </span>` : ""}
+        <span>${I.cal}${qCnt} пит.</span>
+        ${t.timeLimit ? `<span>${I.clock}${Math.round(t.timeLimit / 60)} хв</span>` : ""}
+        ${folder ? `<span class="t-qc-folder" style="--fc:${_folderColor(folder)}">${esc(folder.name)}</span>` : showFolder ? `<span class="t-qc-folder" style="--fc:#8691AC">Без папки</span>` : ""}
       </div>
     </div>
-    <!-- Stats -->
     <div class="t-qc-stats">
-      <div><div class="t-qc-stat-val">${cnt}</div><div class="t-qc-stat-lbl">Спроб</div></div>
-      <div><div class="t-qc-stat-val">${passed}</div><div class="t-qc-stat-lbl">Здали</div></div>
-      <div><div class="t-qc-stat-val" style="color:${avgColor}">${avgPct != null ? avgPct + "%" : "—"}</div><div class="t-qc-stat-lbl">Середній</div></div>
+      <div><div class="t-qc-stat-val">${st.cnt}</div><div class="t-qc-stat-lbl">Спроб</div></div>
+      <div><div class="t-qc-stat-val">${st.passed}</div><div class="t-qc-stat-lbl">Здали</div></div>
+      <div><div class="t-qc-stat-val" style="color:${_avgColor(st.avg)}">${st.avg != null ? st.avg + "%" : "—"}</div><div class="t-qc-stat-lbl">Середній</div></div>
     </div>
-    <!-- Footer -->
     <div class="t-qc-foot">
-      <span class="t-qc-date">${dateStr ? "Створено " + dateStr : ""}</span>
+      <span class="t-qc-date">${t.createdAt ? "Створено " + _fmtDate(t.createdAt) : ""}</span>
       <div class="t-qc-foot-actions">
-        <button class="t-edit-btn" onclick="location.href='constructor?id=${t.id}'">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          Редагувати
-        </button>
-        <div style="position:relative">
-          <button class="t-menu-btn" onclick="event.stopPropagation();G._toggleTestMenu('${t.id}')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="5" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="19" r="1.3" fill="currentColor"/></svg>
-          </button>
-          <div id="tmenu-${t.id}" class="t-tmenu">
-            <div class="t-tmenu-item" onclick="G.qLink('${t.id}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-              Нове посилання
-            </div>
-            <div class="t-tmenu-item" onclick="G.toggleTestStatus('${t.id}','${t.status}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              Змінити статус
-            </div>
-            <div class="t-tmenu-item" onclick="G.openShareModal('${t.id}','${esc(t.title)}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-              Поділитись
-            </div>
-            <div class="t-tmenu-item" onclick="G.startLiveGame('${t.id}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
-              Live гра
-            </div>
-            <div class="t-tmenu-sep"></div>
-            <div class="t-tmenu-item d" onclick="G.confDelTest('${t.id}','${esc(t.title)}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-              Видалити
-            </div>
-          </div>
-        </div>
+        <button class="t-edit-btn" data-act="edit" data-id="${esc(t.id)}">${I.edit}Редагувати</button>
+        <button class="t-menu-btn" data-act="menu" data-id="${esc(t.id)}" aria-haspopup="menu" aria-label="Більше дій">${I.more}</button>
       </div>
     </div>
   </div>`;
 }
-// ═══════════════════════════════════════════════════════════════════════════
-// REPLACE: buildTestRow — рядок таблиці (list view)
-// ═══════════════════════════════════════════════════════════════════════════
 
-function buildTestRow(t, idx){
-  const cnt = attempts.filter(a => a.testId === t.id).length;
-  const allGrades = attempts.filter(a => a.testId === t.id && a.grade12 != null).map(a => a.grade12);
-  const avgPct = allGrades.length ? Math.round(allGrades.reduce((s,g) => s+g, 0) / allGrades.length / 12 * 100) : null;
-  const qCnt = (t.questions || []).length;
-  const abbr = _testAbbr(t.title);
-  const grad = _quizCoverGradient(t, idx || 0);
-  const dateStr = t.createdAt ? new Date(t.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"short" }) : "";
-
-  const statusCfg = {
-    active: { cls:"on",     label:"Активний" },
-    draft:  { cls:"draft",  label:"Чернетка" },
-    closed: { cls:"closed", label:"Закритий" },
-  };
-  const sc = statusCfg[t.status] || statusCfg.draft;
-  const avgColor = avgPct != null
-    ? (avgPct >= 70 ? "#15803D" : avgPct >= 40 ? "#1E40AF" : "#B91C1C")
-    : "var(--ink-400)";
-
-  return `<tr>
+// ─── Рядок тесту (список) ──────────────────────────────────────────────
+function buildTestRow(t, idx, stats, showFolder){
+  const st = stats?.get(t.id) || _EMPTY_STATS;
+  const sc = _sc(t);
+  const folder = showFolder ? _folderOf(t) : null;
+  return `<tr data-id="${esc(t.id)}">
     <td>
-      <div style="display:flex;align-items:center;gap:12px">
-        <div class="t-tile" style="background:${grad}">${esc(abbr)}</div>
+      <div style="display:flex;align-items:center;gap:12px;min-width:0">
+        <div class="t-tile" style="background:${_quizCoverGradient(t, idx || 0)}">${esc(_testAbbr(t.title))}</div>
         <div style="min-width:0">
-          <div style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px">${esc(t.title)}</div>
-          ${t.description ? `<div style="font-size:12px;color:var(--ink-400);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px">${esc(t.description.substring(0,60))}${t.description.length > 60 ? "…" : ""}</div>` : ""}
+          <button class="t-row-title" data-act="edit" data-id="${esc(t.id)}" title="${esc(t.title)}">${esc(t.title)}</button>
+          ${showFolder ? `<div class="t-row-sub">${esc(folder?.name || "Без папки")}</div>`
+            : t.description ? `<div class="t-row-sub">${esc(t.description)}</div>` : ""}
         </div>
       </div>
     </td>
-    <td style="white-space:nowrap">
-      <button onclick="G.toggleTestStatus('${t.id}','${t.status}')" style="background:transparent;border:0;padding:0;cursor:pointer" title="Змінити статус">
-        <span class="t-pill ${sc.cls}">${sc.label}</span>
-      </button>
-    </td>
-    <td class="t-mono">${qCnt} <span class="t-muted" style="font-size:11px">пит.</span></td>
-    <td class="t-mono" style="color:${cnt > 0 ? "var(--ink-700)" : "var(--ink-400)"};font-weight:600">${cnt}</td>
-    <td class="t-mono" style="color:${avgColor};font-weight:600">${avgPct != null ? avgPct + "%" : "—"}</td>
-    <td class="t-mono t-muted" style="white-space:nowrap">${dateStr}</td>
+    <td style="white-space:nowrap"><button class="t-pill-btn" data-act="menu" data-id="${esc(t.id)}" data-focus="status" title="Змінити статус"><span class="t-pill ${sc.cls}">${sc.label}</span></button></td>
+    <td class="t-mono">${(t.questions || []).length}</td>
+    <td class="t-mono" style="color:${st.cnt ? "var(--ink-700)" : "var(--ink-400)"};font-weight:600">${st.cnt}</td>
+    <td class="t-mono" style="color:${_avgColor(st.avg)};font-weight:600">${st.avg != null ? st.avg + "%" : "—"}</td>
+    <td class="t-mono t-muted" style="white-space:nowrap">${_fmtDate(t.createdAt)}</td>
     <td>
       <div class="t-ra">
-        <button class="t-ib" title="Редагувати" onclick="location.href='constructor?id=${t.id}'">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        </button>
-        <button class="t-ib" title="Нове посилання" onclick="G.qLink('${t.id}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-        </button>
-        <button class="t-ib" title="Поділитись" onclick="G.openShareModal('${t.id}','${esc(t.title)}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-        </button>
-        <button class="t-ib d" title="Видалити" onclick="G.confDelTest('${t.id}','${esc(t.title)}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-        </button>
+        <button class="t-ib" title="Редагувати" data-act="edit" data-id="${esc(t.id)}">${I.edit}</button>
+        <button class="t-ib" title="Нове посилання" data-act="link" data-id="${esc(t.id)}">${I.link}</button>
+        <button class="t-ib" title="Більше дій" data-act="menu" data-id="${esc(t.id)}" aria-haspopup="menu">${I.more}</button>
       </div>
     </td>
   </tr>`;
 }
 
-// Стан вью: 'grid' або 'list'
-window._testsView = window._testsView || "grid";
-// Стан фільтру статусу
-window._testsStatus = window._testsStatus || "";
+function _renderTestsContent(lst, total, stats, showFolder, emptyTitle, emptyHint){
+  if (!lst.length){
+    return `<div class="t-empty">
+      <div class="t-empty-ico">${I.cal}</div>
+      <div class="t-empty-title">${esc(emptyTitle || (total === 0 ? "Тут ще немає тестів" : "Нічого не знайдено"))}</div>
+      <div class="t-empty-hint">${esc(emptyHint || (total === 0 ? "Створіть перший тест" : "Спробуйте інший запит або скиньте фільтр"))}</div>
+      ${total !== 0 && (TS.q || TS.status) ? `<button class="t-btn" data-act="reset-filters" style="margin:0 auto">Скинути фільтри</button>` : ""}
+    </div>`;
+  }
+  if (TS.view === "list"){
+    return `<div style="overflow-x:auto"><table class="t-dtable">
+      <thead><tr><th>Назва</th><th>Статус</th><th>Питань</th><th>Спроб</th><th>Середній</th><th>Створено</th><th style="width:120px"></th></tr></thead>
+      <tbody>${lst.map((t, i) => buildTestRow(t, i, stats, showFolder)).join("")}</tbody>
+    </table></div>`;
+  }
+  return `<div class="t-quizzes-grid">${lst.map((t, i) => buildTestCard(t, i, stats, showFolder)).join("")}</div>`;
+}
 
-// ═══════════════════════════════════════════════════════════════════════════
-// REPLACE: renderTests — root = ЛИШЕ папки, тести тільки всередині папки
-// ═══════════════════════════════════════════════════════════════════════════
+// ─── Картка папки ──────────────────────────────────────────────────────
+function _folderCard(f, fTests, stats){
+  const isNone = f === null;
+  const col = isNone ? "#8691AC" : _folderColor(f);
+  const colDark = _darkenHex(col, 0.15);
+  const id = isNone ? "none" : f.id;
+  const att = fTests.reduce((s, t) => s + (stats.get(t.id)?.cnt || 0), 0);
+  const last = fTests.reduce((m, t) => Math.max(m, _activity(t, stats.get(t.id))), 0);
+  const preview = fTests.slice(0, 4);
+  const more = fTests.length - preview.length;
+  const thumbs = preview.length
+    ? preview.map(t => `<div class="t-fc-thumb" style="background:linear-gradient(135deg,${_lightenHex(col, 0.6)},${_lightenHex(col, 0.3)});color:${colDark}" title="${esc(t.title)}">${esc(_testAbbr(t.title))}</div>`).join("")
+      + (more > 0 ? `<span class="t-fc-more">+${more}</span>` : "")
+    : `<span class="t-muted" style="font-size:11.5px;font-style:italic">Порожня — додайте тест</span>`;
+  return `<div class="t-folder-card" data-act="open-folder" data-id="${esc(id)}" role="button" tabindex="0" aria-label="Відкрити папку ${esc(isNone ? "Без папки" : f.name)}">
+    ${isNone ? "" : `<div class="t-fc-actions">
+      <button title="Додати тест у папку" data-act="add-test" data-id="${esc(id)}">${I.plus}</button>
+      <button title="Дії з папкою" data-act="folder-menu" data-id="${esc(id)}" aria-haspopup="menu">${I.more}</button>
+    </div>`}
+    <div class="t-fc-head">
+      <div class="t-fc-ico" style="background:linear-gradient(135deg,${_lightenHex(col, 0.35)},${col})">${isNone ? _ICON('<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>') : I.folder}</div>
+      <div style="flex:1;min-width:0">
+        <div class="t-fc-title" title="${esc(isNone ? "Без папки" : f.name)}">${esc(isNone ? "Без папки" : f.name)}</div>
+        <div class="t-fc-meta">${fTests.length ? _nTests(fTests.length) : "Порожня"}</div>
+      </div>
+    </div>
+    <div class="t-fc-meta-row">
+      <span title="Спроб у тестах папки">${I.users}${att} ${_plural(att, "спроба", "спроби", "спроб")}</span>
+      <span title="Остання активність">${I.clock}${last ? _fmtDate(last) : "—"}</span>
+    </div>
+    <div class="t-fc-foot">
+      <div class="t-fc-thumbs">${thumbs}</div>
+      <span class="t-fc-cta" style="color:${colDark}">Відкрити ${_ICON('<path d="M9 6l6 6-6 6"/>')}</span>
+    </div>
+  </div>`;
+}
 
-renderTests = function(q = ""){
+// ─── Панель інструментів (статична в tests.html — поле пошуку не перестворюється) ──
+function _syncToolbar(ctx){
+  const bar = document.getElementById("t-toolbar");
+  if (!bar) return;
+  const inp = document.getElementById("srch");
+  if (inp && inp.value !== TS.q && document.activeElement !== inp) inp.value = TS.q;
+  if (inp) inp.placeholder = ctx.scope === "folder" ? `Пошук у папці «${ctx.name}»…` : "Пошук тестів у всіх папках…  ( / )";
+  const clr = document.getElementById("srch-clear");
+  if (clr) clr.hidden = !TS.q;
+  // Фільтри статусу/сортування/вигляд потрібні лише коли показуємо тести
+  bar.querySelectorAll("[data-tests-only]").forEach(el => { el.hidden = !ctx.showsTests; });
+  const counts = ctx.counts || {};
+  bar.querySelectorAll("[data-status]").forEach(b => {
+    const v = b.dataset.status;
+    b.classList.toggle("active", v === TS.status);
+    b.setAttribute("aria-pressed", v === TS.status);
+    const n = b.querySelector(".t-tab-n"); if (n) n.textContent = counts[v || "all"] ?? 0;
+  });
+  const sort = document.getElementById("t-sort"); if (sort) sort.value = TS.sort;
+  bar.querySelectorAll("[data-view]").forEach(b => { b.classList.toggle("on", b.dataset.view === TS.view); b.setAttribute("aria-pressed", b.dataset.view === TS.view); });
+}
+function _statusCounts(lst){
+  const c = { all: lst.length, active: 0, draft: 0, closed: 0 };
+  lst.forEach(t => { if (c[t.status] != null) c[t.status]++; });
+  return c;
+}
+
+// ─── Головний рендер ───────────────────────────────────────────────────
+renderTests = function(q){
+  if (typeof q === "string") TS.q = q;
   const c = $("tc");
   if (!c) return;
+  _closeTMenu();
+  const stats = _testStats();
+  const live = tests.filter(t => t.status !== "archived");
+  const inFolder = _fFilter && _fFilter !== "all" && _fFilter !== "none";
+  const inOrphan = _fFilter === "none";
+  const folder = inFolder ? folders.find(f => f.id === _fFilter) : null;
+  if (inFolder && !folder){ _fFilter = "all"; window._fFilter = "all"; }   // папку видалили в іншій вкладці
+  const orphans = live.filter(t => !_folderOf(t));
 
-  if (!tests.length && !folders.length){
+  const nb = document.getElementById("nb-archive");
+  if (nb) nb.textContent = tests.length - live.length;
+  const crumbs = document.getElementById("t-crumbs");
+  const sub = document.getElementById("t-subtitle");
+
+  // ─── Всередині папки ─────────────────────────────────────────────────
+  if (folder || inOrphan){
+    const name = folder ? folder.name : "Без папки";
+    const col = folder ? _folderColor(folder) : "#8691AC";
+    const all = folder ? live.filter(t => t.folderId === folder.id) : orphans;
+    const counts = _statusCounts(all.filter(t => _matches(t, TS.q)));
+    let lst = all.filter(t => _matches(t, TS.q));
+    if (TS.status) lst = lst.filter(t => t.status === TS.status);
+    lst = _sortTests(lst, stats);
+    if (sub) sub.textContent = `${_nTests(all.length)} у папці`;
+    if (crumbs){
+      crumbs.hidden = false;
+      crumbs.innerHTML = `<button class="t-crumb" data-act="open-folder" data-id="all">${I.home}Усі папки</button>
+        <span class="t-sep">/</span>
+        <span class="t-crumb active"><span class="t-dot" style="background:linear-gradient(135deg,${_lightenHex(col, .4)},${col})"></span>${esc(name)}</span>
+        <div class="t-crumb-actions">
+          ${folder ? `<button class="t-btn" data-act="add-test" data-id="${esc(folder.id)}">${I.plus}Додати тест</button>
+          <button class="t-btn ghost" data-act="folder-edit" data-id="${esc(folder.id)}">${I.edit}Редагувати папку</button>
+          <button class="t-btn ghost danger" data-act="folder-delete" data-id="${esc(folder.id)}">${I.del}Видалити</button>` : ""}
+        </div>`;
+    }
+    _syncToolbar({ scope: "folder", name, showsTests: true, counts });
+    c.innerHTML = `<div class="t-card">${_renderTestsContent(lst, all.length, stats, false,
+      all.length ? null : "У папці ще немає тестів", all.length ? null : "Натисніть «Додати тест», щоб створити перший")}</div>`;
+    return;
+  }
+
+  if (crumbs){ crumbs.hidden = true; crumbs.innerHTML = ""; }
+  if (sub) sub.textContent = `${folders.length} ${_plural(folders.length, "папка", "папки", "папок")} · ${_nTests(live.length)}`;
+
+  // ─── Порожньо взагалі ────────────────────────────────────────────────
+  if (!live.length && !folders.length){
+    _syncToolbar({ scope: "root", showsTests: false });
     c.innerHTML = `<div class="t-card"><div class="t-empty">
-      <div class="t-empty-ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg></div>
+      <div class="t-empty-ico">${I.folder}</div>
       <div class="t-empty-title">Ще немає папок чи тестів</div>
-      <div class="t-empty-hint">Створіть першу папку, щоб почати</div>
-      <button class="t-btn primary" onclick="openM('m-folder')" style="margin:0 auto">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Нова папка
-      </button>
+      <div class="t-empty-hint">Створіть папку для курсу або одразу перший тест</div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button class="t-btn" data-act="new-folder">${I.folder}Нова папка</button>
+        <button class="t-btn primary" data-act="add-test" data-id="">${I.plus}Новий тест</button>
+      </div>
     </div></div>`;
     return;
   }
 
-  // Закрити всі відкриті попап-меню при перерендері
-  document.querySelectorAll(".t-tmenu.on").forEach(m => m.classList.remove("on"));
-
-  let lst = tests.filter(t => t.status !== "archived");
-  if (q) lst = lst.filter(t => t.title.toLowerCase().includes(q.toLowerCase()) || (t.tags || []).some(g => g.toLowerCase().includes(q.toLowerCase())));
-
-  const noFolderTests = lst.filter(t => !t.folderId || !folders.find(f => f.id === t.folderId));
-  const hasNoFolder = noFolderTests.length > 0;
-
-  const inFolder = _fFilter && _fFilter !== "all" && _fFilter !== "none";
-  const inOrphan = _fFilter === "none";
-
-  // Оновити підзаголовок сторінки
-  const sub = document.getElementById("t-subtitle");
-  if (sub){
-    if (inFolder){
-      const folder = folders.find(f => f.id === _fFilter);
-      sub.textContent = `${esc(folder?.name || "Папка")} · тести всередині папки`;
-    } else if (inOrphan){
-      sub.textContent = "Тести без папки";
-    } else {
-      const nF = folders.length + (hasNoFolder ? 1 : 0);
-      const nT = lst.length;
-      sub.textContent = `${nF} ${nF === 1 ? "папка" : (nF >= 2 && nF <= 4) ? "папки" : "папок"} · ${nT} ${nT === 1 ? "тест" : (nT >= 2 && nT <= 4) ? "тести" : "тестів"}`;
-    }
-  }
-
-  // ─── ВИГЛЯД ПАПКИ: [breadcrumb] + [toolbar] + [тести grid/list] ─────────
-  if (inFolder || inOrphan){
-    const folder = inFolder ? folders.find(f => f.id === _fFilter) : null;
-    const folderName = inFolder ? (folder?.name || "Папка") : "Без папки";
-    const folderColor = inFolder ? _folderColor(folder) : "#8691AC";
-    let fTests = inFolder ? lst.filter(t => t.folderId === _fFilter) : noFolderTests;
-    if (window._testsStatus) fTests = fTests.filter(t => t.status === window._testsStatus);
-
-    const allCnt = inFolder ? lst.filter(t => t.folderId === _fFilter).length : noFolderTests.length;
-    const activeCnt = inFolder
-      ? lst.filter(t => t.folderId === _fFilter && t.status === "active").length
-      : noFolderTests.filter(t => t.status === "active").length;
-    const draftCnt = inFolder
-      ? lst.filter(t => t.folderId === _fFilter && t.status === "draft").length
-      : noFolderTests.filter(t => t.status === "draft").length;
-    const closedCnt = inFolder
-      ? lst.filter(t => t.folderId === _fFilter && t.status === "closed").length
-      : noFolderTests.filter(t => t.status === "closed").length;
-
-    c.innerHTML = `
-      <div class="t-card">
-        <!-- Breadcrumb -->
-        <div class="t-path-nav">
-          <button class="t-crumb" onclick="G.setFF('all')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
-            Всі папки
-          </button>
-          <span class="t-sep">/</span>
-          <span class="t-crumb active">
-            <span style="width:10px;height:10px;border-radius:3px;background:linear-gradient(135deg,${_lightenHex(folderColor,0.4)},${folderColor})"></span>
-            ${esc(folderName)}
-          </span>
-          ${inFolder ? `<div style="margin-left:auto;display:flex;gap:6px">
-            <button class="t-btn" onclick="G.openTestInFolder('${_fFilter}')" style="height:30px;padding:0 11px;font-size:12px">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Додати тест
-            </button>
-            <button class="t-btn ghost" onclick="G.confDelFolder('${_fFilter}','${esc(folderName)}')" style="height:30px;padding:0 11px;font-size:12px;color:#B91C1C">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-              Видалити папку
-            </button>
-          </div>` : `<span class="t-path-right">/folders/none</span>`}
-        </div>
-
-        <!-- Toolbar -->
-        ${_renderStatusBar(allCnt, activeCnt, draftCnt, closedCnt, true, q)}
-
-        <!-- Content -->
-        ${_renderTestsContent(fTests, allCnt)}
-      </div>`;
+  // ─── Пошук по всіх папках ────────────────────────────────────────────
+  if (TS.q){
+    const found = live.filter(t => _matches(t, TS.q));
+    const counts = _statusCounts(found);
+    let lst = TS.status ? found.filter(t => t.status === TS.status) : found;
+    lst = _sortTests(lst, stats);
+    _syncToolbar({ scope: "root", showsTests: true, counts });
+    c.innerHTML = `<div class="t-card">
+      <div class="t-section-label"><span>Результати пошуку</span><span class="t-n">${lst.length}</span></div>
+      ${_renderTestsContent(lst, found.length ? found.length : 1, stats, true, "Нічого не знайдено", `За запитом «${TS.q}» тестів немає`)}
+    </div>`;
     return;
   }
 
-  // ─── ROOT VIEW: тільки папки (тести всередині них) ─────────────────────
-  const folderGrid = folders.map(f => {
-    const fTests = lst.filter(t => t.folderId === f.id);
-    const cnt = fTests.length;
-    const col = _folderColor(f);
-    const colLight = _lightenHex(col, 0.35);
-    const colDark = _darkenHex(col, 0.15);
-
-    // Превью — до 4 тестів у вигляді плиток з абревіатурою
-    const preview = fTests.slice(0, 4);
-    const more = fTests.length - preview.length;
-    const updatedStr = f.createdAt
-      ? new Date(f.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"short" })
-      : "—";
-
-    const thumbsHtml = preview.length
-      ? preview.map((t,i) => {
-          const tc = _lightenHex(col, 0.25);
-          return `<div class="t-fc-thumb" style="background:linear-gradient(135deg,${_lightenHex(col,0.55)},${tc});color:${colDark}" title="${esc(t.title)}">${esc(_testAbbr(t.title))}</div>`;
-        }).join("") + (more > 0 ? `<span class="t-fc-more">+${more}</span>` : "")
-      : `<span class="t-muted" style="font-size:11.5px;font-style:italic">Порожня</span>`;
-
-    return `<div class="t-folder-card" onclick="G.setFF('${f.id}')">
-      <div class="t-fc-actions">
-        <button title="Додати тест" onclick="event.stopPropagation();G.openTestInFolder('${f.id}')">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-        <button title="Видалити" class="d" onclick="event.stopPropagation();G.confDelFolder('${f.id}','${esc(f.name)}')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-        </button>
-      </div>
-      <div class="t-fc-head">
-        <div class="t-fc-ico" style="background:linear-gradient(135deg,${colLight},${col})">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 8a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
-          </svg>
-        </div>
-        <div style="flex:1;min-width:0">
-          <div class="t-fc-title" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(f.name)}</div>
-          <div class="t-fc-meta">${cnt === 0 ? "Порожня" : cnt === 1 ? "1 тест" : cnt < 5 ? `${cnt} тести` : `${cnt} тестів`}</div>
-        </div>
-      </div>
-      <div class="t-fc-meta-row">
-        <span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          ${cnt} ${cnt === 1 ? "тест" : cnt < 5 ? "тести" : "тестів"}
-        </span>
-        <span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          ${updatedStr}
-        </span>
-      </div>
-      <div class="t-fc-foot">
-        <div class="t-fc-thumbs">${thumbsHtml}</div>
-        <span class="t-fc-cta" style="color:${colDark}">
-          Відкрити
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
-        </span>
-      </div>
-    </div>`;
-  }).join("");
-
-  // Картка "Без папки" для orphan-тестів
-  const noFolderCard = hasNoFolder ? `<div class="t-folder-card" onclick="G.setFF('none')">
-    <div class="t-fc-head">
-      <div class="t-fc-ico" style="background:linear-gradient(135deg,#D1D5DB,#6B7280)">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
-        </svg>
-      </div>
-      <div style="flex:1;min-width:0">
-        <div class="t-fc-title">Без папки</div>
-        <div class="t-fc-meta">${noFolderTests.length === 1 ? "1 тест" : noFolderTests.length < 5 ? `${noFolderTests.length} тести` : `${noFolderTests.length} тестів`}</div>
-      </div>
-    </div>
-    <div class="t-fc-meta-row">
-      <span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Неорганізовані
-      </span>
-    </div>
-    <div class="t-fc-foot">
-      <div class="t-fc-thumbs">${noFolderTests.slice(0,4).map(t => `<div class="t-fc-thumb" style="background:#E5EAF5;color:#5B6A8F">${esc(_testAbbr(t.title))}</div>`).join("")}${noFolderTests.length > 4 ? `<span class="t-fc-more">+${noFolderTests.length - 4}</span>` : ""}</div>
-      <span class="t-fc-cta" style="color:#5B6A8F">
-        Відкрити
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
-      </span>
-    </div>
-  </div>` : "";
-
-  // "+Нова папка" плитка
-  const newFolderTile = `<div class="t-new-folder" onclick="openM('m-folder')">
-    <div class="t-nf-ico">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-    </div>
+  // ─── Головна: папки + нещодавні тести ────────────────────────────────
+  _syncToolbar({ scope: "root", showsTests: false });
+  const cards = folders.map(f => _folderCard(f, live.filter(t => t.folderId === f.id), stats));
+  if (orphans.length) cards.push(_folderCard(null, orphans, stats));
+  cards.push(`<button class="t-new-folder" data-act="new-folder">
+    <div class="t-nf-ico">${I.plus}</div>
     <div class="t-nf-title">Нова папка</div>
     <div class="t-nf-hint">Згрупувати тести в курс</div>
-  </div>`;
-
+  </button>`);
+  const recent = [...live].sort((a, b) => _activity(b, stats.get(b.id)) - _activity(a, stats.get(a.id))).slice(0, 6);
   c.innerHTML = `<div class="t-card">
-    <div class="t-section-label">
-      <span>Папки</span>
-      <span class="t-n">${folders.length + (hasNoFolder ? 1 : 0)}</span>
+      <div class="t-section-label"><span>Папки</span><span class="t-n">${folders.length + (orphans.length ? 1 : 0)}</span></div>
+      <div class="t-folders-grid">${cards.join("")}</div>
     </div>
-    <div class="t-folders-grid" style="padding:0 18px 18px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
-      ${folderGrid}${noFolderCard}${newFolderTile}
-    </div>
-  </div>`;
+    ${recent.length ? `<div class="t-card">
+      <div class="t-section-label"><span>Нещодавні тести</span><span class="t-n">остання активність</span></div>
+      <div class="t-quizzes-grid">${recent.map((t, i) => buildTestCard(t, i, stats, true)).join("")}</div>
+    </div>` : ""}`;
 };
-// ═══════════════════════════════════════════════════════════════════════════
-// REPLACE: _renderStatusBar — новий toolbar (search + tabs + view-toggle)
-// Підпис старий ЗБЕРЕЖЕНО: (total, activeCnt, draftCnt, closedCnt, showViewToggle)
-// Додано 6-й аргумент `currentQuery` — опціональний, щоб showSearch зберігав значення
-// ═══════════════════════════════════════════════════════════════════════════
 
-function _renderStatusBar(total, activeCnt, draftCnt, closedCnt, showViewToggle, currentQuery = ""){
-  const s = window._testsStatus || "";
-  const v = window._testsView || "grid";
-  const q = currentQuery || document.getElementById("srch")?.value || "";
-
-  return `<div class="t-card-h">
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;flex:1;min-width:0">
-      <div class="t-search">
-        <span class="t-search-ico">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        </span>
-        <input class="t-input" id="srch" style="padding-left:32px;width:220px" placeholder="Пошук у папці..." value="${esc(q)}" oninput="renderTests(this.value)" autocomplete="off">
-      </div>
-      <div class="t-tabs">
-        <button class="t-tab ${!s ? "active" : ""}" onclick="window._testsStatus='';renderTests(document.getElementById('srch')?.value||'')">
-          Всі <span class="t-tab-n">${total}</span>
-        </button>
-        <button class="t-tab ${s === "active" ? "active" : ""}" onclick="window._testsStatus='active';renderTests(document.getElementById('srch')?.value||'')">
-          Активні <span class="t-tab-n">${activeCnt}</span>
-        </button>
-        <button class="t-tab ${s === "draft" ? "active" : ""}" onclick="window._testsStatus='draft';renderTests(document.getElementById('srch')?.value||'')">
-          Чернетки <span class="t-tab-n">${draftCnt}</span>
-        </button>
-        <button class="t-tab ${s === "closed" ? "active" : ""}" onclick="window._testsStatus='closed';renderTests(document.getElementById('srch')?.value||'')">
-          Закриті <span class="t-tab-n">${closedCnt}</span>
-        </button>
-      </div>
-    </div>
-    ${showViewToggle ? `<div class="t-view">
-      <button class="${v === "grid" ? "on" : ""}" onclick="window._testsView='grid';renderTests(document.getElementById('srch')?.value||'')" title="Сітка">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      </button>
-      <button class="${v === "list" ? "on" : ""}" onclick="window._testsView='list';renderTests(document.getElementById('srch')?.value||'')" title="Список">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
-    </div>` : ""}
-  </div>`;
+// ─── Плаваюче меню дій (одне на сторінку, не обрізається карткою) ──────
+let _tMenuFor = null;
+function _closeTMenu(){
+  const m = document.getElementById("t-float-menu");
+  if (m){ m.remove(); }
+  if (_tMenuFor){ _tMenuFor.setAttribute("aria-expanded", "false"); _tMenuFor = null; }
+}
+function _openTMenu(anchor, html){
+  _closeTMenu();
+  const m = document.createElement("div");
+  m.id = "t-float-menu";
+  m.className = "t-float-menu";
+  m.setAttribute("role", "menu");
+  m.innerHTML = html;
+  document.body.appendChild(m);
+  const r = anchor.getBoundingClientRect(), mw = m.offsetWidth, mh = m.offsetHeight;
+  const left = Math.min(Math.max(8, r.right - mw), innerWidth - mw - 8);
+  const top = r.bottom + 6 + mh > innerHeight - 8 ? Math.max(8, r.top - mh - 6) : r.bottom + 6;
+  m.style.left = left + "px"; m.style.top = top + "px";
+  _tMenuFor = anchor; anchor.setAttribute("aria-expanded", "true");
+  m.querySelector("[data-act]:not([disabled])")?.focus({ preventScroll: true });
+}
+function _testMenuHtml(t){
+  const it = (act, icon, label, extra = "") => `<button class="t-fm-item${extra}" role="menuitem" data-act="${act}" data-id="${esc(t.id)}">${icon}<span>${label}</span></button>`;
+  const statusBtns = Object.entries(STATUS).map(([k, v]) =>
+    `<button class="t-fm-status${t.status === k ? " cur" : ""}" role="menuitemradio" aria-checked="${t.status === k}" data-act="status" data-id="${esc(t.id)}" data-val="${k}"><span class="t-pill ${v.cls}">${v.label}</span></button>`).join("");
+  return `<div class="t-fm-head" title="${esc(t.title)}">${esc(t.title)}</div>
+    ${it("edit", I.edit, "Редагувати")}
+    ${it("link", I.link, "Нове посилання для студентів")}
+    ${it("live", I.live, "Live гра")}
+    <div class="t-fm-sep"></div>
+    <div class="t-fm-label">Статус</div>
+    <div class="t-fm-statuses">${statusBtns}</div>
+    <div class="t-fm-sep"></div>
+    ${it("move", I.move, "Перемістити в папку")}
+    ${it("dup", I.dup, "Дублювати")}
+    ${it("share", I.share, "Поділитись з викладачем")}
+    <div class="t-fm-sep"></div>
+    ${it("delete", I.del, "Архівувати або видалити…", " d")}`;
+}
+function _folderMenuHtml(f){
+  const it = (act, icon, label, extra = "") => `<button class="t-fm-item${extra}" role="menuitem" data-act="${act}" data-id="${esc(f.id)}">${icon}<span>${label}</span></button>`;
+  return `<div class="t-fm-head">${esc(f.name)}</div>
+    ${it("open-folder", I.folder, "Відкрити")}
+    ${it("add-test", I.plus, "Додати тест")}
+    ${it("folder-edit", I.edit, "Перейменувати / колір")}
+    <div class="t-fm-sep"></div>
+    ${it("folder-delete", I.del, "Видалити папку", " d")}`;
 }
 
-
-// ═══════════════════════════════════════════════════════════════════════════
-// REPLACE: _renderTestsContent — рендерить тести (grid або list)
-// ═══════════════════════════════════════════════════════════════════════════
-
-function _renderTestsContent(lst, total){
-  if (!lst.length){
-    return `<div class="t-empty">
-      <div class="t-empty-ico">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      </div>
-      <div class="t-empty-title">${total === 0 ? "У папці ще немає тестів" : "Нічого не знайдено"}</div>
-      <div class="t-empty-hint">${total === 0 ? "Додайте перший тест у цю папку" : "Спробуйте інший запит або скиньте фільтри"}</div>
-    </div>`;
+// ─── Делегований обробник: усі кнопки сторінки «Тести» ─────────────────
+function _testsAction(act, id, el){
+  const t = tests.find(x => x.id === id);
+  switch (act){
+    case "edit":          if (t) location.href = `constructor?id=${encodeURIComponent(id)}`; break;
+    case "menu":          if (t){ if (_tMenuFor === el) _closeTMenu(); else _openTMenu(el, _testMenuHtml(t)); } break;
+    case "folder-menu":   { const f = folders.find(x => x.id === id); if (f){ if (_tMenuFor === el) _closeTMenu(); else _openTMenu(el, _folderMenuHtml(f)); } } break;
+    case "link":          _closeTMenu(); G.qLink(id); break;
+    case "live":          _closeTMenu(); G.startLiveGame(id); break;
+    case "status":        _closeTMenu(); G.setTestStatus(id, el.dataset.val); break;
+    case "move":          _closeTMenu(); G.openMoveModal(id); break;
+    case "dup":           _closeTMenu(); G.duplicateTest(id); break;
+    case "share":         _closeTMenu(); if (t) G.openShareModal(id, t.title); break;
+    case "delete":        _closeTMenu(); G.confDelTest(id); break;
+    case "open-folder":   _closeTMenu(); G.setFF(id || "all"); break;
+    case "add-test": {
+      _closeTMenu();
+      // Без явної папки — створюємо в тій, яку зараз відкрито
+      const cur = _fFilter && _fFilter !== "all" && _fFilter !== "none" ? _fFilter : null;
+      G.openTestInFolder(id && id !== "none" ? id : cur);
+      break;
+    }
+    case "new-folder":    _closeTMenu(); G.openFolderModal(); break;
+    case "folder-edit":   _closeTMenu(); G.openFolderModal(id); break;
+    case "folder-delete": _closeTMenu(); G.confDelFolder(id); break;
+    case "restore":       G.restoreTest(id); break;
+    case "purge":         G.confDelTest(id); break;
+    case "reset-filters": { TS.q = ""; TS.status = ""; window._testsStatus = ""; const i = $("srch"); if (i) i.value = ""; renderTests(); break; }
   }
-  if (window._testsView === "list"){
-    return `<div style="overflow-x:auto">
-      <table class="t-dtable">
-        <thead>
-          <tr>
-            <th>Назва</th>
-            <th>Статус</th>
-            <th>Питань</th>
-            <th>Спроб</th>
-            <th>Середній</th>
-            <th>Дата</th>
-            <th style="width:160px"></th>
-          </tr>
-        </thead>
-        <tbody>${lst.map((t,i) => buildTestRow(t,i)).join("")}</tbody>
-      </table>
-    </div>`;
-  }
-  // Grid
-  return `<div class="t-quizzes-grid" style="padding:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
-    ${lst.map((t,i) => buildTestCard(t,i)).join("")}
-  </div>`;
 }
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-act]");
+  const inScope = el && (el.closest("#sec-tests") || el.closest("#sec-archive") || el.closest("#t-float-menu"));
+  if (!inScope){
+    if (!e.target.closest("#t-float-menu")) _closeTMenu();
+    return;
+  }
+  e.preventDefault();
+  e.stopPropagation();
+  _testsAction(el.dataset.act, el.dataset.id || "", el);
+});
+document.addEventListener("keydown", e => {
+  const menu = document.getElementById("t-float-menu");
+  if (e.key === "Escape" && menu){ const a = _tMenuFor; _closeTMenu(); a?.focus(); return; }
+  if (menu && (e.key === "ArrowDown" || e.key === "ArrowUp")){
+    const items = [...menu.querySelectorAll("button")];
+    const i = items.indexOf(document.activeElement);
+    items[(i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length]?.focus();
+    e.preventDefault(); return;
+  }
+  // Enter/пробіл на картці папки (вона div з role=button)
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches?.(".t-folder-card")){
+    e.preventDefault(); _testsAction("open-folder", e.target.dataset.id, e.target); return;
+  }
+  // «/» — фокус у пошук
+  if (e.key === "/" && !e.target.closest("input,textarea,select,[contenteditable]") && document.getElementById("srch")?.offsetParent){
+    e.preventDefault(); document.getElementById("srch").focus();
+  }
+});
+window.addEventListener("resize", () => _closeTMenu());
+document.addEventListener("scroll", () => _closeTMenu(), true);
+
+// Панель інструментів: пошук з невеликою затримкою, фільтри, сортування, вигляд
+(function _wireToolbar(){
+  const bar = document.getElementById("t-toolbar");
+  if (!bar) return;
+  let timer;
+  const inp = document.getElementById("srch");
+  inp?.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => { TS.q = inp.value.trim(); renderTests(); }, 120); });
+  inp?.addEventListener("keydown", e => { if (e.key === "Escape" && inp.value){ e.stopPropagation(); inp.value = ""; TS.q = ""; renderTests(); } });
+  document.getElementById("srch-clear")?.addEventListener("click", () => { inp.value = ""; TS.q = ""; renderTests(); inp.focus(); });
+  bar.addEventListener("click", e => {
+    const s = e.target.closest("[data-status]");
+    if (s){ TS.status = s.dataset.status; window._testsStatus = TS.status; renderTests(); return; }
+    const v = e.target.closest("[data-view]");
+    if (v){ TS.view = v.dataset.view; window._testsView = TS.view; _saveTS(); renderTests(); }
+  });
+  document.getElementById("t-sort")?.addEventListener("change", e => { TS.sort = e.target.value; _saveTS(); renderTests(); });
+})();
+
+// Папка в адресі (?folder=ID): кнопка «Назад» у браузері повертає до всіх папок
+(function _initFolderFromUrl(){
+  if (!document.getElementById("tc")) return;
+  const f = new URLSearchParams(location.search).get("folder");
+  if (f){ _fFilter = f; window._fFilter = f; }
+  window.addEventListener("popstate", () => {
+    const v = new URLSearchParams(location.search).get("folder") || "all";
+    G.setFF(v, { fromHistory: true });
+  });
+})();
 
 // ATTEMPTS
 fillSelects = function(){
@@ -1240,7 +1214,7 @@ fillSelects = function(){
     const curFt=$("ft")?.value||"";
     ftMenu.innerHTML=`<div class="cd-item${!curFt?" cd-active":""}" onclick="G.selectDrop('cd-ft','','Всі тести')">Всі тести</div>`+
       tests.filter(t=>t.status!=="archived").map(t=>
-        `<div class="cd-item${curFt===t.id?" cd-active":""}" onclick="G.selectDrop('cd-ft','${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
+        `<div class="cd-item${curFt===t.id?" cd-active":""}" onclick="G.selectDrop('cd-ft','${t.id}',${jsq(t.title)})">${esc(t.title)}</div>`
       ).join("");
   }
   const nlT = $("nl-t");
@@ -1254,7 +1228,7 @@ fillSelects = function(){
   if(grpMenu){
     const curGrp=$("fgrp").value;
     grpMenu.innerHTML=`<div class="cd-item${!curGrp?" cd-active":""}" onclick="G.selectDrop('cd-fgrp','','Всі групи')">Всі групи</div>`+
-      groups.map(g=>`<div class="cd-item${curGrp===g?" cd-active":""}" onclick="G.selectDrop('cd-fgrp','${esc(g)}','${esc(g)}')">${esc(g)}</div>`
+      groups.map(g=>`<div class="cd-item${curGrp===g?" cd-active":""}" onclick="G.selectDrop('cd-fgrp',${jsq(g)},${jsq(g)})">${esc(g)}</div>`
       ).join("");
   }
   // Аналітика - тести
@@ -1270,7 +1244,7 @@ fillSelects = function(){
     const curAn=$("an-test")?.value||"";
     anMenu.innerHTML=`<div class="cd-item${!curAn?" cd-active":""}" data-val="_none" onclick="G.selectAnalyticsDrop('test','','Оберіть тест...')">— Без фільтру</div>`+
       tests.filter(t=>t.status!=="archived").map(t=>
-        `<div class="cd-item${curAn===t.id?" cd-active":""}" data-val="${t.id}" onclick="G.selectAnalyticsDrop('test','${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
+        `<div class="cd-item${curAn===t.id?" cd-active":""}" data-val="${t.id}" onclick="G.selectAnalyticsDrop('test','${t.id}',${jsq(t.title)})">${esc(t.title)}</div>`
       ).join("");
   }
   // Аналітика - групи
@@ -1282,7 +1256,7 @@ fillSelects = function(){
   if(anGrpMenu){
     const curGrpAn=$("an-group")?.value||"";
     anGrpMenu.innerHTML=`<div class="cd-item${!curGrpAn?" cd-active":""}" data-val="_none" onclick="G.selectAnalyticsDrop('group','','Всі групи')">Всі групи</div>`+
-      groups.map(g=>`<div class="cd-item${curGrpAn===g?" cd-active":""}" data-val="${esc(g)}" onclick="G.selectAnalyticsDrop('group','${esc(g)}','${esc(g)}')">${esc(g)}</div>`
+      groups.map(g=>`<div class="cd-item${curGrpAn===g?" cd-active":""}" data-val="${esc(g)}" onclick="G.selectAnalyticsDrop('group',${jsq(g)},${jsq(g)})">${esc(g)}</div>`
       ).join("");
   }
   // Посилання - тест у модалі (тепер покроковий пікер папка→тест; оновлюємо
@@ -1472,7 +1446,7 @@ renderAttempts = function(resetPage = false){
       <td>
         <div class="row-actions" onclick="event.stopPropagation()">
           <button class="ic-btn" title="Переглянути" onclick="G.viewAtt('${a.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-          <button class="ic-btn danger" title="Видалити" onclick="G.confDelAttempt('${a.id}','${esc(a.name)} ${esc(a.surname)}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>
+          <button class="ic-btn danger" title="Видалити" onclick="G.confDelAttempt('${a.id}',${jsq(`${a.name||""} ${a.surname||""}`.trim())})"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>
         </div>
       </td>
     </tr>`;
@@ -1704,17 +1678,25 @@ async function callGroq(messages, maxTokens=800, temp=0.5){
 
 window.G = {
   // Folders
-  setFF(v){ _fFilter=v; window._fFilter=v; renderTests(document.getElementById("srch")?.value||""); },
-  _toggleTestMenu(id){
-    const menu=document.getElementById("tmenu-"+id);
-    if(!menu) return;
-    // offsetParent === null означає що елемент прихований (display:none через CSS або style)
-    const isOpen = menu.offsetParent !== null || menu.style.display === "block";
-    document.querySelectorAll("[id^='tmenu-']").forEach(m=>m.style.display="none");
-    if(!isOpen){
-      menu.style.display="block";
-      setTimeout(()=>{ const h=e=>{ if(!menu.contains(e.target)){menu.style.display="none";} document.removeEventListener("click",h); }; document.addEventListener("click",h); },0);
+  setFF(v, opts = {}){
+    v = v || "all";
+    const changed = v !== _fFilter;
+    _fFilter = v; window._fFilter = v;
+    if (changed){ TS.q = ""; TS.status = ""; window._testsStatus = ""; const i = $("srch"); if (i) i.value = ""; }
+    // Папка в адресі — працює кнопка «Назад» і посилання на папку
+    if (!opts.fromHistory && document.getElementById("tc")){
+      const url = new URL(location.href);
+      if (v === "all") url.searchParams.delete("folder"); else url.searchParams.set("folder", v);
+      if (url.href !== location.href) history[changed ? "pushState" : "replaceState"](null, "", url);
     }
+    if (window.showSec && document.getElementById("sec-archive")?.classList.contains("on")) window.showSec("tests");
+    renderTests();
+    if (changed) window.scrollTo({ top: 0 });
+  },
+  // Старе API (могло лишитись у закешованій розмітці) — відкриває нове плаваюче меню
+  _toggleTestMenu(id){
+    const btn = document.querySelector(`[data-act="menu"][data-id="${CSS.escape(id)}"]`);
+    if (btn) _testsAction("menu", id, btn);
   },
 
   toggleDrop(wrapId){
@@ -1798,7 +1780,7 @@ selectAnalyticsDrop(field, value, label){
         const noneActive = !stillValid;
         anTestMenu.innerHTML = `<div class="cd-item${noneActive?" cd-active":""}" data-val="_none" onclick="G.selectAnalyticsDrop('test','','Оберіть тест...')">— Без фільтру</div>` +
           filteredTests.map(t =>
-            `<div class="cd-item${(stillValid && curTestId===t.id)?" cd-active":""}" data-val="${t.id}" onclick="G.selectAnalyticsDrop('test','${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
+            `<div class="cd-item${(stillValid && curTestId===t.id)?" cd-active":""}" data-val="${t.id}" onclick="G.selectAnalyticsDrop('test','${t.id}',${jsq(t.title)})">${esc(t.title)}</div>`
           ).join("");
       }
  
@@ -1956,9 +1938,9 @@ selectAnalyticsDrop(field, value, label){
     const isHidden=list.style.display==="none";
     list.style.display=isHidden?"block":"none";
     if(chev) chev.style.transform=isHidden?"rotate(180deg)":"";
-    if(isHidden) G.renderArchive();
+    if(isHidden) G._renderArchiveLegacy();
   },
-  renderArchive(){
+  _renderArchiveLegacy(){
     const archived=tests.filter(t=>t.status==="archived");
     const cnt=document.getElementById("archive-count");
     if(cnt) cnt.textContent=archived.length;
@@ -1977,15 +1959,15 @@ selectAnalyticsDrop(field, value, label){
           <div style="font-size:12px;color:var(--light);margin-top:2px">${attCount} спроб · Архівовано ${timeAgo(t.archivedAt||t.createdAt)}</div>
         </div>
         <button class="btn bs btn-sm" onclick="G.restoreTest('${t.id}')" style="font-size:12px">↩ Відновити</button>
-        <button class="btn bd btn-sm" onclick="G.permDeleteTest('${t.id}','${esc(t.title)}')" style="font-size:12px">🗑</button>
+        <button class="btn bd btn-sm" onclick="G.permDeleteTest('${t.id}',${jsq(t.title)})" style="font-size:12px">🗑</button>
       </div>`;
     }).join("");
   },
   async restoreTest(id){
     try{
       await dbUpd(`tests/${id}`,{status:"draft",archivedAt:null});
-      tests=tests.map(t=>t.id===id?{...t,status:"draft",archivedAt:null}:t);
-      renderAll(); G.renderArchive(); toast("Тест відновлено як чернетка");
+      tests=tests.map(t=>t.id===id?{...t,status:"draft",archivedAt:null}:t); window.tests=tests;
+      renderAll(); G.renderArchive(); toast("Тест відновлено як чернетку");
     }catch(e){toast("Помилка: "+e.message,"err");}
   },
   async permDeleteTest(id,name){
@@ -2003,81 +1985,214 @@ selectAnalyticsDrop(field, value, label){
     document.getElementById(`fb-${id}`)?.classList.toggle("hid");
     document.querySelector(`.fh[onclick*="'${id}'"]`)?.classList.toggle("col");
   },
+  // Модалка папки: без id — нова папка, з id — перейменування/колір
+  openFolderModal(editId){
+    const f = editId ? folders.find(x => x.id === editId) : null;
+    window._editFolderId = f ? f.id : null;
+    $("m-folder-title").textContent = f ? "Редагувати папку" : "Нова папка";
+    $("m-folder-sub").textContent = f ? "Змініть назву або колір" : "Згрупуйте тести в курс чи тему";
+    $("nf-submit").textContent = f ? "Зберегти" : "Створити папку";
+    $("nf-n").value = f ? f.name : "";
+    $("nf-n").classList.remove("er");
+    $("nf-err").textContent = "";
+    G.selectFolderColor(f ? _folderColor(f) : "#2d5be3");
+    openM("m-folder");
+    setTimeout(() => { $("nf-n").focus(); $("nf-n").select(); }, 80);
+  },
   async submitFolder(){
-    const n=$("nf-n").value.trim();
-    if(!n){$("nf-n").classList.add("er");return;}
-    if(folders.some(f=>f.name===n)){toast(`Папка «${n}» вже існує`,"err");return;}
+    const inp = $("nf-n"), err = $("nf-err"), btn = $("nf-submit");
+    const n = inp.value.replace(/\s+/g, " ").trim();
+    const editId = window._editFolderId || null;
+    const fail = m => { inp.classList.add("er"); if (err) err.textContent = m; inp.focus(); };
+    if (!n) return fail("Введіть назву папки");
+    if (n.length > 60) return fail("Назва задовга — до 60 символів");
+    if (folders.some(f => f.id !== editId && f.name.trim().toLowerCase() === n.toLowerCase())) return fail(`Папка «${n}» вже існує`);
+    if (btn.disabled) return;
+    btn.disabled = true;
+    const color = $("nf-color")?.value || "#2d5be3";
     try{
-      const color=$("nf-color")?.value||"#2d5be3";
-      const id=await dbPush("folders",{name:n,color,createdAt:ts()});
-      folders.push({id,name:n,color,createdAt:ts()});
-      closeM("m-folder"); $("nf-n").value="";
-      $("nf-color").value="#2d5be3";
-      document.querySelectorAll("#m-folder [data-color]").forEach(el=>el.style.borderColor="transparent");
-      document.querySelector('#m-folder [data-color="#2d5be3"]')?.style && (document.querySelector('#m-folder [data-color="#2d5be3"]').style.borderColor="white");
-      renderTests(); updateBadges(); toast(`Папку «${n}» створено`);
-    }catch(e){toast("Помилка: "+e.message,"err");}
+      if (editId){
+        await dbUpd(`folders/${editId}`, { name: n, color, updatedAt: ts() });
+        folders = folders.map(f => f.id === editId ? { ...f, name: n, color } : f);
+        window.folders = folders;
+        toast("Папку оновлено");
+      } else {
+        const id = await dbPush("folders", { name: n, color, createdAt: ts() });
+        folders.push({ id, name: n, color, createdAt: ts() });
+        window.folders = folders;
+        toast(`Папку «${n}» створено`);
+      }
+      closeM("m-folder");
+      renderTests(); updateBadges();
+    }catch(e){ fail("Помилка: " + e.message); }
+    finally{ btn.disabled = false; }
   },
   selectFolderColor(color){
-    $("nf-color").value = color;
-    document.querySelectorAll("#m-folder [data-color]").forEach(el=>{
-      el.style.borderColor = el.dataset.color===color ? "white" : "transparent";
-      el.style.transform = el.dataset.color===color ? "scale(1.2)" : "";
-      el.style.boxShadow = el.dataset.color===color ? `0 2px 12px ${color}88` : "";
+    const inp = $("nf-color"); if (inp) inp.value = color;
+    document.querySelectorAll("#m-folder [data-color]").forEach(el => {
+      const on = el.dataset.color.toLowerCase() === String(color).toLowerCase();
+      el.classList.toggle("on", on); el.setAttribute("aria-checked", on);
     });
+    const prev = $("nf-preview"); if (prev) prev.style.background = `linear-gradient(135deg,${_lightenHex(color, .35)},${color})`;
   },
 
-  confDelFolder(id,name){_pid=id;$("del-fn").textContent=name;openM("m-del-folder");},
+  confDelFolder(id){
+    const f = folders.find(x => x.id === id); if (!f) return;
+    _pid = id;
+    const n = tests.filter(t => t.folderId === id && t.status !== "archived").length;
+    $("del-fn").textContent = f.name;
+    const info = $("del-fn-info");
+    if (info) info.innerHTML = n ? `${_nTests(n)} ${_plural(n, "перейде", "перейдуть", "перейдуть")} у «Без папки». Самі тести й спроби <strong>не видаляються</strong>.` : "Папка порожня.";
+    openM("m-del-folder");
+  },
   async doDelFolder(){
-    const id=_pid;_pid=null;closeM("m-del-folder");
+    const id = _pid; if (!id) return;
+    const btn = $("del-folder-btn"); if (btn) btn.disabled = true;
     try{
-      // Видаляємо папку — тести залишаються (просто без папки)
-      const ops=[dbDel(`folders/${id}`)];
-      tests.filter(t=>t.folderId===id).forEach(t=>ops.push(dbUpd(`tests/${t.id}`,{folderId:null})));
+      const ops = [dbDel(`folders/${id}`)];
+      tests.filter(t => t.folderId === id).forEach(t => ops.push(dbUpd(`tests/${t.id}`, { folderId: null })));
       await Promise.all(ops);
-      folders=folders.filter(f=>f.id!==id);
-      tests=tests.map(t=>t.folderId===id?{...t,folderId:null}:t);
-      renderTests(); toast("Папку видалено. Тести переміщено в «Без папки»");
-    }catch(e){toast("Помилка: "+e.message,"err");}
+      folders = folders.filter(f => f.id !== id); window.folders = folders;
+      tests = tests.map(t => t.folderId === id ? { ...t, folderId: null } : t); window.tests = tests;
+      _pid = null;
+      closeM("m-del-folder");
+      if (_fFilter === id) G.setFF("all"); else renderTests();
+      toast("Папку видалено. Тести — у «Без папки»");
+    }catch(e){ toast("Помилка: " + e.message, "err"); }
+    finally{ if (btn) btn.disabled = false; }
+  },
+
+  // Перемістити тест у папку
+  openMoveModal(testId){
+    const t = tests.find(x => x.id === testId); if (!t) return;
+    window._moveTestId = testId;
+    $("move-test-name").textContent = t.title;
+    const opts = [{ id: "", name: "Без папки", color: "#8691AC" }, ...folders.map(f => ({ id: f.id, name: f.name, color: _folderColor(f) }))];
+    $("move-list").innerHTML = opts.map(o => {
+      const cur = (t.folderId || "") === o.id;
+      const n = tests.filter(x => (x.folderId || "") === o.id && x.status !== "archived").length;
+      return `<button type="button" class="mv-item${cur ? " cur" : ""}" data-folder="${esc(o.id)}" ${cur ? "disabled" : ""}>
+        <span class="mv-ico" style="background:linear-gradient(135deg,${_lightenHex(o.color, .35)},${o.color})"></span>
+        <span class="mv-name">${esc(o.name)}</span>
+        <span class="mv-n">${cur ? "поточна" : _nTests(n)}</span>
+      </button>`;
+    }).join("") + `<button type="button" class="mv-item mv-new" data-folder="__new">＋ Нова папка…</button>`;
+    openM("m-move");
+  },
+  async doMoveTest(folderId){
+    const id = window._moveTestId, t = tests.find(x => x.id === id); if (!t) return;
+    if (folderId === "__new"){ closeM("m-move"); G.openFolderModal(); return; }
+    try{
+      await dbUpd(`tests/${id}`, { folderId: folderId || null, updatedAt: ts() });
+      tests = tests.map(x => x.id === id ? { ...x, folderId: folderId || null } : x); window.tests = tests;
+      closeM("m-move");
+      renderTests();
+      const f = folders.find(x => x.id === folderId);
+      toast(`Переміщено в «${f ? f.name : "Без папки"}»`);
+    }catch(e){ toast("Помилка: " + e.message, "err"); }
+  },
+
+  // Копія тесту (чернетка в тій самій папці)
+  async duplicateTest(testId){
+    const t = tests.find(x => x.id === testId); if (!t) return;
+    try{
+      const { id: _i, ...rest } = t;
+      const copy = { ...rest, title: `${t.title} (копія)`, status: "draft", createdAt: ts(), updatedAt: ts(), archivedAt: null, sharedFrom: null, sharedAt: null };
+      Object.keys(copy).forEach(k => copy[k] === undefined && delete copy[k]);
+      const id = await dbPush("tests", copy);
+      tests.unshift({ id, ...copy }); window.tests = tests;
+      renderAll();
+      toast("Створено копію-чернетку");
+    }catch(e){ toast("Помилка: " + e.message, "err"); }
+  },
+
+  async setTestStatus(id, status){
+    const t = tests.find(x => x.id === id);
+    if (!t || !STATUS[status] || t.status === status) return;
+    try{
+      await dbUpd(`tests/${id}`, { status, updatedAt: ts() });
+      tests = tests.map(x => x.id === id ? { ...x, status } : x); window.tests = tests;
+      renderTests(); updateBadges();
+      toast(`Статус: ${STATUS[status].label}`);
+    }catch(e){ toast("Помилка: " + e.message, "err"); }
   },
   // Tests
   openTestInFolder(fid){
-    _fid = fid || null;
+    _fid = fid && folders.some(f => f.id === fid) ? fid : null;
+    ["nt-n", "nt-d", "nt-tg"].forEach(k => { const el = $(k); if (el){ el.value = ""; el.classList.remove("er"); } });
+    const tm = $("nt-tm"); if (tm){ tm.value = "10"; tm.classList.remove("er"); }
+    const err = $("nt-err"); if (err) err.textContent = "";
+    const btn = $("nt-submit"); if (btn){ btn.disabled = false; btn.textContent = "Створити тест →"; }
     openM("m-test");
     buildChips();
   },
   async submitTest(){
-    const n=$("nt-n").value.trim();
-    if(!n){$("nt-n").classList.add("er");$("nt-n").focus();return;}
-    const desc=$("nt-d").value.trim(),tags=$("nt-tg").value.split(",").map(s=>s.trim()).filter(Boolean),tl=(parseInt($("nt-tm").value)||10)*60;
-    ldr(true);closeM("m-test");
+    const nEl = $("nt-n"), err = $("nt-err"), btn = $("nt-submit");
+    const fail = (el, m) => { el?.classList.add("er"); if (err) err.textContent = m; el?.focus(); };
+    const n = nEl.value.replace(/\s+/g, " ").trim();
+    if (!n) return fail(nEl, "Введіть назву тесту");
+    if (n.length > 120) return fail(nEl, "Назва задовга — до 120 символів");
+    const mins = parseInt($("nt-tm").value, 10);
+    if (!Number.isFinite(mins) || mins < 1 || mins > 600) return fail($("nt-tm"), "Ліміт часу — від 1 до 600 хвилин");
+    if (btn?.disabled) return;
+    if (btn){ btn.disabled = true; btn.textContent = "Створюємо…"; }
+    const desc = $("nt-d").value.trim();
+    const tags = [...new Set($("nt-tg").value.split(",").map(s => s.trim()).filter(Boolean))];
     try{
-      const id=await dbPush("tests",{title:n,description:desc,folderId:_fid||null,tags,timeLimit:tl,status:"draft",questions:[],createdAt:ts()});
-      location.href=`constructor?id=${id}`;
-    }catch(e){toast("Помилка: "+e.message,"err");ldr(false);}
+      const id = await dbPush("tests", { title: n, description: desc, folderId: _fid || null, tags, timeLimit: mins * 60, status: "draft", questions: [], createdAt: ts() });
+      location.href = `constructor?id=${id}`;
+    }catch(e){
+      fail(null, "Не вдалося створити: " + e.message);
+      if (btn){ btn.disabled = false; btn.textContent = "Створити тест →"; }
+    }
   },
-  confDelTest(id,name){_pid=id;$("del-tn").textContent=name;openM("m-del-test");},
+  // Видалення/архів. Для вже архівованого тесту — лише «Видалити назавжди».
+  confDelTest(id){
+    const t = tests.find(x => x.id === id); if (!t) return;
+    _pid = id;
+    const att = attempts.filter(a => a.testId === id).length;
+    const lnk = links.filter(l => l.testId === id).length;
+    const archived = t.status === "archived";
+    $("del-tn").textContent = t.title;
+    $("del-test-title").textContent = archived ? "Видалити тест назавжди?" : "Що зробити з тестом?";
+    $("del-archive-opt").hidden = archived;
+    $("del-archive-info").textContent = `Тест зникне зі списку, ${lnk ? `${lnk} ${_plural(lnk, "посилання закриється", "посилання закриються", "посилань закриються")}, ` : ""}усі ${att} ${_plural(att, "спроба збережеться", "спроби збережуться", "спроб збережуться")}. Можна відновити з архіву.`;
+    $("del-forever-info").textContent = att
+      ? `Буде видалено тест і ${att} ${_plural(att, "спробу", "спроби", "спроб")} студентів. Скасувати неможливо.`
+      : "Тест буде видалено. Скасувати неможливо.";
+    const conf = $("del-forever-confirm"); if (conf) conf.hidden = true;
+    openM("m-del-test");
+  },
+  // Друге натискання підтверджує остаточне видалення (захист від випадкового кліку)
+  askDelForever(){
+    const conf = $("del-forever-confirm");
+    if (conf && conf.hidden){ conf.hidden = false; conf.querySelector("button")?.focus(); return; }
+    G.doDelTest("delete");
+  },
   startLiveGame(testId){
     document.querySelectorAll("[id^='tmenu-']").forEach(m=>m.style.display="none");
     window.open(`live/setup?testId=${testId}`,"_blank","noopener");
   },
   async doDelTest(mode="archive"){
-    const id=_pid;_pid=null;closeM("m-del-test");ldr(true);
+    const id=_pid; if(!id) return; _pid=null;closeM("m-del-test");ldr(true);
     try{
       if(mode==="archive"){
         // Архівуємо тест — зберігаємо спроби, закриваємо посилання
         await dbUpd(`tests/${id}`,{status:"archived",archivedAt:ts()});
         const rl=links.filter(l=>l.testId===id);
         await Promise.all(rl.map(l=>dbUpd(`links/${l.id}`,{status:"closed"})));
-        tests=tests.map(t=>t.id===id?{...t,status:"archived"}:t);
+        tests=tests.map(t=>t.id===id?{...t,status:"archived",archivedAt:ts()}:t);
         links=links.map(l=>l.testId===id?{...l,status:"closed"}:l);
+        window.tests=tests; window.links=links;
         renderAll();toast("Тест переміщено в архів");
       } else {
         // Повне видалення
         const rl=links.filter(l=>l.testId===id),ra=attempts.filter(a=>a.testId===id);
         await Promise.all([dbDel(`tests/${id}`),...rl.map(l=>dbDel(`links/${l.id}`)),...ra.map(a=>dbDel(`attempts/${a.id}`))]);
         tests=tests.filter(t=>t.id!==id);links=links.filter(l=>l.testId!==id);attempts=attempts.filter(a=>a.testId!==id);
+        window.tests=tests; window.links=links; window.attempts=attempts;
         renderAll();toast("Тест та всі спроби видалено");
+        if (document.getElementById("sec-archive")?.classList.contains("on")) G.renderArchive();
       }
     }catch(e){toast("Помилка: "+e.message,"err");}
     ldr(false);
@@ -2586,7 +2701,7 @@ selectAnalyticsDrop(field, value, label){
     const menu = document.getElementById("cd-st-group-menu");
     if (menu){
       menu.innerHTML = `<div class="cd-item cd-active" data-val="" onclick="G.selectStFilter('','Всі групи')">Всі групи</div>` +
-        groups.map(g => `<div class="cd-item" data-val="${esc(g)}" onclick="G.selectStFilter('${esc(g)}','${esc(g)}')">${esc(g)}</div>`).join("");
+        groups.map(g => `<div class="cd-item" data-val="${esc(g)}" onclick="G.selectStFilter(${jsq(g)},${jsq(g)})">${esc(g)}</div>`).join("");
     }
     const lblEl = document.getElementById("cd-st-group-label");
     if (lblEl && !groups.includes(curSel)) lblEl.textContent = "Всі групи";
@@ -3654,46 +3769,39 @@ selectAnalyticsDrop(field, value, label){
   renderArchive(){
     const body = document.getElementById("archive-body");
     if(!body) return;
-    const archived = tests.filter(t=>t.status==="archived").sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    // Оновлюємо лічильник
+    const archived = tests.filter(t => t.status === "archived").sort((a, b) => (b.archivedAt || b.updatedAt || 0) - (a.archivedAt || a.updatedAt || 0));
     const nb = document.getElementById("nb-archive");
-    if(nb) nb.textContent = archived.length;
-    if(!archived.length){
-      body.innerHTML=`<div class="empty" style="padding:60px 20px"><div class="ei">📦</div><div class="et">Архів порожній</div><p style="margin-top:6px;font-size:14px;color:var(--muted)">Сюди потрапляють тести зі статусом "Архівовано"</p></div>`;
+    if (nb) nb.textContent = archived.length;
+    if (!archived.length){
+      body.innerHTML = `<div class="t-card"><div class="t-empty">
+        <div class="t-empty-ico">${I.archive}</div>
+        <div class="t-empty-title">Архів порожній</div>
+        <div class="t-empty-hint">Сюди потрапляють архівовані тести разом зі спробами студентів</div>
+      </div></div>`;
       return;
     }
-    body.innerHTML=`<div class="card" style="padding:0;overflow:hidden">
-      <table class="tbl">
-        <thead><tr>
-          <th style="padding:13px 16px">Назва</th>
-          <th>Питань</th>
-          <th>Спроб</th>
-          <th>Архівовано</th>
-          <th></th>
-        </tr></thead>
-        <tbody>${archived.map(t=>{
-          const attCount=attempts.filter(a=>a.testId===t.id).length;
-          const dateStr=t.updatedAt?new Date(t.updatedAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short",year:"numeric"}):"—";
-          return`<tr>
-            <td style="padding:12px 16px">
-              <div style="font-weight:600;font-size:14px">${esc(t.title)}</div>
-              ${(t.tags||[]).length?`<div style="margin-top:3px">${t.tags.map(g=>`<span style="font-size:11px;background:rgba(45,91,227,.07);color:var(--primary);padding:1px 7px;border-radius:10px;margin-right:3px">${esc(g)}</span>`).join("")}</div>`:""}
-            </td>
-            <td style="color:var(--muted);font-size:13px">${t.questions?.length||0}</td>
-            <td style="color:var(--muted);font-size:13px">${attCount}</td>
-            <td style="font-size:12px;color:var(--muted)">${dateStr}</td>
-            <td><div class="ra">
-              <div class="ib" title="Відновити тест" onclick="G.restoreTest('${t.id}')">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
-              </div>
-              <div class="ib d" title="Видалити назавжди" onclick="G.confDelTest('${t.id}','${esc(t.title)}')">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-              </div>
-            </div></td>
-          </tr>`;
-        }).join("")}</tbody>
-      </table>
-    </div>`;
+    const stats = _testStats();
+    body.innerHTML = `<div class="t-card"><div style="overflow-x:auto"><table class="t-dtable">
+      <thead><tr><th>Назва</th><th>Папка</th><th>Питань</th><th>Спроб</th><th>Архівовано</th><th style="width:220px"></th></tr></thead>
+      <tbody>${archived.map((t, i) => {
+        const f = _folderOf(t);
+        return `<tr data-id="${esc(t.id)}">
+          <td><div style="display:flex;align-items:center;gap:12px;min-width:0">
+            <div class="t-tile" style="background:${_quizCoverGradient(t, i)};filter:grayscale(.5)">${esc(_testAbbr(t.title))}</div>
+            <div style="min-width:0"><div class="t-row-title" style="cursor:default">${esc(t.title)}</div>
+            ${(t.tags || []).length ? `<div class="t-row-sub">${t.tags.map(g => "#" + esc(g)).join(" ")}</div>` : ""}</div>
+          </div></td>
+          <td class="t-muted">${esc(f?.name || "—")}</td>
+          <td class="t-mono">${(t.questions || []).length}</td>
+          <td class="t-mono">${stats.get(t.id)?.cnt || 0}</td>
+          <td class="t-mono t-muted" style="white-space:nowrap">${_fmtDate(t.archivedAt || t.updatedAt) || "—"}</td>
+          <td><div style="display:flex;gap:6px;justify-content:flex-end">
+            <button class="t-btn" data-act="restore" data-id="${esc(t.id)}">${I.restore}Відновити</button>
+            <button class="t-btn ghost danger" data-act="purge" data-id="${esc(t.id)}" title="Видалити назавжди">${I.del}Видалити</button>
+          </div></td>
+        </tr>`;
+      }).join("")}</tbody>
+    </table></div></div>`;
   },
 
 // ─── ЗАМІНИТИ toggleSuspDrop (тепер підтримує "group"): ─────────────────────
@@ -3898,13 +4006,13 @@ selectAnalyticsDrop(field, value, label){
  
       const testOpts = `<div class="it on" data-val="" onclick="G.setSuspTest('','Всі тести')">Всі тести</div>` +
         tests.filter(t => t.status !== "archived").map(t =>
-          `<div class="it" data-val="${t.id}" onclick="G.setSuspTest('${t.id}','${esc(t.title).replace(/'/g,"&#39;")}')">${esc(t.title)}</div>`
+          `<div class="it" data-val="${t.id}" onclick="G.setSuspTest('${t.id}',${jsq(t.title)})">${esc(t.title)}</div>`
         ).join("");
  
       const groupsList = [...new Set(links.filter(l=>!l.groupHidden).map(l => l.group).filter(Boolean))].sort();
       const groupOpts = `<div class="it on" data-val="" onclick="G.setSuspGroup('','Усі групи')">Усі групи</div>` +
         groupsList.map(g =>
-          `<div class="it" data-val="${esc(g)}" onclick="G.setSuspGroup('${esc(g).replace(/'/g,"&#39;")}','${esc(g).replace(/'/g,"&#39;")}')">${esc(g)}</div>`
+          `<div class="it" data-val="${esc(g)}" onclick="G.setSuspGroup(${jsq(g)},${jsq(g)})">${esc(g)}</div>`
         ).join("");
  
       filtersDiv.innerHTML = `
@@ -3967,7 +4075,7 @@ selectAnalyticsDrop(field, value, label){
         const cur = document.getElementById("susp-filter-test")?.value || "";
         tMenu.innerHTML = `<div class="it${!cur?" on":""}" data-val="" onclick="G.setSuspTest('','Всі тести')">Всі тести</div>` +
           tests.filter(t => t.status !== "archived").map(t =>
-            `<div class="it${cur===t.id?" on":""}" data-val="${t.id}" onclick="G.setSuspTest('${t.id}','${esc(t.title).replace(/'/g,"&#39;")}')">${esc(t.title)}</div>`
+            `<div class="it${cur===t.id?" on":""}" data-val="${t.id}" onclick="G.setSuspTest('${t.id}',${jsq(t.title)})">${esc(t.title)}</div>`
           ).join("");
       }
  
@@ -3978,7 +4086,7 @@ selectAnalyticsDrop(field, value, label){
         const groupsList = [...new Set(links.filter(l=>!l.groupHidden).map(l => l.group).filter(Boolean))].sort();
         gMenu.innerHTML = `<div class="it${!cur?" on":""}" data-val="" onclick="G.setSuspGroup('','Усі групи')">Усі групи</div>` +
           groupsList.map(g =>
-            `<div class="it${cur===g?" on":""}" data-val="${esc(g)}" onclick="G.setSuspGroup('${esc(g).replace(/'/g,"&#39;")}','${esc(g).replace(/'/g,"&#39;")}')">${esc(g)}</div>`
+            `<div class="it${cur===g?" on":""}" data-val="${esc(g)}" onclick="G.setSuspGroup(${jsq(g)},${jsq(g)})">${esc(g)}</div>`
           ).join("");
       }
     }
@@ -4099,7 +4207,7 @@ selectAnalyticsDrop(field, value, label){
     if(gbTestMenu){
       gbTestMenu.innerHTML=`<div class="cd-item${!curTestF?" cd-active":""}" data-val="" onclick="G.selectGbFilter('test','','Всі тести')">Всі тести</div>`+
         tests.filter(t=>t.status!=="archived").map(t=>
-          `<div class="cd-item${curTestF===t.id?" cd-active":""}" data-val="${t.id}" onclick="G.selectGbFilter('test','${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
+          `<div class="cd-item${curTestF===t.id?" cd-active":""}" data-val="${t.id}" onclick="G.selectGbFilter('test','${t.id}',${jsq(t.title)})">${esc(t.title)}</div>`
         ).join("");
       const lbl=document.getElementById("cd-gb-test-label");
       if(lbl&&curTestF){const t=tests.find(x=>x.id===curTestF);if(t)lbl.textContent=t.title;}
@@ -4109,7 +4217,7 @@ selectAnalyticsDrop(field, value, label){
     const gbGrpMenu=document.getElementById("cd-gb-group-menu");
     if(gbGrpMenu){
       gbGrpMenu.innerHTML=`<div class="cd-item${!curGrpF?" cd-active":""}" data-val="" onclick="G.selectGbFilter('group','','Всі групи')">Всі групи</div>`+
-        groups.map(g=>`<div class="cd-item${curGrpF===g?" cd-active":""}" data-val="${esc(g)}" onclick="G.selectGbFilter('group','${esc(g)}','${esc(g)}')">${esc(g)}</div>`
+        groups.map(g=>`<div class="cd-item${curGrpF===g?" cd-active":""}" data-val="${esc(g)}" onclick="G.selectGbFilter('group',${jsq(g)},${jsq(g)})">${esc(g)}</div>`
         ).join("");
       const lbl2=document.getElementById("cd-gb-group-label");
       if(lbl2&&curGrpF)lbl2.textContent=curGrpF;
@@ -4161,7 +4269,7 @@ selectAnalyticsDrop(field, value, label){
         gbTestMenu.innerHTML =
           `<div class="cd-item${!stillValid ? " cd-active" : ""}" data-val="" onclick="G.selectGbFilter('test','','Всі тести')">Всі тести</div>` +
           filteredTests.map(t =>
-            `<div class="cd-item${(stillValid && curTestId === t.id) ? " cd-active" : ""}" data-val="${t.id}" onclick="G.selectGbFilter('test','${t.id}','${esc(t.title)}')">${esc(t.title)}</div>`
+            `<div class="cd-item${(stillValid && curTestId === t.id) ? " cd-active" : ""}" data-val="${t.id}" onclick="G.selectGbFilter('test','${t.id}',${jsq(t.title)})">${esc(t.title)}</div>`
           ).join("");
       }
  
