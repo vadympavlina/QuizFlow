@@ -386,12 +386,16 @@
 
 
 <!-- NEWS MODAL -->
-<div class="mo" id="m-news-view">
-  <div class="mb" style="max-width:560px">
+<div class="mo" id="m-news-view" aria-labelledby="news-view-title">
+  <div class="mb nv-mb">
     <button class="mcl" aria-label="Закрити" onclick="closeM('m-news-view')">×</button>
-    <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-weight:600;margin-bottom:8px">📰 Системне повідомлення</div>
-    <div class="mtl" id="news-view-title" style="margin-bottom:16px"></div>
-    <div id="news-view-text" style="font-size:15px;color:var(--text);line-height:1.8;border-top:1px solid var(--border);padding-top:16px"></div>
-    <div id="news-view-date" style="font-size:12px;color:var(--muted);margin-top:16px;padding-top:12px;border-top:1px solid var(--border)"></div>
+    <div class="nv-cat" id="news-view-cat"></div>
+    <h2 class="nv-title" id="news-view-title"></h2>
+    <div class="nv-meta" id="news-view-date"></div>
+    <div class="nv-body" id="news-view-body"><div id="news-view-text" class="nv-text"></div></div>
+    <div class="nv-nav">
+      <button type="button" class="nv-step" id="news-view-prev" hidden><small>← Новіша</small><span></span></button>
+      <button type="button" class="nv-step next" id="news-view-next" hidden><small>Старіша →</small><span></span></button>
+    </div>
   </div>
 </div>
