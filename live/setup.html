@@ -3,439 +3,428 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Налаштування гри · QuizFlow Live</title>
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjN0MzQUVEIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNEY0NkU1Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjkiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjQiIGZpbGw9IndoaXRlIi8+PC9zdmc+">
-<title>QuizFlow Live · Налаштування гри</title>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="modulepreload" href="live-core.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="live-ui.css">
 <style>
-  [hidden]{display:none !important}
-  *,*::before,*::after{box-sizing:border-box}
-  :root{
-    --bg:#F6F5FB; --card:#FFFFFF; --card2:#F0EEFB;
-    --line:#E2DFF3; --line2:#CFC9E8;
-    --ink:#201C33; --ink-d:#6B6480; --ink-dd:#8C86A3;
-    --accent:#5B4FE8; --accent-d:#4A3FD1; --on-accent:#FFFFFF;
-    --warn-bg:#FFF6E0; --warn-line:#F2D48A; --warn-ink:#7A5200;
+  .page{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:22px 28px 40px}
+  .lv-head{margin-bottom:22px}
+  .lv-head .back{margin-left:auto}
+
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:22px;align-items:start}
+  .stack{display:flex;flex-direction:column;gap:16px;min-width:0}
+  .aside{position:sticky;top:18px;display:flex;flex-direction:column;gap:14px}
+
+  /* ── Тест ── */
+  .test-card{display:flex;gap:16px;align-items:flex-start}
+  .test-card .ico{width:48px;height:48px;border-radius:13px;background:var(--accent);color:#fff;display:grid;place-items:center;flex:0 0 auto}
+  .test-card .l{font-size:12.5px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
+  .test-card h1{margin:3px 0 10px;font-size:22px;line-height:1.25;letter-spacing:-.015em;overflow-wrap:anywhere}
+  .test-card .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .test-card .lv-notice{margin-top:12px}
+
+  /* ── Час ── */
+  .time-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .seg{display:inline-flex;padding:4px;gap:4px;background:var(--card-2);border-radius:13px;border:1px solid var(--line);flex-wrap:wrap}
+  .seg button{border:0;background:transparent;padding:9px 14px;border-radius:9px;font:700 14px var(--mono);color:var(--ink-2);cursor:pointer;transition:background .15s,color .15s}
+  .seg button:hover{color:var(--ink)}
+  .seg button.on{background:var(--card);color:var(--accent);box-shadow:0 1px 3px rgba(29,25,48,.14)}
+  .stepper{display:inline-flex;align-items:center;border:1.5px solid var(--line-2);border-radius:13px;overflow:hidden;background:var(--card)}
+  .stepper button{width:40px;height:44px;border:0;background:transparent;font-size:18px;font-weight:700;color:var(--ink-2);cursor:pointer}
+  .stepper button:hover{background:var(--card-2);color:var(--accent)}
+  .stepper input{width:58px;height:44px;border:0;border-left:1px solid var(--line);border-right:1px solid var(--line);text-align:center;font:700 16px var(--mono);outline:none;-moz-appearance:textfield}
+  .stepper input::-webkit-inner-spin-button{-webkit-appearance:none}
+  .stepper.bad{border-color:var(--bad)}
+  .time-note{font-size:12.5px;color:var(--ink-3);margin-top:10px}
+
+  /* ── Бали ── */
+  .choice{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .choice button{position:relative;text-align:left;padding:14px 16px 14px 46px;border-radius:14px;border:1.5px solid var(--line-2);background:var(--card);cursor:pointer;transition:border-color .15s, background .15s}
+  .choice button::before{content:"";position:absolute;left:16px;top:16px;width:18px;height:18px;border-radius:50%;border:2px solid var(--line-2);background:#fff;transition:border .15s}
+  .choice button.on{border-color:var(--accent);background:var(--accent-soft)}
+  .choice button.on::before{border:6px solid var(--accent)}
+  .choice b{display:block;font-size:14.5px}
+  .choice small{display:block;margin-top:3px;font-size:12.5px;color:var(--ink-2);line-height:1.4}
+
+  /* ── Оформлення ── */
+  .swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:8px}
+  .sw{aspect-ratio:1;border-radius:11px;border:0;padding:0;cursor:pointer;position:relative;transition:transform .12s, box-shadow .15s;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+  .sw:hover{transform:translateY(-2px)}
+  .sw.on{box-shadow:0 0 0 2px var(--card), 0 0 0 4.5px var(--accent)}
+  .sw.on::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-weight:900;font-size:15px;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+  .sw.none{background:var(--card-2);color:var(--ink-3);font-size:18px;box-shadow:inset 0 0 0 1.5px var(--line-2)}
+  .sub-l{font-size:12.5px;font-weight:600;color:var(--ink-3);margin:16px 0 8px;display:flex;justify-content:space-between}
+  .sub-l:first-of-type{margin-top:0}
+  .sub-l b{color:var(--ink-2);font-weight:600}
+
+  /* ── Опції ── */
+  .opts{display:flex;flex-direction:column}
+  .opt{display:flex;align-items:center;gap:14px;padding:12px 2px;border:0;background:none;text-align:left;cursor:pointer;border-top:1px solid var(--line)}
+  .opt:first-child{border-top:0;padding-top:0}
+  .opt:last-child{padding-bottom:0}
+  .opt .ico{width:36px;height:36px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:0 0 auto}
+  .opt .t{font-weight:600;font-size:14.5px}
+  .opt .s{font-size:12.5px;color:var(--ink-3);margin-top:2px}
+  .switch{margin-left:auto;width:42px;height:24px;border-radius:999px;background:var(--line-2);position:relative;flex:0 0 auto;transition:background .2s}
+  .switch::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+  .opt[aria-checked="true"] .switch{background:var(--accent)}
+  .opt[aria-checked="true"] .switch::after{transform:translateX(18px)}
+
+  /* ── Прев'ю (права колонка) ── */
+  .preview-card{padding:14px}
+  .pv-top{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;padding:0 4px 10px;color:var(--ink-3)}
+  .pv-top b{color:var(--accent);display:inline-flex;align-items:center;gap:6px;font-weight:700}
+  .pv-top b::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent);animation:blink 1.6s infinite}
+  @keyframes blink{50%{opacity:.3}}
+  .preview{position:relative;aspect-ratio:16/10;border-radius:12px;overflow:hidden;color:#fff;transition:background .35s}
+  .preview .pat{position:absolute;inset:0}
+  .pv-body{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:14px 18px;text-align:center}
+  .pv-meta{display:flex;gap:8px;align-items:center;font:700 10px var(--mono);letter-spacing:.1em;color:rgba(255,255,255,.7)}
+  .pv-timer{width:30px;height:30px;border-radius:50%;background:conic-gradient(#C4B5FD 75%, rgba(255,255,255,.15) 0);display:grid;place-items:center}
+  .pv-timer::after{content:"";width:22px;height:22px;border-radius:50%;background:rgba(10,15,50,.85)}
+  .pv-q{font-weight:700;font-size:15px;line-height:1.25;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 2px 8px rgba(0,0,0,.3)}
+  .pv-opts{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;max-width:280px;margin-top:4px}
+  .pv-opts i{height:22px;border-radius:6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
+  .summary{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-radius:12px;overflow:hidden;margin-top:12px;border:1px solid var(--line)}
+  .summary > div{background:var(--card-2);padding:10px 12px}
+  .summary .k{font-size:11.5px;color:var(--ink-3);font-weight:500}
+  .summary .v{font:700 15px var(--mono);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .join-hint{font-size:12.5px;color:var(--ink-3);text-align:center;line-height:1.5}
+  .join-hint code{font-family:var(--mono);color:var(--accent);font-weight:600}
+
+  /* ── Незавершена гра ── */
+  .resume{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px;padding:14px 18px;border-radius:var(--r-lg);background:var(--accent-soft);border:1.5px solid rgba(91,79,232,.3)}
+  .resume .txt{flex:1;min-width:200px;font-size:14px;color:var(--ink-2)}
+  .resume .txt b{color:var(--ink)}
+  .resume .code{font-family:var(--mono);font-weight:700;color:var(--accent)}
+
+  @media (max-width: 1000px){
+    .layout{grid-template-columns:1fr}
+    .aside{position:static}
+    .page{padding-bottom:110px}
+    .cta{position:fixed;left:0;right:0;bottom:0;z-index:5;padding:12px 28px calc(12px + env(safe-area-inset-bottom));background:rgba(246,245,251,.94);backdrop-filter:blur(8px);border-top:1px solid var(--line)}
+    .cta .lv-btn{max-width:560px;margin:0 auto}
+    .lv-steps{display:none}
   }
-  html,body{margin:0;padding:0}
-  body{
-    font-family:"Space Grotesk",system-ui,sans-serif; color:var(--ink);
-    background:var(--bg); min-height:100vh;
-  }
-  body::before{
-    content:""; position:fixed; inset:0; pointer-events:none; opacity:.6;
-    background-image: radial-gradient(rgba(32,28,51,.06) 1px, transparent 1px);
-    background-size: 26px 26px;
-    mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
-  }
-  .wrap{max-width:1240px;margin:0 auto;padding:24px 32px 0;position:relative;z-index:1}
-
-  .brand{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
-  .brand .logo{width:42px;height:42px;border-radius:11px;background:var(--accent);display:grid;place-items:center;color:var(--on-accent)}
-  .brand .t{font-weight:700;font-size:19px;letter-spacing:-.01em}
-  .brand .t span{color:var(--ink-d);font-weight:500}
-  .steps{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--ink-dd)}
-  .steps span{padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card)}
-  .steps span.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-  .steps i{width:14px;height:2px;background:var(--line2);border-radius:2px}
-
-  .main-grid{display:grid;grid-template-columns:minmax(340px,420px) 1fr;gap:22px;align-items:start}
-  .col-left{display:flex;flex-direction:column;gap:16px;position:sticky;top:20px}
-  .panel{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:22px 24px}
-  .panel + .panel{margin-top:16px}
-  .panel-h{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:700;margin:0 0 16px}
-  .panel-h::before{content:"";width:4px;height:16px;background:var(--accent);border-radius:2px}
-  .panel-h small{margin-left:auto;font-size:12.5px;font-weight:500;color:var(--ink-dd)}
-
-  .quiz-card{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;background:var(--card);border:2px solid var(--line)}
-  .quiz-card .ico{width:46px;height:46px;border-radius:12px;background:var(--accent);display:grid;place-items:center;flex:0 0 auto;color:var(--on-accent)}
-  .quiz-card .l{font-size:12.5px;font-weight:500;color:var(--ink-d)}
-  .quiz-card .name{font-size:17px;font-weight:700;margin-top:2px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-  .type-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-  .type-chips span{font-size:11.5px;font-weight:600;font-family:"JetBrains Mono",monospace;padding:3px 8px;border-radius:6px;background:var(--card2);color:var(--ink-d)}
-  .notice{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-ink);font-size:12.5px;line-height:1.45}
-  .notice[hidden]{display:none}
-
-  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-  .field-l{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--ink-d);margin-bottom:9px}
-  .duo{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-  .duo button{padding:11px 0;border-radius:9px;background:var(--card2);border:2px solid var(--line2);color:var(--ink-d);font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;font-family:"JetBrains Mono",monospace;transition:.15s}
-  .duo button:hover{color:var(--ink);border-color:var(--accent)}
-  .duo button.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-  .custom-time{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--ink-dd);font-weight:500}
-  .input-mini{width:70px;background:var(--card2);border:2px solid var(--line2);border-radius:9px;padding:7px 4px;color:var(--ink);font:700 14.5px "JetBrains Mono",monospace;outline:none;text-align:center;transition:border-color .15s}
-  .input-mini:focus{border-color:var(--accent)}
-  .input-mini.bad{border-color:#D14343}
-
-  .seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .seg button{text-align:left;padding:11px 13px;border-radius:11px;background:var(--card2);border:2px solid var(--line2);color:var(--ink);font:inherit;cursor:pointer;transition:.15s}
-  .seg button b{display:block;font-size:14px}
-  .seg button small{display:block;margin-top:3px;font-size:12px;color:var(--ink-dd);line-height:1.35}
-  .seg button:hover{border-color:var(--accent)}
-  .seg button.on{border-color:var(--accent);background:#ECEAFF;box-shadow:inset 0 0 0 1px var(--accent)}
-
-  .swatches{display:flex;flex-wrap:wrap;gap:9px}
-  .grad,.pat{width:46px;height:46px;border-radius:12px;cursor:pointer;position:relative;flex:0 0 auto;padding:0;font-size:0;border:2px solid var(--line2);transition:transform .12s, border-color .15s, box-shadow .15s}
-  .grad:hover,.pat:hover{transform:translateY(-2px);border-color:var(--accent)}
-  .grad.on,.pat.on{border-color:var(--accent);box-shadow:0 0 0 3px rgba(91,79,232,.3)}
-  .grad.on::after,.pat.on::after{content:"✓";position:absolute;top:3px;right:3px;width:16px;height:16px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-size:10px;font-weight:900;display:grid;place-items:center}
-  .pat{background-color:#1E2A5A}
-
-  .toggles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .tgl{display:flex;align-items:center;gap:12px;padding:13px;background:var(--card2);border:1px solid var(--line);border-radius:12px;cursor:pointer;user-select:none;font:inherit;color:inherit;text-align:left;width:100%}
-  .tgl .ico{width:36px;height:36px;border-radius:9px;background:var(--card);color:var(--accent);display:grid;place-items:center;flex:0 0 auto}
-  .tgl .t{font-weight:600;font-size:14.5px}
-  .tgl .s{font-size:12px;color:var(--ink-dd);margin-top:2px;line-height:1.35}
-  .tgl .switch{margin-left:auto;width:38px;height:22px;background:var(--line2);border-radius:999px;position:relative;flex:0 0 auto;transition:background .2s}
-  .tgl .switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s}
-  .tgl.on .switch{background:var(--accent)}
-  .tgl.on .switch::after{transform:translateX(16px)}
-
-  .monitor-shell{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px;box-shadow:6px 6px 0 rgba(32,28,64,.1)}
-  .monitor-top{display:flex;align-items:center;justify-content:space-between;padding:2px 4px 10px;gap:10px;font-size:12.5px}
-  .monitor-top .live{display:inline-flex;align-items:center;gap:7px;font-family:"JetBrains Mono",monospace;font-weight:700;color:var(--accent)}
-  .monitor-top .live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent);animation:blink 1.5s infinite}
-  @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
-  .monitor-top .hint{color:var(--ink-dd);font-weight:500}
-  .preview{aspect-ratio:16/9;border-radius:11px;overflow:hidden;position:relative;display:grid;place-items:center;color:#fff;transition:background .4s}
-  .preview .pat-layer{position:absolute;inset:0;transition:opacity .3s}
-  .preview-content{position:relative;z-index:1;text-align:center;padding:18px;width:100%}
-  .preview-code{font-family:"JetBrains Mono",monospace;font-size:12px;color:rgba(255,255,255,.6);letter-spacing:.12em;font-weight:600}
-  .preview-title{font-size:22px;font-weight:700;letter-spacing:-.01em;margin:6px auto 0;max-width:90%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .preview-opts{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-width:260px;margin:14px auto 0}
-  .preview-opts i{display:block;height:20px;border-radius:6px;opacity:.95}
-
-  .readouts{display:grid;grid-template-columns:repeat(4,1fr);margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
-  .readout{padding:0 6px;text-align:center;border-right:1px solid var(--line);min-width:0}
-  .readout:last-child{border-right:0}
-  .readout .k{font-size:11px;font-weight:500;color:var(--ink-dd);margin-bottom:5px}
-  .readout .v{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-  .tip-bar{display:flex;align-items:center;gap:12px;padding:13px 17px;background:var(--card2);border:1px solid var(--line);border-radius:12px;font-size:13.5px;color:var(--ink-d);line-height:1.45}
-  .tip-bar b{color:var(--ink)}
-  .tip-bar code{font-family:"JetBrains Mono",monospace;color:var(--accent);background:var(--card);padding:2px 7px;border-radius:6px;word-break:break-all}
-
-  .launch-bar{
-    position:sticky;bottom:0;z-index:5;margin-top:22px;
-    display:flex;align-items:center;gap:16px;padding:16px 32px;
-    background:rgba(246,245,251,.92);backdrop-filter:blur(10px);border-top:2px solid var(--line);
-  }
-  .launch-inner{max-width:1240px;width:100%;margin:0 auto;display:flex;align-items:center;gap:16px}
-  .launch-bar .info{font-size:14.5px;color:var(--ink-d)}
-  .launch-bar .info b{color:var(--ink)}
-  .launch-bar .actions{margin-left:auto;display:flex;gap:10px}
-  .btn-ghost{background:var(--card);border:2px solid var(--line2);color:var(--ink);padding:14px 20px;border-radius:12px;font:inherit;font-weight:600;font-size:15px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
-  .btn-ghost:hover{border-color:var(--accent)}
-  .btn-primary{background:var(--accent);border:2px solid var(--accent);color:var(--on-accent);padding:14px 30px;border-radius:12px;font:inherit;font-weight:700;font-size:16.5px;cursor:pointer;box-shadow:4px 4px 0 rgba(91,79,232,.22);display:inline-flex;align-items:center;gap:11px;transition:transform .12s}
-  .btn-primary:hover{transform:translateY(-1px)}
-  .btn-primary:disabled{opacity:.55;cursor:not-allowed;transform:none}
-  .spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite}
-  @keyframes rot{to{transform:rotate(360deg)}}
-
-  .skeleton{color:transparent !important;background:linear-gradient(90deg,var(--card2),#fff,var(--card2));background-size:200% 100%;animation:sk 1.2s infinite;border-radius:6px}
-  @keyframes sk{to{background-position:-200% 0}}
-
-  button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  .grad:active,.pat:active,.duo button:active,.tgl:active{transform:scale(.96)}
-  @media (prefers-reduced-motion: reduce){ *{transition:none !important;animation:none !important} }
-
-  @media (max-width: 980px){
-    .main-grid{grid-template-columns:1fr}
-    .col-left{position:static}
-    .steps{display:none}
-  }
-  @media (max-width: 640px){
-    .wrap{padding:16px 16px 0}
-    .grid-2,.toggles,.seg{grid-template-columns:1fr}
-    .launch-bar{padding:12px 16px}
-    .launch-bar .info{display:none}
-    .launch-bar .actions{width:100%}
-    .launch-bar .btn-primary{flex:1;justify-content:center}
+  @media (max-width: 600px){
+    .page{padding:16px 16px 40px}
+    .cta{padding-left:16px;padding-right:16px}
+    .choice{grid-template-columns:1fr}
+    .seg{display:grid;grid-template-columns:repeat(6,1fr);width:100%}
+    .seg button{padding:9px 0}
+    .lv-card{padding:16px}
   }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="brand">
-    <div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg></div>
-    <div class="t">quizflow <span>· live</span></div>
-    <div class="steps" aria-label="Етапи гри"><span class="on">1 · Налаштування</span><i></i><span>2 · Лобі</span><i></i><span>3 · Гра</span></div>
+<div class="page">
+  <header class="lv-head">
+    <a class="lv-brand" href="../"><span class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg></span>quizflow&nbsp;<span>live</span></a>
+    <nav class="lv-steps" aria-label="Етапи"><span class="on">1 · Налаштування</span><i></i><span>2 · Лобі</span><i></i><span>3 · Гра</span></nav>
+    <a class="lv-btn ghost back" href="../tests">← До тестів</a>
+  </header>
+
+  <div class="resume" id="resume" hidden>
+    <div class="txt">У вас є незавершена гра <span class="code" id="resume-code"></span> — <b id="resume-title"></b> <span id="resume-state"></span></div>
+    <button class="lv-btn danger" id="resume-close" type="button">Закрити її</button>
+    <a class="lv-btn primary" id="resume-go" href="#">Повернутися →</a>
   </div>
 
-  <div class="main-grid">
-    <div class="col-left">
-      <div class="monitor-shell">
-        <div class="monitor-top">
-          <span class="live">Прев'ю</span>
-          <span class="hint">Так побачать учні</span>
+  <div class="layout">
+    <div class="stack">
+      <section class="lv-card test-card">
+        <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
+        <div style="min-width:0;flex:1">
+          <div class="l">Тест для гри</div>
+          <h1 id="quiz-name" class="lv-skel">Завантаження тесту…</h1>
+          <div class="chips" id="type-chips"></div>
+          <div class="lv-notice" id="excluded-note" hidden></div>
         </div>
-        <div class="preview" id="preview-bg">
-          <div class="pat-layer" id="preview-pat"></div>
-          <div class="preview-content">
-            <div class="preview-code">КОД ГРИ · ● ● ● ●</div>
-            <div class="preview-title" id="preview-title">—</div>
-            <div class="preview-opts" aria-hidden="true">
+      </section>
+
+      <section class="lv-card">
+        <h2 class="lv-card-h"><span class="n">1</span>Час на питання</h2>
+        <div class="time-row">
+          <div class="seg" id="time-presets" role="radiogroup" aria-label="Час на питання">
+            <button type="button" data-t="10">10с</button><button type="button" data-t="20">20с</button>
+            <button type="button" data-t="30">30с</button><button type="button" data-t="45">45с</button>
+            <button type="button" data-t="60">60с</button><button type="button" data-t="90">90с</button>
+          </div>
+          <div class="stepper" id="stepper">
+            <button type="button" data-d="-5" aria-label="Менше на 5 секунд">−</button>
+            <input id="inp-time" type="number" inputmode="numeric" min="5" max="300" aria-label="Секунд на питання">
+            <button type="button" data-d="5" aria-label="Більше на 5 секунд">+</button>
+          </div>
+        </div>
+        <div class="time-note" id="time-note"></div>
+      </section>
+
+      <section class="lv-card">
+        <h2 class="lv-card-h"><span class="n">2</span>Нарахування балів</h2>
+        <div class="choice" id="scoring" role="radiogroup" aria-label="Нарахування балів">
+          <button type="button" role="radio" data-v="speed"><b>⚡ За швидкість</b><small>500–1000 балів: хто швидше відповів правильно — отримує більше</small></button>
+          <button type="button" role="radio" data-v="correct"><b>✓ За правильність</b><small>1000 балів за кожну правильну відповідь, час не важливий</small></button>
+        </div>
+      </section>
+
+      <section class="lv-card">
+        <h2 class="lv-card-h"><span class="n">3</span>Оформлення <small>екран у класі й телефони учнів</small></h2>
+        <div class="sub-l">Фон <b id="grad-name"></b></div>
+        <div class="swatches" id="grad-row" role="radiogroup" aria-label="Фон"></div>
+        <div class="sub-l">Візерунок <b id="pat-name"></b></div>
+        <div class="swatches" id="pat-row" role="radiogroup" aria-label="Візерунок"></div>
+      </section>
+
+      <section class="lv-card">
+        <h2 class="lv-card-h"><span class="n">4</span>Опції</h2>
+        <div class="opts" id="opts"></div>
+      </section>
+    </div>
+
+    <aside class="aside">
+      <div class="lv-card preview-card">
+        <div class="pv-top"><b>Прев'ю</b><span>так бачать учні</span></div>
+        <div class="preview" id="preview">
+          <div class="pat" id="preview-pat"></div>
+          <div class="pv-body">
+            <div class="pv-meta"><span class="pv-timer"></span><span>ПИТАННЯ 1 / <span id="pv-total">—</span></span></div>
+            <div class="pv-q" id="pv-q">—</div>
+            <div class="pv-opts" aria-hidden="true">
               <i style="background:linear-gradient(135deg,#EF4444,#B91C1C)"></i><i style="background:linear-gradient(135deg,#F59E0B,#B45309)"></i>
               <i style="background:linear-gradient(135deg,#10B981,#047857)"></i><i style="background:linear-gradient(135deg,#3B82F6,#1D4ED8)"></i>
             </div>
           </div>
         </div>
-        <div class="readouts">
-          <div class="readout"><div class="k">Питань</div><div class="v" id="sum-q">—</div></div>
-          <div class="readout"><div class="k">Час/пит.</div><div class="v" id="sum-time">—</div></div>
-          <div class="readout"><div class="k">≈ Тривалість</div><div class="v" id="sum-dur">—</div></div>
-          <div class="readout"><div class="k">Тема</div><div class="v" id="sum-theme">—</div></div>
+        <div class="summary">
+          <div><div class="k">Питань</div><div class="v" id="sum-q">—</div></div>
+          <div><div class="k">На питання</div><div class="v" id="sum-time">—</div></div>
+          <div><div class="k">≈ Тривалість</div><div class="v" id="sum-dur">—</div></div>
+          <div><div class="k">Бали</div><div class="v" id="sum-score">—</div></div>
         </div>
       </div>
-
-      <div class="quiz-card">
-        <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
-        <div style="min-width:0;flex:1">
-          <div class="l">Тест</div>
-          <div class="name skeleton" id="quiz-name">Завантаження тесту</div>
-          <div class="type-chips" id="type-chips"></div>
-          <div class="notice" id="excluded-note" hidden></div>
-        </div>
+      <div class="cta">
+        <button class="lv-btn primary big block" id="launch-btn" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+          Створити кімнату
+        </button>
       </div>
-    </div>
-
-    <div>
-      <div class="panel">
-        <h2 class="panel-h">Правила гри</h2>
-        <div class="grid-2">
-          <div>
-            <div class="field-l" id="time-l">Час на питання</div>
-            <div class="duo" id="time-presets" role="group" aria-labelledby="time-l">
-              <button type="button" data-t="10">10с</button>
-              <button type="button" data-t="20">20с</button>
-              <button type="button" data-t="30">30с</button>
-              <button type="button" data-t="60">60с</button>
-            </div>
-            <label class="custom-time">
-              <span>або своє:</span>
-              <input class="input-mini" id="inp-time" type="number" inputmode="numeric" min="5" max="300" step="1">
-              <span>сек (5–300)</span>
-            </label>
-          </div>
-          <div>
-            <div class="field-l" id="score-l">Бальна система</div>
-            <div class="seg" id="scoring" role="radiogroup" aria-labelledby="score-l">
-              <button type="button" role="radio" data-v="speed"><b>⚡ За швидкість</b><small>500–1000 балів, швидше = більше</small></button>
-              <button type="button" role="radio" data-v="correct"><b>✓ За правильність</b><small>1000 балів за кожну правильну</small></button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <h2 class="panel-h">Оформлення <small>видно на екрані й у телефонах учнів</small></h2>
-        <div class="field-l">Градієнт фону</div>
-        <div class="swatches" id="grad-row" role="radiogroup" aria-label="Градієнт фону"></div>
-        <div class="field-l" style="margin-top:18px">Патерн</div>
-        <div class="swatches" id="pat-row" role="radiogroup" aria-label="Патерн"></div>
-      </div>
-
-      <div class="panel">
-        <h2 class="panel-h">Опції</h2>
-        <div class="toggles" id="toggles-wrap"></div>
-      </div>
-
-      <div class="panel">
-        <div class="tip-bar">
-          <span aria-hidden="true">💡</span>
-          <span><b>Як приєднатись:</b> учні відкривають <code id="join-hint">…</code> і вводять код. У лобі буде також QR-код.</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="launch-bar">
-  <div class="launch-inner">
-    <div class="info" id="launch-info">Код гри з'явиться одразу після створення кімнати</div>
-    <div class="actions">
-      <button class="btn-primary" id="launch-btn" disabled>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
-        Створити кімнату
-      </button>
-    </div>
+      <div class="join-hint" id="join-hint-wrap">Учні приєднаються на <code id="join-hint">…</code><br>за кодом або QR з екрана лобі</div>
+    </aside>
   </div>
 </div>
 
 <script type="module">
 import {
-  db, ref, get, set, update, requireTeacher, readParams, fatal, toast, safeStore,
+  db, ref, get, update, requireTeacher, readParams, fatal, toast, safeStore,
   THEMES, PATTERNS, DEFAULT_THEME, applyTheme, LIVE_TYPES, pageUrl, esc, plural,
 } from "./live-core.js";
 
 const $ = (id) => document.getElementById(id);
 const user = await requireTeacher();
 const uid = user.uid;
-
 $("join-hint").textContent = pageUrl("../play").replace(/^https?:\/\//, "");
 
-// ─── Прибирання старих кімнат ──────────────────────────────────────────
-// Видаляємо лише завершені або покинуті кімнати. Раніше видалялись УСІ —
-// і відкриття setup в новій вкладці вбивало гру, що саме йшла.
-const ACTIVE = ["question", "paused", "reveal"];
-const STALE_MS = 3 * 3600 * 1000;
+const { testId } = readParams("testId");
+if (!testId) fatal("Не вказано тест для гри");
+
+// Тест і список кімнат — паралельно, а не по черзі
+const [testSnap, roomsSnap] = await Promise.all([
+  get(ref(db, `teachers/${uid}/tests/${testId}`)),
+  get(ref(db, `teachers/${uid}/liveRooms`)).catch(() => null),
+]);
+if (!testSnap.exists()) fatal("Тест не знайдено");
+
+// ─── Кімнати викладача: прибираємо старі, пропонуємо повернутися в незавершену ──
+const IN_GAME = ["question", "paused", "reveal"];
 (async () => {
   try {
-    const snap = await get(ref(db, `teachers/${uid}/liveRooms`));
-    if (!snap.exists()) return;
+    const rooms = roomsSnap?.val() || {};
     const now = Date.now();
-    const doomed = [];
-    await Promise.all(Object.entries(snap.val()).map(async ([code, v]) => {
+    const infos = await Promise.all(Object.entries(rooms).map(async ([code, v]) => {
       const created = typeof v === "number" ? v : Number(v?.createdAt) || 0;
-      const st = (await get(ref(db, `rooms/${code}/status`)).catch(() => null))?.val();
-      const stale = now - created > STALE_MS;
-      if (!st || st === "finished" || stale || (!ACTIVE.includes(st) && now - created > 3600e3)) doomed.push(code);
+      const [st, title] = await Promise.all([
+        get(ref(db, `rooms/${code}/status`)).then(s => s.val()).catch(() => null),
+        get(ref(db, `rooms/${code}/testTitle`)).then(s => s.val()).catch(() => ""),
+      ]);
+      return { code, created, st, title };
     }));
-    if (!doomed.length) return;
     const upd = {};
-    doomed.forEach(c => { upd[`rooms/${c}`] = null; upd[`teachers/${uid}/liveRooms/${c}`] = null; });
-    await update(ref(db), upd);
-  } catch (e) { console.warn("cleanup:", e.message); }
+    const alive = [];
+    infos.forEach(r => {
+      const age = now - r.created;
+      const dead = !r.st || r.st === "finished" || age > 3 * 3600e3 || (!IN_GAME.includes(r.st) && age > 3600e3);
+      if (dead) { upd[`rooms/${r.code}`] = null; upd[`teachers/${uid}/liveRooms/${r.code}`] = null; }
+      else alive.push(r);
+    });
+    if (Object.keys(upd).length) update(ref(db), upd).catch(e => console.warn("cleanup:", e.message));
+    const r = alive.sort((a, b) => b.created - a.created)[0];
+    if (!r) return;
+    const target = r.st === "lobby" ? "lobby" : r.st === "leaderboard" ? "podium" : "play-teacher";
+    const label = { lobby: "(лобі відкрите)", leaderboard: "(показуються результати)" }[r.st] || "(гра триває)";
+    $("resume-code").textContent = r.code;
+    $("resume-title").textContent = r.title ? `«${r.title}»` : "";
+    $("resume-state").textContent = label;
+    $("resume-go").href = `${target}?code=${r.code}`;
+    $("resume").hidden = false;
+    $("resume-close").onclick = async () => {
+      if (!confirm(`Закрити гру ${r.code}? Учні побачать, що її завершено.`)) return;
+      try {
+        await update(ref(db), { [`rooms/${r.code}/status`]: "finished", [`teachers/${uid}/liveRooms/${r.code}`]: null });
+        $("resume").hidden = true; toast("Гру закрито", "ok");
+      } catch (e) { toast("Помилка: " + e.message, "err"); }
+    };
+  } catch (e) { console.warn("rooms:", e.message); }
 })();
 
 // ─── Тест ──────────────────────────────────────────────────────────────
-const { testId } = readParams("testId");
-if (!testId) fatal("Не вказано тест для гри");
-const testSnap = await get(ref(db, `teachers/${uid}/tests/${testId}`));
-if (!testSnap.exists()) fatal("Тест не знайдено");
 const testData = testSnap.val();
 const allQ = Array.isArray(testData.questions) ? testData.questions : Object.values(testData.questions || {});
 const questions = allQ.filter(q => q && LIVE_TYPES.includes(q.type || "single"));
 const excluded = allQ.length - questions.length;
 
-$("quiz-name").classList.remove("skeleton");
+$("quiz-name").classList.remove("lv-skel");
 $("quiz-name").textContent = testData.title || "Без назви";
-$("quiz-name").title = testData.title || "";
-$("preview-title").textContent = testData.title || "—";
-const TYPE_SHORT = { single:"одна", multi:"кілька", text:"текст", number:"число" };
+document.title = `${testData.title || "Гра"} · Налаштування · QuizFlow Live`;
+const TYPE_SHORT = { single:"одна правильна", multi:"кілька правильних", text:"текст", number:"число" };
 const byType = {};
 questions.forEach(q => { const t = q.type || "single"; byType[t] = (byType[t] || 0) + 1; });
-$("type-chips").innerHTML = Object.entries(byType).map(([t, n]) => `<span>${n} × ${TYPE_SHORT[t]}</span>`).join("");
+$("type-chips").innerHTML = `<span class="lv-chip">${questions.length} ${plural(questions.length, "питання", "питання", "питань")}</span>` +
+  Object.entries(byType).map(([t, n]) => `<span class="lv-chip">${n} × ${TYPE_SHORT[t]}</span>`).join("");
 if (excluded) {
   $("excluded-note").hidden = false;
-  $("excluded-note").textContent = `${excluded} ${plural(excluded, "питання", "питання", "питань")} пропущено — типи «розгорнута відповідь», «відповідність» і «послідовність» не підтримуються в live-режимі.`;
+  $("excluded-note").textContent = `${excluded} ${plural(excluded, "питання не увійде", "питання не увійдуть", "питань не увійдуть")} у гру — типи «розгорнута відповідь», «відповідність» і «послідовність» не підтримуються в live-режимі.`;
 }
+const firstQ = document.createElement("div");
+firstQ.innerHTML = questions[0]?.text || testData.title || "";
+$("pv-q").textContent = firstQ.textContent.trim() || "Питання з'явиться тут";
+$("pv-total").textContent = questions.length;
 
-// ─── Стан (запам'ятовуємо останні налаштування викладача) ─────────────
+// ─── Стан (останні налаштування запам'ятовуються) ──────────────────────
 const saved = safeStore.get("qf-live-setup", {});
+const clampTime = (v) => { v = Math.round(Number(v)); return Number.isFinite(v) ? Math.min(300, Math.max(5, v)) : 20; };
 const state = {
   time: clampTime(saved.time ?? 20),
   scoring: saved.scoring === "correct" ? "correct" : "speed",
   grad: THEMES[saved.grad] ? saved.grad : DEFAULT_THEME.grad,
-  pat: PATTERNS[saved.pat] ? saved.pat : DEFAULT_THEME.pat,
+  pat: saved.pat === "none" || PATTERNS[saved.pat] ? saved.pat : DEFAULT_THEME.pat,
   shuffle: saved.shuffle ?? true,
+  shuffleQ: saved.shuffleQ ?? false,
   podium: saved.podium ?? true,
 };
-function clampTime(v) { v = Math.round(Number(v)); return Number.isFinite(v) ? Math.min(300, Math.max(5, v)) : 20; }
 const persist = () => safeStore.set("qf-live-setup", state);
+const hasFreeform = questions.some(q => q.type === "text" || q.type === "number");
 
 // ─── Час ───────────────────────────────────────────────────────────────
-const inpTime = $("inp-time");
-function renderTime() {
-  inpTime.value = state.time;
-  inpTime.classList.remove("bad");
+const inp = $("inp-time");
+function renderTime(fromInput = false) {
+  if (!fromInput) inp.value = state.time;
+  $("stepper").classList.remove("bad");
   document.querySelectorAll("#time-presets button").forEach(b => {
     const on = +b.dataset.t === state.time;
-    b.classList.toggle("on", on); b.setAttribute("aria-pressed", on);
+    b.classList.toggle("on", on); b.setAttribute("aria-checked", on); b.setAttribute("role", "radio");
   });
+  $("time-note").textContent = state.time < 15 && hasFreeform
+    ? "⚠ У тесті є питання з введенням відповіді — учням може не вистачити часу надрукувати."
+    : state.time >= 90 ? "Довгий час підходить для задач із розрахунками." : "Стандартний ритм гри: 20–30 с на питання.";
   renderSummary();
 }
 document.querySelectorAll("#time-presets button").forEach(b => b.addEventListener("click", () => { state.time = +b.dataset.t; persist(); renderTime(); }));
-inpTime.addEventListener("input", () => {
-  const v = Number(inpTime.value);
-  const ok = Number.isFinite(v) && v >= 5 && v <= 300;
-  inpTime.classList.toggle("bad", !ok);
-  if (!ok) return;
-  state.time = Math.round(v); persist();
-  document.querySelectorAll("#time-presets button").forEach(b => b.classList.toggle("on", +b.dataset.t === state.time));
-  renderSummary();
+document.querySelectorAll("#stepper button").forEach(b => b.addEventListener("click", () => { state.time = clampTime(state.time + +b.dataset.d); persist(); renderTime(); }));
+inp.addEventListener("input", () => {
+  const v = Number(inp.value), ok = Number.isFinite(v) && v >= 5 && v <= 300;
+  if (!ok) { $("stepper").classList.add("bad"); return; }
+  state.time = Math.round(v); persist(); renderTime(true);
 });
-inpTime.addEventListener("blur", () => { state.time = clampTime(inpTime.value); persist(); renderTime(); });
+inp.addEventListener("blur", () => { state.time = clampTime(inp.value); persist(); renderTime(); });
 
 // ─── Бали ──────────────────────────────────────────────────────────────
 function renderScoring() {
-  document.querySelectorAll("#scoring button").forEach(b => {
-    const on = b.dataset.v === state.scoring;
-    b.classList.toggle("on", on); b.setAttribute("aria-checked", on);
-  });
+  document.querySelectorAll("#scoring button").forEach(b => { const on = b.dataset.v === state.scoring; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
+  renderSummary();
 }
 document.querySelectorAll("#scoring button").forEach(b => b.addEventListener("click", () => { state.scoring = b.dataset.v; persist(); renderScoring(); }));
 
-// ─── Градієнти й патерни ───────────────────────────────────────────────
-function swatchRow(host, entries, key, decorate) {
-  entries.forEach(([id, meta]) => {
-    const b = document.createElement("button");
-    b.type = "button"; b.className = key; b.dataset.id = id;
-    b.title = meta.name; b.setAttribute("role", "radio"); b.setAttribute("aria-label", meta.name);
-    decorate(b, meta);
-    b.addEventListener("click", () => { state[key] = id; persist(); renderSwatches(); renderPreview(); });
-    host.appendChild(b);
+// ─── Фон і візерунок ───────────────────────────────────────────────────
+function makeSwatches(host, items, key) {
+  host.innerHTML = items.map(([id, name]) => `<button type="button" class="sw${id === "none" ? " none" : ""}" role="radio" data-k="${key}" data-id="${id}" title="${esc(name)}" aria-label="${esc(name)}">${id === "none" ? "∅" : ""}</button>`).join("");
+  host.addEventListener("click", (e) => {
+    const b = e.target.closest(".sw"); if (!b) return;
+    state[key] = b.dataset.id; persist(); renderTheme();
   });
 }
-swatchRow($("grad-row"), Object.entries(THEMES), "grad", (b, m) => { b.style.background = m.css; });
-swatchRow($("pat-row"), Object.entries(PATTERNS), "pat", (b, m) => {
-  b.style.backgroundImage = `${m.bg}, ${THEMES[DEFAULT_THEME.grad].css}`;
-  b.style.backgroundSize = `${m.size}, cover`;
-});
-function renderSwatches() {
-  document.querySelectorAll(".grad,.pat").forEach(b => {
-    const on = state[b.classList.contains("grad") ? "grad" : "pat"] === b.dataset.id;
-    b.classList.toggle("on", on); b.setAttribute("aria-checked", on);
+makeSwatches($("grad-row"), Object.entries(THEMES).map(([id, t]) => [id, t.name]), "grad");
+makeSwatches($("pat-row"), [["none", "Без візерунка"], ...Object.entries(PATTERNS).map(([id, p]) => [id, p.name])], "pat");
+document.querySelectorAll('#grad-row .sw').forEach(b => { b.style.background = THEMES[b.dataset.id].css; });
+
+function renderTheme() {
+  const grad = THEMES[state.grad];
+  document.querySelectorAll(".sw").forEach(b => { const on = state[b.dataset.k] === b.dataset.id; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
+  // Візерунки показуємо на вибраному фоні — одразу видно, як це виглядатиме разом
+  document.querySelectorAll('#pat-row .sw:not(.none)').forEach(b => {
+    const p = PATTERNS[b.dataset.id];
+    b.style.backgroundImage = `${p.bg}, ${grad.css}`;
+    b.style.backgroundSize = `${p.size}, cover`;
   });
+  $("grad-name").textContent = grad.name;
+  $("pat-name").textContent = state.pat === "none" ? "без візерунка" : PATTERNS[state.pat].name;
+  applyTheme({ grad: state.grad, pat: state.pat }, $("preview"), $("preview-pat"));
 }
 
 // ─── Опції ─────────────────────────────────────────────────────────────
-const TOGGLES = [
-  {k:"shuffle", t:"Перемішувати варіанти", s:"Кожен учень бачить свій порядок відповідей", icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>`},
-  {k:"podium",  t:"Подіум у фіналі", s:"Анімований топ-3 з конфеті", icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="11" width="8" height="10" rx="1"/><rect x="2" y="14" width="6" height="7" rx="1"/><rect x="16" y="13" width="6" height="8" rx="1"/></svg>`},
+const ICON = (d) => `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const OPTS = [
+  { k:"shuffle",  t:"Перемішувати варіанти", s:"У кожного учня свій порядок відповідей — важче підглянути", icon: ICON('<polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/>') },
+  { k:"shuffleQ", t:"Перемішати порядок питань", s:"Питання йдуть у випадковому порядку, однаковому для всіх", icon: ICON('<path d="M3 6h13M3 12h9M3 18h13"/><path d="M18 9l3 3-3 3"/>') },
+  { k:"podium",   t:"Подіум у фіналі", s:"Анімований топ-3 з конфеті перед загальною таблицею", icon: ICON('<rect x="8" y="11" width="8" height="10" rx="1"/><rect x="2" y="14" width="6" height="7" rx="1"/><rect x="16" y="13" width="6" height="8" rx="1"/>') },
 ];
-TOGGLES.forEach(o => {
-  const d = document.createElement("button");
-  d.type = "button"; d.className = "tgl"; d.setAttribute("role", "switch");
-  d.innerHTML = `<div class="ico">${o.icon}</div><div><div class="t">${esc(o.t)}</div><div class="s">${esc(o.s)}</div></div><div class="switch"></div>`;
-  const paint = () => { d.classList.toggle("on", !!state[o.k]); d.setAttribute("aria-checked", !!state[o.k]); };
-  d.addEventListener("click", () => { state[o.k] = !state[o.k]; persist(); paint(); });
-  paint();
-  $("toggles-wrap").appendChild(d);
-});
+$("opts").innerHTML = OPTS.map(o => `<button type="button" class="opt" role="switch" data-k="${o.k}"><span class="ico">${o.icon}</span><span><span class="t" style="display:block">${esc(o.t)}</span><span class="s" style="display:block">${esc(o.s)}</span></span><span class="switch"></span></button>`).join("");
+const renderOpts = () => document.querySelectorAll(".opt").forEach(b => b.setAttribute("aria-checked", !!state[b.dataset.k]));
+$("opts").addEventListener("click", (e) => { const b = e.target.closest(".opt"); if (!b) return; state[b.dataset.k] = !state[b.dataset.k]; persist(); renderOpts(); });
 
-// ─── Прев'ю і підсумок ─────────────────────────────────────────────────
-function renderPreview() {
-  applyTheme({ grad: state.grad, pat: state.pat }, $("preview-bg"), $("preview-pat"));
-  renderSummary();
-}
+// ─── Підсумок ──────────────────────────────────────────────────────────
 function renderSummary() {
   $("sum-q").textContent = questions.length;
-  $("sum-time").textContent = state.time + "с";
-  // +6с на кожне питання — розкриття відповіді й перехід
-  const mins = Math.max(1, Math.round(questions.length * (state.time + 6) / 60));
+  $("sum-time").textContent = state.time + " с";
+  // Реалістична оцінка: таймер + ~8 с на розбір відповіді й перехід
+  const mins = Math.max(1, Math.round(questions.length * (state.time + 8) / 60));
   $("sum-dur").textContent = `${mins} хв`;
-  $("sum-theme").textContent = THEMES[state.grad].name;
-  $("sum-theme").title = `${THEMES[state.grad].name} · ${PATTERNS[state.pat].name}`;
+  $("sum-score").textContent = state.scoring === "speed" ? "швидкість" : "правильність";
 }
-renderTime(); renderScoring(); renderSwatches(); renderPreview();
 
-// ─── Запуск ────────────────────────────────────────────────────────────
+renderTime(); renderScoring(); renderTheme(); renderOpts();
+
+// ─── Створення кімнати ─────────────────────────────────────────────────
 const launchBtn = $("launch-btn");
 if (!questions.length) {
-  $("launch-info").innerHTML = "<b>У тесті немає питань, які підтримує live-режим.</b>";
+  launchBtn.textContent = "Немає питань для live-гри";
 } else {
   launchBtn.disabled = false;
-  $("launch-info").innerHTML = `<b>${questions.length}</b> ${plural(questions.length, "питання", "питання", "питань")} · код гри з'явиться одразу після створення`;
 }
 launchBtn.addEventListener("click", createRoom);
+document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") createRoom();
+});
+
+function shuffled(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
 
 async function createRoom() {
   if (launchBtn.disabled) return;
   const idle = launchBtn.innerHTML;
   launchBtn.disabled = true;
-  launchBtn.innerHTML = `<span class="spin"></span> Створення…`;
+  launchBtn.innerHTML = `<span class="lv-spin"></span> Створюємо кімнату…`;
   try {
     let code = null;
     for (let i = 0; i < 12 && !code; i++) {
@@ -444,19 +433,19 @@ async function createRoom() {
     }
     if (!code) throw new Error("не вдалося підібрати вільний код, спробуйте ще раз");
 
-    // Правильні відповіді НЕ кладемо в публічну кімнату — інакше будь-який
-    // учень бачить їх через DevTools. Ключ лежить у приватній гілці викладача,
-    // а оцінює відповіді сторінка викладача в момент розкриття.
+    const list = state.shuffleQ ? shuffled(questions) : questions;
+    // Правильні відповіді НЕ кладемо в публічну кімнату — ключ лежить у
+    // приватній гілці викладача, а оцінює відповіді сторінка викладача.
     const answerKey = {};
-    questions.forEach((q, i) => { answerKey[i] = q.correct ?? null; });
+    list.forEach((q, i) => { answerKey[i] = q.correct ?? null; });
     const now = Date.now();
     await update(ref(db), {
       [`rooms/${code}`]: {
         hostUid: uid, testId, status: "lobby", currentQ: 0,
         timePerQ: state.time, scoring: state.scoring,
         theme: { grad: state.grad, pat: state.pat },
-        options: { shuffle: !!state.shuffle, podium: !!state.podium },
-        questions: questions.map(q => ({ id: q.id || "", type: q.type || "single", text: q.text || "", options: q.options || null })),
+        options: { shuffle: !!state.shuffle, shuffleQ: !!state.shuffleQ, podium: !!state.podium },
+        questions: list.map(q => ({ id: q.id || "", type: q.type || "single", text: q.text || "", options: q.options || null })),
         testTitle: testData.title || "",
         createdAt: now,
       },

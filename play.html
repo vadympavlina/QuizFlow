@@ -2,90 +2,210 @@
 <html lang="uk">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
-<title>QuizFlow Live · Приєднатись</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><circle cx='16' cy='16' r='9' fill='none' stroke='white' stroke-width='2'/><circle cx='16' cy='16' r='4' fill='white'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#F6F5FB"/>
+<title>Приєднатись до гри · QuizFlow Live</title>
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjN0MzQUVEIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNEY0NkU1Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjkiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjQiIGZpbGw9IndoaXRlIi8+PC9zdmc+">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800;900&family=Geist+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="modulepreload" href="live/live-core.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="live/live-ui.css">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;touch-action:manipulation}
-body{font-family:"Manrope",system-ui,sans-serif;color:#fff;background:linear-gradient(160deg,#0F1844 0%,#1E3A8A 100%);min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px;-webkit-font-smoothing:antialiased}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(ellipse at center,black 30%,transparent 90%)}
-.card{background:rgba(255,255,255,.07);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:36px 26px;width:100%;max-width:400px;animation:cardIn .45s cubic-bezier(.34,1.56,.64,1) both;position:relative;z-index:1}
-@keyframes cardIn{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:none}}
-.logo-wrap{display:flex;align-items:center;gap:10px;margin-bottom:24px;justify-content:center}
-.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#A78BFA,#7C3AED);display:grid;place-items:center;box-shadow:0 8px 20px rgba(124,58,237,.4)}
-.logo-text{font-size:16px;font-weight:800}
-.logo-text em{font-style:normal;color:#A78BFA;font-weight:500}
-.code-display{text-align:center;padding:14px;margin-bottom:20px;background:rgba(255,255,255,.05);border-radius:14px;border:1px solid rgba(255,255,255,.1)}
-.code-display .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.4);font-weight:700;margin-bottom:5px}
-.code-display .val{font-family:"Geist Mono",monospace;font-size:26px;font-weight:700;letter-spacing:.15em;color:#A78BFA}
-.field{margin-bottom:12px}
-.field-label{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.5);font-weight:700;margin-bottom:6px;display:block}
-.field-input{width:100%;padding:13px 16px;border-radius:11px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);font-family:"Manrope",sans-serif;font-size:15px;color:#fff;outline:none;transition:all .15s}
-.field-input::placeholder{color:rgba(255,255,255,.3)}
-.field-input:focus{border-color:#A78BFA;box-shadow:0 0 0 3px rgba(167,139,250,.18);background:rgba(255,255,255,.1)}
-#inp-code{font-family:"Geist Mono",monospace;font-size:20px;letter-spacing:.08em}
-.join-btn{width:100%;padding:15px;border:none;border-radius:12px;background:linear-gradient(135deg,#A78BFA,#7C3AED);color:#fff;font-family:"Manrope",sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:6px;box-shadow:0 8px 24px rgba(124,58,237,.4)}
-.join-btn:hover{filter:brightness(1.08)}
-.join-btn:disabled{opacity:.55;cursor:not-allowed}
-.err{margin-top:12px;padding:10px 14px;border-radius:10px;background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.3);color:#FCA5A5;font-size:13px;font-weight:600;text-align:center;display:none}
-.err.on{display:block}
+  body{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px calc(24px + env(safe-area-inset-bottom));touch-action:manipulation}
+  .wrap{position:relative;z-index:1;width:100%;max-width:420px}
+  .lv-brand{justify-content:center;margin-bottom:22px}
+  .lv-card{padding:26px 24px;animation:cardIn .4s cubic-bezier(.22,1,.36,1)}
+  @keyframes cardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  h1{margin:0 0 4px;font-size:22px;letter-spacing:-.015em}
+  .sub{margin:0 0 20px;color:var(--ink-2);font-size:14.5px;line-height:1.45}
+
+  .code-input{font:700 30px var(--mono);letter-spacing:.14em;text-align:center;padding:14px 10px;border-radius:14px}
+  .code-input::placeholder{color:var(--line-2);letter-spacing:.14em}
+
+  .room{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--card-2);border:1px solid var(--line);margin-bottom:18px}
+  .room .ico{width:40px;height:40px;border-radius:11px;background:var(--accent);color:#fff;display:grid;place-items:center;flex:0 0 auto}
+  .room .t{font-weight:700;font-size:15px;overflow-wrap:anywhere}
+  .room .m{font:600 12px var(--mono);color:var(--ink-3);margin-top:2px}
+  .room button{margin-left:auto;border:0;background:none;color:var(--accent);font-weight:600;font-size:13px;cursor:pointer;padding:6px}
+
+  .nick-row{display:flex;gap:12px;align-items:center}
+  .nick-row .av{width:50px;height:50px;border-radius:14px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:17px;flex:0 0 auto;background:var(--line-2);transition:background .2s}
+  .counter{text-align:right;font:500 11.5px var(--mono);color:var(--ink-3);margin-top:6px}
+
+  .err{margin-top:14px;padding:11px 13px;border-radius:12px;background:#FDECEC;border:1px solid #F3C1C1;color:#9B2C2C;font-size:13.5px;font-weight:600}
+  .info{margin-top:14px;padding:11px 13px;border-radius:12px;background:var(--accent-soft);color:var(--accent-2);font-size:13px;font-weight:600}
+  .actions{margin-top:18px;display:flex;flex-direction:column;gap:10px}
+  .resume{margin-bottom:16px;padding:14px;border-radius:14px;border:1.5px solid rgba(91,79,232,.3);background:var(--accent-soft)}
+  .resume p{margin:0 0 10px;font-size:14px;color:var(--ink-2)}
+  .resume p b{color:var(--ink)}
+  .foot{margin-top:18px;text-align:center;font-size:12.5px;color:var(--ink-3)}
+  .shake{animation:shake .35s}
+  @keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="logo-wrap">
-    <div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg></div>
-    <div class="logo-text">quiz<em>flow</em> live</div>
-  </div>
-  <div class="code-display" id="code-display" style="display:none">
-    <div class="lbl">Код кімнати</div>
-    <div class="val" id="code-val"></div>
-  </div>
-  <div class="field" id="code-field">
-    <label class="field-label">Код кімнати</label>
-    <input class="field-input" id="inp-code" type="text" inputmode="numeric" maxlength="8" placeholder="12345678" autocomplete="off">
-  </div>
-  <div class="field">
-    <label class="field-label">Нік</label>
-    <input class="field-input" id="inp-nick" type="text" placeholder="Як вас називати в грі" autocomplete="nickname" maxlength="24">
-  </div>
-  <div class="err" id="err"></div>
-  <button class="join-btn" id="join-btn" onclick="doJoin()">Приєднатись →</button>
+<div class="wrap">
+  <div class="lv-brand"><span class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg></span>quizflow&nbsp;<span>live</span></div>
+
+  <!-- Крок 1: код -->
+  <form class="lv-card" id="step-code" autocomplete="off" novalidate>
+    <h1>Приєднатись до гри</h1>
+    <p class="sub">Введіть код, який показує викладач на екрані</p>
+    <label class="lv-label" for="inp-code">Код гри</label>
+    <input class="lv-input code-input" id="inp-code" inputmode="numeric" autocomplete="one-time-code" placeholder="0000 0000" maxlength="9" enterkeyhint="next">
+    <div class="err" id="err-code" hidden></div>
+    <div class="actions"><button class="lv-btn primary big block" id="btn-code" type="submit">Далі →</button></div>
+  </form>
+
+  <!-- Крок 2: нік -->
+  <form class="lv-card" id="step-nick" autocomplete="off" novalidate hidden>
+    <div class="room">
+      <span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span>
+      <div style="min-width:0"><div class="t" id="room-title">—</div><div class="m" id="room-meta">—</div></div>
+      <button type="button" id="change-code" hidden>Інший код</button>
+    </div>
+    <div class="resume" id="resume" hidden>
+      <p>Ви вже в цій грі як <b id="resume-name"></b></p>
+      <button class="lv-btn primary block" type="button" id="resume-btn">Продовжити →</button>
+    </div>
+    <label class="lv-label" for="inp-nick">Ваше ім'я в грі</label>
+    <div class="nick-row">
+      <div class="av" id="nick-av">?</div>
+      <input class="lv-input" id="inp-nick" placeholder="Напр. Олена К." maxlength="24" autocomplete="nickname" enterkeyhint="go">
+    </div>
+    <div class="counter" id="nick-count">0 / 24</div>
+    <div class="info" id="info-running" hidden>Гра вже йде — ви приєднаєтесь з поточного питання</div>
+    <div class="err" id="err-nick" hidden></div>
+    <div class="actions"><button class="lv-btn primary big block" id="btn-join" type="submit">Приєднатись</button></div>
+  </form>
+
+  <div class="foot">Викладач бачить ваше ім'я — пишіть справжнє 🙂</div>
 </div>
+
 <script type="module">
-import{initializeApp,getApps}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getDatabase,ref,get,set}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-const FC={apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",authDomain:"quizflow-8a978.firebaseapp.com",databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",projectId:"quizflow-8a978",storageBucket:"quizflow-8a978.firebasestorage.app",messagingSenderId:"206469794166",appId:"1:206469794166:web:55cd7007b429607acd5257"};
-const app=getApps().length?getApps()[0]:initializeApp(FC);
-const db=getDatabase(app);
-const urlCode=new URLSearchParams(location.search).get("code");
-if(urlCode){document.getElementById("code-field").style.display="none";document.getElementById("code-display").style.display="";document.getElementById("code-val").textContent=urlCode;}
-function showErr(msg){const el=document.getElementById("err");el.textContent=msg;el.classList.add("on");document.getElementById("join-btn").disabled=false;document.getElementById("join-btn").textContent="Приєднатись →";}
-window.doJoin=async()=>{
-  const code=(urlCode||document.getElementById("inp-code").value||"").trim();
-  const nickname=document.getElementById("inp-nick").value.trim();
-  document.getElementById("err").classList.remove("on");
-  if(!code||code.length!==8)return showErr("Введіть 8-значний код кімнати");
-  if(!nickname)return showErr("Введіть нік");
-  const btn=document.getElementById("join-btn");
-  btn.disabled=true;btn.textContent="Підключення...";
-  try{
-    const snap=await get(ref(db,`rooms/${code}`));
-    if(!snap.exists())return showErr("Кімнату не знайдено");
-    const room=snap.val();
-    if(room.status==="finished")return showErr("Гра вже завершена");
-    const players=room.players||{};
-    const existing=Object.entries(players).find(([,p])=>p.nickname?.toLowerCase()===nickname.toLowerCase());
-    if(existing&&existing[1].active===false)return showErr("Вас було видалено з гри");
-    const pid=existing?existing[0]:Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-    await set(ref(db,`rooms/${code}/players/${pid}`),{nickname,score:0,joinedAt:Date.now(),active:true});
-    location.href=`live/play-student?code=${code}&pid=${pid}&nickname=${encodeURIComponent(nickname)}`;
-  }catch(e){showErr("Помилка: "+e.message);}
-};
-document.addEventListener("keydown",e=>{if(e.key==="Enter")doJoin();});
+import { db, ref, get, set, serverTimestamp, esc, initialsOf, avatarColor, isValidCode, safeStore, plural } from "./live/live-core.js";
+
+const $ = (id) => document.getElementById(id);
+const urlCode = (new URLSearchParams(location.search).get("code") || "").replace(/\D/g, "");
+let code = null, room = null;
+
+const show = (el, msg) => { el.textContent = msg; el.hidden = !msg; };
+function fail(input, errEl, msg) {
+  show(errEl, msg);
+  input.classList.add("bad", "shake");
+  setTimeout(() => input.classList.remove("shake"), 400);
+  input.focus();
+}
+function busy(btn, on, label) {
+  btn.disabled = on;
+  btn.innerHTML = on ? `<span class="lv-spin"></span> ${label}` : label;
+}
+const goPlay = (pid, nick) => location.href = `live/play-student?code=${code}&pid=${encodeURIComponent(pid)}&nickname=${encodeURIComponent(nick)}`;
+const storeKey = (c) => `qf-live-me-${c}`;
+
+// ─── Крок 1: код ───────────────────────────────────────────────────────
+const codeInp = $("inp-code");
+codeInp.addEventListener("input", () => {
+  const d = codeInp.value.replace(/\D/g, "").slice(0, 8);
+  codeInp.value = d.length > 4 ? d.slice(0, 4) + " " + d.slice(4) : d;
+  codeInp.classList.remove("bad"); show($("err-code"), "");
+  if (d.length === 8) checkCode(d);          // автоматично — без зайвого натискання
+});
+$("step-code").addEventListener("submit", (e) => { e.preventDefault(); checkCode(codeInp.value.replace(/\D/g, "")); });
+
+let checking = false;
+async function checkCode(c) {
+  if (checking) return;
+  if (!isValidCode(c)) return fail(codeInp, $("err-code"), "Код складається з 8 цифр");
+  checking = true; busy($("btn-code"), true, "Шукаємо гру…");
+  try {
+    const [st, title, qs, players] = await Promise.all(
+      ["status", "testTitle", "questions", "players"].map(p => get(ref(db, `rooms/${c}/${p}`)).then(s => s.val())));
+    if (!st) return fail(codeInp, $("err-code"), "Гру з таким кодом не знайдено. Перевірте цифри.");
+    if (st === "finished" || st === "leaderboard") return fail(codeInp, $("err-code"), "Ця гра вже завершилась.");
+    code = c; room = { status: st, title, total: (qs || []).length, players: players || {} };
+    openNickStep();
+  } catch (e) {
+    fail(codeInp, $("err-code"), "Немає з'єднання. Спробуйте ще раз.");
+  } finally { checking = false; busy($("btn-code"), false, "Далі →"); }
+}
+
+// ─── Крок 2: нік ───────────────────────────────────────────────────────
+const nickInp = $("inp-nick");
+const normNick = (s) => s.replace(/\s+/g, " ").trim();
+function paintAvatar() {
+  const n = normNick(nickInp.value);
+  $("nick-av").textContent = n ? initialsOf(n) : "?";
+  $("nick-av").style.background = n ? avatarColor(n) : "";
+  $("nick-count").textContent = `${nickInp.value.length} / 24`;
+  nickInp.classList.remove("bad"); show($("err-nick"), "");
+}
+nickInp.addEventListener("input", paintAvatar);
+
+function openNickStep() {
+  $("step-code").hidden = true; $("step-nick").hidden = false;
+  $("room-title").textContent = room.title || "Гра QuizFlow";
+  $("room-meta").textContent = `код ${code.slice(0, 4)} ${code.slice(4)} · ${room.total} ${plural(room.total, "питання", "питання", "питань")}`;
+  $("info-running").hidden = room.status === "lobby";
+  history.replaceState(null, "", `?code=${code}`);
+
+  // Повернення в гру після закритої вкладки / перезавантаження
+  const me = safeStore.get(storeKey(code));
+  const p = me && room.players[me.pid];
+  if (p && p.active !== false) {
+    $("resume-name").textContent = p.nickname;
+    $("resume").hidden = false;
+    $("resume-btn").onclick = () => goPlay(me.pid, p.nickname);
+  }
+  nickInp.value = safeStore.get("qf-live-nick", "") || "";
+  paintAvatar();
+  setTimeout(() => nickInp.focus(), 50);
+}
+$("change-code").hidden = false;
+$("change-code").addEventListener("click", () => {
+  $("step-nick").hidden = true; $("step-code").hidden = false; $("resume").hidden = true;
+  codeInp.value = ""; history.replaceState(null, "", location.pathname); codeInp.focus();
+});
+
+$("step-nick").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const nick = normNick(nickInp.value);
+  if (nick.length < 2) return fail(nickInp, $("err-nick"), "Ім'я має містити щонайменше 2 символи");
+  const btn = $("btn-join");
+  busy(btn, true, "Підключаємось…");
+  try {
+    // Свіжий список гравців — хтось міг зайняти нік, поки ми вводили
+    const [st, players] = await Promise.all([
+      get(ref(db, `rooms/${code}/status`)).then(s => s.val()),
+      get(ref(db, `rooms/${code}/players`)).then(s => s.val() || {}),
+    ]);
+    if (!st || st === "finished" || st === "leaderboard") return fail(nickInp, $("err-nick"), "Гра вже завершилась.");
+    const me = safeStore.get(storeKey(code));
+    const same = Object.entries(players).find(([, p]) => (p?.nickname || "").toLowerCase() === nick.toLowerCase());
+    if (same) {
+      const [pid, p] = same;
+      if (p.active === false) return fail(nickInp, $("err-nick"), "Гравця з цим ім'ям викладач видалив з гри.");
+      // Власний запис (той самий пристрій) — просто повертаємось. Чужий — не даємо перехопити.
+      if (me?.pid === pid) { goPlay(pid, p.nickname); return; }
+      return fail(nickInp, $("err-nick"), "Це ім'я вже зайняте — додайте прізвище або першу літеру.");
+    }
+    const pid = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    await set(ref(db, `rooms/${code}/players/${pid}`), { nickname: nick, joinedAt: serverTimestamp(), active: true, online: true });
+    safeStore.set(storeKey(code), { pid });
+    safeStore.set("qf-live-nick", nick);
+    goPlay(pid, nick);
+  } catch (err) {
+    fail(nickInp, $("err-nick"), "Не вдалося приєднатись: " + err.message);
+  } finally { busy(btn, false, "Приєднатись"); }
+});
+
+if (urlCode) { codeInp.value = urlCode; checkCode(urlCode); }
+else codeInp.focus();
 </script>
 </body>
 </html>

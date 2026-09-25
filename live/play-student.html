@@ -6,9 +6,14 @@
 <meta name="theme-color" content="#0F1844"/>
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjN0MzQUVEIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNEY0NkU1Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjkiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjQiIGZpbGw9IndoaXRlIi8+PC9zdmc+">
 <title>QuizFlow Live · Гра</title>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="modulepreload" href="live-core.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800;900&family=Geist+Mono:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
   [hidden]{display:none !important}
   *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -226,7 +231,7 @@
 import {
   db, ref, get, set, onValue, serverTimestamp, readParams, isValidCode, esc, initialsOf, avatarColor,
   applyTheme, serverNow, watchFields, OPT_CLASSES, OPT_LETTERS, TYPE_LABELS, isFreeform,
-  seededOrder, fmtNum, pageUrl,
+  seededOrder, fmtNum, pageUrl, trackPresence,
 } from "./live-core.js";
 
 const $ = (id) => document.getElementById(id);
@@ -500,6 +505,7 @@ function applyState(s) {
   paint();
 }
 
+trackPresence(code, pid);   // викладач бачить, хто ще онлайн
 watchFields(base, ["status", "currentQ", "questionStartedAt", "pausedLeft", "revealed", `players/${pid}/active`], applyState);
 
 // Індикатор з'єднання

@@ -8,16 +8,16 @@
 
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getDatabase, ref, get, set, update, remove, onValue, serverTimestamp,
+  getDatabase, ref, get, set, update, remove, onValue, serverTimestamp, onDisconnect,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+// firebase-auth (≈100 КБ) підвантажуємо лише на сторінках викладача — учням він не потрібен.
+const AUTH_URL = "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const FC = {apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",authDomain:"quizflow-8a978.firebaseapp.com",databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",projectId:"quizflow-8a978",storageBucket:"quizflow-8a978.firebasestorage.app",messagingSenderId:"206469794166",appId:"1:206469794166:web:55cd7007b429607acd5257"};
 export const app  = getApps().length ? getApps()[0] : initializeApp(FC);
 export const db   = getDatabase(app);
-export const auth = getAuth(app);
 
-export { ref, get, set, update, remove, onValue, serverTimestamp };
+export { ref, get, set, update, remove, onValue, serverTimestamp, onDisconnect };
 
 // Шляхи відносно цього модуля — працює і в корені домену, і на GitHub Pages
 // у підпапці (раніше було жорстко "/live/patterns/…" і "/play.html").
@@ -28,6 +28,8 @@ export const HOME_URL = pageUrl("../");
 
 // ─── Auth ──────────────────────────────────────────────────────────────
 export async function requireTeacher() {
+  const { getAuth, onAuthStateChanged } = await import(AUTH_URL);
+  const auth = getAuth(app);
   const user = await new Promise(r => { const u = onAuthStateChanged(auth, x => { u(); r(x); }); });
   if (!user) { location.href = pageUrl("../login"); throw new Error("no auth"); }
   return user;
@@ -39,6 +41,19 @@ export async function requireTeacher() {
 let _offset = 0;
 onValue(ref(db, ".info/serverTimeOffset"), s => { _offset = Number(s.val()) || 0; });
 export const serverNow = () => Date.now() + _offset;
+
+// ─── Присутність гравця ────────────────────────────────────────────────
+// players/{pid}/online = true, поки вкладка відкрита; сервер сам ставить false,
+// коли з'єднання обривається. Викладач не чекає тих, хто вже пішов.
+export function trackPresence(code, pid) {
+  const onlineRef = ref(db, `rooms/${code}/players/${pid}/online`);
+  return onValue(ref(db, ".info/connected"), s => {
+    if (s.val() !== true) return;
+    onDisconnect(onlineRef).set(false).then(() => set(onlineRef, true)).catch(() => {});
+  });
+}
+export const isActive = (p) => !!p && p.active !== false;
+export const isOnline = (p) => isActive(p) && p.online !== false;
 
 // ─── Кодування параметрів ──────────────────────────────────────────────
 export function readParams(...keys) {
