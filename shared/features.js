@@ -54,6 +54,8 @@ const timeAgo = t => {
   if(d<60) return "щойно";
   if(d<3600) return `${Math.floor(d/60)} хв тому`;
   if(d<86400) return `${Math.floor(d/3600)} год тому`;
+  if(d<172800) return "вчора";
+  if(d<604800) return `${Math.floor(d/86400)} дн тому`;
   return new Date(t).toLocaleDateString("uk-UA");
 };
 const fmtTime = s => {
@@ -432,136 +434,217 @@ function updateBadges(){
   if(nbArc) nbArc.textContent=tests.filter(t=>t.status==="archived").length;
 }
 
+// ─── ДАШБОРД (index) ────────────────────────────────────────────────────
+// Відмінювання: plural(5, ["студент","студенти","студентів"])
+function plural(n, forms){
+  const a = Math.abs(n) % 100, b = a % 10;
+  if (a > 10 && a < 20) return forms[2];
+  if (b === 1) return forms[0];
+  if (b >= 2 && b <= 4) return forms[1];
+  return forms[2];
+}
+const _DAY = 864e5;
+function _dayStart(t){ const d = new Date(t); d.setHours(0,0,0,0); return d.getTime(); }
+// Кількість подій по днях за останні n днів (старі → нові)
+function _perDay(items, n, getT){
+  const start = _dayStart(Date.now()) - (n - 1) * _DAY;
+  const out = new Array(n).fill(0);
+  items.forEach(x => { const t = getT(x); if (!t || t < start) return; const i = Math.floor((t - start) / _DAY); if (i >= 0 && i < n) out[i]++; });
+  return out;
+}
+// Справжній спарклайн з даних (а не декоративна крива)
+function _spark(vals, color){
+  const w = 160, h = 44, max = Math.max(1, ...vals), step = w / (vals.length - 1 || 1);
+  const pts = vals.map((v, i) => [+(i * step).toFixed(1), +(h - 4 - (v / max) * (h - 10)).toFixed(1)]);
+  const line = pts.map((p, i) => (i ? "L" : "M") + p[0] + " " + p[1]).join(" ");
+  const gid = "sg" + color.replace(/[^a-z0-9]/gi, "");
+  return `<svg class="kpi-spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".22"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <path d="${line} L${w} ${h} L0 ${h} Z" fill="url(#${gid})"/>
+    <path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+}
+function _isSusp(a){
+  return (a.tabSwitches || 0) * 2 + (a.copyAttempts || 0) * 3 + (a.screenshots || 0) * 5 > 0
+    && (a.status === "completed" || a.status === "pending_review");
+}
+function _gradeTone(a){
+  if (a.grade12 != null) return { txt: a.grade12 + "/12", tone: a.grade12 >= 10 ? "ok" : a.grade12 >= 4 ? "mid" : "bad" };
+  const pct = a.score?.percent;
+  if (pct != null) return { txt: pct + "%", tone: pct >= 70 ? "ok" : pct >= 40 ? "mid" : "bad" };
+  return { txt: "—", tone: "mid" };
+}
+
+function renderDashKpi(){
+  const box = $("dash-kpi");
+  if (!box) return;
+  const now = Date.now();
+  const live = tests.filter(t => t.status !== "archived");
+  const act = live.filter(t => t.status === "active").length;
+  const drafts = live.filter(t => t.status === "draft").length;
+  const wk = attempts.filter(a => (a.createdAt || 0) >= now - 7 * _DAY).length;
+  const prevWk = attempts.filter(a => (a.createdAt || 0) >= now - 14 * _DAY && (a.createdAt || 0) < now - 7 * _DAY).length;
+  const done = attempts.filter(a => a.status === "completed");
+  const grades = done.map(a => a.grade12).filter(g => g != null);
+  const avg = grades.length ? grades.reduce((s, g) => s + g, 0) / grades.length : null;
+  const pass = grades.length ? Math.round(grades.filter(g => g >= 4).length / grades.length * 100) : null;
+  const activeLinks = links.filter(l => l.status === "active");
+  const pending = attempts.filter(a => a.status === "pending_review").length;
+
+  const delta = wk - prevWk;
+  const deltaHtml = (wk || prevWk)
+    ? `<span class="kpi-delta ${delta > 0 ? "up" : delta < 0 ? "down" : ""}">${delta > 0 ? "▲ " + delta : delta < 0 ? "▼ " + Math.abs(delta) : "="}</span> за тиждень`
+    : "Ще немає спроб";
+  // Накопичена кількість тестів за 14 днів
+  const created = _perDay(live, 14, t => t.createdAt);
+  const before = live.filter(t => (t.createdAt || 0) < _dayStart(now) - 13 * _DAY).length;
+  let acc = before; const cum = created.map(c => (acc += c));
+
+  const card = (o) => `<button type="button" class="kpi${o.cls ? " " + o.cls : ""}" onclick="showSec('${o.go}')">
+      <div class="kpi-head"><span class="kpi-label">${o.label}</span><span class="kpi-ico ${o.ico}">${o.svg}</span></div>
+      <div class="kpi-value">${o.value}</div>
+      <div class="kpi-trend">${o.sub}</div>
+      ${o.spark || ""}
+    </button>`;
+  const I = p => `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+  box.innerHTML = [
+    card({ go: "tests", label: "Тести", ico: "", value: live.length,
+      svg: I('<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'),
+      sub: live.length ? `<b>${act}</b> ${plural(act, ["активний", "активні", "активних"])} · <b>${drafts}</b> ${plural(drafts, ["чернетка", "чернетки", "чернеток"])}` : "Створіть перший тест",
+      spark: live.length ? _spark(cum, "#3B82F6") : "" }),
+    card({ go: "attempts", label: "Спроби", ico: "v2", value: attempts.length,
+      svg: I('<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'),
+      sub: deltaHtml, spark: attempts.length ? _spark(_perDay(attempts, 14, a => a.createdAt), "#16A34A") : "" }),
+    card({ go: "analytics", label: "Середня оцінка", ico: "v4", value: avg != null ? avg.toFixed(1) + '<small>/12</small>' : "—",
+      svg: I('<path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M3 20h18"/>'),
+      sub: pass != null ? `Здали <b>${pass}%</b> · ${grades.length} ${plural(grades.length, ["оцінка", "оцінки", "оцінок"])}` : "Ще немає оцінок" }),
+    card({ go: "attempts", label: "На перевірці", ico: "v3", value: pending, cls: pending ? "attn" : "",
+      svg: I('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'),
+      sub: pending ? `Потребу${pending === 1 ? "є" : "ють"} ручної оцінки →` : `Усе перевірено · <b>${activeLinks.length}</b> ${plural(activeLinks.length, ["активне посилання", "активні посилання", "активних посилань"])}` }),
+  ].join("");
+}
+
+// Картка «Почніть роботу» — поки не пройдено всі кроки
+function renderDashStart(){
+  const box = $("dash-start");
+  if (!box) return;
+  const steps = [
+    { done: tests.some(t => t.status !== "archived"), t: "Створіть тест", s: "Додайте питання вручну або імпортуйте", act: "G.openTestInFolder(null)", btn: "Створити" },
+    { done: links.length > 0, t: "Відкрийте доступ", s: "Посилання або код для групи студентів", act: "showSec('links')", btn: "До посилань" },
+    { done: attempts.length > 0, t: "Отримайте перші результати", s: "Спроби з'являться тут у реальному часі", act: "showSec('attempts')", btn: "Спроби" },
+  ];
+  const n = steps.filter(x => x.done).length;
+  if (n === steps.length){ box.hidden = true; box.innerHTML = ""; return; }
+  box.hidden = false;
+  const next = steps.findIndex(x => !x.done);
+  box.innerHTML = `<div class="ds-head">
+      <div><div class="ds-title">Почніть роботу з QuizFlow</div><div class="ds-sub">${n} з ${steps.length} кроків виконано</div></div>
+      <div class="ds-bar"><i style="width:${Math.round(n / steps.length * 100)}%"></i></div>
+    </div>
+    <ol class="ds-steps">${steps.map((x, i) => `<li class="${x.done ? "done" : i === next ? "next" : ""}">
+      <span class="ds-num">${x.done ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : i + 1}</span>
+      <span class="ds-txt"><b>${x.t}</b><small>${x.s}</small></span>
+      ${i === next ? `<button type="button" class="d-btn primary" onclick="${x.act}">${x.btn}</button>` : ""}
+    </li>`).join("")}</ol>`;
+}
+
 function renderDashAtt(){
+  if (!$("sec-dashboard")) return;
   // Привітання і дата
   const now = new Date();
   const h = now.getHours();
-  const greeting = h < 6 ? "Добрий вечір" : h < 12 ? "Доброго ранку" : h < 18 ? "Добрий день" : "Добрий вечір";
+  const greeting = h < 5 ? "Доброї ночі" : h < 12 ? "Доброго ранку" : h < 18 ? "Добрий день" : "Добрий вечір";
   const teacherFirstName = (_user.name || "").split(" ")[0] || _user.login || "";
   const el = $("dash-greeting");
   if (el) el.textContent = greeting + (teacherFirstName ? ", " + teacherFirstName : "") + " 👋";
   const dateEl = $("dash-date");
-  if (dateEl) dateEl.textContent = now.toLocaleDateString("uk-UA", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
- 
-  // Додаткові метрики
-  const completedCount = attempts.filter(a => a.status === "completed").length;
-  const lbl = $("dash-completed-lbl");
-  if (lbl) lbl.textContent = `Завершено: ${completedCount}`;
-  const totalUsed = links.reduce((s, l) => s + (l.usedAttempts || 0), 0);
-  const usedLbl = $("dash-used-lbl");
-  if (usedLbl) usedLbl.textContent = totalUsed;
- 
+  if (dateEl){
+    const s = now.toLocaleDateString("uk-UA", { weekday:"long", day:"numeric", month:"long" });
+    dateEl.textContent = s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  renderDashKpi();
+  renderDashStart();
+
   // Онлайн банер
   const online = attempts.filter(a => a.status === "in_progress");
-  const banner = document.getElementById("dash-online-banner");
+  const banner = $("dash-online-banner");
   if (banner){
-    if (online.length){
-      banner.style.display = "flex";
-      const txt = document.getElementById("dash-online-text");
-      if (txt) txt.textContent = `${online.length} студент${online.length === 1 ? "" : "ів"} проходить тест прямо зараз`;
-    } else {
-      banner.style.display = "none";
-    }
+    banner.hidden = !online.length;
+    const txt = $("dash-online-text");
+    if (txt && online.length) txt.textContent = `${online.length} ${plural(online.length, ["студент проходить", "студенти проходять", "студентів проходять"])} тест прямо зараз`;
   }
- 
+
   // Підозрілі (нові)
-  const suspBlock = document.getElementById("dash-suspicious-block");
+  const suspBlock = $("dash-suspicious-block");
   if (suspBlock){
     dbGet("meta/suspReadCount").then(snap => {
       const suspRead = snap.exists() ? (snap.val() || 0) : 0;
-      const suspAll = attempts.filter(a => (a.tabSwitches || 0)*2 + (a.copyAttempts || 0)*3 + (a.screenshots || 0)*5 > 0 && (a.status === "completed" || a.status === "pending_review")).length;
-      const suspNew = Math.max(0, suspAll - suspRead);
-      if (suspNew > 0){
-        suspBlock.style.display = "block";
-        const txt = document.getElementById("dash-suspicious-text");
-        if (txt) txt.textContent = `${suspNew} нов${suspNew === 1 ? "а" : "их"} підозріл${suspNew === 1 ? "а" : "их"} спроб${suspNew === 1 ? "а" : ""}`;
-      } else {
-        suspBlock.style.display = "none";
-      }
-    }).catch(() => { suspBlock.style.display = "none"; });
+      const suspNew = Math.max(0, attempts.filter(_isSusp).length - suspRead);
+      suspBlock.hidden = !suspNew;
+      const txt = $("dash-suspicious-text");
+      if (txt && suspNew) txt.textContent = `${suspNew} ${plural(suspNew, ["нова підозріла спроба", "нові підозрілі спроби", "нових підозрілих спроб"])} — перевірте деталі`;
+    }).catch(() => { suspBlock.hidden = true; });
   }
- 
-  // ── Activity list (новий дизайн) ──
+
+  renderDashTests();
+
+  // ── Остання активність ──
   const tb = $("d-att");
   if (!tb) return;
- 
-  const r = attempts.slice(0, 5);
+  const r = attempts.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 6);
+  const cnt = $("d-att-count");
+  if (cnt){
+    const today = attempts.filter(a => (a.createdAt || 0) >= _dayStart(Date.now())).length;
+    cnt.textContent = today ? `${today} сьогодні` : "";
+  }
   if (!r.length){
-    tb.innerHTML = `<div class="d-act-empty">
-      <div style="font-size:32px;opacity:.4">📭</div>
-      <div style="font-size:14px;color:var(--ink-500);margin-top:8px">Ще немає спроб</div>
+    tb.innerHTML = `<div class="d-empty">
+      <div class="d-empty-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <div class="d-empty-t">Ще немає спроб</div>
+      <div class="d-empty-s">Щойно студенти почнуть проходити тести, їхні результати з'являться тут</div>
     </div>`;
     return;
   }
- 
+
   // Палітра кольорів аватарів — детермінована за іменем
   const avaColors = ["#3B82F6","#DB2777","#F59E0B","#16A34A","#6366F1","#0EA5E9","#8B5CF6","#EF4444","#14B8A6","#F97316"];
- 
   tb.innerHTML = r.map(a => {
     const t = tests.find(x => x.id === a.testId);
-    const initials = ((a.surname?.[0] || "") + (a.name?.[0] || "")).toUpperCase() || "??";
-    const str = String(a.surname || "") + String(a.name || "");
-    let hash = 0; for (let i = 0; i < str.length; i++) hash = (hash + str.charCodeAt(i)) | 0;
+    const fullName = `${a.surname || ""} ${a.name || ""}`.trim() || "Студент";
+    const initials = ((a.surname?.[0] || "") + (a.name?.[0] || "")).toUpperCase() || fullName.slice(0, 2).toUpperCase();
+    let hash = 0; for (let i = 0; i < fullName.length; i++) hash = (hash + fullName.charCodeAt(i)) | 0;
     const c = avaColors[Math.abs(hash) % avaColors.length];
- 
-    // Визначаємо текст та badge
-    const violations = (a.tabSwitches || 0)*2 + (a.copyAttempts || 0)*3 + (a.screenshots || 0)*5;
-    let text, badgeTone, badgeTxt, metaParts = [timeAgo(a.createdAt)];
- 
-    if (violations > 0 && (a.status === "completed" || a.status === "pending_review")){
-      text = `<b>${esc(a.surname || "")} ${esc(a.name || "")}</b> підозра на списування`;
-      badgeTone = "bad";
-      badgeTxt = "FLAG";
+
+    let badge, state;
+    if (_isSusp(a)){
+      badge = { txt: "Підозра", tone: "bad" };
       const issues = [];
-      if (a.tabSwitches) issues.push(`${a.tabSwitches} перемикан${a.tabSwitches === 1 ? "ня" : "ь"}`);
-      if (a.copyAttempts) issues.push(`${a.copyAttempts} копіюван${a.copyAttempts === 1 ? "ня" : "ь"}`);
-      if (a.screenshots) issues.push(`${a.screenshots} скрін${a.screenshots === 1 ? "" : "ів"}`);
-      if (issues.length) metaParts.push(issues[0]);
+      if (a.tabSwitches) issues.push(`${a.tabSwitches} ${plural(a.tabSwitches, ["перемикання", "перемикання", "перемикань"])}`);
+      if (a.copyAttempts) issues.push(`${a.copyAttempts} ${plural(a.copyAttempts, ["копіювання", "копіювання", "копіювань"])}`);
+      if (a.screenshots) issues.push(`${a.screenshots} ${plural(a.screenshots, ["скріншот", "скріншоти", "скріншотів"])}`);
+      state = issues.join(", ");
     } else if (a.status === "in_progress"){
-      text = `<b>${esc(a.surname || "")} ${esc(a.name || "")}</b> почала «${esc(t?.title || "тест")}»`;
-      badgeTone = "mid";
-      badgeTxt = "Live";
+      badge = { txt: "Проходить", tone: "live" };
+      state = "зараз онлайн";
     } else if (a.status === "pending_review"){
-      text = `<b>${esc(a.surname || "")} ${esc(a.name || "")}</b> завершила «${esc(t?.title || "тест")}»`;
-      badgeTone = "mid";
-      badgeTxt = "Перевірка";
-      if (a.score?.correct != null && a.score?.total != null){
-        metaParts.push(`${a.score.correct}/${a.score.total}`);
-      }
+      badge = { txt: "Перевірити", tone: "mid" };
+      state = "чекає на оцінку";
     } else if (a.status === "completed"){
-      text = `<b>${esc(a.surname || "")} ${esc(a.name || "")}</b> завершила «${esc(t?.title || "тест")}»`;
-      const pct = a.score?.percent;
-      if (pct != null){
-        if (pct >= 70) badgeTone = "ok";
-        else if (pct >= 40) badgeTone = "mid";
-        else badgeTone = "bad";
-        badgeTxt = pct + "%";
-      } else if (a.grade12 != null){
-        if (a.grade12 >= 10) badgeTone = "ok";
-        else if (a.grade12 >= 4) badgeTone = "mid";
-        else badgeTone = "bad";
-        badgeTxt = a.grade12 + "/12";
-      } else {
-        badgeTone = "mid";
-        badgeTxt = "—";
-      }
-      if (a.score?.correct != null && a.score?.total != null){
-        metaParts.push(`${a.score.correct}/${a.score.total}`);
-      }
+      badge = _gradeTone(a);
+      state = a.score?.correct != null && a.score?.total != null ? `${a.score.correct}/${a.score.total} правильних` : "завершено";
     } else {
-      text = `<b>${esc(a.surname || "")} ${esc(a.name || "")}</b>`;
-      badgeTone = "mid";
-      badgeTxt = "new";
+      badge = { txt: "Нова", tone: "mid" };
+      state = "";
     }
- 
-    return `<div class="d-act-item" onclick="G.viewAtt && G.viewAtt('${a.id}')">
-      <div class="d-act-ava" style="background:linear-gradient(135deg, ${c}CC, ${c})">${esc(initials)}</div>
-      <div class="d-act-body">
-        <div class="d-act-text">${text}</div>
-        <div class="d-act-meta">${metaParts.map(m => `<span>${m}</span>`).join("")}</div>
-      </div>
-      <span class="d-act-badge ${badgeTone}">${esc(badgeTxt)}</span>
-    </div>`;
+    return `<button type="button" class="d-act-item" onclick="G.viewAtt && G.viewAtt('${esc(a.id)}')">
+      <span class="d-act-ava" style="background:linear-gradient(135deg, ${c}CC, ${c})">${esc(initials)}</span>
+      <span class="d-act-body">
+        <span class="d-act-text"><b>${esc(fullName)}</b>${a.group ? `<span class="d-act-grp">${esc(a.group)}</span>` : ""}</span>
+        <span class="d-act-meta"><span class="d-act-test">${esc(t?.title || "Тест видалено")}</span><span>${esc(timeAgo(a.createdAt))}</span>${state ? `<span>${esc(state)}</span>` : ""}</span>
+      </span>
+      <span class="d-act-badge ${badge.tone}">${esc(badge.txt)}</span>
+    </button>`;
   }).join("");
 }
 
@@ -600,13 +683,16 @@ function renderDashTests(){
   if (lbl){
     const act = links.filter(l => l.status === "active").length;
     const cls = links.filter(l => l.status !== "active").length;
-    lbl.textContent = `${act} активн${act === 1 ? "е" : (act >= 2 && act <= 4) ? "і" : "их"} · ${cls} закрит${cls === 1 ? "е" : (cls >= 2 && cls <= 4) ? "і" : "их"}`;
+    lbl.textContent = `${act} ${plural(act, ["активне", "активні", "активних"])} · ${cls} ${plural(cls, ["закрите", "закриті", "закритих"])}`;
   }
 
   if (!list.length){
-    tb.innerHTML = `<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--ink-500);font-size:13px">
-      Ще немає посилань. <button onclick="showSec('links')" style="background:transparent;border:0;color:var(--nav-600);font-weight:600;cursor:pointer;font-family:inherit">Перейти до посилань →</button>
-    </td></tr>`;
+    tb.innerHTML = `<tr><td colspan="6"><div class="d-empty">
+      <div class="d-empty-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a4 4 0 005.66 0l3-3a4 4 0 00-5.66-5.66l-1.5 1.5"/><path d="M14 11a4 4 0 00-5.66 0l-3 3a4 4 0 005.66 5.66l1.5-1.5"/></svg></div>
+      <div class="d-empty-t">Ще немає посилань</div>
+      <div class="d-empty-s">Створіть посилання на тест, щоб студенти могли його пройти</div>
+      <button type="button" class="d-btn" onclick="showSec('links')">Перейти до посилань</button>
+    </div></td></tr>`;
     return;
   }
 
@@ -5306,6 +5392,7 @@ function startRealtimeListeners(){
     _bust();
     if (typeof renderLinks === "function") try { renderLinks(); } catch {}
     if (typeof renderDashLinks === "function") try { renderDashLinks(); } catch {}
+    if (typeof renderDashAtt === "function") try { renderDashAtt(); } catch {}
     if (typeof updateBadges === "function") try { updateBadges(); } catch {}
     if (typeof fillSelects === "function") try { fillSelects(); } catch {}
     const sec2 = document.querySelector(".sec.on")?.id;
