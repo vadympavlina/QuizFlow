@@ -39,6 +39,7 @@
 #sec-dashboard .d-btn.primary{background:var(--nav-600);border-color:var(--nav-600);color:#fff;box-shadow:0 6px 14px -8px rgba(30,58,138,.8)}
 #sec-dashboard .d-btn.primary:hover{background:#1E40AF;border-color:#1E40AF;color:#fff}
 #sec-dashboard .d-btn svg{width:14px;height:14px;flex:0 0 auto}
+#sec-dashboard .d-live-dot{width:8px;height:8px;border-radius:50%;background:#16A34A;flex:0 0 auto;animation:dPulse 1.6s infinite}
 #sec-dashboard button:focus-visible,#sec-dashboard a:focus-visible{outline:2px solid var(--nav-accent);outline-offset:2px}
 
 /* ─── Сигнали: онлайн / підозрілі ─── */
@@ -228,9 +229,9 @@
         <div class="d-sub"><span id="dash-date"></span></div>
       </div>
       <div class="d-actions">
-        <a class="d-btn" href="live" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          Live-гра
+        <a class="d-btn" href="live" target="_blank" rel="noopener" title="Хто зараз проходить тести — у новій вкладці">
+          <span class="d-live-dot" aria-hidden="true"></span>
+          Live-моніторинг
         </a>
         <button type="button" class="d-btn" onclick="showSec('links')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1.5 1.5"/><path d="M14 11a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1.5-1.5"/></svg>

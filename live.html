@@ -539,17 +539,19 @@ body::before{
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const cfg = {apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",authDomain:"quizflow-8a978.firebaseapp.com",databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",projectId:"quizflow-8a978",storageBucket:"quizflow-8a978.firebasestorage.app",messagingSenderId:"206469794166",appId:"1:206469794166:web:55cd7007b429607acd5257"};
 const app = getApps().length ? getApps()[0] : initializeApp(cfg);
 const db  = getDatabase(app);
 
-// ─── Auth: читаємо з sessionStorage АБО з localStorage (fix для нової вкладки) ──
-const sess = sessionStorage.getItem("qf_user") || localStorage.getItem("qf_user");
-if (!sess) { location.href = "login"; throw new Error("no auth"); }
-const _user = JSON.parse(sess);
-// Якщо щойно прийшли з localStorage — синкаємо у sessionStorage щоб у цій вкладці теж було
-if (!sessionStorage.getItem("qf_user")) sessionStorage.setItem("qf_user", sess);
+// ─── Auth: Firebase Auth (як у shared/app.js) — працює і в новій вкладці ──
+const _fbUser = await new Promise(res => { const un = onAuthStateChanged(getAuth(app), u => { un(); res(u); }); });
+if (!_fbUser) { location.href = "login"; throw new Error("no auth"); }
+const _profSnap = await get(ref(db, `users/${_fbUser.uid}`));
+if (!_profSnap.exists() || _profSnap.val().blocked === true) { location.href = "login"; throw new Error("no profile"); }
+const _prof = _profSnap.val();
+const _user = { id: _fbUser.uid, name: _prof.name || "", login: _prof.login || _fbUser.email || "", role: _prof.role || "teacher" };
 
 const _myUid   = _user.id;
 const _myName  = _user.name || _user.login;
