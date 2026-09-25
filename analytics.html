@@ -10,9 +10,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
-<link rel="modulepreload" href="shared/app.js?v=15">
+<link rel="modulepreload" href="shared/app.js?v=16">
 <link rel="preload" as="fetch" href="shared/layout?v=15" crossorigin>
-<link rel="modulepreload" href="shared/features.js?v=15">
+<link rel="modulepreload" href="shared/features.js?v=16">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
    ANALYTICS PAGE REDESIGN — scoped під #sec-analytics
@@ -152,6 +152,7 @@
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
+<script src="shared/nav.js?v=16"></script>
 <main class="main">
 
   <div class="sec on" id="sec-analytics">
@@ -217,8 +218,8 @@
 <div id="modals-root"></div>
 
 <script type="module">
-const { initApp } = await import("./shared/app.js?v=15");
-const featuresP = import("./shared/features.js?v=15");
+const { initApp } = await import("./shared/app.js?v=16");
+const featuresP = import("./shared/features.js?v=16");
 
 window.showSec = function(name){
   if (name === "analytics") {
