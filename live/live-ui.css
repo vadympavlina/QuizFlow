@@ -1,0 +1,71 @@
+/* ═══════════════════════════════════════════════════════════════════
+   live/live-ui.css — спільна світла тема QuizFlow Live
+   (налаштування, лобі, вхід учнів). Один файл — один запит у кеш.
+   ═══════════════════════════════════════════════════════════════════ */
+:root{
+  --bg:#F6F5FB; --card:#FFFFFF; --card-2:#F2F0FC; --line:#E4E1F4; --line-2:#D2CCEA;
+  --ink:#1D1930; --ink-2:#5F5876; --ink-3:#8C86A3;
+  --accent:#5B4FE8; --accent-2:#4A3FD1; --accent-soft:#ECEAFF; --accent-ink:#FFFFFF;
+  --good:#2F9E62; --bad:#D14343; --warn-bg:#FFF6E0; --warn-line:#F2D48A; --warn-ink:#7A5200;
+  --r-lg:18px; --r-md:12px; --r-sm:9px;
+  --shadow:0 1px 2px rgba(29,25,48,.04), 0 12px 28px -14px rgba(29,25,48,.18);
+  --font:"Space Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+[hidden]{display:none !important}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:var(--font);color:var(--ink);background:var(--bg);min-height:100vh;min-height:100dvh;-webkit-font-smoothing:antialiased}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.55;
+  background-image:radial-gradient(rgba(29,25,48,.07) 1px, transparent 1px);background-size:24px 24px;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 20%, #000 20%, transparent 75%);mask-image:radial-gradient(ellipse at 50% 20%, #000 20%, transparent 75%);
+}
+button,input,select{font:inherit;color:inherit}
+
+/* ── Шапка ── */
+.lv-head{position:relative;z-index:2;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.lv-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;letter-spacing:-.01em;color:var(--ink);text-decoration:none}
+.lv-brand .logo{width:38px;height:38px;border-radius:11px;background:var(--accent);display:grid;place-items:center;color:var(--accent-ink);box-shadow:0 6px 16px -6px rgba(91,79,232,.6)}
+.lv-brand span{color:var(--ink-3);font-weight:500}
+.lv-steps{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--ink-3)}
+.lv-steps span{padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);white-space:nowrap}
+.lv-steps span.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.lv-steps span.done{color:var(--accent);border-color:var(--accent-soft);background:var(--accent-soft)}
+.lv-steps i{width:12px;height:2px;background:var(--line-2);border-radius:2px}
+
+/* ── Картки ── */
+.lv-card{position:relative;background:var(--card);border:1.5px solid var(--line);border-radius:var(--r-lg);padding:20px 22px;box-shadow:var(--shadow)}
+.lv-card-h{display:flex;align-items:center;gap:10px;margin:0 0 14px;font-size:15px;font-weight:700}
+.lv-card-h .n{width:24px;height:24px;border-radius:7px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font:700 12px var(--mono)}
+.lv-card-h small{margin-left:auto;font-size:12.5px;font-weight:500;color:var(--ink-3)}
+
+/* ── Кнопки ── */
+.lv-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;border-radius:var(--r-md);border:1.5px solid var(--line-2);background:var(--card);color:var(--ink);font-weight:600;font-size:14px;cursor:pointer;text-decoration:none;transition:border-color .15s, background .15s, transform .12s, box-shadow .15s}
+.lv-btn:hover{border-color:var(--accent)}
+.lv-btn:disabled{opacity:.5;cursor:not-allowed}
+.lv-btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700;box-shadow:0 10px 24px -10px rgba(91,79,232,.7)}
+.lv-btn.primary:hover:not(:disabled){background:var(--accent-2);border-color:var(--accent-2);transform:translateY(-1px)}
+.lv-btn.primary:active:not(:disabled){transform:translateY(0) scale(.99)}
+.lv-btn.big{padding:15px 22px;font-size:16.5px;border-radius:14px}
+.lv-btn.block{width:100%}
+.lv-btn.ghost{border-color:transparent;background:transparent;color:var(--ink-2)}
+.lv-btn.ghost:hover{background:var(--card-2);border-color:transparent}
+.lv-btn.danger:hover{border-color:var(--bad);color:var(--bad)}
+.lv-spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:lv-rot .7s linear infinite}
+@keyframes lv-rot{to{transform:rotate(360deg)}}
+
+/* ── Поля ── */
+.lv-input{width:100%;background:var(--card);border:1.5px solid var(--line-2);border-radius:var(--r-md);padding:13px 15px;font-size:16px;outline:none;transition:border-color .15s, box-shadow .15s}
+.lv-input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(91,79,232,.14)}
+.lv-input.bad{border-color:var(--bad);box-shadow:0 0 0 4px rgba(209,67,67,.12)}
+.lv-label{display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:8px}
+
+.lv-notice{padding:11px 13px;border-radius:var(--r-md);background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-ink);font-size:13px;line-height:1.45}
+.lv-chip{display:inline-flex;align-items:center;gap:6px;font:600 12px var(--mono);padding:4px 9px;border-radius:7px;background:var(--card-2);color:var(--ink-2)}
+
+.lv-skel{color:transparent !important;border-radius:6px;background:linear-gradient(90deg,var(--card-2),#fff,var(--card-2));background-size:200% 100%;animation:lv-sk 1.2s infinite}
+@keyframes lv-sk{to{background-position:-200% 0}}
+
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){ *{animation:none !important;transition:none !important} }

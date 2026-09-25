@@ -3,176 +3,142 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>QuizFlow Live · Лобі</title>
+<title>Лобі · QuizFlow Live</title>
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjN0MzQUVEIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNEY0NkU1Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjkiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjQiIGZpbGw9IndoaXRlIi8+PC9zdmc+">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="modulepreload" href="live-core.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="live-ui.css">
 <!-- QR-код для швидкого входу. Якщо CDN недоступний — лобі працює без нього. -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js" defer></script>
 <style>
-  [hidden]{display:none !important}
-  *,*::before,*::after{box-sizing:border-box}
-  html,body{margin:0;padding:0}
-  :root{
-    --bg:#F6F5FB; --card:#FFFFFF; --card-2:#F0EEFB; --card-line:#E2DFF3; --line2:#CFC9E8;
-    --ink:#201C33; --ink-dim:#6B6480; --accent:#5B4FE8; --accent-ink:#FFFFFF;
-    --live:#2F9E62; --danger:#D14343;
-  }
-  body{font-family:"Space Grotesk",system-ui,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;overflow-x:hidden}
-  body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.6;background-image:radial-gradient(rgba(32,28,51,.06) 1px, transparent 1px);background-size:26px 26px;mask-image:radial-gradient(ellipse at center, black 30%, transparent 90%)}
+  .topbar{position:sticky;top:0;z-index:10;background:rgba(246,245,251,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .topbar .lv-head{max-width:1400px;margin:0 auto;padding:12px 28px}
+  .topbar .title{min-width:0;flex:1;font-size:15px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .topbar .title b{color:var(--ink)}
+  .actions{display:flex;gap:8px;align-items:center;margin-left:auto}
+  .lv-btn .k{font:600 10.5px var(--mono);opacity:.7;border:1px solid currentColor;border-radius:5px;padding:0 5px}
 
-  .topbar{
-    position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:18px;flex-wrap:wrap;
-    padding:14px 32px;background:rgba(246,245,251,.92);backdrop-filter:blur(10px);border-bottom:2px solid var(--card-line);
-  }
-  .topbar .brand{display:flex;align-items:center;gap:10px;font-weight:700}
-  .topbar .brand .logo{width:34px;height:34px;border-radius:9px;background:var(--accent);display:grid;place-items:center;color:#fff}
-  .topbar h1{margin:0;font-size:18px;font-weight:700;min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-dim)}
-  .topbar h1 b{color:var(--ink)}
-  .actions{display:flex;gap:10px;align-items:center;margin-left:auto}
-  .btn{background:var(--card);border:2px solid var(--card-line);color:var(--ink);padding:11px 16px;border-radius:10px;font:inherit;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:border-color .15s, background .15s;text-decoration:none}
-  .btn:hover{border-color:var(--accent)}
-  .btn.danger:hover{border-color:var(--danger);color:var(--danger)}
-  .btn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);padding:12px 24px;font-size:15px;font-weight:700;box-shadow:4px 4px 0 rgba(91,79,232,.22)}
-  .btn-primary:hover{border-color:var(--accent);transform:translateY(-1px)}
-  .btn-primary:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;transform:none}
+  .page{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:22px 28px 60px}
 
-  /* ── Hero: як приєднатись — великим, щоб читалось з останньої парти ── */
-  .hero{
-    position:relative;z-index:1;max-width:1400px;margin:24px auto 0;padding:0 32px;
-    display:grid;grid-template-columns:1fr auto;gap:22px;align-items:stretch;
-  }
-  .join-card{
-    background:var(--card);border:2px solid var(--card-line);border-radius:18px;padding:24px 28px;
-    display:flex;flex-direction:column;justify-content:center;gap:14px;
-    box-shadow:6px 6px 0 rgba(32,28,64,.08);
-  }
-  .join-step{font-size:16px;color:var(--ink-dim);font-weight:500}
-  .join-step b{color:var(--ink)}
-  .join-url{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:clamp(18px,2.2vw,28px);color:var(--ink);word-break:break-all}
-  .digits{display:flex;gap:8px;flex-wrap:wrap}
-  .digit{
-    width:clamp(44px,5vw,72px);height:clamp(58px,6.6vw,92px);display:grid;place-items:center;
-    background:var(--card-2);border:2px solid var(--card-line);border-radius:12px;
-    font-family:"JetBrains Mono",monospace;font-weight:800;font-size:clamp(28px,3.6vw,52px);color:var(--accent);
-  }
-  .digit.gap{width:10px;background:none;border:0}
-  .qr-card{background:#fff;border:2px solid var(--card-line);border-radius:18px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:10px;box-shadow:6px 6px 0 rgba(32,28,64,.08)}
-  .qr-card[hidden]{display:none}
-  .qr{width:clamp(150px,15vw,220px);aspect-ratio:1}
+  /* ── Як приєднатись: великим, щоб читалось з останньої парти ── */
+  .hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px}
+  .join{display:flex;flex-direction:column;justify-content:center;gap:12px;padding:26px 30px}
+  .step{font-size:15px;color:var(--ink-2);font-weight:500;display:flex;align-items:center;gap:10px}
+  .step .n{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font:700 12px var(--mono)}
+  .join-url{font:700 clamp(20px,2.4vw,32px) var(--mono);color:var(--ink);word-break:break-all;margin-left:34px}
+  .digits{display:flex;gap:8px;flex-wrap:wrap;margin-left:34px}
+  .digit{width:clamp(44px,5vw,76px);height:clamp(60px,6.8vw,98px);display:grid;place-items:center;background:var(--accent-soft);border-radius:14px;font:800 clamp(30px,3.8vw,56px) var(--mono);color:var(--accent)}
+  .digit.gap{width:12px;background:none}
+  .qr{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:18px}
+  .qr .box{width:clamp(150px,15vw,230px);aspect-ratio:1}
   .qr svg{width:100%;height:100%;display:block}
-  .qr-card small{font-size:12.5px;color:var(--ink-dim);font-weight:600}
+  .qr small{font-size:12.5px;color:var(--ink-3);font-weight:600}
 
-  .meta-strip{position:relative;z-index:1;max-width:1400px;margin:16px auto 0;padding:0 32px;display:flex;gap:10px;flex-wrap:wrap}
-  .meta-pill{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--card-line);border-radius:10px;padding:8px 14px;font-size:13.5px;color:var(--ink-dim);font-weight:500}
-  .meta-pill b{color:var(--ink);font-family:"JetBrains Mono",monospace;font-weight:700}
+  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .meta span{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:7px 12px;font-size:13px;color:var(--ink-2)}
+  .meta b{color:var(--ink);font-family:var(--mono)}
 
-  .section-h{position:relative;z-index:1;max-width:1400px;margin:28px auto 14px;padding:0 32px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  .pulse{width:9px;height:9px;border-radius:50%;background:var(--live);animation:pulse 1.6s infinite}
+  .players-h{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:28px 0 14px}
+  .players-h h2{margin:0;font-size:19px}
+  .pulse{width:9px;height:9px;border-radius:50%;background:var(--good);animation:pulse 1.6s infinite}
   @keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(47,158,98,.2)}50%{box-shadow:0 0 0 8px rgba(47,158,98,.04)}}
-  .section-h h2{margin:0;font-size:19px;font-weight:700}
-  .count{font-family:"JetBrains Mono",monospace;font-size:14px;color:var(--accent);font-weight:700;background:var(--card);border:1px solid var(--card-line);padding:5px 12px;border-radius:8px;transition:transform .2s}
+  .count{font:700 15px var(--mono);color:var(--accent);background:var(--card);border:1px solid var(--line);padding:4px 12px;border-radius:8px;transition:transform .2s}
   .count.bump{transform:scale(1.2)}
-  .last-joined{font-size:13.5px;color:var(--ink-dim)}
-  .search-wrap{margin-left:auto;position:relative;display:flex;align-items:center}
-  .search-wrap svg{position:absolute;left:12px;pointer-events:none;color:var(--ink-dim)}
-  .search-input{background:var(--card);border:2px solid var(--card-line);border-radius:10px;padding:10px 14px 10px 36px;color:var(--ink);font:inherit;font-size:13.5px;outline:none;width:220px;transition:border-color .15s}
-  .search-input:focus{border-color:var(--accent)}
+  .off-count{font-size:13px;color:var(--ink-3)}
+  .search{margin-left:auto;width:230px;padding:9px 12px;font-size:14px}
 
-  .players{position:relative;z-index:1;max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;padding:0 32px 60px}
-  .player{
-    background:var(--card);border:2px solid var(--card-line);border-radius:14px;padding:14px 16px;
-    display:flex;align-items:center;gap:12px;position:relative;transition:border-color .15s;
-    box-shadow:0 1px 2px rgba(32,28,64,.04);
-  }
+  .players{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+  .player{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border:1.5px solid var(--line);border-radius:14px;transition:border-color .15s, opacity .3s}
   .player.new{animation:pop .35s cubic-bezier(.34,1.56,.64,1)}
-  @keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+  @keyframes pop{from{transform:scale(.85);opacity:0}}
   .player:hover{border-color:var(--accent)}
-  .player .av{width:44px;height:44px;border-radius:11px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px;flex:0 0 auto}
-  .player .name{font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
-  .player .x{width:30px;height:30px;border-radius:8px;background:var(--card-2);color:var(--ink-dim);border:1px solid var(--card-line);cursor:pointer;display:grid;place-items:center;font-size:17px;line-height:1;opacity:0;transition:opacity .15s, background .15s, color .15s}
+  .player .av{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px;flex:0 0 auto;position:relative}
+  .player .av::after{content:"";position:absolute;right:-3px;bottom:-3px;width:12px;height:12px;border-radius:50%;background:var(--good);border:2.5px solid var(--card)}
+  .player.off{opacity:.55}
+  .player.off .av::after{background:var(--ink-3)}
+  .player .nm{flex:1;min-width:0}
+  .player .name{font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .player .st{font-size:11.5px;color:var(--ink-3)}
+  .player .x{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--card-2);color:var(--ink-2);cursor:pointer;font-size:17px;line-height:1;opacity:0;transition:opacity .15s, background .15s}
   .player:hover .x,.player .x:focus-visible{opacity:1}
-  .player .x:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+  .player .x:hover{background:var(--bad);border-color:var(--bad);color:#fff}
   @media (hover:none){ .player .x{opacity:.8} }
-
-  .empty-state{grid-column:1/-1;text-align:center;padding:48px 20px;border:2px dashed var(--card-line);border-radius:16px;color:var(--ink-dim)}
-  .empty-state .big{font-size:40px;margin-bottom:8px}
-  .empty-state b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
-  .no-results{grid-column:1/-1;text-align:center;padding:40px;color:var(--ink-dim);font-size:14px}
+  .empty{grid-column:1/-1;text-align:center;padding:48px 20px;border:2px dashed var(--line-2);border-radius:18px;color:var(--ink-2)}
+  .empty .big{font-size:40px;margin-bottom:6px}
+  .empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
 
   .toasts{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:50;display:flex;flex-direction:column;gap:8px;align-items:center}
-  .undo-toast{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:12px 14px 12px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 28px -8px rgba(32,28,64,.28);font-size:14px;animation:toastIn .2s ease-out}
-  @keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-  .undo-toast button{background:var(--accent);border:0;color:var(--accent-ink);padding:8px 14px;border-radius:8px;font:inherit;font-weight:700;font-size:13px;cursor:pointer}
+  .undo{background:var(--ink);color:#fff;border-radius:14px;padding:10px 10px 10px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 12px 30px rgba(0,0,0,.25);font-size:14px;animation:toastIn .2s ease-out}
+  @keyframes toastIn{from{opacity:0;transform:translateY(12px)}}
+  .undo button{background:rgba(255,255,255,.14);border:0;color:#fff;padding:8px 12px;border-radius:9px;font-weight:700;cursor:pointer}
 
-  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  @media (prefers-reduced-motion: reduce){ *{animation:none !important;transition:none !important} }
+  body.fs .topbar .title,body.fs .search,body.fs .player .x{display:none}
   @media (max-width: 860px){
     .hero{grid-template-columns:1fr}
-    .qr-card{display:none}
-    .topbar,.hero,.meta-strip,.section-h,.players{padding-left:16px;padding-right:16px}
-    .search-wrap{margin-left:0;width:100%}
-    .search-input{width:100%}
+    .qr{display:none}
+    .page,.topbar .lv-head{padding-left:16px;padding-right:16px}
+    .topbar .title{display:none}
+    .search{margin-left:0;width:100%}
+    .hide-sm{display:none}
   }
 </style>
 </head>
 <body>
-
 <div class="topbar">
-  <div class="brand"><div class="logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg></div>live</div>
-  <h1>Лобі · <b id="game-title">—</b></h1>
-  <div class="actions">
-    <button class="btn danger" id="close-btn" title="Скасувати гру і видалити кімнату">Закрити</button>
-    <button class="btn" id="copy-btn">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-      <span>Скопіювати посилання</span>
-    </button>
-    <button class="btn btn-primary" id="start-btn" disabled>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
-      Почати гру
-    </button>
+  <header class="lv-head">
+    <span class="lv-brand"><span class="logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg></span>live</span>
+    <div class="title">Лобі · <b id="game-title">—</b></div>
+    <div class="actions">
+      <button class="lv-btn ghost danger hide-sm" id="close-btn" type="button" title="Скасувати гру і видалити кімнату">Закрити</button>
+      <button class="lv-btn hide-sm" id="fs-btn" type="button" title="Повноекранний режим для проєктора">⛶ <span>На весь екран</span></button>
+      <button class="lv-btn" id="copy-btn" type="button"><span>Посилання</span></button>
+      <button class="lv-btn primary" id="start-btn" type="button" disabled>▶ Почати гру <span class="k hide-sm">Enter</span></button>
+    </div>
+  </header>
+</div>
+
+<main class="page">
+  <div class="hero">
+    <section class="lv-card join">
+      <div class="step"><span class="n">1</span>Відкрийте на телефоні</div>
+      <div class="join-url" id="join-url">—</div>
+      <div class="step"><span class="n">2</span>Введіть код гри</div>
+      <div class="digits" id="code-digits" aria-label="Код гри"></div>
+    </section>
+    <section class="lv-card qr" id="qr-card" hidden>
+      <div class="box" id="qr"></div>
+      <small>або скануйте камерою</small>
+    </section>
   </div>
-</div>
-
-<div class="hero">
-  <div class="join-card">
-    <div class="join-step">1. Відкрийте на телефоні</div>
-    <div class="join-url" id="join-url">—</div>
-    <div class="join-step">2. Введіть <b>код гри</b></div>
-    <div class="digits" id="code-digits" aria-label="Код гри"></div>
+  <div class="meta">
+    <span><b id="stat-q">—</b> питань</span>
+    <span><b id="stat-time">—</b> с на питання</span>
+    <span id="stat-scoring">—</span>
+    <span id="stat-shuffle" hidden>🔀 варіанти перемішуються</span>
   </div>
-  <div class="qr-card" id="qr-card" hidden>
-    <div class="qr" id="qr"></div>
-    <small>або скануйте QR</small>
+
+  <div class="players-h">
+    <span class="pulse"></span>
+    <h2>Гравці</h2>
+    <span class="count" id="count-lbl">0</span>
+    <span class="off-count" id="off-count"></span>
+    <input class="lv-input search" id="player-search" placeholder="Пошук гравця…" aria-label="Пошук гравця">
   </div>
-</div>
-
-<div class="meta-strip">
-  <span class="meta-pill"><b id="stat-q">—</b> питань</span>
-  <span class="meta-pill"><b id="stat-time">—</b>с на питання</span>
-  <span class="meta-pill" id="stat-scoring">—</span>
-  <span class="meta-pill" id="stat-shuffle" hidden>🔀 Варіанти перемішуються</span>
-</div>
-
-<div class="section-h">
-  <span class="pulse"></span>
-  <h2>Гравці у лобі</h2>
-  <span class="count" id="count-lbl">0</span>
-  <span class="last-joined" id="last-joined"></span>
-  <label class="search-wrap">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-    <input class="search-input" id="player-search" placeholder="Пошук гравця…" aria-label="Пошук гравця">
-  </label>
-</div>
-
-<div class="players" id="players-grid" aria-live="polite"></div>
+  <div class="players" id="players-grid" aria-live="polite"></div>
+</main>
 <div class="toasts" id="toasts"></div>
 
 <script type="module">
 import {
   db, ref, get, update, onValue, requireTeacher, readParams, isValidCode, fatal, toast,
-  esc, initialsOf, avatarColor, joinUrl, HOME_URL, serverNow, plural,
+  esc, initialsOf, avatarColor, joinUrl, HOME_URL, serverNow, isActive, isOnline,
 } from "./live-core.js";
 
 const $ = (id) => document.getElementById(id);
@@ -180,23 +146,27 @@ const user = await requireTeacher();
 const { code } = readParams("code");
 if (!isValidCode(code)) fatal("Невірний код кімнати");
 
-const roomSnap = await get(ref(db, `rooms/${code}`));
-if (!roomSnap.exists()) fatal("Кімнату не знайдено — можливо, її вже закрито");
-const room = roomSnap.val();
-if (room.hostUid && room.hostUid !== user.uid) fatal("Це не ваша кімната");
-if (["question", "paused", "reveal"].includes(room.status)) { location.replace(`play-teacher?code=${code}`); throw new Error("redirect"); }
-if (room.status === "leaderboard") { location.replace(`podium?code=${code}`); throw new Error("redirect"); }
-if (room.status === "finished") fatal("Цю гру вже завершено");
+// Лише потрібні поля кімнати, без відповідей
+const [stS, metaS] = await Promise.all([
+  get(ref(db, `rooms/${code}/status`)),
+  Promise.all(["hostUid", "testTitle", "questions", "timePerQ", "scoring", "options"].map(k => get(ref(db, `rooms/${code}/${k}`)).then(s => s.val()))),
+]);
+const status = stS.val();
+const [hostUid, testTitle, questions, timePerQ, scoring, options] = metaS;
+if (!status) fatal("Кімнату не знайдено — можливо, її вже закрито");
+if (hostUid && hostUid !== user.uid) fatal("Це не ваша кімната");
+if (["question", "paused", "reveal"].includes(status)) { location.replace(`play-teacher?code=${code}`); throw new Error("redirect"); }
+if (status === "leaderboard") { location.replace(`podium?code=${code}`); throw new Error("redirect"); }
+if (status === "finished") fatal("Цю гру вже завершено");
 
 // ─── Як приєднатись ────────────────────────────────────────────────────
 const url = joinUrl(code);
 $("join-url").textContent = url.replace(/^https?:\/\//, "").replace(/\?.*$/, "");
-$("code-digits").innerHTML = code.split("").map((d, i) => (i === 4 ? `<div class="digit gap"></div>` : "") + `<div class="digit">${d}</div>`).join("");
+$("code-digits").innerHTML = [...code].map((d, i) => (i === 4 ? `<div class="digit gap"></div>` : "") + `<div class="digit">${d}</div>`).join("");
 function renderQR() {
   if (typeof window.qrcode !== "function") return false;
   try {
-    const qr = window.qrcode(0, "M");
-    qr.addData(url); qr.make();
+    const qr = window.qrcode(0, "M"); qr.addData(url); qr.make();
     $("qr").innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
     $("qr-card").hidden = false;
   } catch (e) { console.warn("qr:", e); }
@@ -204,76 +174,98 @@ function renderQR() {
 }
 if (!renderQR()) window.addEventListener("load", renderQR, { once: true });
 
-$("game-title").textContent = room.testTitle || "—";
-document.title = `Лобі · ${code} · QuizFlow Live`;
-$("stat-q").textContent = (room.questions || []).length;
-$("stat-time").textContent = room.timePerQ || 20;
-$("stat-scoring").textContent = room.scoring === "speed" ? "⚡ За швидкість" : "✓ За правильність";
-$("stat-shuffle").hidden = !room.options?.shuffle;
+$("game-title").textContent = testTitle || "—";
+document.title = `Лобі ${code.slice(0, 4)} ${code.slice(4)} · QuizFlow Live`;
+$("stat-q").textContent = (questions || []).length;
+$("stat-time").textContent = timePerQ || 20;
+$("stat-scoring").textContent = scoring === "speed" ? "⚡ бали за швидкість" : "✓ бали за правильність";
+$("stat-shuffle").hidden = !options?.shuffle;
 
 $("copy-btn").addEventListener("click", async () => {
   const lbl = $("copy-btn").querySelector("span");
   try { await navigator.clipboard.writeText(url); lbl.textContent = "Скопійовано ✓"; }
   catch { prompt("Скопіюйте посилання:", url); }
-  setTimeout(() => { lbl.textContent = "Скопіювати посилання"; }, 2000);
+  setTimeout(() => { lbl.textContent = "Посилання"; }, 2000);
+});
+$("fs-btn").addEventListener("click", () => {
+  if (document.fullscreenElement) document.exitFullscreen?.();
+  else document.documentElement.requestFullscreen?.().catch(() => {});
+});
+document.addEventListener("fullscreenchange", () => {
+  document.body.classList.toggle("fs", !!document.fullscreenElement);
+  $("fs-btn").querySelector("span").textContent = document.fullscreenElement ? "Вийти з повного екрана" : "На весь екран";
 });
 
-// ─── Гравці ────────────────────────────────────────────────────────────
+// ─── Гравці: точкове оновлення DOM замість перемальовування всієї сітки ──
 let players = {};
 const pendingKick = {};   // pid -> timer
-const rendered = new Set();
+const cards = new Map();  // pid -> element
+const grid = $("players-grid");
 let firstRender = true;
 
-const activeEntries = () => Object.entries(players)
-  .filter(([pid, p]) => p && p.active !== false && !pendingKick[pid])
-  .sort((a, b) => (a[1].joinedAt || 0) - (b[1].joinedAt || 0));
+function card(pid) {
+  let el = cards.get(pid);
+  if (!el) {
+    el = document.createElement("div");
+    el.className = "player" + (firstRender ? "" : " new");
+    el.innerHTML = `<div class="av"></div><div class="nm"><div class="name"></div><div class="st"></div></div><button class="x" type="button" title="Видалити з гри">×</button>`;
+    el.querySelector(".x").dataset.kick = pid;
+    cards.set(pid, el);
+  }
+  return el;
+}
 
 function render() {
   const q = $("player-search").value.trim().toLowerCase();
-  const visible = activeEntries();
-  const filtered = q ? visible.filter(([, p]) => (p.nickname || "").toLowerCase().includes(q)) : visible;
+  const list = Object.entries(players)
+    .filter(([pid, p]) => isActive(p) && !pendingKick[pid])
+    .sort((a, b) => (a[1].joinedAt || 0) - (b[1].joinedAt || 0));
+  const online = list.filter(([, p]) => isOnline(p)).length;
 
   const cnt = $("count-lbl");
-  if (cnt.textContent !== String(visible.length)) {
-    cnt.textContent = visible.length;
-    cnt.classList.add("bump"); setTimeout(() => cnt.classList.remove("bump"), 200);
-  }
-  const last = visible[visible.length - 1];
-  $("last-joined").textContent = last ? `Останній: ${last[1].nickname}` : "";
+  if (cnt.textContent !== String(online)) { cnt.textContent = online; cnt.classList.add("bump"); setTimeout(() => cnt.classList.remove("bump"), 200); }
+  const off = list.length - online;
+  $("off-count").textContent = off ? `+ ${off} не в мережі` : "";
   $("start-btn").disabled = false;
 
-  const grid = $("players-grid");
-  if (!visible.length) {
-    grid.innerHTML = `<div class="empty-state"><div class="big">📱</div><b>Чекаємо на гравців</b>Попросіть учнів відкрити посилання та ввести код</div>`;
-    return;
-  }
-  if (!filtered.length) {
-    grid.innerHTML = `<div class="no-results">Нікого не знайдено за запитом «${esc(q)}»</div>`;
-    return;
-  }
-  grid.innerHTML = filtered.map(([pid, p]) => {
-    const isNew = !firstRender && !rendered.has(pid);
-    return `<div class="player${isNew ? " new" : ""}">
-      <div class="av" style="background:${avatarColor(p.nickname)}">${esc(initialsOf(p.nickname))}</div>
-      <div class="name" title="${esc(p.nickname)}">${esc(p.nickname)}</div>
-      <button class="x" data-kick="${esc(pid)}" aria-label="Видалити ${esc(p.nickname)}" title="Видалити з гри">×</button>
-    </div>`;
-  }).join("");
-  filtered.forEach(([pid]) => rendered.add(pid));
+  // Прибираємо зайві картки
+  const keep = new Set(list.map(([pid]) => pid));
+  for (const [pid, el] of cards) if (!keep.has(pid)) { el.remove(); cards.delete(pid); }
+
+  grid.querySelector(".empty")?.remove();
+  let prev = null;
+  list.forEach(([pid, p]) => {
+    const el = card(pid);
+    const nick = p.nickname || "—";
+    if (el.dataset.nick !== nick) {
+      el.dataset.nick = nick;
+      const av = el.querySelector(".av");
+      av.textContent = initialsOf(nick); av.style.background = avatarColor(nick);
+      el.querySelector(".name").textContent = nick; el.querySelector(".name").title = nick;
+      el.querySelector(".x").setAttribute("aria-label", `Видалити ${nick}`);
+    }
+    const on = isOnline(p);
+    el.classList.toggle("off", !on);
+    el.querySelector(".st").textContent = on ? "у грі" : "не в мережі";
+    el.hidden = !!q && !nick.toLowerCase().includes(q);
+    // Порядок — за часом входу; переставляємо лише якщо треба
+    const want = prev ? prev.nextSibling : grid.firstChild;
+    if (want !== el) grid.insertBefore(el, want);
+    prev = el;
+  });
+  if (!list.length) grid.insertAdjacentHTML("beforeend", `<div class="empty"><div class="big">📱</div><b>Чекаємо на гравців</b>Попросіть учнів відкрити посилання та ввести код</div>`);
+  else if (q && list.every(([pid]) => cards.get(pid).hidden)) grid.insertAdjacentHTML("beforeend", `<div class="empty"><b>Нікого не знайдено</b>за запитом «${esc(q)}»</div>`);
   firstRender = false;
 }
 $("player-search").addEventListener("input", render);
 
-// Видалення з можливістю скасувати: картку ховаємо одразу, а в базі
-// позначаємо гравця неактивним лише через 5с.
-$("players-grid").addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-kick]");
-  if (!btn) return;
-  const pid = btn.dataset.kick;
-  if (pendingKick[pid]) return;
+// Видалення з можливістю скасувати: картку ховаємо одразу, у базі — за 5 с
+grid.addEventListener("click", (e) => {
+  const pid = e.target.closest("[data-kick]")?.dataset.kick;
+  if (!pid || pendingKick[pid]) return;
   const nick = players[pid]?.nickname || "гравця";
   const t = document.createElement("div");
-  t.className = "undo-toast";
+  t.className = "undo";
   t.innerHTML = `<span>Видалено <b>${esc(nick)}</b></span><button type="button">Скасувати</button>`;
   pendingKick[pid] = setTimeout(async () => {
     t.remove();
@@ -281,9 +273,7 @@ $("players-grid").addEventListener("click", (e) => {
     catch (err) { toast("Не вдалося видалити: " + err.message, "err"); }
     delete pendingKick[pid]; render();
   }, 5000);
-  t.querySelector("button").addEventListener("click", () => {
-    clearTimeout(pendingKick[pid]); delete pendingKick[pid]; t.remove(); render();
-  });
+  t.querySelector("button").addEventListener("click", () => { clearTimeout(pendingKick[pid]); delete pendingKick[pid]; t.remove(); render(); });
   $("toasts").appendChild(t);
   render();
 });
@@ -297,20 +287,21 @@ async function flushKicks() {
   if (!ids.length) return;
   const upd = {};
   ids.forEach(pid => { clearTimeout(pendingKick[pid]); delete pendingKick[pid]; upd[`rooms/${code}/players/${pid}/active`] = false; });
-  document.querySelectorAll(".undo-toast").forEach(t => t.remove());
+  document.querySelectorAll(".undo").forEach(t => t.remove());
   await update(ref(db), upd);
 }
 
 $("start-btn").addEventListener("click", async () => {
   const btn = $("start-btn");
   if (btn.disabled) return;
-  const n = activeEntries().length;
-  if (n === 0 && !confirm("У лобі ще немає жодного гравця. Почати гру попри це?")) return;
+  const n = Object.entries(players).filter(([pid, p]) => isOnline(p) && !pendingKick[pid]).length;
+  if (n === 0 && !confirm("У лобі немає жодного гравця онлайн. Почати гру попри це?")) return;
   btn.disabled = true;
   try {
     await flushKicks();
     leaving = true;
-    await update(ref(db, `rooms/${code}`), { status: "question", currentQ: 0, questionStartedAt: serverNow(), pausedLeft: null, startedAt: serverNow() });
+    const now = serverNow();
+    await update(ref(db, `rooms/${code}`), { status: "question", currentQ: 0, questionStartedAt: now, pausedLeft: null, startLog: null, startedAt: now });
     location.href = `play-teacher?code=${code}`;
   } catch (e) {
     leaving = false; btn.disabled = false;
@@ -332,10 +323,10 @@ onValue(ref(db, `rooms/${code}/status`), snap => {
   if (!leaving && snap.val() === "question") location.href = `play-teacher?code=${code}`;
 });
 
-// Enter / пробіл у будь-якому місці (крім поля пошуку) — почати гру
 document.addEventListener("keydown", (e) => {
   if (e.target.closest("input,textarea,button")) return;
   if (e.key === "Enter") { e.preventDefault(); $("start-btn").click(); }
+  if (e.key === "f" || e.key === "а") $("fs-btn").click();
 });
 </script>
 </body>
