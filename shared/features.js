@@ -83,6 +83,7 @@ function buildChips(){
   // Рендеримо в елемент #nt-chips який вже є в modals.html
   const panel = document.getElementById("nt-chips");
   if(!panel) return;
+  document.querySelectorAll("body > #nt-folder-drop").forEach(el => el.remove());   // старий «портал»
 
   const sel = folders.find(f => f.id === _fid);
   const folderColor = sel?.color || "#2d5be3";
@@ -124,13 +125,44 @@ function buildChips(){
     </div>`;
 }
 
+// Список папок відкривається як «поповер» з position:fixed поверх модалки —
+// інакше .mb (overflow:auto) обрізав його по краю форми.
+function _placeFolderDrop(){
+  const drop = document.getElementById("nt-folder-drop"), btn = document.getElementById("nt-folder-btn");
+  if (!drop || !btn || drop.style.display === "none") return;
+  const r = btn.getBoundingClientRect();
+  const w = Math.max(r.width, 260);
+  drop.style.width = w + "px";
+  drop.style.left = Math.min(r.left, innerWidth - w - 8) + "px";
+  const h = drop.offsetHeight, below = innerHeight - r.bottom - 8;
+  drop.style.top = (below < h && r.top > below ? Math.max(8, r.top - h - 4) : r.bottom + 4) + "px";
+}
+function _closeFolderDrop(){
+  const drop = document.getElementById("nt-folder-drop");
+  if (drop && drop.style.display !== "none"){ drop.style.display = "none"; delete drop.dataset.open; }
+  // Повертаємо список на місце (у модалку), щоб buildChips міг його перебудувати
+  const home = document.querySelector("#nt-chips > div");
+  if (drop && home && drop.parentElement === document.body) home.appendChild(drop);
+  document.getElementById("nt-folder-btn")?.setAttribute("aria-expanded", "false");
+}
 window._toggleFolderChips = function(){
   const drop = document.getElementById("nt-folder-drop");
   if(!drop) return;
-  const isOpen = drop.style.display !== "none";
-  drop.style.display = isOpen ? "none" : "block";
-  if(!isOpen) setTimeout(()=>document.getElementById("nt-folder-search")?.focus(), 50);
+  if (drop.style.display !== "none"){ _closeFolderDrop(); return; }
+  document.body.appendChild(drop);   // .mb має transform → fixed усередині нього теж обрізався б
+  Object.assign(drop.style, { display: "block", position: "fixed", right: "auto", zIndex: "1000" });
+  drop.dataset.open = "1";           // app.js: поки відкрито — Esc закриває список, а не модалку
+  document.getElementById("nt-folder-btn")?.setAttribute("aria-expanded", "true");
+  _placeFolderDrop();
+  setTimeout(()=>document.getElementById("nt-folder-search")?.focus(), 30);
 };
+window.addEventListener("resize", _placeFolderDrop);
+document.addEventListener("scroll", e => { if (!e.target.closest?.("#nt-folder-drop")) _closeFolderDrop(); }, true);
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && document.getElementById("nt-folder-drop")?.dataset.open){
+    _closeFolderDrop(); document.getElementById("nt-folder-btn")?.focus();
+  }
+});
 
 window._filterFolderChips = function(q){
   const lq = q.toLowerCase();
@@ -141,18 +173,15 @@ window._filterFolderChips = function(q){
 
 window._selectFolderChip = function(fid){
   _fid = fid || null;
-  const drop = document.getElementById("nt-folder-drop");
-  if(drop) drop.style.display = "none";
+  _closeFolderDrop();
   buildChips();
+  document.getElementById("nt-folder-btn")?.focus();
 };
 
-// Закриваємо дроп при кліку поза #nt-chips
+// Закриваємо список папок при кліку поза кнопкою і самим списком
 document.addEventListener("click", e=>{
-  if(!e.target.closest("#nt-chips")){
-    const drop = document.getElementById("nt-folder-drop");
-    if(drop) drop.style.display = "none";
-  }
-}, true);
+  if(!e.target.closest("#nt-chips") && !e.target.closest("#nt-folder-drop")) _closeFolderDrop();
+});
 
 async function loadStoredNotifs(){
   try {
@@ -955,7 +984,10 @@ function _syncToolbar(ctx){
     b.setAttribute("aria-pressed", v === TS.status);
     const n = b.querySelector(".t-tab-n"); if (n) n.textContent = counts[v || "all"] ?? 0;
   });
-  const sort = document.getElementById("t-sort"); if (sort) sort.value = TS.sort;
+  const lbl = document.getElementById("cd-tsort-label");
+  const cur = document.querySelector(`#cd-tsort-menu [data-sort="${TS.sort}"]`);
+  if (lbl && cur) lbl.textContent = cur.textContent.trim();
+  document.querySelectorAll("#cd-tsort-menu [data-sort]").forEach(el => el.classList.toggle("cd-active", el.dataset.sort === TS.sort));
   bar.querySelectorAll("[data-view]").forEach(b => { b.classList.toggle("on", b.dataset.view === TS.view); b.setAttribute("aria-pressed", b.dataset.view === TS.view); });
 }
 function _statusCounts(lst){
@@ -1042,7 +1074,7 @@ renderTests = function(q){
     return;
   }
 
-  // ─── Головна: папки + нещодавні тести ────────────────────────────────
+  // ─── Головна: нещодавні (компактно, зверху) + папки ──────────────────
   _syncToolbar({ scope: "root", showsTests: false });
   const cards = folders.map(f => _folderCard(f, live.filter(t => t.folderId === f.id), stats));
   if (orphans.length) cards.push(_folderCard(null, orphans, stats));
@@ -1051,16 +1083,33 @@ renderTests = function(q){
     <div class="t-nf-title">Нова папка</div>
     <div class="t-nf-hint">Згрупувати тести в курс</div>
   </button>`);
-  const recent = [...live].sort((a, b) => _activity(b, stats.get(b.id)) - _activity(a, stats.get(a.id))).slice(0, 6);
-  c.innerHTML = `<div class="t-card">
+  const recent = [...live].sort((a, b) => _activity(b, stats.get(b.id)) - _activity(a, stats.get(a.id))).slice(0, 8);
+  c.innerHTML = `${recent.length ? `<section class="t-recent" aria-label="Нещодавні тести">
+      <div class="t-recent-h"><span>Нещодавні</span><span class="t-n">швидкий доступ</span></div>
+      <div class="t-recent-list">${recent.map((t, i) => _recentChip(t, i, stats)).join("")}</div>
+    </section>` : ""}
+    <div class="t-card">
       <div class="t-section-label"><span>Папки</span><span class="t-n">${folders.length + (orphans.length ? 1 : 0)}</span></div>
       <div class="t-folders-grid">${cards.join("")}</div>
-    </div>
-    ${recent.length ? `<div class="t-card">
-      <div class="t-section-label"><span>Нещодавні тести</span><span class="t-n">остання активність</span></div>
-      <div class="t-quizzes-grid">${recent.map((t, i) => buildTestCard(t, i, stats, true)).join("")}</div>
-    </div>` : ""}`;
+    </div>`;
 };
+
+// Компактний рядок «нещодавнього» тесту: клік — одразу в конструктор, ⋯ — усі дії
+function _recentChip(t, idx, stats){
+  const st = stats.get(t.id) || _EMPTY_STATS;
+  const f = _folderOf(t);
+  const sc = _sc(t);
+  return `<div class="t-rc">
+    <button class="t-rc-main" data-act="edit" data-id="${esc(t.id)}" title="Відкрити «${esc(t.title)}» у конструкторі">
+      <span class="t-rc-tile" style="background:${_quizCoverGradient(t, idx)}">${esc(_testAbbr(t.title))}</span>
+      <span class="t-rc-txt">
+        <span class="t-rc-title">${esc(t.title)}</span>
+        <span class="t-rc-meta"><i class="t-rc-dot ${sc.cls}" title="${sc.label}"></i>${esc(f?.name || "Без папки")} · ${st.cnt} ${_plural(st.cnt, "спроба", "спроби", "спроб")}</span>
+      </span>
+    </button>
+    <button class="t-rc-more" data-act="menu" data-id="${esc(t.id)}" aria-haspopup="menu" aria-label="Дії з тестом">${I.more}</button>
+  </div>`;
+}
 
 // ─── Плаваюче меню дій (одне на сторінку, не обрізається карткою) ──────
 let _tMenuFor = null;
@@ -1174,6 +1223,17 @@ document.addEventListener("keydown", e => {
 window.addEventListener("resize", () => _closeTMenu());
 document.addEventListener("scroll", () => _closeTMenu(), true);
 
+function _closeCdMenus(){
+  document.querySelectorAll(".cd-menu.open").forEach(m => m.classList.remove("open"));
+  document.querySelectorAll(".cd-btn.active").forEach(b => { b.classList.remove("active"); b.setAttribute("aria-expanded", "false"); });
+}
+document.addEventListener("click", e => { if (!e.target.closest(".cd-wrap")) _closeCdMenus(); });
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  const open = document.querySelector(".cd-menu.open");
+  if (open){ const btn = open.closest(".cd-wrap")?.querySelector(".cd-btn"); _closeCdMenus(); btn?.focus(); }
+});
+
 // Панель інструментів: пошук з невеликою затримкою, фільтри, сортування, вигляд
 (function _wireToolbar(){
   const bar = document.getElementById("t-toolbar");
@@ -1189,7 +1249,10 @@ document.addEventListener("scroll", () => _closeTMenu(), true);
     const v = e.target.closest("[data-view]");
     if (v){ TS.view = v.dataset.view; window._testsView = TS.view; _saveTS(); renderTests(); }
   });
-  document.getElementById("t-sort")?.addEventListener("change", e => { TS.sort = e.target.value; _saveTS(); renderTests(); });
+  bar.addEventListener("click", e => {
+    const it = e.target.closest("[data-sort]");
+    if (it){ TS.sort = it.dataset.sort; _saveTS(); _closeCdMenus(); renderTests(); document.querySelector("#cd-tsort .cd-btn")?.focus(); }
+  });
 })();
 
 // Папка в адресі (?folder=ID): кнопка «Назад» у браузері повертає до всіх папок
