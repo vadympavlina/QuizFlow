@@ -2,182 +2,149 @@
 <html lang="uk">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=1920"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>QuizFlow Live · Лобі</title>
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjN0MzQUVEIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNEY0NkU1Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjkiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjQiIGZpbGw9IndoaXRlIi8+PC9zdmc+">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+<!-- QR-код для швидкого входу. Якщо CDN недоступний — лобі працює без нього. -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js" defer></script>
 <style>
+  [hidden]{display:none !important}
   *,*::before,*::after{box-sizing:border-box}
-  html,body{margin:0;padding:0;height:100%}
-
+  html,body{margin:0;padding:0}
   :root{
-    --bg:#F6F5FB;
-    --card:#FFFFFF;
-    --card-2:#F0EEFB;
-    --card-line:#E2DFF3;
-    --ink:#201C33;
-    --ink-dim:#6B6480;
-    --accent:#5B4FE8;
-    --accent-ink:#FFFFFF;
-    --live:#2F9E62;
-    --danger:#D14343;
+    --bg:#F6F5FB; --card:#FFFFFF; --card-2:#F0EEFB; --card-line:#E2DFF3; --line2:#CFC9E8;
+    --ink:#201C33; --ink-dim:#6B6480; --accent:#5B4FE8; --accent-ink:#FFFFFF;
+    --live:#2F9E62; --danger:#D14343;
   }
+  body{font-family:"Space Grotesk",system-ui,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.6;background-image:radial-gradient(rgba(32,28,51,.06) 1px, transparent 1px);background-size:26px 26px;mask-image:radial-gradient(ellipse at center, black 30%, transparent 90%)}
 
-  body{
-    font-family:"Space Grotesk",system-ui,sans-serif;color:var(--ink);
-    background:var(--bg);
-    min-height:100vh;overflow-x:hidden;
-  }
-  body::before{
-    content:"";position:fixed;inset:0;pointer-events:none;opacity:.6;
-    background-image:radial-gradient(rgba(32,28,51,.06) 1px, transparent 1px);
-    background-size:26px 26px;
-    mask-image:radial-gradient(ellipse at center, black 30%, transparent 90%);
-  }
-
-  /* ─── Липка шапка: код і кнопка "Почати гру" завжди на видноті ─── */
   .topbar{
-    position:sticky; top:0; z-index:10;
-    display:grid; grid-template-columns: auto 1fr auto;
-    gap:28px; padding:18px 36px; align-items:center;
-    background:var(--bg);
-    border-bottom:2px solid var(--card-line);
+    position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+    padding:14px 32px;background:rgba(246,245,251,.92);backdrop-filter:blur(10px);border-bottom:2px solid var(--card-line);
   }
-  .code-box{
-    display:flex; flex-direction:column; gap:8px;
-  }
-  .code-box .label{font-size:12px;font-weight:500;color:var(--ink-dim)}
-  .code-box .digits{display:flex;gap:6px}
-  .code-box .digit{
-    width:38px;height:50px;display:grid;place-items:center;
-    background:var(--card);
-    border:2px solid var(--card-line);
-    border-radius:9px;font-family:"JetBrains Mono",monospace;
-    font-weight:700;font-size:24px;color:var(--accent);
-  }
-  .topbar-mid{text-align:center;min-width:0}
-  .live-badge{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:500;color:var(--ink-dim);margin-bottom:5px}
-  .live-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--live);box-shadow:0 0 0 4px rgba(47,158,98,.2);animation:pulse 1.6s infinite}
-  .topbar-mid h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
-  .actions-right{display:flex; gap:10px; justify-content:flex-end; align-items:center}
-  .btn{
-    background:var(--card);border:2px solid var(--card-line);
-    color:var(--ink);padding:11px 18px;border-radius:10px;font:inherit;font-weight:600;font-size:13.5px;cursor:pointer;
-    display:inline-flex;align-items:center;gap:8px;transition:border-color .15s, background .15s;
-  }
-  .btn:hover{background:var(--card-2)}
-  .btn-primary{
-    background:var(--accent);border:2px solid var(--accent);color:var(--accent-ink);
-    padding:12px 24px;font-size:14.5px;font-weight:700;
-    box-shadow:4px 4px 0 rgba(91,79,232,.22);
-  }
-  .btn-primary:hover{background:var(--accent)}
-  .btn-primary:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+  .topbar .brand{display:flex;align-items:center;gap:10px;font-weight:700}
+  .topbar .brand .logo{width:34px;height:34px;border-radius:9px;background:var(--accent);display:grid;place-items:center;color:#fff}
+  .topbar h1{margin:0;font-size:18px;font-weight:700;min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-dim)}
+  .topbar h1 b{color:var(--ink)}
+  .actions{display:flex;gap:10px;align-items:center;margin-left:auto}
+  .btn{background:var(--card);border:2px solid var(--card-line);color:var(--ink);padding:11px 16px;border-radius:10px;font:inherit;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:border-color .15s, background .15s;text-decoration:none}
+  .btn:hover{border-color:var(--accent)}
+  .btn.danger:hover{border-color:var(--danger);color:var(--danger)}
+  .btn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);padding:12px 24px;font-size:15px;font-weight:700;box-shadow:4px 4px 0 rgba(91,79,232,.22)}
+  .btn-primary:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;transform:none}
 
-  .meta-strip{position:relative;z-index:1;display:flex;gap:10px;flex-wrap:wrap;padding:20px 36px 0}
-  .meta-pill{
-    display:inline-flex;align-items:center;gap:7px;
-    background:var(--card);border:1px solid var(--card-line);
-    border-radius:10px;padding:9px 16px;font-size:13.5px;color:var(--ink-dim);font-weight:500;
+  /* ── Hero: як приєднатись — великим, щоб читалось з останньої парти ── */
+  .hero{
+    position:relative;z-index:1;max-width:1400px;margin:24px auto 0;padding:0 32px;
+    display:grid;grid-template-columns:1fr auto;gap:22px;align-items:stretch;
   }
-  .meta-pill b{color:var(--ink);font-family:"JetBrains Mono",monospace;font-weight:700;font-size:14.5px}
+  .join-card{
+    background:var(--card);border:2px solid var(--card-line);border-radius:18px;padding:24px 28px;
+    display:flex;flex-direction:column;justify-content:center;gap:14px;
+    box-shadow:6px 6px 0 rgba(32,28,64,.08);
+  }
+  .join-step{font-size:16px;color:var(--ink-dim);font-weight:500}
+  .join-step b{color:var(--ink)}
+  .join-url{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:clamp(18px,2.2vw,28px);color:var(--ink);word-break:break-all}
+  .digits{display:flex;gap:8px;flex-wrap:wrap}
+  .digit{
+    width:clamp(44px,5vw,72px);height:clamp(58px,6.6vw,92px);display:grid;place-items:center;
+    background:var(--card-2);border:2px solid var(--card-line);border-radius:12px;
+    font-family:"JetBrains Mono",monospace;font-weight:800;font-size:clamp(28px,3.6vw,52px);color:var(--accent);
+  }
+  .digit.gap{width:10px;background:none;border:0}
+  .qr-card{background:#fff;border:2px solid var(--card-line);border-radius:18px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:10px;box-shadow:6px 6px 0 rgba(32,28,64,.08)}
+  .qr-card[hidden]{display:none}
+  .qr{width:clamp(150px,15vw,220px);aspect-ratio:1}
+  .qr svg{width:100%;height:100%;display:block}
+  .qr-card small{font-size:12.5px;color:var(--ink-dim);font-weight:600}
 
-  .section-h{
-    margin:30px 36px 16px;display:flex;align-items:center;gap:14px;
-  }
-  .section-h .pulse{
-    width:9px;height:9px;border-radius:50%;background:var(--live);
-    box-shadow:0 0 0 4px rgba(47,158,98,.2);
-    animation: pulse 1.6s infinite;
-  }
+  .meta-strip{position:relative;z-index:1;max-width:1400px;margin:16px auto 0;padding:0 32px;display:flex;gap:10px;flex-wrap:wrap}
+  .meta-pill{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--card-line);border-radius:10px;padding:8px 14px;font-size:13.5px;color:var(--ink-dim);font-weight:500}
+  .meta-pill b{color:var(--ink);font-family:"JetBrains Mono",monospace;font-weight:700}
+
+  .section-h{position:relative;z-index:1;max-width:1400px;margin:28px auto 14px;padding:0 32px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .pulse{width:9px;height:9px;border-radius:50%;background:var(--live);animation:pulse 1.6s infinite}
   @keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(47,158,98,.2)}50%{box-shadow:0 0 0 8px rgba(47,158,98,.04)}}
-  .section-h h2{margin:0;font-size:19px;font-weight:700;color:var(--ink)}
-  .section-h .count{font-family:"JetBrains Mono",monospace;font-size:14px;color:var(--accent);font-weight:700;background:var(--card);border:1px solid var(--card-line);padding:5px 12px;border-radius:8px}
-  .section-h .right{margin-left:auto;display:flex;gap:8px;align-items:center;font-size:13.5px;color:var(--ink-dim)}
-  .search-wrap{position:relative;display:flex;align-items:center}
+  .section-h h2{margin:0;font-size:19px;font-weight:700}
+  .count{font-family:"JetBrains Mono",monospace;font-size:14px;color:var(--accent);font-weight:700;background:var(--card);border:1px solid var(--card-line);padding:5px 12px;border-radius:8px;transition:transform .2s}
+  .count.bump{transform:scale(1.2)}
+  .last-joined{font-size:13.5px;color:var(--ink-dim)}
+  .search-wrap{margin-left:auto;position:relative;display:flex;align-items:center}
   .search-wrap svg{position:absolute;left:12px;pointer-events:none;color:var(--ink-dim)}
-  .search-input{
-    background:var(--card);border:2px solid var(--card-line);border-radius:10px;
-    padding:10px 14px 10px 36px;color:var(--ink);font:inherit;font-size:13.5px;outline:none;width:220px;
-    transition:border-color .15s;
-  }
-  .search-input::placeholder{color:var(--ink-dim)}
+  .search-input{background:var(--card);border:2px solid var(--card-line);border-radius:10px;padding:10px 14px 10px 36px;color:var(--ink);font:inherit;font-size:13.5px;outline:none;width:220px;transition:border-color .15s}
   .search-input:focus{border-color:var(--accent)}
 
-  .players{
-    display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;padding:0 36px 100px;
-  }
+  .players{position:relative;z-index:1;max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;padding:0 32px 60px}
   .player{
-    background:var(--card);border:2px solid var(--card-line);
-    border-radius:14px;padding:18px;display:flex;align-items:center;gap:14px;position:relative;
-    transition:border-color .15s, opacity .2s;
-    animation: pop .3s ease-out backwards;
+    background:var(--card);border:2px solid var(--card-line);border-radius:14px;padding:14px 16px;
+    display:flex;align-items:center;gap:12px;position:relative;transition:border-color .15s;
     box-shadow:0 1px 2px rgba(32,28,64,.04);
   }
-  @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
-  .player.removing{opacity:0;transform:scale(.9)}
+  .player.new{animation:pop .35s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
   .player:hover{border-color:var(--accent)}
-  .player .av{
-    width:50px;height:50px;border-radius:11px;display:grid;place-items:center;color:#fff;
-    font-weight:700;font-size:16px;flex:0 0 auto;border:2px solid var(--card-line);
-  }
-  .player .name{font-weight:700;font-size:16.5px;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
-  .player .meta{font-size:12px;color:var(--ink-dim);margin-top:2px;font-family:"JetBrains Mono",monospace}
-  .player .x{
-    position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:8px;
-    background:var(--card-2);color:var(--ink-dim);border:1px solid var(--card-line);cursor:pointer;
-    display:grid;place-items:center;font-size:16px;line-height:1;opacity:.55;transition:opacity .15s, background .15s, color .15s, border-color .15s;
-  }
-  .player:hover .x{opacity:1}
-  .player .x:focus-visible{opacity:1}
+  .player .av{width:44px;height:44px;border-radius:11px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px;flex:0 0 auto}
+  .player .name{font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+  .player .x{width:30px;height:30px;border-radius:8px;background:var(--card-2);color:var(--ink-dim);border:1px solid var(--card-line);cursor:pointer;display:grid;place-items:center;font-size:17px;line-height:1;opacity:0;transition:opacity .15s, background .15s, color .15s}
+  .player:hover .x,.player .x:focus-visible{opacity:1}
   .player .x:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
-  .empty-card{
-    border:2px dashed var(--card-line);background:transparent;
-    border-radius:14px;padding:18px;display:flex;align-items:center;gap:14px;color:var(--ink-dim);
-  }
-  .empty-card .av{width:50px;height:50px;border-radius:11px;background:var(--card-2);display:grid;place-items:center;color:var(--card-line);border:2px solid var(--card-line)}
+  @media (hover:none){ .player .x{opacity:.8} }
+
+  .empty-state{grid-column:1/-1;text-align:center;padding:48px 20px;border:2px dashed var(--card-line);border-radius:16px;color:var(--ink-dim)}
+  .empty-state .big{font-size:40px;margin-bottom:8px}
+  .empty-state b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
   .no-results{grid-column:1/-1;text-align:center;padding:40px;color:var(--ink-dim);font-size:14px}
 
-  .undo-toast{
-    position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(0);
-    background:var(--card);border:2px solid var(--accent);border-radius:14px;
-    padding:14px 16px 14px 20px;display:flex;align-items:center;gap:16px;
-    box-shadow:0 8px 28px -8px rgba(32,28,64,.28);z-index:50;font-size:14px;color:var(--ink);
-    animation:toastIn .2s ease-out;
-  }
-  @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-  .undo-toast b{font-weight:700;color:var(--ink)}
-  .undo-toast button{
-    background:var(--accent);border:0;color:var(--accent-ink);
-    padding:8px 14px;border-radius:8px;font:inherit;font-weight:700;font-size:13px;cursor:pointer;
-  }
-  .undo-toast button:hover{opacity:.9}
+  .toasts{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:50;display:flex;flex-direction:column;gap:8px;align-items:center}
+  .undo-toast{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:12px 14px 12px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 28px -8px rgba(32,28,64,.28);font-size:14px;animation:toastIn .2s ease-out}
+  @keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .undo-toast button{background:var(--accent);border:0;color:var(--accent-ink);padding:8px 14px;border-radius:8px;font:inherit;font-weight:700;font-size:13px;cursor:pointer}
+
   :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  @media (prefers-reduced-motion: reduce){ *{animation-duration:.01ms !important} }
+  @media (prefers-reduced-motion: reduce){ *{animation:none !important;transition:none !important} }
+  @media (max-width: 860px){
+    .hero{grid-template-columns:1fr}
+    .qr-card{display:none}
+    .topbar,.hero,.meta-strip,.section-h,.players{padding-left:16px;padding-right:16px}
+    .search-wrap{margin-left:0;width:100%}
+    .search-input{width:100%}
+  }
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="code-box">
-    <div class="label">Код гри — покажіть гравцям</div>
-    <div class="digits" id="code-digits"></div>
-  </div>
-  <div class="topbar-mid">
-    <div class="live-badge"><span class="dot"></span>Лобі відкрите</div>
-    <h1 id="game-title">—</h1>
-  </div>
-  <div class="actions-right">
-    <button class="btn" onclick="copyLink(this)">
+  <div class="brand"><div class="logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg></div>live</div>
+  <h1>Лобі · <b id="game-title">—</b></h1>
+  <div class="actions">
+    <button class="btn danger" id="close-btn" title="Скасувати гру і видалити кімнату">Закрити</button>
+    <button class="btn" id="copy-btn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-      Скопіювати посилання
+      <span>Скопіювати посилання</span>
     </button>
-    <button class="btn btn-primary" id="start-btn" onclick="startGame()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="6 4 20 12 6 20 6 4" fill="currentColor"/></svg>
+    <button class="btn btn-primary" id="start-btn" disabled>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
       Почати гру
     </button>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="join-card">
+    <div class="join-step">1. Відкрийте на телефоні</div>
+    <div class="join-url" id="join-url">—</div>
+    <div class="join-step">2. Введіть <b>код гри</b></div>
+    <div class="digits" id="code-digits" aria-label="Код гри"></div>
+  </div>
+  <div class="qr-card" id="qr-card" hidden>
+    <div class="qr" id="qr"></div>
+    <small>або скануйте QR</small>
   </div>
 </div>
 
@@ -185,166 +152,190 @@
   <span class="meta-pill"><b id="stat-q">—</b> питань</span>
   <span class="meta-pill"><b id="stat-time">—</b>с на питання</span>
   <span class="meta-pill" id="stat-scoring">—</span>
+  <span class="meta-pill" id="stat-shuffle" hidden>🔀 Варіанти перемішуються</span>
 </div>
 
 <div class="section-h">
   <span class="pulse"></span>
   <h2>Гравці у лобі</h2>
   <span class="count" id="count-lbl">0</span>
-  <span class="right" id="last-joined"></span>
-  <div class="search-wrap">
+  <span class="last-joined" id="last-joined"></span>
+  <label class="search-wrap">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-    <input class="search-input" id="player-search" placeholder="Пошук гравця…" oninput="renderPlayers()">
-  </div>
+    <input class="search-input" id="player-search" placeholder="Пошук гравця…" aria-label="Пошук гравця">
+  </label>
 </div>
 
-<div class="players" id="players-grid"></div>
-
-<div id="toast-slot"></div>
+<div class="players" id="players-grid" aria-live="polite"></div>
+<div class="toasts" id="toasts"></div>
 
 <script type="module">
-import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  db, ref, get, update, onValue, requireTeacher, readParams, isValidCode, fatal, toast,
+  esc, initialsOf, avatarColor, joinUrl, HOME_URL, serverNow, plural,
+} from "./live-core.js";
 
-const FC = {apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",authDomain:"quizflow-8a978.firebaseapp.com",databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",projectId:"quizflow-8a978",storageBucket:"quizflow-8a978.firebasestorage.app",messagingSenderId:"206469794166",appId:"1:206469794166:web:55cd7007b429607acd5257"};
-const app  = getApps().length ? getApps()[0] : initializeApp(FC);
-const auth = getAuth(app);
-const db   = getDatabase(app);
+const $ = (id) => document.getElementById(id);
+const user = await requireTeacher();
+const { code } = readParams("code");
+if (!isValidCode(code)) fatal("Невірний код кімнати");
 
-const fbUser = await new Promise(r => { const u = onAuthStateChanged(auth, x => { u(); r(x); }); });
-if (!fbUser) { location.href = "../login.html"; throw new Error(); }
+const roomSnap = await get(ref(db, `rooms/${code}`));
+if (!roomSnap.exists()) fatal("Кімнату не знайдено — можливо, її вже закрито");
+const room = roomSnap.val();
+if (room.hostUid && room.hostUid !== user.uid) fatal("Це не ваша кімната");
+if (["question", "paused", "reveal"].includes(room.status)) { location.replace(`play-teacher?code=${code}`); throw new Error("redirect"); }
+if (room.status === "leaderboard") { location.replace(`podium?code=${code}`); throw new Error("redirect"); }
+if (room.status === "finished") fatal("Цю гру вже завершено");
 
-const code = new URLSearchParams(location.search).get("code");
-if (!code) { location.href = "../index.html"; throw new Error(); }
+// ─── Як приєднатись ────────────────────────────────────────────────────
+const url = joinUrl(code);
+$("join-url").textContent = url.replace(/^https?:\/\//, "").replace(/\?.*$/, "");
+$("code-digits").innerHTML = code.split("").map((d, i) => (i === 4 ? `<div class="digit gap"></div>` : "") + `<div class="digit">${d}</div>`).join("");
+function renderQR() {
+  if (typeof window.qrcode !== "function") return false;
+  try {
+    const qr = window.qrcode(0, "M");
+    qr.addData(url); qr.make();
+    $("qr").innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+    $("qr-card").hidden = false;
+  } catch (e) { console.warn("qr:", e); }
+  return true;
+}
+if (!renderQR()) window.addEventListener("load", renderQR, { once: true });
 
-// Fill code digits
-const digitsEl = document.getElementById("code-digits");
-code.split("").forEach(d => {
-  const el = document.createElement("div");
-  el.className = "digit"; el.textContent = d;
-  digitsEl.appendChild(el);
+$("game-title").textContent = room.testTitle || "—";
+document.title = `Лобі · ${code} · QuizFlow Live`;
+$("stat-q").textContent = (room.questions || []).length;
+$("stat-time").textContent = room.timePerQ || 20;
+$("stat-scoring").textContent = room.scoring === "speed" ? "⚡ За швидкість" : "✓ За правильність";
+$("stat-shuffle").hidden = !room.options?.shuffle;
+
+$("copy-btn").addEventListener("click", async () => {
+  const lbl = $("copy-btn").querySelector("span");
+  try { await navigator.clipboard.writeText(url); lbl.textContent = "Скопійовано ✓"; }
+  catch { prompt("Скопіюйте посилання:", url); }
+  setTimeout(() => { lbl.textContent = "Скопіювати посилання"; }, 2000);
 });
 
-// Load room info
-const roomSnap = await get(ref(db, `rooms/${code}`));
-if (!roomSnap.exists()) { alert("Кімната не знайдена"); location.href = "../index.html"; throw new Error(); }
-const room = roomSnap.val();
+// ─── Гравці ────────────────────────────────────────────────────────────
+let players = {};
+const pendingKick = {};   // pid -> timer
+const rendered = new Set();
+let firstRender = true;
 
-document.getElementById("game-title").textContent = room.testTitle || "—";
-document.getElementById("stat-q").textContent = (room.questions||[]).length;
-document.getElementById("stat-time").innerHTML = (room.timePerQ||20);
-document.getElementById("stat-scoring").textContent = room.scoring === "speed" ? "⚡ За швидкість" : "✓ За правильність";
+const activeEntries = () => Object.entries(players)
+  .filter(([pid, p]) => p && p.active !== false && !pendingKick[pid])
+  .sort((a, b) => (a[1].joinedAt || 0) - (b[1].joinedAt || 0));
 
-const AV_COLORS = ["#9C6B2E","#3A5A6B","#4E6B4A","#8A4A3E","#6B5490","#8A4266","#3E7A78","#7A6B2E"];
-function playerColor(name) { return AV_COLORS[(name||"?").charCodeAt(0) % AV_COLORS.length]; }
-function initialsOf(nick) {
-  const parts = String(nick||"").trim().split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) return (parts[0][0]+parts[1][0]).toUpperCase();
-  return (nick||"??").slice(0,2).toUpperCase();
-}
+function render() {
+  const q = $("player-search").value.trim().toLowerCase();
+  const visible = activeEntries();
+  const filtered = q ? visible.filter(([, p]) => (p.nickname || "").toLowerCase().includes(q)) : visible;
 
-let lastPlayers = {};
-const pendingKick = {}; // pid -> {timer, nickname}
-
-// ─── Видалення з undo-можливістю: одразу ховаємо картку, реально видаляємо
-// з бази лише за 4с, якщо викладач не натисне "Скасувати" ─────────────────
-window.requestKick = (pid, nickname) => {
-  if (pendingKick[pid]) return;
-  pendingKick[pid] = {
-    nickname,
-    timer: setTimeout(async () => {
-      delete pendingKick[pid];
-      await update(ref(db, `rooms/${code}/players/${pid}`), { active: false });
-    }, 4000)
-  };
-  renderPlayers(); // одразу приховати картку
-  showUndoToast(nickname, () => {
-    clearTimeout(pendingKick[pid].timer);
-    delete pendingKick[pid];
-    renderPlayers();
-  });
-};
-
-function showUndoToast(nickname, onUndo) {
-  const slot = document.getElementById("toast-slot");
-  slot.innerHTML = "";
-  const t = document.createElement("div");
-  t.className = "undo-toast";
-  t.innerHTML = `<span>Видалено <b>${nickname}</b></span><button>Скасувати</button>`;
-  t.querySelector("button").addEventListener("click", () => { t.remove(); onUndo(); });
-  slot.appendChild(t);
-  setTimeout(() => t.remove(), 4000);
-}
-
-window.copyLink = (btn) => {
-  const url = `${location.origin}/play.html?code=${code}`;
-  navigator.clipboard.writeText(url).then(() => {
-    const orig = btn.innerHTML;
-    btn.textContent = "Скопійовано!";
-    setTimeout(() => { btn.innerHTML = orig; }, 2000);
-  });
-};
-window.startGame = async () => {
-  const activeCount = Object.entries(lastPlayers).filter(([pid,p]) => p.active !== false && !pendingKick[pid]).length;
-  if (activeCount === 0 && !confirm("У лобі ще немає жодного гравця. Розпочати гру попри це?")) return;
-  await update(ref(db, `rooms/${code}`), {
-    status: "question", currentQ: 0, questionStartedAt: Date.now()
-  });
-  location.href = `play-teacher.html?code=${code}`;
-};
-
-// ─── Рендер сітки гравців (викликається і з realtime-слухача, і локально
-// при пошуку/undo, щоб не чекати на round-trip до Firebase) ────────────────
-window.renderPlayers = () => {
-  const q = (document.getElementById("player-search").value || "").trim().toLowerCase();
-  const all = Object.entries(lastPlayers).filter(([,p]) => p.active !== false);
-  const visible = all.filter(([pid]) => !pendingKick[pid]);
-  const filtered = q ? visible.filter(([,p]) => (p.nickname||"").toLowerCase().includes(q)) : visible;
-
-  document.getElementById("count-lbl").textContent = visible.length;
-  if (visible.length > 0) {
-    const last = visible[visible.length - 1][1];
-    document.getElementById("last-joined").textContent = `Останній: ${last.nickname}`;
-  } else {
-    document.getElementById("last-joined").textContent = "";
+  const cnt = $("count-lbl");
+  if (cnt.textContent !== String(visible.length)) {
+    cnt.textContent = visible.length;
+    cnt.classList.add("bump"); setTimeout(() => cnt.classList.remove("bump"), 200);
   }
+  const last = visible[visible.length - 1];
+  $("last-joined").textContent = last ? `Останній: ${last[1].nickname}` : "";
+  $("start-btn").disabled = false;
 
-  const grid = document.getElementById("players-grid");
-
-  if (q && filtered.length === 0) {
-    grid.innerHTML = `<div class="no-results">Нікого не знайдено за запитом «${q}»</div>`;
+  const grid = $("players-grid");
+  if (!visible.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="big">📱</div><b>Чекаємо на гравців</b>Попросіть учнів відкрити посилання та ввести код</div>`;
     return;
   }
-
-  grid.innerHTML = filtered.map(([pid, p], i) => {
-    const initials = initialsOf(p.nickname);
-    return `<div class="player" style="animation-delay:${Math.min(i*25,300)}ms">
-      <div class="av" style="background:${playerColor(p.nickname)}">${initials}</div>
-      <div style="min-width:0;flex:1">
-        <div class="name">${p.nickname}</div>
-        <div class="meta">підключено</div>
-      </div>
-      <button class="x" aria-label="Видалити ${p.nickname}" onclick="requestKick('${pid}','${String(p.nickname||"").replace(/'/g,"\\'")}')">×</button>
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="no-results">Нікого не знайдено за запитом «${esc(q)}»</div>`;
+    return;
+  }
+  grid.innerHTML = filtered.map(([pid, p]) => {
+    const isNew = !firstRender && !rendered.has(pid);
+    return `<div class="player${isNew ? " new" : ""}">
+      <div class="av" style="background:${avatarColor(p.nickname)}">${esc(initialsOf(p.nickname))}</div>
+      <div class="name" title="${esc(p.nickname)}">${esc(p.nickname)}</div>
+      <button class="x" data-kick="${esc(pid)}" aria-label="Видалити ${esc(p.nickname)}" title="Видалити з гри">×</button>
     </div>`;
-  }).join("") + (q ? "" : Array.from({length: Math.max(0, 4 - filtered.length)}).map(() =>
-    `<div class="empty-card">
-      <div class="av"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-      <div style="flex:1"><div style="font-weight:700;font-size:13px">Вільне місце</div><div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;margin-top:6px;width:70%"></div></div>
-    </div>`
-  ).join(""));
-};
+  }).join("");
+  filtered.forEach(([pid]) => rendered.add(pid));
+  firstRender = false;
+}
+$("player-search").addEventListener("input", render);
 
-// Realtime players listener
-onValue(ref(db, `rooms/${code}/players`), snap => {
-  lastPlayers = snap.val() || {};
-  renderPlayers();
+// Видалення з можливістю скасувати: картку ховаємо одразу, а в базі
+// позначаємо гравця неактивним лише через 5с.
+$("players-grid").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-kick]");
+  if (!btn) return;
+  const pid = btn.dataset.kick;
+  if (pendingKick[pid]) return;
+  const nick = players[pid]?.nickname || "гравця";
+  const t = document.createElement("div");
+  t.className = "undo-toast";
+  t.innerHTML = `<span>Видалено <b>${esc(nick)}</b></span><button type="button">Скасувати</button>`;
+  pendingKick[pid] = setTimeout(async () => {
+    t.remove();
+    try { await update(ref(db, `rooms/${code}/players/${pid}`), { active: false }); }
+    catch (err) { toast("Не вдалося видалити: " + err.message, "err"); }
+    delete pendingKick[pid]; render();
+  }, 5000);
+  t.querySelector("button").addEventListener("click", () => {
+    clearTimeout(pendingKick[pid]); delete pendingKick[pid]; t.remove(); render();
+  });
+  $("toasts").appendChild(t);
+  render();
 });
 
+onValue(ref(db, `rooms/${code}/players`), snap => { players = snap.val() || {}; render(); });
 
-// Watch for game start from another tab
+// ─── Старт / закриття ──────────────────────────────────────────────────
+let leaving = false;
+async function flushKicks() {
+  const ids = Object.keys(pendingKick);
+  if (!ids.length) return;
+  const upd = {};
+  ids.forEach(pid => { clearTimeout(pendingKick[pid]); delete pendingKick[pid]; upd[`rooms/${code}/players/${pid}/active`] = false; });
+  document.querySelectorAll(".undo-toast").forEach(t => t.remove());
+  await update(ref(db), upd);
+}
+
+$("start-btn").addEventListener("click", async () => {
+  const btn = $("start-btn");
+  if (btn.disabled) return;
+  const n = activeEntries().length;
+  if (n === 0 && !confirm("У лобі ще немає жодного гравця. Почати гру попри це?")) return;
+  btn.disabled = true;
+  try {
+    await flushKicks();
+    leaving = true;
+    await update(ref(db, `rooms/${code}`), { status: "question", currentQ: 0, questionStartedAt: serverNow(), pausedLeft: null, startedAt: serverNow() });
+    location.href = `play-teacher?code=${code}`;
+  } catch (e) {
+    leaving = false; btn.disabled = false;
+    toast("Не вдалося почати гру: " + e.message, "err");
+  }
+});
+
+$("close-btn").addEventListener("click", async () => {
+  if (!confirm("Закрити кімнату? Учні побачать, що гру скасовано.")) return;
+  try {
+    leaving = true;
+    await update(ref(db), { [`rooms/${code}`]: null, [`teachers/${user.uid}/liveRooms/${code}`]: null });
+    location.href = HOME_URL;
+  } catch (e) { leaving = false; toast("Помилка: " + e.message, "err"); }
+});
+
+// Гру запустили з іншої вкладки
 onValue(ref(db, `rooms/${code}/status`), snap => {
-  if (snap.val() === "question") location.href = `play-teacher.html?code=${code}`;
+  if (!leaving && snap.val() === "question") location.href = `play-teacher?code=${code}`;
+});
+
+// Enter / пробіл у будь-якому місці (крім поля пошуку) — почати гру
+document.addEventListener("keydown", (e) => {
+  if (e.target.closest("input,textarea,button")) return;
+  if (e.key === "Enter") { e.preventDefault(); $("start-btn").click(); }
 });
 </script>
 </body>

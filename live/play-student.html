@@ -2,236 +2,190 @@
 <html lang="uk">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#0F1844"/>
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjN0MzQUVEIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNEY0NkU1Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjkiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjQiIGZpbGw9IndoaXRlIi8+PC9zdmc+">
-<title>QuizFlow Live · Питання</title>
+<title>QuizFlow Live · Гра</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  *,*::before,*::after{box-sizing:border-box}
-  html,body{margin:0;padding:0;height:100%}
+  [hidden]{display:none !important}
+  *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
   body{
-    font-family:Manrope,system-ui,sans-serif;color:#fff;
+    font-family:Manrope,system-ui,sans-serif;color:#fff;min-height:100vh;min-height:100dvh;
     background:linear-gradient(160deg,#0F1844 0%, #1E3A8A 100%);
-    min-height:100vh;display:flex;flex-direction:column;
-    overflow-x:hidden;
+    display:flex;flex-direction:column;overflow-x:hidden;touch-action:manipulation;
+    padding-bottom:env(safe-area-inset-bottom);
   }
-  body::before{
-    content:"";position:fixed;inset:0;pointer-events:none;
-    background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
-    background-size:48px 48px;mask-image:radial-gradient(ellipse at center, black 30%, transparent 90%);
-  }
-  /* Theme overlay */
-  #theme-overlay{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;transition:background .6s,opacity .6s}
-  #pattern-overlay{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .6s}
+  #theme-overlay,#pattern-overlay{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .6s;z-index:0}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0), rgba(0,0,0,.3))}
 
-  .topbar{position:relative;z-index:2;padding:18px 28px;display:flex;align-items:center;gap:18px}
-  .progress-wrap{flex:1;display:flex;align-items:center;gap:14px}
-  .progress-wrap .lbl{font-family:"Geist Mono",monospace;font-size:13px;font-weight:800;color:#A78BFA;letter-spacing:.04em}
-  .progress-bar{flex:1;height:8px;background:rgba(255,255,255,.1);border-radius:999px;overflow:hidden;position:relative}
-  .progress-bar > i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#A78BFA,#7C3AED);border-radius:999px;box-shadow:0 0 12px rgba(167,139,250,.6);transition:width .3s}
-  .player-pill{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:6px 12px 6px 6px;font-size:13px;font-weight:700}
-  .player-pill .av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#A78BFA,#6D28D9);display:grid;place-items:center;font-size:11px;font-weight:800}
-  .score{font-family:"Geist Mono",monospace;font-size:13px;font-weight:800;color:#FCD34D;background:rgba(252,211,77,.14);border:1px solid rgba(252,211,77,.3);padding:5px 11px;border-radius:8px;display:inline-flex;align-items:center;gap:6px}
+  .topbar{position:relative;z-index:2;padding:14px 20px;display:flex;align-items:center;gap:14px}
+  .progress-wrap{flex:1;display:flex;align-items:center;gap:12px;min-width:0}
+  .progress-wrap .lbl{font-family:"Geist Mono",monospace;font-size:13px;font-weight:800;color:#C4B5FD;white-space:nowrap}
+  .progress-bar{flex:1;height:7px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden}
+  .progress-bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,#C4B5FD,#8B5CF6);border-radius:999px;transition:width .3s}
+  .score{font-family:"Geist Mono",monospace;font-size:14px;font-weight:800;color:#FDE68A;background:rgba(252,211,77,.14);border:1px solid rgba(252,211,77,.3);padding:6px 11px;border-radius:9px;white-space:nowrap;transition:transform .3s}
+  .score.bump{transform:scale(1.18)}
+  .player-pill{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:5px 12px 5px 5px;font-size:13px;font-weight:700;max-width:40vw}
+  .player-pill .av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;flex:0 0 auto}
+  .player-pill span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-  .timer-wrap{display:grid;place-items:center;padding:32px 0 12px;position:relative;z-index:2}
-  .timer{
-    width:108px;height:108px;border-radius:50%;
-    background:linear-gradient(135deg,#1E3A8A,#0F1844);
-    border:3px solid #A78BFA;
-    display:grid;place-items:center;
-    font-family:"Geist Mono",monospace;font-size:44px;font-weight:800;
-    box-shadow:0 0 0 8px rgba(167,139,250,.12), 0 0 40px rgba(167,139,250,.4);
-    position:relative;transition:border-color .3s,color .3s;
-  }
-  .timer.warn{border-color:#FCD34D;box-shadow:0 0 0 8px rgba(252,211,77,.12), 0 0 40px rgba(252,211,77,.4);color:#FEF3C7}
-  .timer.danger{border-color:#F87171;animation:pulse 0.7s infinite;color:#FECACA}
-  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+  .timer-wrap{display:grid;place-items:center;padding:18px 0 6px;position:relative;z-index:2}
+  .timer{--p:1;--tc:#C4B5FD;width:96px;height:96px;border-radius:50%;position:relative;display:grid;place-items:center;background:conic-gradient(var(--tc) calc(var(--p) * 360deg), rgba(255,255,255,.12) 0);box-shadow:0 0 36px rgba(167,139,250,.28)}
+  .timer::before{content:"";position:absolute;inset:6px;border-radius:50%;background:#0B1238}
+  .timer span{position:relative;font-family:"Geist Mono",monospace;font-size:38px;font-weight:800}
+  .timer.warn{--tc:#FCD34D}
+  .timer.danger{--tc:#F87171}
+  .timer.danger span{animation:pulse .7s infinite}
+  .timer.done{--tc:#64748B}
+  @keyframes pulse{50%{transform:scale(1.1)}}
 
-  .question-wrap{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 28px;max-width:1100px;margin:0 auto;width:100%;position:relative;z-index:2}
-  .question-meta{
-    display:flex;align-items:center;justify-content:center;
-    flex-wrap:wrap;gap:6px 14px;
-    font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
-    color:rgba(167,139,250,.7);margin-bottom:18px;
-  }
-  .question-meta .sep{
-    width:3px;height:3px;border-radius:50%;
-    background:rgba(167,139,250,.4);flex-shrink:0;
-  }
-  .type-badge{
-    display:inline-flex;align-items:center;gap:5px;
-    padding:4px 11px;border-radius:999px;font-size:11px;font-weight:700;
-    letter-spacing:.05em;text-transform:none;border:1px solid;flex-shrink:0;
-  }
-  .type-badge.single {background:rgba(167,139,250,.18);border-color:rgba(167,139,250,.4);color:#C4B5FD}
-  .type-badge.multi  {background:rgba(52,211,153,.15); border-color:rgba(52,211,153,.4); color:#6EE7B7}
-  .type-badge.text   {background:rgba(251,191,36,.13); border-color:rgba(251,191,36,.35);color:#FCD34D}
-  .type-badge.number {background:rgba(96,165,250,.15); border-color:rgba(96,165,250,.35); color:#93C5FD}
-  .question-text{
-    text-align:center;font-size:36px;font-weight:800;letter-spacing:-.02em;line-height:1.2;
-    margin:0 auto;max-width:880px;
-    text-shadow:0 2px 12px rgba(0,0,0,.25);
-  }
+  .question-wrap{flex:1;display:flex;flex-direction:column;padding:0 20px 24px;max-width:1100px;margin:0 auto;width:100%;position:relative;z-index:2}
+  .question-meta{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 12px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(196,181,253,.85);margin:10px 0 14px}
+  .question-meta .sep{width:3px;height:3px;border-radius:50%;background:rgba(196,181,253,.5)}
+  .type-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:none;border:1px solid}
+  .type-badge.single{background:rgba(167,139,250,.18);border-color:rgba(167,139,250,.4);color:#DDD6FE}
+  .type-badge.multi{background:rgba(52,211,153,.15);border-color:rgba(52,211,153,.4);color:#A7F3D0}
+  .type-badge.text{background:rgba(251,191,36,.13);border-color:rgba(251,191,36,.35);color:#FDE68A}
+  .type-badge.number{background:rgba(96,165,250,.15);border-color:rgba(96,165,250,.35);color:#BFDBFE}
+  .question-text{text-align:center;font-size:clamp(22px,4.2vw,36px);font-weight:800;letter-spacing:-.02em;line-height:1.22;margin:0 auto;max-width:880px;text-shadow:0 2px 12px rgba(0,0,0,.25);overflow-wrap:anywhere}
+  .question-text img{max-width:100%;max-height:30vh;border-radius:12px;display:block;margin:12px auto 0}
+  .question-text p{margin:0}
 
-  .answers{
-    margin:48px auto 0;
-    display:grid;grid-template-columns:1fr 1fr;gap:18px;
-    max-width:1100px;width:100%;
-  }
+  .answers{margin:28px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:1100px;width:100%}
   .ans{
-    display:flex;align-items:center;gap:18px;padding:22px 26px;
-    border-radius:18px;cursor:pointer;border:2px solid transparent;
-    font:inherit;color:#fff;text-align:left;font-size:22px;font-weight:800;letter-spacing:-.01em;
-    transition:transform .14s, box-shadow .15s, border-color .15s, filter .15s;
-    box-shadow:0 8px 22px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.18);
-    position:relative;min-height:96px;
+    display:flex;align-items:center;gap:14px;padding:18px 22px;min-height:84px;border-radius:18px;cursor:pointer;
+    border:0;font:inherit;color:#fff;text-align:left;font-size:clamp(17px,2.2vw,22px);font-weight:800;letter-spacing:-.01em;
+    transition:transform .14s, box-shadow .15s, filter .2s, opacity .2s;position:relative;
+    box-shadow:0 8px 22px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.2);
   }
-  .ans:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 14px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.22)}
-  .ans .letter{
-    width:42px;height:42px;border-radius:12px;background:rgba(0,0,0,.32);
-    display:grid;place-items:center;font-family:"Geist Mono",monospace;font-size:18px;font-weight:800;flex:0 0 auto;
-    border:1px solid rgba(255,255,255,.18);
-  }
+  .ans:hover:not(:disabled){transform:translateY(-2px)}
+  .ans:active:not(:disabled){transform:scale(.98)}
+  .ans .letter{width:40px;height:40px;border-radius:11px;background:rgba(0,0,0,.3);display:grid;place-items:center;font-family:"Geist Mono",monospace;font-size:17px;font-weight:800;flex:0 0 auto;border:1px solid rgba(255,255,255,.2)}
+  .ans .txt{flex:1;overflow-wrap:anywhere}
+  .ans .check{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.5);display:grid;place-items:center;font-size:15px;flex:0 0 auto;color:transparent}
   .ans.a{background:linear-gradient(135deg,#EF4444,#B91C1C)}
   .ans.b{background:linear-gradient(135deg,#F59E0B,#B45309)}
   .ans.c{background:linear-gradient(135deg,#10B981,#047857)}
   .ans.d{background:linear-gradient(135deg,#3B82F6,#1D4ED8)}
   .ans.e{background:linear-gradient(135deg,#A78BFA,#6D28D9)}
   .ans.f{background:linear-gradient(135deg,#EC4899,#BE185D)}
-  .ans.selected{outline:4px solid #FCD34D;outline-offset:3px;transform:translateY(-2px) scale(1.02)}
-  .ans.selected .letter{background:#FCD34D;color:#7C2D12}
-  .ans .check{position:absolute;top:14px;right:18px;font-size:22px;font-weight:900;color:#fff;display:none}
-  .ans.selected .check{display:block}
-  .ans.locked{filter:saturate(.55) opacity(.55);cursor:not-allowed;transform:none !important}
-  .ans:disabled{cursor:not-allowed}
-  /* reveal states */
-  .ans.correct-ans{outline:4px solid #86EFAC;outline-offset:3px}
-  .ans.wrong-ans{filter:saturate(.3) opacity(.35)}
+  .ans.picked{outline:4px solid #FDE047;outline-offset:3px}
+  .ans.picked .check{background:#FDE047;border-color:#FDE047;color:#713F12}
+  .ans.locked:not(.picked){filter:saturate(.4) opacity(.45)}
+  .ans:disabled{cursor:default}
+  .ans.correct-ans{outline:4px solid #86EFAC;outline-offset:3px;filter:none;opacity:1}
+  .ans.correct-ans .check{background:#86EFAC;border-color:#86EFAC;color:#064E3B}
+  .ans.my-wrong{outline:4px solid #F87171;outline-offset:3px;filter:saturate(.6) opacity(.8)}
+  .ans.my-wrong .check{background:#F87171;border-color:#F87171;color:#fff}
+  .ans.wrong-ans{filter:saturate(.3) opacity(.3)}
+  .ans.single-only .check{display:none}
 
-  /* Text answer */
-  .text-answer-wrap{margin:32px auto 0;max-width:700px;width:100%;padding:0 28px}
-  .text-input{
-    width:100%;padding:18px 22px;border-radius:16px;
-    border:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);
-    font-family:"Manrope",sans-serif;font-size:20px;color:#fff;outline:none;
-    font-weight:700;transition:border-color .15s;
-  }
-  .text-input:focus{border-color:#A78BFA}
-  .text-input::placeholder{color:rgba(255,255,255,.35)}
-  .text-input:disabled{opacity:.5}
-  .text-submit{
-    margin-top:12px;width:100%;padding:16px;border:none;border-radius:14px;
-    background:linear-gradient(135deg,#A78BFA,#7C3AED);color:#fff;
-    font-family:"Manrope",sans-serif;font-size:16px;font-weight:800;cursor:pointer;
-    box-shadow:0 8px 24px rgba(124,58,237,.4);transition:all .15s;
-  }
-  .text-submit:disabled{opacity:.5;cursor:not-allowed}
+  .text-answer-wrap{margin:26px auto 0;max-width:640px;width:100%}
+  .text-input{width:100%;padding:17px 20px;border-radius:16px;border:2px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);font:700 20px Manrope,sans-serif;color:#fff;outline:none;transition:border-color .15s}
+  .text-input:focus{border-color:#C4B5FD}
+  .text-input::placeholder{color:rgba(255,255,255,.4)}
+  .text-input:disabled{opacity:.6}
+  .primary-btn{margin-top:12px;width:100%;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,#A78BFA,#7C3AED);color:#fff;font:800 16px Manrope,sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(124,58,237,.4);transition:transform .12s, opacity .15s}
+  .primary-btn:active:not(:disabled){transform:scale(.98)}
+  .primary-btn:disabled{opacity:.5;cursor:not-allowed}
 
-  .hint{
-    margin:34px auto 22px;font-size:12.5px;color:#A6B0D6;
-    display:flex;justify-content:center;gap:18px;font-weight:600;position:relative;z-index:2;
-  }
-  .hint kbd{font-family:"Geist Mono",monospace;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:6px;padding:2px 7px;font-size:11.5px;color:#fff;font-weight:800}
+  .hint{margin:22px auto 0;font-size:12.5px;color:#B8C0E6;text-align:center;font-weight:600}
+  .hint kbd{font-family:"Geist Mono",monospace;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:6px;padding:1px 6px;font-size:11.5px;color:#fff}
+  @media (hover:none){ .hint .kb{display:none} }
 
-  /* Confirm button for multi-select */
-  .confirm-wrap{
-    position:fixed;bottom:32px;left:50%;transform:translateX(-50%);
-    z-index:15;display:none;align-items:center;
-  }
-  .confirm-wrap.show{display:flex}
-  .confirm-btn{
-    padding:16px 36px;border-radius:999px;border:none;
-    background:linear-gradient(135deg,#34D399,#059669);color:#fff;
-    font-family:"Manrope",sans-serif;font-size:16px;font-weight:800;cursor:pointer;
-    box-shadow:0 12px 32px rgba(5,150,105,.5);transition:all .15s;
-    display:flex;align-items:center;gap:10px;white-space:nowrap;
-  }
-  .confirm-btn:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(5,150,105,.6)}
-  .confirm-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
-  .confirm-cnt{
-    background:rgba(255,255,255,.25);border-radius:999px;
-    width:26px;height:26px;display:grid;place-items:center;
-    font-family:"Geist Mono",monospace;font-size:13px;font-weight:900;
-  }
+  /* Нижній банер стану: підтвердження / прийнято / час вийшов */
+  .dock{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:15;width:max-content;max-width:calc(100vw - 32px)}
+  .dock > *{display:none}
+  .dock > .show{display:flex}
+  .confirm-btn{align-items:center;gap:10px;padding:15px 30px;border-radius:999px;border:none;background:linear-gradient(135deg,#34D399,#059669);color:#fff;font:800 16px Manrope,sans-serif;cursor:pointer;box-shadow:0 12px 32px rgba(5,150,105,.5)}
+  .confirm-btn .cnt{background:rgba(255,255,255,.25);border-radius:999px;min-width:26px;height:26px;padding:0 7px;display:grid;place-items:center;font:900 13px "Geist Mono",monospace}
+  .banner{align-items:center;gap:10px;padding:12px 20px;border-radius:14px;font-weight:800;font-size:14px;box-shadow:0 16px 40px rgba(0,0,0,.3)}
+  .banner.lock{background:linear-gradient(135deg,#FDE68A,#F59E0B);color:#451A03}
+  .banner.late{background:#334155;color:#E2E8F0;border:1px solid rgba(255,255,255,.15)}
 
-  /* Multi selected state */
-  .ans.multi-selected{outline:4px solid #34D399;outline-offset:3px;transform:translateY(-2px) scale(1.02)}
-  .ans.multi-selected .letter{background:#34D399;color:#064E3B}
-  .ans.multi-selected .check{display:block}
-  /* reveal states */
-  .ans.correct-ans{outline:4px solid #86EFAC !important;outline-offset:3px;filter:none !important}
-  .ans.wrong-ans{filter:saturate(.3) opacity(.35)}
-  .ans.my-wrong{outline:4px solid #F87171 !important;outline-offset:3px;filter:saturate(.55) opacity(.7) !important}
+  /* Результат питання */
+  .feedback{display:none;margin:22px auto 0;max-width:560px;width:100%;padding:16px 20px;border-radius:18px;text-align:center;animation:fbIn .45s cubic-bezier(.34,1.56,.64,1)}
+  .feedback.show{display:block}
+  @keyframes fbIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+  .feedback.ok{background:rgba(16,185,129,.2);border:1.5px solid rgba(52,211,153,.55)}
+  .feedback.bad{background:rgba(239,68,68,.16);border:1.5px solid rgba(248,113,113,.45)}
+  .feedback.none{background:rgba(100,116,139,.2);border:1.5px solid rgba(148,163,184,.4)}
+  .feedback .big{font-size:24px;font-weight:900}
+  .feedback .pts{font-family:"Geist Mono",monospace;font-size:20px;font-weight:800;color:#FDE68A;margin-top:4px}
+  .feedback .sub{font-size:13px;color:rgba(255,255,255,.7);margin-top:6px}
+  .feedback .ref{font-family:"Geist Mono",monospace;font-size:20px;font-weight:800;margin-top:4px;overflow-wrap:anywhere}
 
-  /* Waiting state */
-  .lock-banner{
-    position:fixed;left:50%;bottom:32px;transform:translateX(-50%);
-    background:linear-gradient(135deg,#FCD34D,#F59E0B);color:#451A03;
-    padding:12px 22px;border-radius:14px;font-weight:800;font-size:14px;
-    box-shadow:0 16px 40px rgba(245,158,11,.4);display:none;align-items:center;gap:10px;
-    white-space:nowrap;z-index:10;
-  }
-  .lock-banner.show{display:flex}
+  /* Оверлеї */
+  .overlay{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;text-align:center;padding:24px}
+  .overlay.show{display:flex}
+  .overlay h2{font-size:26px;font-weight:900;margin:0}
+  .overlay p{font-size:15px;color:rgba(255,255,255,.7);margin:0;max-width:340px;line-height:1.5}
+  .overlay .ico{font-size:60px;line-height:1}
+  .overlay a{margin-top:6px;color:#fff;background:linear-gradient(135deg,#A78BFA,#7C3AED);text-decoration:none;font-weight:800;padding:12px 22px;border-radius:12px}
+  #lobby-overlay{background:linear-gradient(160deg,#0F1844,#1E3A8A)}
+  #pause-overlay{background:rgba(5,8,30,.72);backdrop-filter:blur(14px)}
+  #end-overlay,#kicked-overlay{background:rgba(5,8,30,.94);backdrop-filter:blur(14px);z-index:30}
+  #kicked-overlay h2{color:#FCA5A5}
+  .me-chip{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:6px 18px 6px 6px;font-weight:800;font-size:17px}
+  .me-chip .av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:14px}
+  .dots{display:flex;gap:8px}
+  .dots i{width:10px;height:10px;border-radius:50%;background:#C4B5FD;animation:bounce 1.2s infinite}
+  .dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+  @keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-10px);opacity:1}}
+  .lobby-title{font-size:14px;color:rgba(255,255,255,.6);font-weight:600}
+  .conn{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:40;background:#B45309;color:#fff;font-size:12.5px;font-weight:800;padding:6px 14px;border-radius:999px;display:none}
+  .conn.show{display:block}
 
-  /* Pause overlay */
-  #pause-overlay{
-    position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.7);backdrop-filter:blur(16px);
-    display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;
+  button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #FDE047;outline-offset:3px}
+  @media (prefers-reduced-motion: reduce){ *{animation:none !important;transition:none !important} }
+  @media (max-width: 640px){
+    .answers{grid-template-columns:1fr !important;gap:10px;margin-top:20px}
+    .ans{min-height:64px;padding:14px 16px}
+    .timer{width:76px;height:76px}
+    .timer span{font-size:30px}
+    .topbar{padding:12px 14px;gap:10px}
+    .question-wrap{padding:0 14px 90px}
+    .player-pill span:last-child{display:none}
+    .player-pill{padding:4px}
   }
-  #pause-overlay.show{display:flex}
-  #pause-overlay .ico{font-size:64px}
-  #pause-overlay h2{font-size:28px;font-weight:800;margin:0}
-  #pause-overlay p{font-size:15px;color:rgba(255,255,255,.6);margin:0}
-
-  /* Lobby waiting */
-  #lobby-overlay{
-    position:fixed;inset:0;z-index:20;
-    background:linear-gradient(160deg,#0F1844,#1E3A8A);
-    display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;text-align:center;padding:24px;
-  }
-  #lobby-overlay.hidden{display:none}
-  .spinner{width:48px;height:48px;border:3px solid rgba(255,255,255,.15);border-top-color:#A78BFA;border-radius:50%;animation:spin .8s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-
-  /* Kicked overlay */
-  #kicked-overlay{
-    position:fixed;inset:0;z-index:30;background:rgba(10,10,20,.92);backdrop-filter:blur(16px);
-    display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:24px;
-  }
-  #kicked-overlay.show{display:flex}
-  #kicked-overlay .ico{font-size:56px}
-  #kicked-overlay h2{font-size:24px;font-weight:800;margin:0;color:#FCA5A5}
-  #kicked-overlay p{font-size:14px;color:rgba(255,255,255,.6);margin:0;max-width:320px}
 </style>
 </head>
 <body>
 <div id="theme-overlay"></div>
 <div id="pattern-overlay"></div>
+<div class="conn" id="conn">Немає з'єднання — перепідключаємось…</div>
 
-<!-- Lobby waiting screen -->
-<div id="lobby-overlay">
-  <div class="spinner"></div>
+<div class="overlay show" id="lobby-overlay">
+  <div class="me-chip"><span class="av" id="lo-av">?</span><span id="lo-name">—</span></div>
   <div>
-    <div style="font-size:22px;font-weight:800;margin-bottom:8px">Очікуємо початку</div>
-    <div style="font-size:14px;color:rgba(255,255,255,.6)">Викладач ось-ось запустить гру</div>
+    <h2>Ви в грі!</h2>
+    <p style="margin-top:8px">Дивіться на екран — викладач ось-ось почне</p>
   </div>
-  <div id="lo-name" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:8px 20px;font-weight:700"></div>
+  <div class="dots"><i></i><i></i><i></i></div>
+  <div class="lobby-title" id="lo-title"></div>
 </div>
 
-<!-- Pause overlay -->
-<div id="pause-overlay">
+<div class="overlay" id="pause-overlay">
   <div class="ico">⏸</div>
   <h2>Гра на паузі</h2>
   <p>Зачекайте, викладач скоро продовжить</p>
 </div>
 
-<!-- Kicked overlay -->
-<div id="kicked-overlay">
+<div class="overlay" id="kicked-overlay">
   <div class="ico">🚫</div>
   <h2>Вас видалено з гри</h2>
-  <p>Викладач прибрав вас зі списку учасників. Щоб зіграти знову, приєднайтесь заново за кодом кімнати.</p>
+  <p>Викладач прибрав вас зі списку учасників.</p>
+</div>
+
+<div class="overlay" id="end-overlay">
+  <div class="ico" id="end-ico">🏁</div>
+  <h2 id="end-title">Гру закрито</h2>
+  <p id="end-text">Викладач скасував цю гру.</p>
+  <a id="end-link" href="../play">Приєднатись до іншої гри</a>
 </div>
 
 <div class="topbar">
@@ -239,468 +193,330 @@
     <span class="lbl" id="q-lbl">— / —</span>
     <div class="progress-bar"><i id="q-bar"></i></div>
   </div>
-  <span class="score">★ <span id="my-score">0</span></span>
-  <div class="player-pill">
-    <span class="av" id="my-av">?</span>
-    <span id="my-name">—</span>
-  </div>
+  <span class="score" id="score">★ <span id="my-score">0</span></span>
+  <div class="player-pill"><span class="av" id="my-av">?</span><span id="my-name">—</span></div>
 </div>
 
-<div class="timer-wrap">
-  <div class="timer" id="timer">—</div>
-</div>
+<div class="timer-wrap"><div class="timer" id="timer" role="timer"><span id="timer-num">—</span></div></div>
 
-<div class="question-wrap">
-  <div class="question-meta" id="q-meta">
-    <span id="q-meta-n">Питання — з —</span>
-    <span class="sep"></span>
-    <span id="q-meta-time">— сек</span>
-    <span class="sep"></span>
-    <span class="type-badge single" id="q-type-badge">◉ 1 правильна</span>
+<main class="question-wrap">
+  <div class="question-meta">
+    <span id="q-meta-time">— с</span><span class="sep"></span>
+    <span class="type-badge single" id="q-type-badge">◉ Одна правильна</span>
   </div>
   <div class="question-text qf-rich" id="q-text"></div>
 
-  <div class="answers" id="answers-grid" style="display:none"></div>
-  <div class="text-answer-wrap" id="text-answer-wrap" style="display:none">
-    <input class="text-input" id="text-inp" placeholder="Введіть відповідь..." autocomplete="off">
-    <button class="text-submit" id="text-submit" onclick="submitText()">Відповісти</button>
-  </div>
+  <div class="answers" id="answers-grid" hidden></div>
+  <form class="text-answer-wrap" id="text-form" hidden autocomplete="off">
+    <input class="text-input" id="text-inp" placeholder="Введіть відповідь…" enterkeyhint="send" maxlength="200">
+    <button class="primary-btn" id="text-submit" type="submit">Відповісти</button>
+  </form>
 
-  <div class="hint" id="q-hint">
-    <span><kbd>A</kbd><kbd>B</kbd>… або <kbd>1</kbd><kbd>2</kbd>… — обрати</span>
-  </div>
-</div>
+  <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+  <div class="hint" id="q-hint"></div>
+</main>
 
-<!-- Confirm button (multi-select) -->
-<div class="confirm-wrap" id="confirm-wrap">
-  <button class="confirm-btn" id="confirm-btn" onclick="confirmMulti()">
-    Підтвердити
-    <span class="confirm-cnt" id="confirm-cnt">0</span>
-  </button>
-</div>
-
-<div class="lock-banner" id="lock-banner">
-  ✓ Відповідь зафіксовано — чекаємо інших гравців
+<div class="dock">
+  <button class="confirm-btn" id="confirm-btn" type="button">Підтвердити <span class="cnt" id="confirm-cnt">0</span></button>
+  <div class="banner lock" id="lock-banner">✓ Відповідь прийнято — чекаємо інших</div>
+  <div class="banner late" id="late-banner">⏱ Час вийшов</div>
 </div>
 
 <script type="module">
-import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import {
+  db, ref, get, set, onValue, serverTimestamp, readParams, isValidCode, esc, initialsOf, avatarColor,
+  applyTheme, serverNow, watchFields, OPT_CLASSES, OPT_LETTERS, TYPE_LABELS, isFreeform,
+  seededOrder, fmtNum, pageUrl,
+} from "./live-core.js";
 
-const FC = {apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",authDomain:"quizflow-8a978.firebaseapp.com",databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",projectId:"quizflow-8a978",storageBucket:"quizflow-8a978.firebasestorage.app",messagingSenderId:"206469794166",appId:"1:206469794166:web:55cd7007b429607acd5257"};
-const app = getApps().length ? getApps()[0] : initializeApp(FC);
-const db  = getDatabase(app);
+const $ = (id) => document.getElementById(id);
+let timerId = null, wasOpen = false;
+const { code, pid, nickname: nickParam } = readParams("code", "pid", "nickname");
+if (!isValidCode(code) || !pid) { location.replace(pageUrl("../play")); throw new Error("bad params"); }
 
-const params   = new URLSearchParams(location.search);
-const code     = params.get("code");
-const pid      = params.get("pid");
-const nickname = params.get("nickname") || "";
-
-if (!code || !pid) { location.href = "../index.html"; throw new Error(); }
-
-function initialsOf(nick) {
-  const parts = String(nick||"").trim().split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) return (parts[0][0]+parts[1][0]).toUpperCase();
-  return (nick||"??").slice(0,2).toUpperCase();
+function showEnd(ico, title, text, linkText = "Приєднатись до іншої гри") {
+  $("end-ico").textContent = ico; $("end-title").textContent = title; $("end-text").textContent = text;
+  $("end-link").textContent = linkText;
+  $("end-overlay").classList.add("show");
+  stopTimer();
 }
 
-// Player UI
-const initials = initialsOf(nickname);
-document.getElementById("my-av").textContent   = initials;
-document.getElementById("my-name").textContent = nickname;
-document.getElementById("lo-name").textContent = nickname;
+// ─── Статичні дані кімнати (без відповідей інших гравців) ──────────────
+const base = `rooms/${code}`;
+const [qS, tS, thS, oS, ttS, meS] = await Promise.all(
+  ["questions", "timePerQ", "theme", "options", "testTitle", `players/${pid}`].map(p => get(ref(db, `${base}/${p}`)))
+);
+const me = meS.val();
+if (!qS.exists() || !me) {
+  showEnd("🔍", "Гру не знайдено", "Можливо, її вже закрито. Перевірте код і приєднайтесь ще раз.");
+  throw new Error("no room");
+}
+const questions = Array.isArray(qS.val()) ? qS.val() : Object.values(qS.val());
+const totalQ = questions.length;
+const timePerQ = Number(tS.val()) || 20;
+const shuffle = !!oS.val()?.shuffle;
+const nickname = me.nickname || nickParam || "Гравець";
+applyTheme(thS.val(), $("theme-overlay"), $("pattern-overlay"));
 
-const CLASSES = ["a","b","c","d","e","f"];
-const LETTERS  = ["A","B","C","D","E","F"];
-let currentQ  = -1;
-let myScore   = 0;
-let myPointsByQ = {};   // qi -> бали, зараховані зараз (щоб коректно рахувати дельту при ручному перезарахуванні)
-let unsubMyAnswer = null;
-let answered  = false;
-let timerInterval = null;
-let timePerQ  = 20;
-let questionStartedAt = 0;
-let room = null;
+const initials = initialsOf(nickname), color = avatarColor(nickname);
+for (const id of ["my-av", "lo-av"]) { $(id).textContent = initials; $(id).style.background = color; }
+$("my-name").textContent = nickname;
+$("lo-name").textContent = nickname;
+$("lo-title").textContent = ttS.val() ? `«${ttS.val()}»` : "";
+const resultUrl = () => `student-result?code=${code}&pid=${encodeURIComponent(pid)}&nickname=${encodeURIComponent(nickname)}`;
 
-function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+// ─── Стан ──────────────────────────────────────────────────────────────
+let st = { status: null, currentQ: 0, questionStartedAt: 0, pausedLeft: null, revealed: {} };
+let shownQ = -1;
+let myAnswer = null;          // моя відповідь на поточне питання з бази
+let sending = false;
+let multiSel = new Set();
+let unsubMine = null;
+const myPoints = {};          // qi -> бали (приходять від викладача під час розкриття)
 
-// Theme
-const GRAD_CSS = {
-  "g-default":"linear-gradient(135deg,#1E3A8A,#0F1844)","g-night":"linear-gradient(135deg,#0A0F2C,#1F1F3F)",
-  "g-forest":"linear-gradient(135deg,#064E3B,#022C22)","g-amber":"linear-gradient(135deg,#9A3412,#7C2D12)",
-  "g-grape":"linear-gradient(135deg,#581C87,#312E81)","g-sun":"linear-gradient(135deg,#F59E0B,#B45309)",
-  "g-ocean":"linear-gradient(135deg,#0E7490,#1E3A8A)","g-violet":"linear-gradient(135deg,#7C3AED,#4338CA)",
-  "g-mint":"linear-gradient(135deg,#10B981,#047857)","g-sky":"linear-gradient(135deg,#60A5FA,#2563EB)",
-  "g-jade":"linear-gradient(135deg,#34D399,#0F766E)","g-rose":"linear-gradient(135deg,#FB7185,#BE185D)",
-  "g-magenta":"linear-gradient(135deg,#E879F9,#A21CAF)"
-};
-const PAT_CSS = {
-  "grid":   { bg: `url("/live/patterns/grid.svg")`,   size: "64px 64px" },
-  "dots":   { bg: `url("/live/patterns/dots.svg")`,   size: "16px 16px" },
-  "waves":  { bg: `url("/live/patterns/waves.svg")`,  size: "64px 48px" },
-  "hex":    { bg: `url("/live/patterns/hex.svg")`,    size: "60px 66px" },
-  "diag":   { bg: `url("/live/patterns/diag.svg")`,   size: "48px 48px" },
-  "target": { bg: `url("/live/patterns/target.svg")`, size: "64px 64px" },
-  "star":   { bg: `url("/live/patterns/star.svg")`,   size: "40px 40px" },
-  "snow":   { bg: `url("/live/patterns/snow.svg")`,   size: "32px 32px" },
-  "heart":  { bg: `url("/live/patterns/heart.svg")`,  size: "40px 32px" },
-  "flower": { bg: `url("/live/patterns/flower.svg")`, size: "48px 48px" },
-  "leaf":   { bg: `url("/live/patterns/leaf.svg")`,   size: "48px 48px" },
-  "prism":  { bg: `url("/live/patterns/prism.svg")`,  size: "40px 36px" },
-  "wave2":  { bg: `url("/live/patterns/wave2.svg")`,  size: "48px 48px" },
-};
+const q = () => questions[st.currentQ];
+const answered = () => !!myAnswer || sending;
+const revealInfo = () => st.revealed?.[st.currentQ] || null;
+const timeLeft = () => st.status === "paused" ? Number(st.pausedLeft) || 0
+  : st.status === "question" ? Math.max(0, timePerQ - (serverNow() - st.questionStartedAt) / 1000) : 0;
+const canAnswer = () => st.status === "question" && !answered() && timeLeft() > 0;
 
-function applyTheme(theme) {
-  if (!theme) return;
-  const ov = document.getElementById("theme-overlay");
-  ov.style.background = GRAD_CSS[theme.grad] || GRAD_CSS["g-default"];
-  ov.style.opacity = "1";
-  const po = document.getElementById("pattern-overlay");
-  const pat = PAT_CSS[theme.pat];
-  if (po && pat) {
-    po.style.backgroundImage = pat.bg;
-    po.style.backgroundSize = pat.size;
-    po.style.backgroundRepeat = "repeat";
-    po.style.opacity = "1";
+function renderScore() {
+  const total = Object.values(myPoints).reduce((s, v) => s + v, 0);
+  const el = $("my-score");
+  if (el.textContent !== fmtNum(total)) {
+    el.textContent = fmtNum(total);
+    $("score").classList.add("bump"); setTimeout(() => $("score").classList.remove("bump"), 300);
   }
 }
 
-function renderQuestion(qi, r) {
-  const q = r.questions[qi];
-  if (!q) return;
-  const total = r.questions.length;
-  answered = false;
-  multiSel = [];
+// Бали за попередні питання (після перезавантаження сторінки)
+async function loadPastPoints(upTo) {
+  const snaps = await Promise.all(Array.from({ length: upTo }, (_, i) => get(ref(db, `${base}/answers/${i}/${pid}/points`)).catch(() => null)));
+  snaps.forEach((s, i) => { const v = Number(s?.val()); if (v) myPoints[i] = v; });
+  renderScore();
+}
 
-  document.getElementById("q-lbl").textContent   = `${qi+1} / ${total}`;
-  document.getElementById("q-bar").style.width   = `${((qi+1)/total)*100}%`;
-  document.getElementById("q-text").innerHTML    = q.text || "";
-  document.getElementById("q-meta-n").textContent = `Питання ${qi+1} з ${total}`;
-  document.getElementById("q-meta-time").textContent = `${r.timePerQ||20}с`;
-  document.getElementById("lock-banner").classList.remove("show");
-  document.getElementById("confirm-wrap").classList.remove("show");
-  document.getElementById("text-reveal-block")?.remove();
-  const badge = document.getElementById("q-type-badge");
-  const typeMap = {
-    multi:  {cls:"multi",  label:"☑ Кілька правильних"},
-    text:   {cls:"text",   label:"✏ Текстова"},
-    number: {cls:"number", label:"🔢 Числова"},
-    single: {cls:"single", label:"◉ 1 правильна"},
-  };
-  const t = typeMap[q.type] || typeMap.single;
-  badge.className = `type-badge ${t.cls}`;
-  badge.textContent = t.label;
+// ─── Питання ───────────────────────────────────────────────────────────
+function renderQuestion(qi) {
+  const qq = questions[qi];
+  shownQ = qi; myAnswer = null; sending = false; multiSel = new Set();
+  $("feedback").className = "feedback"; $("feedback").innerHTML = "";
+  if (!qq) return;
+  $("q-lbl").textContent = `${qi + 1} / ${totalQ}`;
+  $("q-bar").style.width = `${((qi + 1) / totalQ) * 100}%`;
+  $("q-text").innerHTML = qq.text || "";
+  $("q-meta-time").textContent = `⏱ ${timePerQ} с на відповідь`;
+  const t = TYPE_LABELS[qq.type] || TYPE_LABELS.single;
+  $("q-type-badge").className = "type-badge " + t.cls;
+  $("q-type-badge").textContent = t.label;
 
-  // Hint text
-  const hint = document.getElementById("q-hint");
-  if (q.type === "multi") {
-    hint.innerHTML = `<span>Оберіть всі правильні варіанти, потім натисніть <strong>Підтвердити</strong></span>`;
-  } else if (q.type === "text" || q.type === "number") {
-    hint.innerHTML = `<span>Введіть відповідь і натисніть <strong>Відповісти</strong></span>`;
+  const free = isFreeform(qq);
+  $("answers-grid").hidden = free;
+  $("text-form").hidden = !free;
+  if (free) {
+    $("answers-grid").innerHTML = "";
+    const inp = $("text-inp");
+    inp.value = ""; inp.disabled = false;
+    inp.inputMode = qq.type === "number" ? "decimal" : "text";
+    inp.placeholder = qq.type === "number" ? "Введіть число…" : "Введіть відповідь…";
+    $("text-submit").disabled = false;
+    $("text-submit").textContent = "Відповісти";
+    $("q-hint").innerHTML = `Введіть відповідь і натисніть <b>Відповісти</b>`;
+    if (matchMedia("(hover:hover)").matches) setTimeout(() => inp.focus(), 50);
   } else {
-    const cnt = (q.options||[]).length;
-    const kbdList = ["A","B","C","D","E","F"].slice(0,cnt).map(k=>`<kbd>${k}</kbd>`).join("");
-    hint.innerHTML = `<span>${kbdList} або натисніть картку</span>`;
+    const opts = qq.options || [];
+    const order = shuffle ? seededOrder(opts.length, `${pid}:${qi}`) : opts.map((_, i) => i);
+    const multi = qq.type === "multi";
+    $("answers-grid").style.gridTemplateColumns = opts.length <= 2 ? "1fr" : "1fr 1fr";
+    $("answers-grid").innerHTML = order.map(i =>
+      `<button type="button" class="ans ${OPT_CLASSES[i] || "a"}${multi ? "" : " single-only"}" data-i="${i}" aria-pressed="false">
+        <span class="letter">${OPT_LETTERS[i]}</span>
+        <span class="txt">${esc(opts[i])}</span>
+        <span class="check" aria-hidden="true">✓</span>
+      </button>`).join("");
+    $("q-hint").innerHTML = multi
+      ? `Оберіть <b>усі</b> правильні варіанти й натисніть <b>Підтвердити</b><span class="kb"> · <kbd>Пробіл</kbd></span>`
+      : `Торкніться варіанту<span class="kb"> або натисніть <kbd>1</kbd>–<kbd>${opts.length}</kbd></span>`;
   }
 
-  const opts = q.options || [];
-  if (q.type === "text" || q.type === "number") {
-    document.getElementById("answers-grid").style.display = "none";
-    document.getElementById("text-answer-wrap").style.display = "";
-    const inp = document.getElementById("text-inp");
-    inp.value = "";
-    inp.disabled = false;
-    inp.type = q.type === "number" ? "number" : "text";
-    inp.inputMode = q.type === "number" ? "numeric" : "text";
-    inp.placeholder = q.type === "number" ? "Введіть число..." : "Введіть відповідь...";
-    document.getElementById("text-submit").disabled = false;
-  } else {
-    document.getElementById("text-answer-wrap").style.display = "none";
-    const grid = document.getElementById("answers-grid");
-    grid.style.display = "";
-    // Dynamic columns: 1 col for ≤2, 2 col otherwise
-    grid.style.gridTemplateColumns = opts.length <= 2 ? "1fr" : "1fr 1fr";
-    // For 5+ options make buttons slightly smaller
-    const isMany = opts.length >= 5;
-    grid.innerHTML = opts.map((o,i) =>
-      `<button class="ans ${CLASSES[i]||"a"}${isMany?" compact":""}" onclick="selectOpt(${i})" data-i="${i}"
-        style="${isMany?"padding:14px 20px;min-height:72px;font-size:18px":""}">
-        <span class="letter" style="${isMany?"width:36px;height:36px;font-size:15px":""}">${LETTERS[i]}</span>
-        <span style="flex:1">${esc(o)}</span>
-        <span class="check">✓</span>
-      </button>`
-    ).join("");
-  }
-}
-
-let multiSel = [];
-window.selectOpt = async (idx) => {
-  if (answered) return;
-  const q = room.questions[currentQ];
-  const isMulti = q && q.type === "multi";
-
-  if (isMulti) {
-    const btns = document.querySelectorAll(".ans");
-    if (multiSel.includes(idx)) {
-      multiSel = multiSel.filter(i => i !== idx);
-      btns[idx].classList.remove("multi-selected");
-    } else {
-      multiSel.push(idx);
-      btns[idx].classList.add("multi-selected");
-    }
-    // Update confirm button
-    const wrap = document.getElementById("confirm-wrap");
-    const cnt  = document.getElementById("confirm-cnt");
-    cnt.textContent = multiSel.length;
-    wrap.classList.toggle("show", multiSel.length > 0);
-    return;
-  }
-  await submitAnswer(idx);
-};
-
-window.confirmMulti = async () => {
-  if (answered || multiSel.length === 0) return;
-  document.getElementById("confirm-wrap").classList.remove("show");
-  await submitAnswer([...multiSel].sort((a,b)=>a-b));
-};
-
-async function submitAnswer(value) {
-  if (answered) return;
-  answered = true;
-  const q = room.questions[currentQ];
-  const startedAt = room.questionStartedAt || Date.now();
-  const elapsed = (Date.now() - startedAt) / 1000;
-  const ratio = Math.max(0, 1 - elapsed / (room.timePerQ||20));
-  const isCorrect = checkCorrect(q, value);
-  const scoring = room.scoring || "correct";
-  const points = isCorrect ? (scoring === "speed" ? Math.round(500+500*ratio) : 1000) : 0;
-  // Бали НЕ показуємо і НЕ додаємо до myScore тут — інакше зміна цифри зверху
-  // одразу видає, чи відповідь правильна, ще до того як вчитель розкриє її.
-  // Синхронізація myScore відбувається у syncScoreForQuestion() під час reveal.
-
-  await set(ref(db, `rooms/${code}/answers/${currentQ}/${pid}`), {
-    value, answeredAt: Date.now(), isCorrect, points
-  });
-
-  // Lock buttons
-  document.querySelectorAll(".ans").forEach(b => { b.disabled = true; b.classList.add("locked"); });
-  document.getElementById("confirm-wrap").classList.remove("show");
-  document.getElementById("lock-banner").classList.add("show");
-  document.getElementById("text-inp") && (document.getElementById("text-inp").disabled = true);
-  document.getElementById("text-submit") && (document.getElementById("text-submit").disabled = true);
-}
-
-window.submitText = async () => {
-  const val = document.getElementById("text-inp").value.trim();
-  if (!val || answered) return;
-  await submitAnswer(val);
-};
-
-function checkCorrect(q, value) {
-  if (q.type === "single") return Number(value) === Number(Array.isArray(q.correct)?q.correct[0]:q.correct);
-  if (q.type === "multi") {
-    const correct = (Array.isArray(q.correct)?q.correct:[q.correct]).map(Number).sort();
-    const ans = (Array.isArray(value)?value:[value]).map(Number).sort();
-    return JSON.stringify(ans) === JSON.stringify(correct);
-  }
-  if (q.type === "number") {
-    const cv = parseFloat(String(q.correct||"").replace(",","."));
-    const uv = parseFloat(String(value||"").replace(",","."));
-    return !isNaN(cv) && !isNaN(uv) && Math.abs(cv - uv) < 1e-9;
-  }
-  if (q.type === "text") return String(value).trim().toLowerCase() === String(q.correct||"").trim().toLowerCase();
-  return false;
-}
-
-let myLastAnswer = null; // останній відомий стан моєї відповіді з Firebase (isCorrect/points/gradedByTeacher)
-
-// Додає бали до myScore і оновлює цифру на екрані — викликається ЛИШЕ під час
-// reveal, щоб зміна балів не виказувала правильність відповіді заздалегідь.
-function syncScoreForQuestion(qi) {
-  if (!myLastAnswer || typeof myLastAnswer.points !== "number") return;
-  const prev = myPointsByQ[qi] ?? 0;
-  if (myLastAnswer.points === prev) return;
-  myScore += (myLastAnswer.points - prev);
-  myPointsByQ[qi] = myLastAnswer.points;
-  document.getElementById("my-score").textContent = myScore.toLocaleString("uk");
-}
-
-function renderTextRevealBadge(correctText) {
-  const myVal = document.getElementById("text-inp")?.value?.trim() || "";
-  // Пріоритет — реальний стан з Firebase (враховує ручне зарахування вчителем).
-  // Якщо ще не встигло прийти — рахуємо орієнтовно локально.
-  let isRight;
-  if (myLastAnswer && typeof myLastAnswer.isCorrect === "boolean") {
-    isRight = myLastAnswer.isCorrect;
-  } else {
-    const q = room.questions[currentQ];
-    isRight = q.type === "number"
-      ? Math.abs(parseFloat(myVal.replace(",",".")) - parseFloat(correctText.replace(",","."))) < 1e-9
-      : myVal.toLowerCase() === correctText.toLowerCase();
-  }
-  const graded = myLastAnswer?.gradedByTeacher;
-
-  let revBlock = document.getElementById("text-reveal-block");
-  if (!revBlock) {
-    revBlock = document.createElement("div");
-    revBlock.id = "text-reveal-block";
-    document.getElementById("text-answer-wrap")?.appendChild(revBlock);
-  }
-  revBlock.style.cssText = `
-    margin-top:14px;padding:14px 18px;border-radius:14px;text-align:center;
-    transition:background .3s,border-color .3s;
-    background:${isRight ? "rgba(16,185,129,.18)" : "rgba(239,68,68,.15)"};
-    border:1.5px solid ${isRight ? "rgba(52,211,153,.5)" : "rgba(248,113,113,.4)"};
-  `;
-  revBlock.innerHTML = `
-    <div style="font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
-      color:${isRight?"#6EE7B7":"#FCA5A5"};margin-bottom:6px">
-      ${isRight ? "✓ Правильно!" : "✗ Неправильно"}${graded ? " · перевірено вчителем" : ""}
-    </div>
-    <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:4px">Правильна відповідь:</div>
-    <div style="font-family:'Geist Mono',monospace;font-size:22px;font-weight:800;color:#fff">${esc(correctText)}</div>`;
-}
-
-function showReveal(qi, r) {
-  const q = r.questions[qi];
-  if (!q) return;
-  syncScoreForQuestion(qi);
-  document.getElementById("lock-banner").classList.remove("show");
-  document.getElementById("confirm-wrap").classList.remove("show");
-
-  // ── Text / Number — показуємо правильну відповідь ────────────────────────
-  if (q.type === "text" || q.type === "number") {
-    const correct = String(q.correct || "").trim();
-
-    // Блокуємо поля
-    const inp = document.getElementById("text-inp");
-    const btn = document.getElementById("text-submit");
-    if (inp) inp.disabled = true;
-    if (btn) btn.disabled = true;
-
-    renderTextRevealBadge(correct);
-    return;
-  }
-
-  // ── Single / Multi — підсвічуємо варіанти ────────────────────────────────
-  const correct = Array.isArray(q.correct) ? q.correct.map(Number) : [Number(q.correct)];
-  document.querySelectorAll(".ans").forEach((btn, i) => {
-    btn.disabled = true;
-    btn.classList.remove("selected","locked","multi-selected");
-    if (correct.includes(i)) {
-      btn.classList.add("correct-ans");
-      btn.classList.remove("wrong-ans","my-wrong");
-    } else if (multiSel.includes(i)) {
-      btn.classList.add("my-wrong");
-    } else {
-      btn.classList.add("wrong-ans");
-    }
+  // Слухаємо власну відповідь: відновлення після перезавантаження + бали
+  // й ручне зарахування від викладача під час розкриття.
+  if (unsubMine) unsubMine();
+  unsubMine = onValue(ref(db, `${base}/answers/${qi}/${pid}`), s => {
+    if (qi !== shownQ) return;
+    myAnswer = s.val();
+    if (myAnswer) { sending = false; if (typeof myAnswer.points === "number") { myPoints[qi] = myAnswer.points; } }
+    paint();
   });
 }
 
-function startTimer(r) {
-  clearInterval(timerInterval);
-  const total = r.timePerQ || 20;
-  const startedAt = r.questionStartedAt || Date.now();
-  function tick() {
-    const left = Math.max(0, total - (Date.now()-startedAt)/1000);
-    const el = document.getElementById("timer");
-    el.textContent = Math.ceil(left);
-    el.className = "timer" + (left<=5?" danger":left<=10?" warn":"");
-    if (left<=0) clearInterval(timerInterval);
+// ─── Малювання стану поточного питання ─────────────────────────────────
+function paint() {
+  const qq = q(); if (!qq) return;
+  const isReveal = st.status === "reveal" && revealInfo();
+  const value = myAnswer?.value;
+  const picked = new Set(myAnswer ? (Array.isArray(value) ? value : [value]).map(Number) : multiSel);
+  const locked = !canAnswer();
+
+  if (!isFreeform(qq)) {
+    const correct = isReveal ? new Set((Array.isArray(revealInfo().correct) ? revealInfo().correct : [revealInfo().correct]).map(Number)) : null;
+    document.querySelectorAll("#answers-grid .ans").forEach(b => {
+      const i = +b.dataset.i;
+      b.disabled = locked;
+      b.classList.toggle("picked", picked.has(i) && !isReveal);
+      b.setAttribute("aria-pressed", picked.has(i));
+      b.classList.toggle("locked", locked && !isReveal);
+      b.classList.toggle("correct-ans", !!correct && correct.has(i));
+      b.classList.toggle("my-wrong", !!correct && !correct.has(i) && picked.has(i) && !!myAnswer);
+      b.classList.toggle("wrong-ans", !!correct && !correct.has(i) && !(picked.has(i) && myAnswer));
+    });
+  } else {
+    const inp = $("text-inp");
+    if (myAnswer && document.activeElement !== inp) inp.value = String(myAnswer.value ?? "");
+    inp.disabled = locked; $("text-submit").disabled = locked;
+    if (myAnswer) $("text-submit").textContent = "Відповідь надіслано ✓";
   }
-  tick();
-  timerInterval = setInterval(tick, 200);
+
+  // Док знизу
+  const multiOpen = qq.type === "multi" && canAnswer() && multiSel.size > 0;
+  $("confirm-cnt").textContent = multiSel.size;
+  $("confirm-btn").classList.toggle("show", multiOpen);
+  $("lock-banner").classList.toggle("show", !!myAnswer && st.status === "question");
+  $("late-banner").classList.toggle("show", !myAnswer && !sending && st.status === "question" && timeLeft() <= 0);
+  $("q-hint").hidden = !!isReveal || locked;
+
+  if (isReveal) renderFeedback(qq);
+  renderScore();
 }
 
-// Main room listener
-onValue(ref(db, `rooms/${code}`), snap => {
-  if (!snap.exists()) return;
-  const r = snap.val();
-  room = r;
-  applyTheme(r.theme);
+function renderFeedback(qq) {
+  const fb = $("feedback");
+  const graded = myAnswer && typeof myAnswer.isCorrect === "boolean";
+  const ref_ = revealInfo()?.correct;
+  const refLine = isFreeform(qq) && ref_ != null && ref_ !== "" ? `<div class="sub">Правильна відповідь:</div><div class="ref">${esc(ref_)}</div>` : "";
+  let cls, html;
+  if (!myAnswer) {
+    cls = "none"; html = `<div class="big">⏱ Без відповіді</div>${refLine}`;
+  } else if (!graded) {
+    cls = "none"; html = `<div class="big">Перевіряємо…</div>${refLine}`;
+  } else if (myAnswer.isCorrect) {
+    cls = "ok"; html = `<div class="big">✓ Правильно!</div><div class="pts">+${fmtNum(myAnswer.points || 0)}</div>${myAnswer.gradedByTeacher ? `<div class="sub">Зараховано викладачем</div>` : ""}${refLine}`;
+  } else {
+    cls = "bad"; html = `<div class="big">✗ Неправильно</div>${myAnswer.gradedByTeacher ? `<div class="sub">Перевірено викладачем</div>` : ""}${refLine}`;
+  }
+  if (fb.dataset.sig !== cls + html) {
+    fb.dataset.sig = cls + html;
+    fb.className = "feedback show " + cls; fb.innerHTML = html;
+    if (cls === "ok") navigator.vibrate?.([30, 40, 30]);
+  }
+}
 
-  // Викладач видалив студента з лоббі — миттєво блокуємо гру
-  if (r.players?.[pid]?.active === false) {
-    clearInterval(timerInterval);
-    if (unsubMyAnswer) { unsubMyAnswer(); unsubMyAnswer = null; }
-    document.getElementById("kicked-overlay").classList.add("show");
+// ─── Відповідь ─────────────────────────────────────────────────────────
+async function submit(value) {
+  if (!canAnswer()) return;
+  const qi = st.currentQ;
+  sending = true; multiSel = new Set(Array.isArray(value) ? value : [value]);
+  paint();
+  navigator.vibrate?.(25);
+  try {
+    // Час відповіді ставить сервер — годинник телефону на бали не впливає.
+    await set(ref(db, `${base}/answers/${qi}/${pid}`), { value, answeredAt: serverTimestamp() });
+  } catch (e) {
+    console.error(e);
+    sending = false; multiSel = new Set();
+    paint();
+    alert("Не вдалося надіслати відповідь. Перевірте з'єднання та спробуйте ще раз.");
+  }
+}
+
+$("answers-grid").addEventListener("click", (e) => {
+  const b = e.target.closest(".ans"); if (!b || b.disabled) return;
+  const i = +b.dataset.i;
+  if (q()?.type === "multi") {
+    if (!canAnswer()) return;
+    multiSel.has(i) ? multiSel.delete(i) : multiSel.add(i);
+    paint();
+  } else submit(i);
+});
+$("confirm-btn").addEventListener("click", () => {
+  if (multiSel.size) submit([...multiSel].sort((a, b) => a - b));
+});
+$("text-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const v = $("text-inp").value.trim();
+  if (!v) { $("text-inp").focus(); return; }
+  if (q()?.type === "number" && isNaN(parseFloat(v.replace(",", ".")))) {
+    $("text-inp").setCustomValidity("Введіть число"); $("text-inp").reportValidity();
+    setTimeout(() => $("text-inp").setCustomValidity(""), 1500);
     return;
   }
-
-  const overlay = document.getElementById("lobby-overlay");
-  const pauseOv = document.getElementById("pause-overlay");
-
-  if (r.status === "lobby") {
-    overlay.classList.remove("hidden");
-    pauseOv.classList.remove("show");
-    return;
-  }
-  overlay.classList.add("hidden");
-
-  if (r.status === "paused") {
-    clearInterval(timerInterval);
-    pauseOv.classList.add("show");
-    return;
-  }
-  pauseOv.classList.remove("show");
-
-  if (r.status === "question" || r.status === "reveal") {
-    const qi = r.currentQ || 0;
-    if (qi !== currentQ) {
-      currentQ = qi;
-      answered = false;
-      multiSel = [];
-      myLastAnswer = null;
-      if (unsubMyAnswer) { unsubMyAnswer(); unsubMyAnswer = null; }
-      renderQuestion(qi, r);
-      if (r.status === "question") startTimer(r);
-
-      // Слухаємо власну відповідь у Firebase: якщо вчитель вручну
-      // зарахує/скасує текстову/числову відповідь — оновлюємо бали й бейдж.
-      // Бали при цьому показуємо тільки якщо reveal вже почався (room.status === "reveal") —
-      // щоб сам факт зміни цифри не видавав правильність відповіді заздалегідь.
-      unsubMyAnswer = onValue(ref(db, `rooms/${code}/answers/${qi}/${pid}`), s => {
-        const a = s.val();
-        if (!a || typeof a.points !== "number") return;
-        myLastAnswer = a;
-        if (room?.status !== "reveal") return; // ще не розкрито — не чіпаємо myScore/UI
-        syncScoreForQuestion(qi);
-        const q = room?.questions?.[qi];
-        if (q && (q.type === "text" || q.type === "number") && document.getElementById("text-reveal-block")) {
-          renderTextRevealBadge(String(q.correct || "").trim());
-        }
-      });
-    }
-    if (r.status === "reveal") {
-      clearInterval(timerInterval);
-      document.getElementById("timer").textContent = "0";
-      document.getElementById("timer").className = "timer danger";
-      showReveal(qi, r);
-    }
-  }
-
-  if (r.status === "leaderboard" || r.status === "finished") {
-    clearInterval(timerInterval);
-    if (unsubMyAnswer) { unsubMyAnswer(); unsubMyAnswer = null; }
-    location.href = `student-result.html?code=${code}&pid=${pid}&nickname=${encodeURIComponent(nickname)}&score=${myScore}`;
-  }
+  submit(v);
 });
 
-// Keyboard
-document.addEventListener("keydown", e => {
-  // Space = confirm multi
-  if (e.code === "Space" || e.key === " ") {
-    const wrap = document.getElementById("confirm-wrap");
-    if (wrap.classList.contains("show")) { e.preventDefault(); confirmMulti(); return; }
-  }
-  if (answered) return;
-  const map = {"1":0,"2":1,"3":2,"4":3,"5":4,"6":5,"a":0,"b":1,"c":2,"d":3,"e":4,"f":5,"A":0,"B":1,"C":2,"D":3,"E":4,"F":5};
-  if (e.key in map) {
-    const btns = document.querySelectorAll(".ans");
-    if (btns.length > map[e.key]) btns[map[e.key]].click();
-  }
+document.addEventListener("keydown", (e) => {
+  if (e.target.closest("input,textarea") || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === " " && $("confirm-btn").classList.contains("show")) { e.preventDefault(); $("confirm-btn").click(); return; }
+  const btns = [...document.querySelectorAll("#answers-grid .ans")];
+  if (!btns.length) return;
+  let target = null;
+  if (/^[1-6]$/.test(e.key)) target = btns[+e.key - 1];                         // за позицією на екрані
+  else { const li = OPT_LETTERS.indexOf(e.key.toUpperCase()); if (li >= 0) target = btns.find(b => +b.dataset.i === li); } // за буквою
+  if (target) { e.preventDefault(); target.click(); }
 });
+
+// ─── Таймер ────────────────────────────────────────────────────────────
+function tick() {
+  const left = timeLeft();
+  const el = $("timer");
+  $("timer-num").textContent = st.status === "reveal" ? "✓" : Math.ceil(left);
+  el.style.setProperty("--p", st.status === "reveal" ? 0 : (left / timePerQ).toFixed(4));
+  el.className = "timer" + (st.status === "reveal" || (st.status === "question" && left <= 0) ? " done" : left <= 5 ? " danger" : left <= 10 ? " warn" : "");
+  const open = canAnswer();
+  if (open !== wasOpen) { wasOpen = open; paint(); }   // таймер щойно сплив — блокуємо ввід
+}
+function startTimer() { if (!timerId) timerId = setInterval(tick, 200); tick(); }
+function stopTimer() { clearInterval(timerId); timerId = null; }
+
+// ─── Головний цикл ─────────────────────────────────────────────────────
+let firstState = true;
+function applyState(s) {
+  const kicked = s[`players/${pid}/active`] === false;
+  st = { ...st, status: s.status, currentQ: Number(s.currentQ) || 0, questionStartedAt: Number(s.questionStartedAt) || 0, pausedLeft: s.pausedLeft, revealed: s.revealed || {} };
+
+  if (kicked) { stopTimer(); if (unsubMine) unsubMine(); $("kicked-overlay").classList.add("show"); return; }
+  if (!s.status) { showEnd("🏁", "Гру закрито", "Викладач закрив цю кімнату."); return; }
+  if (s.status === "leaderboard" || s.status === "finished") { stopTimer(); location.replace(resultUrl()); return; }
+
+  if (firstState) { firstState = false; loadPastPoints(st.currentQ); }
+
+  $("lobby-overlay").classList.toggle("show", s.status === "lobby");
+  $("pause-overlay").classList.toggle("show", s.status === "paused");
+  if (s.status === "lobby") return;
+
+  if (st.currentQ !== shownQ) renderQuestion(st.currentQ);
+  wasOpen = canAnswer();
+  startTimer();
+  paint();
+}
+
+watchFields(base, ["status", "currentQ", "questionStartedAt", "pausedLeft", "revealed", `players/${pid}/active`], applyState);
+
+// Індикатор з'єднання
+let connTimer = null;
+onValue(ref(db, ".info/connected"), s => {
+  clearTimeout(connTimer);
+  if (s.val()) $("conn").classList.remove("show");
+  else connTimer = setTimeout(() => $("conn").classList.add("show"), 1500);
+});
+
+// Не даємо телефону заснути посеред гри
+let wakeLock = null;
+async function keepAwake() {
+  try { if ("wakeLock" in navigator && !wakeLock && document.visibilityState === "visible") { wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", () => { wakeLock = null; }); } } catch {}
+}
+document.addEventListener("pointerdown", keepAwake, { once: true });
+document.addEventListener("visibilitychange", keepAwake);
 </script>
 </body>
 </html>

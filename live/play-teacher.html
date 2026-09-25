@@ -2,844 +2,725 @@
 <html lang="uk">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=1920"/>
-<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><circle cx='16' cy='16' r='9' fill='none' stroke='white' stroke-width='2'/><circle cx='16' cy='16' r='4' fill='white'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjN0MzQUVEIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNEY0NkU1Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjkiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjQiIGZpbGw9IndoaXRlIi8+PC9zdmc+">
 <title>QuizFlow Live · Викладач</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+  [hidden]{display:none !important}
   *,*::before,*::after{box-sizing:border-box}
-  html,body{margin:0;padding:0;height:100%}
+  html,body{margin:0;padding:0}
   body{
-    font-family:Manrope,system-ui,sans-serif;color:#fff;
-    background:linear-gradient(160deg,#0A1240,#0F1844 40%,#112B7A);min-height:100vh;
+    font-family:Manrope,system-ui,sans-serif;color:#fff;min-height:100vh;
+    background:linear-gradient(160deg,#0A1240,#0F1844 40%,#112B7A);
+    padding-bottom:84px;
   }
-  body::before{
-    content:"";position:fixed;inset:0;pointer-events:none;
-    background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
-    background-size:64px 64px;mask-image:radial-gradient(ellipse at center, black 30%, transparent 90%);
-  }
-  /* Theme overlay */
-  #theme-overlay{position:fixed;inset:0;z-index:0;opacity:0;transition:background .6s,opacity .5s;pointer-events:none}
-  #pattern-overlay{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .6s}
+  #theme-overlay,#pattern-overlay{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .6s}
+  #theme-overlay{z-index:0}
+  #pattern-overlay{z-index:0}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0), rgba(0,0,0,.35))}
+
+  /* ── Верхня панель ── */
   .topbar{
-    position:relative;z-index:2;padding:18px 32px;display:flex;align-items:center;gap:18px;
-    border-bottom:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.3);backdrop-filter:blur(12px);
+    position:sticky;top:0;z-index:5;padding:14px 28px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+    background:rgba(5,8,30,.45);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.08);
   }
-  .progress-wrap{flex:1;display:flex;align-items:center;gap:14px;max-width:520px}
-  .progress-wrap .lbl{font-family:"Geist Mono",monospace;font-size:13px;font-weight:800;color:#A78BFA}
-  .progress-bar{flex:1;height:8px;background:rgba(255,255,255,.1);border-radius:999px;overflow:hidden}
-  .progress-bar > i{display:block;height:100%;background:linear-gradient(90deg,#A78BFA,#7C3AED);border-radius:999px;transition:width .3s}
-  .timer-mini{
-    width:54px;height:54px;border-radius:50%;border:3px solid #A78BFA;
-    display:grid;place-items:center;font-family:"Geist Mono",monospace;font-weight:800;font-size:18px;
-    box-shadow:0 0 0 6px rgba(167,139,250,.12);transition:border-color .3s,color .3s;
-  }
-  .timer-mini.warn{border-color:#FCD34D;color:#FEF3C7;box-shadow:0 0 0 6px rgba(252,211,77,.12)}
-  .timer-mini.danger{border-color:#F87171;color:#FECACA;animation:tpulse .5s infinite}
-  @keyframes tpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-  .actions{margin-left:auto;display:flex;gap:10px}
+  .progress-wrap{flex:1;display:flex;align-items:center;gap:14px;min-width:200px;max-width:520px}
+  .progress-wrap .lbl{font-family:"Geist Mono",monospace;font-size:14px;font-weight:800;color:#C4B5FD;white-space:nowrap}
+  .progress-bar{flex:1;height:8px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden}
+  .progress-bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,#C4B5FD,#8B5CF6);border-radius:999px;transition:width .4s}
+  .code-chip{font-family:"Geist Mono",monospace;font-size:13px;font-weight:700;color:rgba(255,255,255,.75);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);padding:7px 12px;border-radius:10px;white-space:nowrap}
+  .code-chip b{color:#fff;letter-spacing:.08em}
+  .actions{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .btn{
-    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:#fff;
-    padding:11px 18px;border-radius:13px;font:inherit;font-weight:700;font-size:14px;cursor:pointer;
-    display:inline-flex;align-items:center;gap:8px;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#fff;
+    padding:11px 16px;border-radius:12px;font:inherit;font-weight:700;font-size:14px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:8px;transition:background .15s, transform .12s;
   }
-  .btn:hover{background:rgba(255,255,255,.1)}
-  .btn-primary{background:linear-gradient(135deg,#A78BFA,#7C3AED);border:0;box-shadow:0 12px 30px rgba(124,58,237,.4)}
-  /* ── Volume control ── */
-  .vol-wrap{
-    display:flex;align-items:center;gap:10px;
-    background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.1);
-    padding:9px 16px;border-radius:999px;
-    backdrop-filter:blur(8px);
-  }
-  .vol-icon{
-    font-size:15px;cursor:pointer;user-select:none;
-    width:18px;text-align:center;transition:opacity .2s;flex-shrink:0;
-  }
-  .vol-icon.muted{opacity:.3}
-  .vol-note{
-    font-size:14px;flex-shrink:0;opacity:.5;
-    animation:noteBounce 1s ease-in-out infinite alternate;
-  }
-  .vol-wrap.muted .vol-note{animation:none;opacity:.2}
-  @keyframes noteBounce{from{transform:translateY(1px)}to{transform:translateY(-2px)}}
+  .btn:hover{background:rgba(255,255,255,.14)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn-primary{background:linear-gradient(135deg,#A78BFA,#7C3AED);border-color:transparent;box-shadow:0 10px 26px rgba(124,58,237,.45);padding:12px 22px;font-size:15px}
+  .btn-primary:hover{background:linear-gradient(135deg,#B69CFB,#8B4DF0);transform:translateY(-1px)}
+  .btn-danger:hover{background:rgba(239,68,68,.25);border-color:rgba(248,113,113,.5)}
+  .btn .k{font-family:"Geist Mono",monospace;font-size:10.5px;font-weight:700;opacity:.65;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:1px 5px}
 
-  .vol-slider{
-    -webkit-appearance:none;appearance:none;
-    width:100px;height:3px;border-radius:999px;outline:none;cursor:pointer;border:none;
-    background:linear-gradient(90deg,
-      rgba(167,139,250,.9) var(--vol,70%),
-      rgba(255,255,255,.12) var(--vol,70%)
-    );
-    transition:width .2s;
-  }
-  .vol-slider::-webkit-slider-thumb{
-    -webkit-appearance:none;
-    width:16px;height:16px;border-radius:50%;
-    background:#fff;
-    box-shadow:0 0 0 3px rgba(167,139,250,.5), 0 2px 6px rgba(0,0,0,.4);
-    cursor:pointer;transition:transform .12s,box-shadow .12s;
-  }
-  .vol-slider::-webkit-slider-thumb:hover{
-    transform:scale(1.15);
-    box-shadow:0 0 0 5px rgba(167,139,250,.4), 0 2px 8px rgba(0,0,0,.4);
-  }
-  .vol-slider::-moz-range-thumb{
-    width:16px;height:16px;border:none;border-radius:50%;
-    background:#fff;box-shadow:0 0 0 3px rgba(167,139,250,.5);cursor:pointer;
-  }
-  .vol-slider::-moz-range-track{height:3px;background:transparent}
+  .vol-wrap{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);padding:8px 14px;border-radius:999px}
+  .vol-icon{cursor:pointer;background:none;border:0;color:#fff;font-size:15px;padding:0;width:20px}
+  .vol-slider{-webkit-appearance:none;appearance:none;width:90px;height:3px;border-radius:999px;outline:none;cursor:pointer;background:linear-gradient(90deg,rgba(196,181,253,.95) var(--vol,70%),rgba(255,255,255,.15) var(--vol,70%))}
+  .vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(167,139,250,.5)}
+  .vol-slider::-moz-range-thumb{width:14px;height:14px;border:none;border-radius:50%;background:#fff}
 
-  .stage{padding:36px 32px;max-width:1640px;margin:0 auto;position:relative;z-index:1}
-  .answered-bar{
-    background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);
-    border-radius:18px;padding:14px 22px;display:flex;align-items:center;gap:18px;margin-bottom:32px;
+  /* ── Кільцевий таймер ── */
+  .timer{
+    --p:1; --tc:#C4B5FD;
+    width:64px;height:64px;border-radius:50%;flex:0 0 auto;position:relative;
+    background:conic-gradient(var(--tc) calc(var(--p) * 360deg), rgba(255,255,255,.12) 0);
+    display:grid;place-items:center;
   }
-  .answered-bar .l{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#A78BFA;flex:0 0 auto}
-  .answered-bar .bar{flex:1;height:14px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;position:relative}
-  .answered-bar .bar > i{display:block;height:100%;background:linear-gradient(90deg,#10B981,#A78BFA);border-radius:999px;transition:width .4s}
-  .answered-bar .nums{font-family:"Geist Mono",monospace;font-size:18px;font-weight:800}
-  .answered-bar .nums .dim{color:#7B85B5}
-  .question-text{
-    text-align:center;font-size:56px;font-weight:900;letter-spacing:-.03em;line-height:1.15;
-    margin:0 auto 44px;max-width:1280px;
-    text-shadow:0 4px 20px rgba(0,0,0,.4);
-  }
-  .q-type-wrap{display:flex;justify-content:center;margin-bottom:18px}
-  .q-type-badge{
-    display:inline-flex;align-items:center;gap:7px;
-    padding:7px 18px;border-radius:999px;font-size:13.5px;font-weight:800;
-    letter-spacing:.05em;border:1.5px solid;
-  }
-  .q-type-badge.single {background:rgba(167,139,250,.18);border-color:rgba(167,139,250,.5);color:#C4B5FD}
-  .q-type-badge.multi  {background:rgba(52,211,153,.15); border-color:rgba(52,211,153,.5); color:#6EE7B7}
-  .q-type-badge.text   {background:rgba(251,191,36,.13); border-color:rgba(251,191,36,.5);color:#FCD34D}
-  .q-type-badge.number {background:rgba(96,165,250,.15); border-color:rgba(96,165,250,.5); color:#93C5FD}
-  .text-wait-hint{
-    max-width:640px;margin:0 auto;text-align:center;padding:44px 32px;
-    border:2px dashed rgba(255,255,255,.15);border-radius:22px;color:#A6B0D6;font-size:16px;font-weight:600;line-height:1.6;
-  }
-  .text-wait-hint b{color:#fff}
-  .grade-btn{
-    font-family:"Geist Mono",monospace;font-size:12px;font-weight:800;
-    padding:7px 14px;border-radius:9px;border:1.5px solid;cursor:pointer;
-    background:transparent;transition:all .15s;white-space:nowrap;flex:0 0 auto;
-  }
-  .grade-btn.accept{border-color:rgba(52,211,153,.5);color:#6EE7B7}
-  .grade-btn.accept:hover{background:rgba(16,185,129,.18)}
-  .grade-btn.revoke{border-color:rgba(248,113,113,.5);color:#FCA5A5}
-  .grade-btn.revoke:hover{background:rgba(239,68,68,.18)}
-  .distrib-hint{font-size:11.5px;color:#7B85B5;margin-left:auto;font-weight:600}
-  .answers{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1400px;margin:0 auto}
+  .timer::before{content:"";position:absolute;inset:5px;border-radius:50%;background:#0B1238}
+  .timer span{position:relative;font-family:"Geist Mono",monospace;font-weight:800;font-size:22px}
+  .timer.warn{--tc:#FCD34D}
+  .timer.danger{--tc:#F87171}
+  .timer.danger span{animation:tpulse .5s infinite}
+  .timer.paused{--tc:#94A3B8}
+  @keyframes tpulse{50%{transform:scale(1.12)}}
+
+  /* ── Сцена ── */
+  .stage{padding:28px 28px 20px;max-width:1500px;margin:0 auto;position:relative;z-index:1}
+  .pause-banner{display:none;margin:0 auto 20px;max-width:560px;text-align:center;padding:14px 20px;border-radius:16px;background:rgba(15,23,42,.7);border:1px solid rgba(148,163,184,.4);font-weight:800;font-size:18px;backdrop-filter:blur(8px)}
+  .pause-banner.show{display:block}
+  .answered-bar{background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:12px 20px;display:flex;align-items:center;gap:18px;margin:0 auto 26px;max-width:1400px}
+  .answered-bar .l{font-size:12.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#C4B5FD}
+  .answered-bar .bar{flex:1;height:12px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden}
+  .answered-bar .bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,#34D399,#A78BFA);border-radius:999px;transition:width .4s}
+  .answered-bar .nums{font-family:"Geist Mono",monospace;font-size:20px;font-weight:800;white-space:nowrap}
+  .answered-bar .nums .dim{color:#8D97C4}
+
+  .q-type-wrap{display:flex;justify-content:center;margin-bottom:14px}
+  .q-type-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 16px;border-radius:999px;font-size:13px;font-weight:800;letter-spacing:.04em;border:1.5px solid}
+  .q-type-badge.single{background:rgba(167,139,250,.18);border-color:rgba(167,139,250,.5);color:#DDD6FE}
+  .q-type-badge.multi{background:rgba(52,211,153,.15);border-color:rgba(52,211,153,.5);color:#A7F3D0}
+  .q-type-badge.text{background:rgba(251,191,36,.13);border-color:rgba(251,191,36,.5);color:#FDE68A}
+  .q-type-badge.number{background:rgba(96,165,250,.15);border-color:rgba(96,165,250,.5);color:#BFDBFE}
+  .question-text{text-align:center;font-size:clamp(30px,3.6vw,58px);font-weight:900;letter-spacing:-.025em;line-height:1.15;margin:0 auto 36px;max-width:1300px;text-shadow:0 4px 20px rgba(0,0,0,.35);overflow-wrap:anywhere}
+  .question-text.long{font-size:clamp(24px,2.6vw,40px)}
+  .question-text img{max-width:100%;max-height:34vh;border-radius:14px;display:block;margin:14px auto 0}
+  .question-text p{margin:0}
+
+  .answers{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1400px;margin:0 auto}
   .ans{
-    position:relative;display:flex;align-items:center;gap:24px;padding:32px 36px;
-    border-radius:22px;font-weight:800;font-size:32px;letter-spacing:-.02em;color:#fff;
-    box-shadow:0 12px 30px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.18);
-    border:2px solid transparent;overflow:hidden;transition:all .4s;
+    position:relative;display:flex;align-items:center;gap:20px;padding:26px 30px;min-height:108px;
+    border-radius:22px;font-weight:800;font-size:clamp(20px,2vw,30px);letter-spacing:-.015em;
+    box-shadow:0 12px 30px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.2);
+    overflow:hidden;transition:opacity .4s, transform .4s, filter .4s;isolation:isolate;
   }
-  .ans .letter{width:54px;height:54px;border-radius:14px;background:rgba(0,0,0,.32);display:grid;place-items:center;font-family:"Geist Mono",monospace;font-size:22px;flex:0 0 auto;border:1px solid rgba(255,255,255,.18)}
+  .ans .fill{position:absolute;inset:0 auto 0 0;width:0;background:rgba(255,255,255,.16);z-index:-1;transition:width .9s cubic-bezier(.22,1,.36,1)}
+  .ans .letter{width:52px;height:52px;border-radius:14px;background:rgba(0,0,0,.3);display:grid;place-items:center;font-family:"Geist Mono",monospace;font-size:22px;flex:0 0 auto;border:1px solid rgba(255,255,255,.2)}
+  .ans .txt{flex:1;overflow-wrap:anywhere}
+  .ans .count{display:none;font-family:"Geist Mono",monospace;font-size:clamp(22px,2.2vw,34px);font-weight:800;background:rgba(0,0,0,.28);border-radius:12px;padding:4px 14px;border:1px solid rgba(255,255,255,.2);white-space:nowrap}
+  .ans .count small{font-size:.5em;opacity:.8;margin-left:6px}
+  .revealed .ans .count{display:block}
   .ans.a{background:linear-gradient(135deg,#EF4444,#B91C1C)}
   .ans.b{background:linear-gradient(135deg,#F59E0B,#B45309)}
   .ans.c{background:linear-gradient(135deg,#10B981,#047857)}
   .ans.d{background:linear-gradient(135deg,#3B82F6,#1D4ED8)}
   .ans.e{background:linear-gradient(135deg,#A78BFA,#6D28D9)}
   .ans.f{background:linear-gradient(135deg,#EC4899,#BE185D)}
-  .ans .count-badge{
-    margin-left:auto;font-family:"Geist Mono",monospace;font-size:38px;font-weight:800;
-    background:rgba(0,0,0,.3);border-radius:12px;padding:4px 16px;border:1px solid rgba(255,255,255,.18);
-  }
-  .ans.correct{outline:4px solid #FCD34D;outline-offset:3px}
-  .ans.correct::before{content:"✓ ПРАВИЛЬНО";position:absolute;top:14px;right:14px;background:#FCD34D;color:#7C2D12;font-size:11px;font-weight:900;letter-spacing:.1em;padding:3px 9px;border-radius:6px}
-  .ans.wrong-dim{opacity:.3;transform:scale(.97)}
-  .distrib{margin-top:36px;display:grid;gap:18px;max-width:1400px;margin-left:auto;margin-right:auto}
-  .dcol{display:flex;flex-direction:column;align-items:center;gap:6px}
-  .dcol .vbar{width:100%;height:120px;background:rgba(255,255,255,.06);border-radius:12px;display:flex;align-items:flex-end;padding:6px;border:1px solid rgba(255,255,255,.08)}
-  .dcol .vbar > i{width:100%;border-radius:8px;transition:height .6s cubic-bezier(.34,1.56,.64,1)}
-  .dcol .vbar.a > i{background:linear-gradient(180deg,#F87171,#EF4444)}
-  .dcol .vbar.b > i{background:linear-gradient(180deg,#FBBF24,#F59E0B)}
-  .dcol .vbar.c > i{background:linear-gradient(180deg,#34D399,#10B981)}
-  .dcol .vbar.d > i{background:linear-gradient(180deg,#60A5FA,#3B82F6)}
-  .dcol .vbar.e > i{background:linear-gradient(180deg,#C4B5FD,#A78BFA)}
-  .dcol .vbar.f > i{background:linear-gradient(180deg,#F9A8D4,#EC4899)}
-  .dcol .lbl{font-family:"Geist Mono",monospace;font-weight:800;font-size:14px;color:#A6B0D6}
-  .dcol .vnum{font-family:"Geist Mono",monospace;font-weight:800;font-size:18px}
-  .footer{
-    position:fixed;bottom:0;left:0;right:0;z-index:3;
-    background:linear-gradient(180deg, rgba(0,0,0,0), rgba(10,15,44,.7));
-    padding:18px 32px;display:flex;align-items:center;gap:16px;
-  }
-  .footer .stat{
-    display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);
-    padding:8px 14px;border-radius:12px;font-size:12.5px;font-weight:700;color:#A6B0D6;
-  }
-  .footer .stat b{color:#fff;font-family:"Geist Mono",monospace}
+  .ans.correct{outline:5px solid #FDE047;outline-offset:4px;transform:scale(1.015)}
+  .ans.correct .letter{background:#FDE047;color:#713F12}
+  .ans.correct .tag{position:absolute;top:10px;right:14px;background:#FDE047;color:#713F12;font-size:11px;font-weight:900;letter-spacing:.1em;padding:3px 9px;border-radius:6px}
+  .ans.dim{opacity:.32;filter:saturate(.6);transform:scale(.97)}
+
+  .text-wait-hint{max-width:640px;margin:0 auto;text-align:center;padding:40px 32px;border:2px dashed rgba(255,255,255,.18);border-radius:22px;color:#B8C0E6;font-size:17px;font-weight:600;line-height:1.6}
+  .text-wait-hint b{color:#fff}
+  .revealed .text-wait-hint{display:none}
+
+  /* ── Розкриття ── */
+  .reveal-grid{display:none;grid-template-columns:1fr 380px;gap:22px;max-width:1400px;margin:28px auto 0;align-items:start}
+  .revealed .reveal-grid{display:grid}
+  .reveal-grid.no-grading{grid-template-columns:1fr}
+  .reveal-grid.no-grading .grading{display:none}
+  .panel{background:rgba(5,8,30,.45);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:18px 20px;backdrop-filter:blur(8px)}
+  .panel h3{margin:0 0 12px;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#C4B5FD;display:flex;align-items:center;gap:10px}
+  .panel h3 small{margin-left:auto;font-weight:600;letter-spacing:0;text-transform:none;color:#8D97C4;font-size:12px}
+  .correct-line{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .correct-line span{font-size:12.5px;color:#B8C0E6;font-weight:700}
+  .correct-line b{font-family:"Geist Mono",monospace;font-size:22px;color:#86EFAC}
+  .groups{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;padding-right:4px}
+  .grp{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.05)}
+  .grp.ok{background:rgba(16,185,129,.16)}
+  .grp .m{font-family:"Geist Mono",monospace;font-weight:800;width:18px;color:#FCA5A5}
+  .grp.ok .m{color:#86EFAC}
+  .grp .v{flex:1;font-size:15px;font-weight:700;overflow-wrap:anywhere}
+  .grp .n{font-family:"Geist Mono",monospace;font-size:13px;color:#B8C0E6;white-space:nowrap}
+  .grade-btn{font:800 12px "Geist Mono",monospace;padding:7px 12px;border-radius:9px;border:1.5px solid;cursor:pointer;background:transparent;white-space:nowrap}
+  .grade-btn.accept{border-color:rgba(52,211,153,.5);color:#6EE7B7}
+  .grade-btn.accept:hover{background:rgba(16,185,129,.2)}
+  .grade-btn.revoke{border-color:rgba(248,113,113,.5);color:#FCA5A5}
+  .grade-btn.revoke:hover{background:rgba(239,68,68,.2)}
+  .grade-btn:disabled{opacity:.5}
+  .muted{color:#8D97C4;font-size:14px;padding:6px 2px}
+
+  .leaders{display:flex;flex-direction:column;gap:8px}
+  .lr{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.06);animation:slideIn .4s both}
+  .lr:nth-child(1){background:linear-gradient(90deg,rgba(253,224,71,.22),rgba(255,255,255,.05))}
+  @keyframes slideIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+  .lr .r{font-family:"Geist Mono",monospace;font-weight:800;width:26px;color:#C4B5FD}
+  .lr .av{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:12px;font-weight:800;flex:0 0 auto}
+  .lr .nm{flex:1;font-weight:800;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lr .d{font-family:"Geist Mono",monospace;font-size:12px;color:#86EFAC;font-weight:700}
+  .lr .s{font-family:"Geist Mono",monospace;font-weight:800;font-size:16px}
+
+  /* ── Нижня панель ── */
+  .footer{position:fixed;bottom:0;left:0;right:0;z-index:4;background:linear-gradient(180deg,rgba(5,8,30,0),rgba(5,8,30,.8) 40%);padding:22px 28px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .footer .stat{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);padding:8px 14px;border-radius:12px;font-size:13px;font-weight:700;color:#B8C0E6}
+  .footer .stat b{color:#fff;font-family:"Geist Mono",monospace;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .footer .hint{font-size:12px;color:#8D97C4;font-weight:600}
   .footer .right{margin-left:auto;display:flex;gap:10px}
+
+  .loading{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:#0F1844}
+  .loading.hide{display:none}
+  .spinner{width:44px;height:44px;border:3px solid rgba(255,255,255,.15);border-top-color:#A78BFA;border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  button:focus-visible,input:focus-visible{outline:2px solid #FDE047;outline-offset:2px}
+  @media (prefers-reduced-motion: reduce){ *{animation:none !important;transition:none !important} }
+  @media (max-width: 1100px){ .reveal-grid{grid-template-columns:1fr} }
+  @media (max-width: 760px){
+    .answers{grid-template-columns:1fr !important}
+    .stage,.topbar{padding-left:16px;padding-right:16px}
+    .vol-wrap,.footer .hint{display:none}
+  }
 </style>
 </head>
 <body>
 <div id="theme-overlay"></div>
 <div id="pattern-overlay"></div>
+<div class="loading" id="loading"><div class="spinner"></div></div>
 
 <div class="topbar">
   <div class="progress-wrap">
-    <span class="lbl" id="q-lbl">1 / —</span>
-    <div class="progress-bar"><i id="q-bar" style="width:0%"></i></div>
+    <span class="lbl" id="q-lbl">— / —</span>
+    <div class="progress-bar"><i id="q-bar"></i></div>
   </div>
-  <div class="timer-mini" id="timer">—</div>
+  <div class="timer" id="timer" role="timer" aria-label="Залишок часу"><span id="timer-num">—</span></div>
+  <span class="code-chip">Код <b id="code-chip">—</b></span>
   <div class="actions">
-    <div class="vol-wrap" id="vol-wrap">
-      <span class="vol-note">♪</span>
-      <span class="vol-icon" id="vol-icon" onclick="toggleMute()" title="Вкл/Викл">🔊</span>
-      <input class="vol-slider" id="vol-slider" type="range" min="0" max="100" value="70"
-        oninput="setVolume(this.value)">
+    <div class="vol-wrap">
+      <button class="vol-icon" id="vol-icon" title="Звук (M)" aria-label="Увімкнути або вимкнути звук">🔊</button>
+      <input class="vol-slider" id="vol-slider" type="range" min="0" max="100" value="70" aria-label="Гучність">
     </div>
-    <button class="btn" id="pause-btn" onclick="togglePause()">⏸ Пауза</button>
-    <button class="btn" id="skip-btn" onclick="skipQuestion()">⏭ Пропустити</button>
-    <button class="btn btn-primary" id="next-btn" onclick="nextQuestion()">Розкрити →</button>
+    <button class="btn" id="pause-btn">⏸ Пауза <span class="k">P</span></button>
+    <button class="btn btn-primary" id="next-btn">Показати відповідь <span class="k">␣</span></button>
   </div>
 </div>
 
-<div class="stage">
+<main class="stage" id="stage">
+  <div class="pause-banner" id="pause-banner">⏸ Гру призупинено — учні бачать екран паузи</div>
   <div class="answered-bar" id="answered-bar">
     <span class="l">Відповіли</span>
-    <div class="bar"><i id="answered-fill" style="width:0%"></i></div>
+    <div class="bar"><i id="answered-fill"></i></div>
     <span class="nums"><span id="answered-num">0</span> <span class="dim">/ <span id="answered-total">0</span></span></span>
   </div>
   <div class="q-type-wrap"><span class="q-type-badge single" id="q-type-badge">◉ Одна правильна</span></div>
   <div class="question-text qf-rich" id="q-text"></div>
   <div class="answers" id="answers-grid"></div>
-  <div class="text-wait-hint" id="text-wait-hint" style="display:none">✏️ Учні вводять власну відповідь<br><b>Слідкуйте за прогресом відповідей вище</b></div>
-  <div class="distrib" id="distrib" style="display:none"></div>
-</div>
+  <div class="text-wait-hint" id="text-wait-hint" hidden>✏️ Учні вводять власну відповідь<br><b>Прогрес видно на смузі вище</b></div>
+
+  <div class="reveal-grid" id="reveal-grid">
+    <div class="panel grading" id="grading"></div>
+    <div class="panel">
+      <h3>🏆 Лідери <small id="leaders-sub"></small></h3>
+      <div class="leaders" id="leaders"></div>
+    </div>
+  </div>
+</main>
 
 <div class="footer">
-  <span class="stat">★ Топ зараз: <b id="footer-top">—</b></span>
+  <span class="stat">👥 Гравців: <b id="footer-players">0</b></span>
+  <span class="stat">★ Лідер: <b id="footer-top">—</b></span>
   <span class="stat">✓ Точність: <b id="footer-acc">—</b></span>
+  <span class="hint">Пробіл — далі · P — пауза · M — звук</span>
   <div class="right">
-    <button class="btn btn-danger" onclick="endGame()">Завершити гру</button>
+    <button class="btn btn-danger" id="end-btn">Завершити гру</button>
   </div>
 </div>
 
 <script type="module">
-import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  db, ref, get, set, update, onValue, requireTeacher, readParams, isValidCode, fatal, toast,
+  esc, initialsOf, avatarColor, applyTheme, serverNow, watchFields, safeStore, HOME_URL,
+  OPT_CLASSES, OPT_LETTERS, TYPE_LABELS, isFreeform, checkCorrect, calcPoints, LATE_GRACE_MS,
+  standings, fmtNum,
+} from "./live-core.js";
 
-const FC = {apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",authDomain:"quizflow-8a978.firebaseapp.com",databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",projectId:"quizflow-8a978",storageBucket:"quizflow-8a978.firebasestorage.app",messagingSenderId:"206469794166",appId:"1:206469794166:web:55cd7007b429607acd5257"};
-const app  = getApps().length ? getApps()[0] : initializeApp(FC);
-const auth = getAuth(app);
-const db   = getDatabase(app);
+const $ = (id) => document.getElementById(id);
+const user = await requireTeacher();
+const uid = user.uid;
+const { code } = readParams("code");
+if (!isValidCode(code)) fatal("Невірний код кімнати");
 
-const fbUser = await new Promise(r => { const u = onAuthStateChanged(auth, x => { u(); r(x); }); });
-if (!fbUser) { location.href = "../login.html"; throw new Error(); }
-const uid = fbUser.uid;
-
-const code = new URLSearchParams(location.search).get("code");
-if (!code) { location.href = "../index.html"; throw new Error(); }
-
-const roomSnap = await get(ref(db, `rooms/${code}`));
-if (!roomSnap.exists()) { alert("Кімнату не знайдено"); location.href = "../index.html"; throw new Error(); }
+const [roomSnap, keySnap] = await Promise.all([
+  get(ref(db, `rooms/${code}`)),
+  get(ref(db, `teachers/${uid}/liveRooms/${code}/key`)).catch(() => null),
+]);
+if (!roomSnap.exists()) fatal("Кімнату не знайдено — можливо, її вже закрито");
 const room = roomSnap.val();
-const questions = room.questions || [];
+if (room.hostUid && room.hostUid !== uid) fatal("Це не ваша кімната");
+
+const questions = Array.isArray(room.questions) ? room.questions : Object.values(room.questions || {});
 const totalQ = questions.length;
-const timePerQ = room.timePerQ || 20;
+const timePerQ = Number(room.timePerQ) || 20;
+const scoring = room.scoring || "correct";
+const answerKey = keySnap?.val() || {};
+// Старі кімнати ще тримали correct прямо в питанні
+const keyFor = (qi) => answerKey[qi] ?? questions[qi]?.correct ?? null;
 
-let currentQ = room.currentQ || 0;
-let revealMode = false;
-let isPaused = false;
-let pausedLeft = 0;
-let timerInterval = null;
-let questionStartedAt = room.questionStartedAt || Date.now();
-let roomPlayers = {};
-let answersData = {};
+$("code-chip").textContent = code;
+document.title = `Гра · ${code} · QuizFlow Live`;
+applyTheme(room.theme, $("theme-overlay"), $("pattern-overlay"));
 
-const CLASSES = ["a","b","c","d","e","f"];
-const LETTERS  = ["A","B","C","D","E","F"];
-
-function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-
-// Apply theme
-const PAT_CSS = {
-  "grid":   { bg: `url("/live/patterns/grid.svg")`,   size: "64px 64px" },
-  "dots":   { bg: `url("/live/patterns/dots.svg")`,   size: "16px 16px" },
-  "waves":  { bg: `url("/live/patterns/waves.svg")`,  size: "64px 48px" },
-  "hex":    { bg: `url("/live/patterns/hex.svg")`,    size: "60px 66px" },
-  "diag":   { bg: `url("/live/patterns/diag.svg")`,   size: "48px 48px" },
-  "target": { bg: `url("/live/patterns/target.svg")`, size: "64px 64px" },
-  "star":   { bg: `url("/live/patterns/star.svg")`,   size: "40px 40px" },
-  "snow":   { bg: `url("/live/patterns/snow.svg")`,   size: "32px 32px" },
-  "heart":  { bg: `url("/live/patterns/heart.svg")`,  size: "40px 32px" },
-  "flower": { bg: `url("/live/patterns/flower.svg")`, size: "48px 48px" },
-  "leaf":   { bg: `url("/live/patterns/leaf.svg")`,   size: "48px 48px" },
-  "prism":  { bg: `url("/live/patterns/prism.svg")`,  size: "40px 36px" },
-  "wave2":  { bg: `url("/live/patterns/wave2.svg")`,  size: "48px 48px" },
-};
-
-function applyTheme(theme) {
-  if (!theme) return;
-  const ov = document.getElementById("theme-overlay");
-  const GRAD_CSS = {
-    "g-default":"linear-gradient(135deg,#1E3A8A,#0F1844)","g-night":"linear-gradient(135deg,#0A0F2C,#1F1F3F)",
-    "g-forest":"linear-gradient(135deg,#064E3B,#022C22)","g-amber":"linear-gradient(135deg,#9A3412,#7C2D12)",
-    "g-grape":"linear-gradient(135deg,#581C87,#312E81)","g-sun":"linear-gradient(135deg,#F59E0B,#B45309)",
-    "g-ocean":"linear-gradient(135deg,#0E7490,#1E3A8A)","g-violet":"linear-gradient(135deg,#7C3AED,#4338CA)",
-    "g-mint":"linear-gradient(135deg,#10B981,#047857)","g-sky":"linear-gradient(135deg,#60A5FA,#2563EB)",
-    "g-jade":"linear-gradient(135deg,#34D399,#0F766E)","g-rose":"linear-gradient(135deg,#FB7185,#BE185D)",
-    "g-magenta":"linear-gradient(135deg,#E879F9,#A21CAF)"
-  };
-  ov.style.background = GRAD_CSS[theme.grad] || GRAD_CSS["g-default"];
-  ov.style.opacity = "1";
-  const po = document.getElementById("pattern-overlay");
-  const pat = PAT_CSS[theme.pat];
-  if (po && pat) {
-    po.style.backgroundImage = pat.bg;
-    po.style.backgroundSize = pat.size;
-    po.style.backgroundRepeat = "repeat";
-    po.style.opacity = "1";
-  }
-}
-applyTheme(room.theme);
-
-// ─── 🎵 Audio Engine ─────────────────────────────────────────────────────────
-let _ac = null;
-let _masterGain = null;   // глобальний gain для гучності
-let _musicStop  = null;
-let _volLevel   = 0.7;    // 0..1
-let _muted      = false;
-let _lastTickSec = -1;
+// ═══ Аудіо ════════════════════════════════════════════════════════════
+let _ac = null, _master = null, _musicStop = null, _lastTick = -1;
+let _vol = Math.min(1, Math.max(0, Number(safeStore.get("qf-live-vol", 0.7))));
+let _muted = safeStore.get("qf-live-muted", false) === true;
 
 function getAC() {
   if (!_ac) {
-    _ac = new (window.AudioContext || window.webkitAudioContext)();
-    // Master gain — через нього йде весь звук
-    _masterGain = _ac.createGain();
-    _masterGain.gain.value = _volLevel;
-    _masterGain.connect(_ac.destination);
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    _ac = new AC();
+    _master = _ac.createGain();
+    _master.gain.value = _muted ? 0 : _vol;
+    _master.connect(_ac.destination);
   }
-  if (_ac.state === "suspended") _ac.resume();
+  if (_ac.state === "suspended") _ac.resume().catch(() => {});
   return _ac;
 }
-
-// ── Гучність ────────────────────────────────────────────────────────────────
-window.setVolume = (val) => {
-  _volLevel = val / 100;
-  _muted = _volLevel === 0;
-  if (_masterGain) _masterGain.gain.setTargetAtTime(_muted ? 0 : _volLevel, _ac.currentTime, 0.05);
-  // CSS gradient на слайдері
-  const slider = document.getElementById("vol-slider");
-  slider.style.setProperty("--vol", val + "%");
-  // Іконка
-  const icon = document.getElementById("vol-icon");
-  const wrap = document.getElementById("vol-wrap");
-  if (_muted) { icon.textContent = "🔇"; wrap.classList.add("muted"); }
-  else if (val < 40) { icon.textContent = "🔈"; wrap.classList.remove("muted"); }
-  else if (val < 75) { icon.textContent = "🔉"; wrap.classList.remove("muted"); }
-  else               { icon.textContent = "🔊"; wrap.classList.remove("muted"); }
+// Браузер не дає грати звук без взаємодії — «будимо» контекст першим кліком/клавішею.
+const unlock = () => {
+  const ctx = getAC();
+  ctx?.resume().then(() => { if (state.status === "question" && !_musicStop) startMusic(); }).catch(() => {});
 };
+window.addEventListener("pointerdown", unlock, { once: true });
+window.addEventListener("keydown", unlock, { once: true });
 
-window.toggleMute = () => {
-  const slider = document.getElementById("vol-slider");
-  if (_muted) {
-    const restoreVol = _volLevel > 0 ? _volLevel : 0.7;
-    slider.value = Math.round(restoreVol * 100);
-    setVolume(slider.value);
-  } else {
-    slider.value = 0;
-    setVolume(0);
-  }
-};
-
-// ── Утиліта: одна нота ──────────────────────────────────────────────────────
-function note(ctx, out, freq, start, dur, type, vol, {attack=0.015, rel=0.08}={}) {
-  const osc  = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = type;
-  osc.frequency.setValueAtTime(freq, start);
-  gain.gain.setValueAtTime(0, start);
-  gain.gain.linearRampToValueAtTime(vol, start + attack);
-  gain.gain.setValueAtTime(vol, start + dur - rel);
-  gain.gain.linearRampToValueAtTime(0, start + dur);
-  osc.connect(gain); gain.connect(out);
-  osc.start(start); osc.stop(start + dur + 0.05);
+function paintVolume() {
+  const v = _muted ? 0 : Math.round(_vol * 100);
+  $("vol-slider").value = v;
+  $("vol-slider").style.setProperty("--vol", v + "%");
+  $("vol-icon").textContent = _muted || v === 0 ? "🔇" : v < 40 ? "🔈" : v < 75 ? "🔉" : "🔊";
+  if (_master) _master.gain.setTargetAtTime(_muted ? 0 : _vol, _ac.currentTime, 0.05);
 }
+$("vol-slider").addEventListener("input", (e) => {
+  _vol = Number(e.target.value) / 100; _muted = _vol === 0;
+  safeStore.set("qf-live-vol", _vol || 0.7); safeStore.set("qf-live-muted", _muted);
+  paintVolume();
+});
+function toggleMute() {
+  _muted = !_muted;
+  if (!_muted && _vol === 0) _vol = 0.7;
+  safeStore.set("qf-live-muted", _muted);
+  paintVolume();
+}
+$("vol-icon").addEventListener("click", toggleMute);
+paintVolume();
 
-// ── Тік-звук ─────────────────────────────────────────────────────────────────
+function note(ctx, out, freq, start, dur, type, vol, { attack = 0.015, rel = 0.08 } = {}) {
+  const osc = ctx.createOscillator(), g = ctx.createGain();
+  osc.type = type; osc.frequency.setValueAtTime(freq, start);
+  g.gain.setValueAtTime(0, start);
+  g.gain.linearRampToValueAtTime(vol, start + attack);
+  g.gain.setValueAtTime(vol, start + dur - rel);
+  g.gain.linearRampToValueAtTime(0, start + dur);
+  osc.connect(g); g.connect(out); osc.start(start); osc.stop(start + dur + 0.05);
+}
+function noise(ctx, out, t, dur, filterType, freq, vol) {
+  const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * dur), ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  const src = ctx.createBufferSource(), g = ctx.createGain(), f = ctx.createBiquadFilter();
+  f.type = filterType; f.frequency.value = freq; src.buffer = buf;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  src.connect(f); f.connect(g); g.connect(out); src.start(t);
+}
 function playTick(isLast) {
-  const ctx = getAC();
-  const t   = ctx.currentTime;
-  note(ctx, _masterGain, isLast ? 1047 : 784, t, isLast ? 0.15 : 0.09, "square", isLast ? 0.35 : 0.18, {attack:0.004, rel:0.04});
-  if (isLast) note(ctx, _masterGain, 1047*1.5, t+0.06, 0.10, "sine", 0.12, {attack:0.004, rel:0.04});
+  const ctx = getAC(); if (!ctx) return;
+  const t = ctx.currentTime;
+  note(ctx, _master, isLast ? 1047 : 784, t, isLast ? 0.15 : 0.09, "square", isLast ? 0.3 : 0.15, { attack: 0.004, rel: 0.04 });
 }
-
-// ── Динамічна музика ─────────────────────────────────────────────────────────
-function startQuestionMusic() {
+function playReveal() {
+  const ctx = getAC(); if (!ctx) return;
+  const t = ctx.currentTime;
+  [523, 659, 784, 1047].forEach((f, i) => note(ctx, _master, f, t + i * 0.08, 0.22, "triangle", 0.16, { attack: 0.01, rel: 0.1 }));
+}
+function startMusic() {
   stopMusic();
-  const ctx = getAC();
-
-  const BPM  = 128;
-  const B    = 60 / BPM;   // тривалість удару
-  const BAR  = B * 4;      // такт
-  const LOOP = BAR * 8;    // петля = 8 тактів (~15с)
-
-  // Локальний gain для fade-in/out (підключений до master)
-  const localGain = ctx.createGain();
-  localGain.gain.setValueAtTime(0, ctx.currentTime);
-  localGain.gain.linearRampToValueAtTime(1, ctx.currentTime + 1.4);
-  localGain.connect(_masterGain);
-
-  let stopped = false, loopTimer = null, loopCount = 0;
-
-  // Акорди по 4 такти (2 прогресії що чергуються)
-  const PROG_A = [ // Am  F  C  G
-    [[110,220,277,330], [87,175,220,262], [131,262,330,392], [98,196,247,294]],
-  ];
-  const PROG_B = [ // Am  G  F  Em
-    [[110,220,277,330], [98,196,247,294], [87,175,220,262], [82,165,208,247]],
-  ];
-
-  // Мелодії (частоти)
-  const MEL_A = [392,440,494,440, 392,349,392,440, 523,494,440,392, 440,392,349,330];
-  const MEL_B = [330,349,392,440, 494,523,494,440, 392,349,330,294, 330,392,440,392];
-
-  // Барабани (індекси ударів 0..31 для 8/4 ритму у 8 тактах)
-  function drums(loopStart, variation) {
+  const ctx = getAC(); if (!ctx || ctx.state !== "running") return;
+  const B = 60 / 128, BAR = B * 4, LOOP = BAR * 8;
+  const local = ctx.createGain();
+  local.gain.setValueAtTime(0, ctx.currentTime);
+  local.gain.linearRampToValueAtTime(1, ctx.currentTime + 1.4);
+  local.connect(_master);
+  let stopped = false, timer = null, loop = 0;
+  const PROG_A = [[110,220,277,330],[87,175,220,262],[131,262,330,392],[98,196,247,294]];
+  const PROG_B = [[110,220,277,330],[98,196,247,294],[87,175,220,262],[82,165,208,247]];
+  const MEL_A = [392,440,494,440,392,349,392,440,523,494,440,392,440,392,349,330];
+  const MEL_B = [330,349,392,440,494,523,494,440,392,349,330,294,330,392,440,392];
+  function drums(t0, variation) {
     for (let b = 0; b < 32; b++) {
-      const t = loopStart + b * B * 0.5;
-      const isBeat    = b % 8 === 0;                  // кік
-      const isSnare   = b % 8 === 4;                  // снейр
-      const isHihat   = b % 2 === 0;                  // хетс на кожну чверть
-      const isOHihat  = b % 4 === 2 && variation > 0; // відкритий хет у варіації
-
-      if (isBeat) {
-        // Кік — sine з pitch-envelope
-        const osc = ctx.createOscillator(); const g = ctx.createGain();
-        osc.type = "sine"; osc.frequency.setValueAtTime(160, t);
-        osc.frequency.exponentialRampToValueAtTime(40, t + 0.15);
-        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.5, t + 0.005);
-        g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
-        osc.connect(g); g.connect(localGain); osc.start(t); osc.stop(t + 0.3);
+      const t = t0 + b * B * 0.5;
+      if (b % 8 === 0) {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = "sine"; o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.15);
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.5, t + 0.005); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+        o.connect(g); g.connect(local); o.start(t); o.stop(t + 0.3);
       }
-      if (isSnare) {
-        // Снейр — шум + tone
-        const buf = ctx.createBuffer(1, ctx.sampleRate * 0.12, ctx.sampleRate);
-        const data = buf.getChannelData(0);
-        for (let i = 0; i < data.length; i++) data[i] = (Math.random()*2-1);
-        const src = ctx.createBufferSource(); const g = ctx.createGain();
-        const flt = ctx.createBiquadFilter(); flt.type = "bandpass"; flt.frequency.value = 2000;
-        src.buffer = buf;
-        g.gain.setValueAtTime(0.22, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
-        src.connect(flt); flt.connect(g); g.connect(localGain); src.start(t);
-      }
-      if (isHihat || isOHihat) {
-        const buf = ctx.createBuffer(1, ctx.sampleRate * (isOHihat ? 0.18 : 0.04), ctx.sampleRate);
-        const data = buf.getChannelData(0);
-        for (let i = 0; i < data.length; i++) data[i] = (Math.random()*2-1);
-        const src = ctx.createBufferSource(); const g = ctx.createGain();
-        const flt = ctx.createBiquadFilter(); flt.type = "highpass"; flt.frequency.value = 8000;
-        src.buffer = buf;
-        g.gain.setValueAtTime(isOHihat ? 0.08 : 0.05, t);
-        g.gain.exponentialRampToValueAtTime(0.001, t + (isOHihat ? 0.18 : 0.04));
-        src.connect(flt); flt.connect(g); g.connect(localGain); src.start(t);
-      }
+      if (b % 8 === 4) noise(ctx, local, t, 0.12, "bandpass", 2000, 0.22);
+      const open = b % 4 === 2 && variation > 0;
+      if (b % 2 === 0 || open) noise(ctx, local, t, open ? 0.18 : 0.04, "highpass", 8000, open ? 0.08 : 0.05);
     }
   }
-
-  function scheduleLoop(loopStart) {
+  function schedule(t0) {
     if (stopped) return;
-    const isB     = loopCount % 2 === 1;        // чергуємо прогресії
-    const variation = Math.floor(loopCount / 2); // кожні 2 петлі додаємо варіацію
-    const prog    = isB ? PROG_B[0] : PROG_A[0];
-    const mel     = isB ? MEL_B : MEL_A;
-
-    // ── Акорди (pad) ─────────────────────────────────────────
-    prog.forEach((chord, ci) => {
-      chord.forEach((freq, fi) => {
-        const vol = fi === 0 ? 0.18 : 0.07; // бас гучніше
-        const type = fi === 0 ? "sine" : "triangle";
-        note(ctx, localGain, freq, loopStart + ci * BAR * 2, BAR * 2 * 0.92, type, vol, {attack:0.06, rel:0.2});
-      });
-    });
-
-    // ── Мелодія ───────────────────────────────────────────────
-    mel.forEach((freq, i) => {
-      note(ctx, localGain, freq, loopStart + i * B * 0.5, B * 0.45, "sine", 0.13, {attack:0.01, rel:0.05});
-    });
-
-    // ── Контрмелодія у варіації ───────────────────────────────
-    if (variation > 0) {
-      const cm = isB ? MEL_A : MEL_B;
-      cm.slice(8).forEach((freq, i) => {
-        note(ctx, localGain, freq*2, loopStart + LOOP*0.5 + i * B * 0.5, B * 0.42, "triangle", 0.06, {attack:0.01, rel:0.04});
-      });
-    }
-
-    // ── Ударні ────────────────────────────────────────────────
-    drums(loopStart, variation);
-
-    loopCount++;
-    const delay = (loopStart + LOOP - ctx.currentTime) * 1000 - 120;
-    loopTimer = setTimeout(() => scheduleLoop(loopStart + LOOP), Math.max(delay, 50));
+    const isB = loop % 2 === 1, variation = Math.floor(loop / 2);
+    (isB ? PROG_B : PROG_A).forEach((ch, ci) => ch.forEach((f, fi) =>
+      note(ctx, local, f, t0 + ci * BAR * 2, BAR * 2 * 0.92, fi === 0 ? "sine" : "triangle", fi === 0 ? 0.18 : 0.07, { attack: 0.06, rel: 0.2 })));
+    (isB ? MEL_B : MEL_A).forEach((f, i) => note(ctx, local, f, t0 + i * B * 0.5, B * 0.45, "sine", 0.13, { attack: 0.01, rel: 0.05 }));
+    if (variation > 0) (isB ? MEL_A : MEL_B).slice(8).forEach((f, i) =>
+      note(ctx, local, f * 2, t0 + LOOP * 0.5 + i * B * 0.5, B * 0.42, "triangle", 0.06, { attack: 0.01, rel: 0.04 }));
+    drums(t0, variation);
+    loop++;
+    timer = setTimeout(() => schedule(t0 + LOOP), Math.max((t0 + LOOP - ctx.currentTime) * 1000 - 150, 50));
   }
-
-  scheduleLoop(ctx.currentTime + 0.05);
-
+  schedule(ctx.currentTime + 0.05);
   _musicStop = () => {
-    stopped = true;
-    clearTimeout(loopTimer);
+    stopped = true; clearTimeout(timer);
     const now = ctx.currentTime;
-    localGain.gain.cancelScheduledValues(now);
-    localGain.gain.setValueAtTime(localGain.gain.value, now);
-    localGain.gain.linearRampToValueAtTime(0, now + 0.55);
+    local.gain.cancelScheduledValues(now);
+    local.gain.setValueAtTime(local.gain.value, now);
+    local.gain.linearRampToValueAtTime(0, now + 0.5);
+    setTimeout(() => local.disconnect(), 700);
   };
 }
+function stopMusic() { if (_musicStop) { _musicStop(); _musicStop = null; } _lastTick = -1; }
 
-function stopMusic() {
-  if (_musicStop) { _musicStop(); _musicStop = null; }
-  _lastTickSec = -1;
-}
+// ═══ Стан гри ═════════════════════════════════════════════════════════
+// Уся сторінка — функція від стану кімнати в базі. Кнопки лише пишуть у
+// базу, а перемальовування йде через слухача. Тому перезавантаження вкладки
+// або друга вкладка викладача більше не ламають гру.
+let state = { status: null, currentQ: 0, questionStartedAt: 0, pausedLeft: null, startLog: null };
+let shownQ = -1, shownReveal = false;
+let players = {}, allAnswers = {};
+let busy = false, leaving = false;
 
-// Ця функція більше не потрібна (замінена слайдером), але залишаємо stub
-window.toggleMusic = () => window.toggleMute();
-// ─────────────────────────────────────────────────────────────────────────────
-
-const TYPE_BADGE = {
-  single: {cls:"single", label:"◉ Одна правильна"},
-  multi:  {cls:"multi",  label:"☑ Кілька правильних"},
-  text:   {cls:"text",   label:"✏ Текстова відповідь"},
-  number: {cls:"number", label:"🔢 Числова відповідь"},
+const activePids = () => Object.keys(players).filter(p => players[p] && players[p].active !== false);
+const currentAnswers = () => {
+  const act = new Set(activePids());
+  return Object.fromEntries(Object.entries(allAnswers[state.currentQ] || {}).filter(([pid]) => act.has(pid)));
 };
 
+// Ефективний момент старту питання для відповіді в момент t: після кожної паузи
+// старт зсувається, але відповіді, дані ДО паузи, рахуються від старого старту.
+function elapsedFor(t) {
+  let start = state.questionStartedAt;
+  const log = Array.isArray(state.startLog) ? state.startLog : Object.values(state.startLog || {});
+  if (log.length) {
+    start = log[0].start;
+    log.forEach(e => { if (t >= e.from) start = e.start; });
+  }
+  return Math.max(0, (Number(t) || 0) - start);
+}
+function gradeOne(qi, a, forceCorrect) {
+  const q = questions[qi];
+  const isCorrect = forceCorrect ?? checkCorrect(q, keyFor(qi), a?.value);
+  const elapsedMs = elapsedFor(a?.answeredAt);
+  const late = elapsedMs > timePerQ * 1000 + LATE_GRACE_MS;
+  return { isCorrect, points: late ? 0 : calcPoints({ scoring, isCorrect, elapsedMs, timePerQ }) };
+}
+
+function secondsLeft() {
+  if (state.status === "paused") return Math.max(0, Number(state.pausedLeft) || 0);
+  if (state.status !== "question") return 0;
+  return Math.max(0, timePerQ - (serverNow() - state.questionStartedAt) / 1000);
+}
+
+// ─── Рендер питання ────────────────────────────────────────────────────
 function renderQuestion(qi) {
   const q = questions[qi];
+  shownQ = qi; shownReveal = false;
+  $("stage").classList.remove("revealed");
+  $("q-lbl").textContent = `${qi + 1} / ${totalQ}`;
+  $("q-bar").style.width = `${((qi + 1) / totalQ) * 100}%`;
   if (!q) return;
-  currentQ = qi;
-  revealMode = false;
-  const opts = q.options || [];
-  const isFreeform = q.type === "text" || q.type === "number";
-  document.getElementById("q-lbl").textContent = `${qi+1} / ${totalQ}`;
-  document.getElementById("q-bar").style.width = `${((qi+1)/totalQ)*100}%`;
-  document.getElementById("q-text").innerHTML = q.text || "";
-  document.getElementById("answered-bar").style.display = "";
-  document.getElementById("distrib").style.display = "none";
-  document.getElementById("next-btn").textContent = "Розкрити →";
-  document.getElementById("pause-btn").style.display = "";
-  document.getElementById("skip-btn").style.display = "";
+  const qt = $("q-text");
+  qt.innerHTML = q.text || "";
+  qt.classList.toggle("long", (qt.textContent || "").length > 140);
 
-  const t = TYPE_BADGE[q.type] || TYPE_BADGE.single;
-  const badge = document.getElementById("q-type-badge");
-  badge.className = "q-type-badge " + t.cls;
-  badge.textContent = t.label;
+  const t = TYPE_LABELS[q.type] || TYPE_LABELS.single;
+  $("q-type-badge").className = "q-type-badge " + t.cls;
+  $("q-type-badge").textContent = t.label;
 
-  document.getElementById("text-wait-hint").style.display = isFreeform ? "" : "none";
-  document.getElementById("answers-grid").style.display = isFreeform ? "none" : "";
-
-  if (!isFreeform) {
-    const cols = opts.length <= 2 ? "1fr" : "1fr 1fr";
-    document.getElementById("answers-grid").style.gridTemplateColumns = cols;
-    document.getElementById("answers-grid").innerHTML = opts.map((o,i) =>
-      `<div class="ans ${CLASSES[i]||"a"}">
-        <span class="letter">${LETTERS[i]}</span>
-        <span style="flex:1">${esc(o)}</span>
-        <span class="count-badge"><span id="cnt-${i}">—</span></span>
-      </div>`
-    ).join("");
-  }
+  const free = isFreeform(q);
+  $("text-wait-hint").hidden = !free;
+  const grid = $("answers-grid");
+  grid.hidden = free;
+  grid.innerHTML = free ? "" : (q.options || []).map((o, i) =>
+    `<div class="ans ${OPT_CLASSES[i] || "a"}" data-i="${i}">
+      <span class="fill"></span>
+      <span class="letter">${OPT_LETTERS[i]}</span>
+      <span class="txt">${esc(o)}</span>
+      <span class="count">0</span>
+    </div>`).join("");
+  grid.style.gridTemplateColumns = (q.options || []).length <= 2 ? "1fr" : "1fr 1fr";
+  renderAnswered();
 }
 
-function revealAnswers() {
-  const q = questions[currentQ];
-  stopMusic();
-  revealMode = true;
-  clearInterval(timerInterval);
-  document.getElementById("answered-bar").style.display = "none";
-  document.getElementById("pause-btn").style.display = "none";
-  document.getElementById("skip-btn").style.display = "none";
-  document.getElementById("next-btn").textContent = "➜ Наступне";
-  document.getElementById("timer").textContent = "0";
-  document.getElementById("timer").className = "timer-mini danger";
+function renderAnswered() {
+  const answered = Object.keys(currentAnswers()).length;
+  const total = activePids().length;
+  $("answered-fill").style.width = (total ? Math.round(answered / total * 100) : 0) + "%";
+  $("answered-num").textContent = answered;
+  $("answered-total").textContent = total;
+  $("footer-players").textContent = total;
+}
 
+// ─── Розкриття ─────────────────────────────────────────────────────────
+function renderReveal() {
+  const qi = state.currentQ, q = questions[qi];
   if (!q) return;
+  if (!shownReveal) { shownReveal = true; playReveal(); }
+  $("stage").classList.add("revealed");
+  const ans = currentAnswers();
+  const entries = Object.values(ans);
+  const n = entries.length;
 
-  // ── Text / Number ─────────────────────────────────────────────────────────
-  if (q.type === "text" || q.type === "number") {
-    renderTextDistrib();
-    return;
-  }
-
-  // ── Single / Multi (варіанти) ─────────────────────────────────────────────
-  const opts    = q.options || [];
-  const correct = Array.isArray(q.correct) ? q.correct.map(Number) : [Number(q.correct)];
-  const counts  = Array(opts.length).fill(0);
-  Object.values(answersData).forEach(ans => {
-    const vals = Array.isArray(ans.value) ? ans.value : [ans.value];
-    vals.forEach(v => { if (counts[Number(v)] !== undefined) counts[Number(v)]++; });
-  });
-  const max = Math.max(...counts, 1);
-  document.querySelectorAll(".ans").forEach((el, i) => {
-    const span = el.querySelector(".count-badge span");
-    if (span) span.textContent = counts[i];
-    if (correct.includes(i)) el.classList.add("correct");
-    else el.classList.add("wrong-dim");
-  });
-  const distrib = document.getElementById("distrib");
-  distrib.style.gridTemplateColumns = `repeat(${opts.length},1fr)`;
-  distrib.style.display = "grid";
-  distrib.innerHTML = opts.map((o,i) => {
-    const h = Math.round((counts[i]/max)*100);
-    return `<div class="dcol">
-      <div class="vnum">${counts[i]}</div>
-      <div class="vbar ${CLASSES[i]||"a"}"><i style="height:${Math.max(h,4)}%"></i></div>
-      <div class="lbl">${LETTERS[i]} · ${Math.round(counts[i]/Math.max(Object.keys(answersData).length,1)*100)}%</div>
-    </div>`;
-  }).join("");
-}
-
-// ── Ручна перевірка текстових / числових відповідей ─────────────────────────
-let _lastTextGroups = [];
-
-function renderTextDistrib() {
-  const q = questions[currentQ];
-  if (!q || (q.type !== "text" && q.type !== "number")) return;
-  const correct = String(q.correct || "").trim();
-  const entries = Object.values(answersData);
-  const total   = entries.length;
-
-  // Групуємо відповіді за текстом; correct беремо зі збереженого isCorrect
-  // (щоб врахувати ручні виправлення викладача), а не перераховуємо заново.
-  const groups = {};
-  entries.forEach(a => {
-    const v = String(a.value ?? "").trim();
-    if (!groups[v]) groups[v] = { count: 0, correct: !!a.isCorrect };
-    groups[v].count++;
-  });
-  const sorted = Object.entries(groups).sort((a,b) => b[1].count - a[1].count);
-  _lastTextGroups = sorted;
-
-  const distrib = document.getElementById("distrib");
-  distrib.style.display = "block";
-  distrib.style.gridTemplateColumns = "";
-  distrib.innerHTML = `
-    <div style="margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#A78BFA">Правильна відповідь:</span>
-      <span style="font-family:'Geist Mono',monospace;font-size:18px;font-weight:800;color:#86EFAC">${esc(correct||"—")}</span>
-      <span class="distrib-hint">Можна вручну зарахувати чи скасувати будь-яку відповідь</span>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto">
-      ${sorted.length ? sorted.map(([v, g], idx) => {
-        const pct = Math.round(g.count/Math.max(total,1)*100);
-        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;background:${g.correct?"rgba(16,185,129,.15)":"rgba(255,255,255,.05)"}">
-          <span style="font-family:'Geist Mono',monospace;font-weight:700;font-size:14px;min-width:24px;color:${g.correct?"#86EFAC":"#FCA5A5"}">${g.correct?"✓":"✗"}</span>
-          <span style="flex:1;font-size:14px;font-weight:600">${v ? esc(v) : '<i style="color:#7B85B5">порожньо</i>'}</span>
-          <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A6B0D6">${g.count} · ${pct}%</span>
-          <button class="grade-btn ${g.correct?"revoke":"accept"}" data-idx="${idx}">${g.correct ? "✗ Скасувати" : "✓ Зарахувати"}</button>
-        </div>`;
-      }).join("") : `<div style="color:#7B85B5;font-size:13px;padding:8px">Ніхто не відповів</div>`}
-    </div>`;
-}
-
-document.getElementById("distrib").addEventListener("click", (e) => {
-  const btn = e.target.closest(".grade-btn");
-  if (!btn) return;
-  const g = _lastTextGroups[Number(btn.dataset.idx)];
-  if (!g) return;
-  const [v, info] = g;
-  btn.disabled = true;
-  toggleGroupCorrect(v, !info.correct).finally(() => { btn.disabled = false; });
-});
-
-async function toggleGroupCorrect(v, makeCorrect) {
-  const scoring = room.scoring || "correct";
-  const updates = {};
-  Object.entries(answersData).forEach(([pid, a]) => {
-    if (String(a.value ?? "").trim() !== v) return;
-    let points = 0;
-    if (makeCorrect) {
-      if (scoring === "speed") {
-        const elapsed = Math.max(0, ((a.answeredAt || questionStartedAt) - questionStartedAt) / 1000);
-        const ratio = Math.max(0, 1 - elapsed / timePerQ);
-        points = Math.round(500 + 500 * ratio);
-      } else {
-        points = 1000;
-      }
-    }
-    updates[`rooms/${code}/answers/${currentQ}/${pid}/isCorrect`]      = makeCorrect;
-    updates[`rooms/${code}/answers/${currentQ}/${pid}/points`]         = points;
-    updates[`rooms/${code}/answers/${currentQ}/${pid}/gradedByTeacher`] = true;
-  });
-  if (Object.keys(updates).length) await update(ref(db), updates);
-}
-
-function startTimer() {
-  clearInterval(timerInterval);
-  _lastTickSec = -1;
-  startQuestionMusic(); // ← запускаємо музику
-  function tick() {
-    if (isPaused) return;
-    const elapsed = (Date.now() - questionStartedAt) / 1000;
-    const left = Math.max(0, timePerQ - elapsed);
-    const leftCeil = Math.ceil(left);
-    const el = document.getElementById("timer");
-    el.textContent = Math.ceil(left);
-    el.className = "timer-mini" + (left <= 5 ? " danger" : left <= 10 ? " warn" : "");
-
-    // Тік-звук — один раз на секунду в останні 5с
-    if (left > 0 && left <= 5 && leftCeil !== _lastTickSec) {
-      _lastTickSec = leftCeil;
-      playTick(leftCeil === 1);
-    }
-
-    if (left <= 0) { clearInterval(timerInterval); revealAnswers(); update(ref(db,`rooms/${code}`),{status:"reveal"}); }
-  }
-  tick();
-  timerInterval = setInterval(tick, 200);
-}
-
-window.togglePause = async () => {
-  isPaused = !isPaused;
-  const btn = document.getElementById("pause-btn");
-  if (isPaused) {
-    pausedLeft = timePerQ - (Date.now() - questionStartedAt) / 1000;
-    stopMusic(); // ← зупиняємо на паузі
-    await update(ref(db, `rooms/${code}`), { status: "paused" });
-    btn.textContent = "▶ Продовжити";
-  } else {
-    questionStartedAt = Date.now() - (timePerQ - pausedLeft) * 1000;
-    await update(ref(db, `rooms/${code}`), { status: "question", questionStartedAt });
-    btn.textContent = "⏸ Пауза";
-    startTimer(); // ← startTimer сам запускає музику
-  }
-};
-
-window.skipQuestion = async () => {
-  clearInterval(timerInterval);
-  if (!revealMode) { revealAnswers(); await update(ref(db, `rooms/${code}`), { status: "reveal" }); }
-};
-
-window.nextQuestion = async () => {
-  if (!revealMode) {
-    revealAnswers();
-    await update(ref(db, `rooms/${code}`), { status: "reveal" });
-    return;
-  }
-  const next = currentQ + 1;
-  if (next >= totalQ) {
-    await goLeaderboard();
-  } else {
-    questionStartedAt = Date.now();
-    await update(ref(db, `rooms/${code}`), {
-      status: "question", currentQ: next, questionStartedAt
+  if (!isFreeform(q)) {
+    const correct = (Array.isArray(keyFor(qi)) ? keyFor(qi) : [keyFor(qi)]).map(Number);
+    const counts = (q.options || []).map(() => 0);
+    entries.forEach(a => (Array.isArray(a.value) ? a.value : [a.value]).forEach(v => { if (counts[+v] !== undefined) counts[+v]++; }));
+    document.querySelectorAll("#answers-grid .ans").forEach((el, i) => {
+      const ok = correct.includes(i);
+      el.classList.toggle("correct", ok);
+      el.classList.toggle("dim", !ok);
+      if (ok && !el.querySelector(".tag")) el.insertAdjacentHTML("beforeend", `<span class="tag">✓ ПРАВИЛЬНО</span>`);
+      const pct = n ? Math.round(counts[i] / n * 100) : 0;
+      el.querySelector(".count").innerHTML = `${counts[i]}<small>${pct}%</small>`;
+      el.querySelector(".fill").style.width = pct + "%";
     });
+    $("reveal-grid").classList.add("no-grading");
+  } else {
+    $("reveal-grid").classList.remove("no-grading");
+    renderGrading(ans);
   }
-};
+  const graded = entries.filter(a => typeof a.isCorrect === "boolean");
+  $("footer-acc").textContent = graded.length ? Math.round(graded.filter(a => a.isCorrect).length / graded.length * 100) + "%" : "—";
+  renderLeaders();
+}
 
-window.goLeaderboard = async () => {
-  clearInterval(timerInterval);
-  await update(ref(db, `rooms/${code}`), { status: "leaderboard" });
-  // Save history
-  const scoresSnap = await get(ref(db, `rooms/${code}/answers`));
-  const allAns = scoresSnap.val() || {};
-  const scores = {};
-  Object.values(allAns).forEach(qA => { Object.entries(qA||{}).forEach(([pid,a]) => { scores[pid]=(scores[pid]||0)+(a.points||0); }); });
-  const results = Object.entries(roomPlayers).filter(([,p])=>p.active!==false)
-    .map(([pid,p])=>({nickname:p.nickname,score:scores[pid]||0}))
-    .sort((a,b)=>b.score-a.score);
-  await set(ref(db, `teachers/${uid}/gameHistory/${code}`), {
-    code, testId: room.testId, testTitle: room.testTitle||"",
-    playedAt: Date.now(), playerCount: results.length, results
+// Ручна перевірка текстових / числових відповідей. Групуємо за нормалізованим
+// текстом, щоб «Київ», «київ » і «КИЇВ» були однією групою.
+let groupsCache = [];
+const normKey = (v) => String(v ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+function renderGrading(ans) {
+  const groups = new Map();
+  Object.entries(ans).forEach(([pid, a]) => {
+    const k = normKey(a.value);
+    const g = groups.get(k) || { label: String(a.value ?? "").trim(), pids: [], correct: 0 };
+    g.pids.push(pid); if (a.isCorrect) g.correct++;
+    groups.set(k, g);
   });
-  location.href = `podium.html?code=${code}`;
-};
-
-window.endGame = async () => {
-  if (!confirm("Завершити гру?")) return;
-  await update(ref(db, `rooms/${code}`), { status: "finished" });
-  location.href = "../index.html";
-};
-
-// Players listener
-onValue(ref(db, `rooms/${code}/players`), snap => {
-  roomPlayers = snap.val() || {};
-  const active = Object.entries(roomPlayers).filter(([,p])=>p.active!==false);
-  // Top player footer
-  const scores = {};
-  // ... simplified footer
-  document.getElementById("footer-top").textContent = active[0] ? active[0][1].nickname : "—";
+  groupsCache = [...groups.values()].sort((a, b) => b.pids.length - a.pids.length);
+  const total = Object.keys(ans).length;
+  $("grading").innerHTML = `
+    <h3>Відповіді учнів <small>можна зарахувати вручну</small></h3>
+    <div class="correct-line"><span>Еталон:</span><b>${esc(keyFor(state.currentQ) ?? "—")}</b></div>
+    <div class="groups">${groupsCache.length ? groupsCache.map((g, i) => {
+      const ok = g.correct === g.pids.length;
+      return `<div class="grp${ok ? " ok" : ""}">
+        <span class="m">${ok ? "✓" : "✗"}</span>
+        <span class="v">${g.label ? esc(g.label) : '<i class="muted">порожньо</i>'}</span>
+        <span class="n">${g.pids.length} · ${Math.round(g.pids.length / Math.max(total, 1) * 100)}%</span>
+        <button class="grade-btn ${ok ? "revoke" : "accept"}" data-g="${i}">${ok ? "✗ Скасувати" : "✓ Зарахувати"}</button>
+      </div>`;
+    }).join("") : `<div class="muted">Ніхто не відповів</div>`}</div>`;
+}
+$("grading").addEventListener("click", async (e) => {
+  const btn = e.target.closest(".grade-btn"); if (!btn) return;
+  const g = groupsCache[+btn.dataset.g]; if (!g) return;
+  const makeCorrect = g.correct !== g.pids.length;
+  btn.disabled = true;
+  const qi = state.currentQ, upd = {};
+  g.pids.forEach(pid => {
+    const r = gradeOne(qi, allAnswers[qi]?.[pid], makeCorrect);
+    upd[`rooms/${code}/answers/${qi}/${pid}/isCorrect`] = r.isCorrect;
+    upd[`rooms/${code}/answers/${qi}/${pid}/points`] = r.points;
+    upd[`rooms/${code}/answers/${qi}/${pid}/gradedByTeacher`] = true;
+  });
+  try { await update(ref(db), upd); }
+  catch (err) { toast("Не вдалося зберегти: " + err.message, "err"); btn.disabled = false; }
 });
 
-// Room listener
-onValue(ref(db, `rooms/${code}`), snap => {
-  if (!snap.exists()) return;
-  const r = snap.val();
-  if (r.currentQ !== currentQ && r.status === "question") {
-    questionStartedAt = r.questionStartedAt || Date.now();
-    answersData = {};
-    renderQuestion(r.currentQ||0);
-    startTimer();
-    // Re-subscribe answers
-    subscribeAnswers(r.currentQ||0);
+function renderLeaders() {
+  const list = standings(players, allAnswers);
+  $("footer-top").textContent = list[0] && list[0].score > 0 ? list[0].nickname : "—";
+  const qi = state.currentQ;
+  $("leaders-sub").textContent = list.length ? `після ${qi + 1}-го питання` : "";
+  $("leaders").innerHTML = list.length ? list.slice(0, 5).map((p, i) => {
+    const gained = Number(allAnswers[qi]?.[p.pid]?.points) || 0;
+    return `<div class="lr" style="animation-delay:${i * 60}ms">
+      <span class="r">${p.rank}</span>
+      <span class="av" style="background:${avatarColor(p.nickname)}">${esc(initialsOf(p.nickname))}</span>
+      <span class="nm">${esc(p.nickname)}</span>
+      ${gained ? `<span class="d">+${fmtNum(gained)}</span>` : ""}
+      <span class="s">${fmtNum(p.score)}</span>
+    </div>`;
+  }).join("") : `<div class="muted">Немає гравців</div>`;
+}
+
+// ─── Застосування стану ────────────────────────────────────────────────
+function applyState(s) {
+  state = { ...state, ...s, currentQ: Number(s.currentQ) || 0, questionStartedAt: Number(s.questionStartedAt) || 0 };
+  $("loading").classList.add("hide");
+  switch (state.status) {
+    case "lobby": leaving = true; location.replace(`lobby?code=${code}`); return;
+    case "leaderboard": leaving = true; location.replace(`podium?code=${code}`); return;
+    case "finished": case null: case undefined:
+      leaving = true; stopMusic(); fatal("Гру завершено"); return;
   }
-});
+  if (state.currentQ !== shownQ) renderQuestion(state.currentQ);
 
-// Answers listener
-function subscribeAnswers(qi) {
-  onValue(ref(db, `rooms/${code}/answers/${qi}`), snap => {
-    answersData = snap.val() || {};
-    const answered = Object.keys(answersData).length;
-    const total = Object.keys(roomPlayers).filter(k=>roomPlayers[k].active!==false).length || 1;
-    const pct = Math.round(answered/total*100);
-    document.getElementById("answered-fill").style.width = pct + "%";
-    document.getElementById("answered-num").textContent = answered;
-    document.getElementById("answered-total").textContent = total;
+  const isReveal = state.status === "reveal";
+  const isPaused = state.status === "paused";
+  $("pause-banner").classList.toggle("show", isPaused);
+  $("answered-bar").style.display = isReveal ? "none" : "";
+  $("pause-btn").hidden = isReveal;
+  $("pause-btn").innerHTML = isPaused ? `▶ Продовжити <span class="k">P</span>` : `⏸ Пауза <span class="k">P</span>`;
+  const last = state.currentQ >= totalQ - 1;
+  $("next-btn").innerHTML = (isReveal ? (last ? "🏁 Фінальні результати" : "Наступне питання →") : "Показати відповідь") + ` <span class="k">␣</span>`;
 
-    // Update live counts on cards (hidden until reveal)
-    if (!revealMode) {
-      const opts = questions[currentQ]?.options || [];
-      const counts = Array(opts.length).fill(0);
-      Object.values(answersData).forEach(a => {
-        const vals = Array.isArray(a.value) ? a.value : [a.value];
-        vals.forEach(v => { if(counts[Number(v)]!==undefined) counts[Number(v)]++; });
-      });
-    }
+  if (isReveal) { stopMusic(); renderReveal(); }
+  else if (isPaused) stopMusic();
+  else if (!_musicStop) startMusic();
+  tick();
+}
 
-    // Accuracy footer
-    const q = questions[currentQ];
-    let correctCount = 0;
-    if (q?.type === "text" || q?.type === "number") {
-      // Беремо збережений isCorrect (враховує ручні виправлення викладача)
-      correctCount = Object.values(answersData).filter(a => a.isCorrect).length;
-    } else {
-      const correct = Array.isArray(q?.correct) ? q.correct.map(Number) : [Number(q?.correct)];
-      correctCount = Object.values(answersData).filter(a => {
-        const vals = Array.isArray(a.value) ? a.value.map(Number) : [Number(a.value)];
-        return JSON.stringify(vals.sort()) === JSON.stringify([...correct].sort());
-      }).length;
-    }
-    document.getElementById("footer-acc").textContent = answered ? Math.round(correctCount/answered*100)+"%" : "—";
+// ─── Таймер ────────────────────────────────────────────────────────────
+function tick() {
+  const left = secondsLeft();
+  const el = $("timer");
+  $("timer-num").textContent = state.status === "reveal" ? "✓" : Math.ceil(left);
+  el.style.setProperty("--p", state.status === "reveal" ? 0 : (left / timePerQ).toFixed(4));
+  el.className = "timer" + (state.status === "paused" ? " paused" : state.status === "reveal" ? "" : left <= 5 ? " danger" : left <= 10 ? " warn" : "");
+  if (state.status !== "question") return;
+  const sec = Math.ceil(left);
+  if (left > 0 && left <= 5 && sec !== _lastTick) { _lastTick = sec; playTick(sec === 1); }
+  // Автоматичне розкриття; якщо запис не вдався — повтор не частіше ніж раз на 3с
+  if (left <= 0 && Date.now() - autoRevealAt > 3000) { autoRevealAt = Date.now(); reveal(); }
+}
+let autoRevealAt = 0;
+setInterval(tick, 200);
 
-    // Live-оновлення розподілу відповідей після ручного зарахування
-    if (revealMode && (q?.type === "text" || q?.type === "number")) {
-      renderTextDistrib();
-    }
+// ─── Дії ───────────────────────────────────────────────────────────────
+async function act(fn) {
+  if (busy) return;
+  busy = true;
+  try { await fn(); }
+  catch (e) { console.error(e); toast("Помилка: " + e.message, "err"); }
+  finally { busy = false; }
+}
 
-    // Auto-reveal when all answered
-    if (answered >= total && total > 0 && !revealMode) {
-      revealAnswers();
-      update(ref(db, `rooms/${code}`), { status: "reveal" });
+// Оцінювання відбувається тут, у момент розкриття, одним атомарним записом
+// разом зі зміною статусу — учні отримують бали рівно тоді, коли бачать відповідь.
+function reveal() {
+  return act(async () => {
+    if (state.status !== "question" && state.status !== "paused") return;
+    const qi = state.currentQ, upd = {};
+    Object.entries(allAnswers[qi] || {}).forEach(([pid, a]) => {
+      if (a?.gradedByTeacher) return;
+      const r = gradeOne(qi, a);
+      upd[`rooms/${code}/answers/${qi}/${pid}/isCorrect`] = r.isCorrect;
+      upd[`rooms/${code}/answers/${qi}/${pid}/points`] = r.points;
+    });
+    upd[`rooms/${code}/revealed/${qi}`] = { correct: keyFor(qi), at: serverNow() };
+    upd[`rooms/${code}/status`] = "reveal";
+    upd[`rooms/${code}/pausedLeft`] = null;
+    await update(ref(db), upd);
+  });
+}
+
+function next() {
+  if (state.status !== "reveal") return reveal();
+  return act(async () => {
+    if (state.currentQ >= totalQ - 1) return finish();
+    await update(ref(db, `rooms/${code}`), {
+      status: "question", currentQ: state.currentQ + 1,
+      questionStartedAt: serverNow(), pausedLeft: null, startLog: null,
+    });
+  });
+}
+
+function togglePause() {
+  return act(async () => {
+    if (state.status === "question") {
+      await update(ref(db, `rooms/${code}`), { status: "paused", pausedLeft: Math.round(secondsLeft() * 10) / 10 });
+    } else if (state.status === "paused") {
+      const now = serverNow();
+      const newStart = now - (timePerQ - (Number(state.pausedLeft) || 0)) * 1000;
+      const log = Array.isArray(state.startLog) ? [...state.startLog] : Object.values(state.startLog || {});
+      if (!log.length) log.push({ from: 0, start: state.questionStartedAt });
+      log.push({ from: now, start: newStart });
+      await update(ref(db, `rooms/${code}`), { status: "question", questionStartedAt: newStart, pausedLeft: null, startLog: log });
     }
   });
 }
 
-// Init
-renderQuestion(currentQ);
-startTimer();
-subscribeAnswers(currentQ);
+async function saveHistory() {
+  const snap = await get(ref(db, `rooms/${code}/answers`));
+  const list = standings(players, snap.val() || {});
+  await set(ref(db, `teachers/${uid}/gameHistory/${code}`), {
+    code, testId: room.testId || "", testTitle: room.testTitle || "",
+    playedAt: Date.now(), playerCount: list.length, questionCount: totalQ,
+    results: list.map(p => ({ nickname: p.nickname, score: p.score, correct: p.correct })),
+  });
+}
 
-window.addEventListener("beforeunload", () => {
-  if (code) update(ref(db, `rooms/${code}`), { status: "finished" }).catch(()=>{});
+async function finish() {
+  leaving = true;
+  await saveHistory().catch(e => console.warn("history:", e));
+  await update(ref(db, `rooms/${code}`), { status: "leaderboard", finishedAt: serverNow() });
+  location.href = `podium?code=${code}`;
+}
+
+$("next-btn").addEventListener("click", () => next());
+$("pause-btn").addEventListener("click", () => togglePause());
+$("end-btn").addEventListener("click", () => {
+  if (!confirm("Завершити гру достроково? Поточні результати збережуться в історії ігор.")) return;
+  act(async () => {
+    leaving = true;
+    stopMusic();
+    await saveHistory().catch(e => console.warn("history:", e));
+    await update(ref(db, `rooms/${code}`), { status: "finished", finishedAt: serverNow() });
+    location.href = HOME_URL;
+  });
 });
+
+document.addEventListener("keydown", (e) => {
+  if (e.target.closest("input,textarea,select") || e.repeat) return;
+  if (e.key === " " || e.key === "Enter" || e.key === "ArrowRight") {
+    if (e.target.closest("button") && e.key !== "ArrowRight") return; // кнопка в фокусі сама обробить
+    e.preventDefault(); next();
+  } else if (e.key === "p" || e.key === "P" || e.key === "з" || e.key === "З") togglePause();
+  else if (e.key === "m" || e.key === "M" || e.key === "ь" || e.key === "Ь") toggleMute();
+});
+
+// Випадкове закриття вкладки посеред гри — питаємо підтвердження.
+// (Раніше тут статус ставився в "finished", і гра вмирала навіть при
+// звичайному переході на подіум чи оновленні сторінки.)
+window.addEventListener("beforeunload", (e) => {
+  if (leaving || !["question", "paused", "reveal"].includes(state.status)) return;
+  e.preventDefault(); e.returnValue = "";
+});
+
+// ─── Підписки ──────────────────────────────────────────────────────────
+onValue(ref(db, `rooms/${code}/players`), snap => {
+  players = snap.val() || {};
+  renderAnswered();
+  if (state.status === "reveal") renderReveal(); else renderLeaders();
+});
+
+onValue(ref(db, `rooms/${code}/answers`), snap => {
+  allAnswers = snap.val() || {};
+  renderAnswered();
+  if (state.status === "reveal") { renderReveal(); return; }
+  // Усі активні гравці відповіли — розкриваємо, не чекаючи таймера
+  const total = activePids().length;
+  if (state.status === "question" && total > 0 && Object.keys(currentAnswers()).length >= total) reveal();
+});
+
+watchFields(`rooms/${code}`, ["status", "currentQ", "questionStartedAt", "pausedLeft", "startLog"], applyState);
 </script>
 </body>
 </html>

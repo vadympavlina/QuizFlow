@@ -2059,7 +2059,7 @@ selectAnalyticsDrop(field, value, label){
   confDelTest(id,name){_pid=id;$("del-tn").textContent=name;openM("m-del-test");},
   startLiveGame(testId){
     document.querySelectorAll("[id^='tmenu-']").forEach(m=>m.style.display="none");
-    window.open(`live/setup.html?testId=${testId}`,"_blank","noopener");
+    window.open(`live/setup?testId=${testId}`,"_blank","noopener");
   },
   async doDelTest(mode="archive"){
     const id=_pid;_pid=null;closeM("m-del-test");ldr(true);

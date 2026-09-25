@@ -6,7 +6,8 @@
       "**/.*",
       "database.rules.json"
     ],
-    "rewrites": []
+    "rewrites": [],
+    "cleanUrls": true
   },
   "database": {
     "rules": "database.rules.json"
