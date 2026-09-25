@@ -240,7 +240,7 @@ import {
   db, ref, get, set, update, onValue, requireTeacher, readParams, isValidCode, fatal, toast,
   esc, initialsOf, avatarColor, applyTheme, serverNow, watchFields, safeStore, HOME_URL,
   OPT_CLASSES, OPT_LETTERS, TYPE_LABELS, isFreeform, checkCorrect, calcPoints, LATE_GRACE_MS,
-  standings, fmtNum, isActive, isOnline, asIndexList, pickCount, fitText, fitGroup, onRefit,
+  standings, fmtNum, isActive, isOnline, asIndexList, fitText, fitGroup, onRefit,
 } from "./live-core.js";
 
 const $ = (id) => document.getElementById(id);
@@ -449,8 +449,7 @@ function renderQuestion(qi) {
 
   const t = TYPE_LABELS[q.type] || TYPE_LABELS.single;
   $("q-type-badge").className = "q-type-badge " + t.cls;
-  const need = q.type === "multi" ? pickCount(keyFor(qi)) : 0;
-  $("q-type-badge").textContent = need ? `${t.label} · оберіть ${need}` : t.label;
+  $("q-type-badge").textContent = t.label;   // лише тип, без кількості правильних — екран бачить увесь клас
 
   const free = isFreeform(q);
   $("text-wait-hint").hidden = !free;

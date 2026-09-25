@@ -451,9 +451,9 @@ async function createRoom() {
         timePerQ: state.time, scoring: state.scoring,
         theme: { grad: state.grad, pat: state.pat },
         options: { shuffle: !!state.shuffle, shuffleQ: !!state.shuffleQ, podium: !!state.podium },
-        // pick — лише КІЛЬКІСТЬ правильних (для підказки «Оберіть 2»), не самі відповіді
-        questions: list.map(q => ({ id: q.id || "", type: q.type || "single", text: q.text || "", options: q.options || null,
-          pick: q.type === "multi" ? pickCount(q.correct) : null })),
+        // У публічну кімнату — лише текст і варіанти. Ні відповідей, ні навіть
+        // КІЛЬКОСТІ правильних (інакше її видно в DevTools).
+        questions: list.map(q => ({ id: q.id || "", type: q.type || "single", text: q.text || "", options: q.options || null })),
         testTitle: testData.title || "",
         createdAt: now,
       },
