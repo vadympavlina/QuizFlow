@@ -183,8 +183,8 @@
           <div class="lk-row">
             <div class="lk-f">
               <label class="lk-l" for="nl-g">Група <small>необов'язково</small></label>
-              <input class="lk-in" id="nl-g" list="nl-groups" maxlength="60" placeholder="Напр.: ПК-21" autocomplete="off">
-              <datalist id="nl-groups"></datalist>
+              <input class="lk-in" id="nl-g" maxlength="60" placeholder="Напр.: ПК-21" autocomplete="off" oninput="G._nlGroupChips()">
+              <div class="lk-chips" id="nl-groups"></div>
             </div>
             <div class="lk-f">
               <label class="lk-l" for="nl-m">Скільки студентів</label>
@@ -352,8 +352,8 @@
 <div class="mo" id="m-del-attempt"><div class="mb" style="max-width:380px;text-align:center">
   <button class="mcl" onclick="closeM('m-del-attempt')" aria-label="Закрити">×</button>
   <div style="font-size:36px;margin-bottom:10px">🗑️</div>
-  <div class="mtl">Видалити спробу?</div>
-  <div style="font-size:14px;color:var(--muted);margin:6px 0 22px">Спроба студента <strong id="del-att-name"></strong> буде видалена назавжди</div>
+  <div class="mtl" id="del-att-title">Видалити спробу?</div>
+  <div style="font-size:14px;color:var(--muted);margin:6px 0 22px;line-height:1.5" id="del-att-text"></div>
   <div class="ma"><button class="btn bs" onclick="closeM('m-del-attempt')">Скасувати</button><button class="btn bd" onclick="G.doDelAttempt()">Видалити</button></div>
 </div></div>
 

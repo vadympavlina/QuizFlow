@@ -889,3 +889,35 @@ body.mo-open{overflow:hidden}
   .lk-done-box{flex-direction:column;text-align:center}
   .lk-h{padding:18px 56px 14px 18px}.lk-body{padding:16px 18px 4px}.lk-foot{padding:14px 18px 18px}
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   qfDrop — власний дропдаун (features.js). Меню — у body.
+   ═══════════════════════════════════════════════════════════════════════ */
+.qd{position:relative;display:inline-flex;min-width:0}
+.qd-btn{display:inline-flex;align-items:center;gap:8px;height:38px;max-width:260px;padding:0 11px 0 12px;border-radius:10px;border:1px solid #E3E8F2;background:#fff;font:600 13px 'Manrope',system-ui,sans-serif;color:#24335A;cursor:pointer;transition:border-color .15s,box-shadow .15s,background .15s;white-space:nowrap;min-width:0}
+.qd-btn:hover{border-color:#CDD6E8;color:#0B1437}
+.qd-btn.open{border-color:#93B0F5;box-shadow:0 0 0 3px rgba(45,91,227,.1)}
+.qd-btn.set{background:#EEF3FF;border-color:#C9D7FB;color:#1E3A8A}
+.qd-btn svg{flex:0 0 auto;color:#8691AC}
+.qd-btn.set svg{color:#2D5BE3}
+.qd-lbl{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.qd-chev{transition:transform .2s}
+.qd-btn.open .qd-chev{transform:rotate(180deg)}
+.qd-pop{position:fixed;z-index:1000;max-width:360px;background:#fff;border:1px solid #E3E8F2;border-radius:13px;box-shadow:0 14px 40px rgba(11,20,55,.16),0 2px 6px rgba(11,20,55,.06);padding:5px;font-family:'Manrope',system-ui,sans-serif;animation:qdIn .14s ease}
+@keyframes qdIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.qd-s{padding:3px 3px 6px}
+.qd-s input{width:100%;height:34px;border:1px solid #E3E8F2;border-radius:9px;padding:0 10px;font:inherit;font-size:13px;outline:none;box-sizing:border-box}
+.qd-s input:focus{border-color:#93B0F5}
+.qd-list{max-height:300px;overflow-y:auto}
+.qd-it{width:100%;display:flex;align-items:center;gap:10px;padding:8px 10px;border:0;background:transparent;border-radius:8px;font:inherit;font-size:13px;font-weight:600;color:#0B1437;text-align:left;cursor:pointer}
+.qd-it:hover,.qd-it.kb{background:#F4F6FB}
+.qd-it.on{color:#1E3A8A;background:#EEF3FF}
+.qd-it svg{flex:0 0 auto;color:#2D5BE3}
+.qd-it-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qd-it-t small{display:block;font-size:11.5px;font-weight:500;color:#8691AC;overflow:hidden;text-overflow:ellipsis}
+.qd-n{font-family:'Geist Mono',monospace;font-size:11px;font-weight:600;color:#8691AC;background:#F1F4FA;padding:1px 7px;border-radius:999px}
+.qd-empty{padding:14px 10px;text-align:center;font-size:12.5px;color:#8691AC}
+.lk-chips{display:flex;flex-wrap:wrap;gap:5px}
+.lk-chips:empty{display:none}
+.lk-chips button{height:24px;padding:0 9px;border-radius:999px;border:1px solid #DCE6FC;background:#F5F8FF;color:#1E3A8A;font:700 11.5px 'Manrope',system-ui,sans-serif;cursor:pointer}
+.lk-chips button:hover{background:#2D5BE3;border-color:#2D5BE3;color:#fff}

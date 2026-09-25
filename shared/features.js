@@ -394,7 +394,7 @@ function renderAll(){
   // Таблиця посилань
   if (has("lnk-tbl")) renderLinks();
   // Селекти фільтрів (заповнюються лише якщо хоч один select існує)
-  if (has("ft") || has("nl-t") || has("fgrp") || has("an-test") || has("an-group")) fillSelects();
+  if (has("nl-t") || has("an-test") || has("an-group")) fillSelects();
   // Бейджі в sidebar (завжди, бо sidebar підвантажений на кожній сторінці)
   updateBadges();
   // Архів
@@ -1356,47 +1356,9 @@ document.addEventListener("keydown", e => {
 })();
 
 // ATTEMPTS
-// Фільтри зі сторінки «Посилання» → «Результати»: attempts?test=…&group=…
-let _urlFiltersDone = false;
-function _applyUrlFilters(){
-  if (_urlFiltersDone || !$("ft") || !$("fgrp")) return;
-  const p = new URLSearchParams(location.search), tId = p.get("test"), grp = p.get("group");
-  if (!tId && !grp) { _urlFiltersDone = true; return; }
-  const t = tests.find(x => x.id === tId);
-  if (tId && !t) return;                       // дані ще не прийшли — спробуємо з наступним оновленням
-  _urlFiltersDone = true;
-  if (grp && ![...$("fgrp").options].some(o => o.value === grp)) $("fgrp").insertAdjacentHTML("beforeend", `<option value="${esc(grp)}">${esc(grp)}</option>`);
-  if (t) G.selectDrop("cd-ft", t.id, t.title);
-  if (grp) G.selectDrop("cd-fgrp", grp, grp);
-}
 fillSelects = function(){
-  // Прихований select для сумісності з renderAttempts
-  // Зберігаємо вибране (перебудова select скидала фільтр при кожному оновленні посилань)
-  const ft = $("ft"), _ftPrev = ft?.value || "", _grpPrev = $("fgrp")?.value || "";
-  if (ft) ft.innerHTML=`<option value="">Всі тести</option>`+tests.filter(t=>t.status!=="archived").map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
-  if (ft) ft.value = _ftPrev;
-  // Кастомний дропдаун тестів
-  const ftMenu=document.getElementById("cd-ft-menu");
-  if(ftMenu){
-    const curFt=$("ft")?.value||"";
-    ftMenu.innerHTML=`<div class="cd-item${!curFt?" cd-active":""}" onclick="G.selectDrop('cd-ft','','Всі тести')">Всі тести</div>`+
-      tests.filter(t=>t.status!=="archived").map(t=>
-        `<div class="cd-item${curFt===t.id?" cd-active":""}" onclick="G.selectDrop('cd-ft','${t.id}',${jsq(t.title)})">${esc(t.title)}</div>`
-      ).join("");
-  }
   // Групи з посилань (без прихованих через архівацію студентської групи)
   const groups=[...new Set(links.filter(l=>!l.groupHidden).map(l=>l.group).filter(Boolean))].sort();
-  const fgrp = $("fgrp");
-  if (fgrp) fgrp.innerHTML=`<option value="">Всі групи</option>`+groups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join("");
-  if (fgrp) fgrp.value = _grpPrev;
-  // Кастомний дропдаун груп
-  const grpMenu=document.getElementById("cd-fgrp-menu");
-  if(grpMenu){
-    const curGrp=$("fgrp").value;
-    grpMenu.innerHTML=`<div class="cd-item${!curGrp?" cd-active":""}" onclick="G.selectDrop('cd-fgrp','','Всі групи')">Всі групи</div>`+
-      groups.map(g=>`<div class="cd-item${curGrp===g?" cd-active":""}" onclick="G.selectDrop('cd-fgrp',${jsq(g)},${jsq(g)})">${esc(g)}</div>`
-      ).join("");
-  }
   // Аналітика - тести
   const anTest=$("an-test");
   if(anTest){
@@ -1431,197 +1393,452 @@ fillSelects = function(){
 }
 
 
-// ─── ATTEMPTS SORT + PAGINATION STATE ──────────────────────────────────
-let _attSort = { field: "date", dir: "desc" };
-window._attPage = 1;
-const ATT_PER_PAGE = 20;
 
-// ─── renderAttempts (заміна) ───────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════════════
+// qfDrop — власний дропдаун (стандартних <select> у панелі немає).
+// Меню рендериться в body (не обрізається overflow картки), з пошуком
+// для довгих списків, клавіатурою (↑↓ Enter Esc) і лічильниками.
+//   const d = qfDrop(hostEl, { items:[{value,label,count?,sub?}], value, placeholder, search, onChange, icon })
+//   d.set(value) · d.setItems(items) · d.value
+// ═════════════════════════════════════════════════════════════════════
+function qfDrop(host, opt = {}){
+  const st = { items: opt.items || [], value: opt.value ?? "" };
+  host.classList.add("qd");
+  host.innerHTML = `<button type="button" class="qd-btn" aria-haspopup="listbox" aria-expanded="false">${opt.icon || ""}<span class="qd-lbl"></span><svg class="qd-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></button>`;
+  const btn = host.firstElementChild, lbl = btn.querySelector(".qd-lbl");
+  const def = opt.defaultValue ?? "";
+  const paint = () => {
+    const it = st.items.find(i => i.value === st.value);
+    lbl.textContent = it ? (opt.prefix ? opt.prefix + it.label : it.label) : (opt.placeholder || "—");
+    btn.classList.toggle("set", st.value !== def);
+    btn.title = lbl.textContent;
+  };
+  let pop = null, kb = -1, q = "";
+  const list = () => {
+    const f = q.trim().toLowerCase();
+    return f ? st.items.filter(i => String(i.label).toLowerCase().includes(f)) : st.items;
+  };
+  const renderList = () => {
+    const box = pop.querySelector(".qd-list"), items = list();
+    kb = Math.min(kb, items.length - 1);
+    box.innerHTML = items.length ? items.map((i, k) => `<button type="button" role="option" class="qd-it${i.value === st.value ? " on" : ""}${k === kb ? " kb" : ""}" data-k="${k}" aria-selected="${i.value === st.value}">
+        <span class="qd-it-t">${esc(i.label)}${i.sub ? `<small>${esc(i.sub)}</small>` : ""}</span>
+        ${i.count != null ? `<span class="qd-n">${i.count}</span>` : ""}
+        ${i.value === st.value ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>` : ""}
+      </button>`).join("") : `<div class="qd-empty">Нічого не знайдено</div>`;
+    box.querySelector(".kb")?.scrollIntoView({ block: "nearest" });
+  };
+  const place = () => {
+    if (!pop) return;
+    const r = btn.getBoundingClientRect(), w = Math.max(r.width, opt.width || 200);
+    pop.style.minWidth = w + "px";
+    const pr = pop.getBoundingClientRect();
+    let left = Math.min(r.left, innerWidth - pr.width - 8), top = r.bottom + 6;
+    if (top + pr.height > innerHeight - 8 && r.top - pr.height - 6 > 8) top = r.top - pr.height - 6;
+    pop.style.left = Math.max(8, left) + "px"; pop.style.top = top + "px";
+  };
+  const pick = v => { close(); if (v === st.value) return; st.value = v; paint(); opt.onChange?.(v); };
+  const outside = e => { if (pop && !pop.contains(e.target) && !host.contains(e.target)) close(); };
+  const onKey = e => {
+    if (!pop) return;
+    const items = list();
+    if (e.key === "Escape"){ e.preventDefault(); e.stopImmediatePropagation(); close(); btn.focus(); }
+    else if (e.key === "ArrowDown" || e.key === "ArrowUp"){ e.preventDefault(); kb = (kb + (e.key === "ArrowDown" ? 1 : -1) + items.length) % Math.max(1, items.length); renderList(); }
+    else if (e.key === "Enter" && kb >= 0 && items[kb]){ e.preventDefault(); pick(items[kb].value); }
+  };
+  const onScroll = e => { if (pop && !pop.contains(e.target)) close(); };
+  function open(){
+    document.querySelectorAll(".qd-pop").forEach(p => p._close?.());
+    q = ""; kb = Math.max(0, st.items.findIndex(i => i.value === st.value));
+    pop = document.createElement("div");
+    pop.className = "qd-pop"; pop.dataset.open = "1"; pop.setAttribute("role", "listbox");
+    pop._close = close;
+    const withSearch = opt.search ?? st.items.length > 8;
+    pop.innerHTML = `${withSearch ? `<div class="qd-s"><input type="text" placeholder="${esc(opt.searchPlaceholder || "Пошук…")}" autocomplete="off"></div>` : ""}<div class="qd-list"></div>`;
+    document.body.appendChild(pop);
+    renderList(); place();
+    btn.classList.add("open"); btn.setAttribute("aria-expanded", "true");
+    pop.addEventListener("mousedown", e => { if (!e.target.closest("input")) e.preventDefault(); });
+    pop.addEventListener("click", e => { const b = e.target.closest(".qd-it"); if (b) pick(list()[+b.dataset.k].value); });
+    const inp = pop.querySelector("input");
+    if (inp){ inp.addEventListener("input", () => { q = inp.value; kb = 0; renderList(); place(); }); setTimeout(() => inp.focus(), 0); }
+    document.addEventListener("mousedown", outside, true);
+    addEventListener("keydown", onKey, true);
+    addEventListener("resize", close);
+    addEventListener("scroll", onScroll, true);
+  }
+  function close(){
+    if (!pop) return;
+    pop.remove(); pop = null;
+    btn.classList.remove("open"); btn.setAttribute("aria-expanded", "false");
+    document.removeEventListener("mousedown", outside, true);
+    removeEventListener("keydown", onKey, true);
+    removeEventListener("resize", close);
+    removeEventListener("scroll", onScroll, true);
+  }
+  btn.addEventListener("click", () => pop ? close() : open());
+  btn.addEventListener("keydown", e => { if ((e.key === "ArrowDown" || e.key === "ArrowUp") && !pop){ e.preventDefault(); open(); } });
+  paint();
+  return {
+    get value(){ return st.value; },
+    set(v){ st.value = v; paint(); },
+    setItems(items){ st.items = items; paint(); if (pop){ renderList(); place(); } },
+    close,
+  };
+}
+window.qfDrop = qfDrop;
+
+// ═════════════════════════════════════════════════════════════════════
+// СПРОБИ — сторінка «Спроби» (attempts.html)
+//
+// Швидкодія: рядки (тест, група, пошуковий рядок, порушення, тривалість)
+// рахуються ОДИН раз на зміну даних і кешуються — фільтри, пошук, сортування
+// й сторінки працюють з готовим масивом. Живі оновлення приходять пачкою
+// (див. startRealtimeListeners), таблиця малює лише поточну сторінку.
+// ═════════════════════════════════════════════════════════════════════
+const AT = {
+  q: "", test: "", group: "", period: "", status: "",
+  sort: { f: "date", d: "desc" }, page: 1, per: 20,
+  sel: new Set(), drops: {}, bound: false, urlDone: false,
+};
+try {
+  const saved = JSON.parse(localStorage.getItem("qf_att_prefs") || "{}");
+  if ([20, 50, 100].includes(saved.per)) AT.per = saved.per;
+  if (saved.sort?.f) AT.sort = saved.sort;
+} catch {}
+const _atSavePrefs = () => { try { localStorage.setItem("qf_att_prefs", JSON.stringify({ per: AT.per, sort: AT.sort })); } catch {} };
+window._attPage = 1;   // сумісність зі старими викликами
+
+const AT_STATUS = {
+  completed:      { label: "Завершено",     cls: "on" },
+  in_progress:    { label: "Проходить",     cls: "info" },
+  pending_review: { label: "На перевірці",  cls: "draft" },
+};
+const AT_PERIODS = [
+  { value: "", label: "Увесь час" }, { value: "today", label: "Сьогодні" },
+  { value: "7d", label: "Останні 7 днів" }, { value: "30d", label: "Останні 30 днів" },
+];
+const _atPeriodFrom = p => p === "today" ? new Date().setHours(0, 0, 0, 0) : p === "7d" ? Date.now() - 7 * 864e5 : p === "30d" ? Date.now() - 30 * 864e5 : 0;
+function _atAgo(t){
+  if (!t) return "—";
+  const d = Date.now() - t, m = Math.round(d / 60000);
+  if (m < 1) return "щойно";
+  if (m < 60) return `${m} хв тому`;
+  const h = Math.round(m / 60);
+  const dt = new Date(t), today = new Date().setHours(0, 0, 0, 0);
+  const hm = dt.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
+  if (t >= today) return h < 6 ? `${h} год тому` : `сьогодні ${hm}`;
+  if (t >= today - 864e5) return `вчора ${hm}`;
+  return dt.toLocaleDateString("uk-UA", { day: "numeric", month: "short" }) + ` ${hm}`;
+}
+const _atDur = a => (a.finishedAt && a.startedAt && a.finishedAt > a.startedAt) ? a.finishedAt - a.startedAt : null;
+const _atFmtDur = ms => { if (ms == null) return "—"; const s = Math.round(ms / 1000); return s >= 3600 ? `${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+
+// Кеш підготовлених рядків
+let _atRowsSrc = null, _atRows = [];
+function _atPrepare(){
+  if (_atRowsSrc && _atRowsSrc.a === attempts && _atRowsSrc.t === tests && _atRowsSrc.l === links) return _atRows;
+  const tMap = new Map(tests.map(t => [t.id, t])), lMap = new Map(links.map(l => [l.id, l]));
+  _atRows = attempts.map(a => {
+    const t = tMap.get(a.testId), group = a.group || lMap.get(a.linkId)?.group || "";
+    const name = `${a.surname || ""} ${a.name || ""}`.trim() || "Без імені";
+    const title = t?.title || "Тест видалено";
+    return {
+      a, id: a.id, t, title, group, name,
+      nameKey: name.toLowerCase(),
+      hay: `${name} ${a.name || ""} ${title} ${group}`.toLowerCase(),
+      viol: _attViolation(a), dur: _atDur(a),
+      pct: a.score?.percent ?? null, at: a.createdAt || 0,
+    };
+  });
+  _atRowsSrc = { a: attempts, t: tests, l: links };
+  return _atRows;
+}
+const _atIsFlagged = r => r.viol > 0;
+
 renderAttempts = function(resetPage = false){
-  if (resetPage) window._attPage = 1;
-
-  // Фільтри
-  const tF   = $("ft")?.value || "";
-  const grpF = $("fgrp")?.value || "";
-  const sF   = window._attStatus || "";  // "", "completed", "in_progress", "pending_review", "flagged"
-  const q    = ($("att-srch")?.value || "").toLowerCase().trim();
-
-  // Search-clear видимість (on input уже ставить has-q, але дублюємо для consistency)
-  const srchWrap = document.getElementById("att-srch-wrap");
-  if (srchWrap) srchWrap.classList.toggle("has-q", !!q);
-
-  // ── KPI stats: рахуємо завжди від ПОВНОГО списку attempts (не від filtered) ──
-  const totalCount = attempts.length;
-  const doneCount  = attempts.filter(a => a.status === "completed").length;
-  const progCount  = attempts.filter(a => a.status === "in_progress" || a.status === "pending_review").length;
-  const flagCount  = attempts.filter(a => _attViolation(a) > 0 && (a.status === "completed" || a.status === "pending_review")).length;
-  const completed  = attempts.filter(a => a.status === "completed" && a.score?.percent != null);
-  const avgPct     = completed.length ? Math.round(completed.reduce((s, a) => s + (a.score.percent || 0), 0) / completed.length) : null;
-  const liveCount  = attempts.filter(a => a.status === "in_progress").length;
-
-  const _setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-  _setText("stat-total",   totalCount);
-  _setText("stat-done",    doneCount);
-  _setText("stat-inprog",  progCount);
-  _setText("stat-flagged", flagCount);
-  _setText("stat-avg",     avgPct != null ? avgPct + "%" : "—");
-
-  // Live chip
-  const chipEl  = document.getElementById("att-live-chip");
-  const chipCnt = document.getElementById("att-live-count");
-  if (chipEl){
-    if (liveCount > 0){
-      chipEl.style.display = "inline-flex";
-      if (chipCnt) chipCnt.textContent = liveCount;
-    } else {
-      chipEl.style.display = "none";
-    }
-  }
-
-  // ── Фільтрація ──
-  let lst = attempts;
-  if (tF)   lst = lst.filter(a => a.testId === tF);
-  if (grpF) lst = lst.filter(a => { const l = links.find(x => x.id === a.linkId); return (l?.group || "") === grpF; });
-  if (sF === "flagged")  lst = lst.filter(a => _attViolation(a) > 0);
-  else if (sF)           lst = lst.filter(a => a.status === sF);
-  if (q){
-    lst = lst.filter(a => {
-      const fullName  = `${a.name || ""} ${a.surname || ""}`.toLowerCase();
-      const testTitle = (tests.find(t => t.id === a.testId)?.title || "").toLowerCase();
-      const group     = (links.find(l => l.id === a.linkId)?.group || "").toLowerCase();
-      return fullName.includes(q) || testTitle.includes(q) || group.includes(q);
-    });
-  }
-
-  // Лейбли
-  const countLabel = document.getElementById("att-count-label");
-  if (countLabel){
-    const isFiltered = !!(q || tF || grpF || sF);
-    if (isFiltered){
-      const w = lst.length;
-      countLabel.textContent = `Знайдено ${w} ${w === 1 ? "спроба" : (w >= 2 && w <= 4) ? "спроби" : "спроб"} · застосовано фільтр`;
-    } else {
-      countLabel.textContent = "Всі проходження тестів студентами · оновлюється в реальному часі";
-    }
-  }
-  const countRight = document.getElementById("att-count-right");
-  if (countRight) countRight.textContent = `${lst.length} / ${totalCount}`;
-
   const tb = $("att-tbl");
   if (!tb) return;
+  _atBind();
+  if (resetPage) AT.page = 1;
+  const rows = _atPrepare();
+  _atApplyUrl(rows);
 
-  // ── Порожній стан ──
+  // ── KPI (увесь масив, один прохід) ──
+  let done = 0, live = 0, pending = 0, flagged = 0, gsum = 0, gn = 0;
+  for (const r of rows){
+    const s = r.a.status;
+    if (s === "completed") done++;
+    else if (s === "in_progress") live++;
+    else if (s === "pending_review") pending++;
+    if (_atIsFlagged(r)) flagged++;
+    if (r.a.grade12 != null && s !== "in_progress"){ gsum += Number(r.a.grade12) || 0; gn++; }
+  }
+  const setT = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+  setT("stat-total", rows.length); setT("stat-avg", gn ? (Math.round(gsum / gn * 10) / 10) : "—");
+  setT("stat-inprog", live); setT("stat-pending", pending); setT("stat-flagged", flagged);
+  $("att-kpi-live")?.classList.toggle("is-live", live > 0);
+  $("att-kpi-pending")?.classList.toggle("is-hot", pending > 0);
+  const chip = $("att-live-chip");
+  if (chip){ chip.hidden = !live; setT("att-live-count", live); }
+
+  // ── Випадаючі фільтри (варіанти рахуються з даних) ──
+  _atSyncDrops(rows);
+
+  // ── Фільтри без статусу → лічильники вкладок ──
+  const from = _atPeriodFrom(AT.period);
+  const words = AT.q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const scoped = rows.filter(r =>
+    (!AT.test || r.a.testId === AT.test) &&
+    (!AT.group || r.group === AT.group) &&
+    (!from || r.at >= from) &&
+    (!words.length || words.every(w => r.hay.includes(w))));
+  const cnt = { "": scoped.length, completed: 0, in_progress: 0, pending_review: 0, flagged: 0 };
+  for (const r of scoped){ if (cnt[r.a.status] != null) cnt[r.a.status]++; if (_atIsFlagged(r)) cnt.flagged++; }
+  document.querySelectorAll("#fst-tabs .tab").forEach(t => {
+    const s = t.dataset.status; t.classList.toggle("active", s === AT.status); t.setAttribute("aria-selected", s === AT.status);
+    const n = t.querySelector(".tab-n"); if (n) n.textContent = cnt[s] ?? 0;
+  });
+  let lst = AT.status === "flagged" ? scoped.filter(_atIsFlagged) : AT.status ? scoped.filter(r => r.a.status === AT.status) : scoped;
+
+  // ── Сортування ──
+  const { f, d } = AT.sort, dir = d === "asc" ? 1 : -1;
+  const key = f === "name" ? r => r.nameKey : f === "grade" ? r => r.a.grade12 ?? -1 : f === "time" ? r => r.dur ?? -1 : f === "test" ? r => r.title.toLowerCase() : r => r.at;
+  const coll = new Intl.Collator("uk");
+  lst = lst.slice().sort((x, y) => {
+    const a = key(x), b = key(y);
+    return (typeof a === "string" ? coll.compare(a, b) : a - b) * dir || (y.at - x.at);
+  });
+  document.querySelectorAll("#att-thead th[data-sort]").forEach(th => {
+    const on = th.dataset.sort === f;
+    th.classList.toggle("sorted", on);
+    th.setAttribute("aria-sort", on ? (d === "asc" ? "ascending" : "descending") : "none");
+    const ind = th.querySelector(".sort-ind"); if (ind) ind.textContent = on ? (d === "asc" ? "↑" : "↓") : "↕";
+  });
+
+  // ── Підписи ──
+  const filtered = !!(words.length || AT.test || AT.group || AT.period || AT.status);
+  $("att-reset")?.toggleAttribute("hidden", !filtered);
+  setT("att-count-right", filtered ? `${lst.length} з ${rows.length}` : `${rows.length} ${_plural(rows.length, "спроба", "спроби", "спроб")}`);
+  setT("att-count-label", filtered
+    ? `Знайдено ${lst.length} ${_plural(lst.length, "спробу", "спроби", "спроб")} за фільтром`
+    : "Усі проходження тестів студентами · оновлюється в реальному часі");
+
+  // Виділення: прибираємо зниклі
+  if (AT.sel.size){ const ids = new Set(rows.map(r => r.id)); for (const id of AT.sel) if (!ids.has(id)) AT.sel.delete(id); }
+  AT._lst = lst;
+
+  // ── Порожньо ──
+  const pagEl = $("att-pagination");
   if (!lst.length){
-    const isFiltered = !!(q || tF || grpF || sF);
-    tb.innerHTML = `<tr><td colspan="9" style="padding:0">
-      <div class="empty-state">
-        <div class="es-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        </div>
-        <div class="es-title">${isFiltered ? "Нічого не знайдено" : "Немає спроб"}</div>
-        <div class="es-hint">${isFiltered ? "Спробуйте змінити фільтри або пошуковий запит" : "Коли студенти почнуть проходити тести, їхні спроби зʼявляться тут"}</div>
-      </div>
-    </td></tr>`;
-    const pagEl = document.getElementById("att-pagination");
+    tb.innerHTML = `<tr><td colspan="9" style="padding:0"><div class="empty-state">
+      <div class="es-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <div class="es-title">${filtered ? "Нічого не знайдено" : "Ще немає спроб"}</div>
+      <div class="es-hint">${filtered ? "Змініть фільтри або пошуковий запит" : "Коли студенти почнуть проходити тести за посиланнями, спроби з'являться тут"}</div>
+      ${filtered ? `<button class="btn-reset" data-aact="reset" style="margin:14px auto 0">Скинути фільтри</button>` : `<a class="btn-reset" href="links" style="margin:14px auto 0;display:inline-flex">Створити посилання →</a>`}
+    </div></td></tr>`;
     if (pagEl) pagEl.innerHTML = "";
+    _atSyncBulk();
     return;
   }
 
-  // ── Сортування ──
-  const sf = _attSort.field, sd = _attSort.dir;
-  if (sf){
-    lst = [...lst].sort((a, b) => {
-      let av = 0, bv = 0;
-      if (sf === "name")  { av = `${a.surname || ""}${a.name || ""}`.toLowerCase(); bv = `${b.surname || ""}${b.name || ""}`.toLowerCase(); }
-      if (sf === "grade") { av = a.grade12 ?? -1; bv = b.grade12 ?? -1; }
-      if (sf === "time")  { av = (a.finishedAt && a.startedAt) ? (a.finishedAt - a.startedAt) : -1; bv = (b.finishedAt && b.startedAt) ? (b.finishedAt - b.startedAt) : -1; }
-      if (sf === "date")  { av = a.createdAt || 0; bv = b.createdAt || 0; }
-      return sd === "asc" ? (av > bv ? 1 : av < bv ? -1 : 0) : (av < bv ? 1 : av > bv ? -1 : 0);
-    });
-  }
+  // ── Сторінка ──
+  const pages = Math.max(1, Math.ceil(lst.length / AT.per));
+  AT.page = Math.min(Math.max(1, AT.page), pages); window._attPage = AT.page;
+  const start = (AT.page - 1) * AT.per, pageRows = lst.slice(start, start + AT.per);
+  tb.innerHTML = pageRows.map(_atRow).join("");
 
-  // ── Пагінація ──
-  const totalPages = Math.max(1, Math.ceil(lst.length / ATT_PER_PAGE));
-  if (window._attPage > totalPages) window._attPage = totalPages;
-  const pageStart = (window._attPage - 1) * ATT_PER_PAGE;
-  const pageLst = lst.slice(pageStart, pageStart + ATT_PER_PAGE);
-
-  let pagHtml = "";
-  if (totalPages > 1){
-    const pages = [];
-    for (let p = 1; p <= totalPages; p++){
-      if (p === 1 || p === totalPages || Math.abs(p - window._attPage) <= 1){
-        pages.push(p);
-      } else if (pages[pages.length - 1] !== "..."){
-        pages.push("...");
-      }
-    }
-    pagHtml = `<div class="pg">
-      <button onclick="_attPage=Math.max(1,_attPage-1);renderAttempts()" ${window._attPage === 1 ? "disabled" : ""} aria-label="Попередня">‹</button>
-      ${pages.map(p => p === "..."
-        ? `<span class="pg-ellipsis">…</span>`
-        : `<button class="${p === window._attPage ? "active" : ""}" onclick="_attPage=${p};renderAttempts()">${p}</button>`
-      ).join("")}
-      <button onclick="_attPage=Math.min(${totalPages},_attPage+1);renderAttempts()" ${window._attPage === totalPages ? "disabled" : ""} aria-label="Наступна">›</button>
-      <span class="pg-info">${pageStart + 1}–${Math.min(pageStart + ATT_PER_PAGE, lst.length)} з ${lst.length}</span>
+  if (pagEl){
+    let nums = [];
+    for (let p = 1; p <= pages; p++) if (p === 1 || p === pages || Math.abs(p - AT.page) <= 1) nums.push(p); else if (nums[nums.length - 1] !== "…") nums.push("…");
+    pagEl.innerHTML = `<div class="pg">
+      <span class="pg-info">${start + 1}–${Math.min(start + AT.per, lst.length)} з ${lst.length}</span>
+      <div class="pg-nums">${pages > 1 ? `
+        <button data-page="${AT.page - 1}" ${AT.page === 1 ? "disabled" : ""} aria-label="Попередня">‹</button>
+        ${nums.map(p => p === "…" ? `<span class="pg-ellipsis">…</span>` : `<button data-page="${p}" class="${p === AT.page ? "active" : ""}">${p}</button>`).join("")}
+        <button data-page="${AT.page + 1}" ${AT.page === pages ? "disabled" : ""} aria-label="Наступна">›</button>` : ""}</div>
+      <div class="pg-per"><span>На сторінці</span><div id="att-per"></div></div>
     </div>`;
+    AT.drops.per = qfDrop($("att-per"), { items: [20, 50, 100].map(n => ({ value: n, label: String(n) })), value: AT.per, defaultValue: AT.per, width: 90,
+      onChange: v => { AT.per = v; AT.page = 1; _atSavePrefs(); renderAttempts(); } });
   }
-
-  // ── Рядки таблиці ──
-  tb.innerHTML = pageLst.map(a => {
-    const t = tests.find(x => x.id === a.testId);
-    const l = links.find(x => x.id === a.linkId);
-    const c   = a.score?.correct ?? "—";
-    const tot = a.score?.total   ?? "—";
-    let durStr = "—";
-    if (a.finishedAt && a.startedAt && a.finishedAt > a.startedAt){
-      const secs = Math.floor((a.finishedAt - a.startedAt) / 1000);
-      durStr = `${Math.floor(secs / 60)}:${(secs % 60).toString().padStart(2, "0")}`;
-    }
-    const group = l?.group || "";
-    const dateStr = a.createdAt
-      ? new Date(a.createdAt).toLocaleDateString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
-      : "—";
-    const viol = _attViolation(a);
-    const gc = _attGradeColors(a.grade12);
-    const gradeHtml = a.grade12 != null
-      ? `<span class="grade-chip" style="background:${gc.bg};color:${gc.fg}">${a.grade12}/12</span>`
-      : `<span class="muted mono">—</span>`;
-    const flagHtml = viol > 0
-      ? `<span class="flag-icon" title="${viol} балів підозрілої активності">⚑</span>`
-      : "";
-
-    return `<tr class="clickable" onclick="G.viewAtt('${a.id}')">
-      <td>
-        <div style="display:flex;align-items:center;gap:10px">
-          ${_attAva(a.name, a.surname)}
-          <div style="min-width:0">
-            <div style="font-weight:600;color:var(--ink-900);white-space:nowrap">${esc(a.surname || "")} ${esc(a.name || "")}${flagHtml}</div>
-          </div>
-        </div>
-      </td>
-      <td style="max-width:240px">
-        <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-700)" title="${esc(t?.title || "")}">${esc(t?.title || "—")}</div>
-      </td>
-      <td>${group ? `<span class="pill info" style="text-transform:none">${esc(group)}</span>` : '<span class="muted">—</span>'}</td>
-      <td>${gradeHtml}</td>
-      <td class="mono" style="color:var(--ink-700)">${c}/${tot}</td>
-      <td class="mono" style="color:var(--ink-500)">${durStr}</td>
-      <td class="mono" style="color:var(--ink-500);white-space:nowrap">${dateStr}</td>
-      <td>${_attStatusPill(a.status)}</td>
-      <td>
-        <div class="row-actions" onclick="event.stopPropagation()">
-          <button class="ic-btn" title="Переглянути" onclick="G.viewAtt('${a.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-          <button class="ic-btn danger" title="Видалити" onclick="G.confDelAttempt('${a.id}',${jsq(`${a.name||""} ${a.surname||""}`.trim())})"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>
-        </div>
-      </td>
-    </tr>`;
-  }).join("");
-
-  const pagEl = document.getElementById("att-pagination");
-  if (pagEl) pagEl.innerHTML = pagHtml;
-  _applyUrlFilters();
+  _atSyncBulk();
 };
+
+function _atRow(r){
+  const a = r.a, st = AT_STATUS[a.status] || { label: a.status || "—", cls: "off" };
+  const gc = _attGradeColors(a.grade12);
+  const grade = a.grade12 != null
+    ? `<span class="grade-chip" style="background:${gc.bg};color:${gc.fg}">${a.grade12}</span>${r.pct != null ? `<span class="pct">${r.pct}%</span>` : ""}`
+    : a.status === "pending_review" ? `<button class="review-btn" data-aact="view" data-id="${a.id}">Оцінити</button>` : `<span class="muted mono">—</span>`;
+  const c = a.score?.correct, tot = a.score?.total ?? (r.t?.questions?.length || null);
+  const correct = c != null && tot ? `<div class="cor"><span class="mono">${c}/${tot}</span><i><b style="width:${Math.round(c / tot * 100)}%"></b></i></div>` : `<span class="muted mono">—</span>`;
+  let status = `<span class="pill ${st.cls}">${st.label}</span>`;
+  if (a.status === "in_progress"){
+    const online = a.lastSeen && Date.now() - a.lastSeen < 120000;
+    status = `<div class="live-cell"><span class="pill ${online ? "live" : "off"}">${online ? "Проходить" : "Неактивний"}</span>${a.currentQ && a.totalQ ? `<small>питання ${a.currentQ} з ${a.totalQ}</small>` : ""}</div>`;
+  }
+  const flag = r.viol > 0 ? `<span class="flag-icon" title="${[a.tabSwitches ? `переключень вкладок: ${a.tabSwitches}` : "", a.copyAttempts ? `спроб копіювання: ${a.copyAttempts}` : "", a.screenshots ? `скріншотів: ${a.screenshots}` : ""].filter(Boolean).join(", ")}">⚑ ${r.viol}</span>` : "";
+  const sel = AT.sel.has(a.id);
+  return `<tr class="clickable${sel ? " sel" : ""}" data-id="${a.id}">
+    <td class="ck" data-aact="ck"><input type="checkbox" ${sel ? "checked" : ""} aria-label="Вибрати"></td>
+    <td><div class="stu">${_attAva(a.name, a.surname)}<div class="stu-n"><b>${esc(r.name)}</b>${flag}</div></div></td>
+    <td class="tcell"><span title="${esc(r.title)}"${r.t ? "" : ' class="muted"'}>${esc(r.title)}</span></td>
+    <td>${r.group ? `<span class="pill grp">${esc(r.group)}</span>` : '<span class="muted">—</span>'}</td>
+    <td><div class="grade">${grade}</div></td>
+    <td>${correct}</td>
+    <td class="mono muted">${_atFmtDur(r.dur)}</td>
+    <td class="when" title="${a.createdAt ? new Date(a.createdAt).toLocaleString("uk-UA") : ""}">${_atAgo(a.createdAt)}</td>
+    <td>${status}</td>
+    <td><div class="row-actions">
+      <button class="ic-btn" title="Переглянути" data-aact="view" data-id="${a.id}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      <button class="ic-btn danger" title="Видалити" data-aact="del" data-id="${a.id}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>
+    </div></td>
+  </tr>`;
+}
+
+// Дропдауни «Тест», «Група», «Період» (qfDrop) — варіанти з лічильниками
+function _atSyncDrops(rows){
+  if (!$("att-f-test")) return;
+  const tc = new Map(), gc = new Map();
+  for (const r of rows){ tc.set(r.a.testId, (tc.get(r.a.testId) || 0) + 1); if (r.group) gc.set(r.group, (gc.get(r.group) || 0) + 1); }
+  const tItems = [{ value: "", label: "Усі тести" }, ...[...tc].map(([id, n]) => ({ value: id, label: tests.find(t => t.id === id)?.title || "Тест видалено", count: n }))
+    .sort((a, b) => a.label.localeCompare(b.label, "uk"))];
+  const gItems = [{ value: "", label: "Усі групи" }, ...[...gc].map(([g, n]) => ({ value: g, label: g, count: n })).sort((a, b) => a.label.localeCompare(b.label, "uk"))];
+  if (AT.test && !tc.has(AT.test)) tItems.push({ value: AT.test, label: tests.find(t => t.id === AT.test)?.title || "Тест", count: 0 });
+  if (AT.group && !gc.has(AT.group)) gItems.push({ value: AT.group, label: AT.group, count: 0 });
+  const ic = p => `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+  if (!AT.drops.test){
+    AT.drops.test = qfDrop($("att-f-test"), { items: tItems, value: AT.test, width: 260, searchPlaceholder: "Пошук тесту…", icon: ic('<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/>'),
+      onChange: v => { AT.test = v; renderAttempts(true); } });
+    AT.drops.group = qfDrop($("att-f-group"), { items: gItems, value: AT.group, width: 200, searchPlaceholder: "Пошук групи…", icon: ic('<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>'),
+      onChange: v => { AT.group = v; renderAttempts(true); } });
+    AT.drops.period = qfDrop($("att-f-period"), { items: AT_PERIODS, value: AT.period, width: 180, search: false, icon: ic('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),
+      onChange: v => { AT.period = v; renderAttempts(true); } });
+  } else {
+    AT.drops.test.setItems(tItems); AT.drops.test.set(AT.test);
+    AT.drops.group.setItems(gItems); AT.drops.group.set(AT.group);
+    AT.drops.period.set(AT.period);
+  }
+}
+
+// Фільтри з адреси: attempts?test=…&group=…&status=…
+function _atApplyUrl(rows){
+  if (AT.urlDone) return;
+  const p = new URLSearchParams(location.search);
+  if (!p.has("test") && !p.has("group") && !p.has("status")){ AT.urlDone = true; return; }
+  if (p.get("test") && !rows.length && !tests.length) return;   // дані ще не прийшли
+  AT.urlDone = true;
+  AT.test = p.get("test") || ""; AT.group = p.get("group") || "";
+  const s = p.get("status"); if (["completed", "in_progress", "pending_review", "flagged"].includes(s)) AT.status = s;
+}
+
+function _atSyncBulk(){
+  const bar = $("att-bulk"); if (!bar) return;
+  const n = AT.sel.size;
+  bar.hidden = !n;
+  if (n) $("att-bulk-n").textContent = `Вибрано ${n} ${_plural(n, "спробу", "спроби", "спроб")}`;
+  const all = $("att-ck-all");
+  if (all){
+    const ids = [...document.querySelectorAll("#att-tbl tr[data-id]")].map(tr => tr.dataset.id);
+    const k = ids.filter(id => AT.sel.has(id)).length;
+    all.checked = !!ids.length && k === ids.length; all.indeterminate = k > 0 && k < ids.length;
+  }
+}
+
+// CSV (Excel відкриває з кирилицею завдяки BOM і «;»)
+function _atExportCSV(rowsToExport){
+  const cell = v => { const s = String(v ?? ""); return /[;"\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  const head = ["Прізвище", "Ім'я", "Група", "Тест", "Оцінка (1–12)", "Відсоток", "Правильних", "Питань", "Тривалість", "Дата", "Статус", "Порушення"];
+  const lines = rowsToExport.map(r => {
+    const a = r.a;
+    return [a.surname, a.name, r.group, r.title, a.grade12 ?? "", r.pct != null ? r.pct + "%" : "", a.score?.correct ?? "", a.score?.total ?? "",
+      _atFmtDur(r.dur).replace("—", ""), a.createdAt ? new Date(a.createdAt).toLocaleString("uk-UA") : "", (AT_STATUS[a.status]?.label || a.status || ""), r.viol || ""].map(cell).join(";");
+  });
+  const blob = new Blob(["﻿" + [head.join(";"), ...lines].join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const el = document.createElement("a");
+  const t = AT.test ? (tests.find(x => x.id === AT.test)?.title || "тест") : "усі";
+  el.download = `Спроби — ${t}${AT.group ? " — " + AT.group : ""} — ${new Date().toLocaleDateString("uk-UA")}.csv`.replace(/[\\/:*?"<>|]/g, "_");
+  el.href = URL.createObjectURL(blob);
+  document.body.appendChild(el); el.click(); el.remove();
+  setTimeout(() => URL.revokeObjectURL(el.href), 2000);
+  toast(`Експортовано ${rowsToExport.length} ${_plural(rowsToExport.length, "спробу", "спроби", "спроб")}`);
+}
+
+// Один делегований обробник + оновлення «хв тому» щохвилини
+function _atBind(){
+  if (AT.bound) return;
+  AT.bound = true;
+  const tb = $("att-tbl");
+  tb.addEventListener("click", e => {
+    const act = e.target.closest("[data-aact]");
+    const tr = e.target.closest("tr[data-id]");
+    if (act?.dataset.aact === "ck" || e.target.matches("input[type=checkbox]")){
+      if (!tr) return;
+      const id = tr.dataset.id, on = !AT.sel.has(id);
+      on ? AT.sel.add(id) : AT.sel.delete(id);
+      tr.classList.toggle("sel", on);
+      const cb = tr.querySelector("input[type=checkbox]"); if (cb) cb.checked = on;
+      _atSyncBulk();
+      return;
+    }
+    if (act?.dataset.aact === "del"){ const r = _atRows.find(x => x.id === act.dataset.id); return G.confDelAttempt(act.dataset.id, r?.name || ""); }
+    if (act?.dataset.aact === "reset") return _atReset();
+    if (tr) G.viewAtt(tr.dataset.id);
+  });
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-aact]"); if (!b || tb.contains(b)) return;
+    const a = b.dataset.aact;
+    if (a === "reset") _atReset();
+    else if (a === "kpi"){ AT.status = b.dataset.status || ""; renderAttempts(true); }
+    else if (a === "export") _atExportCSV(AT._lst || []);
+    else if (a === "bulk-export") _atExportCSV(_atRows.filter(r => AT.sel.has(r.id)));
+    else if (a === "bulk-del") G.confDelAttempts([...AT.sel]);
+    else if (a === "bulk-clear"){ AT.sel.clear(); renderAttempts(); }
+  });
+  $("att-pagination")?.addEventListener("click", e => {
+    const b = e.target.closest("button[data-page]"); if (!b || b.disabled) return;
+    AT.page = +b.dataset.page; renderAttempts();
+    $("sec-attempts")?.querySelector(".card")?.scrollIntoView({ block: "start", behavior: "smooth" });
+  });
+  $("fst-tabs")?.addEventListener("click", e => {
+    const t = e.target.closest(".tab"); if (!t) return;
+    AT.status = t.dataset.status; renderAttempts(true);
+  });
+  $("att-thead")?.addEventListener("click", e => {
+    const th = e.target.closest("th[data-sort]");
+    if (th){
+      const f = th.dataset.sort;
+      AT.sort = AT.sort.f === f ? { f, d: AT.sort.d === "asc" ? "desc" : "asc" } : { f, d: f === "date" || f === "grade" || f === "time" ? "desc" : "asc" };
+      _atSavePrefs(); renderAttempts();
+      return;
+    }
+    if (e.target.id === "att-ck-all"){
+      const ids = [...document.querySelectorAll("#att-tbl tr[data-id]")].map(tr => tr.dataset.id);
+      const on = e.target.checked;
+      ids.forEach(id => on ? AT.sel.add(id) : AT.sel.delete(id));
+      renderAttempts();
+    }
+  });
+  const srch = $("att-srch");
+  let tm = 0;
+  srch?.addEventListener("input", () => {
+    $("att-srch-wrap")?.classList.toggle("has-q", !!srch.value);
+    clearTimeout(tm); tm = setTimeout(() => { AT.q = srch.value; renderAttempts(true); }, 120);
+  });
+  $("att-srch-clear")?.addEventListener("click", () => { srch.value = ""; AT.q = ""; $("att-srch-wrap")?.classList.remove("has-q"); srch.focus(); renderAttempts(true); });
+  document.addEventListener("keydown", e => {
+    if (e.key === "/" && !e.target.closest("input,textarea,[contenteditable]") && !document.querySelector(".mo.on")){ e.preventDefault(); srch?.focus(); }
+  });
+  setInterval(() => { if (document.visibilityState === "visible" && !document.querySelector(".mo.on")) renderAttempts(); }, 60000);
+}
+function _atReset(){
+  AT.q = ""; AT.test = ""; AT.group = ""; AT.period = ""; AT.status = "";
+  const s = $("att-srch"); if (s) s.value = "";
+  $("att-srch-wrap")?.classList.remove("has-q");
+  if (location.search) history.replaceState(null, "", location.pathname);
+  renderAttempts(true);
+}
 
 // ═════════════════════════════════════════════════════════════════════
 // ПОСИЛАННЯ — сторінка «Посилання» (links.html)
@@ -2530,8 +2747,7 @@ selectAnalyticsDrop(field, value, label){
     $("nl-close").value = l?.closeAt && (edit || l.closeAt > now) ? _toLocalDT(l.closeAt) : "";
     $("nl-sq").checked = !!l?.shuffleQuestions;
     $("nl-sa").checked = !!l?.shuffleAnswers;
-    const groups = [...new Set(links.map(x => x.group).filter(Boolean))].sort((a, b) => a.localeCompare(b, "uk"));
-    $("nl-groups").innerHTML = groups.map(g => `<option value="${esc(g)}"></option>`).join("");
+    G._nlGroupChips();
     $("nl-err").textContent = "";
     $("nl-hint").textContent = edit && linkState(l) === "expired" ? "Термін дії минув. Вкажіть новий час закриття або очистіть поле — посилання знову відкриється." : "";
     if (edit){
@@ -2556,6 +2772,16 @@ selectAnalyticsDrop(field, value, label){
   editLink(id){ const l = links.find(x => x.id === id); if (l) G._lnkForm("edit", l); },
   dupLink(id){ const l = links.find(x => x.id === id); if (l) G._lnkForm("dup", l, l.testId); },
 
+  // Підказки груп (чипи замість стандартного datalist): останні використані, що підходять під введене
+  _nlGroupChips(){
+    const box = $("nl-groups"); if (!box) return;
+    const cur = ($("nl-g")?.value || "").trim().toLowerCase();
+    const seen = new Set(), recent = [];
+    for (const l of links) if (l.group && !seen.has(l.group)){ seen.add(l.group); recent.push(l.group); }   // links уже від новіших
+    const list = recent.filter(g => g.toLowerCase() !== cur && (!cur || g.toLowerCase().includes(cur))).slice(0, 6);
+    box.innerHTML = list.map(g => `<button type="button" data-g="${esc(g)}">${esc(g)}</button>`).join("");
+    box.onclick = e => { const b = e.target.closest("[data-g]"); if (!b) return; $("nl-g").value = b.dataset.g; G._nlGroupChips(); $("nl-m")?.focus(); };
+  },
   // Попередження про тест (чернетка, закритий, порожній…) у модалці
   _nlTestWarn(testId){
     const box = $("nl-test-warn"); if (!box) return;
@@ -5231,28 +5457,33 @@ selectAnalyticsDrop(field, value, label){
   },
 
   // ── Attempt deletion ──────────────────────────────────────────────────────
-  confDelAttempt(id, name){
-    window._delAttId = id;
-    const el = document.getElementById("del-att-name");
-    if(el) el.textContent = name;
+  confDelAttempt(id, name){ G.confDelAttempts([id], name); },
+  // Видалення однієї чи кількох спроб — одним записом у базу
+  confDelAttempts(ids, name){
+    ids = (ids || []).filter(Boolean); if (!ids.length) return;
+    window._delAttIds = ids;
+    const one = ids.length === 1;
+    const nm = one ? (name || (() => { const a = attempts.find(x => x.id === ids[0]); return a ? `${a.surname || ""} ${a.name || ""}`.trim() : ""; })()) : "";
+    const t = $("del-att-title"); if (t) t.textContent = one ? "Видалити спробу?" : `Видалити ${ids.length} ${_plural(ids.length, "спробу", "спроби", "спроб")}?`;
+    const x = $("del-att-text");
+    if (x) x.innerHTML = one ? `Спробу студента <strong>${esc(nm || "без імені")}</strong> буде видалено назавжди — разом з відповідями й оцінкою.`
+      : `Вибрані спроби буде видалено назавжди — разом з відповідями й оцінками.`;
     openM("m-del-attempt");
   },
-
   async doDelAttempt(){
-    const id = window._delAttId;
-    if(!id) return;
-    window._delAttId = null;
+    const ids = window._delAttIds || []; if (!ids.length) return;
+    window._delAttIds = null;
     closeM("m-del-attempt");
-    ldr(true);
     try{
-      await dbDel(`attempts/${id}`);
-      attempts = attempts.filter(a => a.id !== id);
+      if (ids.length === 1) await dbDel(`attempts/${ids[0]}`);
+      else await dbUpd("attempts", Object.fromEntries(ids.map(id => [id, null])));
+      const gone = new Set(ids);
+      attempts = attempts.filter(a => !gone.has(a.id)); window.attempts = attempts;
+      ids.forEach(id => AT.sel.delete(id));
       renderAll();
-      toast("Спробу видалено");
+      toast(ids.length === 1 ? "Спробу видалено" : `Видалено ${ids.length} ${_plural(ids.length, "спробу", "спроби", "спроб")}`);
     }catch(e){ toast("Помилка: "+e.message,"err"); }
-    finally{ ldr(false); }
   },
-
 
   async setLongAnswer(attId, qIdx, result){
     const a=attempts.find(x=>x.id===attId);
@@ -5553,22 +5784,66 @@ window.renderAttempts = renderAttempts;
 window.renderLinks = renderLinks;
 
 // ─── Real-time listeners (адаптовано з index.html) ───────────────────────
+// Нові / завершені спроби → сповіщення. Map замість find() у циклі (було O(n²) на кожну зміну)
+function _notifyAttemptChanges(prev, next){
+  if (!prev.length) return;
+  const byId = new Map(prev.map(a => [a.id, a]));
+  for (const na of next){
+    const old = byId.get(na.id);
+    if (!old && na.status === "completed") showNotification(na, "new");
+    else if (old && old.status === "in_progress" && na.status === "completed") showNotification(na, "completed");
+    else if (!old && na.status === "in_progress") showNotification(na, "started");
+  }
+}
+function _afterAttemptsChanged(){
+  if (typeof renderDashAtt === "function") try { renderDashAtt(); } catch {}
+  if (typeof renderAttempts === "function") try { renderAttempts(); } catch {}
+  if (typeof renderStats === "function") try { renderStats(); } catch {}
+  if (typeof updateBadges === "function") try { updateBadges(); } catch {}
+  const sec = document.querySelector(".sec.on")?.id;
+  if(sec==="sec-analytics" && window.G?.renderAnalytics) try { window.G.renderAnalytics(); } catch {}
+  if(sec==="sec-students" && window.G?.renderStudents) try { window.G.renderStudents(); } catch {}
+}
+function _afterLinksChanged(){
+  if (typeof renderLinks === "function") try { renderLinks(); } catch {}
+  if (typeof renderDashLinks === "function") try { renderDashLinks(); } catch {}
+  if (typeof renderDashAtt === "function") try { renderDashAtt(); } catch {}
+  if (typeof updateBadges === "function") try { updateBadges(); } catch {}
+  if (typeof fillSelects === "function") try { fillSelects(); } catch {}
+  const sec2 = document.querySelector(".sec.on")?.id;
+  if(sec2==="sec-students" && window.G?.renderStudents) try { window.G.renderStudents(); } catch {}
+}
+
 function startRealtimeListeners(){
   if (_realtimeActive) return;
   _realtimeActive = true;
 
+  if (window._qfLive){
+    // Дані слухає app.js; тут лише збираємо зміни пачкою. Під час тесту кожен студент
+    // пише прогрес після кожної відповіді — без пачок сторінка перемальовувалась десятки разів на секунду.
+    const pending = new Set();
+    let timer = 0;
+    const flush = () => {
+      timer = 0;
+      if (pending.has("attempts")){
+        const next = window.attempts || [];
+        if (next !== attempts){ _notifyAttemptChanges(attempts, next); attempts = next; }
+        _bust(); _afterAttemptsChanged();
+      }
+      if (pending.has("links")){
+        if (window.links !== links) links = window.links || [];
+        _bust(); _afterLinksChanged();
+      }
+      pending.clear();
+    };
+    document.addEventListener("qf:live", e => {
+      pending.add(e.detail.name);
+      if (!timer) timer = setTimeout(flush, 200);
+    });
+  } else {
   onValue(ref(db, tp("attempts")), (snap) => {
     const newAttempts = toArr(snap).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-
-    if(attempts.length > 0){
-      newAttempts.forEach(na => {
-        const old = attempts.find(a=>a.id===na.id);
-        if(!old && na.status==="completed") showNotification(na, "new");
-        else if(old && old.status==="in_progress" && na.status==="completed") showNotification(na, "completed");
-        else if(!old && na.status==="in_progress") showNotification(na, "started");
-      });
-    }
-
+    _notifyAttemptChanges(attempts, newAttempts);
     attempts = newAttempts;
     window.attempts = attempts;
     _bust();  // кеш застарілий — стерти
@@ -5581,6 +5856,20 @@ function startRealtimeListeners(){
     if(sec==="sec-analytics" && window.G?.renderAnalytics) try { window.G.renderAnalytics(); } catch {}
     if(sec==="sec-students" && window.G?.renderStudents) try { window.G.renderStudents(); } catch {}
   });
+
+  onValue(ref(db, tp("links")), (snap) => {
+    links = toArr(snap).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    window.links = links;
+    _bust();
+    if (typeof renderLinks === "function") try { renderLinks(); } catch {}
+    if (typeof renderDashLinks === "function") try { renderDashLinks(); } catch {}
+    if (typeof renderDashAtt === "function") try { renderDashAtt(); } catch {}
+    if (typeof updateBadges === "function") try { updateBadges(); } catch {}
+    if (typeof fillSelects === "function") try { fillSelects(); } catch {}
+    const sec2 = document.querySelector(".sec.on")?.id;
+    if(sec2==="sec-students" && window.G?.renderStudents) try { window.G.renderStudents(); } catch {}
+  });
+  }
 
   let _prevNotifCount = 0;
   onValue(ref(db, tp("meta/suspReadCount")), (snap) => {
@@ -5610,19 +5899,6 @@ function startRealtimeListeners(){
     if(document.querySelector("#sec-notifications.on") && window.G?.renderNotifications) {
       try { window.G.renderNotifications(); } catch {}
     }
-  });
-
-  onValue(ref(db, tp("links")), (snap) => {
-    links = toArr(snap).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    window.links = links;
-    _bust();
-    if (typeof renderLinks === "function") try { renderLinks(); } catch {}
-    if (typeof renderDashLinks === "function") try { renderDashLinks(); } catch {}
-    if (typeof renderDashAtt === "function") try { renderDashAtt(); } catch {}
-    if (typeof updateBadges === "function") try { updateBadges(); } catch {}
-    if (typeof fillSelects === "function") try { fillSelects(); } catch {}
-    const sec2 = document.querySelector(".sec.on")?.id;
-    if(sec2==="sec-students" && window.G?.renderStudents) try { window.G.renderStudents(); } catch {}
   });
 }
 
