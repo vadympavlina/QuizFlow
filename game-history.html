@@ -39,14 +39,6 @@
 .gh-icon:hover{background:#EEF2FB;color:var(--ink-900)}
 .gh-icon svg{width:15px;height:15px}
 
-/* ── Підсумкові показники ── */
-.gh-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.gh-kpi{padding:14px 18px;border-right:1px solid var(--line);min-width:0}
-.gh-kpi:last-child{border-right:0}
-.gh-kpi .v{font:700 21px 'Geist Mono',monospace;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gh-kpi .l{font-size:11.5px;color:var(--ink-500);font-weight:600;margin-top:3px}
-.gh-kpi .s{font-size:11.5px;color:var(--ink-400);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
 /* ── Тулбар ── */
 .gh-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .gh-search{position:relative;flex:1;min-width:220px;max-width:380px}
@@ -180,18 +172,10 @@ mark.hl{background:#FEF08A;color:inherit;border-radius:2px;padding:0 1px}
   .gh-dist{display:none}
 }
 @media (max-width:1100px){
-  .gh-kpi{padding:12px 14px}
-  .gh-kpi .v{font-size:18px}
   .gh-top{max-width:420px}
   .gh-game{grid-template-columns:46px minmax(0,1fr) auto;grid-template-areas:"tile main act" "tile stats stats" "tile top top";row-gap:10px}
   .gh-tile{grid-area:tile;align-self:start}.gh-main{grid-area:main}.gh-stats{grid-area:stats}.gh-top{grid-area:top}.gh-actions{grid-area:act}
   .res-sum{grid-template-columns:repeat(3,minmax(0,1fr))}
-}
-@media (max-width:860px){
-  .gh-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .gh-kpi{border-top:1px solid var(--line)}
-  .gh-kpi:nth-child(-n+2){border-top:0}
-  .gh-kpi:nth-child(2n){border-right:0}
 }
 @media (max-width:640px){
   .res-table .c-acc{display:none}
@@ -223,14 +207,6 @@ mark.hl{background:#FEF08A;color:inherit;border-radius:2px;padding:0 1px}
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
       Створити гру
     </button>
-  </div>
-
-  <div class="gh-kpis" id="kpis">
-    <div class="gh-kpi"><div class="v" id="k-games">—</div><div class="l">Ігор проведено</div><div class="s" id="k-games-s">&nbsp;</div></div>
-    <div class="gh-kpi"><div class="v" id="k-players">—</div><div class="l">Участей усього</div><div class="s" id="k-players-s">&nbsp;</div></div>
-    <div class="gh-kpi"><div class="v" id="k-avg">—</div><div class="l">Середньо гравців</div><div class="s">на одну гру</div></div>
-    <div class="gh-kpi"><div class="v" id="k-acc">—</div><div class="l">Середня точність</div><div class="s" id="k-acc-s">&nbsp;</div></div>
-    <div class="gh-kpi"><div class="v" id="k-last">—</div><div class="l">Остання гра</div><div class="s" id="k-last-s">&nbsp;</div></div>
   </div>
 
   <div class="gh-toolbar" id="toolbar">
@@ -413,20 +389,7 @@ appReady();
 
 function renderKpis(){
   const total = games.length;
-  const played = games.filter(g => g.hasResults);
   const players = games.reduce((s, g) => s + g.n, 0);
-  const accs = played.filter(g => g.acc != null);
-  const biggest = games.reduce((m, g) => g.n > (m?.n || 0) ? g : m, null);
-  const last = games.reduce((m, g) => g.playedAt > (m?.playedAt || 0) ? g : m, null);
-  $("k-games").textContent = fmt(total);
-  $("k-games-s").textContent = total ? `${played.length} з результатами` : " ";
-  $("k-players").textContent = fmt(players);
-  $("k-players-s").textContent = biggest?.n ? `найбільша гра — ${nPlayers(biggest.n)}` : " ";
-  $("k-avg").textContent = played.length ? fmt(Math.round(played.reduce((s, g) => s + g.n, 0) / played.length)) : "—";
-  $("k-acc").textContent = accs.length ? Math.round(accs.reduce((s, g) => s + g.acc, 0) / accs.length) + "%" : "—";
-  $("k-acc-s").textContent = accs.length ? `за ${accs.length} ${plural(accs.length, "грою", "іграми", "іграми")}` : "немає даних";
-  $("k-last").textContent = last ? fmtDate(last.playedAt, false).replace(/^(\S+),.*/, "$1") : "—";
-  $("k-last-s").textContent = last ? last.title : " ";
   $("history-sub").textContent = total ? `${fmt(total)} ${plural(total, "гра", "гри", "ігор")} · ${fmt(players)} ${plural(players, "участь", "участі", "участей")}` : "Ще не проводили жодної гри";
 }
 
