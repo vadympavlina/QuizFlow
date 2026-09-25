@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=1">
+<link rel="stylesheet" href="shared/admin-shell.css?v=2">
 <style>
 /* ── Layout ── */
 .nav-layout{display:grid; grid-template-columns:1fr 360px; gap:16px; align-items:flex-start}
@@ -273,6 +273,7 @@
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
+<script src="shared/admin-nav.js?v=1"></script>
 <div id="admin-root"></div>
 <div id="admin-modals">
   <!-- Icon picker -->
@@ -302,7 +303,7 @@
 <div id="admin-toast" class="toast"></div>
 
 <script type="module">
-import { initAdminShell, dbGet, dbSet, dbUpd, esc, toast, hideLoader } from "./shared/admin-shell.js?v=2";
+import { initAdminShell, dbGet, dbSet, dbUpd, esc, toast, hideLoader } from "./shared/admin-shell.js?v=3";
 
 // ─── ІКОНКИ (40 штук, 5 категорій) ────────────────────────────────────────
 const ICON_CATS = {
