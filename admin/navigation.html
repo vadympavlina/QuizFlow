@@ -361,21 +361,21 @@ const ICON_CATS = {
 // Default navigation config (з поточного layout.html)
 const DEFAULT_NAV = [
   { id:"sec-main", type:"section", label:"Головне", order:0, items:[
-    { id:"dashboard", label:"Дашборд",   file:"index.html",      icon:"dashboard", enabled:true,  protected:true  },
-    { id:"tests",     label:"Тести",     file:"tests.html",      icon:"files",     enabled:true,  badge:"nb-t"    },
-    { id:"attempts",  label:"Спроби",    file:"attempts.html",   icon:"clock",     enabled:true,  badge:"nb-a"    },
-    { id:"links",     label:"Посилання", file:"links.html",      icon:"link",      enabled:true,  badge:"nb-l"    },
+    { id:"dashboard", label:"Дашборд",   file:"./",      icon:"dashboard", enabled:true,  protected:true  },
+    { id:"tests",     label:"Тести",     file:"tests",      icon:"files",     enabled:true,  badge:"nb-t"    },
+    { id:"attempts",  label:"Спроби",    file:"attempts",   icon:"clock",     enabled:true,  badge:"nb-a"    },
+    { id:"links",     label:"Посилання", file:"links",      icon:"link",      enabled:true,  badge:"nb-l"    },
   ]},
   { id:"sec-analysis", type:"section", label:"Аналіз", order:1, items:[
-    { id:"analytics", label:"Аналітика", file:"analytics.html",  icon:"chart-bar", enabled:true  },
-    { id:"gradebook", label:"Журнал",    file:"gradebook.html",  icon:"book",      enabled:true  },
-    { id:"students",  label:"Студенти",  file:"students.html",   icon:"users",     enabled:true  },
+    { id:"analytics", label:"Аналітика", file:"analytics",  icon:"chart-bar", enabled:true  },
+    { id:"gradebook", label:"Журнал",    file:"gradebook",  icon:"book",      enabled:true  },
+    { id:"students",  label:"Студенти",  file:"students",   icon:"users",     enabled:true  },
   ]},
   { id:"sec-activity", type:"section", label:"Активність", order:2, items:[
-    { id:"notifications", label:"Сповіщення", file:"notifications.html", icon:"bell",     enabled:true },
-    { id:"suspicious",    label:"Підозрілі",  file:"suspicious.html",    icon:"shield",    enabled:true },
-    { id:"online",        label:"Онлайн",     file:"online.html",         icon:"live",      enabled:true },
-    { id:"news",          label:"Новини",     file:"news.html",           icon:"news",      enabled:true },
+    { id:"notifications", label:"Сповіщення", file:"notifications", icon:"bell",     enabled:true },
+    { id:"suspicious",    label:"Підозрілі",  file:"suspicious",    icon:"shield",    enabled:true },
+    { id:"online",        label:"Онлайн",     file:"online",         icon:"live",      enabled:true },
+    { id:"news",          label:"Новини",     file:"news",           icon:"news",      enabled:true },
   ]},
 ];
 
@@ -475,7 +475,7 @@ function renderRolePickList(){
   const listEl = document.getElementById("role-pick-list");
   const ids = Object.keys(allRoles).sort((a,b) => (allRoles[a].name||"").localeCompare(allRoles[b].name||"", "uk"));
   if (!ids.length){
-    listEl.innerHTML = `<div class="role-pick-empty">Ще немає жодної створеної ролі.<br><a href="roles.html">Створити на сторінці «Ролі»</a></div>`;
+    listEl.innerHTML = `<div class="role-pick-empty">Ще немає жодної створеної ролі.<br><a href="roles">Створити на сторінці «Ролі»</a></div>`;
     return;
   }
   const { secIdx, itemIdx } = _rolePickerTarget;
@@ -577,7 +577,7 @@ function renderEditor(){
           ${svgIcon(item.icon)}
         </button>
         <input class="ni-name" type="text" value="${esc(item.label)}" placeholder="Назва" data-sec-idx="${si}" data-item-idx="${ii}">
-        <input class="ni-file" type="text" value="${esc(item.file || "")}" placeholder="index.html" data-sec-idx="${si}" data-item-idx="${ii}" ${item.protected ? "readonly" : ""}>
+        <input class="ni-file" type="text" value="${esc(item.file || "")}" placeholder="tests" data-sec-idx="${si}" data-item-idx="${ii}" ${item.protected ? "readonly" : ""}>
         ${item.protected ? `<span class="ni-protected-tag" title="Завжди відображається">Захищено</span>` : `
         <button class="ni-roles-btn${(item.roleIds && item.roleIds.length) ? " restricted" : ""}" data-sec-idx="${si}" data-item-idx="${ii}" title="Хто бачить цей пункт">
           ${(item.roleIds && item.roleIds.length)

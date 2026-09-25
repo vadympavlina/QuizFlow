@@ -332,7 +332,7 @@ const auth = getAuth(app);
 const db   = getDatabase(app);
 
 const fbUser = await new Promise(r => { const u = onAuthStateChanged(auth, x => { u(); r(x); }); });
-if (!fbUser) { location.href = "../login.html"; throw new Error(); }
+if (!fbUser) { location.href = "../login"; throw new Error(); }
 const uid = fbUser.uid;
 
 // ─── Cleanup: відкрив setup = хоче нову гру = всі старі кімнати прибираємо ──
@@ -351,10 +351,10 @@ const uid = fbUser.uid;
 
 const params  = new URLSearchParams(location.search);
 const testId  = params.get("testId");
-if (!testId) { alert("Не вказано testId"); location.href = "../index.html"; throw new Error(); }
+if (!testId) { alert("Не вказано testId"); location.href = "../"; throw new Error(); }
 
 const testSnap = await get(ref(db, `teachers/${uid}/tests/${testId}`));
-if (!testSnap.exists()) { alert("Тест не знайдено"); location.href = "../index.html"; throw new Error(); }
+if (!testSnap.exists()) { alert("Тест не знайдено"); location.href = "../"; throw new Error(); }
 const testData = { id: testId, ...testSnap.val() };
 const EXCLUDED_TYPES = ["long", "matching", "ordering"];
 const questions = (testData.questions || []).filter(q => !EXCLUDED_TYPES.includes(q.type));
@@ -540,7 +540,7 @@ async function createRoom() {
   // Зберігаємо код кімнати у власному списку викладача
   await set(ref(db, `teachers/${uid}/liveRooms/${code}`), Date.now());
 
-  location.href = `lobby.html?code=${code}`;
+  location.href = `lobby?code=${code}`;
 }
 </script>
 </body>

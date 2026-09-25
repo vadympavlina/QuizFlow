@@ -151,7 +151,7 @@ const pid     = params.get("pid");
 const nickname = params.get("nickname") || "";
 const myScore = parseInt(params.get("score")) || 0;
 
-if (!code || !pid) { location.href = "../index.html"; throw new Error(); }
+if (!code || !pid) { location.href = "../"; throw new Error(); }
 
 function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 function initialsOf(nick){

@@ -516,7 +516,7 @@ const _auth = getAuth(_authApp);
 const _fbUser = await new Promise(resolve => {
   const unsub = onAuthStateChanged(_auth, u => { unsub(); resolve(u); });
 });
-if (!_fbUser) { window.location.href = "login.html"; throw new Error("no auth"); }
+if (!_fbUser) { window.location.href = "login"; throw new Error("no auth"); }
 
 // Глобальна tp — використовує Firebase uid
 const _uid = _fbUser.uid;
@@ -637,8 +637,8 @@ window.previewTest = async () => {
   btn.disabled = false;
 
   // Відкриваємо тест напряму через testId в режимі preview (без таймера і результатів)
-  const base = window.location.origin + window.location.pathname.replace("constructor.html","");
-  const url = `${base}test.html?testId=${testId}&preview=1&t=${_uid}`;
+  const base = window.location.origin + window.location.pathname.replace("constructor","");
+  const url = `${base}test?testId=${testId}&preview=1&t=${_uid}`;
   window.open(url, "_blank");
 };
 
@@ -1034,7 +1034,7 @@ document.addEventListener("click", (e)=>{
 
 window.navTo = (section) => {
   if (section) sessionStorage.setItem("qf_nav", section);
-  location.href = "index.html";
+  location.href = "./";
 };
 
 // Nav click handlers - встановлюємо після завантаження DOM
@@ -1042,12 +1042,12 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("navAttempts")?.addEventListener("click", (e) => {
     e.preventDefault();
     sessionStorage.setItem("qf_nav", "attempts");
-    location.href = "index.html";
+    location.href = "./";
   });
   document.getElementById("navLinks")?.addEventListener("click", (e) => {
     e.preventDefault();
     sessionStorage.setItem("qf_nav", "links");
-    location.href = "index.html";
+    location.href = "./";
   });
 
   // Завантажуємо лічильники для сайдбару
@@ -1095,7 +1095,7 @@ window.navGuard = (section) => {
       document.getElementById("unsavedModal")?.classList.remove("open");
       if(_pendingNavTarget !== null){
         if(_pendingNavTarget) sessionStorage.setItem("qf_nav", _pendingNavTarget);
-        location.href = "index.html";
+        location.href = "./";
       }
     };
     document.getElementById("unsavedLeaveBtn").onclick = () => {
@@ -1103,12 +1103,12 @@ window.navGuard = (section) => {
       document.getElementById("unsavedModal")?.classList.remove("open");
       if(_pendingNavTarget !== null){
         if(_pendingNavTarget) sessionStorage.setItem("qf_nav", _pendingNavTarget);
-        location.href = "index.html";
+        location.href = "./";
       }
     };
   } else {
     if(section) sessionStorage.setItem("qf_nav", section);
-    location.href = "index.html";
+    location.href = "./";
   }
 };
 
@@ -1118,7 +1118,7 @@ function _goBack(){
   try {
     if (document.referrer) {
       const refUrl = new URL(document.referrer);
-      const isSelf = /constructor\.html$/.test(refUrl.pathname);
+      const isSelf = /\/constructor(\.html)?$/.test(refUrl.pathname);
       if (refUrl.origin === window.location.origin && !isSelf) {
         location.href = document.referrer;
         return;
@@ -1133,13 +1133,13 @@ function _goBack(){
     // з'їв подію, чи history порожня попри length>1) — падаємо на дашборд
     const fallbackAt = location.href;
     setTimeout(() => {
-      if (location.href === fallbackAt) location.href = "index.html";
+      if (location.href === fallbackAt) location.href = "./";
     }, 600);
     return;
   }
   // 3) Прямий заход за посиланням (нема ні referrer, ні історії) — єдиний
   //    осмислений варіант це дашборд
-  location.href = "index.html";
+  location.href = "./";
 }
 
 window.navBack = () => {
@@ -1164,7 +1164,7 @@ window.navBack = () => {
 
 window.doLogout = () => {
   sessionStorage.removeItem("qf_auth");
-  window.location.href = "login.html";
+  window.location.href = "login";
 };
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
@@ -1195,7 +1195,7 @@ async function initConstructor() {
 
   if (!testId) {
     showToast("Невірне посилання", "error");
-    setTimeout(() => location.href = "index.html", 2000);
+    setTimeout(() => location.href = "./", 2000);
     return;
   }
 
@@ -1377,7 +1377,7 @@ async function loadTest() {
 
     if (!testData) {
       showToast("Тест не знайдено", "error");
-      setTimeout(() => location.href = "index.html", 2000);
+      setTimeout(() => location.href = "./", 2000);
       return;
     }
 
@@ -2091,8 +2091,8 @@ window.previewTest = async () => {
   btn.disabled = false;
 
   // Відкриваємо тест напряму через testId в режимі preview (без таймера і результатів)
-  const base = window.location.origin + window.location.pathname.replace("constructor.html","");
-  const url = `${base}test.html?testId=${testId}&preview=1&t=${_uid}`;
+  const base = window.location.origin + window.location.pathname.replace("constructor","");
+  const url = `${base}test?testId=${testId}&preview=1&t=${_uid}`;
   window.open(url, "_blank");
 };
 
@@ -2100,7 +2100,7 @@ window.previewTest = async () => {
 async function renderLinks() {
   const container = document.getElementById("linksList");
   const links = await getLinksByTest(testId);
-  const base  = window.location.origin + window.location.pathname.replace("constructor.html", "");
+  const base  = window.location.origin + window.location.pathname.replace("constructor", "");
 
   if (!links.length) {
     container.innerHTML = `<div style="font-size:13px;color:var(--text-muted)">Немає посилань</div>`;
@@ -2108,7 +2108,7 @@ async function renderLinks() {
   }
 
   container.innerHTML = links.map(l => {
-    const url = `${base}test.html?link=${l.id}`;
+    const url = `${base}test?link=${l.id}`;
     const pct = l.maxAttempts ? Math.round((l.usedAttempts / l.maxAttempts) * 100) : 0;
     return `
     <div class="link-gen-item">

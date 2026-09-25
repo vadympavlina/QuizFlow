@@ -546,7 +546,7 @@ const db  = getDatabase(app);
 
 // ─── Auth: читаємо з sessionStorage АБО з localStorage (fix для нової вкладки) ──
 const sess = sessionStorage.getItem("qf_user") || localStorage.getItem("qf_user");
-if (!sess) { location.href = "login.html"; throw new Error("no auth"); }
+if (!sess) { location.href = "login"; throw new Error("no auth"); }
 const _user = JSON.parse(sess);
 // Якщо щойно прийшли з localStorage — синкаємо у sessionStorage щоб у цій вкладці теж було
 if (!sessionStorage.getItem("qf_user")) sessionStorage.setItem("qf_user", sess);

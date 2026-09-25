@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
 <link rel="modulepreload" href="shared/app.js?v=14">
-<link rel="preload" as="fetch" href="shared/layout.html?v=14" crossorigin>
+<link rel="preload" as="fetch" href="shared/layout?v=14" crossorigin>
 <link rel="modulepreload" href="shared/features.js?v=14">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
@@ -324,10 +324,10 @@ window.showSec = function(name){
     return;
   }
   const pageMap = {
-    dashboard:"index.html", tests:"tests.html", attempts:"attempts.html",
-    links:"links.html", analytics:"analytics.html", gradebook:"gradebook.html",
-    students:"students.html", notifications:"notifications.html",
-    suspicious:"suspicious.html", online:"online.html", news:"news.html"
+    dashboard:"./", tests:"tests", attempts:"attempts",
+    links:"links", analytics:"analytics", gradebook:"gradebook",
+    students:"students", notifications:"notifications",
+    suspicious:"suspicious", online:"online", news:"news"
   };
   if (pageMap[name]) location.href = pageMap[name];
 };
