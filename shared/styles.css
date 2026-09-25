@@ -792,3 +792,100 @@ body.mo-open{overflow:hidden}
 #nt-chips > div{flex:1;min-width:0}
 #nt-folder-drop{min-width:260px}
 #nt-folder-drop [data-fid] {white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ПОСИЛАННЯ: модалка створення / QR / «готово» (m-link, m-qr) — shared
+   ═══════════════════════════════════════════════════════════════════════ */
+.lk-mb{max-width:620px;padding:0;font-family:'Manrope',system-ui,sans-serif;color:#0B1437;position:relative}
+.lk-x{position:absolute;top:14px;right:14px;z-index:2;width:34px;height:34px;border-radius:10px;border:1px solid #E3E8F2;background:#fff;display:grid;place-items:center;color:#5B6A8F;cursor:pointer;transition:all .15s}
+.lk-x:hover{border-color:#FECACA;color:#B91C1C;background:#FEF2F2}
+.lk-h{display:flex;align-items:center;gap:14px;padding:22px 64px 16px 24px;border-bottom:1px solid #EEF1F7}
+.lk-hic{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;background:#EEF3FF;color:#2D5BE3;flex:0 0 auto}
+.lk-t{font-size:18px;font-weight:800;letter-spacing:-.01em}
+.lk-s{font-size:13px;color:#6B7897;margin-top:2px;line-height:1.45}
+.lk-body{padding:18px 24px 6px;display:flex;flex-direction:column;gap:14px}
+.lk-details{flex-direction:column;gap:14px}
+.lk-f{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lk-l{font-size:12px;font-weight:800;color:#24335A;display:flex;align-items:baseline;gap:6px}
+.lk-l small{font-weight:600;color:#8F9AB5;font-size:11.5px}
+.lk-in{width:100%;height:40px;border:1px solid #E3E8F2;border-radius:11px;padding:0 12px;font:inherit;font-size:14px;color:#0B1437;outline:none;background:#fff;transition:border-color .15s,box-shadow .15s}
+.lk-in:focus{border-color:#A8BEF6;box-shadow:0 0 0 3px rgba(45,91,227,.1)}
+.lk-in:disabled{background:#F4F6FB;color:#8F9AB5}
+.lk-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.lk-limit{display:flex;align-items:center;gap:10px}
+.lk-limit .lk-in{width:96px;flex:0 0 auto;font-family:'Geist Mono',monospace;font-weight:600}
+.lk-sw{display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:#24335A;cursor:pointer;user-select:none}
+.lk-sw input{position:absolute;opacity:0;pointer-events:none}
+.lk-sw b{width:34px;height:20px;border-radius:999px;background:#D3DAE8;position:relative;transition:background .2s;flex:0 0 auto}
+.lk-sw b::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:transform .2s}
+.lk-sw input:checked+b{background:#3B6BF6}
+.lk-sw input:checked+b::after{transform:translateX(14px)}
+.lk-sw input:focus-visible+b{outline:2px solid #3B6BF6;outline-offset:2px}
+.lk-sw span{display:flex;flex-direction:column;gap:1px}
+.lk-sw small{font-size:11.5px;font-weight:500;color:#8F9AB5}
+.lk-sched{padding:14px;border-radius:14px;background:#F7F9FD;border:1px solid #EEF1F7;display:flex;flex-direction:column;gap:10px}
+.lk-presets{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lk-presets span{font-size:12px;color:#6B7897;font-weight:600;margin-right:2px}
+.lk-presets button{height:28px;padding:0 10px;border-radius:8px;border:1px solid #E3E8F2;background:#fff;font:inherit;font-size:12px;font-weight:700;color:#24335A;cursor:pointer;transition:all .12s}
+.lk-presets button:hover{border-color:#A8BEF6;color:#2D5BE3}
+.lk-presets button.on{background:#2D5BE3;border-color:#2D5BE3;color:#fff}
+.lk-hint{font-size:12.5px;color:#B45309;font-weight:600;line-height:1.45}
+.lk-hint:empty,.lk-err:empty{display:none}
+.lk-opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.lk-err{padding:10px 12px;border-radius:10px;background:#FFF1F2;color:#BE123C;font-size:13px;font-weight:600}
+.lk-foot{display:flex;gap:10px;justify-content:flex-end;padding:16px 24px 20px}
+.lk-mb .btn{font-family:inherit;font-weight:700}
+.lk-foot .btn{min-width:120px;justify-content:center}
+.lk-picker{border:1px solid #E3E8F2;border-radius:12px;overflow:hidden;background:#FAFBFE}
+.lk-tsel{align-items:center;gap:10px;padding:9px 10px 9px 12px;border:1px solid #C9D7FB;border-radius:12px;background:#F5F8FF}
+.lk-tic{width:32px;height:32px;border-radius:9px;background:#fff;display:grid;place-items:center;color:#2D5BE3;flex:0 0 auto;border:1px solid #DCE6FC}
+.lk-tsum{flex:1;min-width:0;display:flex;flex-direction:column}
+.lk-tsum b{font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lk-tsum span{font-size:11.5px;color:#6B7897}
+.lk-tsel button{border:0;background:#fff;border:1px solid #DCE6FC;color:#2D5BE3;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;padding:6px 10px;border-radius:8px}
+.lk-tsel button:hover{background:#EEF3FF}
+.lk-warn{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:10px;background:#FFFBEB;border:1px solid #FDE68A;color:#92400E;font-size:12.5px;font-weight:600;line-height:1.35}
+.lk-warn svg{flex:0 0 auto}
+.lk-warn{flex-wrap:wrap}.lk-warn span{flex:1 1 180px;min-width:0}
+.lk-warn button,.lk-warn a{flex:0 0 auto;border:0;background:#F59E0B;color:#fff;font:inherit;font-size:12px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.lk-warn button:hover,.lk-warn a:hover{background:#D97706}
+.lk-warn button:disabled{opacity:.7;cursor:progress}
+.lk-check{display:flex;align-items:center;gap:9px;margin-top:8px;font-size:13px;font-weight:600;color:#24335A;cursor:pointer}
+.lk-check input{width:16px;height:16px;accent-color:#2D5BE3}
+/* «Готово» */
+.lk-done{padding:30px 26px 24px;text-align:center}
+.lk-ok{width:56px;height:56px;margin:0 auto 12px;border-radius:50%;background:#DCFCE7;color:#15803D;display:grid;place-items:center;animation:lkPop .35s cubic-bezier(.34,1.56,.64,1)}
+@keyframes lkPop{from{transform:scale(.5);opacity:0}to{transform:none;opacity:1}}
+.lk-done-test{font-size:15px;font-weight:700;margin-top:10px;color:#24335A}
+.lk-done-box{display:flex;gap:16px;align-items:center;text-align:left;margin:18px 0;padding:14px;border:1px solid #E3E8F2;border-radius:16px;background:#FAFBFE}
+.lk-done-qr img,.lk-done-qr canvas,.lk-qr-code img,.lk-qr-code canvas,.qr-full-code img,.qr-full-code canvas{display:block}
+.lk-done-qr{padding:8px;background:#fff;border-radius:12px;border:1px solid #EEF1F7;flex:0 0 auto}
+.lk-done-r{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.lk-done-url{font-family:'Geist Mono',monospace;font-size:12px;color:#1E3A8A;word-break:break-all;line-height:1.5;padding:8px 10px;border-radius:9px;background:#fff;border:1px dashed #C9D7FB}
+.lk-done-copied{font-size:12.5px;color:#15803D;font-weight:700}
+.lk-done-acts{display:flex;gap:8px;flex-wrap:wrap}
+.lk-done-btn{min-width:160px;justify-content:center}
+/* QR */
+.lk-qr{max-width:420px;padding:26px 24px 22px;text-align:center}
+.lk-qr .lk-t{padding:0 30px}
+.lk-qr-code{display:inline-block;margin:18px 0 12px;padding:14px;border-radius:18px;border:1px solid #E3E8F2;background:#fff;box-shadow:0 6px 24px rgba(11,20,55,.06)}
+.lk-qr-url{font-family:'Geist Mono',monospace;font-size:11.5px;color:#5B6A8F;word-break:break-all;line-height:1.5;margin-bottom:16px}
+.lk-qr-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lk-qr-acts .btn{justify-content:center}
+.lk-qr-acts .bp{grid-column:1/-1}
+.qr-na{width:180px;height:180px;display:grid;place-items:center;font-size:12px;color:#8691AC}
+.lk-del-ic{width:52px;height:52px;margin:0 auto 12px;border-radius:15px;background:#FFF1F2;color:#E11D48;display:grid;place-items:center}
+/* QR на весь екран */
+.qr-full{position:fixed;inset:0;z-index:10000;background:#0B1437;display:flex;align-items:center;justify-content:center;cursor:zoom-out;animation:lkFade .2s ease}
+@keyframes lkFade{from{opacity:0}}
+.qr-full-in{text-align:center;color:#fff;font-family:'Manrope',system-ui,sans-serif;padding:24px}
+.qr-full-t{font-size:clamp(22px,3.4vw,40px);font-weight:800;letter-spacing:-.02em}
+.qr-full-g{font-size:clamp(16px,2vw,24px);color:#A5C1FF;font-weight:700;margin-top:6px}
+.qr-full-code{display:inline-block;margin:22px 0 16px;padding:18px;background:#fff;border-radius:22px}
+.qr-full-u{font-family:'Geist Mono',monospace;font-size:clamp(13px,1.6vw,20px);color:#E2E8FF}
+.qr-full-h{margin-top:14px;font-size:13px;color:rgba(226,232,255,.45)}
+@media (max-width:640px){
+  .lk-row,.lk-opts{grid-template-columns:1fr}
+  .lk-done-box{flex-direction:column;text-align:center}
+  .lk-h{padding:18px 56px 14px 18px}.lk-body{padding:16px 18px 4px}.lk-foot{padding:14px 18px 18px}
+}

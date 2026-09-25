@@ -1693,15 +1693,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     linkData = await getLink(linkId);
     if (!linkData)                               return showError("Посилання не знайдено.");
-    if (linkData.status !== "active")            return showError("Доступ до тесту закрито.");
+    const _fmtWhen = t => new Date(t).toLocaleString("uk-UA", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+    const _max = Number(linkData.maxAttempts) > 0 ? Number(linkData.maxAttempts) : 0;   // 0 — без ліміту
+    if (linkData.status !== "active")            return showError(linkData.closedReason === "expired" ? "Час доступу до тесту вийшов." : "Доступ до тесту закрито.");
     if (linkData.closeAt && Date.now() > linkData.closeAt) return showError("Час доступу до тесту вийшов. Посилання автоматично закрито.");
-    if (linkData.usedAttempts >= linkData.maxAttempts)
+    if (linkData.openAt && Date.now() < linkData.openAt)   return showError(`Тест відкриється ${_fmtWhen(linkData.openAt)}. Оновіть сторінку в цей час.`);
+    if (_max && (linkData.usedAttempts || 0) >= _max)
                                                  return showError("Вичерпано ліміт студентів для цього посилання.");
 
     testData = await getTest(linkData.testId);
     if (!testData || !testData.questions?.length) return showError("Тест не знайдено або він порожній.");
     if (testData.status === "draft")  return showError("Тест ще не опублікований. Зверніться до викладача.");
     if (testData.status === "closed") return showError("Тест закрито. Зверніться до викладача.");
+    if (testData.status === "archived") return showError("Тест більше не доступний. Зверніться до викладача.");
 
     fillTestInfo();
     obStart();
@@ -1731,7 +1735,7 @@ function fillTestInfo() {
   setEl("infoQuestions", testData.questions.length);
   const mins = testData.timeLimit ? Math.round(testData.timeLimit / 60) : 0;
   setEl("infoTime", mins > 0 ? mins + " хвилин" : "Без обмежень");
-  setEl("infoAttempts", `${linkData.usedAttempts} / ${linkData.maxAttempts} студентів`);
+  setEl("infoAttempts", Number(linkData.maxAttempts) > 0 ? `${linkData.usedAttempts || 0} / ${linkData.maxAttempts} студентів` : `${linkData.usedAttempts || 0} студентів`);
   if (linkData.group) {
     const row = document.getElementById("infoGroupRow");
     if (row) row.style.display = "flex";
