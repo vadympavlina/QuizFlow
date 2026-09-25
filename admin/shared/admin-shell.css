@@ -359,6 +359,8 @@ html.asb-boot .asb, html.asb-boot .asb *, html.asb-boot .app{ transition:none !i
 }
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto}
 .toast.err{background:#B91C1C}
+/* Не перекриваємо панель незбережених змін (ai-settings, navigation) */
+body:has(.save-bar.on) .toast{bottom:92px}
 
 /* Empty state inside cards */
 .empty-state{padding:48px 20px; text-align:center; color:var(--ink-500)}
