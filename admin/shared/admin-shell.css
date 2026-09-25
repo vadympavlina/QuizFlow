@@ -358,6 +358,7 @@ html.asb-boot .asb, html.asb-boot .asb *, html.asb-boot .app{ transition:none !i
   display:inline-flex; align-items:center; gap:8px;
 }
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto}
+.toast.err{background:#B91C1C}
 
 /* Empty state inside cards */
 .empty-state{padding:48px 20px; text-align:center; color:var(--ink-500)}
