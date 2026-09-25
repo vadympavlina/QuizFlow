@@ -3,267 +3,198 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAzMiAzMic+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSdnJyB4MT0nMCcgeTE9JzAnIHgyPScxJyB5Mj0nMSc+PHN0b3Agb2Zmc2V0PScwJyBzdG9wLWNvbG9yPSclMjM3QzNBRUQnLz48c3RvcCBvZmZzZXQ9JzEnIHN0b3AtY29sb3I9JyUyMzRGNDZFNScvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSczMicgaGVpZ2h0PSczMicgcng9JzgnIGZpbGw9J3VybCglMjNnKScvPjxjaXJjbGUgY3g9JzE2JyBjeT0nMTYnIHI9JzknIGZpbGw9J25vbmUnIHN0cm9rZT0nd2hpdGUnIHN0cm9rZS13aWR0aD0nMicvPjxjaXJjbGUgY3g9JzE2JyBjeT0nMTYnIHI9JzQnIGZpbGw9J3doaXRlJy8+PC9zdmc+">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjN0MzQUVEIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNEY0NkU1Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjkiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjQiIGZpbGw9IndoaXRlIi8+PC9zdmc+">
 <title>QuizFlow Live · Ваш результат</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
+  [hidden]{display:none !important}
   *,*::before,*::after{box-sizing:border-box}
-  html{margin:0;padding:0}
-body{margin:0;padding:0}
-
+  html,body{margin:0;padding:0}
   :root{
-    --bg:#F6F5FB;
-    --card:#FFFFFF;
-    --card-2:#F0EEFB;
-    --card-line:#E2DFF3;
-    --ink:#201C33;
-    --ink-dim:#6B6480;
-    --accent:#5B4FE8;
-    --accent-ink:#FFFFFF;
-    --good:#2F9E62;
-    --bad:#D14343;
-    --pip-ok:#2F9E62;
-    --pip-no:#D14343;
+    --bg:#F6F5FB; --card:#FFFFFF; --card-2:#F0EEFB; --card-line:#E2DFF3;
+    --ink:#201C33; --ink-dim:#6B6480; --accent:#5B4FE8; --accent-ink:#FFFFFF;
+    --good:#2F9E62; --bad:#D14343; --gold:#C9971A;
   }
-
-  body{
-    font-family:"Space Grotesk",system-ui,sans-serif;color:var(--ink);
-    background:var(--bg);
-    min-height:100vh;
-  }
+  body{font-family:"Space Grotesk",system-ui,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh}
   body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.6;background-image:radial-gradient(rgba(32,28,51,.06) 1px, transparent 1px);background-size:26px 26px;mask-image:radial-gradient(ellipse at center, black 30%, transparent 90%)}
-
-  .wrap{max-width:540px;margin:0 auto;padding:32px 22px 60px;position:relative;z-index:1}
-
-  .brand{display:flex;align-items:center;gap:9px;justify-content:center;margin-bottom:26px}
+  .wrap{max-width:540px;margin:0 auto;padding:28px 18px 60px;position:relative;z-index:1}
+  .brand{display:flex;align-items:center;gap:9px;justify-content:center;margin-bottom:22px}
   .brand .logo{width:28px;height:28px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:var(--accent-ink)}
-  .brand b{font-weight:700;font-size:14px;color:var(--ink)}
-  .brand small{color:var(--ink-dim);font-weight:500;display:inline-flex;align-items:center;gap:5px}
-  .brand small::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+  .brand b{font-weight:700;font-size:14px}
+  .brand small{color:var(--ink-dim);font-weight:500}
 
-  .hero{
-    background:var(--card);
-    border:2px solid var(--card-line);border-radius:16px;padding:30px 24px;text-align:center;
-    position:relative;box-shadow:0 1px 2px rgba(32,28,64,.04), 0 16px 32px -14px rgba(32,28,64,.16);
-  }
+  .hero{background:var(--card);border:2px solid var(--card-line);border-radius:18px;padding:28px 22px;text-align:center;box-shadow:0 16px 32px -14px rgba(32,28,64,.16);animation:up .5s cubic-bezier(.22,1,.36,1)}
+  .hero.top{border-color:var(--gold)}
+  @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  .place-badge{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--accent-ink);padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:16px}
+  .hero.top .place-badge{background:var(--gold)}
+  .player-info{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:12px}
+  .player-info .av{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:16px}
+  .player-info .name{font-size:19px;font-weight:700;overflow-wrap:anywhere;text-align:left}
+  .place-num{font-family:"JetBrains Mono",monospace;font-size:76px;font-weight:700;line-height:1;letter-spacing:-.03em;color:var(--accent);margin:6px 0}
+  .hero.top .place-num{color:var(--gold)}
+  .place-meta{font-size:13.5px;color:var(--ink-dim)}
+  .place-meta b{color:var(--ink)}
 
-  .place-badge{
-    display:inline-flex;align-items:center;gap:8px;
-    background:var(--accent);color:var(--accent-ink);
-    padding:7px 16px;border-radius:7px;font-size:13px;font-weight:600;
-    margin-bottom:16px;
-  }
-
-  .player-info{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px}
-  .player-info .av{width:52px;height:52px;border-radius:10px;background:var(--accent);display:grid;place-items:center;color:var(--accent-ink);font-weight:700;font-size:17px}
-  .player-info .name{font-size:19px;font-weight:700;letter-spacing:-.01em;text-align:left;color:var(--ink)}
-
-  .place-num{
-    font-family:"JetBrains Mono",monospace;font-size:80px;font-weight:700;line-height:1;letter-spacing:-.03em;
-    color:var(--accent);
-    margin:6px 0;
-  }
-  .place-meta{font-size:13.5px;color:var(--ink-dim);font-weight:500}
-  .place-meta b{color:var(--ink);font-weight:700}
-
-  .score-strip{
-    display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;
-    background:var(--card-line);border:2px solid var(--card-line);
-    border-radius:12px;overflow:hidden;margin-top:22px;
-  }
-  .score-strip > div{background:var(--card-2);padding:14px 10px;text-align:center}
+  .score-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--card-line);border:2px solid var(--card-line);border-radius:12px;overflow:hidden;margin-top:20px}
+  .score-strip > div{background:var(--card-2);padding:13px 8px;text-align:center}
   .score-strip .l{font-size:11px;font-weight:500;color:var(--ink-dim)}
-  .score-strip .v{font-family:"JetBrains Mono",monospace;font-size:22px;font-weight:700;letter-spacing:-.02em;margin-top:5px}
-  .score-strip .v.green{color:var(--good)}
-  .score-strip .v.red{color:var(--bad)}
-  .score-strip .v.gold{color:var(--accent)}
-
-  .total-points{
-    margin-top:22px;background:var(--card-2);
-    border:2px solid var(--accent);border-radius:12px;padding:18px 20px;
-    display:flex;align-items:center;gap:16px;
-  }
-  .total-points .ico{font-size:28px}
+  .score-strip .v{font-family:"JetBrains Mono",monospace;font-size:22px;font-weight:700;margin-top:4px}
+  .v.green{color:var(--good)} .v.red{color:var(--bad)} .v.dim{color:var(--ink-dim)}
+  .total-points{margin-top:18px;background:var(--card-2);border:2px solid var(--accent);border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:14px;text-align:left}
+  .total-points .ico{font-size:26px}
   .total-points .lbl{font-size:11.5px;font-weight:500;color:var(--ink-dim)}
-  .total-points .pts{font-family:"JetBrains Mono",monospace;font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.2;margin-top:3px;color:var(--ink)}
+  .total-points .pts{font-family:"JetBrains Mono",monospace;font-size:28px;font-weight:700;line-height:1.2;margin-top:2px}
+  .accuracy{margin-left:auto;text-align:right}
+  .accuracy .pts{font-size:20px}
 
-  .recap{margin-top:28px}
-  .recap h3{font-size:14px;font-weight:600;color:var(--ink);margin:0 0 14px}
-  .pips{display:grid;grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:6px;margin-bottom:16px}
+  .card{margin-top:18px;background:var(--card);border:2px solid var(--card-line);border-radius:14px;padding:16px 18px}
+  .card h3{margin:0 0 12px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .card h3 small{margin-left:auto;font-weight:500;color:var(--ink-dim);font-size:12px}
+  .pips{display:grid;grid-template-columns:repeat(auto-fill,minmax(34px,1fr));gap:6px;margin-bottom:12px}
   .pip{aspect-ratio:1;border-radius:7px;display:grid;place-items:center;font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:700;color:#fff}
-  .pip.ok{background:var(--pip-ok)}
-  .pip.no{background:var(--pip-no)}
+  .pip.ok{background:var(--good)} .pip.no{background:var(--bad)}
   .pip.skip{background:var(--card-2);color:var(--ink-dim);border:1px solid var(--card-line)}
-
-  .legend{display:flex;justify-content:center;gap:18px;font-size:12px;color:var(--ink-dim);margin-bottom:8px}
+  .legend{display:flex;justify-content:center;gap:16px;font-size:12px;color:var(--ink-dim);flex-wrap:wrap}
   .legend span{display:inline-flex;align-items:center;gap:6px}
   .legend i{width:10px;height:10px;border-radius:3px}
 
-  .leaders-snippet{
-    margin-top:22px;background:var(--card);border:2px solid var(--card-line);
-    border-radius:14px;padding:16px 18px;
-  }
-  .leaders-snippet h4{margin:0 0 10px;font-size:13px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:8px}
-  .leaders-snippet h4 small{margin-left:auto;font-weight:500;color:var(--ink-dim);font-size:12px}
-  .lr-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--card-line)}
+  .lr-row{display:flex;align-items:center;gap:10px;padding:9px 8px;border-bottom:1px solid var(--card-line)}
   .lr-row:last-child{border-bottom:0}
-  .lr-row.you{background:var(--card-2);margin:0 -10px;padding-left:10px;padding-right:10px;border-radius:8px;border-left:3px solid var(--accent)}
-  .lr-rank{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:13px;color:var(--ink-dim);width:28px}
-  .lr-rank.gold{color:var(--accent)}
-  .lr-name{flex:1;font-weight:600;font-size:13.5px;color:var(--ink)}
-  .lr-row.you .lr-name::after{content:" · ви";color:var(--accent);font-weight:600;font-size:11px}
+  .lr-row.you{background:var(--card-2);border-radius:8px;box-shadow:inset 3px 0 0 var(--accent)}
+  .lr-gap{text-align:center;color:var(--ink-dim);font-size:12px;padding:4px 0;letter-spacing:.3em}
+  .lr-rank{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:13px;color:var(--ink-dim);width:30px}
+  .lr-name{flex:1;font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lr-row.you .lr-name::after{content:" · ви";color:var(--accent);font-size:11px}
   .lr-pts{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:13px;color:var(--accent)}
 
-  .footer-msg{margin-top:26px;text-align:center;font-size:12.5px;color:var(--ink-dim);line-height:1.6}
-  .footer-msg b{color:var(--accent)}
+  .actions{margin-top:22px;display:flex;flex-direction:column;gap:10px;align-items:center}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-weight:700;text-decoration:none;box-shadow:4px 4px 0 rgba(91,79,232,.22)}
+  .footer-msg{font-size:12.5px;color:var(--ink-dim)}
+  .footer-msg b{color:var(--accent);font-family:"JetBrains Mono",monospace}
 
-  .spinner-wrap{display:flex;align-items:center;justify-content:center;padding:60px}
-  .spinner{width:36px;height:36px;border:3px solid var(--card-line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+  .waiting{text-align:center;padding:60px 20px;color:var(--ink-dim)}
+  .spinner{width:36px;height:36px;margin:0 auto 14px;border:3px solid var(--card-line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion: reduce){ *{animation:none !important} }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="brand">
     <div class="logo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg></div>
-    <b>quizflow</b>
-    <small>live</small>
+    <b>quizflow</b><small>· live</small>
   </div>
-
-  <div id="content">
-    <div class="spinner-wrap"><div class="spinner"></div></div>
-  </div>
+  <div id="content"><div class="waiting"><div class="spinner"></div>Підраховуємо результати…</div></div>
 </div>
 
 <script type="module">
-import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import {
+  db, ref, get, onValue, readParams, isValidCode, esc, initialsOf, avatarColor, standings,
+  plural, fmtNum, pageUrl,
+} from "./live-core.js";
 
-const FC = {apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",authDomain:"quizflow-8a978.firebaseapp.com",databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",projectId:"quizflow-8a978",storageBucket:"quizflow-8a978.firebasestorage.app",messagingSenderId:"206469794166",appId:"1:206469794166:web:55cd7007b429607acd5257"};
-const app = getApps().length ? getApps()[0] : initializeApp(FC);
-const db  = getDatabase(app);
+const $ = (id) => document.getElementById(id);
+const { code, pid, nickname: nickParam } = readParams("code", "pid", "nickname");
+if (!isValidCode(code) || !pid) { location.replace(pageUrl("../play")); throw new Error("bad params"); }
+const joinAgain = pageUrl("../play");
 
-const params  = new URLSearchParams(location.search);
-const code    = params.get("code");
-const pid     = params.get("pid");
-const nickname = params.get("nickname") || "";
-const myScore = parseInt(params.get("score")) || 0;
-
-if (!code || !pid) { location.href = "../index.html"; throw new Error(); }
-
-function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-function initialsOf(nick){
-  const parts = String(nick||"").trim().split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) return (parts[0][0]+parts[1][0]).toUpperCase();
-  return (nick||"??").slice(0,2).toUpperCase();
+function message(ico, title, text) {
+  $("content").innerHTML = `<div class="waiting"><div style="font-size:44px">${ico}</div><h2 style="color:var(--ink);margin:10px 0 6px">${esc(title)}</h2>${esc(text)}
+    <div class="actions"><a class="btn" href="${esc(joinAgain)}">Приєднатись до гри</a></div></div>`;
 }
 
-// Wait for leaderboard/finished status
-const roomRef = ref(db, `rooms/${code}`);
-const unsub = onValue(roomRef, async snap => {
-  if (!snap.exists()) return;
-  const room = snap.val();
-  const status = room.status;
-  if (status !== "leaderboard" && status !== "finished") return;
-  unsub();
-  await renderResult(room);
+// Чекаємо, поки викладач завершить гру (слухаємо лише статус, а не всю кімнату)
+let done = false;
+const unsub = onValue(ref(db, `rooms/${code}/status`), async snap => {
+  if (done) return;
+  const status = snap.val();
+  if (!status) { done = true; unsub(); message("🔍", "Гру не знайдено", "Можливо, кімнату вже видалено."); return; }
+  if (status !== "leaderboard" && status !== "finished") {
+    // Гра ще триває (наприклад, учень відкрив посилання завчасно) — повертаємо в гру
+    location.replace(`play-student?code=${code}&pid=${encodeURIComponent(pid)}&nickname=${encodeURIComponent(nickParam || "")}`);
+    return;
+  }
+  done = true; unsub();
+  try { await render(); }
+  catch (e) { console.error(e); message("⚠️", "Не вдалося завантажити результати", e.message); }
 });
 
-async function renderResult(room) {
-  const ansSnap = await get(ref(db, `rooms/${code}/answers`));
-  const allAns = ansSnap.val() || {};
-  const totalQ = (room.questions||[]).length;
+async function render() {
+  const [qS, pS, aS, tS] = await Promise.all(["questions", "players", "answers", "testTitle"].map(p => get(ref(db, `rooms/${code}/${p}`))));
+  const totalQ = (qS.val() || []).length;
+  const allAns = aS.val() || {};
+  const list = standings(pS.val(), allAns);
+  const meRow = list.find(p => p.pid === pid);
+  const nickname = meRow?.nickname || pS.val()?.[pid]?.nickname || nickParam || "Гравець";
 
-  // Calc scores and per-question correctness for this player
-  const scores = {};
-  const myAnswers = {}; // qi -> {isCorrect}
-  Object.entries(allAns).forEach(([qi, qA]) => {
-    Object.entries(qA||{}).forEach(([p, ans]) => {
-      scores[p] = (scores[p]||0) + (ans.points||0);
-      if (p === pid) myAnswers[Number(qi)] = ans;
-    });
-  });
+  const mine = {};
+  Object.entries(allAns).forEach(([qi, qA]) => { if (qA?.[pid]) mine[+qi] = qA[pid]; });
+  const correct = Object.values(mine).filter(a => a.isCorrect).length;
+  const wrong = Object.values(mine).length - correct;
+  const skipped = Math.max(0, totalQ - correct - wrong);
+  const score = meRow?.score || 0;
+  const place = meRow?.rank;
+  const acc = totalQ ? Math.round(correct / totalQ * 100) : 0;
+  const top = place && place <= 3;
 
-  const players = room.players || {};
-  const list = Object.entries(players)
-    .filter(([,p]) => p.active !== false)
-    .map(([p, pl]) => ({ pid:p, name: pl.nickname, score: scores[p]||0 }))
-    .sort((a,b) => b.score - a.score);
+  const badge = !place ? "Результат" : place === 1 ? "🥇 Переможець!" : place === 2 ? "🥈 Друге місце!" : place === 3 ? "🥉 Третє місце!" : `Місце #${place}`;
 
-  const myIdx   = list.findIndex(p => p.pid === pid);
-  const myPlace = myIdx >= 0 ? myIdx+1 : "—";
-  // Перерахований бал з Firebase (враховує ручне зарахування вчителем), а не застарілий URL-параметр
-  const finalScore = myIdx >= 0 ? list[myIdx].score : myScore;
-  const myCorrect = Object.values(myAnswers).filter(a=>a.isCorrect).length;
-  const myWrong   = Object.values(myAnswers).filter(a=>!a.isCorrect && a.value !== undefined).length;
-  const mySkipped = totalQ - myCorrect - myWrong;
+  // Топ-5 + рядок з вами, якщо ви нижче
+  const top5 = list.slice(0, 5);
+  const row = (p) => `<div class="lr-row${p.pid === pid ? " you" : ""}"><span class="lr-rank">#${p.rank}</span><span class="lr-name">${esc(p.nickname)}</span><span class="lr-pts">${fmtNum(p.score)}</span></div>`;
+  let lr = top5.map(row).join("");
+  if (meRow && !top5.includes(meRow)) lr += `<div class="lr-gap">···</div>` + row(meRow);
 
-  const initials = initialsOf(nickname);
-  const placeBadge = myPlace <= 3 ? `🏆 Топ-${myPlace} в грі!` : `Місце #${myPlace}`;
-  const top7 = list.slice(0,7);
-
-  // Pip recap
-  const pips = Array.from({length:totalQ}, (_,i) => {
-    const ans = myAnswers[i];
-    if (!ans) return `<div class="pip skip">${i+1}</div>`;
-    return `<div class="pip ${ans.isCorrect?"ok":"no"}">${i+1}</div>`;
+  const pips = Array.from({ length: totalQ }, (_, i) => {
+    const a = mine[i];
+    const cls = !a ? "skip" : a.isCorrect ? "ok" : "no";
+    const title = !a ? "без відповіді" : a.isCorrect ? `правильно · +${a.points || 0}` : "помилка";
+    return `<div class="pip ${cls}" title="Питання ${i + 1}: ${title}">${i + 1}</div>`;
   }).join("");
 
-  // Leaderboard top7
-  const lrRows = top7.map((p,i) =>
-    `<div class="lr-row${p.pid===pid?" you":""}">
-      <span class="lr-rank${i===0?" gold":""}">#${i+1}</span>
-      <span class="lr-name">${esc(p.name)}</span>
-      <span class="lr-pts">${p.score.toLocaleString("uk")}</span>
-    </div>`
-  ).join("");
-
-  document.getElementById("content").innerHTML = `
-    <div class="hero">
-      <div class="place-badge">${placeBadge}</div>
+  $("content").innerHTML = `
+    <div class="hero${top ? " top" : ""}">
+      <div class="place-badge">${badge}</div>
       <div class="player-info">
-        <div class="av">${initials}</div>
-        <div>
-          <div class="name">${esc(nickname)}</div>
-        </div>
+        <div class="av" style="background:${avatarColor(nickname)}">${esc(initialsOf(nickname))}</div>
+        <div class="name">${esc(nickname)}</div>
       </div>
-      <div class="place-num">#${myPlace}</div>
-      <div class="place-meta">з <b>${list.length}</b> гравців у грі <b>«${esc(room.testTitle||"—")}»</b></div>
+      <div class="place-num">${place ? "#" + place : "—"}</div>
+      <div class="place-meta">з <b>${list.length}</b> ${plural(list.length, "гравця", "гравців", "гравців")}${tS.val() ? ` у грі <b>«${esc(tS.val())}»</b>` : ""}</div>
       <div class="score-strip">
-        <div><div class="l">Правильні</div><div class="v green">${myCorrect}</div></div>
-        <div><div class="l">Помилки</div><div class="v red">${myWrong}</div></div>
-        <div><div class="l">Пропущено</div><div class="v gold">${mySkipped}</div></div>
+        <div><div class="l">Правильні</div><div class="v green">${correct}</div></div>
+        <div><div class="l">Помилки</div><div class="v red">${wrong}</div></div>
+        <div><div class="l">Пропущено</div><div class="v dim">${skipped}</div></div>
       </div>
       <div class="total-points">
         <div class="ico">⚡</div>
-        <div>
-          <div class="lbl">Ваші бали</div>
-          <div class="pts">${finalScore.toLocaleString("uk")}</div>
-        </div>
+        <div><div class="lbl">Ваші бали</div><div class="pts">${fmtNum(score)}</div></div>
+        <div class="accuracy"><div class="lbl">Точність</div><div class="pts">${acc}%</div></div>
       </div>
     </div>
 
-    <div class="recap">
+    <div class="card">
       <h3>📋 Розбір питань</h3>
-      <div class="legend">
-        <span><i style="background:#2F9E62"></i> Правильно</span>
-        <span><i style="background:#D14343"></i> Помилка</span>
-        <span><i style="background:#F0EEFB"></i> Пропущено</span>
-      </div>
       <div class="pips">${pips}</div>
+      <div class="legend">
+        <span><i style="background:var(--good)"></i> Правильно</span>
+        <span><i style="background:var(--bad)"></i> Помилка</span>
+        <span><i style="background:var(--card-2);border:1px solid var(--card-line)"></i> Пропущено</span>
+      </div>
     </div>
 
-    <div class="leaders-snippet">
-      <h4>👑 Лідерборд <small>топ-${top7.length}</small></h4>
-      ${lrRows}
+    <div class="card">
+      <h3>👑 Лідерборд <small>${list.length} ${plural(list.length, "гравець", "гравці", "гравців")}</small></h3>
+      ${lr || `<div class="footer-msg">Немає даних</div>`}
     </div>
 
-    <div class="footer-msg">
-      Дякуємо за гру! Код гри: <b>${code}</b>
-    </div>
-  `;
+    <div class="actions">
+      <a class="btn" href="${esc(joinAgain)}">▶ Приєднатись до нової гри</a>
+      <div class="footer-msg">Дякуємо за гру! Код: <b>${esc(code)}</b></div>
+    </div>`;
 }
 </script>
 </body>

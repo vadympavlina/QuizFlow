@@ -156,14 +156,14 @@ const auth = getAuth(app);
 const db   = getDatabase(app);
 
 const fbUser = await new Promise(r => { const u = onAuthStateChanged(auth, x => { u(); r(x); }); });
-if (!fbUser) { location.href = "../login.html"; throw new Error(); }
+if (!fbUser) { location.href = "../login"; throw new Error(); }
 const uid = fbUser.uid;
 
 const code = new URLSearchParams(location.search).get("code");
-if (!code) { location.href = "../index.html"; throw new Error(); }
+if (!code) { location.href = "../"; throw new Error(); }
 
 const roomSnap = await get(ref(db, `rooms/${code}`));
-if (!roomSnap.exists()) { alert("Кімнату не знайдено"); location.href = "../index.html"; throw new Error(); }
+if (!roomSnap.exists()) { alert("Кімнату не знайдено"); location.href = "../"; throw new Error(); }
 const room = roomSnap.val();
 const questions = room.questions || [];
 const totalQ = questions.length;
@@ -261,13 +261,13 @@ window.goLeaderboard = async () => {
     code, testId: room.testId, testTitle: room.testTitle||"",
     playedAt: Date.now(), playerCount: results.length, results
   });
-  location.href = `podium.html?code=${code}`;
+  location.href = `podium?code=${code}`;
 };
 
 window.endGame = async () => {
   if (!confirm("Завершити гру?")) return;
   await update(ref(db, `rooms/${code}`), { status: "finished" });
-  location.href = "../index.html";
+  location.href = "../";
 };
 
 // Players listener

@@ -213,10 +213,10 @@ const auth = getAuth(app);
 const db   = getDatabase(app);
 
 const fbUser = await new Promise(r => { const u = onAuthStateChanged(auth, x => { u(); r(x); }); });
-if (!fbUser) { location.href = "../login.html"; throw new Error(); }
+if (!fbUser) { location.href = "../login"; throw new Error(); }
 
 const code = new URLSearchParams(location.search).get("code");
-if (!code) { location.href = "../index.html"; throw new Error(); }
+if (!code) { location.href = "../"; throw new Error(); }
 
 // Fill code digits
 const digitsEl = document.getElementById("code-digits");
@@ -228,7 +228,7 @@ code.split("").forEach(d => {
 
 // Load room info
 const roomSnap = await get(ref(db, `rooms/${code}`));
-if (!roomSnap.exists()) { alert("Кімната не знайдена"); location.href = "../index.html"; throw new Error(); }
+if (!roomSnap.exists()) { alert("Кімната не знайдена"); location.href = "../"; throw new Error(); }
 const room = roomSnap.val();
 
 document.getElementById("game-title").textContent = room.testTitle || "—";
@@ -278,7 +278,7 @@ function showUndoToast(nickname, onUndo) {
 }
 
 window.copyLink = (btn) => {
-  const url = `${location.origin}/play.html?code=${code}`;
+  const url = `${location.origin}/play?code=${code}`;
   navigator.clipboard.writeText(url).then(() => {
     const orig = btn.innerHTML;
     btn.textContent = "Скопійовано!";
@@ -291,7 +291,7 @@ window.startGame = async () => {
   await update(ref(db, `rooms/${code}`), {
     status: "question", currentQ: 0, questionStartedAt: Date.now()
   });
-  location.href = `play-teacher.html?code=${code}`;
+  location.href = `play-teacher?code=${code}`;
 };
 
 // ─── Рендер сітки гравців (викликається і з realtime-слухача, і локально
@@ -344,7 +344,7 @@ onValue(ref(db, `rooms/${code}/players`), snap => {
 
 // Watch for game start from another tab
 onValue(ref(db, `rooms/${code}/status`), snap => {
-  if (snap.val() === "question") location.href = `play-teacher.html?code=${code}`;
+  if (snap.val() === "question") location.href = `play-teacher?code=${code}`;
 });
 </script>
 </body>

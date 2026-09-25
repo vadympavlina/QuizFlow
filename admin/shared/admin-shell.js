@@ -92,7 +92,7 @@ const _adminFbUser = await new Promise(resolve => {
 });
 
 if (!_adminFbUser) {
-  location.href = "admin-login.html";
+  location.href = "admin-login";
   throw new Error("no auth");
 }
 
@@ -100,7 +100,7 @@ if (!_adminFbUser) {
 const _adminProfileSnap = await get(ref(db, `users/${_adminFbUser.uid}`));
 if (!_adminProfileSnap.exists() || _adminProfileSnap.val().role !== "admin") {
   await _signOut(_adminAuth);
-  location.href = "admin-login.html";
+  location.href = "admin-login";
   throw new Error("not admin");
 }
 
@@ -120,24 +120,24 @@ function getCurrentUser(){
 
 export function doLogout(){
   _signOut(_adminAuth);
-  location.href = "admin-login.html";
+  location.href = "admin-login";
 }
 
 // ─── Sidebar / Topbar markup ────────────────────────────────────────────────
 
 const NAV_ITEMS = [
   { sec:"ПАНЕЛЬ", items:[
-    { id:"overview",    icon:"overview", label:"Огляд",            href:"overview.html" },
-    { id:"teachers",    icon:"teachers", label:"Викладачі",        href:"teachers.html" },
-    { id:"problems",    icon:"problems",  label:"Проблеми",         href:"problems.html" },
-    { id:"stats",       icon:"stats",    label:"Статистика",       href:"stats.html" },
-    { id:"news",        icon:"news",     label:"Новини",           href:"news.html" },
-    { id:"navigation",  icon:"menu",     label:"Навігація",        href:"navigation.html" },
-    { id:"ai",          icon:"ai",       label:"AI Налаштування",  href:"ai-settings.html" },
-    { id:"ai",          icon:"ai",       label:"TELEGRAM",  href:"telegram.html" },
+    { id:"overview",    icon:"overview", label:"Огляд",            href:"overview" },
+    { id:"teachers",    icon:"teachers", label:"Викладачі",        href:"teachers" },
+    { id:"problems",    icon:"problems",  label:"Проблеми",         href:"problems" },
+    { id:"stats",       icon:"stats",    label:"Статистика",       href:"stats" },
+    { id:"news",        icon:"news",     label:"Новини",           href:"news" },
+    { id:"navigation",  icon:"menu",     label:"Навігація",        href:"navigation" },
+    { id:"ai",          icon:"ai",       label:"AI Налаштування",  href:"ai-settings" },
+    { id:"ai",          icon:"ai",       label:"TELEGRAM",  href:"telegram" },
   ]},
   { sec:"АКАУНТ", items:[
-    { id:"dashboard", icon:"dashboard", label:"Дашборд викладача", href:"../index.html" },
+    { id:"dashboard", icon:"dashboard", label:"Дашборд викладача", href:"../" },
     { id:"logout",    icon:"logout",    label:"Вийти",            href:"#", onClick:"doLogout" },
   ]}
 ];
@@ -262,7 +262,7 @@ export async function initAdminShell({ activeId, crumbs, content, topbarRight })
   // Auth
   const _user = getCurrentUser();
   if (!_user){
-    location.href = "admin-login.html";
+    location.href = "admin-login";
     throw new Error("not authenticated");
   }
 

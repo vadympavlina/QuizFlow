@@ -805,13 +805,13 @@ function buildTestCard(t, idx){
 
   return `<div class="t-quiz-card">
     <!-- Cover -->
-    <div class="t-qc-cover" style="background:${grad}" onclick="location.href='constructor.html?id=${t.id}'">
+    <div class="t-qc-cover" style="background:${grad}" onclick="location.href='constructor?id=${t.id}'">
       <span class="t-qc-code">${esc(abbr)}</span>
       <span class="t-qc-status"><span class="t-pill ${sc.cls}">${sc.label}</span></span>
     </div>
     <!-- Title + meta -->
     <div>
-      <div class="t-qc-title" onclick="location.href='constructor.html?id=${t.id}'">${esc(t.title)}</div>
+      <div class="t-qc-title" onclick="location.href='constructor?id=${t.id}'">${esc(t.title)}</div>
       <div class="t-qc-meta">
         <span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -833,7 +833,7 @@ function buildTestCard(t, idx){
     <div class="t-qc-foot">
       <span class="t-qc-date">${dateStr ? "Створено " + dateStr : ""}</span>
       <div class="t-qc-foot-actions">
-        <button class="t-edit-btn" onclick="location.href='constructor.html?id=${t.id}'">
+        <button class="t-edit-btn" onclick="location.href='constructor?id=${t.id}'">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           Редагувати
         </button>
@@ -913,7 +913,7 @@ function buildTestRow(t, idx){
     <td class="t-mono t-muted" style="white-space:nowrap">${dateStr}</td>
     <td>
       <div class="t-ra">
-        <button class="t-ib" title="Редагувати" onclick="location.href='constructor.html?id=${t.id}'">
+        <button class="t-ib" title="Редагувати" onclick="location.href='constructor?id=${t.id}'">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
         <button class="t-ib" title="Нове посилання" onclick="G.qLink('${t.id}')">
@@ -1535,7 +1535,7 @@ renderLinks = function(){
   // ── Картки ──
   tb.innerHTML = lst.map(l => {
     const t = tests.find(x => x.id === l.testId);
-    const url = `${base}test.html?link=${l.id}&t=${_uid}`;
+    const url = `${base}test?link=${l.id}&t=${_uid}`;
     const used = l.usedAttempts || 0;
     const max = l.maxAttempts || 0;
     const pct = max > 0 ? Math.min(100, Math.round(used / max * 100)) : 0;
@@ -2053,13 +2053,13 @@ selectAnalyticsDrop(field, value, label){
     ldr(true);closeM("m-test");
     try{
       const id=await dbPush("tests",{title:n,description:desc,folderId:_fid||null,tags,timeLimit:tl,status:"draft",questions:[],createdAt:ts()});
-      location.href=`constructor.html?id=${id}`;
+      location.href=`constructor?id=${id}`;
     }catch(e){toast("Помилка: "+e.message,"err");ldr(false);}
   },
   confDelTest(id,name){_pid=id;$("del-tn").textContent=name;openM("m-del-test");},
   startLiveGame(testId){
     document.querySelectorAll("[id^='tmenu-']").forEach(m=>m.style.display="none");
-    window.open(`live/setup.html?testId=${testId}`,"_blank","noopener");
+    window.open(`live/setup?testId=${testId}`,"_blank","noopener");
   },
   async doDelTest(mode="archive"){
     const id=_pid;_pid=null;closeM("m-del-test");ldr(true);
@@ -2199,7 +2199,7 @@ selectAnalyticsDrop(field, value, label){
     const l=links.find(x=>x.id===linkId),t=tests.find(x=>x.id===l?.testId);
     if(!l)return;
     const base=location.origin+location.pathname.replace(/[^/]*$/, "");
-    const url=`${base}test.html?link=${linkId}&t=${_uid}`;
+    const url=`${base}test?link=${linkId}&t=${_uid}`;
     window._qrUrl=url;
     $("qr-title").textContent=t?.title||"—";
     $("qr-group").textContent=l.group?`Група: ${l.group}`:"";

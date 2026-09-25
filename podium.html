@@ -179,13 +179,13 @@ const auth = getAuth(app);
 const db   = getDatabase(app);
 
 const fbUser = await new Promise(r => { const u = onAuthStateChanged(auth, x => { u(); r(x); }); });
-if (!fbUser) { location.href = "../login.html"; throw new Error(); }
+if (!fbUser) { location.href = "../login"; throw new Error(); }
 
 const code = new URLSearchParams(location.search).get("code");
-if (!code) { location.href = "../index.html"; throw new Error(); }
+if (!code) { location.href = "../"; throw new Error(); }
 
 const roomSnap = await get(ref(db, `rooms/${code}`));
-if (!roomSnap.exists()) { location.href = "../index.html"; throw new Error(); }
+if (!roomSnap.exists()) { location.href = "../"; throw new Error(); }
 const room = roomSnap.val();
 
 document.getElementById("test-title").textContent = room.testTitle || "—";
@@ -332,7 +332,7 @@ function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")
 
 window.endGame = async () => {
   await update(ref(db, `rooms/${code}`), { status:"finished", finishedAt: Date.now() });
-  location.href = "../index.html";
+  location.href = "../";
 };
 </script>
 </body>

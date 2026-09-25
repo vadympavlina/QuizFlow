@@ -82,7 +82,7 @@ window.doJoin=async()=>{
     if(existing&&existing[1].active===false)return showErr("Вас було видалено з гри");
     const pid=existing?existing[0]:Date.now().toString(36)+Math.random().toString(36).slice(2,6);
     await set(ref(db,`rooms/${code}/players/${pid}`),{nickname,score:0,joinedAt:Date.now(),active:true});
-    location.href=`live/play-student.html?code=${code}&pid=${pid}&nickname=${encodeURIComponent(nickname)}`;
+    location.href=`live/play-student?code=${code}&pid=${pid}&nickname=${encodeURIComponent(nickname)}`;
   }catch(e){showErr("Помилка: "+e.message);}
 };
 document.addEventListener("keydown",e=>{if(e.key==="Enter")doJoin();});

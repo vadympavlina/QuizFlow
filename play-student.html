@@ -224,7 +224,7 @@ const pid      = params.get("pid");
 const surname  = params.get("surname") || "";
 const name     = params.get("name")    || "";
 
-if (!code || !pid) { location.href = "../index.html"; throw new Error(); }
+if (!code || !pid) { location.href = "../"; throw new Error(); }
 
 // Player UI
 const initials = ((surname||"?")[0]+(name||"?")[0]).toUpperCase();
@@ -446,7 +446,7 @@ onValue(ref(db, `rooms/${code}`), snap => {
 
   if (r.status === "leaderboard" || r.status === "finished") {
     clearInterval(timerInterval);
-    location.href = `student-result.html?code=${code}&pid=${pid}&surname=${encodeURIComponent(surname)}&name=${encodeURIComponent(name)}&score=${myScore}`;
+    location.href = `student-result?code=${code}&pid=${pid}&surname=${encodeURIComponent(surname)}&name=${encodeURIComponent(name)}&score=${myScore}`;
   }
 });
 

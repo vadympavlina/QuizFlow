@@ -35,7 +35,7 @@ const _fbUser = await new Promise((resolve) => {
 });
 
 if (!_fbUser) {
-  location.href = "login.html";
+  location.href = "login";
   throw new Error("no auth");
 }
 
@@ -43,7 +43,7 @@ if (!_fbUser) {
 const _userSnap = await get(ref(db, `users/${_fbUser.uid}`));
 if (!_userSnap.exists()) {
   await signOut(auth);
-  location.href = "login.html";
+  location.href = "login";
   throw new Error("no user profile");
 }
 
@@ -53,7 +53,7 @@ const _userDb = _userSnap.val();
 if (_userDb.blocked === true) {
   await signOut(auth);
   alert("Ваш акаунт заблоковано. Зверніться до адміністратора.");
-  location.href = "login.html";
+  location.href = "login";
   throw new Error("blocked");
 }
 
@@ -115,7 +115,7 @@ window.doLogout = async () => {
   localStorage.removeItem("qf_nav_ts");
   sessionStorage.clear();
   await signOut(auth);
-  location.href = "login.html";
+  location.href = "login";
 };
 
 // ─── Toast ─────────────────────────────────────────────────────────────
@@ -204,7 +204,7 @@ async function loadModals() {
   // Якщо сторінка уже містить <div id="modals-root"> — туди й вставимо,
   // інакше створимо новий контейнер перед </body>
   try {
-    const resp = await fetch("shared/modals.html");
+    const resp = await fetch("shared/modals");
     if (!resp.ok) throw new Error("modals.html " + resp.status);
     const html = await resp.text();
     let root = document.getElementById("modals-root");
@@ -259,7 +259,7 @@ async function loadSidebar(activePage) {
     }
 
     // ─── 3) Fallback — завантажуємо статичний layout.html ───────────────────
-    const resp = await fetch("shared/layout.html?v=15");
+    const resp = await fetch("shared/layout?v=15");
     if (!resp.ok) throw new Error("layout.html " + resp.status);
     const html = await resp.text();
     const mainEl = document.querySelector(".main");
@@ -333,6 +333,8 @@ async function buildDynamicSidebar(navData, activePage) {
     suspicious: "nb-suspicious", online: "nb-online", news: "nb-news"
   };
 
+  const cleanHref = (f) => f === "index.html" ? "./" : f.replace(/\.html(?=$|[?#])/, "");
+
   let sectionsHtml = "";
   navData.forEach(sec => {
     const enabledItems = sec.items.filter(it => {
@@ -351,7 +353,8 @@ async function buildDynamicSidebar(navData, activePage) {
     const itemsHtml = enabledItems.map(item => {
       const badgeId = BADGE_IDS[item.id] || ("nb-" + item.id);
       const isExternal = item.file && (item.file.startsWith("http://") || item.file.startsWith("https://"));
-      const href = item.file ? item.file : "#";
+      // Конфіг навігації в базі може містити старі "tests.html" — прибираємо .html
+      const href = item.file ? (isExternal ? item.file : cleanHref(item.file)) : "#";
       return `<a class="ni" data-page="${item.id}" data-tip="${item.label}" href="${href}"${isExternal ? ' target="_blank" rel="noopener"' : ''}>
         <span class="sb-ico">${iconSvg(item.icon)}</span>
         <span class="ni-label">${item.label}</span>
@@ -388,11 +391,11 @@ async function buildDynamicSidebar(navData, activePage) {
     <nav class="sb-scroll"><div class="sb-section">${sectionsHtml}</div></nav>
     <div class="sb-bottom">
       <div class="sb-icon-strip">
-        <a href="live.html" target="_blank" data-tip="Live (нова вкладка)" class="ni ni-live">
+        <a href="live" target="_blank" data-tip="Live (нова вкладка)" class="ni ni-live">
           <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg></span>
           <span class="ni-label">Live</span>
         </a>
-        <a href="/admin/overview.html" id="admin-panel-btn" target="_blank" rel="noopener" data-tip="Адмін (нова вкладка)" class="ni ni-admin" style="display:none">
+        <a href="/admin/overview" id="admin-panel-btn" target="_blank" rel="noopener" data-tip="Адмін (нова вкладка)" class="ni ni-admin" style="display:none">
           <span class="sb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
           <span class="ni-label">Адмін-панель</span>
         </a>

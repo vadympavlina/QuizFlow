@@ -226,7 +226,7 @@
         <svg id="loginBtn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </button>
 
-      <a href="../login.html" class="back-link">
+      <a href="../login" class="back-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         Я викладач, повернутися
       </a>
@@ -262,7 +262,7 @@
       try {
         const snap = await get(ref(db, `users/${fbUser.uid}`));
         if (snap.exists() && snap.val().role === "admin" && !snap.val().blocked) {
-          location.replace("overview.html");
+          location.replace("overview");
         }
       } catch {}
     }
@@ -295,7 +295,7 @@
         showErr("Акаунт заблоковано"); setBusy(false); return;
       }
 
-      location.href = "overview.html";
+      location.href = "overview";
     } catch(e) {
       const msg = ["auth/invalid-credential","auth/wrong-password","auth/user-not-found"].includes(e.code)
         ? "Невірний email або пароль"

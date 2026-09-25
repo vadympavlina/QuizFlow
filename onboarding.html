@@ -67,9 +67,9 @@ const db  = getDatabase(app);
 
 // Перевірка сесії
 const sess = sessionStorage.getItem("qf_user");
-if(!sess){ location.href = "login.html"; throw ""; }
+if(!sess){ location.href = "login"; throw ""; }
 const user = JSON.parse(sess);
-if(!user?.id){ location.href = "login.html"; throw ""; }
+if(!user?.id){ location.href = "login"; throw ""; }
 
 const STEPS = [
   {
@@ -177,7 +177,7 @@ window.finish = async (redirect=true) => {
   try{
     await update(ref(db, `teachers/${user.id}/meta`), { onboardingDone: true });
   }catch(e){ console.warn(e); }
-  if(redirect) location.href = "index.html";
+  if(redirect) location.href = "./";
 };
 
 // Перехоплюємо btn-next на останньому кроці

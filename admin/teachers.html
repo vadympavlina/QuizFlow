@@ -664,7 +664,7 @@ function renderRoleCheckboxes(containerId, selectedIds){
   const roles = window._roles || {};
   const ids = Object.keys(roles).sort((a,b) => (roles[a].name||"").localeCompare(roles[b].name||"", "uk"));
   if (!ids.length){
-    el.innerHTML = `<div class="role-check-empty">Ще немає жодної створеної ролі — <a href="roles.html" style="color:#7C3AED;font-weight:700">створити на сторінці «Ролі»</a></div>`;
+    el.innerHTML = `<div class="role-check-empty">Ще немає жодної створеної ролі — <a href="roles" style="color:#7C3AED;font-weight:700">створити на сторінці «Ролі»</a></div>`;
     return;
   }
   const selSet = new Set(selectedIds || []);
@@ -1054,7 +1054,7 @@ window.generateInvite = async () => {
     });
 
     const base = location.origin + location.pathname.replace(/\/admin\/.*/, "/");
-    const link = `${base}register.html?token=${token}`;
+    const link = `${base}register?token=${token}`;
     document.getElementById("invite-link-input").value = link;
     document.getElementById("invite-generating").style.display = "none";
     document.getElementById("invite-result").style.display = "";
