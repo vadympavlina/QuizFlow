@@ -875,3 +875,7 @@ body.mo-open{overflow:hidden}
 .mv-new{justify-content:center;color:var(--primary);font-weight:600;border-style:dashed}
 @media (max-width:520px){ .mx-row{grid-template-columns:1fr} }
 .mo [hidden]{display:none!important}
+/* Поле «Папка» в модалці нового тесту — на всю ширину, список не вужчий за 260px */
+#nt-chips > div{flex:1;min-width:0}
+#nt-folder-drop{min-width:260px}
+#nt-folder-drop [data-fid] {white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

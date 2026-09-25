@@ -223,6 +223,8 @@ document.addEventListener("click", e => {
 // щоб старі обробники сторінок не закривали одразу всі модалки.
 window.addEventListener("keydown", e => {
   if (e.key !== "Escape") return;
+  // Відкритий поповер/дропдаун у модалці закривається першим (своїм обробником)
+  if (document.querySelector('[data-open="1"], .cd-menu.open')) return;
   const top = [..._mStack].reverse().find(m => m.el.classList.contains("on") && m.el.style.display !== "none");
   if (!top) return;
   e.stopPropagation(); e.preventDefault();
