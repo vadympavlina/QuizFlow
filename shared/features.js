@@ -5,6 +5,8 @@
 // toast, ldr, tp, $, esc, toArr, folders, tests, links, attempts
 // ═══════════════════════════════════════════════════════════════════════
 
+import { sanitizeNewsHtml, newsPlainText, newsExcerpt, readMinutes, catOf, isPublished } from "./news-utils.js?v=1";
+
 const { db, ref, get, set, push, update, remove, onValue, off } = window._fb;
 const _user = window._user;
 const _uid = window._uid;
@@ -5100,26 +5102,34 @@ if (_obEl) _obEl.addEventListener("click", function(e){
 });
 
 // ─── NEWS ────────────────────────────────────────────────────────────────────
+// Новини пише адмін (admin/news). Чернетки (draft:true) викладачам не показуються,
+// HTML завжди очищається білим списком перед показом (shared/news-utils.js).
 let _newsItems = [];
 let _readNews = new Set();
+let _newsFilter = "all", _newsQuery = "";
 
 async function loadTeacherNews(){
   try{
     const {get:_g,ref:_r}=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
-    const readRaw=await _g(_r(db,"teachers/"+_uid+"/meta/readNews")).catch(()=>null);
+    const [readRaw, newsSnap] = await Promise.all([
+      _g(_r(db,"teachers/"+_uid+"/meta/readNews")).catch(()=>null),
+      _g(_r(db,"news")),
+    ]);
     if(readRaw&&readRaw.exists()){
       const rv=readRaw.val();
       _readNews=new Set(Array.isArray(rv)?rv:Object.values(rv));
     }
-    const newsSnap=await _g(_r(db,"news"));
-    if(!newsSnap.exists()){ _newsItems=[]; renderNews(); updateNewsBadge(); return; }
-    _newsItems=Object.entries(newsSnap.val())
-      .map(([id,v])=>({id,...v}))
-      .sort((a,b)=>{ if(a.pinned&&!b.pinned)return -1; if(!a.pinned&&b.pinned)return 1; return (b.createdAt||0)-(a.createdAt||0); });
+    _newsItems = newsSnap.exists()
+      ? Object.entries(newsSnap.val()).map(([id,v])=>({id,...v})).filter(isPublished)
+          .sort((a,b)=>(!!b.pinned-!!a.pinned) || ((b.publishedAt||b.createdAt||0)-(a.publishedAt||a.createdAt||0)))
+      : [];
     renderNews();
     updateNewsBadge();
   }catch(e){ console.warn("loadTeacherNews:",e.message); }
 }
+
+const _newsDate = (n, opts) => { const t = n.publishedAt || n.createdAt; return t ? new Date(t).toLocaleDateString("uk-UA", opts || { day:"numeric", month:"long", year:"numeric" }) : ""; };
+const _newsCatPill = n => { const c = catOf(n); return c ? `<span class="nw-cat" style="--c:${c.color};--cb:${c.bg}">${esc(c.label)}</span>` : ""; };
 
 function updateNewsBadge(){
   const unread=_newsItems.filter(n=>!_readNews.has(n.id)).length;
@@ -5141,185 +5151,139 @@ function renderDashNews(){
   if(!cont) return;
   cont.innerHTML=_newsItems.slice(0,3).map(n=>{
     const isRead=_readNews.has(n.id);
-    const dateStr=n.createdAt?new Date(n.createdAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short"}):"";
-    const preview=(n.text||"").slice(0,90)+((n.text||"").length>90?"...":"");
-    return `<div onclick="openNews('${n.id}')" style="padding:10px 12px;border-radius:12px;border:1.5px solid ${isRead?"var(--border)":"rgba(45,91,227,.2)"};background:${isRead?"transparent":"rgba(45,91,227,.02)"};cursor:pointer;transition:all .15s"
-      onmouseover="this.style.background='rgba(45,91,227,.04)'" onmouseout="this.style.background='${isRead?"transparent":"rgba(45,91,227,.02)"}'">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-        ${!isRead?`<div style="width:7px;height:7px;border-radius:50%;background:var(--primary);flex-shrink:0"></div>`:""}
-        <div style="font-weight:600;font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(n.title||"")}</div>
-        <div style="font-size:11px;color:var(--muted);flex-shrink:0">${dateStr}</div>
-      </div>
-      <div style="font-size:12px;color:var(--muted);font-style:italic;${!isRead?"padding-left:15px":""}">Натисніть щоб прочитати →</div>
-    </div>`;
+    const c=catOf(n);
+    return `<button type="button" class="dn-item${isRead?"":" unread"}" onclick="openNews('${esc(n.id)}')">
+      <span class="dn-top">${isRead?"":`<span class="dn-dot"></span>`}<span class="dn-title">${esc(n.title||"")}</span><span class="dn-date">${esc(_newsDate(n,{day:"numeric",month:"short"}))}</span></span>
+      <span class="dn-ex">${c?`<b style="color:${c.color}">${esc(c.label)}</b> · `:""}${esc(newsExcerpt(n,80))}</span>
+    </button>`;
   }).join("");
 }
 
 function renderNews(){
   const list = $("news-teacher-list");
   if (!list) return;
- 
-  // ─── Lichilnyky (новий дизайн: stats-strip + chip) ───
+
   const total   = _newsItems.length;
   const pinned  = _newsItems.filter(n => n.pinned).length;
   const unread  = _newsItems.filter(n => !_readNews.has(n.id)).length;
- 
-  const elTotal  = document.getElementById("nw-cnt-total");
-  const elPinned = document.getElementById("nw-cnt-pinned");
-  const elUnread = document.getElementById("nw-cnt-unread");
-  if (elTotal)  elTotal.textContent  = total;
-  if (elPinned) elPinned.textContent = pinned;
-  if (elUnread) elUnread.textContent = unread;
- 
-  const chip = document.getElementById("nw-status-chip");
+  const setT = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+  setT("nw-cnt-total", total); setT("nw-cnt-pinned", pinned); setT("nw-cnt-unread", unread);
+
+  const chip = $("nw-status-chip");
   if (chip){
-    if (unread > 0){
-      chip.className = "nw-chip unread";
-      chip.textContent = `${unread} непрочитан${unread === 1 ? "а" : (unread >= 2 && unread <= 4 ? "і" : "их")}`;
-    } else {
-      chip.className = "nw-chip";
-      chip.textContent = total ? "Усе прочитано" : "Поки тихо";
-    }
+    chip.className = "nw-chip" + (unread ? " unread" : "");
+    chip.textContent = unread ? `${unread} непрочитан${unread === 1 ? "а" : (unread % 10 >= 2 && unread % 10 <= 4 && (unread % 100 < 10 || unread % 100 >= 20) ? "і" : "их")}` : (total ? "Усе прочитано" : "Поки тихо");
   }
- 
-  if (!_newsItems.length){
+  const markAll = $("nw-mark-all");
+  if (markAll) markAll.hidden = !unread;
+  document.querySelectorAll("#nw-filter [data-f]").forEach(b => { b.classList.toggle("on", b.dataset.f === _newsFilter); b.setAttribute("aria-selected", b.dataset.f === _newsFilter); });
+  const cntU = $("nw-f-unread"); if (cntU) cntU.textContent = unread || "";
+
+  if (!total){
     list.innerHTML = `<div class="nw-empty">
       <div class="ei"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h6M7 17h4"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/></svg></div>
       <div class="et">Поки що тут тихо</div>
-      <div class="es">Тут з'являтимуться оновлення продукту, нові фічі та інша важлива інформація від команди QuizFlow.</div>
+      <div class="es">Тут з'являтимуться оновлення продукту, нові функції та інша важлива інформація від команди QuizFlow.</div>
     </div>`;
     return;
   }
- 
-  // Палітра кольорів для thumb (по хешу) — щоб картки виглядали різноманітно
-  const THUMB_PALETTE = ["", "green", "amber", "violet", "pink", "teal"];
-  // Одна newspaper іконка для всіх — без тематичного "вгадування"
+
+  const q = _newsQuery.trim().toLowerCase();
+  const items = _newsItems.filter(n => (_newsFilter !== "unread" || !_readNews.has(n.id))
+    && (!q || (n.title || "").toLowerCase().includes(q) || newsPlainText(n.text).toLowerCase().includes(q)));
+  if (!items.length){
+    list.innerHTML = `<div class="nw-empty small"><div class="et">${q ? "Нічого не знайдено" : "Усе прочитано 🎉"}</div><div class="es">${q ? "Спробуйте інший запит" : "Нових повідомлень немає — перегляньте всі новини"}</div></div>`;
+    return;
+  }
+
   const NEWS_ICON = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h6M7 17h4"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/></svg>';
- 
-  function thumbCls(seed){
-    let h = 0;
-    const s = String(seed || "");
-    for (let i = 0; i < s.length; i++) h = (h + s.charCodeAt(i)) | 0;
-    return THUMB_PALETTE[Math.abs(h) % THUMB_PALETTE.length];
-  }
- 
-  // Виокремлюємо першу закріплену як hero, решту — у grid
-  const sortedItems = [..._newsItems].sort((a, b) => {
-    if (a.pinned && !b.pinned) return -1;
-    if (!a.pinned && b.pinned) return 1;
-    return (b.createdAt || 0) - (a.createdAt || 0);
-  });
- 
-  const hero = sortedItems.find(n => n.pinned) || null;
-  const rest = hero ? sortedItems.filter(n => n.id !== hero.id) : sortedItems;
- 
-  // Plain-text excerpt helper (з html → text)
-  function excerptOf(n, max = 140){
-    const tmp = document.createElement("div");
-    tmp.innerHTML = n.text || "";
-    const plain = (tmp.innerText || "").trim();
-    if (plain.length > max) return plain.slice(0, max) + "…";
-    return plain;
-  }
- 
+  const hero = !q && _newsFilter === "all" ? items.find(n => n.pinned) : null;
+  const rest = hero ? items.filter(n => n !== hero) : items;
   let html = "";
- 
-  // ─── HERO ───
+
   if (hero){
-    const dateStr = hero.createdAt
-      ? new Date(hero.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"long", year:"numeric" })
-      : "";
-    const heroFullDate = hero.createdAt
-      ? new Date(hero.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"long", year:"numeric" })
-      : "—";
-    const isUnread = !_readNews.has(hero.id);
-    html += `<div class="nw-hero" onclick="openNews('${hero.id}')">
+    const isUnread = !_readNews.has(hero.id), c = catOf(hero);
+    html += `<button type="button" class="nw-hero" onclick="openNews('${esc(hero.id)}')" style="${c ? `--hc:${c.color}` : ""}">
       <div class="nw-hero-cover">
-        <div style="position:relative; z-index:1">
-          <span class="nw-hero-tag">★ Закріплено${dateStr ? ` · ${esc(dateStr)}` : ""}</span>
+        <div style="position:relative;z-index:1">
+          <span class="nw-hero-tag">★ Закріплено${c ? ` · ${esc(c.label)}` : ""}</span>
           <div class="nw-hero-title">${esc(hero.title || "—")}</div>
         </div>
       </div>
       <div class="nw-hero-body">
-        <p>${esc(excerptOf(hero, 240))}</p>
+        <p>${esc(newsExcerpt(hero, 260))}</p>
         <div class="nw-hero-foot">
-          <span class="item">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            ${heroFullDate}
-          </span>
-          ${isUnread ? `<span class="item" style="color:var(--nav-accent); font-weight:700">● Не прочитано</span>` : ""}
-          <span class="item" style="margin-left:auto; color:var(--nav-600); font-weight:700">Читати →</span>
+          <span class="item">${esc(_newsDate(hero))}</span>
+          <span class="item">${readMinutes(hero.text)} хв читання</span>
+          ${isUnread ? `<span class="item" style="color:var(--nav-accent);font-weight:700">● Не прочитано</span>` : ""}
+          <span class="item" style="margin-left:auto;color:var(--nav-600);font-weight:700">Читати →</span>
         </div>
       </div>
-    </div>`;
+    </button>`;
+    if (rest.length) html += `<div class="nw-section-l">Інші публікації</div>`;
   }
- 
-  // ─── GRID ───
-  if (rest.length){
-    if (hero){
-      html += `<div class="nw-section-l">Інші публікації</div>`;
-    }
- 
-    html += `<div class="nw-list">${rest.map(n => {
-      const isUnread = !_readNews.has(n.id);
-      const dateShort = n.createdAt
-        ? new Date(n.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"short" })
-        : "";
-      const dateFull = n.createdAt
-        ? new Date(n.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"short", year:"numeric" })
-        : "—";
-      const cls = thumbCls(n.id || n.title);
- 
-      return `<div class="nw-item${isUnread ? " unread" : ""}${n.pinned ? " pinned" : ""}" onclick="openNews('${n.id}')">
-        <div class="nw-thumb ${cls}">${NEWS_ICON}</div>
-        <div class="nw-body">
-          <div class="nw-tag">
-            ${n.pinned ? `<span class="pinned-mark"><svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6 6 1-4.5 4.5 1 6-5.5-3-5.5 3 1-6-4.5-4.5 6-1z"/></svg>Закріплено</span>` : "Оновлення"}
-            ${dateShort ? `· ${esc(dateShort)}` : ""}
-          </div>
-          <div class="nw-title">
-            ${isUnread ? '<span class="unread-dot"></span>' : ""}
-            ${esc(n.title || "—")}
-          </div>
-          <div class="nw-excerpt">${esc(excerptOf(n))}</div>
-          <div class="nw-foot">
-            <span class="read-time">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              ${dateFull}
-            </span>
-            <span class="arr">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            </span>
-          </div>
-        </div>
-      </div>`;
-    }).join("")}</div>`;
-  }
- 
+
+  html += `<div class="nw-list">${rest.map(n => {
+    const isUnread = !_readNews.has(n.id), c = catOf(n);
+    return `<button type="button" class="nw-item${isUnread ? " unread" : ""}${n.pinned ? " pinned" : ""}" onclick="openNews('${esc(n.id)}')">
+      <span class="nw-thumb" style="${c ? `background:linear-gradient(135deg,${c.color}CC,${c.color})` : ""}">${NEWS_ICON}</span>
+      <span class="nw-body">
+        <span class="nw-tag">${_newsCatPill(n)}${n.pinned ? `<span class="pinned-mark">★ Закріплено</span>` : ""}</span>
+        <span class="nw-title">${isUnread ? `<span class="unread-dot" title="Не прочитано"></span>` : ""}${esc(n.title || "—")}</span>
+        <span class="nw-excerpt">${esc(newsExcerpt(n))}</span>
+        <span class="nw-foot">
+          <span class="read-time">${esc(_newsDate(n, { day:"numeric", month:"short", year:"numeric" }))} · ${readMinutes(n.text)} хв</span>
+          <span class="arr"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+        </span>
+      </span>
+    </button>`;
+  }).join("")}</div>`;
+
   list.innerHTML = html;
 }
 
+async function _saveReadNews(){
+  try{
+    const {ref:_r,set:_s}=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+    await _s(_r(db,"teachers/"+_uid+"/meta/readNews"),Array.from(_readNews));
+  }catch(e){ console.warn(e); }
+}
+
+// Перегляд новини: категорія, дата, час читання, гортання до попередньої/наступної
 window.openNews = async (id) => {
-  const n=_newsItems.find(x=>x.id===id);
+  const idx=_newsItems.findIndex(x=>x.id===id);
+  const n=_newsItems[idx];
   if(!n) return;
+  const c=catOf(n);
+  const cat=$("news-view-cat");
+  if(cat){ cat.innerHTML = c ? `<span class="nw-cat" style="--c:${c.color};--cb:${c.bg}">${esc(c.label)}</span>` : `<span class="nw-cat">Новина</span>`; if(n.pinned) cat.innerHTML += `<span class="nw-cat pin">★ Закріплено</span>`; }
   $("news-view-title").textContent=n.title||"";
-  // Якщо текст містить HTML теги — рендеримо як HTML
-  const newsTextEl=$("news-view-text");
-  if((n.text||"").includes("<")) newsTextEl.innerHTML=n.text||"";
-  else newsTextEl.textContent=n.text||"";
-  const dateStr=n.createdAt?new Date(n.createdAt).toLocaleDateString("uk-UA",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}):"";
-  $("news-view-date").textContent=dateStr?"Опубліковано: "+dateStr:"";
-  openM("m-news-view");
+  $("news-view-text").innerHTML=sanitizeNewsHtml(n.text);
+  const when=n.publishedAt||n.createdAt;
+  $("news-view-date").textContent=[when?new Date(when).toLocaleDateString("uk-UA",{day:"numeric",month:"long",year:"numeric"}):"", readMinutes(n.text)+" хв читання"].filter(Boolean).join(" · ");
+  const prev=$("news-view-prev"), next=$("news-view-next");
+  if(prev){ const p=_newsItems[idx-1]; prev.hidden=!p; if(p){ prev.onclick=()=>openNews(p.id); prev.querySelector("span").textContent=p.title||""; } }
+  if(next){ const x=_newsItems[idx+1]; next.hidden=!x; if(x){ next.onclick=()=>openNews(x.id); next.querySelector("span").textContent=x.title||""; } }
+  if(!$("m-news-view").classList.contains("on")) openM("m-news-view");
+  $("news-view-body")?.scrollTo?.(0,0);
   if(!_readNews.has(id)){
     _readNews.add(id);
     updateNewsBadge();
     renderNews();
-    try{
-      const {ref:_r,set:_s}=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
-      await _s(_r(db,"teachers/"+_uid+"/meta/readNews"),Array.from(_readNews));
-    }catch(e){ console.warn(e); }
+    _saveReadNews();
   }
 };
+
+window.markAllNewsRead = async () => {
+  const before=_readNews.size;
+  _newsItems.forEach(n=>_readNews.add(n.id));
+  if(_readNews.size===before) return;
+  updateNewsBadge(); renderNews();
+  await _saveReadNews();
+  toast("Усі новини позначено прочитаними");
+};
+window.setNewsFilter = f => { _newsFilter = f; renderNews(); };
+window.setNewsQuery = q => { _newsQuery = q; renderNews(); };
 
 // ─── ІНІЦІАЛІЗАЦІЯ ───────────────────────────────────────────────────────────
 

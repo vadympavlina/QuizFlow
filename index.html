@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
 <link rel="modulepreload" href="shared/app.js?v=17">
-<link rel="modulepreload" href="shared/features.js?v=17">
+<link rel="modulepreload" href="shared/features.js?v=18">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
    DASHBOARD REDESIGN — scoped під #sec-dashboard
@@ -179,6 +179,14 @@
 #sec-dashboard .d-news .d-news-title svg{width:14px;height:14px;color:var(--nav-600)}
 #sec-dashboard .d-news .d-news-badge{display:none;background:var(--nav-600);color:#fff;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:999px;font-family:'Geist Mono',monospace}
 #sec-dashboard .d-news-items{padding:10px 16px;display:flex;flex-direction:column;gap:8px}
+#sec-dashboard .dn-item{display:flex;flex-direction:column;gap:4px;width:100%;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#fff;cursor:pointer;font:inherit;transition:border-color .15s,background .15s}
+#sec-dashboard .dn-item:hover{border-color:var(--line-strong);background:#FAFBFE}
+#sec-dashboard .dn-item.unread{border-color:#BFD3FF;background:#F7F9FF}
+#sec-dashboard .dn-top{display:flex;align-items:center;gap:8px;min-width:0}
+#sec-dashboard .dn-dot{width:7px;height:7px;border-radius:50%;background:var(--nav-accent);flex:0 0 auto}
+#sec-dashboard .dn-title{flex:1;min-width:0;font-weight:700;font-size:13px;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sec-dashboard .dn-date{font-size:11px;color:var(--ink-400);flex:0 0 auto;font-family:"Geist Mono",monospace}
+#sec-dashboard .dn-ex{font-size:12px;color:var(--ink-500);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 
 /* ─── Швидкий перехід ─── */
 #sec-dashboard .d-info{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
@@ -359,7 +367,7 @@
 
 <script type="module">
 const { initApp } = await import("./shared/app.js?v=17");
-const featuresP = import("./shared/features.js?v=17");
+const featuresP = import("./shared/features.js?v=18");
 
 window.showSec = function(name){
   if (name === "dashboard") {

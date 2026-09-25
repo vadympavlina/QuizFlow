@@ -4,13 +4,30 @@
 :root{--bg:#f0f3fa;--sidebar:#0a0f2e;--primary:#2d5be3;--primary-light:#4d78ff;--glow:rgba(45,91,227,0.15);--teal:#14d4b4;--amber:#f59e0b;--rose:#f43f5e;--card:#fff;--border:rgba(45,91,227,0.08);--text:#0d1340;--muted:#6b7280;--light:#a0a8c0;--grad:linear-gradient(135deg,#2d5be3,#1a3ab8)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
-/* News text formatting */
-#news-view-text b,#news-view-text strong{font-weight:700}
-#news-view-text i,#news-view-text em{font-style:italic}
-#news-view-text h3{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;margin:12px 0 6px}
-#news-view-text ul{padding-left:18px;margin:8px 0}
-#news-view-text li{margin-bottom:4px}
-#news-view-text a{color:var(--primary);text-decoration:underline}
+/* News: перегляд новини (m-news-view) */
+#m-news-view .nv-mb{max-width:640px;width:100%;padding:28px 30px 22px;font-family:'Manrope',sans-serif}
+.nv-cat{display:flex;gap:6px;margin-bottom:10px;padding-right:36px}
+.nw-cat{display:inline-flex;align-items:center;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px;color:var(--c,#1E3A8A);background:var(--cb,#EEF2FB);font-family:'Manrope',sans-serif}
+.nw-cat.pin{color:#92400E;background:#FEF3C7}
+.nv-title{margin:0;font-size:23px;font-weight:800;letter-spacing:-.02em;line-height:1.25;color:#0B1437;padding-right:30px}
+.nv-meta{font-size:12.5px;color:#8691AC;margin-top:8px;font-family:'Geist Mono',monospace}
+.nv-body{margin-top:16px;padding-top:16px;border-top:1px solid #E3E8F2;max-height:min(58vh,560px);overflow-y:auto}
+.nv-text{font-size:15px;line-height:1.75;color:#24335A;word-break:break-word}
+.nv-text p{margin:0 0 12px}
+.nv-text b,.nv-text strong{font-weight:700;color:#0B1437}
+.nv-text i,.nv-text em{font-style:italic}
+.nv-text h3{font-weight:800;font-size:17px;margin:18px 0 8px;color:#0B1437;letter-spacing:-.01em}
+.nv-text ul,.nv-text ol{padding-left:22px;margin:8px 0 12px}
+.nv-text li{margin-bottom:5px}
+.nv-text blockquote{margin:12px 0;padding:10px 14px;border-left:3px solid #3B82F6;background:#F4F7FE;border-radius:0 10px 10px 0;color:#24335A}
+.nv-text a{color:#2563EB;text-decoration:underline;text-underline-offset:2px}
+.nv-nav{display:flex;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid #E3E8F2}
+.nv-nav:not(:has(.nv-step:not([hidden]))){display:none}
+.nv-step{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid #E3E8F2;background:#FAFBFE;cursor:pointer;font:inherit;transition:all .15s}
+.nv-step:hover{border-color:#CDD6E8;background:#fff}
+.nv-step.next{text-align:right;margin-left:auto}
+.nv-step small{font-size:11px;font-weight:700;color:#8691AC;text-transform:uppercase;letter-spacing:.05em}
+.nv-step span{font-size:13px;font-weight:700;color:#0B1437;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* ═══════════════════════════════════════════════════════════════════════
    SIDEBAR — плаваюча панель (shared/nav.js)
    Розгорнутий режим: 248px, згорнутий: 76px (html.sb-c / .sb.collapsed).

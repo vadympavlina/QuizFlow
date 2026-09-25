@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
 <link rel="modulepreload" href="shared/app.js?v=17">
-<link rel="modulepreload" href="shared/features.js?v=17">
+<link rel="modulepreload" href="shared/features.js?v=18">
 
 <style>
 /* ── Page tokens ── */
@@ -204,6 +204,28 @@
 #sec-news .nw-empty .et{font-size:17px; font-weight:800; color:var(--ink-900); margin-bottom:6px; letter-spacing:-.01em; font-family:"Manrope",sans-serif}
 #sec-news .nw-empty .es{font-size:13.5px; max-width:360px; margin:0 auto; line-height:1.5}
 
+/* Тулбар: фільтр і пошук */
+#sec-news .nw-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+#sec-news .nw-tabs{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:11px;padding:3px;gap:2px}
+#sec-news .nw-tabs button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:700;color:var(--ink-500);padding:7px 13px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+#sec-news .nw-tabs button.on{background:var(--nav-600);color:#fff}
+#sec-news .nw-tabs b{font-family:"Geist Mono",monospace;font-size:11px;background:#FEE2E2;color:#B91C1C;padding:0 6px;border-radius:999px}
+#sec-news .nw-tabs b:empty{display:none}
+#sec-news .nw-search{flex:1;max-width:340px;position:relative;display:flex;align-items:center}
+#sec-news .nw-search svg{position:absolute;left:11px;color:var(--ink-400)}
+#sec-news .nw-search input{width:100%;padding:9px 12px 9px 32px;border:1px solid var(--line);border-radius:11px;font:inherit;font-size:13px;outline:none;background:#fff}
+#sec-news .nw-search input:focus{border-color:var(--nav-accent);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+#sec-news .nw-btn{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink-700);cursor:pointer}
+#sec-news .nw-btn:hover{border-color:var(--line-strong);color:var(--ink-900)}
+#sec-news .nw-btn[hidden]{display:none}
+/* Картки — кнопки */
+#sec-news button.nw-hero,#sec-news button.nw-item{font:inherit;text-align:left;width:100%;color:inherit}
+#sec-news button.nw-hero{display:block;padding:0}
+#sec-news .nw-hero-cover{background:linear-gradient(135deg,#1E3A8A 0%,var(--hc,#3B82F6) 100%)}
+#sec-news .nw-body,#sec-news .nw-title,#sec-news .nw-tag,#sec-news .nw-foot{display:flex}
+#sec-news .nw-excerpt{display:-webkit-box}
+#sec-news .nw-item:focus-visible,#sec-news .nw-hero:focus-visible{outline:2px solid var(--nav-accent);outline-offset:2px}
+#sec-news .nw-empty.small{padding:40px 24px}
 /* Section heads */
 #sec-news .nw-section-l{
   font-size:11px; color:var(--ink-400); text-transform:uppercase;
@@ -250,6 +272,10 @@
       </div>
       <div class="nw-actions">
         <span class="nw-chip" id="nw-status-chip">Усе прочитано</span>
+        <button type="button" class="nw-btn" id="nw-mark-all" onclick="markAllNewsRead()" hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Позначити все прочитаним
+        </button>
       </div>
     </div>
 
@@ -269,6 +295,18 @@
       </div>
     </div>
 
+    <!-- Фільтр і пошук -->
+    <div class="nw-toolbar">
+      <div class="nw-tabs" id="nw-filter" role="tablist">
+        <button type="button" data-f="all" class="on" role="tab" onclick="setNewsFilter('all')">Усі</button>
+        <button type="button" data-f="unread" role="tab" onclick="setNewsFilter('unread')">Непрочитані <b id="nw-f-unread"></b></button>
+      </div>
+      <div class="nw-search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" placeholder="Пошук у новинах…" oninput="setNewsQuery(this.value)" aria-label="Пошук у новинах">
+      </div>
+    </div>
+
     <!-- News list -->
     <div id="news-teacher-list">
       <div class="nw-empty">
@@ -285,7 +323,7 @@
 
 <script type="module">
 const { initApp } = await import("./shared/app.js?v=17");
-const featuresP = import("./shared/features.js?v=17");
+const featuresP = import("./shared/features.js?v=18");
 
 window.showSec = function(name){
   if (name === "news") {
