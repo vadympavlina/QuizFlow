@@ -56,7 +56,9 @@
   .type-badge.multi{background:rgba(52,211,153,.15);border-color:rgba(52,211,153,.4);color:#A7F3D0}
   .type-badge.text{background:rgba(251,191,36,.13);border-color:rgba(251,191,36,.35);color:#FDE68A}
   .type-badge.number{background:rgba(96,165,250,.15);border-color:rgba(96,165,250,.35);color:#BFDBFE}
-  .question-text{text-align:center;font-size:clamp(22px,4.2vw,36px);font-weight:800;letter-spacing:-.02em;line-height:1.22;margin:0 auto;max-width:880px;text-shadow:0 2px 12px rgba(0,0,0,.25);overflow-wrap:anywhere}
+  /* Розмір шрифту питання й варіантів підбирає fitText() під довжину тексту */
+  .question-text{text-align:center;font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.22;margin:0 auto;max-width:880px;text-shadow:0 2px 12px rgba(0,0,0,.25);overflow-wrap:break-word;hyphens:auto}
+  .question-text.small{font-weight:700;letter-spacing:-.01em;line-height:1.3;text-align:left}
   .question-text img{max-width:100%;max-height:30vh;border-radius:12px;display:block;margin:12px auto 0}
   .question-text p{margin:0}
 
@@ -70,7 +72,7 @@
   .ans:hover:not(:disabled){transform:translateY(-2px)}
   .ans:active:not(:disabled){transform:scale(.98)}
   .ans .letter{width:40px;height:40px;border-radius:11px;background:rgba(0,0,0,.3);display:grid;place-items:center;font-family:"Geist Mono",monospace;font-size:17px;font-weight:800;flex:0 0 auto;border:1px solid rgba(255,255,255,.2)}
-  .ans .txt{flex:1;overflow-wrap:anywhere}
+  .ans .txt{flex:1;min-width:0;overflow-wrap:break-word;hyphens:auto;line-height:1.25}
   .ans .check{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.5);display:grid;place-items:center;font-size:15px;flex:0 0 auto;color:transparent}
   .ans.a{background:linear-gradient(135deg,#EF4444,#B91C1C)}
   .ans.b{background:linear-gradient(135deg,#F59E0B,#B45309)}
@@ -84,6 +86,9 @@
   .ans:disabled{cursor:default}
   .ans.correct-ans{outline:4px solid #86EFAC;outline-offset:3px;filter:none;opacity:1}
   .ans.correct-ans .check{background:#86EFAC;border-color:#86EFAC;color:#064E3B}
+  .ans.missed{outline-style:dashed !important}
+  .ans.missed .check{background:transparent !important;border-color:#86EFAC !important;color:#86EFAC !important}
+  .ans .tag{position:absolute;top:-9px;right:14px;background:#86EFAC;color:#064E3B;font-size:10.5px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:6px}
   .ans.my-wrong{outline:4px solid #F87171;outline-offset:3px;filter:saturate(.6) opacity(.8)}
   .ans.my-wrong .check{background:#F87171;border-color:#F87171;color:#fff}
   .ans.wrong-ans{filter:saturate(.3) opacity(.3)}
@@ -110,6 +115,10 @@
   .confirm-btn .cnt{background:rgba(255,255,255,.25);border-radius:999px;min-width:26px;height:26px;padding:0 7px;display:grid;place-items:center;font:900 13px "Geist Mono",monospace}
   .banner{align-items:center;gap:10px;padding:12px 20px;border-radius:14px;font-weight:800;font-size:14px;box-shadow:0 16px 40px rgba(0,0,0,.3)}
   .banner.lock{background:linear-gradient(135deg,#FDE68A,#F59E0B);color:#451A03}
+  .confirm-btn:disabled{opacity:.6;cursor:not-allowed;filter:saturate(.5)}
+  .pick-hint{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:rgba(52,211,153,.18);color:#A7F3D0;font-weight:800}
+  .shake{animation:shake .35s}
+  @keyframes shake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
   .banner.late{background:#334155;color:#E2E8F0;border:1px solid rgba(255,255,255,.15)}
 
   /* Результат питання */
@@ -231,7 +240,7 @@
 import {
   db, ref, get, set, onValue, serverTimestamp, readParams, isValidCode, esc, initialsOf, avatarColor,
   applyTheme, serverNow, watchFields, OPT_CLASSES, OPT_LETTERS, TYPE_LABELS, isFreeform,
-  seededOrder, fmtNum, pageUrl, trackPresence,
+  seededOrder, fmtNum, pageUrl, trackPresence, asIndexList, fitText, fitGroup, onRefit,
 } from "./live-core.js";
 
 const $ = (id) => document.getElementById(id);
@@ -333,17 +342,21 @@ function renderQuestion(qi) {
     const opts = qq.options || [];
     const order = shuffle ? seededOrder(opts.length, `${pid}:${qi}`) : opts.map((_, i) => i);
     const multi = qq.type === "multi";
-    $("answers-grid").style.gridTemplateColumns = opts.length <= 2 ? "1fr" : "1fr 1fr";
+    const longest = Math.max(0, ...opts.map(o => String(o ?? "").length));
+    $("answers-grid").style.gridTemplateColumns = opts.length <= 2 && longest > 40 ? "1fr" : "1fr 1fr";
     $("answers-grid").innerHTML = order.map(i =>
       `<button type="button" class="ans ${OPT_CLASSES[i] || "a"}${multi ? "" : " single-only"}" data-i="${i}" aria-pressed="false">
         <span class="letter">${OPT_LETTERS[i]}</span>
         <span class="txt">${esc(opts[i])}</span>
         <span class="check" aria-hidden="true">✓</span>
       </button>`).join("");
+    const need = Number(qq.pick) || 0;
     $("q-hint").innerHTML = multi
-      ? `Оберіть <b>усі</b> правильні варіанти й натисніть <b>Підтвердити</b><span class="kb"> · <kbd>Пробіл</kbd></span>`
+      ? (need ? `<span class="pick-hint">Оберіть ${need} ${need < 5 ? "варіанти" : "варіантів"}</span> і натисніть <b>Підтвердити</b>` : `Оберіть <b>усі</b> правильні варіанти й натисніть <b>Підтвердити</b>`) + `<span class="kb"> · <kbd>Пробіл</kbd></span>`
       : `Торкніться варіанту<span class="kb"> або натисніть <kbd>1</kbd>–<kbd>${opts.length}</kbd></span>`;
   }
+
+  refit();
 
   // Слухаємо власну відповідь: відновлення після перезавантаження + бали
   // й ручне зарахування від викладача під час розкриття.
@@ -361,18 +374,23 @@ function paint() {
   const qq = q(); if (!qq) return;
   const isReveal = st.status === "reveal" && revealInfo();
   const value = myAnswer?.value;
-  const picked = new Set(myAnswer ? (Array.isArray(value) ? value : [value]).map(Number) : multiSel);
+  const picked = new Set(myAnswer ? asIndexList(value) : multiSel);
   const locked = !canAnswer();
 
   if (!isFreeform(qq)) {
-    const correct = isReveal ? new Set((Array.isArray(revealInfo().correct) ? revealInfo().correct : [revealInfo().correct]).map(Number)) : null;
+    const correct = isReveal ? new Set(asIndexList(revealInfo().correct)) : null;
     document.querySelectorAll("#answers-grid .ans").forEach(b => {
       const i = +b.dataset.i;
       b.disabled = locked;
       b.classList.toggle("picked", picked.has(i) && !isReveal);
       b.setAttribute("aria-pressed", picked.has(i));
       b.classList.toggle("locked", locked && !isReveal);
+      const missed = !!correct && correct.has(i) && !picked.has(i) && !!myAnswer && qq.type === "multi";
       b.classList.toggle("correct-ans", !!correct && correct.has(i));
+      b.classList.toggle("missed", missed);
+      b.querySelector(".check").textContent = !!correct && !correct.has(i) && picked.has(i) ? "✗" : "✓";
+      b.querySelector(".tag")?.remove();
+      if (missed) b.insertAdjacentHTML("beforeend", `<span class="tag">пропущено</span>`);
       b.classList.toggle("my-wrong", !!correct && !correct.has(i) && picked.has(i) && !!myAnswer);
       b.classList.toggle("wrong-ans", !!correct && !correct.has(i) && !(picked.has(i) && myAnswer));
     });
@@ -385,8 +403,10 @@ function paint() {
 
   // Док знизу
   const multiOpen = qq.type === "multi" && canAnswer() && multiSel.size > 0;
-  $("confirm-cnt").textContent = multiSel.size;
+  const need = Number(qq.pick) || 0;
+  $("confirm-cnt").textContent = need ? `${multiSel.size}/${need}` : multiSel.size;
   $("confirm-btn").classList.toggle("show", multiOpen);
+  $("confirm-btn").disabled = !!need && multiSel.size !== need;
   $("lock-banner").classList.toggle("show", !!myAnswer && st.status === "question");
   $("late-banner").classList.toggle("show", !myAnswer && !sending && st.status === "question" && timeLeft() <= 0);
   $("q-hint").hidden = !!isReveal || locked;
@@ -408,7 +428,14 @@ function renderFeedback(qq) {
   } else if (myAnswer.isCorrect) {
     cls = "ok"; html = `<div class="big">✓ Правильно!</div><div class="pts">+${fmtNum(myAnswer.points || 0)}</div>${myAnswer.gradedByTeacher ? `<div class="sub">Зараховано викладачем</div>` : ""}${refLine}`;
   } else {
-    cls = "bad"; html = `<div class="big">✗ Неправильно</div>${myAnswer.gradedByTeacher ? `<div class="sub">Перевірено викладачем</div>` : ""}${refLine}`;
+    let why = "";
+    if (qq.type === "multi") {
+      const want = asIndexList(ref_), got = asIndexList(myAnswer.value);
+      const hit = got.filter(i => want.includes(i)).length, extra = got.length - hit;
+      why = `<div class="sub">${hit < want.length ? `Обрано ${hit} з ${want.length} правильних` : ""}${hit < want.length && extra ? " · " : ""}${extra ? `${extra} ${extra === 1 ? "зайвий варіант" : "зайві варіанти"}` : ""}</div>
+        <div class="sub">Зараховується лише повністю правильна відповідь: ${want.map(i => OPT_LETTERS[i]).join(", ")}</div>`;
+    }
+    cls = "bad"; html = `<div class="big">✗ Неправильно</div>${why}${myAnswer.gradedByTeacher ? `<div class="sub">Перевірено викладачем</div>` : ""}${refLine}`;
   }
   if (fb.dataset.sig !== cls + html) {
     fb.dataset.sig = cls + html;
@@ -416,6 +443,21 @@ function renderFeedback(qq) {
     if (cls === "ok") navigator.vibrate?.([30, 40, 30]);
   }
 }
+
+// ─── Розмір тексту під довжину питання й екран ────────────────────────
+function refit() {
+  const qt = $("q-text");
+  if (!qt || !q()) return;
+  const mobile = innerWidth < 640;
+  const imgH = [...qt.querySelectorAll("img")].reduce((h, im) => h + im.getBoundingClientRect().height + 12, 0);
+  const len = (qt.textContent || "").trim().length;
+  qt.classList.toggle("small", len > 220);        // дуже довгий текст — вирівнюємо ліворуч, як абзац
+  fitText(qt, { max: mobile ? 28 : 38, min: mobile ? 15 : 17, maxHeight: innerHeight * (mobile ? 0.28 : 0.26) + imgH });
+  const txts = document.querySelectorAll("#answers-grid .ans .txt");
+  const many = txts.length >= 5;
+  fitGroup(txts, { max: mobile ? (many ? 17 : 19) : 22, min: 12, maxHeight: mobile ? 66 : 90 });
+}
+onRefit(refit, $("q-text"));
 
 // ─── Відповідь ─────────────────────────────────────────────────────────
 async function submit(value) {
@@ -440,12 +482,21 @@ $("answers-grid").addEventListener("click", (e) => {
   const i = +b.dataset.i;
   if (q()?.type === "multi") {
     if (!canAnswer()) return;
-    multiSel.has(i) ? multiSel.delete(i) : multiSel.add(i);
+    const need = Number(q().pick) || 0;
+    if (multiSel.has(i)) multiSel.delete(i);
+    else if (need && multiSel.size >= need) {
+      // Уже обрано потрібну кількість — підказуємо, а не мовчки додаємо зайве
+      const h = $("q-hint").querySelector(".pick-hint");
+      h?.classList.remove("shake"); void h?.offsetWidth; h?.classList.add("shake");
+      navigator.vibrate?.(40);
+      return;
+    } else multiSel.add(i);
     paint();
   } else submit(i);
 });
 $("confirm-btn").addEventListener("click", () => {
-  if (multiSel.size) submit([...multiSel].sort((a, b) => a - b));
+  const need = Number(q()?.pick) || 0;
+  if (multiSel.size && (!need || multiSel.size === need)) submit([...multiSel].sort((a, b) => a - b));
 });
 $("text-form").addEventListener("submit", (e) => {
   e.preventDefault();
