@@ -63,19 +63,37 @@ export { db, ref, get, set, update, remove, onValue };
 
 // ─── Modal / Toast (DOM utilities) ──────────────────────────────────────────
 
+// Фокус переходить у модалку й повертається на кнопку, що її відкрила
+const _modalOpeners = new Map();
 export function openModal(id){
   const el = document.getElementById(id);
-  if (el) el.classList.add("on");
+  if (!el) return;
+  _modalOpeners.set(id, document.activeElement);
+  el.setAttribute("role", "dialog");
+  el.setAttribute("aria-modal", "true");
+  el.classList.add("on");
+  setTimeout(() => {
+    if (!el.classList.contains("on") || el.contains(document.activeElement)) return;
+    const f = el.querySelector("[autofocus]:not([disabled])")
+      || [...el.querySelectorAll("input:not([type=hidden]):not([type=checkbox]):not([readonly]):not([disabled])")].find(x => x.offsetParent && !x.value)
+      || el.querySelector(".modal-f button:not([disabled]):last-child");
+    try { f?.focus({ preventScroll: true }); } catch {}
+  }, 60);
 }
 export function closeModal(id){
   const el = document.getElementById(id);
-  if (el) el.classList.remove("on");
+  if (!el) return;
+  el.classList.remove("on");
+  const op = _modalOpeners.get(id);
+  _modalOpeners.delete(id);
+  try { if (op && document.contains(op)) op.focus({ preventScroll: true }); } catch {}
 }
 let _toastT;
-export function toast(msg){
+export function toast(msg, type){
   const el = document.getElementById("admin-toast");
   if (!el) return;
   el.textContent = msg;
+  el.classList.toggle("err", type === "err");
   el.classList.add("show");
   clearTimeout(_toastT);
   _toastT = setTimeout(() => el.classList.remove("show"), 3000);
