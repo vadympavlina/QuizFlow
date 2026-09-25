@@ -7,376 +7,321 @@
 <title>QuizFlow — Історія ігор</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=DM+Sans:wght@400;500&family=Manrope:wght@500;600;700;800&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
 <link rel="modulepreload" href="shared/app.js?v=15">
-<link rel="preload" as="fetch" href="shared/layout?v=15" crossorigin>
-<link rel="modulepreload" href="shared/features.js?v=15">
 <style>
-:root{
-  --ink-900:#111827;--ink-700:#374151;--ink-500:#6B7280;--ink-300:#D1D5DB;
-  --line:#E5E7EB;--surface:#F9FAFB;--white:#fff;
-  --accent:#2563EB;--accent-pale:#EFF6FF;
+#sec-history{
+  --ink-900:#0B1437;--ink-700:#24335A;--ink-500:#5B6A8F;--ink-400:#8691AC;--ink-300:#CDD6E8;
+  --line:#E3E8F2;--surface:#F7F9FC;--white:#fff;--accent:#2563EB;--accent-pale:#EFF6FF;
+  font-family:'Manrope',system-ui,sans-serif;color:var(--ink-900);
 }
-#sec-history{font-family:'Manrope',system-ui,sans-serif;color:var(--ink-900)}
-#sec-history.on{display:flex;flex-direction:column;gap:24px}
+#sec-history.on{display:flex;flex-direction:column;gap:18px}
+#sec-history [hidden]{display:none!important}
+#sec-history button{font-family:inherit}
+#sec-history .mono{font-family:'Geist Mono',monospace;font-variant-numeric:tabular-nums}
 
-/* Header */
-#sec-history .page-title{display:flex;align-items:center;justify-content:space-between;gap:16px}
-#sec-history .page-title h1{font-size:26px;font-weight:800;letter-spacing:-.03em;margin:0}
-#sec-history .page-title p{margin:3px 0 0;color:var(--ink-500);font-size:13.5px}
-#sec-history .ql-btn{
-  display:inline-flex;align-items:center;gap:8px;flex:0 0 auto;
-  background:linear-gradient(135deg,#2563EB,#1D4ED8);color:#fff;border:0;
-  padding:11px 18px;border-radius:12px;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;
-  box-shadow:0 8px 20px rgba(37,99,235,.3);transition:filter .12s;
-}
-#sec-history .ql-btn:hover{filter:brightness(1.08)}
+/* ── Шапка ── */
+.gh-title{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.gh-title h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:0}
+.gh-title p{margin:4px 0 0;color:var(--ink-500);font-size:14px}
+.gh-btn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink-700);font:600 13px 'Manrope',sans-serif;cursor:pointer;white-space:nowrap;transition:border-color .12s, background .12s, color .12s}
+.gh-btn:hover{border-color:var(--ink-300);color:var(--ink-900)}
+.gh-btn svg{width:14px;height:14px;flex:0 0 auto}
+.gh-btn.primary{background:#1E3A8A;border-color:#1E3A8A;color:#fff;box-shadow:0 6px 14px -8px rgba(30,58,138,.8)}
+.gh-btn.primary:hover{background:#1E40AF;border-color:#1E40AF;color:#fff}
+.gh-btn.ghost{border-color:transparent;background:transparent;color:var(--ink-500)}
+.gh-btn.ghost:hover{background:#EEF2FB;color:var(--ink-900)}
+.gh-btn.danger{color:#B91C1C}
+.gh-btn.danger:hover{background:#FEE2E2;border-color:#FECACA}
+.gh-btn.sm{height:30px;padding:0 10px;font-size:12px;border-radius:8px}
+.gh-icon{width:30px;height:30px;display:grid;place-items:center;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--ink-400);cursor:pointer}
+.gh-icon:hover{background:#EEF2FB;color:var(--ink-900)}
+.gh-icon svg{width:15px;height:15px}
 
-/* Quick-launch modal */
-.ql-overlay{
-  display:none;position:fixed;inset:0;background:rgba(17,24,39,.5);backdrop-filter:blur(3px);
-  z-index:100;align-items:center;justify-content:center;padding:20px;
-}
-.ql-overlay.show{display:flex}
-.ql-modal{
-  background:#fff;border-radius:18px;width:100%;max-width:680px;max-height:82vh;
-  display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.35);
-}
-.ql-head{padding:20px 22px 16px;border-bottom:1px solid var(--line)}
-.ql-head h3{margin:0 0 2px;font-size:18px;font-weight:800;letter-spacing:-.02em}
-.ql-head p{margin:0;font-size:12.5px;color:var(--ink-500)}
-.ql-close{position:absolute;top:18px;right:20px;background:var(--surface);border:1px solid var(--line);width:30px;height:30px;border-radius:9px;font-size:16px;cursor:pointer;color:var(--ink-500)}
-.ql-search{
-  margin:14px 22px 0;display:flex;align-items:center;gap:8px;
-  background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:9px 13px;
-}
-.ql-search svg{color:var(--ink-500);flex:0 0 auto}
-.ql-search input{border:0;background:transparent;outline:none;font:inherit;font-size:13.5px;width:100%;color:var(--ink-900)}
-.ql-folder-row{
-  display:flex;align-items:center;gap:11px;padding:12px 14px;margin:2px 10px;border-radius:12px;cursor:pointer;transition:background .12s;
-}
-.ql-folder-row:hover{background:var(--surface)}
-.ql-folder-row .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
-.ql-folder-row .nm{flex:1;font-size:14px;font-weight:700;color:var(--ink-900)}
-.ql-folder-row .cnt{font-size:12px;color:var(--ink-500)}
-.ql-back-bar{display:flex;align-items:center;gap:8px;padding:11px 22px;border-bottom:1px solid var(--line)}
-.ql-back-btn{border:0;background:var(--accent-pale);color:var(--accent);width:28px;height:28px;border-radius:8px;cursor:pointer;display:grid;place-items:center;flex:0 0 auto}
-.ql-back-lbl{font-size:13px;font-weight:800;color:var(--ink-900);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ql-list{flex:1;overflow-y:auto;padding:10px 14px 18px}
-.ql-row{
-  display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;cursor:pointer;
-}
-.ql-row:hover{background:var(--surface)}
-.ql-row .ico{width:38px;height:38px;border-radius:10px;background:var(--accent-pale);color:var(--accent);display:grid;place-items:center;flex:0 0 auto}
-.ql-row .info{min-width:0;flex:1}
-.ql-row .t{font-size:14px;font-weight:700;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ql-row .m{font-size:11.5px;color:var(--ink-500);margin-top:1px}
-.ql-row .go{
-  flex:0 0 auto;background:var(--ink-900);color:#fff;border:0;padding:8px 14px;border-radius:9px;
-  font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;
-}
-.ql-row .go:hover{background:#000}
-.ql-empty{padding:40px 20px;text-align:center;color:var(--ink-500);font-size:13px}
+/* ── Підсумкові показники ── */
+.gh-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.gh-kpi{padding:14px 18px;border-right:1px solid var(--line);min-width:0}
+.gh-kpi:last-child{border-right:0}
+.gh-kpi .v{font:700 21px 'Geist Mono',monospace;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gh-kpi .l{font-size:11.5px;color:var(--ink-500);font-weight:600;margin-top:3px}
+.gh-kpi .s{font-size:11.5px;color:var(--ink-400);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* Stats strip — горизонтальна смужка замість 4 карток */
-#sec-history .stats-strip{
-  display:flex;gap:0;background:var(--white);border:1px solid var(--line);
-  border-radius:14px;overflow:hidden;
-}
-#sec-history .ssl{
-  flex:1;padding:16px 20px;display:flex;align-items:center;gap:12px;
-  border-right:1px solid var(--line);
-}
-#sec-history .ssl:last-child{border-right:0}
-#sec-history .ssl .ico{
-  width:34px;height:34px;border-radius:9px;display:grid;place-items:center;
-  flex:0 0 auto;color:var(--ink-500);background:var(--surface);
-  border:1px solid var(--line);
-}
-#sec-history .ssl .v{
-  font-family:"Geist Mono",monospace;font-size:20px;font-weight:700;
-  letter-spacing:-.02em;line-height:1;color:var(--ink-900)
-}
-#sec-history .ssl .l{font-size:11px;color:var(--ink-500);font-weight:600;margin-top:2px;letter-spacing:.02em}
+/* ── Тулбар ── */
+.gh-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.gh-search{position:relative;flex:1;min-width:220px;max-width:380px}
+.gh-search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink-400);pointer-events:none}
+.gh-search input{width:100%;height:38px;padding:0 12px 0 34px;border:1px solid var(--line);border-radius:10px;background:#fff;font:500 13.5px 'Manrope',sans-serif;color:var(--ink-900);outline:none}
+.gh-search input:focus{border-color:var(--accent)}
+.gh-seg{display:inline-flex;background:#F1F5FB;border-radius:9px;padding:3px;gap:2px}
+.gh-seg button{border:0;background:transparent;padding:7px 11px;border-radius:7px;font:600 12.5px 'Manrope',sans-serif;color:var(--ink-500);cursor:pointer;white-space:nowrap}
+.gh-seg button.on{background:#fff;color:var(--ink-900);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.gh-spacer{flex:1}
+#sec-history .cd-btn{height:38px;border-radius:10px;border-width:1px;border-color:var(--line);font:600 13px 'Manrope',sans-serif;color:var(--ink-700);max-width:280px}
+#sec-history .cd-btn .cd-label{overflow:hidden;text-overflow:ellipsis}
+#sec-history .cd-btn:hover,#sec-history .cd-btn.active{border-color:var(--accent);color:var(--accent)}
+#sec-history .cd-menu{z-index:60;max-height:340px;overflow-y:auto;min-width:220px}
+#sec-history .cd-menu.right{left:auto;right:0}
+#sec-history .cd-item{font-family:'Manrope',sans-serif;gap:10px}
+#sec-history .cd-item .n{margin-left:auto;font:500 11px 'Geist Mono',monospace;color:var(--ink-400)}
+#sec-history .cd-item.cd-active .n{display:none}
 
-/* Filter bar */
-#sec-history .filter-bar{
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+/* ── Список ігор ── */
+.gh-list{display:flex;flex-direction:column;gap:8px}
+.gh-group{font:700 11px 'Manrope',sans-serif;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-400);padding:10px 4px 2px;display:flex;justify-content:space-between}
+.gh-group:first-child{padding-top:0}
+.gh-group .n{font:500 11px 'Geist Mono',monospace;text-transform:none;letter-spacing:0}
+.gh-game{
+  display:grid;grid-template-columns:46px minmax(0,1.5fr) minmax(0,1.1fr) minmax(0,1.3fr) auto;
+  align-items:center;gap:18px;padding:12px 14px 12px 12px;background:#fff;border:1px solid var(--line);border-radius:14px;
+  transition:border-color .15s, box-shadow .15s;content-visibility:auto;contain-intrinsic-size:auto 76px;
 }
-#sec-history .seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
-#sec-history .seg button{
-  background:transparent;border:0;padding:6px 14px;border-radius:7px;
-  font:inherit;font-size:13px;font-weight:600;color:var(--ink-500);cursor:pointer;
-  display:inline-flex;align-items:center;gap:6px;transition:all .12s;
-}
-#sec-history .seg button.on{background:var(--white);color:var(--ink-900);box-shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 1px var(--line)}
-#sec-history .seg .ct{
-  font-family:"Geist Mono",monospace;font-size:11px;background:#E0E7FF;color:#3730A3;
-  padding:1px 6px;border-radius:999px;font-weight:700;
-}
-#sec-history .srch-wrap{position:relative;margin-left:auto;display:flex;align-items:center}
-#sec-history .srch-wrap svg{position:absolute;left:10px;color:var(--ink-500);pointer-events:none}
-#sec-history .srch-wrap input{
-  padding:8px 12px 8px 32px;background:var(--white);border:1px solid var(--line);
-  border-radius:9px;font-family:'Manrope',sans-serif;font-size:13px;color:var(--ink-900);
-  outline:none;height:36px;width:240px;transition:border-color .12s;
-}
-#sec-history .srch-wrap input:focus{border-color:var(--accent)}
+.gh-game:hover{border-color:var(--ink-300);box-shadow:0 8px 24px -18px rgba(30,58,138,.4)}
+.gh-game.empty-game{opacity:.72}
+.gh-tile{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;color:#fff;font:800 12px 'Geist Mono',monospace;letter-spacing:-.02em;position:relative;overflow:hidden}
+.gh-tile::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at top right,rgba(255,255,255,.3),transparent 60%)}
+.gh-main{min-width:0}
+.gh-name{font-weight:800;font-size:14.5px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:none;border:0;padding:0;cursor:pointer;color:var(--ink-900);text-align:left;max-width:100%;display:block}
+.gh-name:hover{color:var(--accent)}
+.gh-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px;font-size:12px;color:var(--ink-500)}
+.gh-meta .code{font-family:'Geist Mono',monospace;color:var(--ink-700);font-weight:600}
+.gh-meta .dot{color:var(--ink-300)}
 
-/* Game list */
-#sec-history .games{display:flex;flex-direction:column;gap:12px}
-#sec-history .game{
-  background:var(--white);border:1px solid var(--line);border-radius:14px;
-  overflow:hidden;transition:box-shadow .15s;
-}
-#sec-history .game:hover{box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.gh-stats{display:flex;gap:16px;align-items:center;min-width:0}
+.gh-stat .v{font:700 15px 'Geist Mono',monospace;letter-spacing:-.02em;white-space:nowrap}
+.gh-stat .l{font-size:10px;color:var(--ink-400);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:1px;white-space:nowrap}
+.gh-dist{display:flex;align-items:flex-end;gap:2px;height:28px;width:72px;flex:0 0 auto}
+.gh-dist i{flex:1;background:#C7D6F5;border-radius:2px 2px 0 0;min-height:2px}
+.gh-dist i.hi{background:#2563EB}
 
-/* Game header bar */
-#sec-history .game-top{
-  display:grid;grid-template-columns:140px 1fr auto;gap:0;align-items:stretch;
-}
-#sec-history .thumb{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  color:#fff;background:#1E3A8A;position:relative;overflow:hidden;gap:5px;
-  padding:14px;min-height:100px;
-}
-#sec-history .thumb::before{
-  content:"";position:absolute;inset:0;
-  background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);
-  background-size:12px 12px;
-}
-#sec-history .thumb.b{background:#312E81}
-#sec-history .thumb.g{background:#064E3B}
-#sec-history .thumb.a{background:#7C2D12}
-#sec-history .thumb.v{background:#5B21B6}
-#sec-history .thumb .t-code{
-  position:relative;z-index:1;font-family:"Geist Mono",monospace;
-  font-size:10px;font-weight:700;color:rgba(255,255,255,.55);letter-spacing:.18em;
-}
-#sec-history .thumb .t-name{
-  position:relative;z-index:1;font-size:12px;font-weight:800;
-  letter-spacing:-.01em;text-align:center;line-height:1.3;
-}
+.gh-top{display:flex;align-items:center;gap:8px;min-width:0}
+.gh-podium{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.gh-pr{display:flex;align-items:center;gap:6px;font-size:12.5px;min-width:0}
+.gh-pr .m{width:18px;text-align:center;flex:0 0 auto;font-size:13px}
+.gh-pr .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;color:var(--ink-700)}
+.gh-pr .tie{font:600 10.5px 'Geist Mono',monospace;color:var(--ink-400);flex:0 0 auto}
+.gh-pr .pt{font:700 12px 'Geist Mono',monospace;color:var(--accent);flex:0 0 auto}
+.gh-noresults{font-size:12.5px;color:var(--ink-400);font-style:italic}
 
-/* Game body */
-#sec-history .game-body{
-  padding:14px 18px;display:flex;flex-direction:column;justify-content:center;gap:8px;
-  border-left:1px solid var(--line);border-right:1px solid var(--line);
-}
-#sec-history .title-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-#sec-history .title-line h3{margin:0;font-size:15px;font-weight:800;letter-spacing:-.01em}
-#sec-history .pill{
-  font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-  padding:2px 7px;border-radius:4px;background:#D1FAE5;color:#065F46;flex-shrink:0;
-}
-#sec-history .gmeta{
-  display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-500);
-  font-family:"Geist Mono",monospace;
-}
-#sec-history .gmeta .code{font-weight:600;color:var(--ink-700)}
-#sec-history .gmeta .sep{color:var(--ink-300)}
-#sec-history .game-kpis{display:flex;gap:18px}
-#sec-history .kpi .v{font-family:"Geist Mono",monospace;font-weight:700;font-size:15px}
-#sec-history .kpi .l{font-size:10px;color:var(--ink-500);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
-#sec-history .game-actions{display:flex;gap:6px;margin-top:2px}
-#sec-history .game-actions button{
-  padding:5px 11px;font-size:12px;border-radius:7px;border:1px solid var(--line);
-  background:var(--surface);color:var(--ink-700);font-family:'Manrope',sans-serif;
-  font-weight:600;cursor:pointer;transition:all .12s;display:inline-flex;align-items:center;gap:5px;
-}
-#sec-history .game-actions button:hover{background:#F3F4F6;border-color:var(--ink-300)}
-#sec-history .game-actions button.view-all{
-  background:var(--accent-pale);color:var(--accent);border-color:#BFDBFE;
-}
-#sec-history .game-actions button.view-all:hover{background:#DBEAFE}
-#sec-history .game-actions button.danger{background:#FEF2F2;color:#DC2626;border-color:#FECACA}
-#sec-history .game-actions button.danger:hover{background:#FEE2E2}
+.gh-actions{display:flex;align-items:center;gap:4px}
 
-/* Podium panel — права колонка */
-#sec-history .game-podium{
-  width:260px;padding:12px 14px;background:var(--surface);
-  display:flex;flex-direction:column;gap:0;
-}
-#sec-history .pod-head{
-  display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;
-}
-#sec-history .pod-head span{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-500)}
-#sec-history .pod-head strong{font-family:"Geist Mono",monospace;font-size:11px;color:var(--ink-500)}
-#sec-history .pod-row{
-  display:flex;align-items:center;gap:8px;padding:6px 0;
-  border-bottom:1px solid var(--line);
-}
-#sec-history .pod-row:last-child{border-bottom:0}
-#sec-history .pod-medal{width:20px;text-align:center;font-size:14px;flex-shrink:0}
-#sec-history .pod-rank{
-  font-family:"Geist Mono",monospace;font-weight:700;font-size:12px;
-  color:var(--ink-500);width:20px;flex-shrink:0;
-}
-#sec-history .pod-name{flex:1;font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-700)}
-#sec-history .pod-pts{font-family:"Geist Mono",monospace;font-weight:700;font-size:12px;color:var(--accent);flex-shrink:0}
+.gh-more{align-self:center;margin-top:6px}
+.gh-empty{text-align:center;padding:56px 20px;color:var(--ink-500);background:#fff;border:1px dashed var(--ink-300);border-radius:16px}
+.gh-empty .i{width:56px;height:56px;margin:0 auto 14px;border-radius:14px;background:#EEF2FB;display:grid;place-items:center;color:#1E3A8A}
+.gh-empty h3{font-size:16px;font-weight:800;color:var(--ink-900);margin:0 0 4px}
+.gh-empty p{font-size:13px;margin:0 0 16px}
+.gh-skel{height:76px;border-radius:14px;background:linear-gradient(90deg,#EEF2FB,#F7F9FC,#EEF2FB);background-size:200% 100%;animation:ghsk 1.2s infinite}
+@keyframes ghsk{to{background-position:-200% 0}}
 
-#sec-history .empty{text-align:center;padding:60px 20px;color:var(--ink-500)}
-#sec-history .empty h3{font-size:16px;font-weight:700;color:var(--ink-900);margin:0 0 6px}
-#sec-history .empty p{font-size:13px;margin:0}
+/* ── Плаваюче меню гри ── */
+.gh-menu{position:fixed;z-index:300;min-width:220px;background:#fff;border:1px solid #E3E8F2;border-radius:12px;box-shadow:0 16px 40px -12px rgba(11,20,55,.28);padding:6px;font-family:'Manrope',sans-serif}
+.gh-menu button{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border:0;background:none;border-radius:8px;font:500 13.5px 'Manrope',sans-serif;color:#24335A;cursor:pointer;text-align:left}
+.gh-menu button svg{width:15px;height:15px;color:#5B6A8F}
+.gh-menu button:hover,.gh-menu button:focus-visible{background:#F1F5FB;outline:none}
+.gh-menu button.d,.gh-menu button.d svg{color:#B91C1C}
+.gh-menu button.d:hover{background:#FEE2E2}
+.gh-menu hr{border:0;height:1px;background:#E3E8F2;margin:5px 4px}
 
 /* ── Модалка результатів ── */
-.res-overlay{
-  position:fixed;inset:0;background:rgba(17,24,39,.5);z-index:300;
-  display:none;align-items:center;justify-content:center;padding:20px;
-  backdrop-filter:blur(6px);
-}
-.res-overlay.show{display:flex}
-.res-modal{
-  background:var(--white);border-radius:18px;width:100%;max-width:520px;
-  max-height:80vh;display:flex;flex-direction:column;
-  box-shadow:0 24px 64px rgba(0,0,0,.18);overflow:hidden;
-}
-.res-modal-head{
-  padding:18px 22px 14px;border-bottom:1px solid var(--line);
-  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-shrink:0;
-}
-.res-modal-head h3{margin:0;font-size:16px;font-weight:800;letter-spacing:-.01em}
-.res-modal-head p{margin:3px 0 0;font-size:12px;color:var(--ink-500)}
-.res-modal-close{
-  width:32px;height:32px;border-radius:8px;border:1px solid var(--line);
-  background:var(--surface);cursor:pointer;display:grid;place-items:center;
-  font-size:18px;line-height:1;color:var(--ink-500);flex-shrink:0;
-  font-family:sans-serif;transition:background .12s;
-}
-.res-modal-close:hover{background:#F3F4F6}
-.res-modal-body{overflow-y:auto;padding:8px 0;flex:1}
-.res-row{
-  display:grid;grid-template-columns:38px 1fr auto;gap:10px;
-  align-items:center;padding:9px 22px;
-  border-bottom:1px solid var(--line);transition:background .1s;
-}
-.res-row:last-child{border-bottom:0}
-.res-row:hover{background:var(--surface)}
-.res-row.top1{background:#FFFBEB}.res-row.top1:hover{background:#FEF3C7}
-.res-row.top2{background:#F9FAFB}.res-row.top3{background:#FFF7ED}
-.res-rank{
-  font-family:"Geist Mono",monospace;font-weight:700;font-size:13px;
-  color:var(--ink-500);text-align:center;
-}
-.res-rank.gold{color:#D97706;font-size:16px}
-.res-rank.silver{color:#6B7280;font-size:15px}
-.res-rank.bronze{color:#92400E;font-size:15px}
-.res-name{font-weight:600;font-size:13.5px;color:var(--ink-700)}
-.res-pts{font-family:"Geist Mono",monospace;font-weight:700;font-size:13px;color:var(--accent)}
+#m-res .mb{max-width:780px;padding:0;display:flex;flex-direction:column;max-height:90vh;overflow:hidden}
+.res-head{padding:22px 24px 14px;border-bottom:1px solid #E3E8F2;padding-right:60px}
+.res-head h3{margin:0;font:800 18px 'Manrope',sans-serif;letter-spacing:-.01em;color:#0B1437;overflow-wrap:anywhere}
+.res-head p{margin:4px 0 0;font-size:12.5px;color:#5B6A8F}
+.res-head .mcl{position:absolute;top:18px;right:18px;float:none;margin:0}
+.res-sum{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:#E3E8F2;border-bottom:1px solid #E3E8F2}
+.res-sum > div{background:#F7F9FC;padding:10px 14px}
+.res-sum .v{font:700 16px 'Geist Mono',monospace;color:#0B1437}
+.res-sum .l{font-size:10.5px;color:#8691AC;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.res-tools{display:flex;gap:8px;align-items:center;padding:12px 24px;border-bottom:1px solid #E3E8F2}
+.res-tools .gh-search{max-width:none}
+.res-count{font-size:12px;color:#8691AC;white-space:nowrap}
+.res-body{overflow-y:auto;flex:1;min-height:120px}
+.res-table{width:100%;border-collapse:separate;border-spacing:0;font-family:'Manrope',sans-serif}
+.res-table th{position:sticky;top:0;z-index:1;background:#FAFBFE;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8691AC;text-align:left;padding:9px 12px;border-bottom:1px solid #E3E8F2}
+.res-table td{padding:8px 12px;border-bottom:1px solid #EEF1F7;font-size:13.5px;color:#24335A;vertical-align:middle}
+.res-table tr:last-child td{border-bottom:0}
+.res-table tbody tr:hover td{background:#F7F9FC}
+.res-table .r1 td{background:#FFFBEB}.res-table .r2 td{background:#F8FAFC}.res-table .r3 td{background:#FFF7ED}
+.res-table th:first-child,.res-table td:first-child{padding-left:24px;width:56px}
+.res-table th:last-child,.res-table td:last-child{padding-right:24px;text-align:right}
+.res-rank{font:700 13px 'Geist Mono',monospace;color:#8691AC}
+.res-rank.m{font-size:16px}
+.res-who{display:flex;align-items:center;gap:10px;min-width:0}
+.res-av{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;color:#fff;font:700 10.5px 'Manrope',sans-serif;flex:0 0 auto}
+.res-nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:320px}
+.res-acc{display:flex;align-items:center;gap:8px;min-width:130px}
+.res-acc .bar{flex:1;height:6px;border-radius:3px;background:#EEF1F7;overflow:hidden;max-width:90px}
+.res-acc .bar i{display:block;height:100%;border-radius:3px}
+.res-acc .t{font:600 12px 'Geist Mono',monospace;color:#5B6A8F;white-space:nowrap}
+.res-pts{font:700 13.5px 'Geist Mono',monospace;color:#2563EB;white-space:nowrap}
+.res-more{display:block;margin:12px auto}
+.res-none{padding:40px;text-align:center;color:#8691AC;font-size:13px}
+mark.hl{background:#FEF08A;color:inherit;border-radius:2px;padding:0 1px}
 
-/* ── Модалка видалення ── */
-.h-del-bg{position:fixed;inset:0;background:rgba(17,24,39,.45);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
-.h-del-bg.show{display:flex}
-.h-del-modal{background:var(--white);border-radius:16px;padding:26px;max-width:340px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.15);text-align:center}
-.h-del-modal h3{font-size:16px;font-weight:800;margin:0 0 8px;color:var(--ink-900)}
-.h-del-modal p{font-size:13px;color:var(--ink-500);margin:0 0 18px;line-height:1.5}
-.h-del-modal .d-btns{display:flex;gap:8px}
-.h-del-modal .d-btn{flex:1;padding:10px;border-radius:9px;font-family:'Manrope',sans-serif;font-size:13.5px;font-weight:700;cursor:pointer;border:none;transition:all .12s}
-.h-del-modal .d-btn.cancel{background:var(--surface);color:var(--ink-500);border:1px solid var(--line)}
-.h-del-modal .d-btn.cancel:hover{background:#F3F4F6}
-.h-del-modal .d-btn.confirm{background:#DC2626;color:#fff}
-.h-del-modal .d-btn.confirm:hover{background:#B91C1C}
+/* ── Швидкий запуск ── */
+#m-ql .mb{max-width:640px;padding:0;display:flex;flex-direction:column;max-height:84vh;overflow:hidden}
+#m-ql .res-head{padding-bottom:12px}
+.ql-back{display:flex;align-items:center;gap:8px;padding:10px 24px;border-bottom:1px solid #E3E8F2}
+.ql-back button{border:0;background:#EFF6FF;color:#2563EB;width:28px;height:28px;border-radius:8px;cursor:pointer;display:grid;place-items:center}
+.ql-back b{font-size:13.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ql-list{flex:1;overflow-y:auto;padding:8px 12px 16px}
+.ql-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;cursor:pointer;border:0;background:none;width:100%;text-align:left;font:inherit}
+.ql-row:hover,.ql-row:focus-visible{background:#F7F9FC;outline:none}
+.ql-row .dot{width:10px;height:10px;border-radius:3px;flex:0 0 auto}
+.ql-row .ico{width:36px;height:36px;border-radius:10px;background:#EFF6FF;color:#2563EB;display:grid;place-items:center;flex:0 0 auto}
+.ql-row .t{flex:1;min-width:0;font-weight:700;font-size:14px;color:#0B1437;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ql-row .m{font-size:12px;color:#8691AC;white-space:nowrap}
+.ql-row .go{background:#0B1437;color:#fff;border-radius:8px;padding:7px 12px;font:700 12px 'Manrope',sans-serif;white-space:nowrap}
+.ql-empty{padding:40px 20px;text-align:center;color:#8691AC;font-size:13px}
+
+/* ── Адаптивність ── */
+@media (max-width:1280px){
+  .gh-game{grid-template-columns:46px minmax(0,1.4fr) minmax(0,1fr) minmax(0,1.2fr) auto;gap:14px}
+  .gh-dist{display:none}
+}
+@media (max-width:1100px){
+  .gh-kpi{padding:12px 14px}
+  .gh-kpi .v{font-size:18px}
+  .gh-top{max-width:420px}
+  .gh-game{grid-template-columns:46px minmax(0,1fr) auto;grid-template-areas:"tile main act" "tile stats stats" "tile top top";row-gap:10px}
+  .gh-tile{grid-area:tile;align-self:start}.gh-main{grid-area:main}.gh-stats{grid-area:stats}.gh-top{grid-area:top}.gh-actions{grid-area:act}
+  .res-sum{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (max-width:860px){
+  .gh-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gh-kpi{border-top:1px solid var(--line)}
+  .gh-kpi:nth-child(-n+2){border-top:0}
+  .gh-kpi:nth-child(2n){border-right:0}
+}
+@media (max-width:640px){
+  .res-table .c-acc{display:none}
+}
 </style>
 </head>
 <body>
+<!-- MOBILE OVERLAY -->
+<div id="mobile-overlay" style="display:none;position:fixed;inset:0;background:linear-gradient(160deg,#1a2b5e 0%,#0d1340 100%);z-index:9999;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:40px 24px">
+  <div style="width:80px;height:80px;background:linear-gradient(135deg,#2d5be3,#4d78ff);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-bottom:28px;box-shadow:0 20px 50px rgba(45,91,227,.4)">
+    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="3"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+  </div>
+  <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;margin-bottom:12px;max-width:320px;line-height:1.3">Мобільна версія недоступна</div>
+  <div style="font-size:15px;opacity:.75;max-width:340px;line-height:1.5;margin-bottom:28px">Панель викладача оптимізована для планшетів та комп'ютерів. Відкрийте з ширшого екрану</div>
+  <div style="display:inline-flex;gap:8px;background:rgba(255,255,255,.08);padding:10px 18px;border-radius:14px;backdrop-filter:blur(10px);font-size:13px;opacity:.65">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    Мінімальна ширина: 1024px
+  </div>
+</div>
+
 <main class="main">
 <div class="sec" id="sec-history">
-  <div class="page-title">
+  <div class="gh-title">
     <div>
       <h1>Історія Live ігор</h1>
-      <p id="history-sub">Завантаження...</p>
+      <p id="history-sub">Завантаження…</p>
     </div>
-    <button class="ql-btn" onclick="openQuickLaunch()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+    <button class="gh-btn primary" data-act="quick">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
       Створити гру
     </button>
   </div>
 
-  <div class="stats-strip">
-    <div class="ssl">
-      <div class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/></svg></div>
-      <div><div class="v" id="stat-total">—</div><div class="l">Усього ігор</div></div>
+  <div class="gh-kpis" id="kpis">
+    <div class="gh-kpi"><div class="v" id="k-games">—</div><div class="l">Ігор проведено</div><div class="s" id="k-games-s">&nbsp;</div></div>
+    <div class="gh-kpi"><div class="v" id="k-players">—</div><div class="l">Участей усього</div><div class="s" id="k-players-s">&nbsp;</div></div>
+    <div class="gh-kpi"><div class="v" id="k-avg">—</div><div class="l">Середньо гравців</div><div class="s">на одну гру</div></div>
+    <div class="gh-kpi"><div class="v" id="k-acc">—</div><div class="l">Середня точність</div><div class="s" id="k-acc-s">&nbsp;</div></div>
+    <div class="gh-kpi"><div class="v" id="k-last">—</div><div class="l">Остання гра</div><div class="s" id="k-last-s">&nbsp;</div></div>
+  </div>
+
+  <div class="gh-toolbar" id="toolbar">
+    <label class="gh-search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="search-inp" type="search" placeholder="Назва тесту, код гри або ім'я учасника…" autocomplete="off" aria-label="Пошук ігор">
+    </label>
+    <div class="gh-seg" id="period" role="group" aria-label="Період">
+      <button data-period="all" class="on">Усі</button>
+      <button data-period="7">7 днів</button>
+      <button data-period="30">30 днів</button>
     </div>
-    <div class="ssl">
-      <div class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-      <div><div class="v" id="stat-players">—</div><div class="l">Учасників всього</div></div>
+    <span class="gh-spacer"></span>
+    <div class="cd-wrap" id="cd-ghtest">
+      <button class="cd-btn" type="button" data-cd="cd-ghtest" aria-haspopup="listbox">
+        <span class="cd-label" id="cd-ghtest-label">Усі тести</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="cd-menu right" id="cd-ghtest-menu" role="listbox" aria-label="Тест"></div>
     </div>
-    <div class="ssl">
-      <div class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5 12 10 17 19 8"/></svg></div>
-      <div><div class="v" id="stat-games">—</div><div class="l">Завершених ігор</div></div>
-    </div>
-    <div class="ssl">
-      <div class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
-      <div><div class="v" id="stat-last">—</div><div class="l">Остання гра</div></div>
+    <div class="cd-wrap" id="cd-ghsort">
+      <button class="cd-btn" type="button" data-cd="cd-ghsort" aria-haspopup="listbox">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 6h18M6 12h12M10 18h4"/></svg>
+        <span class="cd-label" id="cd-ghsort-label">Спершу нові</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="cd-menu right" id="cd-ghsort-menu" role="listbox" aria-label="Сортування">
+        <div class="cd-item" role="option" data-sort="new">Спершу нові</div>
+        <div class="cd-item" role="option" data-sort="old">Спершу старі</div>
+        <div class="cd-item" role="option" data-sort="players">Більше учасників</div>
+        <div class="cd-item" role="option" data-sort="acc">Вища точність</div>
+      </div>
     </div>
   </div>
 
-  <div class="filter-bar">
-    <div class="seg" id="tab-seg">
-      <button class="on" data-tab="all">Усі <span class="ct" id="ct-all">0</span></button>
-      <button data-tab="fin">З результатами <span class="ct" id="ct-fin">0</span></button>
-    </div>
-    <div class="srch-wrap">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input id="search-inp" placeholder="Пошук по коду або назві…" oninput="filterGames()">
-    </div>
+  <div class="gh-list" id="games-list" aria-live="polite">
+    <div class="gh-skel"></div><div class="gh-skel"></div><div class="gh-skel"></div>
   </div>
-
-  <div class="games" id="games-list"></div>
 </div>
 </main>
 
-<!-- Модалка: всі результати -->
-<div class="res-overlay" id="res-overlay" onclick="if(event.target===this)closeResModal()">
-  <div class="res-modal">
-    <div class="res-modal-head">
-      <div>
-        <h3 id="res-title">Результати гри</h3>
-        <p id="res-sub">— гравців</p>
-      </div>
-      <button class="res-modal-close" onclick="closeResModal()">×</button>
-    </div>
-    <div class="res-modal-body" id="res-body"></div>
+<!-- Результати гри -->
+<div class="mo" id="m-res" aria-labelledby="res-title"><div class="mb">
+  <div class="res-head">
+    <button class="mcl" onclick="closeM('m-res')" aria-label="Закрити">×</button>
+    <h3 id="res-title">Результати гри</h3>
+    <p id="res-sub"></p>
   </div>
-</div>
+  <div class="res-sum" id="res-sum"></div>
+  <div class="res-tools">
+    <label class="gh-search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="res-search" type="search" placeholder="Знайти учасника…" autocomplete="off" aria-label="Знайти учасника">
+    </label>
+    <span class="res-count" id="res-count"></span>
+    <button class="gh-btn sm" id="res-csv" type="button" title="Завантажити таблицю для Excel">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>CSV
+    </button>
+  </div>
+  <div class="res-body" id="res-body"></div>
+</div></div>
 
-<!-- Модалка видалення -->
-<div class="h-del-bg" id="del-bg">
-  <div class="h-del-modal">
-    <h3>Видалити гру?</h3>
-    <p>Результати гри <b id="del-code-label"></b> будуть видалені назавжди.</p>
-    <div class="d-btns">
-      <button class="d-btn cancel" onclick="closeDelModal()">Скасувати</button>
-      <button class="d-btn confirm" onclick="confirmDelete()">Видалити</button>
-    </div>
-  </div>
-</div>
+<!-- Видалення гри -->
+<div class="mo" id="m-gh-del"><div class="mb mx" style="max-width:400px;text-align:center">
+  <button class="mcl" onclick="closeM('m-gh-del')" aria-label="Закрити">×</button>
+  <div style="font-size:38px;margin:4px 0 10px">🗑️</div>
+  <div class="mtl" style="margin-bottom:6px">Видалити гру з історії?</div>
+  <div class="msu" id="del-info" style="line-height:1.55;margin-bottom:6px"></div>
+  <div class="mx-err" id="del-err" role="alert"></div>
+  <div class="ma"><button type="button" class="btn bs" onclick="closeM('m-gh-del')">Скасувати</button><button type="button" class="btn bd" id="del-confirm">Видалити</button></div>
+</div></div>
 
-<!-- Модалка швидкого запуску гри -->
-<div class="ql-overlay" id="ql-overlay" onclick="if(event.target===this)closeQuickLaunch()">
-  <div class="ql-modal">
-    <div class="ql-head" style="position:relative">
-      <h3>🎮 Створити гру</h3>
-      <p>Спершу папка, потім тест — і одразу перейдете до налаштування гри</p>
-      <button class="ql-close" onclick="closeQuickLaunch()">×</button>
-    </div>
-    <div id="ql-back-bar" class="ql-back-bar" style="display:none">
-      <button class="ql-back-btn" onclick="backToQlFolders()" title="Назад до папок">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
-      <div class="ql-back-lbl" id="ql-back-lbl"></div>
-    </div>
-    <div class="ql-search">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input id="ql-search-inp" placeholder="Пошук…" oninput="renderQlPicker()">
-    </div>
-    <div class="ql-list" id="ql-list">
-      <div class="ql-empty">Завантаження тестів…</div>
-    </div>
+<!-- Швидкий запуск гри -->
+<div class="mo" id="m-ql" aria-labelledby="ql-title"><div class="mb">
+  <div class="res-head">
+    <button class="mcl" onclick="closeM('m-ql')" aria-label="Закрити">×</button>
+    <h3 id="ql-title">Створити гру</h3>
+    <p>Оберіть тест — і одразу перейдете до налаштувань гри</p>
   </div>
-</div>
+  <div class="ql-back" id="ql-back" hidden>
+    <button type="button" data-ql="back" aria-label="Назад до папок"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <b id="ql-back-lbl"></b>
+  </div>
+  <div class="res-tools">
+    <label class="gh-search" style="max-width:none">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="ql-search" type="search" placeholder="Пошук тесту або папки…" autocomplete="off" aria-label="Пошук">
+    </label>
+  </div>
+  <div class="ql-list" id="ql-list"><div class="ql-empty">Завантаження тестів…</div></div>
+</div></div>
 
 <script type="module">
 import { getDatabase, ref, get, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -385,327 +330,392 @@ await initApp("history", { skipData: true });
 
 const db = getDatabase();
 const uid = window._user?.id || window._uid || "";
+const $ = id => document.getElementById(id);
+const ESC = { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" };
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ESC[c]);
+const fmt = n => Number(n || 0).toLocaleString("uk");
+const plural = (n, one, few, many) => { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? many : b === 1 ? one : b >= 2 && b <= 4 ? few : many; };
+const nPlayers = n => `${fmt(n)} ${plural(n, "гравець", "гравці", "гравців")}`;
+const toMs = ts => !ts ? 0 : ts < 1e11 ? ts * 1000 : ts;
+const DAY = 864e5;
 
-function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-
-function fmtDate(ts) {
-  if (!ts) return "—";
-  // Захист: якщо timestamp у секундах (< 10^11), переводимо в мс
-  if (ts < 1e11) ts = ts * 1000;
-  const d = new Date(ts);
-  if (isNaN(d.getTime())) return "—";
-  const now = new Date();
-  const diff = (now - d) / 1000; // секунди
-  const time = d.toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
-
-  // Перевіряємо чи той самий календарний день
-  const isToday = d.toDateString() === now.toDateString();
-  const yesterday = new Date(now); yesterday.setDate(yesterday.getDate()-1);
-  const isYesterday = d.toDateString() === yesterday.toDateString();
-
-  if (diff < 60) return "щойно";
-  if (diff < 3600) return Math.floor(diff/60) + " хв тому";
-  if (isToday) return `Сьогодні · ${time}`;
-  if (isYesterday) return `Вчора · ${time}`;
-  return d.toLocaleDateString("uk-UA",{day:"2-digit",month:"short",year:"numeric"}) + ` · ${time}`;
-}
-
-function fmtDateShort(ts) {
-  if (!ts) return "—";
-  if (ts < 1e11) ts = ts * 1000;
-  const d = new Date(ts);
-  if (isNaN(d.getTime())) return "—";
-  const now = new Date();
+function fmtDate(ts, withYear = true){
+  ts = toMs(ts); if (!ts) return "—";
+  const d = new Date(ts), now = new Date();
+  const time = d.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
   const diff = (now - d) / 1000;
-  const time = d.toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"});
   if (diff < 60) return "щойно";
-  if (diff < 3600) return Math.floor(diff/60) + " хв тому";
-  if (d.toDateString() === now.toDateString()) return time;
-  const yesterday = new Date(now); yesterday.setDate(yesterday.getDate()-1);
-  if (d.toDateString() === yesterday.toDateString()) return `вчора ${time}`;
-  return d.toLocaleDateString("uk-UA",{day:"2-digit",month:"short"}) + ` ${time}`;
+  if (diff < 3600) return `${Math.floor(diff / 60)} хв тому`;
+  if (d.toDateString() === now.toDateString()) return `сьогодні, ${time}`;
+  const y = new Date(now); y.setDate(y.getDate() - 1);
+  if (d.toDateString() === y.toDateString()) return `вчора, ${time}`;
+  const opts = { day: "numeric", month: "short" };
+  if (withYear && d.getFullYear() !== now.getFullYear()) opts.year = "numeric";
+  return `${d.toLocaleDateString("uk-UA", opts)}, ${time}`;
+}
+function groupLabel(ts){
+  const d = new Date(toMs(ts)), now = new Date();
+  const start = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const days = Math.round((start(now) - start(d)) / DAY);
+  if (days <= 0) return "Сьогодні";
+  if (days === 1) return "Вчора";
+  if (days < 7) return "Цього тижня";
+  const m = d.toLocaleDateString("uk-UA", { month: "long", year: d.getFullYear() !== now.getFullYear() ? "numeric" : undefined });
+  return m.charAt(0).toUpperCase() + m.slice(1);
 }
 
-const THUMB_CLS = ["","b","g","a","v"];
-let allGames = [], currentTab = "all", delCode = "";
+// Колір плитки — стабільний для тесту (одна й та сама гра = один колір)
+const PAL = ["#2563EB","#7C3AED","#0D9488","#EA580C","#DB2777","#0891B2","#4F46E5","#16A34A"];
+const colorFor = s => { let h = 0; for (const ch of String(s || "")) h = (h * 31 + ch.codePointAt(0)) >>> 0; return PAL[h % PAL.length]; };
+const abbr = t => { const w = String(t || "").match(/[\p{L}\p{N}]+/gu) || ["?"]; return (w.length === 1 ? w[0].slice(0, 3) : w.slice(0, 3).map(x => x[0]).join("")).toUpperCase(); };
+const initials = n => { const p = String(n || "").trim().split(/\s+/).filter(Boolean); return (p.length > 1 ? p[0][0] + p[1][0] : (p[0] || "?").slice(0, 2)).toUpperCase(); };
+const MEDAL = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
-const snap = await get(ref(db, `teachers/${uid}/gameHistory`));
-if (snap.exists()) {
-  allGames = Object.entries(snap.val())
-    .map(([code, g]) => ({ code, ...g }))
-    .sort((a,b) => (b.playedAt||0) - (a.playedAt||0));
-  updateStats();
-  renderGames();
-} else {
-  showEmpty("Ще не проводили жодної гри");
+// ─── Підготовка даних: один раз на гру, а не при кожному рендері ────────
+function prep(code, g){
+  const results = (Array.isArray(g.results) ? g.results : Object.values(g.results || {}))
+    .filter(Boolean).map(r => ({ nickname: r.nickname || "—", score: Number(r.score) || 0, correct: r.correct == null ? null : Number(r.correct) }))
+    .sort((a, b) => b.score - a.score || (b.correct ?? 0) - (a.correct ?? 0) || a.nickname.localeCompare(b.nickname, "uk"));
+  let rank = 0, prev = null;
+  results.forEach(r => { if (r.score !== prev){ rank++; prev = r.score; } r.rank = rank; });
+  const n = results.length;
+  const scores = results.map(r => r.score);
+  const sum = scores.reduce((a, b) => a + b, 0);
+  const qc = Number(g.questionCount) || 0;
+  const withCorrect = qc ? results.filter(r => r.correct != null) : [];
+  const acc = withCorrect.length ? Math.round(withCorrect.reduce((s, r) => s + r.correct, 0) / (withCorrect.length * qc) * 100) : null;
+  const max = n ? scores[0] : 0;
+  // Розподіл балів — 8 кошиків для міні-гістограми
+  const dist = Array(8).fill(0);
+  if (n && max > 0) scores.forEach(s => dist[Math.min(7, Math.floor(s / max * 8))]++);
+  return {
+    code, raw: g, results, n: n || Number(g.playerCount) || 0, hasResults: n > 0,
+    title: g.testTitle || "Без назви", testId: g.testId || "", playedAt: toMs(g.playedAt), qc,
+    avg: n ? Math.round(sum / n) : 0, median: n ? scores[Math.floor(n / 2)] : 0, max, acc, dist,
+    search: (g.testTitle || "").toLowerCase() + " " + code + " " + results.map(r => r.nickname.toLowerCase()).join(" "),
+  };
 }
+
+// ─── Завантаження ──────────────────────────────────────────────────────
+let games = [];
+const ui = { q: "", period: "all", test: "", sort: "new", limit: 20 };
+try { const s = JSON.parse(localStorage.getItem("qf_gh_ui") || "{}"); if (s.sort) ui.sort = s.sort; } catch {}
+
+try {
+  const snap = await get(ref(db, `teachers/${uid}/gameHistory`));
+  games = snap.exists() ? Object.entries(snap.val()).map(([code, g]) => prep(code, g)) : [];
+} catch (e) {
+  $("games-list").innerHTML = `<div class="gh-empty"><h3>Не вдалося завантажити історію</h3><p>${esc(e.message)}</p><button class="gh-btn" onclick="location.reload()">Спробувати ще раз</button></div>`;
+}
+renderKpis(); buildTestMenu(); render();
+$("sec-history").classList.add("on");
 appReady();
 
-function showEmpty(msg="Нічого не знайдено") {
-  document.getElementById("history-sub").textContent = msg;
-  document.getElementById("games-list").innerHTML = `<div class="empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--ink-400);margin-bottom:12px"><circle cx="12" cy="12" r="9"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/></svg><h3>${msg}</h3><p>Проведіть першу Live гру — результати з'являться тут</p></div>`;
+function renderKpis(){
+  const total = games.length;
+  const played = games.filter(g => g.hasResults);
+  const players = games.reduce((s, g) => s + g.n, 0);
+  const accs = played.filter(g => g.acc != null);
+  const biggest = games.reduce((m, g) => g.n > (m?.n || 0) ? g : m, null);
+  const last = games.reduce((m, g) => g.playedAt > (m?.playedAt || 0) ? g : m, null);
+  $("k-games").textContent = fmt(total);
+  $("k-games-s").textContent = total ? `${played.length} з результатами` : " ";
+  $("k-players").textContent = fmt(players);
+  $("k-players-s").textContent = biggest?.n ? `найбільша гра — ${nPlayers(biggest.n)}` : " ";
+  $("k-avg").textContent = played.length ? fmt(Math.round(played.reduce((s, g) => s + g.n, 0) / played.length)) : "—";
+  $("k-acc").textContent = accs.length ? Math.round(accs.reduce((s, g) => s + g.acc, 0) / accs.length) + "%" : "—";
+  $("k-acc-s").textContent = accs.length ? `за ${accs.length} ${plural(accs.length, "грою", "іграми", "іграми")}` : "немає даних";
+  $("k-last").textContent = last ? fmtDate(last.playedAt, false).replace(/^(\S+),.*/, "$1") : "—";
+  $("k-last-s").textContent = last ? last.title : " ";
+  $("history-sub").textContent = total ? `${fmt(total)} ${plural(total, "гра", "гри", "ігор")} · ${fmt(players)} ${plural(players, "участь", "участі", "участей")}` : "Ще не проводили жодної гри";
 }
 
-function updateStats() {
-  const total = allGames.length;
-  const players = allGames.reduce((s,g) => s+(g.playerCount||0), 0);
-  const fin = allGames.filter(g => (g.results||[]).length > 0).length;
-  document.getElementById("stat-total").textContent = total;
-  document.getElementById("stat-players").textContent = players;
-  document.getElementById("stat-games").textContent = fin;
-  document.getElementById("stat-last").textContent = allGames[0]?.playedAt ? fmtDateShort(allGames[0].playedAt) : "—";
-  document.getElementById("history-sub").textContent = `Усі live-сесії · ${total} ігор`;
-  document.getElementById("ct-all").textContent = total;
-  document.getElementById("ct-fin").textContent = fin;
+function buildTestMenu(){
+  const map = new Map();
+  games.forEach(g => { const k = g.testId || g.title; const e = map.get(k) || { k, title: g.title, n: 0 }; e.n++; map.set(k, e); });
+  const items = [...map.values()].sort((a, b) => b.n - a.n || a.title.localeCompare(b.title, "uk"));
+  $("cd-ghtest-menu").innerHTML = `<div class="cd-item" role="option" data-test="">Усі тести<span class="n">${games.length}</span></div>` +
+    items.map(t => `<div class="cd-item" role="option" data-test="${esc(t.k)}" title="${esc(t.title)}"><span style="overflow:hidden;text-overflow:ellipsis">${esc(t.title)}</span><span class="n">${t.n}</span></div>`).join("");
+  $("cd-ghtest").hidden = items.length < 2;
 }
 
-function renderGames() {
-  const search = document.getElementById("search-inp").value.toLowerCase();
-  let list = allGames;
-  if (currentTab === "fin") list = list.filter(g => (g.results||[]).length > 0);
-  if (search) list = list.filter(g => g.code?.includes(search) || g.testTitle?.toLowerCase().includes(search));
+// ─── Фільтри й рендер ──────────────────────────────────────────────────
+function filtered(){
+  const now = Date.now();
+  let list = games;
+  if (ui.period !== "all") list = list.filter(g => now - g.playedAt <= Number(ui.period) * DAY);
+  if (ui.test) list = list.filter(g => (g.testId || g.title) === ui.test);
+  if (ui.q){ const ws = ui.q.toLowerCase().split(/\s+/).filter(Boolean); list = list.filter(g => ws.every(w => g.search.includes(w))); }
+  const by = {
+    new: (a, b) => b.playedAt - a.playedAt,
+    old: (a, b) => a.playedAt - b.playedAt,
+    players: (a, b) => b.n - a.n || b.playedAt - a.playedAt,
+    acc: (a, b) => (b.acc ?? -1) - (a.acc ?? -1) || b.playedAt - a.playedAt,
+  }[ui.sort];
+  return [...list].sort(by);
+}
 
-  if (!list.length) {
-    document.getElementById("games-list").innerHTML = `<div class="empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--ink-400);margin-bottom:12px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><h3>Нічого не знайдено</h3><p>Спробуйте інший пошук або фільтр</p></div>`;
+function syncToolbar(){
+  document.querySelectorAll("#period [data-period]").forEach(b => b.classList.toggle("on", b.dataset.period === ui.period));
+  const sortEl = document.querySelector(`#cd-ghsort-menu [data-sort="${ui.sort}"]`);
+  $("cd-ghsort-label").textContent = sortEl?.textContent.trim() || "Спершу нові";
+  document.querySelectorAll("#cd-ghsort-menu [data-sort]").forEach(el => el.classList.toggle("cd-active", el.dataset.sort === ui.sort));
+  const testEl = [...document.querySelectorAll("#cd-ghtest-menu [data-test]")].find(el => el.dataset.test === ui.test);
+  $("cd-ghtest-label").textContent = ui.test ? (testEl?.firstElementChild?.textContent || testEl?.textContent || "Тест") : "Усі тести";
+  document.querySelectorAll("#cd-ghtest-menu [data-test]").forEach(el => el.classList.toggle("cd-active", el.dataset.test === ui.test));
+}
+
+function render(){
+  syncToolbar();
+  const list = filtered();
+  const host = $("games-list");
+  if (!games.length){
+    host.innerHTML = `<div class="gh-empty"><div class="i"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/></svg></div>
+      <h3>Ще не проводили жодної гри</h3><p>Запустіть першу Live гру — результати з'являться тут</p>
+      <button class="gh-btn primary" data-act="quick" style="margin:0 auto">Створити гру</button></div>`;
     return;
   }
-
-  document.getElementById("games-list").innerHTML = list.map((g, i) => {
-    const thumbCls = THUMB_CLS[i % THUMB_CLS.length];
-    const results = [...(g.results || [])].sort((a,b) => (b.score||0)-(a.score||0));
-    // Щільне ранжування: однаковий бал = однакове місце (1,1,2,3 — а не 1,2,3)
-    let _rank = 0, _prevScore = null;
-    results.forEach(r => { if (r.score !== _prevScore) { _rank++; _prevScore = r.score; } r.rank = _rank; });
-    const top3 = results.filter(r => r.rank <= 3);
-    const short = (g.testTitle||"—").length > 20 ? (g.testTitle||"—").slice(0,20)+"…" : (g.testTitle||"—");
-    const maxScore = results.length ? Math.max(...results.map(r=>r.score||0)) : 0;
-    const totalPlayers = results.length || g.playerCount || 0;
-
-    const MEDALS = {1:"🥇",2:"🥈",3:"🥉"};
-    const podHtml = top3.length
-      ? top3.map((r) =>
-          `<div class="pod-row">
-            <span class="pod-medal">${MEDALS[r.rank]}</span>
-            <span class="pod-name">${esc(r.nickname || "—")}</span>
-            <span class="pod-pts">${(r.score||0).toLocaleString("uk")}</span>
-          </div>`).join("")
-      : `<div style="font-size:12px;color:var(--ink-500);padding:8px 0;text-align:center">Немає результатів</div>`;
-
-    const hasResults = results.length > 0;
-    const moreCount = results.length - top3.length;
-
-    return `<div class="game" id="game-${g.code}">
-      <div class="game-top">
-        <div class="thumb ${thumbCls}">
-          <div class="t-code">${g.code}</div>
-          <div class="t-name">${esc(short)}</div>
-        </div>
-        <div class="game-body">
-          <div class="title-line">
-            <h3>${esc(g.testTitle||"—")}</h3>
-            <span class="pill fin">Завершено</span>
-          </div>
-          <div class="gmeta">
-            <span class="code">${g.code}</span>
-            <span class="sep">·</span>
-            <span>${fmtDate(g.playedAt)}</span>
-          </div>
-          <div class="game-kpis">
-            <div class="kpi">
-              <div class="v">${totalPlayers}</div>
-              <div class="l">Гравців</div>
-            </div>
-            <div class="kpi">
-              <div class="v">${maxScore ? maxScore.toLocaleString("uk") : "—"}</div>
-              <div class="l">Макс. бал</div>
-            </div>
-          </div>
-          <div class="game-actions">
-            ${hasResults ? `<button class="view-all" onclick="openResModal('${g.code}')">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-              Всі результати (${results.length})
-            </button>` : ""}
-            <button class="danger" onclick="openDelModal('${g.code}')">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
-              Видалити
-            </button>
-          </div>
-        </div>
-        <div class="game-podium">
-          <div class="pod-head">
-            <span>Топ гравці</span>
-            ${moreCount > 0 ? `<strong>+${moreCount} ще</strong>` : ""}
-          </div>
-          ${podHtml}
-        </div>
-      </div>
-    </div>`;
-  }).join("");
-}
-
-window.openResModal = code => {
-  const g = allGames.find(x => x.code === code);
-  if (!g) return;
-  const results = [...(g.results||[])].sort((a,b) => (b.score||0)-(a.score||0));
-  // Щільне ранжування: однаковий бал = однакове місце (1,1,2,3 — а не 1,2,3,4)
-  let rank = 0, prevScore = null;
-  results.forEach(r => {
-    if (r.score !== prevScore) { rank++; prevScore = r.score; }
-    r.rank = rank;
+  if (!list.length){
+    host.innerHTML = `<div class="gh-empty"><h3>Нічого не знайдено</h3><p>Спробуйте інший запит або період</p><button class="gh-btn" data-act="reset" style="margin:0 auto">Скинути фільтри</button></div>`;
+    return;
+  }
+  const shown = list.slice(0, ui.limit);
+  const grouped = ui.sort === "new" || ui.sort === "old";
+  let html = "", lastGroup = null;
+  const counts = {};
+  if (grouped) list.forEach(g => { const l = groupLabel(g.playedAt); counts[l] = (counts[l] || 0) + 1; });
+  shown.forEach(g => {
+    if (grouped){ const l = groupLabel(g.playedAt); if (l !== lastGroup){ html += `<div class="gh-group"><span>${esc(l)}</span><span class="n">${counts[l]}</span></div>`; lastGroup = l; } }
+    html += gameRow(g);
   });
-  const MEDALS = {1:"🥇",2:"🥈",3:"🥉"};
-  document.getElementById("res-title").textContent = g.testTitle || "Результати гри";
-  document.getElementById("res-sub").textContent = `${results.length} гравців · ${fmtDate(g.playedAt)}`;
-  document.getElementById("res-body").innerHTML = results.length
-    ? results.map((r) => {
-        const name = r.nickname || "—";
-        const topCls = r.rank===1?"top1":r.rank===2?"top2":r.rank===3?"top3":"";
-        const rankHtml = r.rank <= 3
-          ? `<span class="res-rank ${["gold","silver","bronze"][r.rank-1]}">${MEDALS[r.rank]}</span>`
-          : `<span class="res-rank">${r.rank}</span>`;
-        return `<div class="res-row ${topCls}">
-          ${rankHtml}
-          <span class="res-name">${esc(name)}</span>
-          <span class="res-pts">${(r.score||0).toLocaleString("uk")}</span>
-        </div>`;
-      }).join("")
-    : `<div style="text-align:center;padding:40px;color:var(--ink-500);font-size:13px">Немає результатів</div>`;
-  document.getElementById("res-overlay").classList.add("show");
-};
-window.closeResModal = () => document.getElementById("res-overlay").classList.remove("show");
-
-window.filterGames = () => renderGames();
-
-document.getElementById("tab-seg").addEventListener("click", e => {
-  const btn = e.target.closest("button[data-tab]");
-  if (!btn) return;
-  currentTab = btn.dataset.tab;
-  document.querySelectorAll("#tab-seg button").forEach(b => b.classList.toggle("on", b===btn));
-  renderGames();
-});
-
-window.openDelModal = code => {
-  delCode = code;
-  document.getElementById("del-code-label").textContent = code;
-  document.getElementById("del-bg").classList.add("show");
-};
-window.closeDelModal = () => document.getElementById("del-bg").classList.remove("show");
-window.confirmDelete = async () => {
-  await remove(ref(db, `teachers/${uid}/gameHistory/${delCode}`));
-  allGames = allGames.filter(g => g.code !== delCode);
-  document.getElementById(`game-${delCode}`)?.remove();
-  closeDelModal();
-  updateStats();
-  if (!allGames.length) showEmpty("Ще не проводили жодної гри");
-};
-document.getElementById("del-bg").addEventListener("click", e => {
-  if (e.target === e.currentTarget) closeDelModal();
-});
-
-// ─── Швидкий запуск гри ──────────────────────────────────────────────────
-// Ця сторінка вантажиться з { skipData:true }, тому window.tests/window.folders
-// тут порожні — тягнемо їх самі, лише коли модалку відкривають вперше.
-let qlTests = null, qlFolders = null;
-let qlStep = "folder";     // "folder" | "test"
-let qlFolderF = "";        // "" = усі, "_none" = без папки, або id папки
-
-window.openQuickLaunch = async () => {
-  document.getElementById("ql-overlay").classList.add("show");
-  document.getElementById("ql-search-inp").value = "";
-  qlStep = "folder";
-  qlFolderF = "";
-  document.getElementById("ql-back-bar").style.display = "none";
-  if (qlTests === null) {
-    try {
-      const [fs, ts_] = await Promise.all([window.dbGet("folders"), window.dbGet("tests")]);
-      qlFolders = window.toArr(fs);
-      qlTests = window.toArr(ts_).filter(t => (t.questions||[]).length > 0);
-    } catch (e) {
-      qlTests = []; qlFolders = [];
-      document.getElementById("ql-list").innerHTML = `<div class="ql-empty">Не вдалося завантажити тести: ${e.message}</div>`;
-      return;
-    }
-  }
-  renderQlPicker();
-};
-window.closeQuickLaunch = () => document.getElementById("ql-overlay").classList.remove("show");
-
-window.renderQlPicker = () => {
-  if (qlStep === "test") renderQlTestStep();
-  else renderQlFolderStep();
-};
-
-function renderQlFolderStep(){
-  document.getElementById("ql-back-bar").style.display = "none";
-  document.getElementById("ql-search-inp").placeholder = "Пошук папки…";
-  const countIn = fid => qlTests.filter(t => (t.folderId || "_none") === fid).length;
-  const usedFolders = qlFolders.filter(f => countIn(f.id) > 0);
-  const noneCount = countIn("_none");
-  const q = document.getElementById("ql-search-inp").value.trim().toLowerCase();
-
-  let rows = [{ id: "", name: "Усі тести", color: "#2563EB", count: qlTests.length, pin: true }];
-  rows = rows.concat(usedFolders.map(f => ({ id: f.id, name: f.name || f.title || "Без назви", color: f.color || "#C7CFE0", count: countIn(f.id) })));
-  if (noneCount) rows.push({ id: "_none", name: "Без папки", color: "#C7CFE0", count: noneCount });
-  if (q) rows = rows.filter(r => r.pin || r.name.toLowerCase().includes(q));
-
-  const listEl = document.getElementById("ql-list");
-  listEl.innerHTML = rows.length ? rows.map(r => `
-    <div class="ql-folder-row" onclick="pickQlFolder('${r.id}')">
-      <span class="dot" style="background:${r.color}"></span>
-      <span class="nm">${esc(r.name)}</span>
-      <span class="cnt">${r.count} ${r.count===1?"тест":"тестів"}</span>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C7CFE0" stroke-width="2.2"><polyline points="9 6 15 12 9 18"/></svg>
-    </div>`).join("") : `<div class="ql-empty">Нічого не знайдено</div>`;
+  if (list.length > shown.length) html += `<button class="gh-btn gh-more" data-act="more">Показати ще ${Math.min(20, list.length - shown.length)} з ${list.length - shown.length}</button>`;
+  host.innerHTML = html;
 }
 
-window.pickQlFolder = (fid) => {
-  qlFolderF = fid;
-  qlStep = "test";
-  document.getElementById("ql-search-inp").value = "";
-  renderQlPicker();
-};
+function gameRow(g){
+  const col = colorFor(g.testId || g.title);
+  const ranks = [1, 2, 3].map(r => g.results.filter(x => x.rank === r)).filter(a => a.length);
+  const podium = g.hasResults
+    ? `<div class="gh-podium">${ranks.map(grp => `<div class="gh-pr"><span class="m">${MEDAL[grp[0].rank]}</span><span class="nm" title="${esc(grp.map(x => x.nickname).join(", "))}">${esc(grp[0].nickname)}</span>${grp.length > 1 ? `<span class="tie">+${grp.length - 1}</span>` : ""}<span class="pt">${fmt(grp[0].score)}</span></div>`).join("")}</div>`
+    : `<span class="gh-noresults">Ніхто не відповідав</span>`;
+  const dmax = Math.max(...g.dist, 1);
+  const dist = g.hasResults && g.n >= 5 ? `<div class="gh-dist" title="Розподіл балів">${g.dist.map((v, i) => `<i class="${i >= 6 ? "hi" : ""}" style="height:${Math.max(6, v / dmax * 100)}%"></i>`).join("")}</div>` : "";
+  return `<article class="gh-game${g.hasResults ? "" : " empty-game"}" data-code="${esc(g.code)}">
+    <div class="gh-tile" style="background:${col}">${esc(abbr(g.title))}</div>
+    <div class="gh-main">
+      <button class="gh-name" data-act="${g.hasResults ? "open" : ""}" data-code="${esc(g.code)}" title="${esc(g.title)}">${esc(g.title)}</button>
+      <div class="gh-meta"><span>${fmtDate(g.playedAt)}</span><span class="dot">·</span><span class="code">${esc(g.code)}</span>${g.qc ? `<span class="dot">·</span><span>${g.qc} ${plural(g.qc, "питання", "питання", "питань")}</span>` : ""}</div>
+    </div>
+    <div class="gh-stats">
+      <div class="gh-stat"><div class="v">${fmt(g.n)}</div><div class="l">${plural(g.n, "гравець", "гравці", "гравців")}</div></div>
+      <div class="gh-stat"><div class="v">${g.acc != null ? g.acc + "%" : g.hasResults ? fmt(g.avg) : "—"}</div><div class="l">${g.acc != null ? "точність" : "сер. бал"}</div></div>
+      ${dist}
+    </div>
+    <div class="gh-top">${podium}</div>
+    <div class="gh-actions">
+      ${g.hasResults ? `<button class="gh-btn sm" data-act="open" data-code="${esc(g.code)}">Результати</button>` : ""}
+      <button class="gh-icon" data-act="menu" data-code="${esc(g.code)}" aria-haspopup="menu" aria-label="Дії з грою"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>
+    </div>
+  </article>`;
+}
 
-window.backToQlFolders = () => {
-  qlStep = "folder";
-  document.getElementById("ql-search-inp").value = "";
-  renderQlPicker();
-};
+// ─── Меню гри ──────────────────────────────────────────────────────────
+let menuFor = null;
+function closeMenu(){ document.querySelector(".gh-menu")?.remove(); menuFor?.setAttribute("aria-expanded", "false"); menuFor = null; }
+function openMenu(btn, g){
+  closeMenu();
+  const m = document.createElement("div");
+  m.className = "gh-menu"; m.setAttribute("role", "menu");
+  const I = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  m.innerHTML = `
+    ${g.hasResults ? `<button role="menuitem" data-act="open" data-code="${esc(g.code)}">${I('<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>')}Усі результати</button>
+    <button role="menuitem" data-act="csv" data-code="${esc(g.code)}">${I('<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>')}Експорт у CSV</button>` : ""}
+    ${g.testId ? `<button role="menuitem" data-act="replay" data-code="${esc(g.code)}">${I('<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/>')}Зіграти цей тест ще раз</button>` : ""}
+    <hr><button role="menuitem" class="d" data-act="del" data-code="${esc(g.code)}">${I('<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/>')}Видалити з історії</button>`;
+  document.body.appendChild(m);
+  const r = btn.getBoundingClientRect();
+  m.style.left = Math.max(8, Math.min(r.right - m.offsetWidth, innerWidth - m.offsetWidth - 8)) + "px";
+  m.style.top = (r.bottom + 6 + m.offsetHeight > innerHeight - 8 ? r.top - m.offsetHeight - 6 : r.bottom + 6) + "px";
+  menuFor = btn; btn.setAttribute("aria-expanded", "true");
+  m.querySelector("button")?.focus({ preventScroll: true });
+}
 
-function renderQlTestStep(){
-  const label = qlFolderF === "" ? "Усі тести"
-    : qlFolderF === "_none" ? "Без папки"
-    : (qlFolders.find(f => f.id === qlFolderF)?.name || qlFolders.find(f => f.id === qlFolderF)?.title || "Папка");
-  document.getElementById("ql-back-bar").style.display = "flex";
-  document.getElementById("ql-back-lbl").textContent = label;
-  document.getElementById("ql-search-inp").placeholder = "Пошук тесту за назвою…";
+// ─── Результати гри ────────────────────────────────────────────────────
+let resGame = null, resLimit = 200;
+function openResults(g){
+  resGame = g; resLimit = 200;
+  $("res-title").textContent = g.title;
+  $("res-sub").textContent = `${fmtDate(g.playedAt)} · код ${g.code}${g.qc ? ` · ${g.qc} ${plural(g.qc, "питання", "питання", "питань")}` : ""}`;
+  const cell = (v, l) => `<div><div class="v">${v}</div><div class="l">${l}</div></div>`;
+  $("res-sum").innerHTML = cell(fmt(g.n), plural(g.n, "гравець", "гравці", "гравців")) + cell(fmt(g.avg), "середній бал") +
+    cell(fmt(g.median), "медіана") + cell(fmt(g.max), "найкращий") + cell(g.acc != null ? g.acc + "%" : "—", "точність");
+  $("res-search").value = "";
+  renderResults();
+  openM("m-res");
+}
+function hl(text, q){
+  const t = esc(text); if (!q) return t;
+  const i = text.toLowerCase().indexOf(q); if (i < 0) return t;
+  return esc(text.slice(0, i)) + `<mark class="hl">${esc(text.slice(i, i + q.length))}</mark>` + esc(text.slice(i + q.length));
+}
+function renderResults(){
+  const g = resGame; if (!g) return;
+  const q = $("res-search").value.trim().toLowerCase();
+  const list = q ? g.results.filter(r => r.nickname.toLowerCase().includes(q)) : g.results;
+  $("res-count").textContent = q ? `${list.length} з ${g.results.length}` : "";
+  if (!list.length){ $("res-body").innerHTML = `<div class="res-none">${q ? "Нікого не знайдено" : "Немає результатів"}</div>`; return; }
+  const shown = list.slice(0, resLimit);
+  const showAcc = g.qc > 0 && g.results.some(r => r.correct != null);
+  $("res-body").innerHTML = `<table class="res-table"><thead><tr><th>#</th><th>Учасник</th>${showAcc ? `<th class="c-acc">Правильно</th>` : ""}<th>Бали</th></tr></thead><tbody>${
+    shown.map(r => {
+      const pct = showAcc && r.correct != null ? Math.round(r.correct / g.qc * 100) : null;
+      const barCol = pct == null ? "#CBD5E1" : pct >= 70 ? "#16A34A" : pct >= 40 ? "#2563EB" : "#DC2626";
+      return `<tr class="${r.rank <= 3 ? "r" + r.rank : ""}">
+        <td>${r.rank <= 3 ? `<span class="res-rank m">${MEDAL[r.rank]}</span>` : `<span class="res-rank">${r.rank}</span>`}</td>
+        <td><div class="res-who"><span class="res-av" style="background:${colorFor(r.nickname)}">${esc(initials(r.nickname))}</span><span class="res-nm" title="${esc(r.nickname)}">${hl(r.nickname, q)}</span></div></td>
+        ${showAcc ? `<td class="c-acc">${pct == null ? `<span class="res-acc"><span class="t">—</span></span>` : `<div class="res-acc"><span class="bar"><i style="width:${pct}%;background:${barCol}"></i></span><span class="t">${r.correct}/${g.qc}</span></div>`}</td>` : ""}
+        <td><span class="res-pts">${fmt(r.score)}</span></td>
+      </tr>`;
+    }).join("")
+  }</tbody></table>${list.length > shown.length ? `<button class="gh-btn res-more" data-act="res-more">Показати ще ${list.length - shown.length}</button>` : ""}`;
+}
+let resTimer;
+$("res-search").addEventListener("input", () => { clearTimeout(resTimer); resTimer = setTimeout(renderResults, 100); });
+$("res-csv").addEventListener("click", () => resGame && exportCsv(resGame));
 
-  const q = document.getElementById("ql-search-inp").value.trim().toLowerCase();
-  let list = qlFolderF === "" ? qlTests
-    : qlFolderF === "_none" ? qlTests.filter(t => !t.folderId)
-    : qlTests.filter(t => t.folderId === qlFolderF);
-  if (q) list = list.filter(t => (t.title||"").toLowerCase().includes(q));
+// CSV для Excel: BOM + «;» як роздільник (українська локаль Excel)
+function exportCsv(g){
+  const q = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const head = ["Місце", "Учасник", ...(g.qc ? ["Правильно", "З питань"] : []), "Бали"];
+  const rows = g.results.map(r => [r.rank, r.nickname, ...(g.qc ? [r.correct ?? "", g.qc] : []), r.score]);
+  const csv = "﻿" + [head, ...rows].map(row => row.map(q).join(";")).join("\r\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const d = new Date(g.playedAt);
+  a.download = `${g.title.replace(/[\\/:*?"<>|]+/g, " ").trim().slice(0, 60)} — ${d.toLocaleDateString("uk-UA")} (${g.code}).csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  window.toast?.("CSV завантажено");
+}
 
-  const listEl = document.getElementById("ql-list");
-  if (!list.length) {
-    listEl.innerHTML = `<div class="ql-empty">Нічого не знайдено</div>`;
+// ─── Видалення ─────────────────────────────────────────────────────────
+let delCode = null;
+function askDelete(g){
+  delCode = g.code;
+  $("del-info").innerHTML = `Гра <b>«${esc(g.title)}»</b> (${esc(g.code)}) від ${esc(fmtDate(g.playedAt))}${g.n ? ` з результатами ${esc(nPlayers(g.n))}` : ""} зникне з історії. Скасувати неможливо.`;
+  $("del-err").textContent = "";
+  openM("m-gh-del");
+}
+$("del-confirm").addEventListener("click", async () => {
+  const btn = $("del-confirm"); if (!delCode || btn.disabled) return;
+  btn.disabled = true; btn.textContent = "Видаляємо…";
+  try {
+    await remove(ref(db, `teachers/${uid}/gameHistory/${delCode}`));
+    games = games.filter(g => g.code !== delCode);
+    closeM("m-gh-del");
+    renderKpis(); buildTestMenu();
+    if (ui.test && !games.some(g => (g.testId || g.title) === ui.test)) ui.test = "";
+    render();
+    window.toast?.("Гру видалено з історії");
+  } catch (e) { $("del-err").textContent = "Не вдалося видалити: " + e.message; }
+  finally { btn.disabled = false; btn.textContent = "Видалити"; }
+});
+
+// ─── Кастомні дропдауни (.cd-*) — features.js тут не підключений ────────
+function closeCd(){ document.querySelectorAll("#sec-history .cd-menu.open").forEach(m => m.classList.remove("open")); document.querySelectorAll("#sec-history .cd-btn.active").forEach(b => { b.classList.remove("active"); b.setAttribute("aria-expanded", "false"); }); }
+function toggleCd(id){
+  const menu = $(id + "-menu"), btn = document.querySelector(`#${id} .cd-btn`);
+  const open = menu.classList.contains("open");
+  closeCd();
+  if (!open){ menu.classList.add("open"); btn.classList.add("active"); btn.setAttribute("aria-expanded", "true"); }
+}
+document.addEventListener("click", e => { if (!e.target.closest(".cd-wrap")) closeCd(); }, true);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && document.querySelector("#sec-history .cd-menu.open")){ const b = document.querySelector("#sec-history .cd-btn.active"); closeCd(); b?.focus(); } });
+
+// ─── Події ─────────────────────────────────────────────────────────────
+const byCode = code => games.find(g => g.code === code);
+document.addEventListener("click", e => {
+  const cdBtn = e.target.closest("[data-cd]");
+  if (cdBtn){ toggleCd(cdBtn.dataset.cd); return; }
+  const sortIt = e.target.closest("[data-sort]");
+  if (sortIt){ ui.sort = sortIt.dataset.sort; ui.limit = 20; try { localStorage.setItem("qf_gh_ui", JSON.stringify({ sort: ui.sort })); } catch {} toggleCd("cd-ghsort"); render(); return; }
+  const testIt = e.target.closest("[data-test]");
+  if (testIt){ ui.test = testIt.dataset.test; ui.limit = 20; toggleCd("cd-ghtest"); render(); return; }
+  const per = e.target.closest("[data-period]");
+  if (per){ ui.period = per.dataset.period; ui.limit = 20; render(); return; }
+  const qlb = e.target.closest("[data-ql]");
+  if (qlb){ qlAction(qlb); return; }
+  const el = e.target.closest("[data-act]");
+  if (!el || !el.dataset.act){ if (!e.target.closest(".gh-menu")) closeMenu(); return; }
+  const g = byCode(el.dataset.code);
+  switch (el.dataset.act){
+    case "open":   closeMenu(); if (g) openResults(g); break;
+    case "menu":   if (menuFor === el) closeMenu(); else if (g) openMenu(el, g); break;
+    case "csv":    closeMenu(); if (g) exportCsv(g); break;
+    case "replay": closeMenu(); if (g?.testId) location.href = `live/setup?testId=${encodeURIComponent(g.testId)}`; break;
+    case "del":    closeMenu(); if (g) askDelete(g); break;
+    case "more":   ui.limit += 20; render(); break;
+    case "res-more": resLimit += 200; renderResults(); break;
+    case "reset":  ui.q = ""; ui.period = "all"; ui.test = ""; $("search-inp").value = ""; render(); break;
+    case "quick":  openQuickLaunch(); break;
+  }
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && document.querySelector(".gh-menu")){ const b = menuFor; closeMenu(); b?.focus(); }
+  if (e.key === "/" && !e.target.closest("input,textarea") && !document.querySelector(".mo.on")){ e.preventDefault(); $("search-inp").focus(); }
+});
+document.addEventListener("scroll", closeMenu, true);
+window.addEventListener("resize", closeMenu);
+let searchTimer;
+$("search-inp").addEventListener("input", e => { clearTimeout(searchTimer); searchTimer = setTimeout(() => { ui.q = e.target.value.trim(); ui.limit = 20; render(); }, 120); });
+
+// ─── Швидкий запуск гри ────────────────────────────────────────────────
+// Сторінка вантажиться з { skipData:true } — тести/папки тягнемо лише при першому відкритті.
+let qlTests = null, qlFolders = null, qlFolder = null;   // null = список папок
+async function openQuickLaunch(){
+  qlFolder = null; $("ql-search").value = "";
+  openM("m-ql");
+  if (qlTests === null){
+    $("ql-list").innerHTML = `<div class="ql-empty">Завантаження тестів…</div>`;
+    try {
+      const [fs, ts] = await Promise.all([window.dbGet("folders"), window.dbGet("tests")]);
+      qlFolders = window.toArr(fs);
+      qlTests = window.toArr(ts).filter(t => t.status !== "archived" && (t.questions || []).length > 0);
+    } catch (e) { qlTests = null; $("ql-list").innerHTML = `<div class="ql-empty">Не вдалося завантажити тести: ${esc(e.message)}</div>`; return; }
+  }
+  renderQl();
+}
+function renderQl(){
+  const q = $("ql-search").value.trim().toLowerCase();
+  const list = $("ql-list");
+  // Пошук шукає тести одразу в усіх папках
+  if (qlFolder === null && !q){
+    $("ql-back").hidden = true;
+    const cnt = fid => qlTests.filter(t => (t.folderId && qlFolders.some(f => f.id === t.folderId) ? t.folderId : "_none") === fid).length;
+    const rows = [{ id: "_all", name: "Усі тести", color: "#2563EB", n: qlTests.length },
+      ...qlFolders.map(f => ({ id: f.id, name: f.name || "Без назви", color: f.color || "#94A3B8", n: cnt(f.id) })).filter(r => r.n),
+      { id: "_none", name: "Без папки", color: "#94A3B8", n: cnt("_none") }].filter(r => r.n);
+    list.innerHTML = rows.length ? rows.map(r => `<button class="ql-row" data-ql="folder" data-id="${esc(r.id)}"><span class="dot" style="background:${r.color}"></span><span class="t">${esc(r.name)}</span><span class="m">${r.n} ${plural(r.n, "тест", "тести", "тестів")}</span></button>`).join("")
+      : `<div class="ql-empty">Немає тестів з питаннями — створіть тест у розділі «Тести»</div>`;
     return;
   }
-  listEl.innerHTML = list.map(t => `
-    <div class="ql-row" onclick="launchQuick('${t.id}')">
-      <div class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
-      <div class="info">
-        <div class="t">${esc(t.title || "Без назви")}</div>
-        <div class="m">${(t.questions||[]).length} питань</div>
-      </div>
-      <button class="go" onclick="event.stopPropagation();launchQuick('${t.id}')">Запустити →</button>
-    </div>`).join("");
+  let tests = qlTests;
+  if (qlFolder && qlFolder !== "_all") tests = tests.filter(t => qlFolder === "_none" ? !(t.folderId && qlFolders.some(f => f.id === t.folderId)) : t.folderId === qlFolder);
+  if (q) tests = tests.filter(t => (t.title || "").toLowerCase().includes(q));
+  $("ql-back").hidden = qlFolder === null;
+  $("ql-back-lbl").textContent = qlFolder === "_all" ? "Усі тести" : qlFolder === "_none" ? "Без папки" : (qlFolders.find(f => f.id === qlFolder)?.name || "");
+  list.innerHTML = tests.length ? tests.map(t => `<button class="ql-row" data-ql="test" data-id="${esc(t.id)}">
+      <span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span>
+      <span class="t">${esc(t.title || "Без назви")}</span><span class="m">${(t.questions || []).length} пит.</span><span class="go">Запустити →</span></button>`).join("")
+    : `<div class="ql-empty">Нічого не знайдено</div>`;
 }
-
-window.launchQuick = testId => {
-  location.href = `live/setup?testId=${testId}`;
-};
-
-document.getElementById("sec-history").classList.add("on");
+function qlAction(el){
+  const a = el.dataset.ql;
+  if (a === "back"){ qlFolder = null; $("ql-search").value = ""; renderQl(); $("ql-search").focus(); }
+  else if (a === "folder"){ qlFolder = el.dataset.id; $("ql-search").value = ""; renderQl(); $("ql-search").focus(); }
+  else if (a === "test") location.href = `live/setup?testId=${encodeURIComponent(el.dataset.id)}`;
+}
+$("ql-search").addEventListener("input", () => qlTests && renderQl());
 </script>
 </body>
 </html>
