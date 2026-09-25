@@ -319,7 +319,8 @@ window.doRegister = async () => {
       name, surname, email,
       role: "teacher",
       createdAt: Date.now(),
-      blocked: false
+      blocked: false,
+      inviteToken: token        // правила бази перевіряють, що запрошення дійсне
     });
 
     // 4) Позначаємо токен як використаний

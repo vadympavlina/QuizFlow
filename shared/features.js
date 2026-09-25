@@ -1811,7 +1811,8 @@ async function callGroq(messages, maxTokens=800, temp=0.5, feature="analysis"){
       if(d.error) throw new Error("Gemini: " + (d.error.message||JSON.stringify(d.error)));
       return d.candidates?.[0]?.content?.parts?.[0]?.text || "";
     } else {
-      const key   = groqKeyCfg || "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";
+      const key   = groqKeyCfg;
+      if(!key) throw new Error("AI не налаштовано: немає ключа Groq (адмінка → AI)");
       const model = s.groqModel  || (s.provider !== "gemini" && s.model) || "llama-3.3-70b-versatile";
       const res = await fetch("https://api.groq.com/openai/v1/chat/completions",{
         method:"POST",

@@ -11,8 +11,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
-<link rel="modulepreload" href="shared/app.js?v=17">
-<link rel="modulepreload" href="shared/features.js?v=18">
+<link rel="modulepreload" href="shared/app.js?v=18">
+<link rel="modulepreload" href="shared/features.js?v=19">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
    ATTEMPTS PAGE REDESIGN — scoped до #sec-attempts
@@ -308,8 +308,8 @@ document.addEventListener("input", (e) => {
 });
 
 // ─── Ініціалізація (стандартний pattern з інших сторінок) ───
-const { initApp } = await import("./shared/app.js?v=17");
-const featuresP = import("./shared/features.js?v=18");
+const { initApp } = await import("./shared/app.js?v=18");
+const featuresP = import("./shared/features.js?v=19");
 
 window.showSec = function(name){
   if (name === "attempts"){
