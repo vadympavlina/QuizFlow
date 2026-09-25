@@ -1,16 +1,23 @@
 <!-- MODALS (всі — щоб G.* могли їх відкривати) -->
 <!-- MODALS -->
 <!-- Новий тест -->
-<div class="mo" id="m-test"><div class="mb">
-  <button class="mcl" onclick="closeM('m-test')">×</button>
-  <div style="font-size:26px;margin-bottom:8px">📋</div>
-  <div class="mtl">Новий тест</div><div class="msu">Заповніть інформацію</div>
-  <div class="fl"><label>Назва *</label><input class="fi" id="nt-n" placeholder="Наприклад: HTML Основи" onkeydown="if(event.key==='Enter')G.submitTest()"></div>
-  <div class="fl"><label>Опис</label><textarea class="fi" id="nt-d" rows="2" placeholder="Короткий опис..."></textarea></div>
-  <div class="fl"><label>Папка</label><div class="chips" id="nt-chips"></div><div style="font-size:12px;color:var(--muted);margin-top:3px">Оберіть існуючу або залиш без папки</div></div>
-  <div class="fl"><label>Теги (через кому)</label><input class="fi" id="nt-tg" placeholder="html, css, js"></div>
-  <div class="fl"><label>Ліміт часу (хвилин)</label><input class="fi" type="number" id="nt-tm" value="10" min="1"></div>
-  <div class="ma"><button class="btn bs" onclick="closeM('m-test')">Скасувати</button><button class="btn bp" onclick="G.submitTest()">Створити тест →</button></div>
+<div class="mo" id="m-test" aria-labelledby="m-test-title"><div class="mb mx">
+  <button class="mcl" aria-label="Закрити" onclick="closeM('m-test')">×</button>
+  <div class="mx-head">
+    <div class="mx-ico" style="background:linear-gradient(135deg,#6b9ef0,#2d5be3)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M12 12v6M9 15h6"/></svg></div>
+    <div><div class="mtl" id="m-test-title">Новий тест</div><div class="msu">Питання додасте в конструкторі одразу після створення</div></div>
+  </div>
+  <form onsubmit="event.preventDefault();G.submitTest()" novalidate>
+    <div class="fl"><label for="nt-n">Назва *</label><input class="fi" id="nt-n" placeholder="Наприклад: HTML Основи" maxlength="120" autocomplete="off" autofocus oninput="this.classList.remove('er');document.getElementById('nt-err').textContent=''"></div>
+    <div class="fl"><label for="nt-d">Опис <span class="opt">необов'язково</span></label><textarea class="fi" id="nt-d" rows="2" placeholder="Що перевіряє тест, для кого…"></textarea></div>
+    <div class="fl"><label>Папка</label><div class="chips" id="nt-chips"></div></div>
+    <div class="mx-row">
+      <div class="fl"><label for="nt-tg">Теги <span class="opt">через кому</span></label><input class="fi" id="nt-tg" placeholder="html, css, js" autocomplete="off"></div>
+      <div class="fl"><label for="nt-tm">Ліміт часу, хв</label><input class="fi" type="number" id="nt-tm" value="10" min="1" max="600" inputmode="numeric" oninput="this.classList.remove('er')"></div>
+    </div>
+    <div class="mx-err" id="nt-err" role="alert"></div>
+    <div class="ma"><button type="button" class="btn bs" onclick="closeM('m-test')">Скасувати</button><button type="submit" class="btn bp" id="nt-submit">Створити тест →</button></div>
+  </form>
 </div></div>
 
 <!-- AI РОЗБІР — SIDE PANEL -->
@@ -38,7 +45,7 @@
 
 <!-- DELETE STUDENT MODAL -->
 <div class="mo" id="m-del-student"><div class="mb" style="max-width:380px;text-align:center;padding:36px 32px">
-  <button class="mcl" onclick="closeM('m-del-student')">×</button>
+  <button class="mcl" aria-label="Закрити" onclick="closeM('m-del-student')">×</button>
   <div style="font-size:44px;margin-bottom:14px">🗑️</div>
   <div class="mtl" style="margin-bottom:8px">Видалити картку?</div>
   <div style="font-size:14px;color:var(--muted);line-height:1.55;margin-bottom:28px">
@@ -63,7 +70,7 @@
 
 <!-- MERGE STUDENTS MODAL -->
 <div class="mo" id="m-merge"><div class="mb" style="max-width:440px">
-  <button class="mcl" onclick="closeM('m-merge')">×</button>
+  <button class="mcl" aria-label="Закрити" onclick="closeM('m-merge')">×</button>
   <div style="font-size:26px;margin-bottom:8px">🔗</div>
   <div class="mtl">Об'єднати картки</div>
   <div class="msu" id="m-merge-sub">Вибери картку з якою об'єднати</div>
@@ -83,7 +90,7 @@
 
 <!-- EDIT STUDENT NAME -->
 <div class="mo" id="m-edit-student"><div class="mb" style="max-width:380px">
-  <button class="mcl" onclick="closeM('m-edit-student')">×</button>
+  <button class="mcl" aria-label="Закрити" onclick="closeM('m-edit-student')">×</button>
   <div style="font-size:26px;margin-bottom:8px">✏️</div>
   <div class="mtl">Редагувати студента</div>
   <div class="msu">Виправ прізвище або ім'я</div>
@@ -121,28 +128,34 @@
   </div>
 </div>
 
-<!-- Нова папка -->
-<div class="mo" id="m-folder"><div class="mb" style="max-width:400px">
-  <button class="mcl" onclick="closeM('m-folder')">×</button>
-  <div class="mtl">Нова папка</div><div class="msu">Назва для групування тестів</div>
-  <div class="fl"><label>Назва *</label><input class="fi" id="nf-n" placeholder="Наприклад: Frontend" onkeydown="if(event.key==='Enter')G.submitFolder()"></div>
-  <div class="fl">
-    <label>Колір</label>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
-      <div onclick="G.selectFolderColor('#2d5be3')" data-color="#2d5be3" style="width:28px;height:28px;border-radius:8px;background:#2d5be3;cursor:pointer;transition:all .15s;border:2.5px solid white;box-shadow:0 2px 8px #2d5be388"></div>
-      <div onclick="G.selectFolderColor('#0d9e85')" data-color="#0d9e85" style="width:28px;height:28px;border-radius:8px;background:#0d9e85;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
-      <div onclick="G.selectFolderColor('#9333ea')" data-color="#9333ea" style="width:28px;height:28px;border-radius:8px;background:#9333ea;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
-      <div onclick="G.selectFolderColor('#f59e0b')" data-color="#f59e0b" style="width:28px;height:28px;border-radius:8px;background:#f59e0b;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
-      <div onclick="G.selectFolderColor('#f43f5e')" data-color="#f43f5e" style="width:28px;height:28px;border-radius:8px;background:#f43f5e;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
-      <div onclick="G.selectFolderColor('#0ea5e9')" data-color="#0ea5e9" style="width:28px;height:28px;border-radius:8px;background:#0ea5e9;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
-      <div onclick="G.selectFolderColor('#ec4899')" data-color="#ec4899" style="width:28px;height:28px;border-radius:8px;background:#ec4899;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
-      <div onclick="G.selectFolderColor('#10b981')" data-color="#10b981" style="width:28px;height:28px;border-radius:8px;background:#10b981;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
-      <div onclick="G.selectFolderColor('#dc2626')" data-color="#dc2626" style="width:28px;height:28px;border-radius:8px;background:#dc2626;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
-      <div onclick="G.selectFolderColor('#64748b')" data-color="#64748b" style="width:28px;height:28px;border-radius:8px;background:#64748b;cursor:pointer;transition:all .15s;border:2.5px solid transparent"></div>
-    </div>
-    <input type="hidden" id="nf-color" value="#2d5be3">
+<!-- Папка: створення / редагування -->
+<div class="mo" id="m-folder" aria-labelledby="m-folder-title"><div class="mb mx" style="max-width:420px">
+  <button class="mcl" onclick="closeM('m-folder')" aria-label="Закрити">×</button>
+  <div class="mx-head">
+    <div class="mx-ico mx-folder" id="nf-preview" style="background:linear-gradient(135deg,#7a9cf0,#2d5be3)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg></div>
+    <div><div class="mtl" id="m-folder-title">Нова папка</div><div class="msu" id="m-folder-sub">Згрупуйте тести в курс чи тему</div></div>
   </div>
-  <div class="ma"><button class="btn bs" onclick="closeM('m-folder')">Скасувати</button><button class="btn bp" onclick="G.submitFolder()">Створити →</button></div>
+  <form onsubmit="event.preventDefault();G.submitFolder()" novalidate>
+    <div class="fl"><label for="nf-n">Назва *</label><input class="fi" id="nf-n" placeholder="Наприклад: Frontend" maxlength="60" autocomplete="off" oninput="this.classList.remove('er');document.getElementById('nf-err').textContent=''"></div>
+    <div class="fl">
+      <label>Колір</label>
+      <div class="mx-colors" role="radiogroup" aria-label="Колір папки">
+      <button type="button" class="mx-color" role="radio" data-color="#2d5be3" style="--c:#2d5be3" title="Синій" aria-label="Синій" onclick="G.selectFolderColor('#2d5be3')"></button>
+      <button type="button" class="mx-color" role="radio" data-color="#0d9e85" style="--c:#0d9e85" title="Бірюзовий" aria-label="Бірюзовий" onclick="G.selectFolderColor('#0d9e85')"></button>
+      <button type="button" class="mx-color" role="radio" data-color="#9333ea" style="--c:#9333ea" title="Фіолетовий" aria-label="Фіолетовий" onclick="G.selectFolderColor('#9333ea')"></button>
+      <button type="button" class="mx-color" role="radio" data-color="#f59e0b" style="--c:#f59e0b" title="Бурштиновий" aria-label="Бурштиновий" onclick="G.selectFolderColor('#f59e0b')"></button>
+      <button type="button" class="mx-color" role="radio" data-color="#f43f5e" style="--c:#f43f5e" title="Рожево-червоний" aria-label="Рожево-червоний" onclick="G.selectFolderColor('#f43f5e')"></button>
+      <button type="button" class="mx-color" role="radio" data-color="#0ea5e9" style="--c:#0ea5e9" title="Блакитний" aria-label="Блакитний" onclick="G.selectFolderColor('#0ea5e9')"></button>
+      <button type="button" class="mx-color" role="radio" data-color="#ec4899" style="--c:#ec4899" title="Рожевий" aria-label="Рожевий" onclick="G.selectFolderColor('#ec4899')"></button>
+      <button type="button" class="mx-color" role="radio" data-color="#10b981" style="--c:#10b981" title="Зелений" aria-label="Зелений" onclick="G.selectFolderColor('#10b981')"></button>
+      <button type="button" class="mx-color" role="radio" data-color="#dc2626" style="--c:#dc2626" title="Червоний" aria-label="Червоний" onclick="G.selectFolderColor('#dc2626')"></button>
+      <button type="button" class="mx-color" role="radio" data-color="#64748b" style="--c:#64748b" title="Сірий" aria-label="Сірий" onclick="G.selectFolderColor('#64748b')"></button>
+      </div>
+      <input type="hidden" id="nf-color" value="#2d5be3">
+    </div>
+    <div class="mx-err" id="nf-err" role="alert"></div>
+    <div class="ma"><button type="button" class="btn bs" onclick="closeM('m-folder')">Скасувати</button><button type="submit" class="btn bp" id="nf-submit">Створити папку</button></div>
+  </form>
 </div></div>
 
 <!-- Нове посилання -->
@@ -235,7 +248,7 @@
 <!-- SHARE TEST MODAL -->
 <div class="mo" id="m-share">
   <div class="mb" style="max-width:440px">
-    <button class="mcl" onclick="closeM('m-share')">×</button>
+    <button class="mcl" aria-label="Закрити" onclick="closeM('m-share')">×</button>
     <div style="font-size:28px;margin-bottom:10px">🔗</div>
     <div class="mtl">Поділитись тестом</div>
     <div class="msu" id="share-test-name">Тест</div>
@@ -267,41 +280,35 @@
 </div>
 <!-- Студенти по посиланню -->
 <div class="mo" id="m-students"><div class="mb wd">
-  <button class="mcl" onclick="closeM('m-students')">×</button>
+  <button class="mcl" aria-label="Закрити" onclick="closeM('m-students')">×</button>
   <div id="stud-det"></div>
 </div></div>
 
-<!-- Видалення тесту -->
-<div class="mo" id="m-del-test"><div class="mb" style="max-width:400px;text-align:center">
-  <div style="font-size:36px;margin-bottom:10px">📋</div>
-  <div class="mtl" style="margin-bottom:6px">Що зробити з тестом?</div>
-  <div style="font-size:14px;color:var(--muted);margin-bottom:20px"><strong id="del-tn"></strong></div>
-
-  <div style="display:flex;flex-direction:column;gap:10px;text-align:left;margin-bottom:16px">
-    <button onclick="G.doDelTest('archive')"
-      style="display:flex;align-items:flex-start;gap:14px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(245,158,11,.25);background:rgba(245,158,11,.04);cursor:pointer;text-align:left;width:100%">
-      <span style="font-size:22px;flex-shrink:0">📦</span>
-      <div>
-        <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;color:#b45309;margin-bottom:2px">Перемістити в архів</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.4">Тест зникне зі списку, але всі спроби збережуться</div>
-      </div>
+<!-- Видалення / архівування тесту -->
+<div class="mo" id="m-del-test" aria-labelledby="del-test-title"><div class="mb mx" style="max-width:430px">
+  <button class="mcl" onclick="closeM('m-del-test')" aria-label="Закрити">×</button>
+  <div class="mtl" id="del-test-title" style="margin-bottom:4px">Що зробити з тестом?</div>
+  <div class="msu" style="margin-bottom:16px"><strong id="del-tn" style="color:var(--text)"></strong></div>
+  <div class="mx-choices">
+    <button type="button" class="mx-choice warn" id="del-archive-opt" onclick="G.doDelTest('archive')">
+      <span class="mx-choice-ico">📦</span>
+      <span><b>Перемістити в архів</b><small id="del-archive-info">Тест зникне зі списку, спроби збережуться</small></span>
     </button>
-    <button onclick="G.doDelTest('delete')"
-      style="display:flex;align-items:flex-start;gap:14px;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(244,63,94,.2);background:rgba(244,63,94,.04);cursor:pointer;text-align:left;width:100%">
-      <span style="font-size:22px;flex-shrink:0">🗑️</span>
-      <div>
-        <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;color:#be123c;margin-bottom:2px">Видалити назавжди</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.4">Тест та всі спроби студентів видаляться</div>
-      </div>
+    <button type="button" class="mx-choice danger" onclick="G.askDelForever()">
+      <span class="mx-choice-ico">🗑️</span>
+      <span><b>Видалити назавжди</b><small id="del-forever-info">Тест та всі спроби студентів видаляться</small></span>
     </button>
+    <div class="mx-confirm" id="del-forever-confirm" hidden>
+      <span>Точно видалити? Це незворотно.</span>
+      <button type="button" class="btn bd" onclick="G.doDelTest('delete')">Так, видалити</button>
+    </div>
   </div>
-
-  <button class="btn bs" onclick="closeM('m-del-test')" style="width:100%;justify-content:center">Скасувати</button>
+  <div class="ma" style="margin-top:16px"><button type="button" class="btn bs" onclick="closeM('m-del-test')">Скасувати</button></div>
 </div></div>
 
 <!-- Статистика тесту -->
 <div class="mo" id="m-stats"><div class="mb wd" style="max-width:680px">
-  <button class="mcl" onclick="closeM('m-stats')">×</button>
+  <button class="mcl" aria-label="Закрити" onclick="closeM('m-stats')">×</button>
   <div id="stats-content"></div>
 </div></div>
 
@@ -352,6 +359,7 @@
 
 <!-- Видалення спроби -->
 <div class="mo" id="m-del-attempt"><div class="mb" style="max-width:380px;text-align:center">
+  <button class="mcl" onclick="closeM('m-del-attempt')" aria-label="Закрити">×</button>
   <div style="font-size:36px;margin-bottom:10px">🗑️</div>
   <div class="mtl">Видалити спробу?</div>
   <div style="font-size:14px;color:var(--muted);margin:6px 0 22px">Спроба студента <strong id="del-att-name"></strong> буде видалена назавжди</div>
@@ -359,25 +367,20 @@
 </div></div>
 
 <!-- Видалення папки -->
-<div class="mo" id="m-del-folder"><div class="mb" style="max-width:380px;text-align:center;padding:36px 32px">
-  <button class="mcl" onclick="closeM('m-del-folder')">×</button>
-  <div style="font-size:44px;margin-bottom:14px">📁</div>
-  <div class="mtl" style="margin-bottom:8px">Видалити папку?</div>
-  <div style="font-size:14px;color:var(--muted);line-height:1.55;margin-bottom:28px">Папка <strong id="del-fn"></strong> буде видалена.<br>Тести залишаться <strong>без папки</strong>.</div>
-  <div style="display:flex;flex-direction:column;gap:10px">
-    <button onclick="G.doDelFolder()"
-      style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#f43f5e,#be123c);color:white;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 4px 16px rgba(244,63,94,.3);transition:all .2s"
-      onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 8px 24px rgba(244,63,94,.4)'"
-      onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(244,63,94,.3)'">
-      🗑 Так, видалити папку
-    </button>
-    <button onclick="closeM('m-del-folder')"
-      style="width:100%;padding:12px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;transition:all .15s"
-      onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
-      onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">
-      Скасувати
-    </button>
-  </div>
+<div class="mo" id="m-del-folder"><div class="mb mx" style="max-width:400px;text-align:center">
+  <button class="mcl" onclick="closeM('m-del-folder')" aria-label="Закрити">×</button>
+  <div style="font-size:40px;margin:4px 0 10px">📁</div>
+  <div class="mtl" style="margin-bottom:8px">Видалити папку «<span id="del-fn"></span>»?</div>
+  <div class="msu" id="del-fn-info" style="line-height:1.55;margin-bottom:22px">Тести залишаться <strong>без папки</strong>.</div>
+  <div class="ma"><button type="button" class="btn bs" onclick="closeM('m-del-folder')">Скасувати</button><button type="button" class="btn bd" id="del-folder-btn" onclick="G.doDelFolder()">Видалити папку</button></div>
+</div></div>
+
+<!-- Перемістити тест у папку -->
+<div class="mo" id="m-move"><div class="mb mx" style="max-width:420px">
+  <button class="mcl" onclick="closeM('m-move')" aria-label="Закрити">×</button>
+  <div class="mtl">Перемістити в папку</div>
+  <div class="msu" id="move-test-name" style="margin-bottom:14px"></div>
+  <div class="mv-list" id="move-list" onclick="const b=event.target.closest('[data-folder]');if(b&&!b.disabled)G.doMoveTest(b.dataset.folder)"></div>
 </div></div>
 
 
@@ -385,7 +388,7 @@
 <!-- NEWS MODAL -->
 <div class="mo" id="m-news-view">
   <div class="mb" style="max-width:560px">
-    <button class="mcl" onclick="closeM('m-news-view')">×</button>
+    <button class="mcl" aria-label="Закрити" onclick="closeM('m-news-view')">×</button>
     <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-weight:600;margin-bottom:8px">📰 Системне повідомлення</div>
     <div class="mtl" id="news-view-title" style="margin-bottom:16px"></div>
     <div id="news-view-text" style="font-size:15px;color:var(--text);line-height:1.8;border-top:1px solid var(--border);padding-top:16px"></div>

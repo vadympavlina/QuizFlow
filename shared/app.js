@@ -180,23 +180,54 @@ window.toggleSidebar = function () {
 };
 
 // ─── Modal helpers ─────────────────────────────────────────────────────
+// Стек відкритих модалок: Esc і клік по фону закривають лише верхню,
+// фокус переходить у модалку й повертається на кнопку, що її відкрила,
+// сторінка під модалкою не прокручується.
+const _mStack = [];
+function _syncBodyLock() { document.body.classList.toggle("mo-open", _mStack.length > 0); }
 window.openM = function (id) {
   const el = document.getElementById(id);
-  if (el) { el.style.display = "flex"; el.classList.add("on"); }
+  if (!el) { console.warn("[openM] модалку не знайдено:", id); return; }
+  const i = _mStack.findIndex(m => m.el === el);
+  if (i >= 0) _mStack.splice(i, 1);
+  _mStack.push({ el, opener: document.activeElement });
+  el.setAttribute("role", "dialog");
+  el.setAttribute("aria-modal", "true");
+  el.style.display = "flex";
+  void el.offsetWidth;          // reflow — щоб спрацювала анімація появи
+  el.classList.add("on");
+  _syncBodyLock();
+  // Фокус: [autofocus] → перше порожнє поле → перша кнопка
+  setTimeout(() => {
+    if (!el.classList.contains("on") && el.style.display === "none") return;
+    const f = el.querySelector("[autofocus]:not([disabled])")
+      || [...el.querySelectorAll("input:not([type=hidden]):not([disabled]),textarea:not([disabled])")].find(x => x.offsetParent && !x.value)
+      || el.querySelector(".mb button:not(.mcl):not([disabled])");
+    try { f?.focus({ preventScroll: true }); } catch {}
+  }, 60);
 };
 window.closeM = function (id) {
   const el = document.getElementById(id);
-  if (el) {
-    el.classList.remove("on");
-    setTimeout(() => { if (!el.classList.contains("on")) el.style.display = "none"; }, 200);
-  }
+  if (!el) return;
+  el.classList.remove("on");
+  const i = _mStack.findIndex(m => m.el === el);
+  const entry = i >= 0 ? _mStack.splice(i, 1)[0] : null;
+  _syncBodyLock();
+  setTimeout(() => { if (!el.classList.contains("on")) el.style.display = "none"; }, 200);
+  try { if (entry?.opener && document.contains(entry.opener)) entry.opener.focus({ preventScroll: true }); } catch {}
 };
 document.addEventListener("click", e => {
-  if (e.target.classList && e.target.classList.contains("mo")) {
-    e.target.classList.remove("on");
-    setTimeout(() => { if (!e.target.classList.contains("on")) e.target.style.display = "none"; }, 200);
-  }
+  if (e.target.classList && e.target.classList.contains("mo") && e.target.id) closeM(e.target.id);
 });
+// Esc закриває лише верхню модалку. Слухаємо в фазі capture й зупиняємо подію,
+// щоб старі обробники сторінок не закривали одразу всі модалки.
+window.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  const top = [..._mStack].reverse().find(m => m.el.classList.contains("on") && m.el.style.display !== "none");
+  if (!top) return;
+  e.stopPropagation(); e.preventDefault();
+  closeM(top.el.id);
+}, true);
 
 // ─── Sidebar: завантаження + підсвітка активної сторінки ───────────────
 // ─── Модалки: завантажуються один раз з shared/modals.html ─────────────
