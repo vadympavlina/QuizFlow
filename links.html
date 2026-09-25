@@ -5,123 +5,122 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/><circle cx='24' cy='22' r='5' fill='none' stroke='white' stroke-width='2.2'/><line x1='27.5' y1='25.5' x2='29.5' y2='27.5' stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>">
 <title>QuizFlow — Посилання</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/styles.css">
-<link rel="modulepreload" href="shared/app.js?v=18">
-<link rel="modulepreload" href="shared/features.js?v=19">
+<link rel="stylesheet" href="shared/styles.css?v=20">
+<link rel="modulepreload" href="shared/app.js?v=19">
+<link rel="modulepreload" href="shared/features.js?v=20">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
-   LINKS PAGE REDESIGN — scoped під #sec-links
+   ПОСИЛАННЯ — сторінка (scoped під #sec-links). Модалки — у shared/styles.css
    ═══════════════════════════════════════════════════════════════════════ */
 #sec-links{
   --ink-900:#0B1437; --ink-700:#24335A; --ink-500:#5B6A8F; --ink-400:#8691AC;
-  --line:#E3E8F2; --line-strong:#CDD6E8;
-  --nav-600:#1E3A8A; --nav-accent:#3B82F6; --nav-soft:#93C5FD;
-  --good:#16A34A; --warn:#F59E0B; --bad:#DC2626;
-  font-family:'Manrope',system-ui,sans-serif;
-  color:var(--ink-900);
+  --line:#E3E8F2; --line-strong:#CDD6E8; --pri:#2D5BE3; --nav-600:#1E3A8A;
+  font-family:'Manrope',system-ui,sans-serif; color:var(--ink-900);
 }
-#sec-links.on{ display:flex; flex-direction:column; gap:18px; }
-
-/* ─── Page title ─── */
-#sec-links .l-page-title{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:0;flex-wrap:wrap}
-#sec-links .l-page-title h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:0;font-family:'Manrope',sans-serif}
-#sec-links .l-page-title p{margin:6px 0 0;color:var(--ink-500);font-size:14px}
-#sec-links .l-page-chip{background:#E7EEFC;color:var(--nav-600);padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace}
-#sec-links .l-page-chip::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--good);box-shadow:0 0 0 0 rgba(22,163,74,.5);animation:lPulse 1.8s infinite}
-@keyframes lPulse{0%{box-shadow:0 0 0 0 rgba(22,163,74,.5)}70%{box-shadow:0 0 0 6px rgba(22,163,74,0)}100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}}
-#sec-links .l-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-
-/* ─── Buttons ─── */
-#sec-links .l-btn{background:#fff;border:1px solid var(--line);padding:8px 14px;border-radius:10px;font-family:'Manrope',sans-serif;font-weight:500;font-size:13px;color:var(--ink-700);cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .15s;white-space:nowrap;height:36px;line-height:1}
+#sec-links.on{display:flex;flex-direction:column;gap:16px}
+#sec-links .l-page-title{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
+#sec-links .l-page-title h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:0}
+#sec-links .l-page-title p{margin:6px 0 0;color:var(--ink-500);font-size:14px;max-width:620px}
+#sec-links .l-btn{background:#fff;border:1px solid var(--line);padding:0 14px;border-radius:10px;font:inherit;font-weight:700;font-size:13px;color:var(--ink-700);cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .15s;white-space:nowrap;height:38px}
 #sec-links .l-btn:hover{border-color:var(--line-strong);color:var(--ink-900)}
 #sec-links .l-btn.primary{background:var(--nav-600);border-color:var(--nav-600);color:#fff;box-shadow:0 6px 14px -8px rgba(30,58,138,.8)}
-#sec-links .l-btn.primary:hover{background:#1E40AF;border-color:#1E40AF;color:#fff}
-#sec-links .l-btn svg{width:14px;height:14px;flex:0 0 auto}
+#sec-links .l-btn.primary:hover{background:#1E40AF;border-color:#1E40AF}
 
-/* ─── Filters bar ─── */
+/* KPI */
+#sec-links .lk-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+#sec-links .lk-kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px}
+#sec-links .lk-kpi i{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:0 0 auto;background:var(--kb);color:var(--kc)}
+#sec-links .lk-kpi b{display:block;font-size:22px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
+#sec-links .lk-kpi span{font-size:12px;color:var(--ink-500);font-weight:600}
+#sec-links .lk-kpi.is-live i{animation:lkLive 1.6s ease-in-out infinite}
+@keyframes lkLive{50%{box-shadow:0 0 0 6px rgba(22,163,74,.12)}}
+
+/* Панель фільтрів */
 #sec-links .l-filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-#sec-links .l-search{position:relative;flex:1;min-width:240px;max-width:380px}
-#sec-links .l-search input{width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px 8px 36px;font:inherit;font-family:'Manrope',sans-serif;font-size:13px;color:var(--ink-900);outline:none;height:36px;transition:border-color .15s}
-#sec-links .l-search input:focus{border-color:var(--nav-accent)}
-#sec-links .l-search-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink-400);pointer-events:none;display:flex}
+#sec-links .l-search{position:relative;flex:1;min-width:220px;max-width:360px}
+#sec-links .l-search input{width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;padding:0 30px 0 36px;font:inherit;font-size:13px;color:var(--ink-900);outline:none;height:38px;transition:border-color .15s,box-shadow .15s}
+#sec-links .l-search input:focus{border-color:#93B0F5;box-shadow:0 0 0 3px rgba(45,91,227,.1)}
+#sec-links .l-search-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-400);pointer-events:none;display:flex}
+#sec-links .l-search-x{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:24px;height:24px;border:0;border-radius:6px;background:transparent;color:var(--ink-400);cursor:pointer;font-size:16px;line-height:1}
+#sec-links .l-search-x:hover{background:#F1F5FB;color:var(--ink-900)}
+#sec-links .l-tabs{display:inline-flex;background:#EBEFF7;border-radius:10px;padding:3px;gap:2px}
+#sec-links .l-tab{font:inherit;font-size:12.5px;font-weight:700;padding:0 12px;height:32px;border-radius:8px;background:transparent;border:0;color:var(--ink-500);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+#sec-links .l-tab:hover:not(.active){color:var(--ink-900)}
+#sec-links .l-tab.active{background:#fff;color:var(--ink-900);box-shadow:0 1px 3px rgba(11,20,55,.1)}
+#sec-links .l-tab-n{font-family:'Geist Mono',monospace;font-size:11px;font-weight:600;opacity:.65}
+#sec-links .l-sort{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-500);font-weight:600}
+#sec-links .l-sort select{height:38px;border:1px solid var(--line);border-radius:10px;padding:0 30px 0 12px;font:inherit;font-size:13px;font-weight:700;color:var(--ink-900);background:#fff url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%238691AC' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 11px center;appearance:none;-webkit-appearance:none;cursor:pointer;outline:none}
+#sec-links .l-sort select:focus{border-color:#93B0F5}
 
-#sec-links .l-tabs{display:inline-flex;background:#F1F5FB;border-radius:8px;padding:3px;gap:2px}
-#sec-links .l-tab{font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;padding:6px 11px;border-radius:6px;background:transparent;border:0;color:var(--ink-500);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
-#sec-links .l-tab:hover:not(.active){color:var(--ink-700)}
-#sec-links .l-tab.active{background:#fff;color:var(--ink-900);box-shadow:0 1px 2px rgba(0,0,0,.06)}
-#sec-links .l-tab-n{font-family:'Geist Mono',monospace;font-size:11px;opacity:.7;font-weight:500}
-
-/* ─── Cards grid ─── */
-#sec-links .l-grid{display:grid;grid-template-columns:repeat(3,minmax(0, 1fr));gap:12px}
-@media (max-width:1280px){#sec-links .l-grid{grid-template-columns:repeat(2,minmax(0, 1fr))}}
-@media (max-width:780px){#sec-links .l-grid{grid-template-columns:1fr}}
-
-#sec-links .lnk-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;transition:border-color .15s}
-#sec-links .lnk-card:hover{border-color:var(--line-strong)}
-#sec-links .lnk-card.is-closed{opacity:.85}
-
-/* Card head: pills + title */
-#sec-links .l-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-#sec-links .l-head-l{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+/* Картки */
+#sec-links .l-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+#sec-links .lnk-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;transition:border-color .15s,box-shadow .15s;min-width:0}
+#sec-links .lnk-card:hover{border-color:var(--line-strong);box-shadow:0 6px 20px -12px rgba(11,20,55,.25)}
+#sec-links .lnk-card.is-closed,#sec-links .lnk-card.is-expired{background:#FBFCFE}
+#sec-links .lnk-card.is-closed .l-title,#sec-links .lnk-card.is-expired .l-title{color:var(--ink-500)}
+#sec-links .l-head{display:flex;flex-direction:column;gap:7px;min-width:0}
 #sec-links .l-pills{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
-#sec-links .l-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;font-size:11px;font-weight:600;border-radius:999px;white-space:nowrap;font-family:'Manrope',sans-serif}
-#sec-links .l-pill::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.9}
+#sec-links .l-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;font-size:11px;font-weight:700;border-radius:999px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 #sec-links .l-pill.on{background:#DCFCE7;color:#15803D}
+#sec-links .l-pill.on::before,#sec-links .l-pill.live::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+#sec-links .l-pill.sched{background:#EDE9FE;color:#6D28D9}
+#sec-links .l-pill.warn{background:#FEF3C7;color:#92400E}
 #sec-links .l-pill.closed{background:#FEE2E2;color:#B91C1C}
-#sec-links .l-pill.expired{background:#FEE2E2;color:#B91C1C}
-#sec-links .l-pill.off{background:#E5EAF5;color:var(--ink-500)}
-#sec-links .l-pill.info{background:#DBEAFE;color:#1E40AF}
-#sec-links .l-title{font-size:14px;font-weight:700;color:var(--ink-900);letter-spacing:-.005em;line-height:1.3;font-family:'Manrope',sans-serif;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-
-/* URL bar */
-#sec-links .l-url{display:flex;align-items:center;gap:7px;padding:7px 10px;background:#F5F8FD;border:1px dashed var(--line-strong);border-radius:8px;font-family:'Geist Mono',monospace;font-size:11.5px;color:var(--ink-900);min-width:0}
-#sec-links .l-url-ico{color:var(--ink-400);flex:0 0 auto;display:flex}
-#sec-links .l-url-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#sec-links .l-url-text .l-dom{color:var(--ink-400)}
-#sec-links .l-url-text .l-slug{color:var(--nav-600);font-weight:700}
-#sec-links .l-url-actions{display:flex;gap:4px;flex:0 0 auto;margin-left:auto}
-#sec-links .l-url-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;font-size:11px;font-weight:600;font-family:'Manrope',sans-serif;background:#fff;border:1px solid var(--line);border-radius:6px;cursor:pointer;color:var(--ink-700);transition:all .12s;height:24px}
-#sec-links .l-url-btn:hover{border-color:var(--line-strong);color:var(--ink-900)}
-#sec-links .l-url-btn svg{width:10px;height:10px;flex:0 0 auto}
-#sec-links .l-url-btn.icon-only{padding:4px 6px}
-
-/* Stats row */
-#sec-links .l-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:9px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-#sec-links .l-stat-v{font-family:'Geist Mono',monospace;font-weight:700;font-size:15px;color:var(--ink-900);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-#sec-links .l-stat-v.warn{color:#B45309}
-#sec-links .l-stat-v.info{color:#1E40AF}
-#sec-links .l-stat-v.ok{color:#15803D}
-#sec-links .l-stat-v.bad{color:#B91C1C}
-#sec-links .l-stat-v.small{font-size:11.5px}
-#sec-links .l-stat-l{font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-400);font-weight:600;margin-top:1px;font-family:'Manrope',sans-serif}
-
-/* Progress bar */
-#sec-links .l-bar{height:4px;border-radius:999px;background:#EEF2FB;overflow:hidden}
-#sec-links .l-bar i{display:block;height:100%;border-radius:999px;transition:width .4s}
-
-/* Card foot */
-#sec-links .l-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-#sec-links .l-foot-meta{font-size:10.5px;color:var(--ink-400);font-family:'Geist Mono',monospace}
+#sec-links .l-pill.off{background:#E8ECF4;color:var(--ink-500)}
+#sec-links .l-pill.grp{background:#E7EEFC;color:var(--nav-600)}
+#sec-links .l-pill.live{background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0}
+#sec-links .l-pill.live::before{animation:lkBlink 1.2s ease-in-out infinite}
+@keyframes lkBlink{50%{opacity:.25}}
+#sec-links .l-title{font-size:15.5px;font-weight:800;color:var(--ink-900);letter-spacing:-.01em;line-height:1.3;text-decoration:none;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#sec-links a.l-title:hover{color:var(--pri)}
+#sec-links .l-sub{font-size:12px;color:var(--ink-400);font-weight:600}
+#sec-links .l-url{display:flex;align-items:center;gap:6px;padding:5px 5px 5px 10px;background:#F5F8FD;border:1px dashed var(--line-strong);border-radius:10px;min-width:0}
+#sec-links .l-url-text{flex:1;min-width:0;display:flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace;font-size:11.5px;color:var(--ink-400)}
+#sec-links .l-url-text span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sec-links .l-url-text b{color:var(--nav-600)}
+#sec-links .l-url-text svg{flex:0 0 auto}
+#sec-links .l-url-btn{display:inline-flex;align-items:center;gap:5px;padding:0 10px;height:28px;font:inherit;font-size:12px;font-weight:700;background:#fff;border:1px solid var(--line);border-radius:8px;cursor:pointer;color:var(--ink-700);transition:all .12s;white-space:nowrap;text-decoration:none;flex:0 0 auto}
+#sec-links .l-url-btn:hover{border-color:#93B0F5;color:var(--pri)}
+#sec-links .l-url-btn.done{background:#DCFCE7;border-color:#BBF7D0;color:#15803D}
+#sec-links .l-url-btn.icon-only{padding:0 8px}
+#sec-links .l-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+#sec-links .l-stats>div{padding:9px 10px;border-radius:11px;background:#F7F9FD}
+#sec-links .l-stat-v{font-family:'Geist Mono',monospace;font-weight:600;font-size:17px;color:var(--ink-900);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+#sec-links .l-stat-v small{font-size:12px;color:var(--ink-400)}
+#sec-links .l-stat-v.ok{color:#15803D}#sec-links .l-stat-v.info{color:#1E40AF}#sec-links .l-stat-v.warn{color:#B45309}#sec-links .l-stat-v.bad{color:#B91C1C}
+#sec-links .l-stat-l{font-size:10.5px;color:var(--ink-400);font-weight:700;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sec-links .l-bar{height:5px;border-radius:999px;background:#EEF2FB;overflow:hidden;margin-top:-4px}
+#sec-links .l-bar i{display:block;height:100%;border-radius:999px;background:#3B82F6;transition:width .4s}
+#sec-links .l-bar i.hi{background:#F59E0B}#sec-links .l-bar i.full{background:#DC2626}
+#sec-links .l-when{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--ink-700)}
+#sec-links .l-when svg{flex:0 0 auto;color:var(--ink-400)}
+#sec-links .l-when.muted{color:var(--ink-400)}
+#sec-links .l-when.warn{color:#B45309}#sec-links .l-when.warn svg{color:#F59E0B}
+#sec-links .l-when.bad{color:#B91C1C}#sec-links .l-when.bad svg{color:#DC2626}
+#sec-links .l-when.sched{color:#6D28D9}#sec-links .l-when.sched svg{color:#8B5CF6}
+#sec-links .l-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-top:12px;border-top:1px solid #EEF1F7;margin-top:auto}
+#sec-links .l-res{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;font:inherit;font-size:13px;font-weight:700;color:var(--pri);cursor:pointer;padding:6px 8px;margin-left:-8px;border-radius:8px}
+#sec-links .l-res:hover{background:#EEF3FF}
 #sec-links .l-foot-actions{display:flex;gap:4px}
-#sec-links .l-icon-btn{width:26px;height:26px;display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid var(--line);border-radius:7px;color:var(--ink-500);cursor:pointer;transition:all .12s;padding:0}
+#sec-links .l-icon-btn{width:32px;height:32px;display:grid;place-items:center;background:#fff;border:1px solid var(--line);border-radius:9px;color:var(--ink-500);cursor:pointer;transition:all .12s;padding:0}
 #sec-links .l-icon-btn:hover{background:#F1F5FB;color:var(--ink-900);border-color:var(--line-strong)}
 #sec-links .l-icon-btn.danger:hover{background:#FEE2E2;color:#B91C1C;border-color:#FECACA}
-#sec-links .l-icon-btn svg{width:12px;height:12px}
+#sec-links .l-count{font-size:12px;color:var(--ink-400);font-weight:600;text-align:center;padding:4px 0 8px}
+#sec-links .l-count:empty{display:none}
 
-/* Empty state */
-#sec-links .l-empty{padding:56px 24px;text-align:center;color:var(--ink-500);grid-column:1 / -1;background:#fff;border:1px solid var(--line);border-radius:16px}
-#sec-links .l-empty-ico{width:56px;height:56px;margin:0 auto 14px;border-radius:14px;background:#EEF2FB;display:grid;place-items:center;color:var(--nav-600)}
-#sec-links .l-empty-title{font-size:15px;font-weight:700;color:var(--ink-900);margin-bottom:4px;font-family:'Manrope',sans-serif}
-#sec-links .l-empty-hint{font-size:13px;margin-bottom:18px}
+/* Порожній стан */
+#sec-links .l-empty{padding:56px 24px;text-align:center;color:var(--ink-500);grid-column:1/-1;background:#fff;border:1px dashed var(--line-strong);border-radius:16px}
+#sec-links .l-empty-ico{width:56px;height:56px;margin:0 auto 14px;border-radius:16px;background:#EEF2FB;display:grid;place-items:center;color:var(--nav-600)}
+#sec-links .l-empty-title{font-size:16px;font-weight:800;color:var(--ink-900);margin-bottom:4px}
+#sec-links .l-empty-hint{font-size:13px;margin:0 auto 18px;max-width:380px;line-height:1.5}
+#sec-links .l-empty-hint:empty{display:none}
 
-/* Toast (для feedback "Скопійовано") */
-.l-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);background:#0B1437;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;font-family:"Manrope",sans-serif;box-shadow:0 12px 32px rgba(11,20,55,.35);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;display:flex;align-items:center;gap:8px;white-space:nowrap}
-.l-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.l-toast svg{color:#86EFAC;width:15px;height:15px;flex-shrink:0}
+@media (max-width:1180px){#sec-links .lk-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){#sec-links .l-sort{margin-left:0}#sec-links .l-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -151,110 +150,92 @@
 
   <div class="sec on" id="sec-links">
 
-    <!-- Заголовок -->
     <div class="l-page-title">
       <div>
-        <h1>Посилання для проходження</h1>
-        <p>Видавайте унікальні URL студентам та групам, контролюйте термін дії та кількість спроб</p>
+        <h1>Посилання</h1>
+        <p>Оберіть тест і групу — студенти проходять його за посиланням або QR-кодом. Тут видно, хто вже пройшов, і коли посилання закриється.</p>
       </div>
-      <div class="l-actions">
-        <span class="l-page-chip"><span id="lnk-active-count">0</span> активних</span>
-        <button class="l-btn primary" onclick="G.newLink()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Новий іспит
-        </button>
-      </div>
+      <button class="l-btn primary" data-lact="new">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Нове посилання
+      </button>
     </div>
 
-    <!-- Фільтри -->
+    <div class="lk-kpis">
+      <div class="lk-kpi" style="--kb:#E7EEFC;--kc:#1E3A8A"><i><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a4 4 0 005.66 0l3-3a4 4 0 00-5.66-5.66l-1.5 1.5"/><path d="M14 11a4 4 0 00-5.66 0l-3 3a4 4 0 005.66 5.66l1.5-1.5"/></svg></i><div><b id="lnk-k-open">0</b><span>Відкритих посилань</span></div></div>
+      <div class="lk-kpi" style="--kb:#DCFCE7;--kc:#15803D"><i><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></i><div><b id="lnk-k-live">0</b><span>Проходять зараз</span></div></div>
+      <div class="lk-kpi" style="--kb:#EDE9FE;--kc:#6D28D9"><i><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></i><div><b id="lnk-k-today">0</b><span>Пройшли сьогодні</span></div></div>
+      <div class="lk-kpi" style="--kb:#FEF3C7;--kc:#B45309"><i><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></i><div><b id="lnk-k-soon">0</b><span>Закриються за добу</span></div></div>
+    </div>
+
     <div class="l-filters">
       <div class="l-search">
-        <span class="l-search-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
-        <input type="text" id="lnk-srch" placeholder="Пошук по групі або тесту..." oninput="renderLinks()" autocomplete="off">
+        <span class="l-search-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></span>
+        <input type="search" id="lnk-srch" placeholder="Пошук: тест або група" autocomplete="off" aria-label="Пошук посилань">
+        <button class="l-search-x" id="lnk-srch-x" type="button" aria-label="Очистити" hidden>×</button>
       </div>
-      <div class="l-tabs" id="lnk-tabs">
-        <button class="l-tab active" data-status="active" onclick="setLinkStatusTab(this)">Активні <span class="l-tab-n" id="lnk-tab-active">0</span></button>
-        <button class="l-tab" data-status="closed" onclick="setLinkStatusTab(this)">Закриті <span class="l-tab-n" id="lnk-tab-closed">0</span></button>
-        <button class="l-tab" data-status="" onclick="setLinkStatusTab(this)">Всі <span class="l-tab-n" id="lnk-tab-all">0</span></button>
+      <div class="l-tabs" id="lnk-tabs" role="tablist">
+        <button class="l-tab" data-status="active" role="tab">Відкриті <span class="l-tab-n" id="lnk-tab-active">0</span></button>
+        <button class="l-tab" data-status="scheduled" role="tab">Заплановані <span class="l-tab-n" id="lnk-tab-sched">0</span></button>
+        <button class="l-tab" data-status="closed" role="tab">Закриті <span class="l-tab-n" id="lnk-tab-closed">0</span></button>
+        <button class="l-tab" data-status="" role="tab">Усі <span class="l-tab-n" id="lnk-tab-all">0</span></button>
       </div>
+      <label class="l-sort">Сортування
+        <select id="lnk-sort"></select>
+      </label>
     </div>
 
-    <!-- Список карток (renderLinks пише сюди cards) -->
     <div class="l-grid" id="lnk-tbl"></div>
-
+    <div class="l-count" id="lnk-count"></div>
   </div>
 
 </main>
 
 <div id="modals-root"></div>
-<div class="l-toast" id="lnk-toast"></div>
+
 
 <script type="module">
-// Стан фільтра статусу
-window._lnkStatus = "active";
+// Вкладка й сортування запам'ятовуються між відвідуваннями
+const _ls = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
+window._lnkStatus = _ls.get("qf_lnk_tab") ?? "active";
+window._lnkSort = _ls.get("qf_lnk_sort") || "new";
+const syncTabs = () => document.querySelectorAll("#lnk-tabs .l-tab").forEach(t => {
+  const on = t.dataset.status === window._lnkStatus; t.classList.toggle("active", on); t.setAttribute("aria-selected", on);
+});
+syncTabs();
+document.getElementById("lnk-tabs").addEventListener("click", e => {
+  const b = e.target.closest(".l-tab"); if (!b) return;
+  window._lnkStatus = b.dataset.status; _ls.set("qf_lnk_tab", b.dataset.status);
+  syncTabs(); window.renderLinks?.();
+});
+const srch = document.getElementById("lnk-srch"), srchX = document.getElementById("lnk-srch-x");
+srch.addEventListener("input", () => { srchX.hidden = !srch.value; window.renderLinks?.(); });
+srchX.addEventListener("click", () => { srch.value = ""; srchX.hidden = true; srch.focus(); window.renderLinks?.(); });
 
-window.setLinkStatusTab = function(btn){
-  window._lnkStatus = btn.dataset.status;
-  document.querySelectorAll("#lnk-tabs .l-tab").forEach(t => t.classList.remove("active"));
-  btn.classList.add("active");
-  if (window.renderLinks) window.renderLinks();
-};
-
-// Локальний toast (на копі URL/QR)
-window.lnkToast = function(msg){
-  const t = document.getElementById("lnk-toast");
-  if (!t) return;
-  t.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>${msg}`;
-  t.classList.add("show");
-  clearTimeout(window._lnkToastTimer);
-  window._lnkToastTimer = setTimeout(() => t.classList.remove("show"), 1800);
-};
-
-const { initApp } = await import("./shared/app.js?v=18");
-const featuresP = import("./shared/features.js?v=19");
+const { initApp } = await import("./shared/app.js?v=19");
+const featuresP = import("./shared/features.js?v=20");
 
 window.showSec = function(name){
-  if (name === "links") {
-    document.querySelectorAll(".sec").forEach(s=>s.classList.remove("on"));
-    document.getElementById("sec-links")?.classList.add("on");
-    return;
-  }
-  const sec = document.getElementById("sec-"+name);
-  if (sec) {
-    document.querySelectorAll(".sec").forEach(s=>s.classList.remove("on"));
-    sec.classList.add("on");
-    return;
-  }
-  const pageMap = {
-      dashboard:"./", tests:"tests", attempts:"attempts",
-      links:"links", analytics:"analytics", gradebook:"gradebook",
-      students:"students", notifications:"notifications",
-      suspicious:"suspicious", online:"online", news:"news"
-    };
-  if (pageMap[name]) location.href = pageMap[name];
+  const pageMap = { dashboard: "./", tests: "tests", attempts: "attempts", links: "links", analytics: "analytics", gradebook: "gradebook",
+    students: "students", notifications: "notifications", suspicious: "suspicious", online: "online", news: "news" };
+  if (name !== "links" && pageMap[name]) location.href = pageMap[name];
 };
 
 await initApp("links");
 await featuresP;
 await window.initFeatures();
 
+const sortSel = document.getElementById("lnk-sort");
+sortSel.innerHTML = Object.entries(window.LNK_SORTS || {}).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join("");
+sortSel.value = window._lnkSort;
+sortSel.addEventListener("change", () => { window._lnkSort = sortSel.value; _ls.set("qf_lnk_sort", sortSel.value); window.renderLinks?.(); });
+
 if (window.renderAll) window.renderAll();
+// Посилання на конкретний тест: links?new=<testId> відкриває створення одразу
+const _np = new URLSearchParams(location.search).get("new");
+if (_np && window.G?.qLink) window.G.qLink(_np);
 
-requestAnimationFrame(() => {
-  requestAnimationFrame(() => {
-    if (window.appReady) window.appReady();
-  });
-});
-
-// Esc — закриття модалок
-document.addEventListener("keydown", e => {
-  if (e.key === "Escape") {
-    document.querySelectorAll(".mo.on").forEach(m => {
-      m.classList.remove("on");
-      setTimeout(()=>{ if(!m.classList.contains("on")) m.style.display="none"; }, 200);
-    });
-  }
-});
+requestAnimationFrame(() => requestAnimationFrame(() => window.appReady?.()));
 </script>
 </body>
 </html>

@@ -405,7 +405,7 @@ function renderAll(){
 }
 // STATS
 function renderStats(){
-  const al = links.filter(l=>l.status==="active").length;
+  const al = links.filter(l=>_isOpenState(linkState(l))).length;
   const cp = attempts.filter(a=>a.status==="completed");
   const pending = attempts.filter(a=>a.status==="pending_review").length;
   const passRate = cp.length ? Math.round(cp.filter(a=>a.grade12>=4).length/cp.length*100) : 0;
@@ -418,7 +418,7 @@ function renderStats(){
 function updateBadges(){
   const nbt = $("nb-t"); if(nbt) nbt.textContent=tests.filter(t=>t.status!=="archived").length;
   const nba = $("nb-a"); if(nba) nba.textContent=attempts.length;
-  const nbl = $("nb-l"); if(nbl) nbl.textContent=links.filter(l=>l.status==="active").length;
+  const nbl = $("nb-l"); if(nbl) nbl.textContent=links.filter(l=>_isOpenState(linkState(l))).length;
   // Підозрілі
   const suspCount = attempts.filter(a=>(a.tabSwitches||0)*2+(a.copyAttempts||0)*3+(a.screenshots||0)*5>0&&(a.status==="completed"||a.status==="pending_review")).length;
   // Підозрілі — порівнюємо з збереженим в Firebase
@@ -789,23 +789,24 @@ function renderDashTests(){
  
  
 function renderDashLinks(){
-  const c=$("d-lnk"),al=links.filter(l=>l.status==="active").slice(0,4);
-  if(!c) return;
-  if(!al.length){c.innerHTML=`<div style="text-align:center;color:var(--muted);padding:18px;font-size:14px">Немає активних посилань</div>`;return;}
-  c.innerHTML=al.map(l=>{
-    const t=tests.find(x=>x.id===l.testId);
-    const pct=l.maxAttempts?Math.round(l.usedAttempts/l.maxAttempts*100):0;
-    const barColor=pct>=80?"#f43f5e":pct>=50?"#f59e0b":"#2d5be3";
-    return`<div style="padding:12px 16px;border-bottom:1px solid var(--border)">
+  const c = $("d-lnk"); if (!c) return;
+  const now = Date.now();
+  const al = links.filter(l => _isOpenState(linkState(l, now))).slice(0, 4);
+  if (!al.length){ c.innerHTML = `<div style="text-align:center;color:var(--muted);padding:18px;font-size:14px">Немає активних посилань</div>`; return; }
+  c.innerHTML = al.map(l => {
+    const t = tests.find(x => x.id === l.testId), max = _lnkMax(l), used = l.usedAttempts || 0;
+    const pct = max ? Math.min(100, Math.round(used / max * 100)) : 0;
+    const barColor = pct >= 100 ? "#f43f5e" : pct >= 80 ? "#f59e0b" : "#2d5be3";
+    const st = linkState(l, now);
+    const sub = [l.group, st === "scheduled" ? `відкриється ${_fmtDT(l.openAt)}` : l.closeAt ? `до ${_fmtDT(l.closeAt)}` : ""].filter(Boolean).join(" · ");
+    return `<a href="links" style="display:block;padding:12px 16px;border-bottom:1px solid var(--border);color:inherit;text-decoration:none">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px">${esc(t?.title||"—")}</span>
-        <span style="font-size:12px;color:var(--muted);flex-shrink:0;margin-left:8px">${l.usedAttempts}/${l.maxAttempts}</span>
+        <span style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px">${esc(t?.title || "—")}</span>
+        <span style="font-size:12px;color:var(--muted);flex-shrink:0;margin-left:8px">${used}${max ? `/${max}` : " · ∞"}</span>
       </div>
-      <div style="background:var(--border);border-radius:4px;height:5px;overflow:hidden">
-        <div style="background:${barColor};height:100%;border-radius:4px;width:${pct}%;transition:width .4s"></div>
-      </div>
-      ${l.group?`<div style="font-size:11px;color:var(--muted);margin-top:4px">${esc(l.group)}</div>`:""}
-    </div>`;
+      ${max ? `<div style="background:var(--border);border-radius:4px;height:5px;overflow:hidden"><div style="background:${barColor};height:100%;border-radius:4px;width:${pct}%;transition:width .4s"></div></div>` : ""}
+      ${sub ? `<div style="font-size:11px;color:var(--muted);margin-top:4px">${esc(sub)}</div>` : ""}
+    </a>`;
   }).join("");
 }
 
@@ -1355,10 +1356,25 @@ document.addEventListener("keydown", e => {
 })();
 
 // ATTEMPTS
+// Фільтри зі сторінки «Посилання» → «Результати»: attempts?test=…&group=…
+let _urlFiltersDone = false;
+function _applyUrlFilters(){
+  if (_urlFiltersDone || !$("ft") || !$("fgrp")) return;
+  const p = new URLSearchParams(location.search), tId = p.get("test"), grp = p.get("group");
+  if (!tId && !grp) { _urlFiltersDone = true; return; }
+  const t = tests.find(x => x.id === tId);
+  if (tId && !t) return;                       // дані ще не прийшли — спробуємо з наступним оновленням
+  _urlFiltersDone = true;
+  if (grp && ![...$("fgrp").options].some(o => o.value === grp)) $("fgrp").insertAdjacentHTML("beforeend", `<option value="${esc(grp)}">${esc(grp)}</option>`);
+  if (t) G.selectDrop("cd-ft", t.id, t.title);
+  if (grp) G.selectDrop("cd-fgrp", grp, grp);
+}
 fillSelects = function(){
   // Прихований select для сумісності з renderAttempts
-  const ft = $("ft");
+  // Зберігаємо вибране (перебудова select скидала фільтр при кожному оновленні посилань)
+  const ft = $("ft"), _ftPrev = ft?.value || "", _grpPrev = $("fgrp")?.value || "";
   if (ft) ft.innerHTML=`<option value="">Всі тести</option>`+tests.filter(t=>t.status!=="archived").map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
+  if (ft) ft.value = _ftPrev;
   // Кастомний дропдаун тестів
   const ftMenu=document.getElementById("cd-ft-menu");
   if(ftMenu){
@@ -1368,12 +1384,11 @@ fillSelects = function(){
         `<div class="cd-item${curFt===t.id?" cd-active":""}" onclick="G.selectDrop('cd-ft','${t.id}',${jsq(t.title)})">${esc(t.title)}</div>`
       ).join("");
   }
-  const nlT = $("nl-t");
-  if (nlT) nlT.innerHTML=tests.map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
   // Групи з посилань (без прихованих через архівацію студентської групи)
   const groups=[...new Set(links.filter(l=>!l.groupHidden).map(l=>l.group).filter(Boolean))].sort();
   const fgrp = $("fgrp");
   if (fgrp) fgrp.innerHTML=`<option value="">Всі групи</option>`+groups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join("");
+  if (fgrp) fgrp.value = _grpPrev;
   // Кастомний дропдаун груп
   const grpMenu=document.getElementById("cd-fgrp-menu");
   if(grpMenu){
@@ -1605,170 +1620,280 @@ renderAttempts = function(resetPage = false){
 
   const pagEl = document.getElementById("att-pagination");
   if (pagEl) pagEl.innerHTML = pagHtml;
+  _applyUrlFilters();
 };
+
+// ═════════════════════════════════════════════════════════════════════
+// ПОСИЛАННЯ — сторінка «Посилання» (links.html)
+//
+// Посилання = тест + група + ліміт студентів + розклад (відкриття/закриття).
+// Фактичний стан рахується тут (linkState), а не лише з поля status:
+// термін міг минути, ліміт — вичерпатись, тест — стати чернеткою.
+// Усі дії на картках — через data-lact і один делегований обробник.
+// ═════════════════════════════════════════════════════════════════════
+const linkUrl = id => `${location.origin}${location.pathname.replace(/[^/]*$/, "")}test?link=${encodeURIComponent(id)}&t=${encodeURIComponent(_uid)}`;
+const _lnkMax = l => Number(l.maxAttempts) > 0 ? Number(l.maxAttempts) : 0;   // 0 — без ліміту
+const _fmtDT = t => new Date(t).toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+function _inWords(ms){
+  const m = Math.round(Math.abs(ms) / 60000);
+  if (m < 1) return "менше хвилини";
+  if (m < 60) return `${m} хв`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h} год`;
+  const d = Math.round(h / 24);
+  return `${d} ${_plural(d, "день", "дні", "днів")}`;
+}
+// Проблема з тестом, через яку студенти не зможуть пройти посилання
+function linkTestIssue(t){
+  if (!t) return { kind: "deleted", text: "Тест видалено — посилання не працює" };
+  if (t.status === "archived") return { kind: "archived", text: "Тест в архіві — студенти побачать помилку" };
+  if (t.status === "draft") return { kind: "draft", text: "Тест — чернетка, студенти не зможуть його відкрити" };
+  if (t.status === "closed") return { kind: "closed", text: "Тест закрито — студенти не зможуть його відкрити" };
+  if (!(t.questions || []).length) return { kind: "empty", text: "У тесті немає питань" };
+  return null;
+}
+// Стан посилання: active | scheduled | full | expired | closed
+function linkState(l, now = Date.now()){
+  if (l.status !== "active") return l.closedReason === "expired" ? "expired" : "closed";
+  if (l.closeAt && now > l.closeAt) return "expired";
+  const max = _lnkMax(l);
+  if (max && (l.usedAttempts || 0) >= max) return "full";
+  if (l.openAt && now < l.openAt) return "scheduled";
+  return "active";
+}
+const LINK_STATE = {
+  active:    { label: "Активне",        cls: "on" },
+  scheduled: { label: "Заплановане",    cls: "sched" },
+  full:      { label: "Ліміт вичерпано", cls: "warn" },
+  expired:   { label: "Термін минув",   cls: "closed" },
+  closed:    { label: "Закрите",        cls: "off" },
+};
+const _isOpenState = s => s === "active" || s === "scheduled" || s === "full";
+window.linkState = linkState;
+
+// Статистика спроб по кожному посиланню за один прохід
+function _linkStats(){
+  const m = new Map(), dayStart = new Date().setHours(0, 0, 0, 0);
+  for (const a of attempts){
+    if (!a.linkId) continue;
+    let s = m.get(a.linkId);
+    if (!s) m.set(a.linkId, s = { done: 0, now: 0, today: 0, sum: 0, graded: 0, last: 0 });
+    if (a.status === "in_progress") s.now++;
+    else if (a.status === "completed" || a.status === "pending_review"){
+      s.done++;
+      if ((a.createdAt || 0) >= dayStart) s.today++;
+      if (a.grade12 != null){ s.sum += Number(a.grade12) || 0; s.graded++; }
+    }
+    s.last = Math.max(s.last, a.createdAt || 0);
+  }
+  return m;
+}
+
+// Прострочені посилання позначаємо закритими в базі одним записом (раз на сесію для кожного)
+const _autoClosed = new Set();
+function _syncExpiredLinks(){
+  const now = Date.now(), upd = {};
+  for (const l of links){
+    if (l.status === "active" && l.closeAt && now > l.closeAt && !_autoClosed.has(l.id)){
+      _autoClosed.add(l.id);
+      upd[`${l.id}/status`] = "closed"; upd[`${l.id}/closedReason`] = "expired";
+    }
+  }
+  if (Object.keys(upd).length) dbUpd("links", upd).catch(() => {});
+}
+
+
+// datetime-local ↔ timestamp (локальний час)
+const _toLocalDT = ts => { const d = new Date(ts), p = n => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; };
+const _fromLocalDT = v => { if (!v) return null; const t = new Date(v).getTime(); return isNaN(t) ? null : t; };
+// QR через qrcodejs (підключений на сторінках панелі); повертає true, якщо намалювали
+function _drawQR(box, text, size){
+  if (!box) return false;
+  box.innerHTML = "";
+  if (!window.QRCode){ box.innerHTML = `<div class="qr-na">QR недоступний офлайн</div>`; return false; }
+  // Бібліотека малює canvas і показує його копію як <img>; canvas лишається для «Зберегти PNG»
+  new QRCode(box, { text, width: size, height: size, colorDark: "#0B1437", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+  return !!box.querySelector("canvas");
+}
+async function _copyText(text){
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch {
+    try {
+      const ta = Object.assign(document.createElement("textarea"), { value: text });
+      ta.style.cssText = "position:fixed;opacity:0"; document.body.appendChild(ta); ta.select();
+      const ok = document.execCommand("copy"); ta.remove(); return ok;
+    } catch { return false; }
+  }
+}
+
+const LNK_SORTS = {
+  new:   { label: "Спочатку нові",        fn: (a, b) => (b.createdAt || 0) - (a.createdAt || 0) },
+  soon:  { label: "Скоро закриються",     fn: (a, b) => (a.closeAt || Infinity) - (b.closeAt || Infinity) || (b.createdAt || 0) - (a.createdAt || 0) },
+  busy:  { label: "Найбільше проходжень", fn: (a, b, st) => (st.get(b.id)?.done || 0) - (st.get(a.id)?.done || 0) },
+  title: { label: "За назвою тесту",      fn: (a, b) => (tests.find(t => t.id === a.testId)?.title || "").localeCompare(tests.find(t => t.id === b.testId)?.title || "", "uk") },
+};
+window.LNK_SORTS = LNK_SORTS;
 
 renderLinks = function(){
   const tb = $("lnk-tbl");
   if (!tb) return;
-  const base = location.origin + location.pathname.replace(/[^/]*$/, "");
- 
-  // Автоматично закриваємо прострочені посилання
-  const now = Date.now();
-  links.filter(l => l.closeAt && now > l.closeAt && l.status === "active").forEach(async l => {
-    try { await dbUpd(`links/${l.id}`, { status:"closed" }); l.status = "closed"; } catch {}
-  });
- 
-  // ── Лічильник активних на сторінці ──
-  const activeAll = links.filter(l => l.status === "active").length;
-  const closedAll = links.filter(l => l.status !== "active").length;
-  const cntEl = $("lnk-active-count");
-  if (cntEl) cntEl.textContent = activeAll;
-  // Лічильники у tabs
-  const tabAll    = $("lnk-tab-all");    if (tabAll)    tabAll.textContent    = links.length;
-  const tabActive = $("lnk-tab-active"); if (tabActive) tabActive.textContent = activeAll;
-  const tabClosed = $("lnk-tab-closed"); if (tabClosed) tabClosed.textContent = closedAll;
- 
-  // ── Фільтри ──
-  const q = ($("lnk-srch")?.value || "").toLowerCase();
-  const sF = window._lnkStatus || "";
-  let lst = links;
-  if (sF){
-    if (sF === "active") lst = lst.filter(l => l.status === "active");
-    else if (sF === "closed") lst = lst.filter(l => l.status !== "active");
+  _bindLinksPage();
+  _syncExpiredLinks();
+  const now = Date.now(), stats = _linkStats();
+  const withState = links.map(l => ({ l, st: linkState(l, now) }));
+
+  // ── KPI і лічильники вкладок ──
+  const cnt = { open: 0, scheduled: 0, closed: 0 };
+  let liveNow = 0, doneToday = 0, closingSoon = 0;
+  for (const { l, st } of withState){
+    if (_isOpenState(st)) cnt.open++; else cnt.closed++;
+    if (st === "scheduled") cnt.scheduled++;
+    const s = stats.get(l.id);
+    if (s){ doneToday += s.today; if (_isOpenState(st)) liveNow += s.now; }
+    if (st === "active" && l.closeAt && l.closeAt - now < 864e5) closingSoon++;
   }
+  const setT = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+  setT("lnk-k-open", cnt.open); setT("lnk-k-live", liveNow); setT("lnk-k-today", doneToday); setT("lnk-k-soon", closingSoon);
+  setT("lnk-tab-active", cnt.open); setT("lnk-tab-sched", cnt.scheduled); setT("lnk-tab-closed", cnt.closed); setT("lnk-tab-all", links.length);
+  const liveKpi = $("lnk-k-live")?.closest(".lk-kpi"); if (liveKpi) liveKpi.classList.toggle("is-live", liveNow > 0);
+
+  // ── Фільтри й сортування ──
+  const q = ($("lnk-srch")?.value || "").trim().toLowerCase();
+  const tab = window._lnkStatus ?? "active";
+  let lst = withState.filter(({ st }) =>
+    tab === "active" ? _isOpenState(st) : tab === "scheduled" ? st === "scheduled" : tab === "closed" ? !_isOpenState(st) : true);
   if (q){
-    lst = lst.filter(l => {
-      const t = tests.find(x => x.id === l.testId);
-      return (l.group || "").toLowerCase().includes(q) || (t?.title || "").toLowerCase().includes(q);
+    const words = q.split(/\s+/).filter(Boolean);
+    lst = lst.filter(({ l }) => {
+      const hay = `${l.group || ""} ${tests.find(t => t.id === l.testId)?.title || ""}`.toLowerCase();
+      return words.every(w => hay.includes(w));
     });
   }
- 
-  // ── Empty state ──
+  const sort = LNK_SORTS[window._lnkSort] || LNK_SORTS.new;
+  lst.sort((a, b) => sort.fn(a.l, b.l, stats));
+
+  const foot = $("lnk-count");
+  if (foot) foot.textContent = lst.length ? `${lst.length} ${_plural(lst.length, "посилання", "посилання", "посилань")}` : "";
+
   if (!lst.length){
-    const isFiltered = !!(q || sF);
+    const filtered = !!q || (tab && links.length);
     tb.innerHTML = `<div class="l-empty">
-      <div class="l-empty-ico">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1.5 1.5"/><path d="M14 11a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1.5-1.5"/></svg>
-      </div>
-      <div class="l-empty-title">${isFiltered ? "Нічого не знайдено" : "Ще немає посилань"}</div>
-      <div class="l-empty-hint">${isFiltered ? "Спробуйте змінити запит або скиньте фільтри" : "Створіть перше посилання, щоб поділитися тестом зі студентами"}</div>
-      ${!isFiltered ? `<button class="l-btn primary" onclick="G.newLink()" style="margin:0 auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Новий іспит</button>` : ""}
+      <div class="l-empty-ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1.5 1.5"/><path d="M14 11a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1.5-1.5"/></svg></div>
+      <div class="l-empty-title">${q ? "Нічого не знайдено" : !links.length ? "Ще немає посилань" : tab === "scheduled" ? "Немає запланованих посилань" : tab === "closed" ? "Немає закритих посилань" : "Немає активних посилань"}</div>
+      <div class="l-empty-hint">${q ? "Спробуйте інший запит" : !links.length ? "Оберіть тест, вкажіть групу — і надішліть студентам посилання або QR-код" : filtered ? "Змініть вкладку або створіть нове посилання" : ""}</div>
+      ${!q ? `<button class="l-btn primary" data-lact="new" style="margin:0 auto">${_lic("plus")}Нове посилання</button>` : ""}
     </div>`;
     return;
   }
- 
-  // ── Картки ──
-  tb.innerHTML = lst.map(l => {
-    const t = tests.find(x => x.id === l.testId);
-    const url = `${base}test?link=${l.id}&t=${_uid}`;
-    const used = l.usedAttempts || 0;
-    const max = l.maxAttempts || 0;
-    const pct = max > 0 ? Math.min(100, Math.round(used / max * 100)) : 0;
- 
-    // Статус
-    const expired = l.closeAt && Date.now() > l.closeAt;
-    const isActive = l.status === "active" && !expired;
-    let statusPill;
-    if (isActive)       statusPill = `<span class="l-pill on">Активне</span>`;
-    else if (expired)   statusPill = `<span class="l-pill expired">Протерміновано</span>`;
-    else                statusPill = `<span class="l-pill closed">Закрите</span>`;
- 
-    // Дата закриття
-    const closeStr = l.closeAt
-      ? new Date(l.closeAt).toLocaleString("uk-UA", { day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" })
-      : null;
- 
-    // Дата створення
-    const createdStr = l.createdAt
-      ? new Date(l.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"short" })
-      : "—";
- 
-    // Колір для % і прогрес-бару
-    const pctColor = pct >= 100 ? "#16A34A" : pct >= 80 ? "#B45309" : pct >= 40 ? "#1E40AF" : "#5B6A8F";
-    const barColor = pct >= 100 ? "#16A34A" : pct >= 80 ? "#F59E0B" : "#3B82F6";
-    const pctClass = pct >= 100 ? "ok" : pct >= 80 ? "warn" : pct >= 40 ? "info" : "";
- 
-    // Slug для URL — використовуємо короткий хеш id
-    const slug = String(l.id).slice(0, 8);
- 
-    // Path of URL без origin для display
-    const urlDisplay = url.replace(location.origin, "").replace(/^\//, "");
-    const dom = location.host + "/";
- 
-    return `<div class="lnk-card ${isActive ? "" : "is-closed"}">
- 
-      <!-- Шапка: pills + title -->
-      <div class="l-head">
-        <div class="l-head-l">
-          <div class="l-pills">
-            ${statusPill}
-            ${l.group ? `<span class="l-pill info">${esc(l.group)}</span>` : ""}
-            <span class="l-pill off">ID: ${slug}</span>
-          </div>
-          <div class="l-title">${esc(t?.title || "—")}</div>
-        </div>
+  tb.innerHTML = lst.map(({ l, st }) => _linkCard(l, st, stats.get(l.id), now)).join("");
+};
+
+const _LIC = {
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>',
+  open: '<path d="M14 4h6v6M20 4l-9 9M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4"/>',
+  qr: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/>',
+  edit: '<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4z"/>',
+  dup: '<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M4 16V5a1 1 0 011-1h11"/><path d="M14.5 11.5v6M11.5 14.5h6"/>',
+  lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>',
+  unlock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 017.5-2"/>',
+  trash: '<path d="M3 6h18M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  cal: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  alert: '<path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0zM12 9v4M12 17h.01"/>',
+  arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  users: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>',
+  file: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/>',
+  link: '<path d="M10 13a4 4 0 005.66 0l3-3a4 4 0 00-5.66-5.66l-1.5 1.5"/><path d="M14 11a4 4 0 00-5.66 0l-3 3a4 4 0 005.66 5.66l1.5-1.5"/>',
+};
+const _lic = (n, s = 14) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${_LIC[n]}</svg>`;
+
+function _linkCard(l, st, s = {}, now){
+  const t = tests.find(x => x.id === l.testId);
+  const S = LINK_STATE[st];
+  const used = l.usedAttempts || 0, max = _lnkMax(l);
+  const pct = max ? Math.min(100, Math.round(used / max * 100)) : 0;
+  const issue = linkTestIssue(t);
+  const open = _isOpenState(st);
+  const qn = (t?.questions || []).length;
+  const avg = s.graded ? Math.round(s.sum / s.graded * 10) / 10 : null;
+  const avgCls = avg == null ? "" : avg >= 10 ? "ok" : avg >= 7 ? "info" : avg >= 4 ? "warn" : "bad";
+
+  // Розклад: що станеться далі
+  let when;
+  if (st === "scheduled") when = { ic: "cal", cls: "sched", text: `Відкриється ${_fmtDT(l.openAt)} · через ${_inWords(l.openAt - now)}` };
+  else if (st === "expired") when = { ic: "clock", cls: "muted", text: `Закрилось ${_fmtDT(l.closeAt)}` };
+  else if (!open) when = { ic: "lock", cls: "muted", text: l.closeAt ? `Було до ${_fmtDT(l.closeAt)}` : "Закрито вручну" };
+  else if (l.closeAt){
+    const left = l.closeAt - now;
+    when = { ic: "clock", cls: left < 3600e3 ? "bad" : left < 864e5 ? "warn" : "", text: `Закриється через ${_inWords(left)} · ${_fmtDT(l.closeAt)}` };
+  } else when = { ic: "clock", cls: "muted", text: "Без терміну" };
+
+  const warnHtml = issue ? `<div class="lk-warn">${_lic("alert", 13)}<span>${issue.text}</span>${
+      issue.kind === "draft" || issue.kind === "closed" ? `<button data-lact="publish" data-id="${l.id}">Опублікувати тест</button>`
+      : issue.kind === "empty" ? `<a href="constructor?id=${encodeURIComponent(l.testId)}">Додати питання</a>` : ""}</div>`
+    : st === "full" ? `<div class="lk-warn">${_lic("users", 13)}<span>Усі ${max} місць зайнято — нові студенти не зайдуть</span><button data-lact="edit" data-id="${l.id}">Збільшити ліміт</button></div>`
+    : "";
+
+  return `<article class="lnk-card is-${st}${issue ? " has-issue" : ""}" data-id="${l.id}">
+    <div class="l-head">
+      <div class="l-pills">
+        <span class="l-pill ${S.cls}">${S.label}</span>
+        ${l.group ? `<span class="l-pill grp" title="Група">${_lic("users", 11)}${esc(l.group)}</span>` : ""}
+        ${s.now && open ? `<span class="l-pill live">${s.now} зараз проходить</span>` : ""}
       </div>
- 
-      <!-- URL -->
-      <div class="l-url">
-        <span class="l-url-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1.5 1.5"/><path d="M14 11a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1.5-1.5"/></svg></span>
-        <span class="l-url-text"><span class="l-dom">${esc(dom)}</span><span class="l-slug">${esc(urlDisplay)}</span></span>
-        <span class="l-url-actions">
-          <button class="l-url-btn" onclick="G.copyUrl('${url}');window.lnkToast&&window.lnkToast('Скопійовано')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-            Копіювати
-          </button>
-          <a class="l-url-btn icon-only" href="${url}" target="_blank" rel="noopener" title="Відкрити в новій вкладці">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M10 6H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
-          </a>
-        </span>
+      <a class="l-title" href="${t ? `constructor?id=${encodeURIComponent(l.testId)}` : "#"}" title="Відкрити тест у конструкторі">${esc(t?.title || "Тест видалено")}</a>
+      <div class="l-sub">${t ? `${qn} ${_plural(qn, "питання", "питання", "питань")}${t.timeLimit ? ` · ${Math.round(t.timeLimit / 60)} хв` : " · без ліміту часу"}` : "—"}${l.shuffleQuestions || l.shuffleAnswers ? ` · перемішування` : ""}</div>
+    </div>
+    ${warnHtml}
+    <div class="l-url">
+      <span class="l-url-text" title="${esc(linkUrl(l.id))}">${_lic("link", 12)}<span>${esc(location.host)}/test?link=<b>${esc(l.id.slice(-8))}</b></span></span>
+      <button class="l-url-btn" data-lact="copy" data-id="${l.id}" title="Копіювати посилання">${_lic("copy", 12)}Копіювати</button>
+      <a class="l-url-btn icon-only" href="${esc(linkUrl(l.id))}" target="_blank" rel="noopener" title="Відкрити як студент">${_lic("open", 12)}</a>
+    </div>
+    <div class="l-stats">
+      <div><div class="l-stat-v">${s.done || 0}</div><div class="l-stat-l">Пройшли</div></div>
+      <div><div class="l-stat-v ${avgCls}">${avg ?? "—"}</div><div class="l-stat-l">Сер. оцінка</div></div>
+      <div><div class="l-stat-v ${max && pct >= 100 ? "warn" : ""}">${used}${max ? `<small>/${max}</small>` : ""}</div><div class="l-stat-l">${max ? "Місць зайнято" : "Відкрили · без ліміту"}</div></div>
+    </div>
+    ${max ? `<div class="l-bar" title="${pct}%"><i style="width:${pct}%" class="${pct >= 100 ? "full" : pct >= 80 ? "hi" : ""}"></i></div>` : ""}
+    <div class="l-when ${when.cls}">${_lic(when.ic, 13)}<span>${when.text}</span></div>
+    <div class="l-foot">
+      <button class="l-res" data-lact="results" data-id="${l.id}">Результати${_lic("arrow", 13)}</button>
+      <div class="l-foot-actions">
+        <button class="l-icon-btn" data-lact="qr" data-id="${l.id}" title="QR-код">${_lic("qr")}</button>
+        <button class="l-icon-btn" data-lact="dup" data-id="${l.id}" title="Копія для іншої групи">${_lic("dup")}</button>
+        <button class="l-icon-btn" data-lact="edit" data-id="${l.id}" title="Редагувати">${_lic("edit")}</button>
+        <button class="l-icon-btn" data-lact="toggle" data-id="${l.id}" title="${open ? "Закрити доступ" : "Відкрити знову"}">${_lic(open ? "lock" : "unlock")}</button>
+        <button class="l-icon-btn danger" data-lact="del" data-id="${l.id}" title="Видалити">${_lic("trash")}</button>
       </div>
- 
-      <!-- Stats -->
-      <div class="l-stats">
-        <div>
-          <div class="l-stat-v">${used}${max > 0 ? `/${max}` : ""}</div>
-          <div class="l-stat-l">Використань</div>
-        </div>
-        <div>
-          <div class="l-stat-v ${pctClass}">${pct}%</div>
-          <div class="l-stat-l">Заповненість</div>
-        </div>
-        <div>
-          <div class="l-stat-v small">${closeStr || (createdStr !== "—" ? "Без терміну" : "—")}</div>
-          <div class="l-stat-l">${closeStr ? "Діє до" : "Термін"}</div>
-        </div>
-      </div>
- 
-      <!-- Прогрес -->
-      <div class="l-bar"><i style="width:${pct}%;background:${barColor}"></i></div>
- 
-      <!-- Footer -->
-      <div class="l-foot">
-        <div class="l-foot-meta">Створено ${createdStr}</div>
-        <div class="l-foot-actions">
-          <button class="l-icon-btn" title="QR-код" onclick="G.showQR('${l.id}')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 14v3M14 17h3"/></svg>
-          </button>
-          <button class="l-icon-btn" title="Студенти" onclick="G.showStudents('${l.id}')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-          </button>
-          <button class="l-icon-btn" title="Редагувати" onclick="G.editLink('${l.id}')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-          <button class="l-icon-btn" title="${isActive ? "Закрити" : "Відкрити"}" onclick="G.togLink('${l.id}','${l.status}')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${isActive ? '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>' : '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0114 0"/>'}</svg>
-          </button>
-          <button class="l-icon-btn danger" title="Видалити" onclick="G.delLink('${l.id}')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-          </button>
-        </div>
-      </div>
-    </div>`;
-  }).join("");
+    </div>
+  </article>`;
 }
- 
- 
+
+// Один делегований обробник для сторінки посилань + оновлення відліку щохвилини
+let _linksBound = false;
+function _bindLinksPage(){
+  if (_linksBound) return;
+  _linksBound = true;
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-lact]"); if (!b) return;
+    const id = b.dataset.id;
+    switch (b.dataset.lact){
+      case "new":     return G.newLink();
+      case "copy":    return G.copyLink(id, b);
+      case "qr":      return G.showQR(id);
+      case "dup":     return G.dupLink(id);
+      case "edit":    return G.editLink(id);
+      case "toggle":  return G.togLink(id);
+      case "del":     return G.confirmDelLink(id);
+      case "results": return G.linkResults(id);
+      case "publish": return G.publishLinkTest(id, b);
+    }
+  });
+  setInterval(() => { if (document.visibilityState === "visible" && $("lnk-tbl")) renderLinks(); }, 60000);
+}
+
 
 // G — global actions
 // ─── GROQ для AI аналізу ──────────────────────────────────────────────────────
@@ -2030,63 +2155,50 @@ selectAnalyticsDrop(field, value, label){
       </div>
       <div style="max-height:300px;overflow-y:auto;padding:4px">
         ${list.length ? list.map(t => {
-          const safeTitle = esc(t.title).replace(/'/g,"\\'");
-          return `<div onclick="G.selectLinkTest('${t.id}','${safeTitle}')"
+          const tag = t.status === "draft" ? `<span style="font-size:10.5px;font-weight:700;color:#92400E;background:#FEF3C7;padding:2px 7px;border-radius:999px;flex:0 0 auto">Чернетка</span>`
+            : t.status === "closed" ? `<span style="font-size:10.5px;font-weight:700;color:#B91C1C;background:#FEE2E2;padding:2px 7px;border-radius:999px;flex:0 0 auto">Закритий</span>` : "";
+          const nL = links.filter(l => l.testId === t.id && _isOpenState(linkState(l))).length;
+          return `<div onclick="G.selectLinkTest('${t.id}')"
             style="display:flex;align-items:center;gap:9px;padding:8px 10px;margin:2px 0;border-radius:9px;cursor:pointer;transition:background .12s" onmouseover="this.style.background='#EFF3FE'" onmouseout="this.style.background='transparent'">
             <div style="width:28px;height:28px;border-radius:8px;background:#EFF3FE;display:grid;place-items:center;flex:0 0 auto;color:#2D5BE3">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
             </div>
             <div style="flex:1;min-width:0">
               <div style="font-size:13.5px;font-weight:700;color:#0B1437;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.title)}</div>
-              <div style="font-size:10.5px;color:#8691AC">${(t.questions||[]).length} питань</div>
+              <div style="font-size:10.5px;color:#8691AC">${(t.questions||[]).length} ${_plural((t.questions||[]).length, "питання", "питання", "питань")}${nL ? ` · ${nL} ${_plural(nL, "активне посилання", "активні посилання", "активних посилань")}` : ""}</div>
             </div>
+            ${tag}
           </div>`;
         }).join("") : `<div style="padding:28px 12px;text-align:center;color:#8691AC;font-size:12.5px">Нічого не знайдено</div>`}
       </div>`;
   },
 
   // ─── Вибір тесту: ховаємо пікер, показуємо підсумок і решту полів ───
-  selectLinkTest(testId, title){
-    document.getElementById("nl-t").value = testId;
-    const summary = document.getElementById("nl-test-summary");
-    const box = document.getElementById("nl-picker-box");
-    const details = document.getElementById("nl-details-wrap");
+  selectLinkTest(testId){
+    const t = tests.find(x => x.id === testId);
+    $("nl-t").value = testId;
+    const summary = $("nl-test-summary"), box = $("nl-picker-box"), details = $("nl-details-wrap");
+    const qn = (t?.questions || []).length;
     if (summary){
       summary.style.display = "flex";
       summary.innerHTML = `
-        <div style="width:30px;height:30px;border-radius:8px;background:#EFF3FE;display:grid;place-items:center;flex:0 0 auto;color:#2D5BE3">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
-        </div>
-        <div style="flex:1;font-size:13.5px;font-weight:700;color:#0B1437;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(title)}</div>
-        <button onclick="G.changeNlTest()" style="border:0;background:transparent;color:#2D5BE3;font-size:12.5px;font-weight:700;cursor:pointer;flex:0 0 auto">Змінити</button>`;
+        <div class="lk-tic">${_lic("file", 15)}</div>
+        <div class="lk-tsum"><b>${esc(t?.title || "Тест")}</b><span>${qn} ${_plural(qn, "питання", "питання", "питань")}${t?.timeLimit ? ` · ${Math.round(t.timeLimit / 60)} хв` : " · без ліміту часу"}</span></div>
+        <button type="button" onclick="G.changeNlTest()">Змінити</button>`;
     }
     if (box) box.style.display = "none";
     if (details) details.style.display = "flex";
+    G._nlTestWarn(testId);
+    setTimeout(() => $("nl-g")?.focus(), 30);
   },
   changeNlTest(){
-    const summary = document.getElementById("nl-test-summary");
-    const box = document.getElementById("nl-picker-box");
-    if (summary) summary.style.display = "none";
-    if (box) box.style.display = "";
+    $("nl-test-summary").style.display = "none";
+    $("nl-picker-box").style.display = "";
+    $("nl-details-wrap").style.display = "none";
+    $("nl-test-warn").innerHTML = "";
+    $("nl-t").value = "";
     window._nlStep = "folder";
     G.renderNlPicker();
-  },
-  newLink(){
-    window._editLinkId=null;
-    $("m-link-title").textContent="Новий іспит";
-    $("m-link-sub").textContent="Для студентів на тест";
-    $("m-link-test-wrap").style.display="";
-    $("nl-submit-btn").textContent="Створити →";
-    $("nl-t").value=""; $("nl-m").value="30"; $("nl-g").value="";
-    $("nl-sq").checked=false; $("nl-sa").checked=false;
-    if($("nl-close")) $("nl-close").value="";
-    window._nlStep = "folder";
-    window._nlFolderF = "";
-    const summary=document.getElementById("nl-test-summary"); if(summary) summary.style.display="none";
-    const box=document.getElementById("nl-picker-box"); if(box) box.style.display="";
-    const details=document.getElementById("nl-details-wrap"); if(details) details.style.display="none";
-    G.renderNlPicker();
-    openM("m-link");
   },
   toggleArchive(){
     const list=document.getElementById("archive-list");
@@ -2399,105 +2511,262 @@ selectAnalyticsDrop(field, value, label){
     },0);
   },
 
-  qLink(tid){
-    window._editLinkId=null;
-    $("m-link-title").textContent="Новий іспит";
-    $("m-link-sub").textContent="Для студентів на тест";
-    $("m-link-test-wrap").style.display="";
-    $("nl-submit-btn").textContent="Створити →";
-    $("nl-t").value=tid; $("nl-m").value="30"; $("nl-g").value="";
-    $("nl-sq").checked=false; $("nl-sa").checked=false;
-    if($("nl-close")) $("nl-close").value="";
-    const t = tests.find(x => x.id === tid);
-    window._nlStep = "folder";
-    window._nlFolderF = "";
-    G.selectLinkTest(tid, t?.title || "Тест"); // одразу показує підсумок і відкриває решту полів
-    openM("m-link");
-  },
-  editLink(id){
-    const l=links.find(x=>x.id===id); if(!l)return;
-    window._editLinkId=id;
-    $("m-link-title").textContent="Редагувати посилання";
-    $("m-link-sub").textContent="Змінити налаштування";
-    $("m-link-test-wrap").style.display="none";
-    const details=document.getElementById("nl-details-wrap"); if(details) details.style.display="flex";
-    $("nl-submit-btn").textContent="Зберегти →";
-    $("nl-m").value=l.maxAttempts||30; $("nl-g").value=l.group||"";
-    $("nl-sq").checked=l.shuffleQuestions||false;
-    $("nl-sa").checked=l.shuffleAnswers||false;
-    if($("nl-close")){if(l.closeAt){const d=new Date(l.closeAt),pad=n=>String(n).padStart(2,"0");$("nl-close").value=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;} else{$("nl-close").value="";}}
-    openM("m-link");
-  },
-  async submitLink(){
-    const editId=window._editLinkId, group=$("nl-g").value.trim(), mx=parseInt($("nl-m").value)||30;
-    const shuffleQuestions=$("nl-sq")?.checked||false;
-    const shuffleAnswers  =$("nl-sa")?.checked||false;
-    if(editId){
-      try{
-        const closeAtVal2 = $("nl-close")?.value;
-        const closeAt2 = closeAtVal2 ? new Date(closeAtVal2).getTime() : null;
-        await dbUpd(`links/${editId}`,{maxAttempts:mx,group,shuffleQuestions,shuffleAnswers,closeAt:closeAt2});
-        links=links.map(l=>l.id===editId?{...l,maxAttempts:mx,group,shuffleQuestions,shuffleAnswers,closeAt:closeAt2}:l);
-        closeM("m-link");renderLinks();toast("Збережено");
-      }catch(e){toast("Помилка: "+e.message,"err");}
-      return;
-    }
-    const tid=$("nl-t").value;
-    if(!tid){toast("Оберіть тест","err");return;}
-    try{
-      const closeAtVal = $("nl-close")?.value;
-      const closeAt = closeAtVal ? new Date(closeAtVal).getTime() : null;
-      await dbPush("links",{testId:tid,maxAttempts:mx,usedAttempts:0,status:"active",group,shuffleQuestions,shuffleAnswers,closeAt,createdAt:ts()});
-      // onValue сам оновить links[] — не додаємо вручну
-      closeM("m-link");toast("Посилання створено");
-    }catch(e){toast("Помилка: "+e.message,"err");}
-  },
-  async togLink(id,st){
-    const ns=st==="active"?"closed":"active";
-    try{
-      await dbUpd(`links/${id}`,{status:ns});
-      links=links.map(l=>l.id===id?{...l,status:ns}:l);
-      renderLinks();renderDashLinks();updateBadges();toast(ns==="active"?"Посилання відкрито":"Посилання закрито");
-    }catch(e){toast("Помилка: "+e.message,"err");}
-  },
-  async delLink(id){
-    try{
-      await dbDel(`links/${id}`);
-      links=links.filter(l=>l.id!==id);
-      renderLinks();renderDashLinks();updateBadges();renderStats();toast("Посилання видалено");
-    }catch(e){toast("Помилка: "+e.message,"err");}
-  },
-  showQR(linkId){
-    const l=links.find(x=>x.id===linkId),t=tests.find(x=>x.id===l?.testId);
-    if(!l)return;
-    const base=location.origin+location.pathname.replace(/[^/]*$/, "");
-    const url=`${base}test?link=${linkId}&t=${_uid}`;
-    window._qrUrl=url;
-    $("qr-title").textContent=t?.title||"—";
-    $("qr-group").textContent=l.group?`Група: ${l.group}`:"";
-    $("qr-url-text").textContent=url;
-    // Генеруємо QR через QRCode.js CDN
-    const canvas=$("qr-canvas");
-    canvas.innerHTML="";
-    if(window.QRCode){
-      new QRCode(canvas,{text:url,width:200,height:200,colorDark:"#0d1340",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});
+  // ─── Посилання: модалка створення / редагування ─────────────────────
+  _lnkForm(mode, l = null, testId = null){
+    const edit = mode === "edit";
+    window._editLinkId = edit ? l.id : null;
+    $("m-link-title").textContent = edit ? "Налаштування посилання" : mode === "dup" ? "Копія для іншої групи" : "Нове посилання";
+    $("m-link-sub").textContent = edit ? "Зміни діють одразу" : "Студенти проходять тест за цим посиланням або QR-кодом";
+    $("lk-form").hidden = false; $("lk-done").hidden = true;
+    $("m-link-test-wrap").style.display = edit ? "none" : "";
+    $("nl-submit-btn").textContent = edit ? "Зберегти" : "Створити посилання";
+    const max = l ? _lnkMax(l) : 30;
+    $("nl-g").value = mode === "dup" ? "" : (l?.group || "");
+    $("nl-unl").checked = !!l && !max;
+    $("nl-m").value = max || 30;
+    $("nl-m").disabled = $("nl-unl").checked;
+    const now = Date.now();
+    $("nl-open").value = l?.openAt && (edit || l.openAt > now) ? _toLocalDT(l.openAt) : "";
+    $("nl-close").value = l?.closeAt && (edit || l.closeAt > now) ? _toLocalDT(l.closeAt) : "";
+    $("nl-sq").checked = !!l?.shuffleQuestions;
+    $("nl-sa").checked = !!l?.shuffleAnswers;
+    const groups = [...new Set(links.map(x => x.group).filter(Boolean))].sort((a, b) => a.localeCompare(b, "uk"));
+    $("nl-groups").innerHTML = groups.map(g => `<option value="${esc(g)}"></option>`).join("");
+    $("nl-err").textContent = "";
+    $("nl-hint").textContent = edit && linkState(l) === "expired" ? "Термін дії минув. Вкажіть новий час закриття або очистіть поле — посилання знову відкриється." : "";
+    if (edit){
+      $("nl-details-wrap").style.display = "flex";
+      G._nlTestWarn(l.testId);
+    } else if (testId){
+      G.selectLinkTest(testId);
     } else {
-      canvas.innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}&color=0d1340" style="width:200px;height:200px;border-radius:8px">`;
+      $("nl-t").value = "";
+      window._nlStep = "folder"; window._nlFolderF = "";
+      $("nl-test-summary").style.display = "none";
+      $("nl-picker-box").style.display = "";
+      $("nl-details-wrap").style.display = "none";
+      $("nl-test-warn").innerHTML = "";
+      G.renderNlPicker();
     }
+    G._nlPresetsSync();
+    openM("m-link");
+  },
+  newLink(){ G._lnkForm("new"); },
+  qLink(tid){ G._lnkForm("new", null, tid); },
+  editLink(id){ const l = links.find(x => x.id === id); if (l) G._lnkForm("edit", l); },
+  dupLink(id){ const l = links.find(x => x.id === id); if (l) G._lnkForm("dup", l, l.testId); },
+
+  // Попередження про тест (чернетка, закритий, порожній…) у модалці
+  _nlTestWarn(testId){
+    const box = $("nl-test-warn"); if (!box) return;
+    const issue = linkTestIssue(tests.find(t => t.id === testId));
+    if (!issue){ box.innerHTML = ""; return; }
+    const canPub = issue.kind === "draft" || issue.kind === "closed";
+    box.innerHTML = `<div class="lk-warn">${_lic("alert", 14)}<span>${issue.text}</span></div>${canPub
+      ? `<label class="lk-check"><input type="checkbox" id="nl-pub" checked><span>Опублікувати тест разом зі створенням посилання</span></label>` : ""}`;
+  },
+  // Швидкий вибір часу закриття
+  nlPreset(kind){
+    const d = new Date();
+    if (kind === "none"){ $("nl-close").value = ""; }
+    else {
+      if (kind === "1h") d.setHours(d.getHours() + 1);
+      else if (kind === "2h") d.setHours(d.getHours() + 2);
+      else if (kind === "today") d.setHours(23, 59, 0, 0);
+      else if (kind === "1d") d.setDate(d.getDate() + 1);
+      else if (kind === "7d") d.setDate(d.getDate() + 7);
+      const base = _fromLocalDT($("nl-open").value);
+      if (base && kind !== "today" && base > Date.now()) d.setTime(base + (d.getTime() - Date.now()));
+      $("nl-close").value = _toLocalDT(d.getTime());
+    }
+    $("nl-err").textContent = "";
+    G._nlPresetsSync();
+  },
+  _nlPresetsSync(){
+    const has = !!$("nl-close")?.value;
+    document.querySelectorAll("#nl-presets [data-p]").forEach(b => b.classList.toggle("on", b.dataset.p === "none" && !has));
+    const unl = $("nl-unl")?.checked; if ($("nl-m")) $("nl-m").disabled = !!unl;
+  },
+
+  async submitLink(){
+    if (G._lnkBusy) return;
+    const editId = window._editLinkId;
+    const old = editId ? links.find(l => l.id === editId) : null;
+    const tid = old ? old.testId : $("nl-t").value;
+    const err = m => { $("nl-err").textContent = m; return false; };
+    if (!tid) return err("Оберіть тест");
+    const unl = $("nl-unl").checked;
+    const max = unl ? 0 : parseInt($("nl-m").value, 10);
+    if (!unl && !(max >= 1)) return err("Вкажіть ліміт студентів (від 1) або позначте «Без ліміту»");
+    if (max > 5000) return err("Ліміт — не більше 5000 студентів");
+    if (old && max && max < (old.usedAttempts || 0)) return err(`Посилання вже відкрили ${old.usedAttempts} разів — ліміт не може бути меншим`);
+    const now = Date.now();
+    const openAt = _fromLocalDT($("nl-open").value), closeAt = _fromLocalDT($("nl-close").value);
+    if (closeAt && closeAt <= now) return err("Час закриття вже минув — оберіть пізніший");
+    if (openAt && closeAt && closeAt <= openAt) return err("Закриття має бути пізніше за відкриття");
+    const data = {
+      group: $("nl-g").value.trim().slice(0, 60),
+      maxAttempts: max,
+      openAt: openAt || null, closeAt: closeAt || null,
+      shuffleQuestions: $("nl-sq").checked, shuffleAnswers: $("nl-sa").checked,
+    };
+    const publish = !!$("nl-pub")?.checked;
+    const btn = $("nl-submit-btn"), label = btn.textContent;
+    G._lnkBusy = true; btn.disabled = true; btn.textContent = editId ? "Збереження…" : "Створення…";
+    try {
+      if (publish){
+        await dbUpd(`tests/${tid}`, { status: "active", updatedAt: ts() });
+        tests = tests.map(t => t.id === tid ? { ...t, status: "active" } : t); window.tests = tests;
+      }
+      if (old){
+        const reopen = old.status !== "active" && old.closedReason === "expired";
+        const upd = { ...data, ...(reopen ? { status: "active", closedReason: null } : {}) };
+        await dbUpd(`links/${editId}`, upd);
+        links = links.map(l => l.id === editId ? { ...l, ...upd } : l); window.links = links;
+        closeM("m-link");
+        renderLinks(); renderDashLinks(); updateBadges();
+        toast(reopen ? "Збережено — посилання знову відкрите" : "Збережено");
+      } else {
+        const rec = { testId: tid, ...data, usedAttempts: 0, status: "active", createdAt: ts() };
+        const id = await dbPush("links", rec);
+        if (!links.some(l => l.id === id)){ links.unshift({ id, ...rec }); window.links = links; }
+        renderLinks(); renderDashLinks(); updateBadges();
+        G._lnkDone(id);
+      }
+    } catch (e){ err("Помилка: " + e.message); }
+    finally { G._lnkBusy = false; btn.disabled = false; btn.textContent = label; }
+  },
+
+  // Екран «Посилання готове» — одразу копіюємо й показуємо QR
+  async _lnkDone(id){
+    const l = links.find(x => x.id === id), t = tests.find(x => x.id === l?.testId);
+    const url = linkUrl(id);
+    window._qrLinkId = id;
+    $("lk-form").hidden = true; $("lk-done").hidden = false;
+    $("lk-done-title").textContent = t?.title || "Тест";
+    $("lk-done-meta").textContent = [l?.group ? `Група ${l.group}` : "", l?.closeAt ? `до ${_fmtDT(l.closeAt)}` : "без терміну", _lnkMax(l) ? `${_lnkMax(l)} місць` : "без ліміту"].filter(Boolean).join(" · ");
+    $("lk-done-url").textContent = url;
+    _drawQR($("lk-done-qr"), url, 132);
+    const copied = await _copyText(url);
+    $("lk-done-copied").textContent = copied ? "Посилання вже скопійовано — вставте його в чат групи" : "Скопіюйте посилання й надішліть студентам";
+  },
+  async copyLink(id, btn){
+    const ok = await _copyText(linkUrl(id));
+    if (btn && ok){
+      const html = btn.innerHTML;
+      btn.classList.add("done"); btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>Скопійовано`;
+      setTimeout(() => { btn.classList.remove("done"); btn.innerHTML = html; }, 1600);
+    } else toast(ok ? "Посилання скопійовано" : "Не вдалося скопіювати", ok ? "" : "err");
+  },
+
+  async togLink(id){
+    const l = links.find(x => x.id === id); if (!l) return;
+    const st = linkState(l);
+    if (!_isOpenState(st) && l.closeAt && l.closeAt <= Date.now()) return G.editLink(id);  // спершу новий термін
+    const open = _isOpenState(st);
+    const upd = open ? { status: "closed", closedReason: "manual" } : { status: "active", closedReason: null };
+    try {
+      await dbUpd(`links/${id}`, upd);
+      links = links.map(x => x.id === id ? { ...x, ...upd } : x); window.links = links;
+      renderLinks(); renderDashLinks(); updateBadges();
+      toast(open ? "Доступ закрито — нові студенти не зайдуть" : "Посилання знову відкрите");
+    } catch (e){ toast("Помилка: " + e.message, "err"); }
+  },
+  confirmDelLink(id){
+    const l = links.find(x => x.id === id); if (!l) return;
+    const t = tests.find(x => x.id === l.testId);
+    const n = attempts.filter(a => a.linkId === id).length;
+    window._delLinkId = id;
+    $("del-lnk-name").textContent = `${t?.title || "Тест"}${l.group ? ` · ${l.group}` : ""}`;
+    $("del-lnk-info").textContent = n ? `${n} ${_plural(n, "спроба", "спроби", "спроб")} студентів залишаться на сторінці «Спроби».` : "За цим посиланням ще ніхто не проходив тест.";
+    openM("m-del-link");
+  },
+  async doDelLink(){
+    const id = window._delLinkId; if (!id) return;
+    window._delLinkId = null;
+    closeM("m-del-link");
+    try {
+      await dbDel(`links/${id}`);
+      links = links.filter(l => l.id !== id); window.links = links;
+      renderLinks(); renderDashLinks(); updateBadges(); renderStats();
+      toast("Посилання видалено");
+    } catch (e){ toast("Помилка: " + e.message, "err"); }
+  },
+  // Результати за посиланням — сторінка «Спроби» з фільтром тесту й групи
+  linkResults(id){
+    const l = links.find(x => x.id === id); if (!l) return;
+    const p = new URLSearchParams({ test: l.testId });
+    if (l.group) p.set("group", l.group);
+    location.href = `attempts?${p}`;
+  },
+  showStudents(id){ G.linkResults(id); },
+  async publishLinkTest(id, btn){
+    const l = links.find(x => x.id === id); if (!l) return;
+    if (btn){ btn.disabled = true; btn.textContent = "Публікую…"; }
+    try {
+      await dbUpd(`tests/${l.testId}`, { status: "active", updatedAt: ts() });
+      tests = tests.map(t => t.id === l.testId ? { ...t, status: "active" } : t); window.tests = tests;
+      renderLinks(); toast("Тест опубліковано — студенти можуть проходити");
+    } catch (e){ toast("Помилка: " + e.message, "err"); if (btn){ btn.disabled = false; btn.textContent = "Опублікувати тест"; } }
+  },
+
+  // ─── QR-код ─────────────────────────────────────────────────────────
+  showQR(id){
+    const l = links.find(x => x.id === id); if (!l) return;
+    const t = tests.find(x => x.id === l.testId), url = linkUrl(id);
+    window._qrLinkId = id;
+    $("qr-title").textContent = t?.title || "Тест";
+    $("qr-group").textContent = [l.group ? `Група ${l.group}` : "", l.closeAt ? `до ${_fmtDT(l.closeAt)}` : ""].filter(Boolean).join(" · ");
+    $("qr-url-text").textContent = url;
+    _drawQR($("qr-canvas"), url, 220);
     openM("m-qr");
   },
+  copyQrUrl(){ if (window._qrLinkId) G.copyLink(window._qrLinkId); },
+  // PNG для друку чи слайда: назва тесту, група, великий QR і адреса
   downloadQR(){
-    const canvas=$("qr-canvas")?.querySelector("canvas");
-    const img=$("qr-canvas")?.querySelector("img");
-    const t=$("qr-title")?.textContent||"qr";
-    if(canvas){
-      const a=document.createElement("a");a.download=`QR_${t}.png`;a.href=canvas.toDataURL("image/png");a.click();
-    } else if(img){
-      // Завантажуємо через blob
-      fetch(img.src).then(r=>r.blob()).then(blob=>{
-        const a=document.createElement("a");a.download=`QR_${t}.png`;a.href=URL.createObjectURL(blob);a.click();
-      });
-    }
+    const id = window._qrLinkId, l = links.find(x => x.id === id); if (!l) return;
+    const t = tests.find(x => x.id === l.testId), url = linkUrl(id);
+    const tmp = document.createElement("div");
+    if (!_drawQR(tmp, url, 900)){ toast("QR-бібліотека не завантажилась", "err"); return; }
+    const src = tmp.querySelector("canvas");
+    const W = 1100, H = 1380, c = document.createElement("canvas"); c.width = W; c.height = H;
+    const g = c.getContext("2d");
+    g.fillStyle = "#fff"; g.fillRect(0, 0, W, H);
+    g.fillStyle = "#0B1437"; g.textAlign = "center";
+    g.font = "800 54px Manrope, system-ui, sans-serif";
+    const title = t?.title || "Тест";
+    g.fillText(title.length > 34 ? title.slice(0, 33) + "…" : title, W / 2, 110);
+    if (l.group){ g.fillStyle = "#5B6A8F"; g.font = "600 38px Manrope, system-ui, sans-serif"; g.fillText(`Група ${l.group}`, W / 2, 170); }
+    g.drawImage(src, 100, 220, 900, 900);
+    g.fillStyle = "#5B6A8F"; g.font = "500 30px 'Geist Mono', monospace";
+    g.fillText(url.replace(/^https?:\/\//, "").replace(/&t=.*/, "…"), W / 2, 1200);
+    g.fillStyle = "#8691AC"; g.font = "600 28px Manrope, system-ui, sans-serif";
+    g.fillText("Відскануйте камерою телефона", W / 2, 1270);
+    const a = document.createElement("a");
+    a.download = `QR — ${title}${l.group ? " — " + l.group : ""}.png`.replace(/[\\/:*?"<>|]/g, "_");
+    c.toBlob(blob => {
+      a.href = URL.createObjectURL(blob);
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    }, "image/png");
+  },
+  // QR на весь екран — показати групі через проєктор
+  qrFullscreen(){
+    const id = window._qrLinkId, l = links.find(x => x.id === id); if (!l) return;
+    const t = tests.find(x => x.id === l.testId), url = linkUrl(id);
+    if ($("m-qr")?.classList.contains("on")) closeM("m-qr");
+    if ($("m-link")?.classList.contains("on")) closeM("m-link");
+    const ov = document.createElement("div");
+    ov.className = "qr-full";
+    const size = Math.min(innerHeight * .62, innerWidth * .8, 720);
+    ov.innerHTML = `<div class="qr-full-in"><div class="qr-full-t">${esc(t?.title || "Тест")}</div>${l.group ? `<div class="qr-full-g">Група ${esc(l.group)}</div>` : ""}<div class="qr-full-code"></div><div class="qr-full-u">${esc(location.host)}/test?link=${esc(id)}</div><div class="qr-full-h">Esc або клік — закрити</div></div>`;
+    document.body.appendChild(ov);
+    _drawQR(ov.querySelector(".qr-full-code"), url, Math.round(size));
+    const close = () => { ov.remove(); removeEventListener("keydown", onKey, true); };
+    const onKey = e => { if (e.key === "Escape"){ e.stopImmediatePropagation(); e.preventDefault(); close(); } };
+    ov.addEventListener("click", close);
+    addEventListener("keydown", onKey, true);
+    try { ov.requestFullscreen?.().catch(() => {}); } catch {}
   },
   sortAttempts(field){
   if (_attSort.field === field){
@@ -4959,19 +5228,6 @@ selectAnalyticsDrop(field, value, label){
     const t=tests.find(x=>x.id===testId);
     if(lbl&&t) lbl.textContent=t.title;
     window.G.renderAnalytics&&window.G.renderAnalytics();
-  },
-
-  showStudents(linkId){
-    showSec("students");
-    // Фільтруємо студентів по групі посилання
-    const l=links.find(x=>x.id===linkId);
-    if(l?.group){
-      const sel=document.getElementById("st-group");
-      if(sel) sel.value=l.group;
-      const lbl=document.getElementById("cd-st-group-label");
-      if(lbl) lbl.textContent=l.group;
-    }
-    window.G.initStudents&&window.G.initStudents();
   },
 
   // ── Attempt deletion ──────────────────────────────────────────────────────
