@@ -91,7 +91,7 @@
   .q-type-badge.text{background:rgba(251,191,36,.13);border-color:rgba(251,191,36,.5);color:#FDE68A}
   .q-type-badge.number{background:rgba(96,165,250,.15);border-color:rgba(96,165,250,.5);color:#BFDBFE}
   .question-text{text-align:center;font-size:clamp(30px,3.6vw,58px);font-weight:900;letter-spacing:-.025em;line-height:1.15;margin:0 auto 36px;max-width:1300px;text-shadow:0 4px 20px rgba(0,0,0,.35);overflow-wrap:anywhere}
-  .question-text.long{font-size:clamp(24px,2.6vw,40px)}
+  .question-text.small{font-weight:800;line-height:1.28;letter-spacing:-.015em}
   .question-text img{max-width:100%;max-height:34vh;border-radius:14px;display:block;margin:14px auto 0}
   .question-text p{margin:0}
 
@@ -104,7 +104,8 @@
   }
   .ans .fill{position:absolute;inset:0 auto 0 0;width:0;background:rgba(255,255,255,.16);z-index:-1;transition:width .9s cubic-bezier(.22,1,.36,1)}
   .ans .letter{width:52px;height:52px;border-radius:14px;background:rgba(0,0,0,.3);display:grid;place-items:center;font-family:"Geist Mono",monospace;font-size:22px;flex:0 0 auto;border:1px solid rgba(255,255,255,.2)}
-  .ans .txt{flex:1;overflow-wrap:anywhere}
+  .ans .txt{flex:1;min-width:0;overflow-wrap:break-word;hyphens:auto;line-height:1.22}
+  .answers.many .ans{padding:18px 24px;min-height:88px}
   .ans .count{display:none;font-family:"Geist Mono",monospace;font-size:clamp(22px,2.2vw,34px);font-weight:800;background:rgba(0,0,0,.28);border-radius:12px;padding:4px 14px;border:1px solid rgba(255,255,255,.2);white-space:nowrap}
   .ans .count small{font-size:.5em;opacity:.8;margin-left:6px}
   .revealed .ans .count{display:block}
@@ -239,7 +240,7 @@ import {
   db, ref, get, set, update, onValue, requireTeacher, readParams, isValidCode, fatal, toast,
   esc, initialsOf, avatarColor, applyTheme, serverNow, watchFields, safeStore, HOME_URL,
   OPT_CLASSES, OPT_LETTERS, TYPE_LABELS, isFreeform, checkCorrect, calcPoints, LATE_GRACE_MS,
-  standings, fmtNum, isActive, isOnline,
+  standings, fmtNum, isActive, isOnline, asIndexList, pickCount, fitText, fitGroup, onRefit,
 } from "./live-core.js";
 
 const $ = (id) => document.getElementById(id);
@@ -445,11 +446,11 @@ function renderQuestion(qi) {
   if (!q) return;
   const qt = $("q-text");
   qt.innerHTML = q.text || "";
-  qt.classList.toggle("long", (qt.textContent || "").length > 140);
 
   const t = TYPE_LABELS[q.type] || TYPE_LABELS.single;
   $("q-type-badge").className = "q-type-badge " + t.cls;
-  $("q-type-badge").textContent = t.label;
+  const need = q.type === "multi" ? pickCount(keyFor(qi)) : 0;
+  $("q-type-badge").textContent = need ? `${t.label} · оберіть ${need}` : t.label;
 
   const free = isFreeform(q);
   $("text-wait-hint").hidden = !free;
@@ -462,9 +463,29 @@ function renderQuestion(qi) {
       <span class="txt">${esc(o)}</span>
       <span class="count">0</span>
     </div>`).join("");
-  grid.style.gridTemplateColumns = (q.options || []).length <= 2 ? "1fr" : "1fr 1fr";
+  const longest = Math.max(0, ...(q.options || []).map(o => String(o ?? "").length));
+  grid.style.gridTemplateColumns = (q.options || []).length <= 2 && longest > 40 ? "1fr" : "1fr 1fr";
+  grid.classList.toggle("many", (q.options || []).length >= 5);
   renderAnswered();
+  refit();
 }
+
+// ─── Розмір тексту: коротке питання — великим, довге — меншим, але без обрізання ──
+function refit() {
+  const qt = $("q-text");
+  if (!questions[shownQ]) return;
+  const imgH = [...qt.querySelectorAll("img")].reduce((h, im) => h + im.getBoundingClientRect().height + 14, 0);
+  const len = (qt.textContent || "").trim().length;
+  qt.classList.toggle("small", len > 160);
+  const nOpts = (questions[shownQ].options || []).length;
+  // Чим більше варіантів, тим менше місця лишається для питання
+  const qShare = isFreeform(questions[shownQ]) ? 0.34 : nOpts >= 5 ? 0.2 : 0.25;
+  fitText(qt, { max: 64, min: 20, maxHeight: innerHeight * qShare + imgH });
+  fitGroup(document.querySelectorAll("#answers-grid .ans .txt"), {
+    max: innerWidth < 760 ? 22 : 32, min: 14, maxHeight: Math.max(60, innerHeight * (nOpts >= 5 ? 0.075 : 0.1)),
+  });
+}
+onRefit(refit, $("q-text"));
 
 // Кого чекаємо: гравці онлайн + ті, хто вже відповів (навіть якщо потім вийшов).
 // Учні, що закрили вкладку, більше не блокують автоматичне розкриття.
@@ -491,6 +512,7 @@ function renderAnswered() {
 function renderReveal() {
   const qi = state.currentQ, q = questions[qi];
   if (!q) return;
+  const firstReveal = !shownReveal;
   if (!shownReveal) { shownReveal = true; playReveal(); }
   $("stage").classList.add("revealed");
   const ans = currentAnswers();
@@ -498,9 +520,9 @@ function renderReveal() {
   const n = entries.length;
 
   if (!isFreeform(q)) {
-    const correct = (Array.isArray(keyFor(qi)) ? keyFor(qi) : [keyFor(qi)]).map(Number);
+    const correct = asIndexList(keyFor(qi));
     const counts = (q.options || []).map(() => 0);
-    entries.forEach(a => (Array.isArray(a.value) ? a.value : [a.value]).forEach(v => { if (counts[+v] !== undefined) counts[+v]++; }));
+    entries.forEach(a => asIndexList(a.value).forEach(v => { if (counts[v] !== undefined) counts[v]++; }));
     document.querySelectorAll("#answers-grid .ans").forEach((el, i) => {
       const ok = correct.includes(i);
       el.classList.toggle("correct", ok);
@@ -518,6 +540,7 @@ function renderReveal() {
   const graded = entries.filter(a => typeof a.isCorrect === "boolean");
   $("footer-acc").textContent = graded.length ? Math.round(graded.filter(a => a.isCorrect).length / graded.length * 100) + "%" : "—";
   renderLeaders();
+  if (firstReveal) refit();   // з'явились лічильники — місця для тексту менше
 }
 
 // Ручна перевірка текстових / числових відповідей. Групуємо за нормалізованим

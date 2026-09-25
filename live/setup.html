@@ -225,7 +225,7 @@
 <script type="module">
 import {
   db, ref, get, update, requireTeacher, readParams, fatal, toast, safeStore,
-  THEMES, PATTERNS, DEFAULT_THEME, applyTheme, LIVE_TYPES, pageUrl, esc, plural,
+  THEMES, PATTERNS, DEFAULT_THEME, applyTheme, LIVE_TYPES, pageUrl, esc, plural, pickCount,
 } from "./live-core.js";
 
 const $ = (id) => document.getElementById(id);
@@ -299,9 +299,15 @@ const byType = {};
 questions.forEach(q => { const t = q.type || "single"; byType[t] = (byType[t] || 0) + 1; });
 $("type-chips").innerHTML = `<span class="lv-chip">${questions.length} ${plural(questions.length, "питання", "питання", "питань")}</span>` +
   Object.entries(byType).map(([t, n]) => `<span class="lv-chip">${n} × ${TYPE_SHORT[t]}</span>`).join("");
+const brokenMulti = questions.filter(q => q.type === "multi" && pickCount(q.correct) === 0).length;
 if (excluded) {
   $("excluded-note").hidden = false;
   $("excluded-note").textContent = `${excluded} ${plural(excluded, "питання не увійде", "питання не увійдуть", "питань не увійдуть")} у гру — типи «розгорнута відповідь», «відповідність» і «послідовність» не підтримуються в live-режимі.`;
+}
+if (brokenMulti) {
+  const n = document.createElement("div"); n.className = "lv-notice";
+  n.textContent = `⚠ ${brokenMulti} ${plural(brokenMulti, "питання", "питання", "питань")} з кількома відповідями не мають позначених правильних варіантів — за них ніхто не отримає балів. Виправте в конструкторі.`;
+  $("excluded-note").after(n);
 }
 const firstQ = document.createElement("div");
 firstQ.innerHTML = questions[0]?.text || testData.title || "";
@@ -445,7 +451,9 @@ async function createRoom() {
         timePerQ: state.time, scoring: state.scoring,
         theme: { grad: state.grad, pat: state.pat },
         options: { shuffle: !!state.shuffle, shuffleQ: !!state.shuffleQ, podium: !!state.podium },
-        questions: list.map(q => ({ id: q.id || "", type: q.type || "single", text: q.text || "", options: q.options || null })),
+        // pick — лише КІЛЬКІСТЬ правильних (для підказки «Оберіть 2»), не самі відповіді
+        questions: list.map(q => ({ id: q.id || "", type: q.type || "single", text: q.text || "", options: q.options || null,
+          pick: q.type === "multi" ? pickCount(q.correct) : null })),
         testTitle: testData.title || "",
         createdAt: now,
       },
