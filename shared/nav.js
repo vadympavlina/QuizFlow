@@ -177,7 +177,7 @@
       '<nav class="sb-scroll">' + sections + "</nav>" +
       '<div class="sb-bottom">' +
         '<div class="sb-icon-strip">' +
-          '<a href="live" target="_blank" rel="noopener" data-tip="Live-гра (нова вкладка)" aria-label="Live-гра (нова вкладка)" class="ni ni-live">' +
+          '<a href="live" target="_blank" rel="noopener" data-tip="Live-моніторинг (нова вкладка)" aria-label="Live-моніторинг (нова вкладка)" class="ni ni-live">' +
             '<span class="sb-ico">' + icon("zap") + '</span><span class="ni-label">Live</span></a>' +
           '<a href="/admin/overview" id="admin-panel-btn" target="_blank" rel="noopener" data-tip="Адмін-панель (нова вкладка)" aria-label="Адмін-панель (нова вкладка)" class="ni ni-admin"' + (isAdmin ? "" : " hidden") + ">" +
             '<span class="sb-ico">' + icon("shield") + '</span><span class="ni-label">Адмін</span></a>' +
