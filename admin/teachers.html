@@ -894,6 +894,11 @@ document.querySelectorAll("#filter-seg button").forEach(btn => {
 });
 
 document.getElementById("tc-search").addEventListener("input", renderGrid);
+// ?q=… з огляду — одразу фільтруємо список
+{
+  const q = new URLSearchParams(location.search).get("q");
+  if (q) document.getElementById("tc-search").value = q;
+}
 
 document.getElementById("btn-refresh").addEventListener("click", async () => {
   const btn = document.getElementById("btn-refresh");

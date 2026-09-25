@@ -11,94 +11,108 @@
 <link rel="stylesheet" href="shared/admin-shell.css?v=2">
 <style>
 /* ─── Page-specific styles for overview ─── */
+.page-head .date{font-size:13.5px;color:var(--ink-500);margin-top:4px}
+.page-head .date::first-letter{text-transform:uppercase}
 
-/* Live strip */
-.strip{
-  display:flex; align-items:center; gap:14px;
-  padding:14px 18px; border-radius:14px;
-  background:linear-gradient(135deg, #EDE9FE, #DBEAFE);
-  border:1px solid #DDD6FE;
-}
-.strip-ico{
-  width:42px; height:42px; border-radius:11px;
-  background:linear-gradient(135deg,#7C3AED,#4F46E5); color:#fff;
-  display:grid; place-items:center; flex:0 0 auto;
-  box-shadow:0 8px 18px -8px rgba(124,58,237,.6);
-}
-.strip .t{font-weight:700; font-size:14px; color:var(--ink-900); line-height:1.3}
-.strip .s{font-size:12.5px; color:var(--ink-500); margin-top:2px}
-.strip .live{
-  margin-left:auto; padding:8px 14px; border-radius:10px;
-  background:#0B1437; color:#fff; font-size:12.5px; font-weight:700;
-  text-decoration:none; display:inline-flex; align-items:center; gap:6px;
-  white-space:nowrap;
-}
-.strip .live::before{content:""; width:7px; height:7px; border-radius:50%; background:#EF4444; box-shadow:0 0 0 2px rgba(239,68,68,.3); animation:liveDot 1.4s infinite}
+/* Пульс платформи */
+.pulse{display:flex;align-items:center;gap:16px;padding:16px 18px;border-radius:16px;background:linear-gradient(135deg,#1A1040 0%,#2E1A6B 55%,#4338CA 100%);color:#fff;box-shadow:0 18px 40px -26px rgba(76,29,149,.9);position:relative;overflow:hidden}
+.pulse::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.35),transparent 70%);pointer-events:none}
+.pulse-ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;flex:0 0 auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18)}
+.pulse-ico.live{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.4);color:#86EFAC}
+.pulse-main{flex:1;min-width:0}
+.pulse-t{font-weight:800;font-size:15px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.pulse-t .dot{width:8px;height:8px;border-radius:50%;background:#22C55E;animation:ovPulse 1.6s infinite}
+@keyframes ovPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}70%{box-shadow:0 0 0 8px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+.pulse-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pulse-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);color:#EDE9FE;text-decoration:none;transition:background .15s}
+.pulse-chip:hover{background:rgba(255,255,255,.18)}
+.pulse-chip.bad{background:rgba(244,63,94,.2);border-color:rgba(244,63,94,.4);color:#FECDD3}
+.pulse-chip.warn{background:rgba(245,158,11,.18);border-color:rgba(245,158,11,.38);color:#FDE68A}
+.pulse-chip.ok{background:rgba(34,197,94,.16);border-color:rgba(34,197,94,.35);color:#BBF7D0}
+.pulse-live{position:relative;z-index:1;margin-left:auto;padding:9px 14px;border-radius:11px;background:#fff;color:#2E1A6B;font-size:12.5px;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;transition:transform .15s}
+.pulse-live:hover{transform:translateY(-1px)}
+.pulse-live::before{content:"";width:7px;height:7px;border-radius:50%;background:#EF4444;animation:liveDot 1.4s infinite}
 @keyframes liveDot{0%,100%{opacity:1}50%{opacity:.3}}
 
+/* KPI */
+.kpi{cursor:default;min-height:150px}
+a.kpi{text-decoration:none;color:inherit;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s}
+a.kpi:hover{transform:translateY(-2px);border-color:var(--line-strong);box-shadow:var(--shadow)}
+.kpi-row{justify-content:space-between}
+.kpi-v,.kpi-l,.kpi-s,.kpi-row{position:relative;z-index:1}
+.kpi-s b{color:var(--ink-700)}
+.kpi.has-spark{padding-bottom:48px}
+.kpi .kpi-spark{position:absolute;left:0;right:0;bottom:0;width:100%;height:40px;opacity:1}
+.delta{font-family:"Geist Mono",monospace;font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:#EEF2FB;color:var(--ink-500)}
+.delta.up{background:#DCFCE7;color:#15803D}
+.delta.down{background:#FEE2E2;color:#B91C1C}
+
 /* Row layouts */
-.row-2{display:grid; grid-template-columns:1.4fr 1fr; gap:14px}
-.row-mix{display:grid; grid-template-columns:2fr 1fr; gap:14px}
-@media (max-width:1280px){.row-2,.row-mix{grid-template-columns:1fr}}
+.row-2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:14px;align-items:start}
+.side-stack{display:flex;flex-direction:column;gap:14px}
+@media (max-width:1280px){.row-2{grid-template-columns:1fr}}
 
-/* Activity chart */
-.chart{
-  display:flex; align-items:flex-end; gap:14px;
-  height:200px; padding:18px 4px 8px; position:relative;
-}
-.chart-grid{
-  position:absolute; left:0; right:0; top:18px; bottom:30px;
-  background-image:linear-gradient(transparent calc(25% - 1px), rgba(11,20,55,.04) calc(25% - 1px), rgba(11,20,55,.04) 25%);
-  background-size:100% 25%;
-  pointer-events:none;
-}
-.chart-bar{
-  flex:1; display:flex; flex-direction:column-reverse; align-items:center; gap:6px;
-  position:relative;
-}
-.chart-bar .b{
-  width:100%; max-width:42px; min-height:8px;
-  background:linear-gradient(180deg,#7C3AED,#4F46E5);
-  border-radius:6px 6px 0 0;
-  transition:all .3s;
-}
-.chart-bar.dim .b{opacity:.45; background:linear-gradient(180deg,#A78BFA,#7C3AED)}
-.chart-bar.today .b{background:linear-gradient(180deg,#7C3AED,#4F46E5); box-shadow:0 6px 18px -6px rgba(124,58,237,.55)}
-.chart-bar .v{
-  font-family:"Geist Mono",monospace; font-size:11px; font-weight:700;
-  color:var(--ink-700);
-}
-.chart-bar.today .v{color:#7C3AED}
-.chart-labels{
-  display:flex; gap:14px; padding:6px 4px 0;
-  border-top:1px solid var(--line);
-}
-.chart-labels span{
-  flex:1; text-align:center; font-size:11px; color:var(--ink-400); font-weight:600;
-}
-.chart-labels span.today{color:#7C3AED; font-weight:700}
+/* Графік активності */
+.seg{display:inline-flex;background:#F1F4FA;border-radius:9px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;font:inherit;font-size:12px;font-weight:700;color:var(--ink-500);padding:5px 10px;border-radius:7px;cursor:pointer}
+.seg button.on{background:#fff;color:#6D28D9;box-shadow:0 1px 3px rgba(15,30,71,.12)}
+.chart-sum{display:flex;gap:22px;margin:2px 0 14px}
+.chart-sum div{display:flex;flex-direction:column;gap:2px}
+.chart-sum b{font-family:"Geist Mono",monospace;font-size:20px;font-weight:800;letter-spacing:-.02em}
+.chart-sum span{font-size:11px;color:var(--ink-400);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.chart{position:relative;height:180px;display:flex;align-items:flex-end;gap:var(--gap,8px);padding-top:18px}
+.chart-grid{position:absolute;inset:18px 0 0 0;pointer-events:none;background-image:linear-gradient(rgba(11,20,55,.05) 1px,transparent 1px);background-size:100% 25%}
+.cb{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;cursor:default;min-width:0}
+.cb i{display:block;width:100%;max-width:38px;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,#A78BFA,#7C3AED);transition:height .35s cubic-bezier(.32,.72,0,1),filter .15s}
+.cb.zero i{background:#E6EAF3;height:3px!important}
+.cb.today i{background:linear-gradient(180deg,#8B5CF6,#4F46E5);box-shadow:0 6px 16px -6px rgba(124,58,237,.6)}
+.cb:hover i{filter:brightness(1.1)}
+.cb .v{position:absolute;bottom:calc(var(--h) + 4px);font-family:"Geist Mono",monospace;font-size:10.5px;font-weight:700;color:var(--ink-700);opacity:0;transition:opacity .15s;white-space:nowrap}
+.chart.few .cb .v,.cb:hover .v{opacity:1}
+.cb.today .v{color:#6D28D9}
+.chart-labels{display:flex;gap:var(--gap,8px);padding-top:8px;border-top:1px solid var(--line);margin-top:6px}
+.chart-labels span{flex:1;min-width:0;text-align:center;font-size:10.5px;color:var(--ink-400);font-weight:600;white-space:nowrap;overflow:hidden}
+.chart-labels span.today{color:#6D28D9;font-weight:800}
 
-.peak-tag{
-  display:inline-flex; align-items:center; gap:4px;
-  padding:3px 8px; border-radius:999px;
-  background:#DCFCE7; color:#15803D;
-  font-size:11px; font-weight:700;
-  font-family:"Geist Mono",monospace;
-}
+/* Стан викладачів */
+.status-row{display:grid;grid-template-columns:auto 110px 1fr 34px;align-items:center;gap:10px;padding:9px 0;text-decoration:none;color:inherit;border-radius:8px}
+.status-row .lbl{font-size:13px;font-weight:600;color:var(--ink-700);white-space:nowrap}
+.status-row .bar{height:7px;background:#F1F5FB;border-radius:99px;overflow:hidden}
+.status-row .bar i{display:block;height:100%;border-radius:99px;transition:width .4s}
+.status-row .v{font-family:"Geist Mono",monospace;font-weight:800;font-size:14px;text-align:right}
+.status-dot{width:9px;height:9px;border-radius:50%}
 
-/* Status rows */
-.status-row{display:flex; align-items:center; gap:11px; padding:10px 0}
-.status-row .lbl{flex:0 0 90px; font-size:13px; font-weight:600; color:var(--ink-700)}
-.status-row .bar{flex:1; height:7px; background:#F1F5FB; border-radius:99px; overflow:hidden}
-.status-row .bar i{display:block; height:100%; border-radius:99px; transition:width .4s}
-.status-row .v{font-family:"Geist Mono",monospace; font-weight:800; font-size:14px; color:var(--ink-900); min-width:24px; text-align:right}
-.status-dot{width:9px; height:9px; border-radius:50%; flex:0 0 auto}
+/* Нові проблеми */
+.prob{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line);text-decoration:none;color:inherit}
+.prob:first-child{border-top:0;padding-top:0}
+.prob-ico{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto;background:#FEE2E2;color:#B91C1C}
+.prob-ico.imp{background:#EDE9FE;color:#6D28D9}
+.prob-b{flex:1;min-width:0}
+.prob-t{font-size:13px;font-weight:600;color:var(--ink-900);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.prob-m{font-size:11.5px;color:var(--ink-400);margin-top:3px;display:flex;gap:6px;white-space:nowrap;overflow:hidden}
+.prob-m span+span::before{content:"·";margin-right:6px}
+.prob:hover .prob-t{color:#6D28D9}
+.ok-state{display:flex;align-items:center;gap:10px;padding:6px 0;color:#15803D;font-size:13px;font-weight:600}
+.ok-state span{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:#DCFCE7}
+.card-link{font-size:12px;font-weight:700;color:#6D28D9;text-decoration:none;white-space:nowrap}
+.card-link:hover{text-decoration:underline}
 
-/* Teachers table */
-.tbl-search{display:flex; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid var(--line)}
-.tbl-search .search-input{flex:1; max-width:300px}
+/* Таблиця викладачів */
+.tbl-search{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.tbl-search .search-input{flex:1;max-width:320px}
 .tbl-search .search-input .input{width:100%}
-.tbl-search .meta{margin-left:auto; font-size:12px; color:var(--ink-500); font-family:"Geist Mono",monospace}
+.tbl-search .meta{margin-left:auto;font-size:12px;color:var(--ink-500);font-family:"Geist Mono",monospace}
+.tbl-wrap{overflow-x:auto}
+#ov-table tr{cursor:pointer}
+#ov-table tr:focus-visible td{background:#F5F3FF}
+.t-name{font-weight:700;display:flex;align-items:center;gap:7px;white-space:nowrap}
+.t-mail{font-size:11.5px;color:var(--ink-400);font-family:"Geist Mono",monospace;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:230px}
+.t-sub{font-size:11px;color:var(--ink-400);margin-left:4px;font-family:"Geist Mono",monospace}
+.g-pill{font-family:"Geist Mono",monospace;font-weight:700;font-size:12px;padding:3px 8px;border-radius:999px}
+.g-pill.ok{background:#DCFCE7;color:#15803D}.g-pill.mid{background:#FEF3C7;color:#92400E}.g-pill.bad{background:#FEE2E2;color:#B91C1C}
+.last{white-space:nowrap;font-size:12px;font-family:"Geist Mono",monospace;color:var(--ink-500)}
+.last.recent{color:#15803D;font-weight:700}
+.last.stale{color:var(--ink-300)}
 </style>
 </head>
 <body>
@@ -110,95 +124,125 @@
 <div id="admin-toast" class="toast"></div>
 
 <script type="module">
-import { initAdminShell, loadAllTeachers, esc, formatTimeAgo, hideLoader } from "./shared/admin-shell.js?v=3";
+import { initAdminShell, loadAllTeachers, esc, formatTimeAgo, dbGet, toast, hideLoader } from "./shared/admin-shell.js?v=3";
 
-const greeting = (() => {
-  const h = new Date().getHours();
-  return h<6 ? "Доброго ранку" : h<12 ? "Доброго ранку" : h<18 ? "Добрий день" : "Добрий вечір";
-})();
-const today = new Date().toLocaleDateString("uk-UA", {weekday:"long", day:"numeric", month:"long", year:"numeric"});
+const DAY = 864e5;
+// Відмінювання: plural(5, ["викладач","викладачі","викладачів"])
+const plural = (n, f) => { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? f[2] : b === 1 ? f[0] : b >= 2 && b <= 4 ? f[1] : f[2]; };
+const dayStart = t => { const d = new Date(t); d.setHours(0,0,0,0); return d.getTime(); };
+const fullName = u => [u.name, u.surname].filter(Boolean).join(" ") || u.email || "—";
+const gradeTone = g => g >= 10 ? "ok" : g >= 4 ? "mid" : "bad";
+
+const I = p => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const ICO = {
+  teachers: I('<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.6 2-4.8 4.5-5"/>'),
+  doc:      I('<path d="M14 3v5h5"/><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M9 13h6M9 17h4"/>'),
+  users:    I('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>'),
+  pulse:    I('<path d="M3 12h4l3-9 4 18 3-9h4"/>'),
+  bug:      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>',
+  idea:     '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>',
+  check:    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+};
 
 const content = `
-  <!-- Live strip -->
-  <div class="strip">
-    <div class="strip-ico">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
-    </div>
+  <div class="page-head">
     <div>
-      <div class="t" id="strip-title">Завантаження статистики платформи…</div>
-      <div class="s" id="strip-sub">Дочекайтесь поки тягнуться дані всіх викладачів</div>
+      <h1 id="ov-greet">&nbsp;</h1>
+      <div class="date" id="ov-date"></div>
     </div>
-    <a href="../live" class="live">Live · TV-режим</a>
   </div>
 
-  <!-- KPIs -->
+  <!-- Пульс платформи -->
+  <section class="pulse" id="ov-pulse">
+    <div class="pulse-ico" id="pulse-ico">${ICO.pulse}</div>
+    <div class="pulse-main">
+      <div class="pulse-t" id="pulse-t">Завантаження даних платформи…</div>
+      <div class="pulse-chips" id="pulse-chips"></div>
+    </div>
+    <a href="../live" target="_blank" rel="noopener" class="pulse-live">Live-моніторинг</a>
+  </section>
+
   <div class="kpi-grid" id="kpi-grid"></div>
 
-  <!-- Activity + Statuses -->
   <div class="row-2">
-    <div class="card">
+    <section class="card">
       <div class="card-h">
         <div>
-          <h3>Активність за 7 днів</h3>
-          <div class="sub">Спроби студентів</div>
+          <h3>Активність студентів</h3>
+          <div class="sub">Спроби проходження тестів по днях</div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <span class="peak-tag" id="peak-tag" style="display:none"></span>
-          <span class="pill violet">Тиждень</span>
+        <div class="seg" role="tablist" aria-label="Період">
+          <button type="button" data-range="7">7 днів</button>
+          <button type="button" data-range="14" class="on">14 днів</button>
+          <button type="button" data-range="30">30 днів</button>
         </div>
       </div>
-      <div class="chart" id="chart-bars">
-        <div class="chart-grid"></div>
-      </div>
+      <div class="chart-sum" id="chart-sum"></div>
+      <div class="chart" id="chart-bars"></div>
       <div class="chart-labels" id="chart-labels"></div>
-    </div>
+    </section>
 
-    <div class="card">
-      <div class="card-h">
-        <div>
-          <h3>Стан викладачів</h3>
-          <div class="sub" id="teachers-total">—</div>
+    <div class="side-stack">
+      <section class="card">
+        <div class="card-h">
+          <div>
+            <h3>Нові проблеми</h3>
+            <div class="sub" id="prob-sub">—</div>
+          </div>
+          <a class="card-link" href="problems">Усі →</a>
         </div>
-        <span class="pill" id="teachers-count-pill">—</span>
-      </div>
-      <div id="status-rows"></div>
+        <div id="prob-list"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-h">
+          <div>
+            <h3>Стан викладачів</h3>
+            <div class="sub" id="teachers-total">—</div>
+          </div>
+          <a class="card-link" href="teachers">Керувати →</a>
+        </div>
+        <div id="status-rows"></div>
+      </section>
     </div>
   </div>
 
-  <!-- Teachers table -->
-  <div class="card" style="padding:0">
+  <section class="card" style="padding:0">
     <div class="card-h" style="padding:18px 18px 0">
       <div>
-        <h3>Статистика викладачів</h3>
-        <div class="sub">Сортування та пошук по платформі</div>
+        <h3>Викладачі</h3>
+        <div class="sub">Натисніть на рядок, щоб відкрити картку викладача</div>
       </div>
     </div>
     <div class="tbl-search">
       <div class="search-input">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input class="input" id="ov-search" type="text" placeholder="Пошук викладача за іменем або логіном…" autocomplete="off">
+        <input class="input" id="ov-search" type="search" placeholder="Пошук за іменем або email…" autocomplete="off" aria-label="Пошук викладача">
       </div>
       <span class="meta" id="ov-table-count">—</span>
     </div>
-    <table class="tbl">
-      <thead>
-        <tr>
-          <th class="sortable" data-sort="name">Викладач <span class="ord"></span></th>
-          <th class="sortable" data-sort="tests">Тестів <span class="ord"></span></th>
-          <th class="sortable" data-sort="activeTests">Активних <span class="ord"></span></th>
-          <th class="sortable" data-sort="students">Студентів <span class="ord"></span></th>
-          <th class="sortable" data-sort="attempts">Спроб <span class="ord"></span></th>
-          <th class="sortable" data-sort="weekAttempts">Тиждень <span class="ord"></span></th>
-          <th class="sortable" data-sort="lastAct">Активність <span class="ord"></span></th>
-        </tr>
-      </thead>
-      <tbody id="ov-table"></tbody>
-    </table>
-  </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th class="sortable" data-sort="name">Викладач <span class="ord"></span></th>
+            <th>Статус</th>
+            <th class="sortable" data-sort="tests">Тести <span class="ord"></span></th>
+            <th class="sortable" data-sort="students">Студенти <span class="ord"></span></th>
+            <th class="sortable" data-sort="attempts">Спроби <span class="ord"></span></th>
+            <th class="sortable" data-sort="weekAttempts">За тиждень <span class="ord"></span></th>
+            <th class="sortable" data-sort="avg">Сер. оцінка <span class="ord"></span></th>
+            <th class="sortable" data-sort="lastAct">Остання активність <span class="ord"></span></th>
+          </tr>
+        </thead>
+        <tbody id="ov-table"></tbody>
+      </table>
+    </div>
+  </section>
 `;
 
 const topbarRight = `
-  <button class="tb-btn" id="btn-refresh">
+  <button class="tb-btn" id="btn-refresh" type="button">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.7L4 16"/><path d="M4 20v-4h4"/></svg>
     Оновити
   </button>
@@ -208,252 +252,244 @@ const topbarRight = `
   </a>
 `;
 
-const { _user } = await initAdminShell({
-  activeId: "overview",
-  crumbs: ["Огляд"],
-  content,
-  topbarRight
-});
+const { _user } = await initAdminShell({ activeId: "overview", crumbs: ["Огляд"], content, topbarRight });
 
-// Page-head з реальним привітанням — додаємо ПЕРЕД content
-const contentEl = document.getElementById("admin-content");
-if (contentEl){
-  const pageHead = document.createElement("div");
-  pageHead.className = "page-head";
-  pageHead.innerHTML = `
-    <div>
-      <h1>${greeting}, ${esc((_user.name||_user.login||"").split(" ")[0])}</h1>
-      <p>Загальний огляд платформи · сьогодні ${today}</p>
-    </div>
-  `;
-  contentEl.insertBefore(pageHead, contentEl.firstChild);
+{
+  const h = new Date().getHours();
+  const greeting = h < 5 ? "Доброї ночі" : h < 12 ? "Доброго ранку" : h < 18 ? "Добрий день" : "Добрий вечір";
+  const first = (_user.name || "").split(" ")[0];
+  document.getElementById("ov-greet").textContent = greeting + (first ? ", " + first : "");
+  document.getElementById("ov-date").textContent = "Огляд платформи · " + new Date().toLocaleDateString("uk-UA", { weekday: "long", day: "numeric", month: "long" });
 }
 
-// ─── Load and render ─────────────────────────────────────────────────────────
-let _ovSortBy = "attempts", _ovSortDir = "desc";
+// ─── Дані ────────────────────────────────────────────────────────────────────
+let D = { users: [], stats: {}, attempts: [], problems: [] };
+let _range = 14, _ovSortBy = "attempts", _ovSortDir = "desc";
 
 async function reload(){
-  const { _users, _stats, _allAttempts } = await loadAllTeachers();
-  renderAll(_users, _stats, _allAttempts);
-}
-
-function renderAll(_users, _stats, _allAttempts){
-  // ─── Strip ───
-  const onlineCount = 0; // нема real-time даних поки що
-  const totalAttempts = _allAttempts.length;
-  document.getElementById("strip-title").textContent =
-    onlineCount > 0
-      ? `Зараз на платформі — активна сесія`
-      : `Платформа працює · ${_users.length} викладач${_users.length === 1 ? "" : _users.length < 5 ? "і" : "ів"}, ${totalAttempts} спроб всього`;
-  document.getElementById("strip-sub").textContent =
-    `${_users.filter(u => !u.blocked).length} активних викладачів · переглядайте Live-режим для real-time картин`;
-
-  // ─── KPIs ───
-  const active = _users.filter(u => !u.blocked);
-  const blocked = _users.length - active.length;
-  let totalTests = 0, totalActive = 0, totalStudents = 0, weekAttempts = 0;
-  _users.forEach(u => {
-    const s = _stats[u.id] || {};
-    totalTests += s.tests || 0;
-    totalActive += s.activeTests || 0;
-    totalStudents += s.students || 0;
-    weekAttempts += s.weekAttempts || 0;
-  });
-
-  const KPIS = [
-    { k:"violet", icon:"teachers", label:"Викладачів",  value: _users.length,   sub: blocked>0 ? `${active.length} активних, ${blocked} заблоковано` : `всі активні`,  trend: weekAttempts>0?"+":"" },
-    { k:"blue",   icon:"doc",      label:"Тестів",      value: totalTests,      sub: `${totalActive} опубліковано`,                                                       trend: "" },
-    { k:"green",  icon:"users",    label:"Студентів",   value: totalStudents,   sub: `у системі`,                                                                          trend: "" },
-    { k:"amber",  icon:"pulse",    label:"Спроб всього", value: totalAttempts,  sub: `+${weekAttempts} за тиждень`,                                                        trend: weekAttempts>0?"up":"" },
-  ];
-
-  const KPI_ICONS = {
-    teachers: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.6 2-4.8 4.5-5"/></svg>',
-    doc:      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"/><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M9 13h6M9 17h4"/></svg>',
-    users:    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>',
-    pulse:    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>',
+  const [{ _users, _stats, _allAttempts }, bugs] = await Promise.all([
+    loadAllTeachers(),
+    dbGet("bugReports").catch(() => null),
+  ]);
+  // Середня оцінка по викладачу — з уже завантажених спроб
+  const g = {};
+  _allAttempts.forEach(a => { if (a.grade12 == null || a.status === "in_progress") return; (g[a.teacherId] ||= []).push(+a.grade12); });
+  _users.forEach(u => { const arr = g[u.id]; if (_stats[u.id]) _stats[u.id].avg = arr?.length ? arr.reduce((s, x) => s + x, 0) / arr.length : null; });
+  D = {
+    users: _users, stats: _stats, attempts: _allAttempts,
+    problems: bugs ? Object.entries(bugs).map(([id, v]) => ({ id, ...v })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)) : [],
   };
-
-  document.getElementById("kpi-grid").innerHTML = KPIS.map(k => `
-    <div class="kpi ${k.k}">
-      <div class="kpi-row">
-        <div class="kpi-ico">${KPI_ICONS[k.icon]||""}</div>
-      </div>
-      <div class="kpi-v">${k.value}</div>
-      <div class="kpi-l">${esc(k.label)}</div>
-      <div class="kpi-s">${k.sub}</div>
-    </div>
-  `).join("");
-
-  // ─── Activity chart ───
-  const DAYS = ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"];
-  const now = new Date(); now.setHours(23,59,59,999);
-  const week = [0,0,0,0,0,0,0];
-  _allAttempts.forEach(a => {
-    if (!a.createdAt) return;
-    const diff = Math.floor((now - a.createdAt) / (24*60*60*1000));
-    if (diff >= 0 && diff < 7) week[6 - diff]++;
-  });
-  const maxVal = Math.max(...week, 1);
-  const chartEl = document.getElementById("chart-bars");
-  chartEl.innerHTML = `<div class="chart-grid"></div>` + week.map((v, i) => {
-    const h = (v / maxVal) * 100;
-    const isToday = i === 6;
-    return `<div class="chart-bar${isToday?' today':' dim'}">
-      <div class="v">${v}</div>
-      <div class="b" style="height:${Math.max(h, 8)}%"></div>
-    </div>`;
-  }).join("");
-  const labels = [];
-  for (let i = 6; i >= 0; i--){
-    const d = new Date(now); d.setDate(d.getDate() - i);
-    labels.push(DAYS[(d.getDay()+6)%7]);
-  }
-  document.getElementById("chart-labels").innerHTML = labels.map((d, i) => `<span class="${i===6?'today':''}">${d}</span>`).join("");
-
-  // Peak tag
-  const peakIdx = week.indexOf(Math.max(...week));
-  const peakTag = document.getElementById("peak-tag");
-  if (week[peakIdx] > 0){
-    peakTag.style.display = "inline-flex";
-    peakTag.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M7 14l5-5 5 5"/></svg> Пік: ${week[peakIdx]} (${labels[peakIdx]})`;
-  }
-
-  // ─── Status rows ───
-  const firstLogin = _users.filter(u => u.isFirstLogin && !u.blocked).length;
-  const regularActive = active.length - firstLogin;
-  const total = _users.length || 1;
-  const STATUSES = [
-    { lbl:"Активні",      v: regularActive, color:"#16A34A", bg:"rgba(22,163,74,.15)" },
-    { lbl:"Перший вхід",  v: firstLogin,    color:"#D97706", bg:"rgba(217,119,6,.15)" },
-    { lbl:"Заблоковані",  v: blocked,       color:"#DC2626", bg:"rgba(220,38,38,.15)" },
-  ];
-  document.getElementById("teachers-total").textContent = `${_users.length} викладач${_users.length === 1 ? "" : _users.length < 5 ? "і" : "ів"} у системі`;
-  document.getElementById("teachers-count-pill").textContent = `Усього: ${_users.length}`;
-  document.getElementById("status-rows").innerHTML = STATUSES.map(s => `
-    <div class="status-row">
-      <span class="status-dot" style="background:${s.color}; box-shadow:0 0 0 3px ${s.bg}"></span>
-      <span class="lbl">${s.lbl}</span>
-      <span class="bar"><i style="width:${(s.v/total*100).toFixed(0)}%; background:${s.color}"></i></span>
-      <span class="v" style="color:${s.color}">${s.v}</span>
-    </div>
-  `).join("");
-
-  // ─── Table ───
-  renderTable(_users, _stats);
+  renderAll();
 }
 
-function renderTable(_users, _stats){
-  const search = (document.getElementById("ov-search")?.value || "").trim().toLowerCase();
-  let list = [..._users];
-  if (search){
-    list = list.filter(u =>
-      (u.name||"").toLowerCase().includes(search) ||
-      (u.login||"").toLowerCase().includes(search)
-    );
-  }
+function perDay(n){
+  const start = dayStart(Date.now()) - (n - 1) * DAY;
+  const out = new Array(n).fill(0);
+  D.attempts.forEach(a => { const t = a.createdAt; if (!t || t < start) return; const i = Math.floor((t - start) / DAY); if (i >= 0 && i < n) out[i]++; });
+  return out;
+}
+function spark(vals, color){
+  const w = 200, h = 46, max = Math.max(1, ...vals), step = w / (vals.length - 1 || 1);
+  const pts = vals.map((v, i) => [(i * step).toFixed(1), (h - 4 - v / max * (h - 12)).toFixed(1)]);
+  const line = pts.map((p, i) => (i ? "L" : "M") + p[0] + " " + p[1]).join(" ");
+  return `<svg class="kpi-spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+    <defs><linearGradient id="ovsp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".22"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <path d="${line} L${w} ${h} L0 ${h} Z" fill="url(#ovsp)"/><path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+function renderAll(){
+  renderPulse();
+  renderKpis();
+  renderChart();
+  renderProblems();
+  renderStatuses();
+  renderTable();
+}
+
+function renderPulse(){
+  const live = D.attempts.filter(a => a.status === "in_progress").length;
+  const newProb = D.problems.filter(p => p.status === "new").length;
+  const first = D.users.filter(u => u.isFirstLogin && !u.blocked).length;
+  const today = D.attempts.filter(a => (a.createdAt || 0) >= dayStart(Date.now())).length;
+  const t = document.getElementById("pulse-t");
+  const ico = document.getElementById("pulse-ico");
+  ico.classList.toggle("live", live > 0);
+  t.innerHTML = live
+    ? `<span class="dot"></span>${live} ${plural(live, ["студент проходить", "студенти проходять", "студентів проходять"])} тест прямо зараз`
+    : today ? `Сьогодні ${today} ${plural(today, ["спроба", "спроби", "спроб"])} · зараз ніхто не проходить тест` : "Сьогодні спроб ще не було";
+  const chips = [];
+  if (newProb) chips.push(`<a class="pulse-chip bad" href="problems">${newProb} ${plural(newProb, ["нова проблема", "нові проблеми", "нових проблем"])}</a>`);
+  if (first) chips.push(`<a class="pulse-chip warn" href="teachers">${first} ${plural(first, ["викладач ще не увійшов", "викладачі ще не увійшли", "викладачів ще не увійшли"])}</a>`);
+  if (!chips.length) chips.push(`<span class="pulse-chip ok">Усе спокійно: проблем і незавершених запрошень немає</span>`);
+  document.getElementById("pulse-chips").innerHTML = chips.join("");
+}
+
+function renderKpis(){
+  const u = D.users, active = u.filter(x => !x.blocked), blocked = u.length - active.length, first = u.filter(x => x.isFirstLogin && !x.blocked).length;
+  let tests = 0, pub = 0, students = 0;
+  u.forEach(x => { const s = D.stats[x.id] || {}; tests += s.tests || 0; pub += s.activeTests || 0; students += s.students || 0; });
+  const now = Date.now();
+  const wk = D.attempts.filter(a => (a.createdAt || 0) >= now - 7 * DAY).length;
+  const prev = D.attempts.filter(a => (a.createdAt || 0) >= now - 14 * DAY && (a.createdAt || 0) < now - 7 * DAY).length;
+  const d = wk - prev;
+  const delta = `<span class="delta ${d > 0 ? "up" : d < 0 ? "down" : ""}">${d > 0 ? "▲ " + d : d < 0 ? "▼ " + (-d) : "="}</span>`;
+  const K = [
+    { k: "violet", ico: ICO.teachers, v: u.length, l: plural(u.length, ["Викладач", "Викладачі", "Викладачів"]), href: "teachers",
+      s: [`<b>${active.length - first}</b> ${plural(active.length - first, ["активний", "активні", "активних"])}`, first ? `<b>${first}</b> не увійшли` : "", blocked ? `<b>${blocked}</b> заблок.` : ""].filter(Boolean).join(" · ") },
+    { k: "blue", ico: ICO.doc, v: tests, l: plural(tests, ["Тест", "Тести", "Тестів"]), href: "stats", s: `<b>${pub}</b> опубліковано` },
+    { k: "green", ico: ICO.users, v: students, l: plural(students, ["Студент", "Студенти", "Студентів"]), href: "stats",
+      s: u.length ? `≈ <b>${Math.round(students / Math.max(1, active.length))}</b> на викладача` : "—" },
+    { k: "amber", ico: ICO.pulse, v: D.attempts.length, l: plural(D.attempts.length, ["Спроба", "Спроби", "Спроб"]), href: "stats",
+      s: `${delta} <b>${wk}</b> за тиждень`, spark: D.attempts.length ? spark(perDay(14), "#D97706") : "" },
+  ];
+  document.getElementById("kpi-grid").innerHTML = K.map(k => `
+    <a class="kpi ${k.k}${k.spark ? " has-spark" : ""}" href="${k.href}">
+      <div class="kpi-row"><div class="kpi-ico">${k.ico}</div></div>
+      <div class="kpi-v">${k.v}</div>
+      <div class="kpi-l">${esc(k.l)}</div>
+      <div class="kpi-s">${k.s}</div>
+      ${k.spark || ""}
+    </a>`).join("");
+}
+
+function renderChart(){
+  const n = _range, vals = perDay(n), max = Math.max(1, ...vals);
+  const total = vals.reduce((s, v) => s + v, 0);
+  const peak = Math.max(...vals);
+  const start = dayStart(Date.now()) - (n - 1) * DAY;
+  const WD = ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
+  const lbl = i => { const d = new Date(start + i * DAY); return n <= 7 ? WD[d.getDay()] : String(d.getDate()); };
+  const full = i => new Date(start + i * DAY).toLocaleDateString("uk-UA", { weekday: "short", day: "numeric", month: "short" });
+  const grades = D.attempts.filter(a => a.grade12 != null && (a.createdAt || 0) >= start).map(a => +a.grade12);
+  const avg = grades.length ? (grades.reduce((s, g) => s + g, 0) / grades.length).toFixed(1) : "—";
+  document.getElementById("chart-sum").innerHTML = `
+    <div><b>${total}</b><span>${plural(total, ["спроба", "спроби", "спроб"])}</span></div>
+    <div><b>${(total / n).toFixed(1)}</b><span>на день</span></div>
+    <div><b>${peak}</b><span>пік за день</span></div>
+    <div><b>${avg}</b><span>сер. оцінка</span></div>`;
+  const chart = document.getElementById("chart-bars");
+  chart.style.setProperty("--gap", n > 14 ? "3px" : "8px");
+  chart.classList.toggle("few", n <= 14);
+  chart.innerHTML = `<div class="chart-grid"></div>` + vals.map((v, i) => {
+    const h = v ? Math.max(4, v / max * 100) : 0;
+    const cls = ["cb", v ? "" : "zero", i === n - 1 ? "today" : ""].filter(Boolean).join(" ");
+    return `<div class="${cls}" style="--h:${h}%" title="${esc(full(i))}: ${v} ${plural(v, ["спроба", "спроби", "спроб"])}"><span class="v">${v || ""}</span><i style="height:${h}%"></i></div>`;
+  }).join("");
+  document.getElementById("chart-labels").innerHTML = vals.map((_, i) =>
+    `<span class="${i === n - 1 ? "today" : ""}">${n > 14 && i % 3 && i !== n - 1 ? "" : lbl(i)}</span>`).join("");
+}
+
+function renderProblems(){
+  const fresh = D.problems.filter(p => p.status === "new");
+  document.getElementById("prob-sub").textContent = fresh.length
+    ? `${fresh.length} ${plural(fresh.length, ["очікує", "очікують", "очікують"])} на розгляд`
+    : "Усі звернення розглянуто";
+  document.getElementById("prob-list").innerHTML = fresh.length
+    ? fresh.slice(0, 3).map(p => {
+        const imp = p.reportType === "improvement";
+        return `<a class="prob" href="problems">
+          <span class="prob-ico${imp ? " imp" : ""}" title="${imp ? "Покращення" : "Проблема"}">${imp ? ICO.idea : ICO.bug}</span>
+          <span class="prob-b">
+            <span class="prob-t">${esc(p.message || "Без опису")}</span>
+            <span class="prob-m"><span>${esc(p.userName || "—")}</span>${p.page ? `<span>${esc(p.page)}</span>` : ""}<span>${esc(formatTimeAgo(p.createdAt))}</span></span>
+          </span>
+        </a>`;
+      }).join("")
+    : `<div class="ok-state"><span>${ICO.check}</span>Нових звернень немає</div>`;
+}
+
+function renderStatuses(){
+  const u = D.users, blocked = u.filter(x => x.blocked).length, first = u.filter(x => x.isFirstLogin && !x.blocked).length;
+  const act = u.length - blocked - first, total = u.length || 1;
+  document.getElementById("teachers-total").textContent = `${u.length} ${plural(u.length, ["акаунт", "акаунти", "акаунтів"])} у системі`;
+  document.getElementById("status-rows").innerHTML = [
+    { l: "Активні", v: act, c: "#16A34A", bg: "rgba(22,163,74,.15)" },
+    { l: "Не увійшли", v: first, c: "#D97706", bg: "rgba(217,119,6,.15)" },
+    { l: "Заблоковані", v: blocked, c: "#DC2626", bg: "rgba(220,38,38,.15)" },
+  ].map(s => `<div class="status-row">
+      <span class="status-dot" style="background:${s.c};box-shadow:0 0 0 3px ${s.bg}"></span>
+      <span class="lbl">${s.l}</span>
+      <span class="bar"><i style="width:${(s.v / total * 100).toFixed(0)}%;background:${s.c}"></i></span>
+      <span class="v" style="color:${s.v ? s.c : "var(--ink-300)"}">${s.v}</span>
+    </div>`).join("");
+}
+
+function renderTable(){
+  const q = (document.getElementById("ov-search")?.value || "").trim().toLowerCase();
+  const S = D.stats;
+  let list = D.users.filter(u => !q || fullName(u).toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q));
   list.sort((a, b) => {
-    let av, bv;
-    if (_ovSortBy === "name"){
-      av = (a.name || a.login || "").toLowerCase();
-      bv = (b.name || b.login || "").toLowerCase();
-    } else {
-      av = _stats[a.id]?.[_ovSortBy] || 0;
-      bv = _stats[b.id]?.[_ovSortBy] || 0;
-    }
-    const cmp = av > bv ? 1 : av < bv ? -1 : 0;
-    return _ovSortDir === "desc" ? -cmp : cmp;
+    const av = _ovSortBy === "name" ? fullName(a).toLowerCase() : (S[a.id]?.[_ovSortBy] ?? -1);
+    const bv = _ovSortBy === "name" ? fullName(b).toLowerCase() : (S[b.id]?.[_ovSortBy] ?? -1);
+    const c = av > bv ? 1 : av < bv ? -1 : 0;
+    return _ovSortDir === "desc" ? -c : c;
   });
-
-  // Update sort indicators
   document.querySelectorAll("th.sortable").forEach(th => {
-    const k = th.dataset.sort;
-    const ord = th.querySelector(".ord");
-    if (k === _ovSortBy){
-      th.classList.add("active");
-      ord.textContent = _ovSortDir === "desc" ? "↓" : "↑";
-    } else {
-      th.classList.remove("active");
-      ord.textContent = "";
-    }
+    const on = th.dataset.sort === _ovSortBy;
+    th.classList.toggle("active", on);
+    th.setAttribute("aria-sort", on ? (_ovSortDir === "desc" ? "descending" : "ascending") : "none");
+    th.querySelector(".ord").textContent = on ? (_ovSortDir === "desc" ? "↓" : "↑") : "";
   });
+  document.getElementById("ov-table-count").textContent = `${list.length} / ${D.users.length}`;
 
-  document.getElementById("ov-table-count").textContent = `${list.length} / ${_users.length}`;
-
-  const AVA_PALETTE = ["", "b", "g", "o", "r"];
-  const tbl = document.getElementById("ov-table");
+  const tb = document.getElementById("ov-table");
   if (!list.length){
-    tbl.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:50px;color:var(--ink-400)">Нічого не знайдено</td></tr>`;
+    tb.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="et">${q ? "Нічого не знайдено" : "Ще немає викладачів"}</div><div class="es">${q ? "Спробуйте інший запит" : "Додайте першого викладача на сторінці «Викладачі»"}</div></div></td></tr>`;
     return;
   }
-  tbl.innerHTML = list.map(u => {
-    const s = _stats[u.id] || {};
-    const isBlocked = u.blocked === true;
-    const isFirst = u.isFirstLogin === true && !isBlocked;
-    const lastStr = s.lastAct ? formatTimeAgo(s.lastAct) : "—";
-    const recent = s.lastAct && (Date.now() - s.lastAct < 24*60*60*1000);
-    const initials = (u.name || u.login || "?").slice(0, 2).toUpperCase();
-    const seed = (u.name || u.login || "").charCodeAt(0) || 0;
-    const avaCls = AVA_PALETTE[seed % AVA_PALETTE.length];
-    const statusPill = isBlocked
-      ? `<span class="pill red">заблоковано</span>`
-      : isFirst
-      ? `<span class="pill amber">перший вхід</span>`
-      : `<span class="dot-online">онлайн</span>`;
-    const weekBadge = (s.weekAttempts || 0) > 0
-      ? `<span class="pill green">+${s.weekAttempts}</span>`
-      : `<span style="color:var(--ink-400);font-family:'Geist Mono',monospace">0</span>`;
-
-    return `<tr style="${isBlocked?'opacity:.55':''}">
+  const PAL = ["", "b", "g", "o", "r"];
+  tb.innerHTML = list.map(u => {
+    const s = S[u.id] || {};
+    const name = fullName(u);
+    const ini = ((u.name || "")[0] || "") + ((u.surname || "")[0] || "") || name.slice(0, 2);
+    const status = u.blocked ? `<span class="pill red">Заблоковано</span>`
+      : u.isFirstLogin ? `<span class="pill amber">Не увійшов</span>`
+      : `<span class="pill green">Активний</span>`;
+    const age = s.lastAct ? Date.now() - s.lastAct : Infinity;
+    const lastCls = age < DAY ? "recent" : age > 30 * DAY ? "stale" : "";
+    return `<tr tabindex="0" data-q="${esc(u.email || name)}" style="${u.blocked ? "opacity:.55" : ""}">
       <td>
         <div style="display:flex;align-items:center;gap:11px">
-          <div class="avatar ${avaCls}">${esc(initials)}</div>
+          <div class="avatar ${PAL[(name.charCodeAt(0) || 0) % PAL.length]}">${esc(ini.toUpperCase())}</div>
           <div style="min-width:0">
-            <div style="display:flex;align-items:center;gap:7px;font-weight:600">
-              ${esc(u.name||"—")}
-              ${u.role === "admin" ? `<span class="pill violet" style="font-size:9.5px;padding:2px 6px">Admin</span>` : ""}
-            </div>
-            <div style="font-size:11px;color:var(--ink-400);font-family:'Geist Mono',monospace;margin-top:2px">@${esc(u.login||"")}</div>
+            <div class="t-name">${esc(name)}${u.role === "admin" ? `<span class="pill violet" style="font-size:9.5px;padding:2px 6px">Admin</span>` : ""}</div>
+            <div class="t-mail">${esc(u.email || "")}</div>
           </div>
         </div>
       </td>
-      <td class="mono" style="font-weight:700">${s.tests || 0}</td>
-      <td><span class="pill green" style="font-family:'Geist Mono',monospace">${s.activeTests || 0}</span></td>
-      <td class="mono" style="font-weight:700;color:#6D28D9">${s.students || 0}</td>
-      <td class="mono" style="font-weight:700;color:#B45309">${s.attempts || 0}</td>
-      <td>${weekBadge}</td>
-      <td style="white-space:nowrap;font-size:12px;color:${recent?'#15803D':'var(--ink-500)'};font-family:'Geist Mono',monospace">${lastStr}</td>
+      <td>${status}</td>
+      <td class="mono" style="font-weight:700">${s.tests || 0}<span class="t-sub">${s.activeTests || 0} акт.</span></td>
+      <td class="mono" style="font-weight:700">${s.students || 0}</td>
+      <td class="mono" style="font-weight:700">${s.attempts || 0}</td>
+      <td>${s.weekAttempts ? `<span class="pill green">+${s.weekAttempts}</span>` : `<span class="mono" style="color:var(--ink-300)">0</span>`}</td>
+      <td>${s.avg != null ? `<span class="g-pill ${gradeTone(s.avg)}">${s.avg.toFixed(1)}</span>` : `<span class="mono" style="color:var(--ink-300)">—</span>`}</td>
+      <td><span class="last ${lastCls}">${s.lastAct ? esc(formatTimeAgo(s.lastAct)) : "—"}</span></td>
     </tr>`;
   }).join("");
 }
 
-// Sort handlers
-document.querySelectorAll("th.sortable").forEach(th => {
-  th.addEventListener("click", () => {
-    const k = th.dataset.sort;
-    if (_ovSortBy === k){
-      _ovSortDir = _ovSortDir === "desc" ? "asc" : "desc";
-    } else {
-      _ovSortBy = k;
-      _ovSortDir = "desc";
-    }
-    renderTable(window._users || [], window._stats || {});
-  });
+// ─── Обробники ────────────────────────────────────────────────────────────
+document.querySelectorAll("th.sortable").forEach(th => th.addEventListener("click", () => {
+  const k = th.dataset.sort;
+  if (_ovSortBy === k) _ovSortDir = _ovSortDir === "desc" ? "asc" : "desc";
+  else { _ovSortBy = k; _ovSortDir = k === "name" ? "asc" : "desc"; }
+  renderTable();
+}));
+document.getElementById("ov-search").addEventListener("input", renderTable);
+const openTeacher = tr => { if (tr?.dataset.q) location.href = "teachers?q=" + encodeURIComponent(tr.dataset.q); };
+document.getElementById("ov-table").addEventListener("click", e => openTeacher(e.target.closest("tr[data-q]")));
+document.getElementById("ov-table").addEventListener("keydown", e => { if (e.key === "Enter") openTeacher(e.target.closest("tr[data-q]")); });
+document.querySelector(".seg").addEventListener("click", e => {
+  const b = e.target.closest("button[data-range]"); if (!b) return;
+  _range = +b.dataset.range;
+  document.querySelectorAll(".seg button").forEach(x => x.classList.toggle("on", x === b));
+  renderChart();
 });
-
-// Search handler
-document.getElementById("ov-search").addEventListener("input", () => {
-  renderTable(window._users || [], window._stats || {});
-});
-
-// Refresh button
 document.getElementById("btn-refresh").addEventListener("click", async () => {
   const btn = document.getElementById("btn-refresh");
-  btn.disabled = true;
-  btn.style.opacity = "0.5";
-  await reload();
-  btn.disabled = false;
-  btn.style.opacity = "";
+  btn.disabled = true; btn.style.opacity = "0.5";
+  try { await reload(); toast("Дані оновлено"); } catch (e) { toast("Не вдалося оновити: " + (e.message || e)); }
+  btn.disabled = false; btn.style.opacity = "";
 });
 
 // First load — тримаємо loader доки дані не завантажаться
