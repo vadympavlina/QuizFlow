@@ -1,0 +1,129 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "users": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').exists() && root.child('users/' + auth.uid + '/blocked').val() !== true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.child('role').val() === 'teacher' && newData.child('blocked').val() !== true && newData.child('inviteToken').isString() && root.child('invite_tokens/' + newData.child('inviteToken').val()).exists() && root.child('invite_tokens/' + newData.child('inviteToken').val()).child('used').val() !== true",
+        "aiSettings": {
+          ".read": true
+        }
+      }
+    },
+    "invite_tokens": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      "$token": {
+        ".read": true,
+        ".write": "auth != null && data.exists() && data.child('used').val() !== true && newData.child('used').val() === true && newData.child('usedBy').val() === auth.uid && root.child('users/' + auth.uid + '/inviteToken').val() === $token"
+      }
+    },
+    "settings": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').exists() && root.child('users/' + auth.uid + '/blocked').val() !== true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      "ai": {
+        ".read": true
+      }
+    },
+    "roles": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').exists() && root.child('users/' + auth.uid + '/blocked').val() !== true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'"
+    },
+    "news": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').exists() && root.child('users/' + auth.uid + '/blocked').val() !== true",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'"
+    },
+    "adminTasks": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'"
+    },
+    "telegramChats": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'"
+    },
+    "bugReports": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      "$id": {
+        ".write": "auth != null && root.child('users/' + auth.uid + '/role').exists() && root.child('users/' + auth.uid + '/blocked').val() !== true && !data.exists() && newData.exists()"
+      }
+    },
+    "rooms": {
+      "$code": {
+        ".read": true,
+        ".write": "auth != null && (data.child('hostUid').val() === auth.uid || (!data.exists() && (!newData.exists() || newData.child('hostUid').val() === auth.uid)))",
+        "players": {
+          "$pid": {
+            ".write": "!data.exists() && newData.child('nickname').isString() && newData.child('nickname').val().length <= 40 && !newData.hasChild('score') && !newData.hasChild('points')",
+            "online": {
+              ".write": "root.child('rooms/' + $code + '/players/' + $pid).exists() && newData.isBoolean()"
+            }
+          }
+        },
+        "answers": {
+          "$qi": {
+            "$pid": {
+              ".write": "!data.exists() && newData.hasChild('value') && !newData.hasChild('points') && root.child('rooms/' + $code + '/players/' + $pid + '/active').val() !== false && root.child('rooms/' + $code + '/players/' + $pid).exists()"
+            }
+          }
+        }
+      }
+    },
+    "teachers": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && root.child('users/' + auth.uid + '/blocked').val() !== true",
+        "tests": {
+          "$testId": {
+            ".read": true,
+            ".write": "auth != null && root.child('users/' + auth.uid + '/role').exists() && root.child('users/' + auth.uid + '/blocked').val() !== true && !data.exists() && newData.exists()"
+          }
+        },
+        "notifications": {
+          "$nid": {
+            ".write": "!data.exists() && newData.exists()"
+          }
+        },
+        "links": {
+          "$linkId": {
+            ".read": true,
+            "usedAttempts": {
+              ".write": "data.parent().exists() && newData.isNumber() && newData.val() === (data.exists() ? data.val() : 0) + 1"
+            }
+          }
+        },
+        "attempts": {
+          "$aid": {
+            ".read": true,
+            ".write": "(!data.exists() && newData.child('testId').isString() && newData.child('createdAt').isNumber()) || (data.exists() && newData.exists() && data.child('createdAt').val() > now - 86400000 && newData.child('testId').val() === data.child('testId').val())"
+          }
+        },
+        "attemptIndex": {
+          "$testId": {
+            "$key": {
+              ".read": true,
+              ".write": "newData.isString() && root.child('teachers/' + $uid + '/attempts/' + newData.val()).exists() && (!data.exists() || !root.child('teachers/' + $uid + '/attempts/' + data.val()).exists())"
+            }
+          }
+        },
+        "students": {
+          "$sid": {
+            ".read": true,
+            ".write": "newData.exists() && newData.child('name').isString() && newData.child('surname').isString()"
+          }
+        },
+        "studentIndex": {
+          "$key": {
+            ".read": true,
+            ".write": "newData.isString() && root.child('teachers/' + $uid + '/students/' + newData.val()).exists() && (!data.exists() || !root.child('teachers/' + $uid + '/students/' + data.val()).exists())"
+          }
+        }
+      }
+    }
+  }
+}

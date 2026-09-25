@@ -383,6 +383,37 @@ async function loadAllData() {
   }
 }
 
+// ─── Індекси для сторінки тесту ────────────────────────────────────────
+// Студент на сторінці тесту не може читати всі спроби й картки студентів (правила
+// бази), тому «вже проходив?» і «чия картка?» шукаються за ключем прізвище_ім'я:
+//   attemptIndex/{testId}/{key} → attemptId,  studentIndex/{key} → studentId.
+// Нові записи індексує сама сторінка тесту; тут раз на добу добудовуємо індекс
+// для старих даних.
+export function nameKey(name, surname){
+  return `${String(surname||"").trim()}_${String(name||"").trim()}`.toLowerCase()
+    .replace(/\s+/g, " ").replace(/[.#$\[\]\/\x00-\x1f\x7f]/g, "_").slice(0, 200) || "_";
+}
+async function backfillIndexes(){
+  const FLAG = `qf_idx_${uid}`;
+  try { if (Date.now() - Number(localStorage.getItem(FLAG) || 0) < 864e5) return; } catch { return; }
+  try {
+    const [ai, si, st] = await Promise.all([dbGet("attemptIndex"), dbGet("studentIndex"), dbGet("students")]);
+    const aIdx = ai.val() || {}, sIdx = si.val() || {}, upd = {};
+    for (const a of (window.attempts || []).slice().sort((x, y) => (x.createdAt || 0) - (y.createdAt || 0))){
+      if (!a.testId || !a.name || !a.surname) continue;
+      const k = nameKey(a.name, a.surname);
+      if (!aIdx[a.testId]?.[k]) upd[tp(`attemptIndex/${a.testId}/${k}`)] = a.id;
+    }
+    for (const [id, s] of Object.entries(st.val() || {})){
+      if (!s?.name || !s?.surname) continue;
+      const k = nameKey(s.name, s.surname);
+      if (!sIdx[k]) upd[tp(`studentIndex/${k}`)] = id;
+    }
+    if (Object.keys(upd).length) await update(ref(db), upd);
+    localStorage.setItem(FLAG, String(Date.now()));
+  } catch (e) { console.warn("[app.js] index backfill:", e.message); }
+}
+
 // ─── Публічний ініціалізатор ───────────────────────────────────────────
 /**
  * @param {string} pageName — що підсвітити в sidebar (data-page)
@@ -407,6 +438,7 @@ export async function initApp(pageName, options = {}) {
   ]);
   if (!options.skipData) {
     await loadAllData();
+    setTimeout(backfillIndexes, 3000);
   }
   // ldr(false) НЕ викликаємо — це робить сторінка після того як все відрендерить
   // (див. initFeatures → renderAll → specific hook → appReady())

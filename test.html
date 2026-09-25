@@ -771,11 +771,6 @@ const db  = getDatabase(app);
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
-function snapToArray(snap) {
-  if (!snap.exists()) return [];
-  const val = snap.val();
-  return Object.entries(val).map(([id, data]) => ({ id, ...data }));
-}
 
 function nowTs() {
   return Date.now();
@@ -785,20 +780,9 @@ function nowTs() {
 
 // auth через teachers path
 
-async function checkLogin(login, password) {
-  const admin = await getAdmin();
-  if (!admin) return false;
-  return admin.login === login && admin.password === password;
-}
 
 // ─── TESTS ────────────────────────────────────────────────────────────────────
 
-async function getTests() {
-  const snap = await get(ref(db, tp("tests")));
-  if (!snap.exists()) return [];
-  const arr = snapToArray(snap);
-  return arr.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-}
 
 async function getTest(testId) {
   const snap = await get(ref(db, tp(`tests/${testId}`)));
@@ -812,49 +796,11 @@ async function getTest(testId) {
   return { id: testId, ...data };
 }
 
-async function createTest(data) {
-  const newRef = push(ref(db, tp("tests")));
-  await set(newRef, {
-    title:     data.title     || "Новий тест",
-    folder:    data.folder    || "",
-    tags:      data.tags      || [],
-    timeLimit: data.timeLimit || 600,
-    status:    "draft",
-    questions: [],
-    createdAt: nowTs()
-  });
-  return newRef.key;
-}
 
-async function saveTest(testId, data) {
-  await update(ref(db, tp(`tests/${testId}`)), data);
-}
 
-async function deleteTest(testId) {
-  await remove(ref(db, tp(`tests/${testId}`)));
-  const linksSnap = await get(ref(db, tp("links")));
-  if (linksSnap.exists()) {
-    const updates = {};
-    Object.entries(linksSnap.val()).forEach(([k, v]) => {
-      if (v.testId === testId) updates[k] = null;
-    });
-    if (Object.keys(updates).length) await update(ref(db, tp("links")), updates);
-  }
-}
 
 // ─── LINKS ────────────────────────────────────────────────────────────────────
 
-async function createLink(testId, maxAttempts) {
-  const newRef = push(ref(db, tp("links")));
-  await set(newRef, {
-    testId,
-    maxAttempts:  Number(maxAttempts) || 30,
-    usedAttempts: 0,
-    status:       "active",
-    createdAt:    nowTs()
-  });
-  return newRef.key;
-}
 
 async function getLink(linkId) {
   const snap = await get(ref(db, tp(`links/${linkId}`)));
@@ -862,19 +808,8 @@ async function getLink(linkId) {
   return { id: linkId, ...snap.val() };
 }
 
-async function getLinksByTest(testId) {
-  const snap = await get(ref(db, tp("links")));
-  if (!snap.exists()) return [];
-  return snapToArray(snap).filter(l => l.testId === testId);
-}
 
-async function updateLink(linkId, data) {
-  await update(ref(db, tp(`links/${linkId}`)), data);
-}
 
-async function deleteLink(linkId) {
-  await remove(ref(db, tp(`links/${linkId}`)));
-}
 
 async function incrementLinkUsage(linkId) {
   const snap = await get(ref(db, tp(`links/${linkId}/usedAttempts`)));
@@ -902,6 +837,7 @@ async function createAttempt(data) {
     questionsSnapshot: data.questionsSnapshot  ?? null,
     createdAt: nowTs()
   });
+  set(ref(db, tp(`attemptIndex/${data.testId}/${nameKey(data.name, data.surname)}`)), newRef.key).catch(() => {});
   return newRef.key;
 }
 
@@ -909,27 +845,43 @@ async function updateAttempt(attemptId, data) {
   await update(ref(db, tp(`attempts/${attemptId}`)), data);
 }
 
-async function getAttemptsByTest(testId) {
-  const snap = await get(ref(db, tp("attempts")));
-  if (!snap.exists()) return [];
-  return snapToArray(snap)
-    .filter(a => a.testId === testId)
-    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+// Ключ «прізвище_ім'я» для індексів (без символів, заборонених у ключах бази)
+function nameKey(name, surname){
+  return `${String(surname||"").trim()}_${String(name||"").trim()}`.toLowerCase()
+    .replace(/\s+/g, " ").replace(/[.#$\[\]\/\x00-\x1f\x7f]/g, "_").slice(0, 200) || "_";
 }
 
+// Старі записи без індексу: пробуємо повний список (працює, поки правила бази
+// ще відкриті; з новими правилами — тихо не знаходить). Знайдене індексуємо.
+async function legacyFind(coll, match, indexPath){
+  try {
+    const snap = await get(ref(db, tp(coll)));
+    const hit = Object.entries(snap.val() || {}).find(([, v]) => v && match(v));
+    if (!hit) return false;
+    set(ref(db, tp(indexPath(hit[0]))), hit[0]).catch(() => {});
+    return hit[0];
+  } catch { return false; }
+}
+
+// Чи проходив студент цей тест. Читаємо один запис індексу, а не всі спроби викладача
+// (правила бази не дають стороннім читати список спроб).
 async function checkDuplicateAttempt(testId, name, surname) {
-  const snap = await get(ref(db, tp("attempts")));
-  if (!snap.exists()) return false;
-  return Object.values(snap.val()).some(a =>
-    a.testId === testId &&
-    a.name?.toLowerCase()    === name.toLowerCase() &&
-    a.surname?.toLowerCase() === surname.toLowerCase()
-  );
+  try {
+    const key = nameKey(name, surname);
+    const idx = await get(ref(db, tp(`attemptIndex/${testId}/${key}`)));
+    if (!idx.exists()) return await legacyFind("attempts", a => a.testId === testId && nameKey(a.name, a.surname) === key, id => `attemptIndex/${testId}/${key}`);
+    const att = await get(ref(db, tp(`attempts/${idx.val()}/testId`)));
+    return att.exists();            // спробу видалив викладач — можна пройти знову
+  } catch (e) {
+    console.warn("Duplicate check failed:", e.message);
+    return false;
+  }
 }
 
 // js/ai.js — Groq API напряму з браузера (без Firebase Functions)
 
-let GROQ_API_KEY = "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";
+let GROQ_API_KEY = ""; // ключ лише з settings/ai (admin/ai-settings)
 const GROQ_URL   = "https://api.groq.com/openai/v1/chat/completions";
 let GROQ_MODEL   = "llama-3.3-70b-versatile";
 let AI_ENABLED   = true; // вмк/вимк AI глобально
@@ -984,6 +936,7 @@ const UA_SYSTEM = {
 
 async function callGroq(messages, maxTokens = 800, temperature = 0.5, feature = "comments") {
   if (aiProviderFor(feature) === "gemini") return callGemini(messages, maxTokens, temperature);
+  if (!GROQ_API_KEY) throw new Error("AI не налаштовано: немає ключа Groq");
   // Завжди додаємо системний промпт українською
   const allMessages = [UA_SYSTEM, ...messages];
 
@@ -2571,16 +2524,16 @@ function handleKeyDown(e){
 // ─── STUDENT CARD SYNC ───────────────────────────────────────────────────────
 async function syncStudentCard({ name, surname, grade12, testId, testTitle, percent, attemptId, group }){
   try {
-    const key = `${surname.trim().toLowerCase()}_${name.trim().toLowerCase()}`;
-    const snap = await get(ref(db, tp("students")));
+    // Картку шукаємо через індекс за іменем — список усіх студентів стороннім недоступний
+    const key = nameKey(name, surname);
     let existing = null;
     let existingId = null;
-
-    if(snap.exists()){
-      Object.entries(snap.val()).forEach(([id, s]) => {
-        const sKey = `${(s.surname||"").trim().toLowerCase()}_${(s.name||"").trim().toLowerCase()}`;
-        if(sKey === key){ existing = s; existingId = id; }
-      });
+    const idx = await get(ref(db, tp(`studentIndex/${key}`)));
+    const foundId = idx.exists() ? idx.val()
+      : await legacyFind("students", s => nameKey(s.name, s.surname) === key, () => `studentIndex/${key}`);
+    if(foundId){
+      const snap = await get(ref(db, tp(`students/${foundId}`)));
+      if(snap.exists()){ existing = snap.val(); existingId = foundId; }
     }
 
     const attemptEntry = {
@@ -2622,6 +2575,7 @@ async function syncStudentCard({ name, surname, grade12, testId, testTitle, perc
       };
       const newRef = push(ref(db, tp("students")));
       await set(newRef, { ...newStudent, id: newRef.key });
+      await set(ref(db, tp(`studentIndex/${key}`)), newRef.key);
     }
   } catch(e){
     console.warn("Student sync failed:", e.message);

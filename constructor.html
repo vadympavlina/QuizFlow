@@ -1223,7 +1223,7 @@ async function load(){
 // AI
 // ═══════════════════════════════════════════════════════════════════════
 const AI = { enabled: true, gen: true, provider: "groq",
-  groqKey: "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", groqModel: "llama-3.3-70b-versatile",
+  groqKey: "", groqModel: "llama-3.3-70b-versatile",
   geminiKey: "", geminiModel: "gemini-2.5-flash" };
 const aiReady = (async () => {
   try {
@@ -1259,6 +1259,7 @@ async function callAI(prompt, maxTokens = 800, temperature = .5){
     if (!res.ok || d.error) throw new Error("Gemini: " + (d.error?.message || res.status));
     return (d.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join("");
   }
+  if (!AI.groqKey) throw new Error("AI не налаштовано: немає ключа Groq");
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${AI.groqKey}` },
     body: JSON.stringify({ model: AI.groqModel, messages: [{ role: "system", content: UA_SYSTEM }, { role: "user", content: prompt }], max_tokens: maxTokens, temperature })
