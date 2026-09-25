@@ -9,7 +9,7 @@
 //  Що робить:
 //    1) Перевіряє auth: якщо немає sessionStorage.qf_user або це не admin —
 //       редіректить на admin-login.html
-//    2) Інжектує sidebar + topbar (HTML-фрагмент) і підсвічує активний пункт
+//    2) Інжектує topbar + контент; меню (admin-nav.js) лише підсвічує й оновлює
 //    3) Запускає Firebase + експортує `db`, `dbGet`, `dbUpd`, etc.
 //    4) Експортує стан `_user`, _users, _stats, _allAttempts через window
 //    5) Дає утіли: esc, genPass, formatTimeAgo, openModal, closeModal, toast, doLogout
@@ -119,28 +119,12 @@ function getCurrentUser(){
 }
 
 export function doLogout(){
+  try { localStorage.removeItem("qf_admin_user"); } catch {}
   _signOut(_adminAuth);
   location.href = "admin-login";
 }
 
 // ─── Sidebar / Topbar markup ────────────────────────────────────────────────
-
-const NAV_ITEMS = [
-  { sec:"ПАНЕЛЬ", items:[
-    { id:"overview",    icon:"overview", label:"Огляд",            href:"overview" },
-    { id:"teachers",    icon:"teachers", label:"Викладачі",        href:"teachers" },
-    { id:"problems",    icon:"problems",  label:"Проблеми",         href:"problems" },
-    { id:"stats",       icon:"stats",    label:"Статистика",       href:"stats" },
-    { id:"news",        icon:"news",     label:"Новини",           href:"news" },
-    { id:"navigation",  icon:"menu",     label:"Навігація",        href:"navigation" },
-    { id:"ai",          icon:"ai",       label:"AI Налаштування",  href:"ai-settings" },
-    { id:"ai",          icon:"ai",       label:"TELEGRAM",  href:"telegram" },
-  ]},
-  { sec:"АКАУНТ", items:[
-    { id:"dashboard", icon:"dashboard", label:"Дашборд викладача", href:"../" },
-    { id:"logout",    icon:"logout",    label:"Вийти",            href:"#", onClick:"doLogout" },
-  ]}
-];
 
 const ICONS = {
   overview:  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
@@ -158,50 +142,16 @@ const ICONS = {
   help:      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 4"/><circle cx="12" cy="17" r=".9" fill="currentColor"/></svg>',
 };
 
-function renderSidebar(activeId, user){
-  const initials = (user.name || user.login || "?").slice(0, 2).toUpperCase();
-  return `
-  <aside class="sidebar">
-    <div class="sb-brand">
-      <div class="sb-brand-mark">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 7h11a4 4 0 0 1 4 4v1"/>
-          <path d="M20 17H9a4 4 0 0 1-4-4v-1"/>
-          <circle cx="5" cy="7" r="1.3" fill="#fff"/>
-          <circle cx="19" cy="17" r="1.3" fill="#fff"/>
-        </svg>
-      </div>
-      <div>
-        <div class="sb-brand-name">quiz<em>flow</em></div>
-        <div class="sb-admin-tag">Admin</div>
-      </div>
-    </div>
-
-    ${NAV_ITEMS.map(sec => `
-      <div class="sb-section">
-        <div class="sb-section-label">${sec.sec}</div>
-        ${sec.items.map(it => {
-          const onClick = it.onClick ? `onclick="window.${it.onClick}(); return false;"` : "";
-          return `<a href="${it.href}" ${onClick} class="sb-item${activeId === it.id ? " on" : ""}">
-            <span class="ico">${ICONS[it.icon] || ""}</span>
-            <span class="lbl">${it.label}</span>
-            ${it.id === "problems" ? `<span class="sb-badge" id="admin-problems-badge" style="display:none;background:#EF4444;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:999px;margin-left:auto;font-family:'Geist Mono',monospace"></span>` : ""}
-          </a>`;
-        }).join("")}
-      </div>
-    `).join("")}
-
-    <div class="sb-spacer"></div>
-
-    <div class="sb-user">
-      <div class="sb-avatar">${esc(initials)}</div>
-      <div style="flex:1; min-width:0">
-        <div class="sb-user-name">${esc(user.name || user.login)}</div>
-        <div class="sb-user-role">Адміністратор</div>
-      </div>
-      <span class="ico" style="color:#7889B5">${ICONS.chevron}</span>
-    </div>
-  </aside>`;
+// Меню малює admin-nav.js синхронно ще до Firebase (тому воно не зникає між
+// сторінками). Якщо сторінка його не підключила — довантажуємо тут.
+function ensureAdminNav(){
+  if (window.AdminNav) return Promise.resolve();
+  return new Promise(res => {
+    const s = document.createElement("script");
+    s.src = new URL("./admin-nav.js?v=1", import.meta.url).href;
+    s.onload = s.onerror = () => res();
+    document.head.appendChild(s);
+  });
 }
 
 function renderTopbar(crumbs){
@@ -273,9 +223,13 @@ export async function initAdminShell({ activeId, crumbs, content, topbarRight })
     return null;
   }
 
+  await ensureAdminNav();
+  window.AdminNav?.ensure();
+  window.AdminNav?.setActive(activeId);
+  window.AdminNav?.setUser(_user);
+
   root.innerHTML = `
     <div class="app">
-      ${renderSidebar(activeId, _user)}
       <main class="main">
         ${renderTopbar(crumbs || [activeId])}
         <div class="content" id="admin-content">${content || ""}</div>
@@ -307,13 +261,10 @@ export async function initAdminShell({ activeId, crumbs, content, topbarRight })
   // Realtime badge для нових проблем
   const { onValue, ref: dbRef } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
   onValue(dbRef(db, "bugReports"), snap => {
-    const badge = document.getElementById("admin-problems-badge");
-    if (!badge) return;
     const newCount = snap.exists()
       ? Object.values(snap.val()).filter(p => p.status === "new").length
       : 0;
-    badge.textContent = newCount || "";
-    badge.style.display = newCount ? "" : "none";
+    window.AdminNav?.setBadge(newCount);
   });
 
   return { _user };

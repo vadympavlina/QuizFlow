@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=1">
+<link rel="stylesheet" href="shared/admin-shell.css?v=2">
 <style>
 /* Layout */
 .row-2{display:grid; grid-template-columns:1fr 1fr; gap:14px}
@@ -143,12 +143,13 @@
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
+<script src="shared/admin-nav.js?v=1"></script>
 <div id="admin-root"></div>
 <div id="admin-modals"></div>
 <div id="admin-toast" class="toast"></div>
 
 <script type="module">
-import { initAdminShell, dbGet, dbUpd, toast, hideLoader } from "./shared/admin-shell.js?v=2";
+import { initAdminShell, dbGet, dbUpd, toast, hideLoader } from "./shared/admin-shell.js?v=3";
 
 const content = `
 

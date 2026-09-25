@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=1">
+<link rel="stylesheet" href="shared/admin-shell.css?v=2">
 <style>
 /* ─── Page-specific styles for telegram ─── */
 
@@ -117,10 +117,11 @@
 </head>
 <body>
 
+<script src="shared/admin-nav.js?v=1"></script>
 <div id="admin-root"></div>
 
 <script type="module">
-import { initAdminShell, dbGet, dbSet, dbUpd, dbRemove, db, ref as fbR, toast, hideLoader } from "./shared/admin-shell.js?v=2";
+import { initAdminShell, dbGet, dbSet, dbUpd, dbRemove, db, ref as fbR, toast, hideLoader } from "./shared/admin-shell.js?v=3";
 import { push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const content = `
