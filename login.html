@@ -141,6 +141,14 @@
   }
   #toast.show { opacity:1; }
 
+  /* Відновлення пароля */
+  .back-link{display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:0;margin-bottom:22px;font:inherit;font-size:13px;font-weight:600;color:var(--ink-500);cursor:pointer}
+  .back-link:hover{color:var(--ink-900)}
+  .sent-ico{width:60px;height:60px;border-radius:16px;display:grid;place-items:center;margin-bottom:18px;color:#1E40AF;background:linear-gradient(135deg,#DBEAFE,#BFDBFE)}
+  .tips{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:12.5px;color:var(--ink-500);line-height:1.7;margin-bottom:20px}
+  .submit.ghost{background:#fff;color:var(--nav-600);border:1px solid var(--line-strong);box-shadow:none}
+  .submit.ghost:hover:not(:disabled){background:var(--bg)}
+  .notice-ok{background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.25);border-radius:10px;padding:11px 14px;margin-bottom:18px;font-size:13px;color:#15803D;line-height:1.5}
   /* Global loader (поверх усього при перевірці сесії) */
   #globalLoader {
     position:fixed; inset:0; z-index:200;
@@ -243,7 +251,7 @@
       </div>
 
       <div class="field">
-        <label class="split">Пароль <a class="link" style="font-weight:500;font-size:12px" onclick="showForgotToast()">Забули?</a></label>
+        <label class="split">Пароль <a class="link" style="font-weight:500;font-size:12px" href="#forgot" onclick="showView('forgot');return false">Забули пароль?</a></label>
         <div class="input-wrap">
           <span class="ico">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
@@ -267,6 +275,43 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
       </button>
     </form>
+  </div>
+
+  <!-- ─── ВІДНОВЛЕННЯ ПАРОЛЯ ─── -->
+  <div class="form-inner" id="forgotForm" style="display:none">
+    <button type="button" class="back-link" onclick="showView('login')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Назад до входу
+    </button>
+    <div id="forgotAsk">
+      <h2>Відновлення пароля</h2>
+      <p class="sub">Вкажіть email акаунта — надішлемо посилання, за яким можна встановити новий пароль.</p>
+      <form onsubmit="doForgot();return false" novalidate>
+        <div class="field">
+          <label for="forgotEmail">Email</label>
+          <div class="input-wrap">
+            <span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>
+            <input id="forgotEmail" type="email" placeholder="Введіть email" autocomplete="email" autocapitalize="none"/>
+          </div>
+        </div>
+        <div class="error-msg" id="forgotErr">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span id="forgotErrText"></span>
+        </div>
+        <button type="submit" class="submit" id="forgotBtn"><span id="forgotBtnText">Надіслати посилання</span></button>
+      </form>
+    </div>
+    <div id="forgotSent" style="display:none">
+      <div class="sent-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></div>
+      <h2>Перевірте пошту</h2>
+      <p class="sub">Якщо акаунт <b id="sentTo"></b> існує, на нього надійшов лист із посиланням для зміни пароля. Посилання діє 1 годину.</p>
+      <div class="tips">
+        <div>• Не бачите листа? Перевірте папки «Спам» і «Промоакції».</div>
+        <div>• Лист приходить протягом кількох хвилин.</div>
+      </div>
+      <button type="button" class="submit ghost" id="resendBtn" onclick="doForgot(true)">Надіслати ще раз</button>
+      <button type="button" class="submit" style="margin-top:10px" onclick="showView('login')">Повернутися до входу</button>
+    </div>
   </div>
 
   <!-- ─── ФОРМА ЗМІНИ ПАРОЛЯ (перший вхід) ─── -->
@@ -322,13 +367,13 @@
 
 </section>
 
-<!-- Toast (заглушка для "Забули пароль") -->
+<!-- Toast -->
 <div id="toast"></div>
 
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",
@@ -362,8 +407,81 @@ onAuthStateChanged(auth, async (fbUser) => {
 
 function showLoginForm(){
   document.getElementById("globalLoader").style.display = "none";
-  document.getElementById("loginForm").style.display = "";
-  setTimeout(()=> document.getElementById("loginInput")?.focus(), 50);
+  const qs = new URLSearchParams(location.search);
+  // Прийшли зі сторінки зміни пароля — підставляємо email і показуємо підтвердження
+  if (qs.get("email")) document.getElementById("loginInput").value = qs.get("email");
+  if (qs.get("reset") === "1" && !document.getElementById("resetOk")){
+    const n = document.createElement("div");
+    n.className = "notice-ok"; n.id = "resetOk";
+    n.textContent = "Пароль змінено. Увійдіть з новим паролем.";
+    document.querySelector("#loginForm .sub").after(n);
+  }
+  showView(location.hash === "#forgot" ? "forgot" : "login");
+}
+
+// Перемикання між входом і відновленням пароля
+window.showView = (v) => {
+  document.getElementById("loginForm").style.display = v === "login" ? "" : "none";
+  document.getElementById("forgotForm").style.display = v === "forgot" ? "" : "none";
+  if (v === "forgot"){
+    history.replaceState(null, "", location.pathname + location.search + "#forgot");
+    document.getElementById("forgotAsk").style.display = "";
+    document.getElementById("forgotSent").style.display = "none";
+    const fe = document.getElementById("forgotEmail");
+    if (!fe.value) fe.value = document.getElementById("loginInput").value.trim();
+    setTimeout(() => fe.focus(), 50);
+  } else {
+    history.replaceState(null, "", location.pathname + location.search);
+    setTimeout(() => document.getElementById(document.getElementById("loginInput").value ? "passInput" : "loginInput")?.focus(), 50);
+  }
+};
+
+// ─── Відновлення пароля (лист надсилає Firebase Auth; відправник і шаблон
+//     налаштовуються в Firebase Console — див. docs/email-setup.md) ────────────
+let _resendTimer = null;
+window.doForgot = async (again) => {
+  const email = document.getElementById("forgotEmail").value.trim();
+  const err = document.getElementById("forgotErr"), errT = document.getElementById("forgotErrText");
+  const fail = m => { errT.textContent = m; err.classList.add("show"); };
+  err.classList.remove("show");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail("Вкажіть коректний email");
+  const btn = document.getElementById(again ? "resendBtn" : "forgotBtn");
+  btn.disabled = true;
+  if (!again) document.getElementById("forgotBtnText").textContent = "Надсилаємо…";
+  try {
+    auth.languageCode = "uk";
+    await sendPasswordResetEmail(auth, email, { url: location.origin + "/login?email=" + encodeURIComponent(email) });
+  } catch (e) {
+    // Не розкриваємо, чи існує акаунт: "user-not-found" показуємо як успіх
+    if (e.code !== "auth/user-not-found"){
+      btn.disabled = false;
+      document.getElementById("forgotBtnText").textContent = "Надіслати посилання";
+      const m = e.code === "auth/invalid-email" ? "Невірний формат email"
+        : e.code === "auth/too-many-requests" ? "Забагато запитів. Спробуйте за кілька хвилин"
+        : e.code === "auth/network-request-failed" ? "Немає з'єднання з інтернетом"
+        : "Не вдалося надіслати лист: " + e.message;
+      if (again){ toastMsg(m); return; }
+      return fail(m);
+    }
+  }
+  document.getElementById("forgotBtnText").textContent = "Надіслати посилання";
+  document.getElementById("forgotBtn").disabled = false;
+  document.getElementById("sentTo").textContent = email;
+  document.getElementById("forgotAsk").style.display = "none";
+  document.getElementById("forgotSent").style.display = "";
+  if (again) toastMsg("Лист надіслано ще раз");
+  // Повторна відправка — не частіше ніж раз на 60 с
+  const rb = document.getElementById("resendBtn");
+  let left = 60; rb.disabled = true; rb.textContent = `Надіслати ще раз (${left} с)`;
+  clearInterval(_resendTimer);
+  _resendTimer = setInterval(() => {
+    left--; rb.textContent = left > 0 ? `Надіслати ще раз (${left} с)` : "Надіслати ще раз";
+    if (left <= 0){ clearInterval(_resendTimer); rb.disabled = false; }
+  }, 1000);
+};
+function toastMsg(m){
+  const t = document.getElementById("toast"); t.textContent = m; t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 3000);
 }
 
 // ─── Логін через Firebase Auth ────────────────────────────────────────────────
@@ -407,7 +525,6 @@ window.togglePassField = (id) => {
   const inp = document.getElementById(id);
   if(inp) inp.type = inp.type === "password" ? "text" : "password";
 };
-window.showForgotToast = () => {};
 </script>
 </body>
 </html>
