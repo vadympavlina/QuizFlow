@@ -8,266 +8,170 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=3">
+<link rel="stylesheet" href="shared/admin-shell.css?v=4">
 <style>
-/* ── Layout ── */
-.nav-layout{display:grid; grid-template-columns:1fr 360px; gap:16px; align-items:flex-start}
-@media(max-width:1200px){.nav-layout{grid-template-columns:1fr}}
+.nav-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+@media (max-width:1240px){.nav-layout{grid-template-columns:1fr}.pv-card{position:static!important}}
 
-/* ── Section block ── */
-.ns-block{
-  background:#fff; border:1px solid var(--line); border-radius:16px;
-  margin-bottom:12px; overflow:visible;
-}
-.ns-head{
-  display:flex; align-items:center; gap:10px;
-  padding:12px 14px; border-bottom:1px solid var(--line);
-  background:#FAFBFE; border-radius:16px 16px 0 0;
-}
-.ns-head .drag-sec{
-  cursor:grab; color:var(--ink-400); display:grid; place-items:center;
-  padding:2px;
-}
-.ns-head .drag-sec:active{cursor:grabbing}
-.ns-head input.sec-name{
-  flex:1; border:0; background:transparent; font:inherit;
-  font-size:13.5px; font-weight:700; color:var(--ink-900); outline:none;
-  font-family:"Manrope",sans-serif;
-}
-.ns-head input.sec-name:focus{
-  background:#fff; border:1.5px solid #7C3AED; border-radius:7px;
-  padding:3px 8px; margin:-3px -8px;
-  box-shadow:0 0 0 3px rgba(124,58,237,.1);
-}
-.ns-head .sec-actions{display:flex; align-items:center; gap:4px; margin-left:auto}
-.ns-head .sec-btn{
-  width:28px; height:28px; border-radius:7px;
-  border:1px solid var(--line); background:#fff;
-  color:var(--ink-500); cursor:pointer;
-  display:grid; place-items:center; padding:0;
-  transition:all .12s;
-}
-.ns-head .sec-btn:hover{background:#F4F6FB; border-color:var(--line-strong); color:var(--ink-700)}
-.ns-head .sec-btn.danger:hover{background:#FEE2E2; border-color:#FCA5A5; color:#B91C1C}
-.ns-head .sec-btn svg{width:13px; height:13px}
+/* Сторінки поза меню */
+.missing{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fff;border:1px dashed var(--line-strong);border-radius:14px;padding:10px 12px;margin-bottom:12px}
+.missing .l{font-size:12px;font-weight:700;color:var(--ink-500);margin-right:2px}
+.chip-add{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#FAFBFE;border-radius:999px;padding:5px 11px 5px 8px;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink-700);cursor:pointer;transition:all .15s}
+.chip-add:hover{border-color:#A78BFA;background:#F5F3FF;color:#6D28D9}
+.chip-add svg{width:14px;height:14px}
 
-/* ── Nav items in section ── */
-.ns-items{padding:6px; display:flex; flex-direction:column; gap:4px; min-height:50px}
-.ns-items.drag-over{background:rgba(124,58,237,.04); border-radius:0 0 12px 12px}
+/* Секції */
+.sec{background:#fff;border:1px solid var(--line);border-radius:16px;margin-bottom:12px;transition:box-shadow .15s,border-color .15s}
+.sec.drop{border-color:#A78BFA;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+.sec.dragging{opacity:.5}
+.sec-h{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);background:#FAFBFE;border-radius:16px 16px 0 0}
+.sec.folded .sec-h{border-bottom:0;border-radius:16px}
+.handle{cursor:grab;color:var(--ink-300);display:grid;place-items:center;width:22px;height:28px;border-radius:6px;flex:0 0 auto}
+.handle:hover{color:var(--ink-500);background:#EEF2FB}
+.handle:active{cursor:grabbing}
+.handle svg{width:14px;height:14px}
+.fold{width:26px;height:26px;border:0;background:transparent;border-radius:7px;color:var(--ink-400);cursor:pointer;display:grid;place-items:center;flex:0 0 auto}
+.fold:hover{background:#EEF2FB;color:var(--ink-700)}
+.fold svg{width:14px;height:14px;transition:transform .2s}
+.sec.folded .fold svg{transform:rotate(-90deg)}
+.sec-name{flex:1;min-width:0;border:1.5px solid transparent;background:transparent;font:inherit;font-size:14px;font-weight:800;color:var(--ink-900);outline:none;padding:4px 8px;border-radius:8px;letter-spacing:-.01em}
+.sec-name:hover{border-color:var(--line)}
+.sec-name:focus{background:#fff;border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.sec-cnt{font-size:11px;font-family:"Geist Mono",monospace;color:var(--ink-400);background:#EEF2FB;padding:2px 7px;border-radius:999px;flex:0 0 auto}
+.ib{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--ink-500);cursor:pointer;display:grid;place-items:center;padding:0;flex:0 0 auto;transition:all .12s}
+.ib:hover:not(:disabled){background:#F4F6FB;border-color:var(--line-strong);color:var(--ink-900)}
+.ib.danger:hover:not(:disabled){background:#FEE2E2;border-color:#FCA5A5;color:#B91C1C}
+.ib:disabled{opacity:.35;cursor:not-allowed}
+.ib svg{width:14px;height:14px}
+.ib:focus-visible,.fold:focus-visible,.handle:focus-visible{outline:2px solid #7C3AED;outline-offset:1px}
+.sec-body{padding:6px;display:flex;flex-direction:column;gap:4px}
+.sec.folded .sec-body{display:none}
+.sec-empty{padding:16px;text-align:center;font-size:12.5px;color:var(--ink-400);border:1.5px dashed var(--line);border-radius:10px}
 
-.ni-row{
-  display:flex; align-items:center; gap:10px;
-  padding:9px 10px; border-radius:10px;
-  border:1.5px solid var(--line); background:#fff;
-  transition:all .15s; position:relative;
-}
-.ni-row:hover{border-color:var(--line-strong)}
-.ni-row.dragging{opacity:.4}
-.ni-row.drag-target{border-color:#7C3AED; background:#F5F3FF}
-.ni-row.protected{background:linear-gradient(135deg, rgba(124,58,237,.04), #fff)}
+/* Пункти */
+.it{display:grid;grid-template-columns:22px 38px minmax(120px,1fr) minmax(150px,200px) 116px 40px 30px;align-items:center;gap:8px;padding:7px 8px;border-radius:12px;border:1.5px solid transparent;background:#fff;transition:background .12s,border-color .12s}
+.it:hover{background:#FAFBFE;border-color:var(--line)}
+.it.off .i-ico,.it.off .i-name{opacity:.45}
+.it.dragging{opacity:.4}
+.it.drop-before{box-shadow:inset 0 3px 0 -1px #7C3AED}
+.it.drop-after{box-shadow:inset 0 -3px 0 -1px #7C3AED}
+.it.err{border-color:#FCA5A5;background:#FFF7F7}
+.it.flash{animation:itFlash 1.2s ease}
+@keyframes itFlash{0%,40%{background:#F5F3FF;border-color:#C4B5FD}100%{}}
+.i-ico{width:38px;height:38px;border-radius:10px;border:1.5px solid var(--line);background:#FAFBFE;display:grid;place-items:center;cursor:pointer;color:var(--ink-700);transition:all .15s;padding:0}
+.i-ico:hover{border-color:#7C3AED;background:#F5F3FF;color:#6D28D9}
+.i-ico svg{width:17px;height:17px}
+.i-name{width:100%;border:1.5px solid transparent;background:transparent;font:inherit;font-size:13.5px;font-weight:700;color:var(--ink-900);outline:none;padding:6px 8px;border-radius:8px}
+.i-name:hover{border-color:var(--line)}
+.i-name:focus{background:#fff;border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.i-page{display:flex;flex-direction:column;gap:4px;min-width:0}
+.i-page select,.i-page input{width:100%;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit;font-size:12.5px;color:var(--ink-700);background:#FAFBFE;outline:none;min-width:0}
+.i-page input{font-family:"Geist Mono",monospace;font-size:12px}
+.i-page select:focus,.i-page input:focus{border-color:#7C3AED;background:#fff}
+.i-page .locked{font-size:12px;color:var(--ink-500);display:flex;align-items:center;gap:6px;padding:6px 2px}
+.i-page .locked svg{width:12px;height:12px;color:#6D28D9}
+.i-roles{justify-content:center;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--ink-500);font:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s}
+.i-roles:hover:not(:disabled){border-color:#A78BFA;color:#6D28D9;background:#F5F3FF}
+.i-roles.restricted{border-color:#C4B5FD;background:#F5F3FF;color:#6D28D9}
+.i-roles:disabled{opacity:.4;cursor:not-allowed}
+.i-roles svg{width:13px;height:13px}
+.dots{display:inline-flex}
+.dots i{width:9px;height:9px;border-radius:50%;border:1.5px solid #fff;margin-left:-3px}
+.dots i:first-child{margin-left:0}
+.i-err{grid-column:3 / -1;font-size:11.5px;color:#B91C1C;font-weight:600;margin-top:-2px;padding-left:8px}
 
-.ni-drag{
-  cursor:grab; color:var(--ink-300);
-  display:grid; place-items:center; padding:2px; flex:0 0 auto;
-}
-.ni-drag:active{cursor:grabbing}
-.ni-drag svg{width:13px; height:13px}
+.tgl{position:relative;display:inline-block;width:38px;height:22px}
+.tgl input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer;z-index:1}
+.tgl span{position:absolute;inset:0;background:#DDE3EE;border-radius:99px;transition:background .18s}
+.tgl span::before{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .18s}
+.tgl input:checked + span{background:linear-gradient(135deg,#7C3AED,#4F46E5)}
+.tgl input:checked + span::before{transform:translateX(16px)}
+.tgl input:disabled{cursor:not-allowed}
+.tgl input:disabled + span{opacity:.5}
+.tgl input:focus-visible + span{box-shadow:0 0 0 3px rgba(124,58,237,.25)}
 
-.ni-icon-pick{
-  width:36px; height:36px; border-radius:9px; flex:0 0 auto;
-  border:1.5px solid var(--line); background:#FAFBFE;
-  display:grid; place-items:center; cursor:pointer;
-  transition:all .15s; color:var(--ink-700);
-  position:relative;
-}
-.ni-icon-pick:hover{border-color:#7C3AED; background:#F5F3FF; color:#6D28D9}
-.ni-icon-pick svg{width:16px; height:16px}
+.add-it{margin:2px;padding:8px;border-radius:10px;border:1.5px dashed var(--line);background:transparent;color:var(--ink-500);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
+.add-it:hover{border-color:#A78BFA;background:#F5F3FF;color:#6D28D9}
+.add-it svg{width:13px;height:13px}
+.add-sec{width:100%;padding:12px;border-radius:14px;border:1.5px dashed var(--line-strong);background:#fff;color:var(--ink-500);font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .15s}
+.add-sec:hover{border-color:#A78BFA;background:#F5F3FF;color:#6D28D9}
+.add-sec svg{width:14px;height:14px}
+.kbd-hint{font-size:11.5px;color:var(--ink-400);margin-top:10px;text-align:center}
+.kbd-hint kbd{font-family:"Geist Mono",monospace;font-size:10.5px;background:#F1F4FA;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 5px}
 
-.ni-name{
-  flex:1; border:0; background:transparent; font:inherit;
-  font-size:13.5px; font-weight:600; color:var(--ink-900); outline:none;
-  font-family:"Manrope",sans-serif;
-}
-.ni-name:focus{
-  background:#fff; border:1.5px solid #7C3AED; border-radius:7px;
-  padding:3px 8px; margin:-3px -8px;
-  box-shadow:0 0 0 3px rgba(124,58,237,.1);
-}
+/* Меню дій (портал) */
+.pop{position:fixed;z-index:170;min-width:210px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 40px -12px rgba(15,30,71,.28);padding:6px;display:flex;flex-direction:column;animation:popIn .14s ease}
+@keyframes popIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.pop button{display:flex;align-items:center;gap:10px;padding:8px 10px;border:0;background:transparent;border-radius:8px;font:inherit;font-size:13px;font-weight:600;color:var(--ink-700);cursor:pointer;text-align:left}
+.pop button:hover:not(:disabled),.pop button:focus-visible{background:#F4F6FB;color:var(--ink-900);outline:none}
+.pop button:disabled{opacity:.4;cursor:not-allowed}
+.pop button svg{width:15px;height:15px;color:var(--ink-400);flex:0 0 auto}
+.pop button.danger{color:#B91C1C}.pop button.danger svg{color:#DC2626}
+.pop button.danger:hover{background:#FEF2F2}
+.pop hr{border:0;border-top:1px solid var(--line);margin:5px 4px}
 
-.ni-file{
-  width:130px; border:1px solid var(--line); border-radius:8px;
-  padding:5px 9px; font:inherit; font-size:12px; font-family:"Geist Mono",monospace;
-  color:var(--ink-700); outline:none; background:#FAFBFE;
-  transition:all .15s;
-}
-.ni-file:focus{border-color:#7C3AED; box-shadow:0 0 0 2px rgba(124,58,237,.1); background:#fff}
+/* Попередній перегляд — як справжній sidebar */
+.pv-card{position:sticky;top:82px;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.pv-h{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.pv-h h3{margin:0;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:space-between}
+.pv-h select{border:1px solid var(--line);border-radius:9px;padding:7px 10px;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink-700);background:#FAFBFE;outline:none}
+.pv-h select:focus{border-color:#7C3AED}
+.pv-mode{display:inline-flex;background:#F1F4FA;border-radius:8px;padding:2px}
+.pv-mode button{border:0;background:transparent;font:inherit;font-size:11.5px;font-weight:700;color:var(--ink-500);padding:4px 8px;border-radius:6px;cursor:pointer}
+.pv-mode button.on{background:#fff;color:var(--ink-900);box-shadow:0 1px 2px rgba(15,30,71,.12)}
+.pv-stage{padding:14px;background:#EEF2F9;display:flex;justify-content:center}
+.pv-sb{width:236px;border-radius:18px;padding:12px 10px;color:rgba(226,232,255,.66);font-family:"Manrope",sans-serif;transition:width .25s;
+  background:radial-gradient(120% 60% at 0% 0%,rgba(91,140,255,.22) 0%,transparent 55%),linear-gradient(180deg,#0C1540 0%,#0A1030 55%,#080C26 100%);
+  box-shadow:0 18px 36px -18px rgba(8,12,38,.6)}
+.pv-sb.c{width:64px;padding:12px 8px}
+.pv-brand{display:flex;align-items:center;gap:9px;padding:2px 4px 10px}
+.pv-mark{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(140deg,#6E9BFF,#3B6BF6 45%,#2447C9);flex:0 0 auto}
+.pv-name{font-weight:800;font-size:15px;color:#fff}
+.pv-name em{font-style:normal;color:#A5C1FF}
+.pv-sb.c .pv-brand{justify-content:center;padding:2px 0 10px}
+.pv-sb.c .pv-name,.pv-sb.c .pv-lbl,.pv-sb.c .pv-sec span{display:none}
+.pv-sec{display:flex;align-items:center;gap:6px;height:22px;padding:0 10px;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(226,232,255,.26);margin-top:4px}
+.pv-sec::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.07)}
+.pv-sb.c .pv-sec{justify-content:center;padding:0}
+.pv-sb.c .pv-sec::after{flex:0 0 18px}
+.pv-it{display:flex;align-items:center;gap:10px;height:34px;padding:0 10px;border-radius:10px;font-size:12.5px;font-weight:600;cursor:pointer}
+.pv-it:hover{background:rgba(255,255,255,.06);color:#fff}
+.pv-it svg{width:16px;height:16px;flex:0 0 auto}
+.pv-it .pv-lbl{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv-it.first{background:linear-gradient(135deg,rgba(91,140,255,.95),rgba(59,107,246,.95));color:#fff}
+.pv-it.hid{opacity:.28;text-decoration:line-through}
+.pv-sb.c .pv-it{justify-content:center;padding:0}
+.pv-lock{width:12px!important;height:12px!important;opacity:.6}
+.pv-sb.c .pv-lock{display:none}
+.pv-empty{font-size:12px;color:rgba(226,232,255,.4);text-align:center;padding:14px 4px}
+.pv-legend{padding:10px 14px;font-size:11.5px;color:var(--ink-500);border-top:1px solid var(--line);line-height:1.5}
 
-.ni-toggle{position:relative; display:inline-block; width:36px; height:20px; flex:0 0 auto}
-.ni-toggle input{display:none}
-.ni-toggle-sl{
-  position:absolute; inset:0; cursor:pointer;
-  background:#E3E8F2; border-radius:99px; transition:background .18s;
-}
-.ni-toggle-sl::before{
-  content:""; position:absolute; top:2px; left:2px;
-  width:16px; height:16px; border-radius:50%; background:#fff;
-  box-shadow:0 1px 3px rgba(0,0,0,.18); transition:transform .18s;
-}
-.ni-toggle input:checked + .ni-toggle-sl{background:linear-gradient(135deg, #7C3AED, #4F46E5)}
-.ni-toggle input:checked + .ni-toggle-sl::before{transform:translateX(16px)}
-.ni-toggle input:disabled + .ni-toggle-sl{opacity:.5; cursor:not-allowed}
+/* Іконки */
+.icon-cats{display:flex;gap:4px;flex-wrap:wrap}
+.icon-cat{padding:5px 11px;border-radius:8px;border:1px solid var(--line);background:#fff;font:inherit;font-size:12px;font-weight:700;color:var(--ink-500);cursor:pointer}
+.icon-cat.on{background:#7C3AED;border-color:#7C3AED;color:#fff}
+.icon-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.icon-opt{aspect-ratio:1;border-radius:10px;border:1.5px solid transparent;background:#F7F8FC;display:grid;place-items:center;cursor:pointer;color:var(--ink-700);transition:all .12s}
+.icon-opt:hover{border-color:var(--line-strong);background:#EDE9FE;color:#6D28D9}
+.icon-opt.on{border-color:#7C3AED;background:#EDE9FE;color:#6D28D9}
+.icon-opt:focus-visible{outline:2px solid #7C3AED;outline-offset:1px}
+.icon-opt svg{width:19px;height:19px}
+.role-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--ink-900)}
+.role-row:hover{background:#FAFBFE}
+.role-row input{width:16px;height:16px;accent-color:#7C3AED}
+.role-dot{width:10px;height:10px;border-radius:50%}
+.hint-box{font-size:12px;color:var(--ink-500);line-height:1.5;background:#F7F8FC;border-radius:10px;padding:9px 11px}
 
-.ni-del{
-  width:28px; height:28px; border-radius:7px;
-  border:1px solid var(--line); background:#fff;
-  color:var(--ink-400); cursor:pointer;
-  display:grid; place-items:center; padding:0; flex:0 0 auto;
-  transition:all .12s;
-}
-.ni-del:hover:not(:disabled){background:#FEE2E2; border-color:#FCA5A5; color:#B91C1C}
-.ni-del:disabled{opacity:.3; cursor:not-allowed}
-.ni-del svg{width:13px; height:13px}
-
-.ni-protected-tag{
-  font-size:10px; color:#6D28D9; font-weight:700; letter-spacing:.04em;
-  background:#EDE9FE; padding:2px 6px; border-radius:4px;
-  text-transform:uppercase;
-}
-
-.ni-roles-btn{
-  display:flex; align-items:center; gap:5px; flex:0 0 auto;
-  height:30px; padding:0 9px; border-radius:8px;
-  border:1.5px solid var(--line); background:#FAFBFE; color:var(--ink-500);
-  font:inherit; font-size:11.5px; font-weight:700; cursor:pointer;
-  transition:all .15s;
-}
-.ni-roles-btn:hover:not(:disabled){border-color:#7C3AED; background:#F5F3FF; color:#6D28D9}
-.ni-roles-btn:disabled{opacity:.35; cursor:not-allowed}
-.ni-roles-btn svg{width:13px; height:13px; flex:0 0 auto}
-.ni-roles-btn.restricted{border-color:#7C3AED; background:#F5F3FF; color:#6D28D9}
-.ni-roles-dots{display:flex; gap:2px}
-.ni-roles-dots i{width:7px; height:7px; border-radius:50%; display:block}
-
-.role-pick-list{padding:14px 16px; display:flex; flex-direction:column; gap:2px; max-height:320px; overflow-y:auto}
-.role-pick-row{
-  display:flex; align-items:center; gap:10px; padding:9px 8px; border-radius:9px; cursor:pointer;
-  font-size:13.5px; font-weight:600; color:var(--ink-900); transition:background .12s;
-}
-.role-pick-row:hover{background:#FAFBFE}
-.role-pick-row input{width:16px; height:16px; accent-color:#7C3AED; flex:0 0 auto}
-.role-pick-dot{width:9px; height:9px; border-radius:50%; flex:0 0 auto}
-.role-pick-empty{padding:20px 16px; text-align:center; color:var(--ink-500); font-size:12.5px; line-height:1.6}
-.role-pick-empty a{color:#7C3AED; font-weight:700}
-.role-pick-hint{padding:11px 16px; border-top:1px solid var(--line); font-size:11.5px; color:var(--ink-500); line-height:1.5}
-
-/* ── Add item button ── */
-.ns-add-btn{
-  margin:4px 6px 10px;
-  width:calc(100% - 12px);
-  padding:8px; border-radius:9px;
-  border:1.5px dashed var(--line-strong); background:transparent;
-  color:var(--ink-500); font:inherit; font-size:13px; font-weight:600;
-  cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;
-  transition:all .15s; font-family:"Manrope",sans-serif;
-}
-.ns-add-btn:hover{border-color:#7C3AED; background:#F5F3FF; color:#6D28D9}
-.ns-add-btn svg{width:13px; height:13px}
-
-/* ── Add section button ── */
-.add-sec-btn{
-  width:100%; padding:11px; border-radius:12px;
-  border:1.5px dashed var(--line-strong); background:#fff;
-  color:var(--ink-500); font:inherit; font-size:13.5px; font-weight:600;
-  cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px;
-  transition:all .15s; font-family:"Manrope",sans-serif;
-  margin-top:4px;
-}
-.add-sec-btn:hover{border-color:#7C3AED; background:#F5F3FF; color:#6D28D9}
-.add-sec-btn svg{width:14px; height:14px}
-
-/* ── Preview card ── */
-.preview-card{
-  background:#fff; border:1px solid var(--line); border-radius:16px;
-  position:sticky; top:82px;
-}
-.preview-head{padding:14px 16px; border-bottom:1px solid var(--line)}
-.preview-head h3{margin:0; font-size:14px; font-weight:800}
-.preview-head p{margin:4px 0 0; font-size:12px; color:var(--ink-500)}
-
-.sb-preview{
-  background:linear-gradient(180deg, #050817 0%, #0A0F2C 60%, #0E1638 100%);
-  border-radius:0 0 14px 14px;
-  padding:12px 10px;
-  min-height:400px;
-}
-.sbp-brand{display:flex; align-items:center; gap:8px; padding:4px 6px 10px; margin-bottom:6px}
-.sbp-mark{
-  width:28px; height:28px; border-radius:8px;
-  background:linear-gradient(135deg, #7C3AED, #4F46E5);
-  display:grid; place-items:center; flex:0 0 auto;
-}
-.sbp-name{font-size:13px; font-weight:800; color:#fff}
-.sbp-name em{font-style:normal; color:#A78BFA}
-
-.sbp-sec-lbl{
-  font-size:9px; text-transform:uppercase; letter-spacing:.1em;
-  color:#7889B5; font-weight:700; padding:8px 8px 3px;
-}
-.sbp-item{
-  display:flex; align-items:center; gap:7px;
-  padding:7px 8px; border-radius:7px; margin-bottom:1px;
-  color:#C5CDE5; font-size:12px; font-weight:500;
-  transition:background .1s;
-}
-.sbp-item.disabled{opacity:.35}
-.sbp-item svg{width:14px; height:14px; flex:0 0 auto; color:#8895BD}
-
-/* ── Icon picker modal ── */
-.modal-bd{
-  position:fixed; inset:0; z-index:150;
-  background:rgba(11,20,55,.55); backdrop-filter:blur(4px);
-  display:none; align-items:center; justify-content:center; padding:20px;
-}
-.modal-bd.on{display:flex}
-.modal{
-  background:#fff; border-radius:18px; box-shadow:0 18px 40px rgba(11,20,55,.25);
-  width:100%; max-width:560px; max-height:80vh; overflow:auto;
-  display:flex; flex-direction:column;
-}
-.modal-h{
-  display:flex; align-items:center; justify-content:space-between;
-  padding:16px 20px; border-bottom:1px solid var(--line);
-  position:sticky; top:0; background:#fff; z-index:1;
-}
-.modal-h h3{margin:0; font-size:16px; font-weight:800}
-.modal-h .close{
-  width:30px; height:30px; border-radius:7px; border:1px solid var(--line);
-  background:#fff; cursor:pointer; display:grid; place-items:center; color:var(--ink-500);
-}
-.modal-h .close:hover{background:#F4F6FB}
-
-.icon-cats{display:flex; gap:4px; padding:12px 16px; flex-wrap:wrap; border-bottom:1px solid var(--line)}
-.icon-cat-btn{
-  padding:5px 11px; border-radius:7px; border:1px solid var(--line); background:#fff;
-  font:inherit; font-size:12px; font-weight:600; color:var(--ink-500);
-  cursor:pointer; transition:all .12s;
-}
-.icon-cat-btn:hover{border-color:var(--line-strong)}
-.icon-cat-btn.on{background:#7C3AED; border-color:#7C3AED; color:#fff}
-
-.icon-grid{
-  display:grid; grid-template-columns:repeat(8, 1fr); gap:4px;
-  padding:14px 16px;
-}
-.icon-opt{
-  width:100%; aspect-ratio:1; border-radius:9px;
-  border:1.5px solid transparent; background:#FAFBFE;
-  display:grid; place-items:center; cursor:pointer;
-  color:var(--ink-700); transition:all .12s;
-}
-.icon-opt:hover{border-color:var(--line-strong); background:#EDE9FE; color:#6D28D9}
-.icon-opt.selected{border-color:#7C3AED; background:#EDE9FE; color:#6D28D9}
-.icon-opt svg{width:18px; height:18px}
+/* Незбережені зміни */
+.save-bar{position:sticky;bottom:16px;z-index:20;display:flex;align-items:center;gap:12px;padding:12px 14px 12px 18px;border-radius:14px;background:#1A1040;color:#fff;box-shadow:0 18px 40px -12px rgba(20,11,58,.55);transform:translateY(calc(100% + 30px));opacity:0;pointer-events:none;transition:transform .25s cubic-bezier(.32,.72,0,1),opacity .2s;margin-top:14px}
+.save-bar.on{transform:none;opacity:1;pointer-events:auto}
+.save-bar .t{flex:1;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:8px}
+.save-bar .t::before{content:"";width:8px;height:8px;border-radius:50%;background:#FBBF24}
+.save-bar .k{font-size:11.5px;opacity:.6;font-family:"Geist Mono",monospace}
+.save-bar .tb-btn{height:36px}
+.save-bar .tb-btn.ghost{color:#E9E4FF}
+.save-bar .tb-btn.ghost:hover{background:rgba(255,255,255,.1);color:#fff}
+@media (max-width:1320px){.it{grid-template-columns:22px 38px minmax(110px,1fr) minmax(130px,170px) 108px 40px 30px}}
 </style>
 </head>
 <body>
@@ -275,35 +179,39 @@
 <div id="admin-loader"><div class="spin"></div></div>
 <script src="shared/admin-nav.js?v=1"></script>
 <div id="admin-root"></div>
-<div id="admin-modals">
-  <!-- Icon picker -->
-  <div class="modal-bd" id="m-icon-picker">
-    <div class="modal">
-      <div class="modal-h">
-        <h3>Оберіть іконку</h3>
-        <button class="close" id="icon-picker-close"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-      </div>
-      <div class="icon-cats" id="icon-cats"></div>
-      <div class="icon-grid" id="icon-grid"></div>
-    </div>
-  </div>
+<div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
-  <!-- Role picker -->
-  <div class="modal-bd" id="m-role-picker">
-    <div class="modal" style="max-width:360px">
-      <div class="modal-h">
-        <h3>Хто бачить цей пункт?</h3>
-        <button class="close" id="role-picker-close"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-      </div>
-      <div class="role-pick-list" id="role-pick-list"></div>
-      <div class="role-pick-hint">Якщо не обрати жодної ролі — пункт бачать усі викладачі, як і зараз.</div>
-    </div>
+<div class="modal-bd" id="m-icon">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-h"><h3>Іконка пункту</h3>
+      <button class="close" type="button" onclick="closeModal('m-icon')" aria-label="Закрити"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-b"><div class="icon-cats" id="icon-cats"></div><div class="icon-grid" id="icon-grid" role="listbox" aria-label="Іконки"></div></div>
   </div>
 </div>
-<div id="admin-toast" class="toast"></div>
+
+<div class="modal-bd" id="m-roles">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-h"><h3>Хто бачить «<span id="rp-name"></span>»?</h3>
+      <button class="close" type="button" onclick="closeModal('m-roles')" aria-label="Закрити"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-b">
+      <div id="rp-list"></div>
+      <div class="hint-box">Не обрано жодної ролі — пункт бачать усі викладачі. Адміністратори бачать усі пункти завжди.</div>
+    </div>
+    <div class="modal-f"><button class="tb-btn primary" type="button" onclick="closeModal('m-roles')">Готово</button></div>
+  </div>
+</div>
+
+<div class="modal-bd" id="m-confirm">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-h"><h3 id="cf-title">Підтвердіть</h3>
+      <button class="close" type="button" onclick="closeModal('m-confirm')" aria-label="Закрити"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-b"><div id="cf-text" style="font-size:13.5px;color:var(--ink-700);line-height:1.55"></div></div>
+    <div class="modal-f"><button class="tb-btn" type="button" onclick="closeModal('m-confirm')">Скасувати</button><button class="tb-btn danger" type="button" id="cf-ok">Так</button></div>
+  </div>
+</div>
 
 <script type="module">
-import { initAdminShell, dbGet, dbSet, dbUpd, esc, toast, hideLoader } from "./shared/admin-shell.js?v=4";
+import { initAdminShell, dbGet, db, ref, update, esc, toast, openModal, closeModal, hideLoader } from "./shared/admin-shell.js?v=4";
 
 // ─── ІКОНКИ (40 штук, 5 категорій) ────────────────────────────────────────
 const ICON_CATS = {
@@ -380,517 +288,510 @@ const DEFAULT_NAV = [
   ]},
 ];
 
-// ─── State ────────────────────────────────────────────────────────────────
-let navData = [];
-let _iconPickerTarget = null; // { secIdx, itemIdx }
-let _rolePickerTarget = null; // { secIdx, itemIdx }
-let allRoles = {}; // roleId -> {name, color, description}
-let _dragState = null;
-let _activeCat = Object.keys(ICON_CATS)[0];
+// Сторінки панелі викладача: id збігається з data-page, який передає сторінка (для підсвітки)
+const PAGES = [
+  { id: "dashboard", file: "./", label: "Дашборд", icon: "dashboard" },
+  { id: "tests", file: "tests", label: "Тести", icon: "files" },
+  { id: "attempts", file: "attempts", label: "Спроби", icon: "clock" },
+  { id: "links", file: "links", label: "Посилання", icon: "link" },
+  { id: "analytics", file: "analytics", label: "Аналітика", icon: "chart-bar" },
+  { id: "gradebook", file: "gradebook", label: "Журнал", icon: "book" },
+  { id: "students", file: "students", label: "Студенти", icon: "users" },
+  { id: "notifications", file: "notifications", label: "Сповіщення", icon: "bell" },
+  { id: "suspicious", file: "suspicious", label: "Підозрілі", icon: "shield" },
+  { id: "online", file: "online", label: "Онлайн", icon: "live" },
+  { id: "news", file: "news", label: "Новини", icon: "news" },
+  { id: "history", file: "game-history", label: "Історія ігор", icon: "trending" },
+];
+const normFile = f => { const s = String(f || "").trim().replace(/\.html(?=$|[?#])/, ""); return s === "index" || s === "/" || s === "" ? (f ? "./" : "") : s; };
+const pageOf = f => PAGES.find(p => p.file === normFile(f));
+const isExternal = f => /^https?:\/\//i.test(String(f || "").trim());
 
-// ─── Helpers ──────────────────────────────────────────────────────────────
-function svgIcon(iconId, size=16){
-  for (const cat of Object.values(ICON_CATS)){
-    const found = cat.find(i => i.id === iconId);
-    if (found) return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${found.svg}</svg>`;
-  }
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>`;
+const S = (p, w = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const IC = {
+  grip: '<circle cx="9" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.2" fill="currentColor" stroke="none"/>',
+  plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  more: '<circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/>',
+  chev: '<polyline points="6 9 12 15 18 9"/>',
+  up: '<polyline points="18 15 12 9 6 15"/>', down: '<polyline points="6 9 12 15 18 9"/>',
+  trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/>',
+  users: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>',
+  lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>',
+  copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>',
+  move: '<polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/>',
+};
+const ic = (k, s) => S(IC[k]).replace("<svg", `<svg width="${s || 14}" height="${s || 14}"`);
+function svgIcon(id, size = 16){
+  for (const cat of Object.values(ICON_CATS)){ const f = cat.find(i => i.id === id); if (f) return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${f.svg}</svg>`; }
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/></svg>`;
+}
+const clone = o => JSON.parse(JSON.stringify(o));
+const uid = p => p + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+
+// ─── Стан ─────────────────────────────────────────────────────────────────
+let nav = [], saved = [], roles = {};
+let folded = new Set();
+let pvRole = "__all", pvCollapsed = false;
+const dirty = () => JSON.stringify(nav) !== JSON.stringify(saved);
+
+// Нормалізація того, що прийшло з бази (Firebase може віддати об'єкти замість масивів)
+function normalize(data){
+  const arr = Array.isArray(data) ? data : Object.values(data || {});
+  return arr.filter(Boolean).map((s, i) => ({
+    id: s.id || uid("sec"), type: "section", label: s.label || "", order: i,
+    items: (Array.isArray(s.items) ? s.items : Object.values(s.items || {})).filter(Boolean).map(it => {
+      const x = { id: it.id || uid("item"), label: it.label || "", file: it.file || "", icon: it.icon || "file", enabled: it.enabled !== false };
+      if (it.protected) x.protected = true;
+      if (it.badge) x.badge = it.badge;
+      x.roleIds = Array.isArray(it.roleIds) ? it.roleIds.filter(r => roles[r]) : [];
+      return x;
+    }),
+  }));
 }
 
-function deepClone(obj){ return JSON.parse(JSON.stringify(obj)); }
-
-// ─── Icon picker ──────────────────────────────────────────────────────────
-function buildIconPicker(){
-  const catsEl = document.getElementById("icon-cats");
-  const gridEl = document.getElementById("icon-grid");
-
-  function renderCats(){
-    catsEl.innerHTML = Object.keys(ICON_CATS).map(cat =>
-      `<button class="icon-cat-btn${cat===_activeCat?" on":""}" data-cat="${esc(cat)}">${esc(cat)}</button>`
-    ).join("");
-    catsEl.querySelectorAll(".icon-cat-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        _activeCat = btn.dataset.cat;
-        renderCats();
-        renderGrid();
-      });
-    });
-  }
-
-  function renderGrid(){
-    const icons = ICON_CATS[_activeCat] || [];
-    gridEl.innerHTML = icons.map(ic =>
-      `<button class="icon-opt" data-icon="${ic.id}" title="${ic.id}">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ic.svg}</svg>
-      </button>`
-    ).join("");
-    gridEl.querySelectorAll(".icon-opt").forEach(btn => {
-      btn.addEventListener("click", () => {
-        if (!_iconPickerTarget) return;
-        const { secIdx, itemIdx } = _iconPickerTarget;
-        navData[secIdx].items[itemIdx].icon = btn.dataset.icon;
-        _iconPickerTarget = null;
-        document.getElementById("m-icon-picker").classList.remove("on");
-        renderEditor();
-        renderPreview();
-      });
-    });
-  }
-
-  renderCats();
-  renderGrid();
-
-  document.getElementById("icon-picker-close").addEventListener("click", () => {
-    document.getElementById("m-icon-picker").classList.remove("on");
-    _iconPickerTarget = null;
-  });
-  document.getElementById("m-icon-picker").addEventListener("click", e => {
-    if (e.target === document.getElementById("m-icon-picker")){
-      document.getElementById("m-icon-picker").classList.remove("on");
-      _iconPickerTarget = null;
+// ─── Валідація ────────────────────────────────────────────────────────────
+function validate(){
+  const errs = new Map(), seen = new Map();
+  nav.forEach(sec => sec.items.forEach(it => {
+    const e = [];
+    if (!it.label.trim()) e.push("Вкажіть назву");
+    if (!it.protected){
+      const f = it.file.trim();
+      if (!f) e.push("Оберіть сторінку або вкажіть адресу");
+      else if (/^https?:/i.test(f) && !/^https:\/\//i.test(f)) e.push("Зовнішнє посилання має починатись з https://");
+      else if (/\s/.test(f)) e.push("Адреса не може містити пробілів");
     }
-  });
+    const key = normFile(it.file);
+    if (key){ if (seen.has(key)) e.push(`Ця сторінка вже є в меню («${seen.get(key)}»)`); else seen.set(key, it.label || key); }
+    if (e.length) errs.set(it.id, e[0]);
+  }));
+  const secErr = nav.find(s => !s.label.trim());
+  return { errs, secErr };
 }
 
-// ─── Role picker ──────────────────────────────────────────────────────────
-async function loadRoles(){
-  try { allRoles = await dbGet("roles") || {}; }
-  catch(e) { allRoles = {}; }
-}
-
-function buildRolePicker(){
-  document.getElementById("role-picker-close").addEventListener("click", closeRolePicker);
-  document.getElementById("m-role-picker").addEventListener("click", e => {
-    if (e.target === document.getElementById("m-role-picker")) closeRolePicker();
-  });
-}
-
-function closeRolePicker(){
-  document.getElementById("m-role-picker").classList.remove("on");
-  _rolePickerTarget = null;
-  renderEditor();
-  renderPreview();
-}
-
-function renderRolePickList(){
-  const listEl = document.getElementById("role-pick-list");
-  const ids = Object.keys(allRoles).sort((a,b) => (allRoles[a].name||"").localeCompare(allRoles[b].name||"", "uk"));
-  if (!ids.length){
-    listEl.innerHTML = `<div class="role-pick-empty">Ще немає жодної створеної ролі.<br><a href="roles">Створити на сторінці «Ролі»</a></div>`;
-    return;
-  }
-  const { secIdx, itemIdx } = _rolePickerTarget;
-  const current = navData[secIdx].items[itemIdx].roleIds || [];
-  listEl.innerHTML = ids.map(id => {
-    const r = allRoles[id];
-    return `<label class="role-pick-row">
-      <input type="checkbox" value="${id}" ${current.includes(id) ? "checked" : ""}>
-      <span class="role-pick-dot" style="background:${esc(r.color || '#7C3AED')}"></span>
-      <span>${esc(r.name || "—")}</span>
-    </label>`;
-  }).join("");
-  listEl.querySelectorAll('input[type=checkbox]').forEach(cb => {
-    cb.addEventListener("change", () => {
-      const item = navData[secIdx].items[itemIdx];
-      let roleIds = item.roleIds ? [...item.roleIds] : [];
-      if (cb.checked) { if (!roleIds.includes(cb.value)) roleIds.push(cb.value); }
-      else { roleIds = roleIds.filter(id => id !== cb.value); }
-      item.roleIds = roleIds;
-    });
-  });
-}
-
-// ─── Editor render ────────────────────────────────────────────────────────
-function renderEditor(){
-  const container = document.getElementById("nav-editor");
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  navData.forEach((sec, si) => {
-    const block = document.createElement("div");
-    block.className = "ns-block";
-    block.dataset.secIdx = si;
-
-    // Section head
-    const head = document.createElement("div");
-    head.className = "ns-head";
-    head.innerHTML = `
-      <span class="drag-sec" draggable="true" data-drag-type="section" data-sec-idx="${si}">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/></svg>
-      </span>
-      <input class="sec-name" type="text" value="${esc(sec.label)}" placeholder="Назва секції" data-sec-idx="${si}">
-      <div class="sec-actions">
-        <button class="sec-btn" title="Додати пункт" data-add-item="${si}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-        <button class="sec-btn danger" title="Видалити секцію" data-del-sec="${si}" ${navData.length <= 1 ? "disabled" : ""}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>`;
-
-    // Section name edit
-    head.querySelector(".sec-name").addEventListener("input", e => {
-      navData[si].label = e.target.value;
-      renderPreview();
-    });
-    head.querySelector("[data-add-item]").addEventListener("click", () => {
-      navData[si].items.push({
-        id: "item_" + Date.now(),
-        label: "Новий пункт",
-        file: "",
-        icon: "file",
-        enabled: true,
-        roleIds: []
-      });
-      renderEditor();
-      renderPreview();
-    });
-    const delSecBtn = head.querySelector("[data-del-sec]");
-    if (delSecBtn && !delSecBtn.disabled){
-      delSecBtn.addEventListener("click", () => {
-        if (navData[si].items.some(it => it.protected)){
-          toast("Секція містить захищені пункти — видалити неможливо");
-          return;
-        }
-        navData.splice(si, 1);
-        renderEditor();
-        renderPreview();
-      });
-    }
-
-    // Items list
-    const items = document.createElement("div");
-    items.className = "ns-items";
-    items.dataset.secIdx = si;
-
-    sec.items.forEach((item, ii) => {
-      const row = document.createElement("div");
-      row.className = "ni-row" + (item.protected ? " protected" : "");
-      row.dataset.itemIdx = ii;
-      row.dataset.secIdx = si;
-
-      row.innerHTML = `
-        <span class="ni-drag" draggable="true" data-drag-type="item" data-sec-idx="${si}" data-item-idx="${ii}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/></svg>
-        </span>
-        <button class="ni-icon-pick" data-sec-idx="${si}" data-item-idx="${ii}" title="Змінити іконку">
-          ${svgIcon(item.icon)}
-        </button>
-        <input class="ni-name" type="text" value="${esc(item.label)}" placeholder="Назва" data-sec-idx="${si}" data-item-idx="${ii}">
-        <input class="ni-file" type="text" value="${esc(item.file || "")}" placeholder="tests" data-sec-idx="${si}" data-item-idx="${ii}" ${item.protected ? "readonly" : ""}>
-        ${item.protected ? `<span class="ni-protected-tag" title="Завжди відображається">Захищено</span>` : `
-        <button class="ni-roles-btn${(item.roleIds && item.roleIds.length) ? " restricted" : ""}" data-sec-idx="${si}" data-item-idx="${ii}" title="Хто бачить цей пункт">
-          ${(item.roleIds && item.roleIds.length)
-            ? `<span class="ni-roles-dots">${item.roleIds.slice(0,4).map(rid => `<i style="background:${esc(allRoles[rid]?.color || '#7C3AED')}"></i>`).join("")}</span><span>${item.roleIds.length}</span>`
-            : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span>Всі</span>`}
-        </button>`}
-        <label class="ni-toggle" title="${item.enabled ? "Вимкнути" : "Увімкнути"}">
-          <input type="checkbox" ${item.enabled ? "checked" : ""} ${item.protected ? "disabled" : ""} data-sec-idx="${si}" data-item-idx="${ii}">
-          <span class="ni-toggle-sl"></span>
-        </label>
-        <button class="ni-del" title="Видалити" data-sec-idx="${si}" data-item-idx="${ii}" ${item.protected ? "disabled" : ""}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-        </button>`;
-
-      // Icon picker
-      row.querySelector(".ni-icon-pick").addEventListener("click", () => {
-        _iconPickerTarget = { secIdx: si, itemIdx: ii };
-        document.getElementById("m-icon-picker").classList.add("on");
-      });
-
-      // Role picker
-      if (!item.protected){
-        row.querySelector(".ni-roles-btn").addEventListener("click", () => {
-          _rolePickerTarget = { secIdx: si, itemIdx: ii };
-          renderRolePickList();
-          document.getElementById("m-role-picker").classList.add("on");
-        });
-      }
-
-      // Name edit
-      row.querySelector(".ni-name").addEventListener("input", e => {
-        navData[si].items[ii].label = e.target.value;
-        renderPreview();
-      });
-
-      // File edit
-      if (!item.protected){
-        row.querySelector(".ni-file").addEventListener("input", e => {
-          navData[si].items[ii].file = e.target.value.trim();
-        });
-      }
-
-      // Toggle
-      if (!item.protected){
-        row.querySelector("input[type=checkbox]").addEventListener("change", e => {
-          navData[si].items[ii].enabled = e.target.checked;
-          renderPreview();
-        });
-      }
-
-      // Delete
-      if (!item.protected){
-        const delBtn = row.querySelector(".ni-del");
-        delBtn.addEventListener("click", () => {
-          navData[si].items.splice(ii, 1);
-          renderEditor();
-          renderPreview();
-        });
-      }
-
-      items.appendChild(row);
-    });
-
-    block.appendChild(head);
-    block.appendChild(items);
-    container.appendChild(block);
-  });
-
-  // Add section button
-  const addSecBtn = document.createElement("button");
-  addSecBtn.className = "add-sec-btn";
-  addSecBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Додати секцію`;
-  addSecBtn.addEventListener("click", () => {
-    navData.push({
-      id: "sec_" + Date.now(),
-      type: "section",
-      label: "Нова секція",
-      items: []
-    });
-    renderEditor();
-    renderPreview();
-  });
-  container.appendChild(addSecBtn);
-
-  initDragDrop();
-}
-
-// ─── Drag & Drop ─────────────────────────────────────────────────────────
-function initDragDrop(){
-  let dragType = null, dragSecIdx = null, dragItemIdx = null;
-
-  document.querySelectorAll("[data-drag-type]").forEach(el => {
-    el.addEventListener("dragstart", e => {
-      dragType    = el.dataset.dragType;
-      dragSecIdx  = parseInt(el.dataset.secIdx);
-      dragItemIdx = el.dataset.itemIdx !== undefined ? parseInt(el.dataset.itemIdx) : null;
-      e.dataTransfer.effectAllowed = "move";
-      setTimeout(() => {
-        if (dragType === "item"){
-          const row = el.closest(".ni-row");
-          if (row) row.classList.add("dragging");
-        }
-      }, 0);
-    });
-    el.addEventListener("dragend", () => {
-      document.querySelectorAll(".dragging,.drag-target,.drag-over").forEach(el => {
-        el.classList.remove("dragging","drag-target","drag-over");
-      });
-    });
-  });
-
-  // Section drop zones
-  document.querySelectorAll(".ns-block").forEach(block => {
-    block.addEventListener("dragover", e => {
-      if (dragType !== "section") return;
-      e.preventDefault();
-      block.classList.add("drag-target");
-    });
-    block.addEventListener("dragleave", () => block.classList.remove("drag-target"));
-    block.addEventListener("drop", e => {
-      e.preventDefault();
-      block.classList.remove("drag-target");
-      if (dragType !== "section") return;
-      const toIdx = parseInt(block.dataset.secIdx);
-      if (dragSecIdx === toIdx) return;
-      const moved = navData.splice(dragSecIdx, 1)[0];
-      navData.splice(toIdx, 0, moved);
-      renderEditor();
-      renderPreview();
-    });
-  });
-
-  // Item drop zones
-  document.querySelectorAll(".ns-items").forEach(zone => {
-    const zoneSec = parseInt(zone.dataset.secIdx);
-    zone.addEventListener("dragover", e => {
-      if (dragType !== "item") return;
-      e.preventDefault();
-      zone.classList.add("drag-over");
-    });
-    zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
-    zone.addEventListener("drop", e => {
-      e.preventDefault();
-      zone.classList.remove("drag-over");
-      if (dragType !== "item") return;
-
-      const [movedItem] = navData[dragSecIdx].items.splice(dragItemIdx, 1);
-      navData[zoneSec].items.push(movedItem);
-      renderEditor();
-      renderPreview();
-    });
-  });
-
-  document.querySelectorAll(".ni-row").forEach(row => {
-    const rowSec  = parseInt(row.dataset.secIdx);
-    const rowItem = parseInt(row.dataset.itemIdx);
-    row.addEventListener("dragover", e => {
-      if (dragType !== "item") return;
-      e.preventDefault();
-      row.classList.add("drag-target");
-    });
-    row.addEventListener("dragleave", () => row.classList.remove("drag-target"));
-    row.addEventListener("drop", e => {
-      e.preventDefault();
-      row.classList.remove("drag-target");
-      if (dragType !== "item") return;
-      if (dragSecIdx === rowSec && dragItemIdx === rowItem) return;
-
-      const [movedItem] = navData[dragSecIdx].items.splice(dragItemIdx, 1);
-      // Adjust index if same section and item was before
-      let insertAt = rowItem;
-      if (dragSecIdx === rowSec && dragItemIdx < rowItem) insertAt--;
-      navData[rowSec].items.splice(insertAt, 0, movedItem);
-      renderEditor();
-      renderPreview();
-    });
-  });
-}
-
-// ─── Preview ──────────────────────────────────────────────────────────────
-function renderPreview(){
-  const pv = document.getElementById("nav-preview");
-  if (!pv) return;
-
-  let html = `<div class="sbp-brand">
-    <div class="sbp-mark">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11a4 4 0 014 4v1"/><path d="M20 17H9a4 4 0 01-4-4v-1"/><circle cx="5" cy="7" r="1.3" fill="#fff"/><circle cx="19" cy="17" r="1.3" fill="#fff"/></svg>
-    </div>
-    <span class="sbp-name">quiz<em>flow</em></span>
+// ─── Рендер редактора ─────────────────────────────────────────────────────
+function pageField(it){
+  if (it.protected) return `<div class="i-page"><span class="locked">${ic("lock", 12)} Головна · завжди в меню</span></div>`;
+  const p = pageOf(it.file), custom = !p;
+  const used = new Set(nav.flatMap(s => s.items).filter(x => x !== it).map(x => normFile(x.file)));
+  return `<div class="i-page">
+    <select data-f="page" aria-label="Сторінка">
+      ${PAGES.map(pg => `<option value="${pg.file}" ${p && p.file === pg.file ? "selected" : ""}>${pg.label}${used.has(pg.file) ? " · вже в меню" : ""}</option>`).join("")}
+      <option value="__custom" ${custom ? "selected" : ""}>Інша адреса…</option>
+    </select>
+    ${custom ? `<input data-f="file" value="${esc(it.file)}" placeholder="сторінка або https://…" spellcheck="false" aria-label="Адреса">` : ""}
   </div>`;
+}
+function rolesBtn(it){
+  if (it.protected) return `<button type="button" class="i-roles" disabled title="Головну бачать усі">${ic("users", 13)} Усі</button>`;
+  const r = (it.roleIds || []).filter(id => roles[id]);
+  return r.length
+    ? `<button type="button" class="i-roles restricted" data-act="roles" title="${esc(r.map(id => roles[id].name).join(", "))}"><span class="dots">${r.slice(0, 4).map(id => `<i style="background:${esc(roles[id].color || "#7C3AED")}"></i>`).join("")}</span>${r.length === 1 ? esc(roles[r[0]].name) : r.length + " ролі"}</button>`
+    : `<button type="button" class="i-roles" data-act="roles" title="Обмежити за ролями">${ic("users", 13)} Усі</button>`;
+}
 
-  navData.forEach(sec => {
-    html += `<div class="sbp-sec-lbl">${esc(sec.label)}</div>`;
-    sec.items.forEach(item => {
-      html += `<div class="sbp-item${item.enabled ? "" : " disabled"}">
-        ${svgIcon(item.icon, 14)}
-        <span>${esc(item.label)}</span>
-      </div>`;
+function renderEditor(flashId){
+  const { errs } = validate();
+  const el = document.getElementById("nav-editor");
+  el.innerHTML = nav.map((sec, si) => `
+    <section class="sec${folded.has(sec.id) ? " folded" : ""}" data-sec="${si}" data-sid="${esc(sec.id)}">
+      <div class="sec-h">
+        <span class="handle" draggable="true" data-drag="sec" title="Перетягніть секцію" aria-hidden="true">${ic("grip")}</span>
+        <button type="button" class="fold" data-act="fold" aria-expanded="${!folded.has(sec.id)}" aria-label="Згорнути секцію">${ic("chev")}</button>
+        <input class="sec-name" value="${esc(sec.label)}" placeholder="Назва секції" maxlength="30" data-f="sec" aria-label="Назва секції">
+        <span class="sec-cnt">${sec.items.length}</span>
+        <button type="button" class="ib" data-act="sec-up" ${si === 0 ? "disabled" : ""} title="Вище" aria-label="Перемістити секцію вище">${ic("up")}</button>
+        <button type="button" class="ib" data-act="sec-down" ${si === nav.length - 1 ? "disabled" : ""} title="Нижче" aria-label="Перемістити секцію нижче">${ic("down")}</button>
+        <button type="button" class="ib danger" data-act="sec-del" ${nav.length <= 1 ? "disabled" : ""} title="Видалити секцію" aria-label="Видалити секцію">${ic("trash")}</button>
+      </div>
+      <div class="sec-body" data-drop="${si}">
+        ${sec.items.length ? sec.items.map((it, ii) => `
+          <div class="it${it.enabled ? "" : " off"}${errs.has(it.id) ? " err" : ""}${it.id === flashId ? " flash" : ""}" data-sec="${si}" data-it="${ii}" data-iid="${esc(it.id)}" tabindex="-1">
+            <span class="handle" draggable="true" data-drag="it" title="Перетягніть · Alt+↑/↓" aria-hidden="true">${ic("grip")}</span>
+            <button type="button" class="i-ico" data-act="icon" title="Змінити іконку" aria-label="Іконка">${svgIcon(it.icon, 17)}</button>
+            <input class="i-name" value="${esc(it.label)}" placeholder="Назва пункту" maxlength="28" data-f="label" aria-label="Назва пункту">
+            ${pageField(it)}
+            ${rolesBtn(it)}
+            <label class="tgl" title="${it.enabled ? "Показується в меню" : "Приховано"}"><input type="checkbox" data-f="enabled" ${it.enabled ? "checked" : ""} ${it.protected ? "disabled" : ""} aria-label="Показувати в меню"><span></span></label>
+            <button type="button" class="ib" data-act="it-menu" aria-haspopup="menu" aria-label="Дії з пунктом">${ic("more")}</button>
+            ${errs.has(it.id) ? `<div class="i-err">${esc(errs.get(it.id))}</div>` : ""}
+          </div>`).join("") : `<div class="sec-empty">Порожня секція — перетягніть сюди пункти або додайте новий</div>`}
+        <button type="button" class="add-it" data-act="add">${ic("plus", 13)} Додати пункт</button>
+      </div>
+    </section>`).join("") +
+    `<button type="button" class="add-sec" data-act="add-sec">${ic("plus")} Додати секцію</button>
+     <div class="kbd-hint">Перетягуйте за <b>⋮⋮</b> або використовуйте <kbd>Alt</kbd> + <kbd>↑</kbd>/<kbd>↓</kbd> у полі назви · <kbd>Ctrl</kbd>+<kbd>S</kbd> — зберегти</div>`;
+  renderMissing();
+}
+
+function renderMissing(){
+  const used = new Set(nav.flatMap(s => s.items).map(i => normFile(i.file)));
+  const miss = PAGES.filter(p => !used.has(p.file));
+  const el = document.getElementById("nav-missing");
+  el.hidden = !miss.length;
+  el.innerHTML = `<span class="l">Немає в меню:</span>` + miss.map(p => `<button type="button" class="chip-add" data-add-page="${p.id}">${svgIcon(p.icon, 14)}${esc(p.label)} ${ic("plus", 12)}</button>`).join("");
+}
+
+// ─── Попередній перегляд (як справжній sidebar) ─────────────────────────────
+// Як бачить меню обраний у перегляді користувач (та сама логіка, що й у shared/nav.js)
+function visibleFor(it){
+  if (!it.roleIds?.length || pvRole === "__admin") return true;
+  return pvRole !== "__all" && it.roleIds.includes(pvRole);
+}
+function renderPreview(){
+  const sel = document.getElementById("pv-role");
+  const opts = [["__all", "Викладач без ролей"], ...Object.entries(roles).sort((a, b) => (a[1].name || "").localeCompare(b[1].name || "", "uk")).map(([id, r]) => [id, "Роль: " + r.name]), ["__admin", "Адміністратор"]];
+  if (!opts.some(o => o[0] === pvRole)) pvRole = "__all";
+  sel.innerHTML = opts.map(([v, l]) => `<option value="${esc(v)}" ${v === pvRole ? "selected" : ""}>${esc(l)}</option>`).join("");
+  let first = true, html = `<div class="pv-brand"><span class="pv-mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11a4 4 0 0 1 4 4v1"/><path d="M20 17H9a4 4 0 0 1-4-4v-1"/></svg></span><span class="pv-name">quiz<em>flow</em></span></div>`;
+  let shown = 0;
+  nav.forEach((sec, si) => {
+    const items = sec.items.filter(it => it.enabled && visibleFor(it));
+    const hidden = sec.items.filter(it => !it.enabled || !visibleFor(it));
+    if (!items.length && !hidden.length) return;
+    if (items.length && (si > 0 || !pvCollapsed)) html += `<div class="pv-sec"><span>${esc(sec.label || "Без назви")}</span></div>`;
+    items.forEach(it => {
+      shown++;
+      html += `<div class="pv-it${first ? " first" : ""}" data-jump="${esc(it.id)}" title="${esc(it.label)}">${svgIcon(it.icon, 16)}<span class="pv-lbl">${esc(it.label || "Без назви")}</span>${it.roleIds?.length ? S(IC.lock).replace("<svg", '<svg class="pv-lock"') : ""}</div>`;
+      first = false;
     });
   });
-
-  pv.innerHTML = html;
+  if (!shown) html += `<div class="pv-empty">Для цієї ролі меню порожнє</div>`;
+  const sb = document.getElementById("pv-sb");
+  sb.classList.toggle("c", pvCollapsed);
+  sb.innerHTML = html;
+  const hiddenCnt = nav.flatMap(s => s.items).filter(it => !it.enabled || !visibleFor(it)).length;
+  document.getElementById("pv-legend").textContent = hiddenCnt
+    ? `${hiddenCnt} ${hiddenCnt === 1 ? "пункт прихований" : "пункти приховані"} для цього перегляду (вимкнені або обмежені ролями). Натисніть пункт, щоб знайти його в редакторі.`
+    : "Натисніть пункт, щоб знайти його в редакторі.";
 }
 
-// ─── Load / Save ──────────────────────────────────────────────────────────
-async function loadNav(){
-  try {
-    const saved = await dbGet("settings/navigation");
-    if (saved && Array.isArray(saved) && saved.length > 0){
-      navData = saved;
-    } else {
-      navData = deepClone(DEFAULT_NAV);
+function render(flashId){ renderEditor(flashId); renderPreview(); renderDirty(); }
+function renderDirty(){
+  const d = dirty();
+  document.getElementById("save-bar").classList.toggle("on", d);
+  document.getElementById("btn-save-nav").disabled = !d;
+}
+
+// ─── Дії ──────────────────────────────────────────────────────────────────
+const at = el => { const r = el.closest("[data-it]"); const s = el.closest("[data-sec]"); return { si: +s?.dataset.sec, ii: r ? +r.dataset.it : -1 }; };
+function focusItem(id, sel = ".i-name"){ requestAnimationFrame(() => { const r = document.querySelector(`.it[data-iid="${CSS.escape(id)}"]`); r?.scrollIntoView({ block: "nearest", behavior: "smooth" }); r?.querySelector(sel)?.focus(); }); }
+function moveItem(si, ii, dSi, dIi){
+  const [it] = nav[si].items.splice(ii, 1);
+  nav[dSi].items.splice(Math.max(0, Math.min(dIi, nav[dSi].items.length)), 0, it);
+  folded.delete(nav[dSi].id);
+  render(it.id);
+  return it;
+}
+function addItem(si, page){
+  const it = page
+    ? { id: page.id, label: page.label, file: page.file, icon: page.icon, enabled: true, roleIds: [] }
+    : { id: uid("item"), label: "", file: "", icon: "file", enabled: true, roleIds: [] };
+  if (nav.flatMap(s => s.items).some(x => x.id === it.id)) it.id = uid(it.id);
+  nav[si].items.push(it);
+  folded.delete(nav[si].id);
+  render(it.id);
+  focusItem(it.id, page ? ".i-name" : ".i-name");
+}
+
+const edRoot = () => document.getElementById("nav-editor");
+function bindEditor(){
+  const root = edRoot();
+  root.addEventListener("input", e => {
+    const t = e.target, { si, ii } = at(t);
+    if (t.dataset.f === "sec"){ nav[si].label = t.value; renderPreview(); renderDirty(); return; }
+    const it = nav[si]?.items[ii]; if (!it) return;
+    if (t.dataset.f === "label"){ it.label = t.value; renderPreview(); }
+    else if (t.dataset.f === "file"){ it.file = t.value.trim(); }
+    renderDirty();
+  });
+  // Перевірка й перемальовування — після завершення введення
+  root.addEventListener("change", e => {
+    const t = e.target, { si, ii } = at(t), it = nav[si]?.items[ii];
+    if (!it) { if (t.dataset.f === "sec") render(); return; }
+    if (t.dataset.f === "enabled"){ it.enabled = t.checked; render(); return; }
+    if (t.dataset.f === "page"){
+      if (t.value === "__custom"){ it.file = pageOf(it.file) ? "" : it.file; render(); focusItem(it.id, 'input[data-f="file"]'); return; }
+      const pg = PAGES.find(p => p.file === t.value);
+      const prevPage = pageOf(it.file);
+      it.file = pg.file;
+      // id сторінки потрібен меню для підсвітки активного пункту й лічильників (nb-*)
+      if (/^item_/.test(it.id) && !nav.flatMap(x => x.items).some(x => x !== it && x.id === pg.id)) it.id = pg.id;
+      if (!it.label.trim() || (prevPage && it.label === prevPage.label)) it.label = pg.label;
+      if (it.icon === "file" || (prevPage && it.icon === prevPage.icon)) it.icon = pg.icon;
+      render(); return;
     }
-  } catch(e) {
-    navData = deepClone(DEFAULT_NAV);
-  }
-  renderEditor();
-  renderPreview();
-}
-
-async function saveNav(){
-  const btn = document.getElementById("btn-save-nav");
-  btn.disabled = true;
-
-  // Validate
-  for (const sec of navData){
-    if (!sec.label.trim()){ toast("Назва секції не може бути порожньою"); btn.disabled=false; return; }
-    for (const item of sec.items){
-      if (!item.label.trim()){ toast("Назва пункту не може бути порожньою"); btn.disabled=false; return; }
-      if (!item.protected && !item.file.trim()){ toast(`Вкажіть файл для пункту «${item.label}»`); btn.disabled=false; return; }
+    if (t.dataset.f === "label" || t.dataset.f === "file") render();
+  });
+  root.addEventListener("click", e => {
+    const b = e.target.closest("[data-act]"); if (!b) return;
+    const { si, ii } = at(b), act = b.dataset.act;
+    if (act === "add-sec"){ const s = { id: uid("sec"), type: "section", label: "Нова секція", items: [] }; nav.push(s); render(); requestAnimationFrame(() => { const i = document.querySelector(`.sec[data-sid="${s.id}"] .sec-name`); i?.focus(); i?.select(); }); return; }
+    if (act === "fold"){ const id = nav[si].id; folded.has(id) ? folded.delete(id) : folded.add(id); renderEditor(); return; }
+    if (act === "sec-up" || act === "sec-down"){ const to = si + (act === "sec-up" ? -1 : 1); [nav[si], nav[to]] = [nav[to], nav[si]]; render(); return; }
+    if (act === "sec-del") return delSection(si);
+    if (act === "add") return addItem(si);
+    if (act === "icon") return openIcons(si, ii);
+    if (act === "roles") return openRoles(si, ii);
+    if (act === "it-menu") return openItemMenu(b, si, ii);
+  });
+  root.addEventListener("keydown", e => {
+    if (!e.altKey || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
+    const { si, ii } = at(e.target); if (ii < 0) return;
+    e.preventDefault();
+    const up = e.key === "ArrowUp";
+    let dSi = si, dIi = ii + (up ? -1 : 1);
+    if (dIi < 0){ if (si === 0) return; dSi = si - 1; dIi = nav[dSi].items.length; }
+    else if (dIi >= nav[si].items.length){ if (si === nav.length - 1) return; dSi = si + 1; dIi = 0; }
+    const it = moveItem(si, ii, dSi, dIi);
+    focusItem(it.id, e.target.classList.contains("i-name") ? ".i-name" : ".i-name");
+  });
+  // ─── Drag & drop з індикатором місця вставки ───
+  let drag = null;
+  root.addEventListener("dragstart", e => {
+    const h = e.target.closest("[data-drag]"); if (!h) return;
+    const { si, ii } = at(h);
+    drag = { type: h.dataset.drag, si, ii };
+    e.dataTransfer.effectAllowed = "move";
+    try { e.dataTransfer.setData("text/plain", ""); } catch {}
+    const box = h.closest(drag.type === "sec" ? ".sec" : ".it");
+    try { e.dataTransfer.setDragImage(box, 20, 20); } catch {}
+    requestAnimationFrame(() => box.classList.add("dragging"));
+  });
+  const clear = () => root.querySelectorAll(".drop,.drop-before,.drop-after,.dragging").forEach(x => x.classList.remove("drop", "drop-before", "drop-after", "dragging"));
+  root.addEventListener("dragend", () => { clear(); drag = null; });
+  root.addEventListener("dragover", e => {
+    if (!drag) return;
+    if (drag.type === "sec"){
+      const s = e.target.closest(".sec"); if (!s) return;
+      e.preventDefault(); root.querySelectorAll(".sec.drop").forEach(x => x !== s && x.classList.remove("drop")); s.classList.add("drop");
+      return;
     }
-  }
-
-  try {
-    await dbSet("settings/navigation", navData);
-    await dbSet("settings/navigation_ts", Date.now());
-    toast("Навігацію збережено — набуде чинності після перезавантаження сторінки");
-  } catch(e){
-    toast("Помилка: " + e.message);
-  } finally {
-    btn.disabled = false;
-  }
+    const row = e.target.closest(".it"), body = e.target.closest(".sec-body, .sec");
+    if (!body) return;
+    e.preventDefault();
+    root.querySelectorAll(".drop-before,.drop-after").forEach(x => x.classList.remove("drop-before", "drop-after"));
+    if (row){ const r = row.getBoundingClientRect(); row.classList.add(e.clientY < r.top + r.height / 2 ? "drop-before" : "drop-after"); }
+    else body.closest(".sec").classList.add("drop");
+  });
+  root.addEventListener("dragleave", e => { const s = e.target.closest?.(".sec"); if (s && !s.contains(e.relatedTarget)) s.classList.remove("drop"); });
+  root.addEventListener("drop", e => {
+    if (!drag) return; e.preventDefault();
+    const d = drag; drag = null; clear();
+    const secEl = e.target.closest(".sec"); if (!secEl) return;
+    const tSi = +secEl.dataset.sec;
+    if (d.type === "sec"){ if (tSi === d.si) return; const [s] = nav.splice(d.si, 1); nav.splice(tSi, 0, s); render(); return; }
+    const row = e.target.closest(".it");
+    let tIi = nav[tSi].items.length;
+    if (row){ const r = row.getBoundingClientRect(); tIi = +row.dataset.it + (e.clientY < r.top + r.height / 2 ? 0 : 1); }
+    if (tSi === d.si && tIi > d.ii) tIi--;
+    if (tSi === d.si && tIi === d.ii) return;
+    moveItem(d.si, d.ii, tSi, tIi);
+  });
 }
 
-async function resetNav(){
-  if (!confirm("Скинути навігацію до стандартної? Всі зміни будуть втрачені.")) return;
-  navData = deepClone(DEFAULT_NAV);
-  try {
-    await dbSet("settings/navigation", navData);
-    await dbSet("settings/navigation_ts", Date.now());
-    renderEditor();
-    renderPreview();
-    toast("Скинуто до стандартної навігації");
-  } catch(e){
-    toast("Помилка: " + e.message);
-  }
+// ─── Меню пункту ──────────────────────────────────────────────────────────
+let pop = null, popBtn = null;
+function closePop(){ pop?.remove(); pop = null; popBtn?.setAttribute("aria-expanded", "false"); popBtn = null; }
+function openItemMenu(btn, si, ii){
+  if (popBtn === btn) return closePop();
+  closePop();
+  const it = nav[si].items[ii];
+  const items = [
+    ["up", "up", "Перемістити вище", si === 0 && ii === 0],
+    ["down", "down", "Перемістити нижче", si === nav.length - 1 && ii === nav[si].items.length - 1],
+    ...nav.map((s, k) => k === si ? null : ["to:" + k, "move", "У секцію «" + (s.label || "Без назви") + "»", false]).filter(Boolean),
+    "hr",
+    ["dup", "copy", "Дублювати", !!it.protected],
+    ["del", "trash", "Видалити пункт", !!it.protected, "danger"],
+  ];
+  pop = document.createElement("div"); pop.className = "pop"; pop.setAttribute("role", "menu");
+  pop.innerHTML = items.map(x => x === "hr" ? "<hr>" : `<button type="button" role="menuitem" data-m="${x[0]}" class="${x[4] || ""}" ${x[3] ? "disabled" : ""}>${ic(x[1], 15)}${esc(x[2])}</button>`).join("");
+  document.body.appendChild(pop);
+  const r = btn.getBoundingClientRect(), h = pop.offsetHeight, w = pop.offsetWidth;
+  pop.style.top = Math.max(8, r.bottom + 6 + h > innerHeight ? r.top - h - 6 : r.bottom + 6) + "px";
+  pop.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.right - w)) + "px";
+  popBtn = btn; btn.setAttribute("aria-expanded", "true");
+  pop.querySelector("button:not(:disabled)")?.focus();
+  pop.addEventListener("click", ev => {
+    const m = ev.target.closest("[data-m]")?.dataset.m; if (!m) return;
+    closePop();
+    if (m === "up" || m === "down"){
+      const up = m === "up"; let dSi = si, dIi = ii + (up ? -1 : 1);
+      if (dIi < 0){ dSi = si - 1; dIi = nav[dSi].items.length; } else if (dIi >= nav[si].items.length){ dSi = si + 1; dIi = 0; }
+      return moveItem(si, ii, dSi, dIi);
+    }
+    if (m.startsWith("to:")) return moveItem(si, ii, +m.slice(3), 1e9);
+    if (m === "dup"){ const c = { ...clone(it), id: uid("item"), label: it.label + " (копія)" }; nav[si].items.splice(ii + 1, 0, c); render(c.id); return focusItem(c.id); }
+    if (m === "del"){ const [x] = nav[si].items.splice(ii, 1); render(); toast(`«${x.label || "Пункт"}» видалено — зміни ще не збережено`); }
+  });
+}
+document.addEventListener("click", e => { if (pop && !pop.contains(e.target) && !e.target.closest('[data-act="it-menu"]')) closePop(); });
+document.addEventListener("keydown", e => {
+  if (!pop) return;
+  if (e.key === "Escape"){ e.stopPropagation(); const b = popBtn; closePop(); b?.focus(); }
+  if (e.key === "ArrowDown" || e.key === "ArrowUp"){ const bs = [...pop.querySelectorAll("button:not(:disabled)")]; const i = bs.indexOf(document.activeElement); bs[(i + (e.key === "ArrowDown" ? 1 : -1) + bs.length) % bs.length]?.focus(); e.preventDefault(); }
+}, true);
+addEventListener("scroll", closePop, true);
+addEventListener("resize", closePop);
+
+// ─── Підтвердження ────────────────────────────────────────────────────────
+function confirmBox(title, html, ok = "Так"){
+  return new Promise(res => {
+    document.getElementById("cf-title").textContent = title;
+    document.getElementById("cf-text").innerHTML = html;
+    const b = document.getElementById("cf-ok"); b.textContent = ok;
+    const m = document.getElementById("m-confirm"); let done = false;
+    const fin = v => { if (done) return; done = true; obs.disconnect(); b.onclick = null; closeModal("m-confirm"); res(v); };
+    b.onclick = () => fin(true);
+    const obs = new MutationObserver(() => { if (!m.classList.contains("on")) fin(false); });
+    obs.observe(m, { attributes: true, attributeFilter: ["class"] });
+    openModal("m-confirm"); setTimeout(() => b.focus(), 60);
+  });
+}
+async function delSection(si){
+  const sec = nav[si];
+  if (sec.items.some(i => i.protected)) return toast("У секції є «Дашборд» — перенесіть його в іншу секцію перед видаленням", "err");
+  if (sec.items.length && !await confirmBox("Видалити секцію?", `Секцію «<b>${esc(sec.label || "Без назви")}</b>» і ${sec.items.length} ${sec.items.length === 1 ? "пункт" : "пункти"} в ній буде прибрано з меню. Зміни можна скасувати до збереження.`, "Видалити")) return;
+  nav.splice(si, 1); render();
 }
 
-// ─── Init ─────────────────────────────────────────────────────────────────
-const content = `
-  <div class="nav-layout">
-    <div>
-      <div id="nav-editor"></div>
-    </div>
-    <div class="preview-card">
-      <div class="preview-head">
-        <h3>Попередній перегляд</h3>
-        <p>Так виглядатиме sidebar для всіх викладачів</p>
-      </div>
-      <div class="sb-preview" id="nav-preview"></div>
-    </div>
-  </div>
-`;
-
-const topbarRight = `
-  <button class="tb-btn" id="btn-reset-nav">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>
-    Скинути
-  </button>
-  <button class="tb-btn primary" id="btn-save-nav">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-    Зберегти
-  </button>
-`;
-
-await initAdminShell({
-  activeId: "navigation",
-  crumbs: ["Навігація"],
-  content,
-  topbarRight
+// ─── Іконки ───────────────────────────────────────────────────────────────
+let iconTarget = null, activeCat = Object.keys(ICON_CATS)[0];
+function openIcons(si, ii){
+  iconTarget = nav[si].items[ii];
+  activeCat = Object.keys(ICON_CATS).find(c => ICON_CATS[c].some(x => x.id === iconTarget.icon)) || activeCat;
+  renderIcons(); openModal("m-icon");
+  setTimeout(() => document.querySelector("#icon-grid .icon-opt.on, #icon-grid .icon-opt")?.focus(), 60);
+}
+function renderIcons(){
+  document.getElementById("icon-cats").innerHTML = Object.keys(ICON_CATS).map(c => `<button type="button" class="icon-cat${c === activeCat ? " on" : ""}" data-cat="${esc(c)}">${esc(c)}</button>`).join("");
+  document.getElementById("icon-grid").innerHTML = ICON_CATS[activeCat].map(x => `<button type="button" class="icon-opt${iconTarget?.icon === x.id ? " on" : ""}" data-icon="${x.id}" title="${x.id}" role="option" aria-selected="${iconTarget?.icon === x.id}">${svgIcon(x.id, 19)}</button>`).join("");
+}
+document.getElementById("icon-cats").addEventListener("click", e => { const b = e.target.closest("[data-cat]"); if (!b) return; activeCat = b.dataset.cat; renderIcons(); });
+document.getElementById("icon-grid").addEventListener("click", e => {
+  const b = e.target.closest("[data-icon]"); if (!b || !iconTarget) return;
+  iconTarget.icon = b.dataset.icon; const id = iconTarget.id; iconTarget = null;
+  closeModal("m-icon"); render(id);
 });
 
-// Page-head
-const contentEl = document.getElementById("admin-content");
-if (contentEl){
-  const pageHead = document.createElement("div");
-  pageHead.className = "page-head";
-  pageHead.innerHTML = `<div><h1>Навігація</h1><p>Редагуйте sidebar — перетягуйте пункти, вмикайте/вимикайте, змінюйте назви та іконки</p></div>`;
-  contentEl.insertBefore(pageHead, contentEl.firstChild);
+// ─── Ролі ─────────────────────────────────────────────────────────────────
+let roleTarget = null;
+function openRoles(si, ii){
+  roleTarget = nav[si].items[ii];
+  document.getElementById("rp-name").textContent = roleTarget.label || "Пункт";
+  const ids = Object.keys(roles).sort((a, b) => (roles[a].name || "").localeCompare(roles[b].name || "", "uk"));
+  document.getElementById("rp-list").innerHTML = ids.length ? ids.map(id => `<label class="role-row"><input type="checkbox" value="${esc(id)}" ${roleTarget.roleIds?.includes(id) ? "checked" : ""}><span class="role-dot" style="background:${esc(roles[id].color || "#7C3AED")}"></span>${esc(roles[id].name || "—")}</label>`).join("")
+    : `<div class="hint-box" style="text-align:center">Ще немає ролей. <a href="roles" style="color:#7C3AED;font-weight:700">Створити на сторінці «Ролі»</a></div>`;
+  openModal("m-roles");
+}
+document.getElementById("rp-list").addEventListener("change", e => {
+  if (!roleTarget || e.target.type !== "checkbox") return;
+  const set = new Set(roleTarget.roleIds || []);
+  e.target.checked ? set.add(e.target.value) : set.delete(e.target.value);
+  roleTarget.roleIds = [...set];
+  render();
+});
+
+// ─── Збереження ───────────────────────────────────────────────────────────
+async function save(){
+  const { errs, secErr } = validate();
+  if (secErr){ toast("Вкажіть назву для кожної секції", "err"); document.querySelector(`.sec[data-sid="${CSS.escape(secErr.id)}"] .sec-name`)?.focus(); return; }
+  if (errs.size){ const [id, msg] = errs.entries().next().value; toast(msg, "err"); folded.clear(); renderEditor(); focusItem(id); return; }
+  const btns = ["btn-save-nav", "btn-save-bar"].map(id => document.getElementById(id));
+  btns.forEach(b => b.disabled = true);
+  try {
+    const data = nav.map((s, i) => ({ ...s, label: s.label.trim(), order: i, items: s.items.map(it => ({ ...it, label: it.label.trim(), file: it.file.trim() })) }));
+    // Навігація та мітка часу — одним записом: викладачі підхоплять зміни при наступному відкритті сторінки
+    await update(ref(db), { "settings/navigation": data, "settings/navigation_ts": Date.now() });
+    nav = clone(data); saved = clone(data);
+    render();
+    toast("Навігацію збережено — викладачі побачать її при наступному відкритті сторінки");
+  } catch (e){ toast("Помилка збереження: " + e.message, "err"); }
+  finally { renderDirty(); document.getElementById("btn-save-bar").disabled = false; }
 }
 
-document.getElementById("btn-save-nav").addEventListener("click", saveNav);
-document.getElementById("btn-reset-nav").addEventListener("click", resetNav);
+// ─── Каркас сторінки ──────────────────────────────────────────────────────
+const content = `
+  <div class="page-head"><div><h1>Навігація</h1><p>Меню панелі викладача: секції, пункти, іконки та доступ за ролями</p></div></div>
+  <div class="nav-layout">
+    <div>
+      <div class="missing" id="nav-missing" hidden></div>
+      <div id="nav-editor"></div>
+    </div>
+    <aside class="pv-card" aria-label="Попередній перегляд">
+      <div class="pv-h">
+        <h3>Попередній перегляд <span class="pv-mode" role="group" aria-label="Режим меню"><button type="button" data-pv="0" class="on">Повне</button><button type="button" data-pv="1">Згорнуте</button></span></h3>
+        <select id="pv-role" aria-label="Переглянути як"></select>
+      </div>
+      <div class="pv-stage"><div class="pv-sb" id="pv-sb"></div></div>
+      <div class="pv-legend" id="pv-legend"></div>
+    </aside>
+  </div>
+  <div class="save-bar" id="save-bar" role="region" aria-label="Незбережені зміни">
+    <span class="t">Є незбережені зміни</span><span class="k">Ctrl + S</span>
+    <button type="button" class="tb-btn ghost" id="btn-discard">Скасувати зміни</button>
+    <button type="button" class="tb-btn primary" id="btn-save-bar">Зберегти</button>
+  </div>`;
+const topbarRight = `
+  <button class="tb-btn" id="btn-reset-nav" type="button">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>
+    Стандартне меню
+  </button>
+  <button class="tb-btn primary" id="btn-save-nav" type="button" disabled>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+    Зберегти
+  </button>`;
 
-buildIconPicker();
-buildRolePicker();
+await initAdminShell({ activeId: "navigation", crumbs: ["Навігація"], content, topbarRight });
+
+bindEditor();
+document.getElementById("nav-missing").addEventListener("click", e => {
+  const b = e.target.closest("[data-add-page]"); if (!b) return;
+  const pg = PAGES.find(p => p.id === b.dataset.addPage);
+  addItem(Math.max(0, nav.length - 1), pg);
+  toast(`«${pg.label}» додано в секцію «${nav[nav.length - 1].label}»`);
+});
+document.getElementById("pv-role").addEventListener("change", e => { pvRole = e.target.value; renderPreview(); });
+document.querySelector(".pv-mode").addEventListener("click", e => {
+  const b = e.target.closest("[data-pv]"); if (!b) return;
+  pvCollapsed = b.dataset.pv === "1";
+  document.querySelectorAll(".pv-mode button").forEach(x => x.classList.toggle("on", x === b));
+  renderPreview();
+});
+document.getElementById("pv-sb").addEventListener("click", e => {
+  const j = e.target.closest("[data-jump]"); if (!j) return;
+  const sec = nav.find(s => s.items.some(i => i.id === j.dataset.jump));
+  if (sec && folded.delete(sec.id)) renderEditor();
+  const row = document.querySelector(`.it[data-iid="${CSS.escape(j.dataset.jump)}"]`);
+  row?.scrollIntoView({ block: "center", behavior: "smooth" });
+  row?.classList.remove("flash"); void row?.offsetWidth; row?.classList.add("flash");
+  row?.querySelector(".i-name")?.focus({ preventScroll: true });
+});
+document.getElementById("btn-save-nav").addEventListener("click", save);
+document.getElementById("btn-save-bar").addEventListener("click", save);
+document.getElementById("btn-discard").addEventListener("click", () => { nav = clone(saved); render(); });
+document.getElementById("btn-reset-nav").addEventListener("click", async () => {
+  if (!await confirmBox("Повернути стандартне меню?", "Редактор заповниться стандартною навігацією. Нічого не зміниться, доки ви не натиснете «Зберегти».", "Повернути")) return;
+  nav = normalize(clone(DEFAULT_NAV)); render(); toast("Стандартне меню завантажено — перевірте й збережіть");
+});
+document.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s"){ e.preventDefault(); if (dirty()) save(); }
+  if (e.key === "Escape" && !pop){ const open = [...document.querySelectorAll(".modal-bd.on")]; if (open.length) closeModal(open[open.length - 1].id); }
+});
+document.querySelectorAll(".modal-bd").forEach(m => m.addEventListener("click", e => { if (e.target === m) closeModal(m.id); }));
+addEventListener("beforeunload", e => { if (dirty()){ e.preventDefault(); e.returnValue = ""; } });
 
 try {
-  await loadRoles();
-  await loadNav();
-} catch(e) {
+  const [r, n] = await Promise.all([dbGet("roles").catch(() => null), dbGet("settings/navigation")]);
+  roles = r || {};
+  const data = normalize(n && (Array.isArray(n) ? n.length : Object.keys(n).length) ? n : clone(DEFAULT_NAV));
+  nav = data; saved = clone(data);
+  render();
+} catch (e){
   console.error("[navigation] load failed:", e);
+  nav = normalize(clone(DEFAULT_NAV)); saved = clone(nav); render();
+  toast("Не вдалося завантажити меню: " + e.message, "err");
 }
 hideLoader();
 </script>
