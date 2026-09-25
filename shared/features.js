@@ -1772,16 +1772,20 @@ renderLinks = function(){
 // ─── GROQ для AI аналізу ──────────────────────────────────────────────────────
 // ─── AI виклик: підтримує Groq і Google AI Studio ──────────────────────────
 
-async function callGroq(messages, maxTokens=800, temp=0.5){
+async function callGroq(messages, maxTokens=800, temp=0.5, feature="analysis"){
   const UA = "Ти — розумний асистент викладача. ОБОВ\'ЯЗКОВО відповідай ВИКЛЮЧНО українською мовою. Жодних інших мов. Якщо щось не знаєш українською — все одно пиши по-українськи.";
   try{
     const snap = await get(ref(db,"settings/ai"));
     const s = snap.exists() ? snap.val() : {};
-    const provider = s.provider || "groq";
+    // Провайдер обирається для кожної функції в admin/ai-settings; без ключа — інший
+    const geminiKey = s.geminiApiKey || (s.provider === "gemini" ? s.apiKey : "") || "";
+    const groqKeyCfg = s.groqApiKey || (s.provider !== "gemini" ? s.apiKey : "") || "";
+    const want = (s.featProviders && s.featProviders[feature]) || s.provider || "groq";
+    const provider = want === "gemini" ? (geminiKey || !groqKeyCfg ? "gemini" : "groq") : (groqKeyCfg || !geminiKey ? "groq" : "gemini");
 
     if(provider === "gemini"){
-      const key   = s.geminiApiKey || s.apiKey || "";
-      const model = s.geminiModel  || s.model  || "gemini-2.0-flash";
+      const key   = geminiKey;
+      const model = s.geminiModel  || "gemini-2.5-flash";
       if(!key) throw new Error("Відсутній Gemini API ключ");
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
       const contents = messages.map(m=>({
@@ -1794,7 +1798,8 @@ async function callGroq(messages, maxTokens=800, temp=0.5){
         body: JSON.stringify({
           systemInstruction:{parts:[{text:UA}]},
           contents,
-          generationConfig:{maxOutputTokens:maxTokens, temperature:temp}
+          // Для flash-моделей Gemini 2.5 вимикаємо «думання», щоб воно не з'їдало ліміт токенів відповіді
+          generationConfig:{maxOutputTokens:maxTokens, temperature:temp, ...(/flash/i.test(model) ? {thinkingConfig:{thinkingBudget:0}} : {})}
         })
       });
       const raw = await res.text();
@@ -1804,8 +1809,8 @@ async function callGroq(messages, maxTokens=800, temp=0.5){
       if(d.error) throw new Error("Gemini: " + (d.error.message||JSON.stringify(d.error)));
       return d.candidates?.[0]?.content?.parts?.[0]?.text || "";
     } else {
-      const key   = s.groqApiKey || s.apiKey || "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";
-      const model = s.groqModel  || s.model  || "llama-3.3-70b-versatile";
+      const key   = groqKeyCfg || "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";
+      const model = s.groqModel  || (s.provider !== "gemini" && s.model) || "llama-3.3-70b-versatile";
       const res = await fetch("https://api.groq.com/openai/v1/chat/completions",{
         method:"POST",
         headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
@@ -3595,7 +3600,7 @@ selectAnalyticsDrop(field, value, label){
       }
 
       const prompt = `Ти репетитор. Студент ${esc(a.name)} ${esc(a.surname)} отримав оцінку ${a.grade12}/12 за тест "${t?.title || ""}". Помилкові відповіді: ${wrongList.slice(0, 8).join("")}. Напиши короткий персональний розбір (5–8 речень): що студент не зрозумів, на що звернути увагу, як виправити знання. Звертайся до студента напряму.`;
-      const res=await callGroq([{role:"user",content:prompt}],600,0.5);
+      const res=await callGroq([{role:"user",content:prompt}],600,0.5,"analysis");
       await dbUpd(`attempts/${attId}`,{personalAnalysis:res});
       a.personalAnalysis=res;
       G._showAiPanel(res);

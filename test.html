@@ -933,6 +933,19 @@ let GROQ_API_KEY = "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";
 const GROQ_URL   = "https://api.groq.com/openai/v1/chat/completions";
 let GROQ_MODEL   = "llama-3.3-70b-versatile";
 let AI_ENABLED   = true; // вмк/вимк AI глобально
+let GEMINI_API_KEY = "";
+let GEMINI_MODEL   = "gemini-2.5-flash";
+let AI_FEAT_PROVIDERS = {};      // { comments|analysis|generation|textcheck: "groq"|"gemini" }
+let AI_DEFAULT_PROVIDER = "groq";
+
+// Провайдер для функції; якщо для нього немає ключа — беремо інший
+function aiProviderFor(feature){
+  const want = AI_FEAT_PROVIDERS[feature] || AI_DEFAULT_PROVIDER;
+  const has = p => p === "gemini" ? !!GEMINI_API_KEY : !!GROQ_API_KEY;
+  if (has(want)) return want;
+  const other = want === "gemini" ? "groq" : "gemini";
+  return has(other) ? other : want;
+}
 
 // Завантажуємо налаштування AI з Firebase
 async function loadAISettings(db) {
@@ -941,8 +954,14 @@ async function loadAISettings(db) {
     const snap = await get(ref(db, "settings/ai"));
     if(snap.exists()){
       const s = snap.val();
-      if(s.apiKey)   GROQ_API_KEY = s.apiKey;
-      if(s.model)    GROQ_MODEL   = s.model;
+      // Ключі й моделі обох провайдерів + провайдер для кожної функції (admin/ai-settings)
+      const groqKey = s.groqApiKey || (s.provider !== "gemini" ? s.apiKey : "");
+      if(groqKey) GROQ_API_KEY = groqKey;
+      if(s.groqModel || (s.provider !== "gemini" && s.model)) GROQ_MODEL = s.groqModel || s.model;
+      GEMINI_API_KEY = s.geminiApiKey || (s.provider === "gemini" ? s.apiKey : "") || "";
+      if(s.geminiModel) GEMINI_MODEL = s.geminiModel;
+      AI_FEAT_PROVIDERS = s.featProviders || {};
+      AI_DEFAULT_PROVIDER = s.provider || "groq";
       if(s.enabled !== undefined) AI_ENABLED = s.enabled !== false;
       // Глобальні дефолти для функцій
       window._AI_COMMENTS   = s.aiComments   !== false;
@@ -963,7 +982,8 @@ const UA_SYSTEM = {
            "Якщо щось не знаєш українською — все одно пиши по-українськи."
 };
 
-async function callGroq(messages, maxTokens = 800, temperature = 0.5) {
+async function callGroq(messages, maxTokens = 800, temperature = 0.5, feature = "comments") {
+  if (aiProviderFor(feature) === "gemini") return callGemini(messages, maxTokens, temperature);
   // Завжди додаємо системний промпт українською
   const allMessages = [UA_SYSTEM, ...messages];
 
@@ -995,6 +1015,22 @@ async function callGroq(messages, maxTokens = 800, temperature = 0.5) {
   }
 
   return result;
+}
+
+async function callGemini(messages, maxTokens = 800, temperature = 0.5) {
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: UA_SYSTEM.content }] },
+      contents: messages.map(m => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] })),
+      // Для flash-моделей Gemini 2.5 вимикаємо «думання», щоб воно не з'їдало ліміт токенів відповіді
+      generationConfig: { maxOutputTokens: maxTokens, temperature, ...(/flash/i.test(GEMINI_MODEL) ? { thinkingConfig: { thinkingBudget: 0 } } : {}) }
+    })
+  });
+  if (!res.ok) throw new Error(`Gemini error ${res.status}: ${await res.text()}`);
+  const data = await res.json();
+  return (data.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join("");
 }
 
 // ─── AI для студента: оцінка + коментар ──────────────────────────────────────
@@ -1049,7 +1085,7 @@ async function getStudentAIComment({ testTitle, totalQuestions, correctCount, pe
     + ' Що конкретно не зрозуміло і що повторити. Без загальних фраз.'
     + '\n\nВідповідай ТІЛЬКИ у форматі JSON без markdown: {"grade": 7, "comment": "..."}';
 
-  const raw = await callGroq([{ role: "user", content: prompt }], 500);
+  const raw = await callGroq([{ role: "user", content: prompt }], 500, 0.5, "comments");
 
   let result;
   try {
@@ -1104,7 +1140,7 @@ async function rephraseQuestion(questionText, options = []) {
 Формат: {"question":"нове питання"}`;
   }
 
-  const raw = await callGroq([{ role: "user", content: prompt }], 400, 0.6);
+  const raw = await callGroq([{ role: "user", content: prompt }], 400, 0.6, "generation");
   try {
     return JSON.parse(raw.replace(/```json|```/g, "").trim());
   } catch {
@@ -1135,7 +1171,7 @@ async function generateQuestions({ topic, difficulty, type, count = 5 }) {
   {"type":"text","text":"питання","correct":"відповідь"}
 ]`;
 
-  const raw = await callGroq([{ role: "user", content: prompt }], 2000);
+  const raw = await callGroq([{ role: "user", content: prompt }], 2000, 0.5, "generation");
   return JSON.parse(raw.replace(/```json|```/g, "").trim());
 }
 
@@ -1333,7 +1369,7 @@ ${checkList}
 [{"i":1,"result":"correct"},{"i":2,"result":"partial"},{"i":3,"result":"wrong"}]`;
 
     try {
-      const raw = await callGroq([{ role: "user", content: aiPrompt }], 600);
+      const raw = await callGroq([{ role: "user", content: aiPrompt }], 600, 0.5, "textcheck");
       const aiResults = JSON.parse(raw.replace(/```json|```/g, "").trim());
       aiResults.forEach(ar => {
         const idx = ar.i - 1;
@@ -2738,7 +2774,7 @@ async function generatePersonalErrorAnalysis(answers, questions, score){
 
   try {
     const prompt = `Студент допустив помилки в тесті "${testData.title}". Напиши короткий персональний розбір (3-4 речення) українською: що саме не так і що конкретно повторити. Звертайся до студента напряму, по-доброму.\n\nПомилки:\n${wrongItems}`;
-    const raw = await callGroq([{role:"user", content:prompt}], 400, 0.5);
+    const raw = await callGroq([{role:"user", content:prompt}], 400, 0.5, "analysis");
     el.textContent = raw.trim();
   } catch(e){
     document.getElementById("errorAnalysisBox").style.display = "none";

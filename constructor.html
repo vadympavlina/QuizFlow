@@ -782,7 +782,8 @@ async function callGroq(messages, maxTokens = 800, temperature = 0.5) {
       body: JSON.stringify({
         systemInstruction:{parts:[{text:UA_SYSTEM.content}]},
         contents,
-        generationConfig:{maxOutputTokens:maxTokens, temperature:temperature}
+        // Для flash-моделей Gemini 2.5 вимикаємо «думання», щоб воно не з'їдало ліміт токенів відповіді
+        generationConfig:{maxOutputTokens:maxTokens, temperature:temperature, ...(/flash/i.test(GEMINI_MODEL) ? {thinkingConfig:{thinkingBudget:0}} : {})}
       })
     });
     const raw = await res.text();

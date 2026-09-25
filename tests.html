@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
 <link rel="modulepreload" href="shared/app.js?v=16">
-<link rel="modulepreload" href="shared/features.js?v=16">
+<link rel="modulepreload" href="shared/features.js?v=17">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
    TESTS PAGE REDESIGN — scoped під #sec-tests
@@ -454,7 +454,7 @@
 <script type="module">
 // ─── Ініціалізація (паралельне завантаження — як в оригіналі) ───
 const { initApp } = await import("./shared/app.js?v=16");
-const featuresP = import("./shared/features.js?v=16");
+const featuresP = import("./shared/features.js?v=17");
 
 window.showSec = function(name){
   if (name === "tests"){
