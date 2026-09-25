@@ -1013,7 +1013,9 @@ window.doResetPassword = async () => {
   if (!email) { toast("Email не знайдено", "err"); return; }
   try {
     const mainAuth = getAuth(getApp());
-    await sendPasswordResetEmail(mainAuth, email);
+    mainAuth.languageCode = "uk";
+    // Після зміни пароля — назад на сторінку входу з підставленим email
+    await sendPasswordResetEmail(mainAuth, email, { url: location.origin + "/login?email=" + encodeURIComponent(email) });
     document.getElementById("reset-box").style.display = "";
     document.getElementById("reset-actions").style.display = "none";
     toast("Лист надіслано на " + email);

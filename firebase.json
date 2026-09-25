@@ -4,7 +4,8 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "database.rules.json"
+      "database.rules.json",
+      "docs/**"
     ],
     "rewrites": [],
     "cleanUrls": true,
