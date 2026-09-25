@@ -497,7 +497,7 @@ window.sendBugReport = async () => {
 
 // ─── Дублювання репортів у Telegram ────────────────────────────────────────
 // Читає settings/telegramBot (токен + увімкнено) і telegramChats (кому надсилати,
-// notify:true) — те саме сховище, яким керує адмінська сторінка shared/telegram.html.
+// notify:true) — те саме сховище, яким керує адмінська сторінка admin/telegram.html.
 function escTg(s){
   return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
@@ -508,9 +508,14 @@ async function notifyTelegramBugReport({ text, reportType, page, userName }) {
   const cfg = cfgSnap.exists() ? cfgSnap.val() : null;
   if (!cfg?.enabled || !cfg?.token) return;
 
-  const chatsSnap = await fbGet(fbR(db, "telegramChats"));
-  const chats = chatsSnap.exists() ? chatsSnap.val() : {};
-  const recipients = Object.keys(chats).filter(id => chats[id]?.notify);
+  // Отримувачі — у settings/telegramBot/recipients (admin/telegram). Старий шлях
+  // через telegramChats (з усією історією переписки) лише як запасний.
+  let recipients = Object.keys(cfg.recipients || {}).filter(id => cfg.recipients[id]);
+  if (!cfg.recipients){
+    const chatsSnap = await fbGet(fbR(db, "telegramChats"));
+    const chats = chatsSnap.exists() ? chatsSnap.val() : {};
+    recipients = Object.keys(chats).filter(id => chats[id]?.notify);
+  }
   if (!recipients.length) return;
 
   const isImprovement = reportType === "improvement";
