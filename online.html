@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
 <link rel="modulepreload" href="shared/app.js?v=16">
-<link rel="modulepreload" href="shared/features.js?v=16">
+<link rel="modulepreload" href="shared/features.js?v=17">
 </head>
 <body>
 
@@ -58,7 +58,7 @@
 // потім features.js (він читає з window._fb).
 // Preload у <head> вже починає завантаження обох паралельно — тут тільки execute order.
 const { initApp } = await import("./shared/app.js?v=16");
-const featuresP = import("./shared/features.js?v=16");
+const featuresP = import("./shared/features.js?v=17");
 
 // showSec: залишаємось на сторінці якщо це та сама; інакше — йдемо на відповідний html
 window.showSec = function(name){

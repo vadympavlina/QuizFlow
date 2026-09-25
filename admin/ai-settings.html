@@ -10,134 +10,114 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/admin-shell.css?v=3">
 <style>
-/* Layout */
-.row-2{display:grid; grid-template-columns:1fr 1fr; gap:14px}
-@media (max-width:1100px){.row-2{grid-template-columns:1fr}}
+.ai-sec-h{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:6px 0 -4px}
+.ai-sec-h h2{margin:0;font-size:16px;font-weight:800;letter-spacing:-.01em}
+.ai-sec-h p{margin:2px 0 0;font-size:12.5px;color:var(--ink-500)}
 
-/* Provider card */
-.prov-card{
-  background:#fff; border:1px solid var(--line); border-radius:16px;
-  padding:22px; display:flex; flex-direction:column; gap:18px;
-}
-.prov-head{display:flex; align-items:center; gap:12px}
-.prov-mark{
-  width:42px; height:42px; border-radius:12px; flex:0 0 auto;
-  display:grid; place-items:center; color:#fff;
-}
-.prov-mark.groq{background:linear-gradient(135deg, #F59E0B, #D97706); box-shadow:0 6px 14px -6px rgba(245,158,11,.5)}
-.prov-mark.gemini{background:linear-gradient(135deg, #22C55E, #15803D); box-shadow:0 6px 14px -6px rgba(34,197,94,.5)}
-.prov-name{font-weight:800; font-size:16px; letter-spacing:-.01em; line-height:1.2}
-.prov-link{font-size:11.5px; color:#6D28D9; text-decoration:none; font-family:"Geist Mono",monospace; margin-top:2px; display:inline-flex; align-items:center; gap:4px}
+/* Провайдери */
+.row-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:1180px){.row-2{grid-template-columns:1fr}}
+.prov{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:16px}
+.prov-head{display:flex;align-items:center;gap:12px}
+.prov-mark{width:44px;height:44px;border-radius:13px;flex:0 0 auto;display:grid;place-items:center;color:#fff}
+.prov-mark.groq{background:linear-gradient(135deg,#F59E0B,#D97706);box-shadow:0 8px 18px -8px rgba(245,158,11,.6)}
+.prov-mark.gemini{background:linear-gradient(135deg,#34D399,#059669);box-shadow:0 8px 18px -8px rgba(16,185,129,.6)}
+.prov-name{font-weight:800;font-size:16px;letter-spacing:-.01em}
+.prov-link{font-size:11.5px;color:#6D28D9;text-decoration:none;font-family:"Geist Mono",monospace;display:inline-flex;align-items:center;gap:4px;margin-top:2px}
 .prov-link:hover{text-decoration:underline}
-.prov-link svg{opacity:.7}
+.prov-state{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;background:#F1F4FA;color:var(--ink-500);white-space:nowrap}
+.prov-state::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.prov-state.ok{background:#DCFCE7;color:#15803D}
+.prov-state.set{background:#EDE9FE;color:#6D28D9}
+.prov-state.bad{background:#FEE2E2;color:#B91C1C}
+.prov-state.busy::before{animation:aiBlink .8s infinite}
+@keyframes aiBlink{50%{opacity:.25}}
 
-.prov-section-l{font-size:10.5px; color:var(--ink-400); text-transform:uppercase; letter-spacing:.07em; font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:6px}
-.prov-section-l svg{opacity:.7}
+.lbl{font-size:11px;color:var(--ink-400);text-transform:uppercase;letter-spacing:.07em;font-weight:800;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.lbl .hint{text-transform:none;letter-spacing:0;font-weight:600;font-size:11.5px;color:var(--ink-400)}
+.key-row{display:flex;gap:8px}
+.key-wrap{position:relative;flex:1;display:flex}
+.key-input{width:100%;padding:11px 44px 11px 12px;border-radius:11px;border:1.5px solid var(--line);background:#FAFBFE;font-family:"Geist Mono",monospace;font-size:13px;color:var(--ink-900);outline:none;transition:border-color .15s,box-shadow .15s,background .15s}
+.key-input:focus{border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.12);background:#fff}
+.key-input.warn{border-color:#F59E0B}
+.key-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:8px;border:0;background:transparent;cursor:pointer;color:var(--ink-400);display:grid;place-items:center}
+.key-eye:hover{background:#F1F4FA;color:var(--ink-700)}
+.key-eye svg{width:16px;height:16px}
+.key-msg{font-size:11.5px;margin-top:6px;color:var(--ink-500);min-height:15px}
+.key-msg.bad{color:#B91C1C}.key-msg.warn{color:#B45309}.key-msg.ok{color:#15803D}
 
-/* API key input */
-.api-key-wrap{position:relative; display:flex; align-items:center}
-.api-key-input{
-  width:100%; padding:11px 44px 11px 12px;
-  border-radius:10px; border:1.5px solid var(--line); background:#FAFBFE;
-  font-family:"Geist Mono",monospace; font-size:13px; color:var(--ink-900);
-  outline:none; transition:all .15s;
-}
-.api-key-input:focus{border-color:#7C3AED; box-shadow:0 0 0 3px rgba(124,58,237,.12); background:#fff}
-.api-key-toggle{
-  position:absolute; right:8px; top:50%; transform:translateY(-50%);
-  width:30px; height:30px; border-radius:7px; border:0;
-  background:transparent; cursor:pointer; color:var(--ink-400);
-  display:grid; place-items:center; padding:0;
-}
-.api-key-toggle:hover{background:#F4F6FB; color:var(--ink-700)}
-.api-key-toggle svg{width:15px; height:15px}
+.models{display:flex;flex-direction:column;gap:6px}
+.model{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;border:1.5px solid var(--line);cursor:pointer;transition:border-color .15s,background .15s;background:#fff}
+.model:hover{border-color:var(--line-strong)}
+.model:has(input:checked){border-color:#7C3AED;background:#F7F4FF}
+.model:has(input:focus-visible){box-shadow:0 0 0 3px rgba(124,58,237,.18)}
+.model input{accent-color:#7C3AED;margin:0;flex:0 0 auto;cursor:pointer}
+.model .nm{font-weight:700;font-size:12.5px;font-family:"Geist Mono",monospace;color:var(--ink-900)}
+.model:has(input:checked) .nm{color:#6D28D9}
+.model .desc{font-size:11.5px;color:var(--ink-500);margin-top:1px}
+.model .tag{margin-left:auto;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:6px;background:#DCFCE7;color:#15803D;white-space:nowrap}
+.model .tag.gray{background:#F1F4FA;color:var(--ink-500)}
+.model-custom{display:flex;gap:8px;align-items:center}
+.model-custom select,.model-custom input{flex:1;padding:9px 11px;border-radius:10px;border:1.5px solid var(--line);font:inherit;font-size:12.5px;font-family:"Geist Mono",monospace;background:#fff;color:var(--ink-900);outline:none;min-width:0}
+.model-custom select:focus,.model-custom input:focus{border-color:#7C3AED}
 
-/* Model picker */
-.model-list{display:flex; flex-direction:column; gap:6px}
-.model-lbl{
-  display:flex; align-items:flex-start; gap:10px;
-  padding:10px 12px; border-radius:10px;
-  border:1.5px solid var(--line); cursor:pointer;
-  transition:all .15s; background:#fff;
-}
-.model-lbl:hover{border-color:var(--line-strong)}
-.model-lbl.on{
-  border-color:#7C3AED;
-  background:linear-gradient(135deg, #F5F3FF, rgba(245,243,255,.4));
-}
-.model-lbl input{margin:2px 0 0; accent-color:#7C3AED; cursor:pointer; flex:0 0 auto}
-.model-lbl .nm{font-weight:700; font-size:12.5px; font-family:"Geist Mono",monospace; color:var(--ink-900); line-height:1.3}
-.model-lbl .desc{font-size:11.5px; color:var(--ink-500); margin-top:3px}
-.model-lbl.on .nm{color:#6D28D9}
+/* Функції */
+.feat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:1180px){.feat-grid{grid-template-columns:1fr}}
+.feat{background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;transition:border-color .15s,opacity .15s}
+.feat.off{background:#FAFBFE}
+.feat.off .feat-body{opacity:.45;pointer-events:none}
+.feat-h{display:flex;align-items:flex-start;gap:12px}
+.feat-ico{width:38px;height:38px;border-radius:11px;flex:0 0 auto;display:grid;place-items:center}
+.feat-ico svg{width:18px;height:18px}
+.feat-ico.violet{background:#EDE9FE;color:#6D28D9}.feat-ico.blue{background:#DBEAFE;color:#1D4ED8}
+.feat-ico.amber{background:#FEF3C7;color:#B45309}.feat-ico.green{background:#DCFCE7;color:#15803D}
+.feat-t{flex:1;min-width:0}
+.feat-name{font-weight:800;font-size:14px}
+.feat-desc{font-size:12px;color:var(--ink-500);margin-top:2px;line-height:1.4}
+.feat-where{font-size:11px;color:var(--ink-400);margin-top:4px;font-family:"Geist Mono",monospace}
+.feat-body{display:flex;flex-direction:column;gap:8px}
+.seg2{display:grid;grid-template-columns:1fr 1fr;background:#F1F4FA;border-radius:10px;padding:3px;gap:3px}
+.seg2 button{border:0;background:transparent;border-radius:8px;padding:8px;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink-500);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:background .15s,color .15s}
+.seg2 button:hover{color:var(--ink-900)}
+.seg2 button[aria-pressed="true"]{background:#fff;color:var(--ink-900);box-shadow:0 1px 3px rgba(15,30,71,.12)}
+.seg2 .pdot{width:7px;height:7px;border-radius:50%}
+.seg2 [data-prov="groq"] .pdot{background:#F59E0B}.seg2 [data-prov="gemini"] .pdot{background:#10B981}
+.feat-note{font-size:11.5px;color:#B45309;display:flex;gap:6px;align-items:flex-start;line-height:1.4}
+.feat-note svg{flex:0 0 auto;width:13px;height:13px;margin-top:1px}
+.feat-model{font-size:11.5px;color:var(--ink-400)}
+.feat-model b{font-family:"Geist Mono",monospace;color:var(--ink-700);font-weight:600}
 
-/* Features grid */
-.feat-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
-@media (max-width:900px){.feat-grid{grid-template-columns:1fr}}
+.toggle-sw{position:relative;display:inline-block;width:40px;height:23px;flex:0 0 auto}
+.toggle-sw input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer;z-index:1}
+.toggle-sl{position:absolute;inset:0;background:#DDE3EE;border-radius:99px;transition:background .2s}
+.toggle-sl::before{content:"";position:absolute;top:2px;left:2px;width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s}
+.toggle-sw input:checked + .toggle-sl{background:linear-gradient(135deg,#7C3AED,#4F46E5)}
+.toggle-sw input:checked + .toggle-sl::before{transform:translateX(17px)}
+.toggle-sw input:focus-visible + .toggle-sl{box-shadow:0 0 0 3px rgba(124,58,237,.25)}
 
-.feat-tile{
-  background:#FAFBFE; border:1.5px solid var(--line); border-radius:13px;
-  padding:14px;
-}
-.feat-tile-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:10px}
-.feat-tile-l{display:flex; align-items:center; gap:10px; flex:1; min-width:0}
-.feat-tile-ico{
-  width:32px; height:32px; border-radius:9px; flex:0 0 auto;
-  display:grid; place-items:center;
-}
-.feat-tile-ico.violet{background:rgba(124,58,237,.1); color:#6D28D9}
-.feat-tile-ico.blue{background:rgba(59,130,246,.1); color:#1D4ED8}
-.feat-tile-ico.amber{background:rgba(245,158,11,.1); color:#B45309}
-.feat-tile-ico.green{background:rgba(22,163,74,.1); color:#15803D}
-.feat-tile-name{font-weight:700; font-size:13px; line-height:1.2}
-.feat-tile-desc{font-size:11.5px; color:var(--ink-500); margin-top:2px}
+/* Індивідуальні перевизначення */
+.ovr{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 18px}
+.ovr-ico{width:38px;height:38px;border-radius:11px;background:#EDE9FE;color:#6D28D9;display:grid;place-items:center;flex:0 0 auto}
+.ovr-ico svg{width:19px;height:19px}
+.ovr-t{flex:1;font-size:13px;color:var(--ink-700)}
+.ovr-t b{color:var(--ink-900)}
+.ovr-names{font-size:12px;color:var(--ink-500);margin-top:2px}
+.ovr a{font-size:12.5px;font-weight:700;color:#6D28D9;text-decoration:none;white-space:nowrap}
+.ovr a:hover{text-decoration:underline}
 
-/* Toggle */
-.toggle-sw{position:relative; display:inline-block; width:38px; height:22px; flex:0 0 auto}
-.toggle-sw input{display:none}
-.toggle-sl{
-  position:absolute; inset:0; cursor:pointer;
-  background:#E3E8F2; border-radius:99px; transition:background .2s;
-}
-.toggle-sl::before{
-  content:""; position:absolute; top:2px; left:2px;
-  width:18px; height:18px; border-radius:50%; background:#fff;
-  box-shadow:0 1px 3px rgba(0,0,0,.18); transition:transform .2s;
-}
-.toggle-sw input:checked + .toggle-sl{background:linear-gradient(135deg, #7C3AED, #4F46E5)}
-.toggle-sw input:checked + .toggle-sl::before{transform:translateX(16px)}
+.sec-note{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:#FFFBEB;border:1px solid #FDE68A;color:#92400E;font-size:12.5px;line-height:1.5}
+.sec-note svg{flex:0 0 auto;margin-top:1px}
 
-/* Provider toggle (Groq/Gemini per feature) */
-.fp-row{display:flex; gap:6px}
-.fp-btn{
-  flex:1; padding:8px; border-radius:8px;
-  border:1.5px solid var(--line); background:#fff;
-  font:inherit; font-size:12px; font-weight:700; color:var(--ink-500);
-  cursor:pointer; transition:all .15s;
-  display:inline-flex; align-items:center; justify-content:center; gap:5px;
-}
-.fp-btn:hover:not(.on){border-color:var(--line-strong); color:var(--ink-700)}
-.fp-btn.on{border-color:#7C3AED; background:#F5F3FF; color:#6D28D9}
-.fp-btn .pdot{width:6px; height:6px; border-radius:50%; flex:0 0 auto}
-.fp-btn[data-prov="groq"] .pdot{background:#F59E0B}
-.fp-btn[data-prov="gemini"] .pdot{background:#22C55E}
-
-/* Status */
-.save-status{
-  background:linear-gradient(135deg, rgba(22,163,74,.08), rgba(22,163,74,.04));
-  border:1.5px solid rgba(22,163,74,.3);
-  border-radius:12px; padding:12px 16px;
-  color:#15803D; font-weight:600; font-size:13px;
-  display:flex; align-items:center; gap:9px;
-}
-.save-status svg{flex:0 0 auto}
-
-/* Footer note */
-.foot-note{
-  display:flex; align-items:center; gap:8px;
-  margin-top:8px;
-  font-size:12px; color:var(--ink-400);
-}
-.foot-note svg{opacity:.7; flex:0 0 auto}
+/* Панель незбережених змін */
+.save-bar{position:sticky;bottom:16px;z-index:20;display:flex;align-items:center;gap:12px;padding:12px 14px 12px 18px;border-radius:14px;background:#1A1040;color:#fff;box-shadow:0 18px 40px -12px rgba(20,11,58,.55);transform:translateY(calc(100% + 30px));opacity:0;pointer-events:none;transition:transform .25s cubic-bezier(.32,.72,0,1),opacity .2s}
+.save-bar.on{transform:none;opacity:1;pointer-events:auto}
+.save-bar .t{flex:1;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:8px}
+.save-bar .t::before{content:"";width:8px;height:8px;border-radius:50%;background:#FBBF24}
+.save-bar .k{font-size:11.5px;opacity:.6;font-family:"Geist Mono",monospace}
+.save-bar .tb-btn{height:36px}
+.save-bar .tb-btn.ghost{color:#E9E4FF}
+.save-bar .tb-btn.ghost:hover{background:rgba(255,255,255,.1);color:#fff}
 </style>
 </head>
 <body>
@@ -146,387 +126,376 @@
 <script src="shared/admin-nav.js?v=1"></script>
 <div id="admin-root"></div>
 <div id="admin-modals"></div>
-<div id="admin-toast" class="toast"></div>
+<div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
-import { initAdminShell, dbGet, dbUpd, toast, hideLoader } from "./shared/admin-shell.js?v=4";
+import { initAdminShell, dbGet, dbUpd, toast, esc, hideLoader } from "./shared/admin-shell.js?v=4";
+
+const SVG = (p, w = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const IC = {
+  eye: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+  eyeOff: '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>',
+  ext: '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/>',
+  warn: '<path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>',
+  users: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.6 2-4.8 4.5-5"/>',
+};
+
+// Актуальні моделі. Збережена модель, якої немає в списку, не губиться — показується як «своя».
+const PROVIDERS = {
+  groq: {
+    name: "Groq", link: "https://console.groq.com/keys", host: "console.groq.com", prefix: "gsk_", placeholder: "gsk_…",
+    mark: '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+    models: [
+      { id: "llama-3.3-70b-versatile", desc: "Найкраща якість українською", tag: "Рекомендовано" },
+      { id: "openai/gpt-oss-120b", desc: "Сильне міркування, довші відповіді" },
+      { id: "llama-3.1-8b-instant", desc: "Найшвидша й найдешевша", tag: "Швидка" },
+    ],
+  },
+  gemini: {
+    name: "Google Gemini", link: "https://aistudio.google.com/apikey", host: "aistudio.google.com", prefix: "AIza", placeholder: "AIza…",
+    mark: '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg>',
+    models: [
+      { id: "gemini-2.5-flash", desc: "Баланс швидкості та якості", tag: "Рекомендовано" },
+      { id: "gemini-2.5-flash-lite", desc: "Найшвидша й найдешевша", tag: "Швидка" },
+      { id: "gemini-2.5-pro", desc: "Найточніша, повільніша" },
+    ],
+  },
+};
+const FEATURES = [
+  { id: "comments", flag: "aiComments", name: "Коментар студенту", desc: "Коротка оцінка й порада після проходження тесту", where: "сторінка тесту → результат", ico: "violet",
+    svg: '<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>' },
+  { id: "analysis", flag: "aiAnalysis", name: "Персональний розбір помилок", desc: "Що саме не так і що повторити", where: "результат тесту · спроби викладача", ico: "blue",
+    svg: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>' },
+  { id: "generation", flag: "aiGeneration", name: "Генерація питань", desc: "Створення та перефразування питань", where: "конструктор тестів", ico: "amber",
+    svg: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>' },
+  { id: "textcheck", flag: "aiTextCheck", name: "Перевірка текстових відповідей", desc: "AI-оцінка відкритих і числових відповідей", where: "сторінка тесту → перевірка", ico: "green",
+    svg: '<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>' },
+];
+
+const provCard = p => {
+  const P = PROVIDERS[p];
+  return `<section class="prov" data-prov="${p}">
+    <div class="prov-head">
+      <div class="prov-mark ${p}">${P.mark}</div>
+      <div>
+        <div class="prov-name">${P.name}</div>
+        <a href="${P.link}" target="_blank" rel="noopener" class="prov-link">${P.host} ${SVG(IC.ext, 2.4).replace("<svg", '<svg width="9" height="9"')}</a>
+      </div>
+      <span class="prov-state" id="st-${p}">Не налаштовано</span>
+    </div>
+    <div>
+      <div class="lbl"><label for="key-${p}">API-ключ</label><span class="hint">зберігається в settings/ai</span></div>
+      <div class="key-row">
+        <div class="key-wrap">
+          <input class="key-input" type="password" id="key-${p}" placeholder="${P.placeholder}" autocomplete="off" spellcheck="false" data-lpignore="true">
+          <button type="button" class="key-eye" data-eye="${p}" aria-label="Показати ключ" title="Показати / сховати">${SVG(IC.eye)}</button>
+        </div>
+        <button type="button" class="tb-btn" data-test="${p}">Перевірити</button>
+      </div>
+      <div class="key-msg" id="msg-${p}"></div>
+    </div>
+    <div>
+      <div class="lbl"><span>Модель</span><span class="hint" id="mcount-${p}"></span></div>
+      <div class="models" id="models-${p}" role="radiogroup" aria-label="Модель ${P.name}"></div>
+    </div>
+  </section>`;
+};
 
 const content = `
-
-  <!-- Provider cards -->
-  <div class="row-2">
-
-    <!-- Groq -->
-    <div class="prov-card">
-      <div class="prov-head">
-        <div class="prov-mark groq">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        </div>
-        <div>
-          <div class="prov-name">Groq</div>
-          <a href="https://console.groq.com/keys" target="_blank" class="prov-link">
-            console.groq.com
-            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/></svg>
-          </a>
-        </div>
-      </div>
-
-      <div>
-        <div class="prov-section-l">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-          API Ключ
-        </div>
-        <div class="api-key-wrap">
-          <input class="api-key-input" type="password" id="ai-groq-key" placeholder="gsk_..." autocomplete="new-password">
-          <button class="api-key-toggle" onclick="toggleKeyVisibility('ai-groq-key','eye-groq')" title="Показати/Сховати">
-            <svg id="eye-groq" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <div>
-        <div class="prov-section-l">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-          Модель
-        </div>
-        <div class="model-list" id="groq-models">
-          <label class="model-lbl">
-            <input type="radio" name="ai-groq-model" value="llama-3.3-70b-versatile" checked>
-            <div><div class="nm">llama-3.3-70b-versatile</div><div class="desc">Найточніша · рекомендована</div></div>
-          </label>
-          <label class="model-lbl">
-            <input type="radio" name="ai-groq-model" value="llama-3.1-8b-instant">
-            <div><div class="nm">llama-3.1-8b-instant</div><div class="desc">Швидша · економніша</div></div>
-          </label>
-          <label class="model-lbl">
-            <input type="radio" name="ai-groq-model" value="mixtral-8x7b-32768">
-            <div><div class="nm">mixtral-8x7b-32768</div><div class="desc">Великий контекст</div></div>
-          </label>
-        </div>
-      </div>
-    </div>
-
-    <!-- Gemini -->
-    <div class="prov-card">
-      <div class="prov-head">
-        <div class="prov-mark gemini">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg>
-        </div>
-        <div>
-          <div class="prov-name">Google Gemini</div>
-          <a href="https://aistudio.google.com/apikey" target="_blank" class="prov-link">
-            aistudio.google.com
-            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/></svg>
-          </a>
-        </div>
-      </div>
-
-      <div>
-        <div class="prov-section-l">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-          API Ключ
-        </div>
-        <div class="api-key-wrap">
-          <input class="api-key-input" type="password" id="ai-gemini-key" placeholder="AIza..." autocomplete="new-password">
-          <button class="api-key-toggle" onclick="toggleKeyVisibility('ai-gemini-key','eye-gemini')" title="Показати/Сховати">
-            <svg id="eye-gemini" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <div>
-        <div class="prov-section-l">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-          Модель
-        </div>
-        <div class="model-list" id="gemini-models">
-          <label class="model-lbl">
-            <input type="radio" name="ai-gemini-model" value="gemini-2.5-flash" checked>
-            <div><div class="nm">gemini-2.5-flash</div><div class="desc">Найшвидша · рекомендована</div></div>
-          </label>
-          <label class="model-lbl">
-            <input type="radio" name="ai-gemini-model" value="gemini-2.5-flash-lite">
-            <div><div class="nm">gemini-2.5-flash-lite</div><div class="desc">Легша · швидша</div></div>
-          </label>
-          <label class="model-lbl">
-            <input type="radio" name="ai-gemini-model" value="gemini-1.5-pro">
-            <div><div class="nm">gemini-1.5-pro</div><div class="desc">Найточніша · більший контекст</div></div>
-          </label>
-        </div>
-      </div>
+  <div class="page-head">
+    <div>
+      <h1>AI-налаштування</h1>
+      <p>Ключі, моделі та функції штучного інтелекту для всієї платформи</p>
     </div>
   </div>
 
-  <!-- Features -->
-  <div class="card">
-    <div class="card-h">
-      <div style="display:flex; align-items:center; gap:12px">
-        <div style="width:38px; height:38px; border-radius:11px; background:linear-gradient(135deg, #EDE9FE, #DDD6FE); color:#6D28D9; display:grid; place-items:center; flex:0 0 auto">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-        </div>
-        <div>
-          <h3>Функції AI</h3>
-          <div class="sub">Увімк/Вимк та провайдер для кожної функції</div>
-        </div>
-      </div>
-    </div>
+  <div class="ai-sec-h"><div><h2>Провайдери</h2><p>Достатньо одного. Якщо ключ для обраного провайдера відсутній, функція використає інший.</p></div></div>
+  <div class="row-2">${provCard("groq")}${provCard("gemini")}</div>
 
-    <div class="feat-grid">
+  <div class="ai-sec-h"><div><h2>Функції</h2><p>Що вмикати та через який провайдер працює кожна функція</p></div></div>
+  <div class="feat-grid" id="feat-grid"></div>
 
-      <!-- Comments -->
-      <div class="feat-tile">
-        <div class="feat-tile-head">
-          <div class="feat-tile-l">
-            <div class="feat-tile-ico violet"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
-            <div>
-              <div class="feat-tile-name">Коментар студентам</div>
-              <div class="feat-tile-desc">Після проходження тесту</div>
-            </div>
-          </div>
-          <label class="toggle-sw"><input type="checkbox" id="ai-comments" checked><span class="toggle-sl"></span></label>
-        </div>
-        <div class="fp-row">
-          <button class="fp-btn on" id="fp-comments-groq" data-prov="groq" onclick="setFeatProv('comments','groq')">
-            <span class="pdot"></span>Groq
-          </button>
-          <button class="fp-btn" id="fp-comments-gemini" data-prov="gemini" onclick="setFeatProv('comments','gemini')">
-            <span class="pdot"></span>Gemini
-          </button>
-        </div>
-      </div>
-
-      <!-- Analysis -->
-      <div class="feat-tile">
-        <div class="feat-tile-head">
-          <div class="feat-tile-l">
-            <div class="feat-tile-ico blue"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
-            <div>
-              <div class="feat-tile-name">Персональний розбір</div>
-              <div class="feat-tile-desc">Аналіз помилок студента</div>
-            </div>
-          </div>
-          <label class="toggle-sw"><input type="checkbox" id="ai-analysis" checked><span class="toggle-sl"></span></label>
-        </div>
-        <div class="fp-row">
-          <button class="fp-btn on" id="fp-analysis-groq" data-prov="groq" onclick="setFeatProv('analysis','groq')">
-            <span class="pdot"></span>Groq
-          </button>
-          <button class="fp-btn" id="fp-analysis-gemini" data-prov="gemini" onclick="setFeatProv('analysis','gemini')">
-            <span class="pdot"></span>Gemini
-          </button>
-        </div>
-      </div>
-
-      <!-- Generation -->
-      <div class="feat-tile">
-        <div class="feat-tile-head">
-          <div class="feat-tile-l">
-            <div class="feat-tile-ico amber"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-            <div>
-              <div class="feat-tile-name">Генерація питань</div>
-              <div class="feat-tile-desc">AI в конструкторі тестів</div>
-            </div>
-          </div>
-          <label class="toggle-sw"><input type="checkbox" id="ai-generation" checked><span class="toggle-sl"></span></label>
-        </div>
-        <div class="fp-row">
-          <button class="fp-btn on" id="fp-generation-groq" data-prov="groq" onclick="setFeatProv('generation','groq')">
-            <span class="pdot"></span>Groq
-          </button>
-          <button class="fp-btn" id="fp-generation-gemini" data-prov="gemini" onclick="setFeatProv('generation','gemini')">
-            <span class="pdot"></span>Gemini
-          </button>
-        </div>
-      </div>
-
-      <!-- Textcheck -->
-      <div class="feat-tile">
-        <div class="feat-tile-head">
-          <div class="feat-tile-l">
-            <div class="feat-tile-ico green"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
-            <div>
-              <div class="feat-tile-name">Перевірка тексту</div>
-              <div class="feat-tile-desc">AI оцінка відповідей</div>
-            </div>
-          </div>
-          <label class="toggle-sw"><input type="checkbox" id="ai-textcheck" checked><span class="toggle-sl"></span></label>
-        </div>
-        <div class="fp-row">
-          <button class="fp-btn on" id="fp-textcheck-groq" data-prov="groq" onclick="setFeatProv('textcheck','groq')">
-            <span class="pdot"></span>Groq
-          </button>
-          <button class="fp-btn" id="fp-textcheck-gemini" data-prov="gemini" onclick="setFeatProv('textcheck','gemini')">
-            <span class="pdot"></span>Gemini
-          </button>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="foot-note">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r=".8" fill="currentColor"/></svg>
-      Налаштування зберігаються у Firebase і застосовуються до всіх викладачів
-    </div>
+  <div class="ovr" id="ovr" hidden>
+    <div class="ovr-ico">${SVG(IC.users)}</div>
+    <div class="ovr-t"><div id="ovr-t"></div><div class="ovr-names" id="ovr-names"></div></div>
+    <a href="teachers">До викладачів →</a>
   </div>
 
-  <div id="ai-status" style="display:none"></div>
+  <div class="sec-note">
+    ${SVG(IC.warn).replace("<svg", '<svg width="16" height="16"')}
+    <span>Запити до AI йдуть прямо з браузера, тому ключі доступні сторінкам тесту. Використовуйте окремі ключі з лімітами витрат і за потреби перевипускайте їх у консолі провайдера.</span>
+  </div>
+
+  <div class="save-bar" id="save-bar" role="region" aria-label="Незбережені зміни">
+    <span class="t">Є незбережені зміни</span>
+    <span class="k">Ctrl + S</span>
+    <button type="button" class="tb-btn ghost" id="btn-discard">Скасувати</button>
+    <button type="button" class="tb-btn primary" id="btn-save-bar">Зберегти</button>
+  </div>
 `;
 
 const topbarRight = `
-  <button class="tb-btn primary" id="btn-save-ai">
+  <button class="tb-btn primary" id="btn-save-ai" type="button" disabled>
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
     Зберегти
-  </button>
-`;
+  </button>`;
 
-const { _user } = await initAdminShell({
-  activeId: "ai",
-  crumbs: ["AI Налаштування"],
-  content,
-  topbarRight
+await initAdminShell({ activeId: "ai", crumbs: ["AI-налаштування"], content, topbarRight });
+
+// ─── Стан ────────────────────────────────────────────────────────────────
+const DEF = { groqKey: "", geminiKey: "", groqModel: "llama-3.3-70b-versatile", geminiModel: "gemini-2.5-flash",
+  flags: { comments: true, analysis: true, generation: true, textcheck: true },
+  prov: { comments: "groq", analysis: "groq", generation: "groq", textcheck: "groq" } };
+let saved = structuredClone(DEF), cur = structuredClone(DEF);
+const fetched = { groq: null, gemini: null };  // моделі, отримані при перевірці ключа
+const tested = { groq: null, gemini: null };   // true / false / null
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const keyOf = p => cur[p + "Key"].trim();
+
+// ─── Рендер ──────────────────────────────────────────────────────────────
+function renderModels(p){
+  const P = PROVIDERS[p], sel = cur[p + "Model"];
+  const known = P.models.map(m => m.id);
+  const extra = (fetched[p] || []).filter(id => !known.includes(id));
+  const isCustom = sel && !known.includes(sel);
+  document.getElementById("models-" + p).innerHTML = P.models.map(m => `
+    <label class="model"><input type="radio" name="model-${p}" value="${esc(m.id)}" ${sel === m.id ? "checked" : ""}>
+      <span><div class="nm">${esc(m.id)}</div><div class="desc">${esc(m.desc)}</div></span>
+      ${m.tag ? `<span class="tag${m.tag === "Швидка" ? " gray" : ""}">${m.tag}</span>` : ""}</label>`).join("") + `
+    <label class="model"><input type="radio" name="model-${p}" value="__custom" ${isCustom ? "checked" : ""}>
+      <span style="flex:1;min-width:0"><div class="nm">Інша модель</div>
+        <div class="model-custom" style="margin-top:6px">
+          ${extra.length
+            ? `<select data-custom="${p}" aria-label="Інша модель"><option value="">— оберіть із доступних (${extra.length}) —</option>${extra.map(id => `<option ${id === sel ? "selected" : ""}>${esc(id)}</option>`).join("")}</select>`
+            : `<input data-custom="${p}" placeholder="${p === "groq" ? "наприклад, qwen/qwen3-32b" : "наприклад, gemini-2.5-pro"}" value="${isCustom ? esc(sel) : ""}" aria-label="Назва моделі">`}
+        </div></span></label>`;
+  document.getElementById("mcount-" + p).textContent = fetched[p] ? `доступно ${fetched[p].length}` : "";
+}
+
+function renderProvState(p){
+  const el = document.getElementById("st-" + p), key = keyOf(p);
+  el.className = "prov-state";
+  if (!key){ el.textContent = "Не налаштовано"; return; }
+  if (tested[p] === "busy"){ el.classList.add("busy", "set"); el.textContent = "Перевірка…"; return; }
+  if (tested[p] === true){ el.classList.add("ok"); el.textContent = "Працює"; return; }
+  if (tested[p] === false){ el.classList.add("bad"); el.textContent = "Помилка"; return; }
+  el.classList.add("set"); el.textContent = "Ключ додано";
+}
+
+function keyHint(p){
+  const key = keyOf(p), P = PROVIDERS[p], msg = document.getElementById("msg-" + p), inp = document.getElementById("key-" + p);
+  const wrong = key && !key.startsWith(P.prefix);
+  inp.classList.toggle("warn", !!wrong);
+  if (tested[p] === true || tested[p] === false || tested[p] === "busy") return;
+  msg.className = "key-msg" + (wrong ? " warn" : "");
+  msg.textContent = wrong ? `Ключі ${P.name} зазвичай починаються з «${P.prefix}» — перевірте, чи не сплутано` : key ? `Ключ …${key.slice(-4)}` : "";
+}
+
+function renderFeatures(){
+  document.getElementById("feat-grid").innerHTML = FEATURES.map(f => {
+    const on = cur.flags[f.id], chosen = cur.prov[f.id];
+    const other = chosen === "groq" ? "gemini" : "groq";
+    const eff = keyOf(chosen) ? chosen : keyOf(other) ? other : null;
+    const note = on && !keyOf(chosen)
+      ? (eff ? `Немає ключа ${PROVIDERS[chosen].name} — буде використано ${PROVIDERS[eff].name}` : "Немає жодного ключа — функція не працюватиме")
+      : "";
+    return `<article class="feat${on ? "" : " off"}" data-feat="${f.id}">
+      <div class="feat-h">
+        <div class="feat-ico ${f.ico}">${SVG(f.svg)}</div>
+        <div class="feat-t"><div class="feat-name">${f.name}</div><div class="feat-desc">${f.desc}</div><div class="feat-where">${f.where}</div></div>
+        <label class="toggle-sw" title="${on ? "Вимкнути" : "Увімкнути"}"><input type="checkbox" data-flag="${f.id}" ${on ? "checked" : ""} aria-label="${f.name}"><span class="toggle-sl"></span></label>
+      </div>
+      <div class="feat-body">
+        <div class="seg2" role="group" aria-label="Провайдер">
+          ${["groq", "gemini"].map(p => `<button type="button" data-prov="${p}" aria-pressed="${chosen === p}"><span class="pdot"></span>${p === "groq" ? "Groq" : "Gemini"}</button>`).join("")}
+        </div>
+        ${note ? `<div class="feat-note">${SVG(IC.warn)}${note}</div>` : eff ? `<div class="feat-model">Модель: <b>${esc(cur[eff + "Model"])}</b></div>` : ""}
+      </div>
+    </article>`;
+  }).join("");
+}
+
+function renderDirty(){
+  const dirty = !same(cur, saved);
+  document.getElementById("save-bar").classList.toggle("on", dirty);
+  document.getElementById("btn-save-ai").disabled = !dirty;
+}
+
+function renderAll(){
+  ["groq", "gemini"].forEach(p => {
+    document.getElementById("key-" + p).value = cur[p + "Key"];
+    renderModels(p); renderProvState(p); keyHint(p);
+  });
+  renderFeatures(); renderDirty();
+}
+
+// ─── Події ───────────────────────────────────────────────────────────────
+const root = document.getElementById("admin-content");
+root.addEventListener("input", e => {
+  const t = e.target;
+  if (t.id === "key-groq" || t.id === "key-gemini"){
+    const p = t.id.slice(4);
+    cur[p + "Key"] = t.value;
+    tested[p] = null; fetched[p] = fetched[p];
+    renderProvState(p); keyHint(p); renderFeatures();
+  } else if (t.matches("input[data-custom]")){
+    const p = t.dataset.custom;
+    document.querySelector(`input[name="model-${p}"][value="__custom"]`).checked = true;
+    cur[p + "Model"] = t.value.trim();
+    renderFeatures();
+  }
+  renderDirty();
+});
+root.addEventListener("change", e => {
+  const t = e.target;
+  if (t.name?.startsWith("model-")){
+    const p = t.name.slice(6);
+    if (t.value === "__custom"){
+      const c = document.querySelector(`[data-custom="${p}"]`);
+      cur[p + "Model"] = c?.value.trim() || cur[p + "Model"];
+      setTimeout(() => c?.focus(), 0);
+    } else cur[p + "Model"] = t.value;
+    renderModels(p); renderFeatures();
+  } else if (t.matches("select[data-custom]")){
+    const p = t.dataset.custom;
+    if (t.value){ cur[p + "Model"] = t.value; renderModels(p); renderFeatures(); }
+  } else if (t.dataset.flag){
+    cur.flags[t.dataset.flag] = t.checked; renderFeatures();
+  }
+  renderDirty();
+});
+root.addEventListener("click", e => {
+  const eye = e.target.closest("[data-eye]");
+  if (eye){
+    const inp = document.getElementById("key-" + eye.dataset.eye), show = inp.type === "password";
+    inp.type = show ? "text" : "password";
+    eye.innerHTML = SVG(show ? IC.eyeOff : IC.eye);
+    eye.setAttribute("aria-label", show ? "Сховати ключ" : "Показати ключ");
+    return;
+  }
+  const test = e.target.closest("[data-test]");
+  if (test) return testProvider(test.dataset.test, test);
+  const pb = e.target.closest(".seg2 [data-prov]");
+  if (pb){
+    cur.prov[pb.closest("[data-feat]").dataset.feat] = pb.dataset.prov;
+    renderFeatures(); renderDirty();
+  }
 });
 
-// Page-head
-const contentEl = document.getElementById("admin-content");
-if (contentEl){
-  const pageHead = document.createElement("div");
-  pageHead.className = "page-head";
-  pageHead.innerHTML = `<div><h1>AI Налаштування</h1><p>Глобальні налаштування провайдерів, моделей та функцій штучного інтелекту</p></div>`;
-  contentEl.insertBefore(pageHead, contentEl.firstChild);
-}
-
-// ─── State ────────────────────────────────────────────────────────────────
-const _featProvs = { comments:"groq", analysis:"groq", generation:"groq", textcheck:"groq" };
-
-// ─── Helpers ──────────────────────────────────────────────────────────────
-window.setFeatProv = function(feat, prov){
-  _featProvs[feat] = prov;
-  ["groq","gemini"].forEach(p => {
-    const btn = document.getElementById(`fp-${feat}-${p}`);
-    if (btn) btn.classList.toggle("on", p === prov);
-  });
-};
-
-function highlightModels(){
-  document.querySelectorAll(".model-lbl").forEach(lbl => {
-    const inp = lbl.querySelector("input");
-    lbl.classList.toggle("on", !!inp?.checked);
-  });
-}
-
-window.toggleKeyVisibility = (inputId, iconId) => {
-  const inp = document.getElementById(inputId);
-  const icon = document.getElementById(iconId);
-  if (!inp) return;
-  inp.type = inp.type === "password" ? "text" : "password";
-  icon.innerHTML = inp.type === "text"
-    ? '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
-    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
-};
-
-// ─── Load ─────────────────────────────────────────────────────────────────
-async function loadAISettings(){
+// ─── Перевірка ключа: список моделей + короткий запит до обраної моделі ─────
+async function testProvider(p, btn){
+  const key = keyOf(p), msg = document.getElementById("msg-" + p);
+  if (!key){ msg.className = "key-msg bad"; msg.textContent = "Спершу вставте ключ"; document.getElementById("key-" + p).focus(); return; }
+  const model = cur[p + "Model"];
+  tested[p] = "busy"; renderProvState(p); btn.disabled = true;
+  msg.className = "key-msg"; msg.textContent = "Перевіряємо ключ і модель…";
+  const t0 = performance.now();
   try {
-    const s = await dbGet("settings/ai");
-    if (!s){ highlightModels(); return; }
-
-    const gk = document.getElementById("ai-groq-key");
-    if (gk) gk.value = s.groqApiKey || s.apiKey || "";
-
-    const gemk = document.getElementById("ai-gemini-key");
-    if (gemk) gemk.value = s.geminiApiKey || "";
-
-    if (s.groqModel){
-      const r = document.querySelector(`input[name="ai-groq-model"][value="${s.groqModel}"]`);
-      if (r) r.checked = true;
+    let ids = [];
+    if (p === "groq"){
+      const r = await fetch("https://api.groq.com/openai/v1/models", { headers: { Authorization: "Bearer " + key } });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.error?.message || `HTTP ${r.status}`);
+      ids = (d.data || []).filter(m => m.active !== false && !/whisper|tts|guard|distil/i.test(m.id)).map(m => m.id).sort();
+      const c = await fetch("https://api.groq.com/openai/v1/chat/completions", { method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + key },
+        body: JSON.stringify({ model, messages: [{ role: "user", content: "Відповідай одним словом: так" }], max_tokens: 5 }) });
+      const cd = await c.json().catch(() => ({}));
+      if (!c.ok) throw new Error(`модель «${model}»: ` + (cd.error?.message || `HTTP ${c.status}`));
+    } else {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=${encodeURIComponent(key)}`);
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.error?.message || `HTTP ${r.status}`);
+      ids = (d.models || []).filter(m => (m.supportedGenerationMethods || []).includes("generateContent") && /gemini/i.test(m.name) && !/embedding|image|tts|audio/i.test(m.name))
+        .map(m => m.name.replace(/^models\//, "")).sort();
+      const c = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`, { method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: "Відповідай одним словом: так" }] }], generationConfig: { maxOutputTokens: 16, ...(/flash/i.test(model) ? { thinkingConfig: { thinkingBudget: 0 } } : {}) } }) });
+      const cd = await c.json().catch(() => ({}));
+      if (!c.ok) throw new Error(`модель «${model}»: ` + (cd.error?.message || `HTTP ${c.status}`));
     }
-    if (s.geminiModel){
-      const r = document.querySelector(`input[name="ai-gemini-model"][value="${s.geminiModel}"]`);
-      if (r) r.checked = true;
-    }
-    highlightModels();
-
-    const tmap = {
-      "ai-comments":   s.aiComments,
-      "ai-analysis":   s.aiAnalysis,
-      "ai-generation": s.aiGeneration,
-      "ai-textcheck":  s.aiTextCheck
-    };
-    Object.entries(tmap).forEach(([id, val]) => {
-      const el = document.getElementById(id);
-      if (el) el.checked = val !== false;
-    });
-
-    const fp = s.featProviders || {};
-    ["comments","analysis","generation","textcheck"].forEach(feat => {
-      setFeatProv(feat, fp[feat] || "groq");
-    });
+    fetched[p] = ids;
+    tested[p] = true;
+    msg.className = "key-msg ok";
+    msg.textContent = `Ключ дійсний · модель ${model} відповіла за ${Math.round(performance.now() - t0)} мс`;
+    renderModels(p);
   } catch (e){
-    console.warn("Load AI settings:", e.message);
+    tested[p] = false;
+    msg.className = "key-msg bad";
+    msg.textContent = "Не вдалося: " + (e.message === "Failed to fetch" ? "немає з'єднання з провайдером" : e.message);
+  } finally {
+    btn.disabled = false; renderProvState(p); renderFeatures();
   }
 }
 
-// ─── Save ─────────────────────────────────────────────────────────────────
-async function saveAISettings(){
-  const groqKey   = document.getElementById("ai-groq-key")?.value.trim();
-  const geminiKey = document.getElementById("ai-gemini-key")?.value.trim();
-  const groqModel  = document.querySelector('input[name="ai-groq-model"]:checked')?.value || "llama-3.3-70b-versatile";
-  const geminiModel= document.querySelector('input[name="ai-gemini-model"]:checked')?.value || "gemini-2.5-flash";
-  const comments   = document.getElementById("ai-comments")?.checked;
-  const analysis   = document.getElementById("ai-analysis")?.checked;
-  const generation = document.getElementById("ai-generation")?.checked;
-  const textcheck  = document.getElementById("ai-textcheck")?.checked;
+// ─── Завантаження / збереження ─────────────────────────────────────────────
+function fromDb(s){
+  const x = structuredClone(DEF);
+  if (!s) return x;
+  x.groqKey = s.groqApiKey || (s.provider !== "gemini" ? s.apiKey : "") || "";
+  x.geminiKey = s.geminiApiKey || "";
+  x.groqModel = s.groqModel || s.model || DEF.groqModel;
+  x.geminiModel = s.geminiModel || DEF.geminiModel;
+  FEATURES.forEach(f => { x.flags[f.id] = s[f.flag] !== false; x.prov[f.id] = s.featProviders?.[f.id] === "gemini" ? "gemini" : "groq"; });
+  return x;
+}
 
-  if (!groqKey && !geminiKey){ toast("Введіть хоча б один API ключ"); return; }
-
-  const btn = document.getElementById("btn-save-ai");
-  btn.disabled = true;
-
+async function save(){
+  const anyOn = Object.values(cur.flags).some(Boolean);
+  const gk = keyOf("groq"), mk = keyOf("gemini");
+  if (anyOn && !gk && !mk){ toast("Додайте хоча б один API-ключ або вимкніть усі функції", "err"); return; }
+  for (const p of ["groq", "gemini"]) if (!cur[p + "Model"].trim()){ toast(`Вкажіть модель ${PROVIDERS[p].name}`, "err"); return; }
+  const btns = [document.getElementById("btn-save-ai"), document.getElementById("btn-save-bar")];
+  btns.forEach(b => b.disabled = true);
   try {
     await dbUpd("settings/ai", {
-      groqApiKey: groqKey || "",
-      geminiApiKey: geminiKey || "",
-      groqModel, geminiModel,
-      apiKey: groqKey || geminiKey || "",
-      model: groqModel,
-      provider: groqKey ? "groq" : "gemini",
-      aiComments: comments,
-      aiAnalysis: analysis,
-      aiGeneration: generation,
-      aiTextCheck: textcheck,
-      featProviders: { ..._featProvs },
-      updatedAt: Date.now()
+      groqApiKey: gk, geminiApiKey: mk,
+      groqModel: cur.groqModel.trim(), geminiModel: cur.geminiModel.trim(),
+      // Сумісність зі старими читачами налаштувань
+      apiKey: gk || mk, model: gk ? cur.groqModel.trim() : cur.geminiModel.trim(), provider: gk ? "groq" : "gemini",
+      aiComments: cur.flags.comments, aiAnalysis: cur.flags.analysis, aiGeneration: cur.flags.generation, aiTextCheck: cur.flags.textcheck,
+      featProviders: { ...cur.prov }, updatedAt: Date.now(),
     });
-
-    const status = document.getElementById("ai-status");
-    if (status){
-      status.style.display = "";
-      status.innerHTML = `<div class="save-status">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        Налаштування збережено · застосуються одразу для всіх викладачів
-      </div>`;
-      setTimeout(() => { status.style.display = "none"; }, 3500);
-    }
-    toast("Налаштування AI збережено");
+    cur.groqKey = gk; cur.geminiKey = mk;
+    saved = structuredClone(cur);
+    renderAll();
+    toast("Налаштування AI збережено — діють одразу для всіх");
   } catch (e){
-    toast("Помилка: " + e.message);
+    toast("Помилка збереження: " + e.message, "err");
   } finally {
-    btn.disabled = false;
+    renderDirty();
+    document.getElementById("btn-save-bar").disabled = false;
   }
 }
-
-// ─── Wire ─────────────────────────────────────────────────────────────────
-document.querySelectorAll('.model-lbl input').forEach(r => {
-  r.addEventListener("change", highlightModels);
+document.getElementById("btn-save-ai").addEventListener("click", save);
+document.getElementById("btn-save-bar").addEventListener("click", save);
+document.getElementById("btn-discard").addEventListener("click", () => { cur = structuredClone(saved); tested.groq = tested.gemini = null; renderAll(); });
+document.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s"){ e.preventDefault(); if (!same(cur, saved)) save(); }
 });
+addEventListener("beforeunload", e => { if (!same(cur, saved)){ e.preventDefault(); e.returnValue = ""; } });
 
-document.getElementById("btn-save-ai").addEventListener("click", saveAISettings);
+// Викладачі з індивідуальними налаштуваннями (перекривають глобальні)
+function renderOverrides(users){
+  const list = Object.values(users || {}).filter(u => u && u.aiSettings);
+  const box = document.getElementById("ovr");
+  box.hidden = !list.length;
+  if (!list.length) return;
+  const n = list.length, one = n % 10 === 1 && n % 100 !== 11;
+  document.getElementById("ovr-t").innerHTML = `<b>${n}</b> ${one ? "викладач має" : "викладачів мають"} індивідуальні AI-налаштування — вони перекривають перемикачі функцій вище`;
+  const names = list.map(u => [u.surname, u.name].filter(Boolean).join(" ") || u.email).filter(Boolean);
+  document.getElementById("ovr-names").textContent = names.slice(0, 4).join(", ") + (names.length > 4 ? ` та ще ${names.length - 4}` : "");
+}
 
-// First load — тримаємо loader доки дані не завантажаться
 try {
-  await loadAISettings();
+  const [s, users] = await Promise.all([dbGet("settings/ai"), dbGet("users").catch(() => null)]);
+  saved = fromDb(s); cur = structuredClone(saved);
+  renderAll();
+  renderOverrides(users);
 } catch (e) {
-  console.error("[ai-settings] Initial load failed:", e);
+  console.error("[ai-settings] load failed:", e);
+  renderAll();
+  toast("Не вдалося завантажити налаштування: " + e.message, "err");
 }
 hideLoader();
 </script>
