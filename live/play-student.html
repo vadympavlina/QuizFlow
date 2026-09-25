@@ -115,10 +115,6 @@
   .confirm-btn .cnt{background:rgba(255,255,255,.25);border-radius:999px;min-width:26px;height:26px;padding:0 7px;display:grid;place-items:center;font:900 13px "Geist Mono",monospace}
   .banner{align-items:center;gap:10px;padding:12px 20px;border-radius:14px;font-weight:800;font-size:14px;box-shadow:0 16px 40px rgba(0,0,0,.3)}
   .banner.lock{background:linear-gradient(135deg,#FDE68A,#F59E0B);color:#451A03}
-  .confirm-btn:disabled{opacity:.6;cursor:not-allowed;filter:saturate(.5)}
-  .pick-hint{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:rgba(52,211,153,.18);color:#A7F3D0;font-weight:800}
-  .shake{animation:shake .35s}
-  @keyframes shake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
   .banner.late{background:#334155;color:#E2E8F0;border:1px solid rgba(255,255,255,.15)}
 
   /* Результат питання */
@@ -350,9 +346,8 @@ function renderQuestion(qi) {
         <span class="txt">${esc(opts[i])}</span>
         <span class="check" aria-hidden="true">✓</span>
       </button>`).join("");
-    const need = Number(qq.pick) || 0;
     $("q-hint").innerHTML = multi
-      ? (need ? `<span class="pick-hint">Оберіть ${need} ${need < 5 ? "варіанти" : "варіантів"}</span> і натисніть <b>Підтвердити</b>` : `Оберіть <b>усі</b> правильні варіанти й натисніть <b>Підтвердити</b>`) + `<span class="kb"> · <kbd>Пробіл</kbd></span>`
+      ? `Оберіть <b>усі</b> правильні варіанти й натисніть <b>Підтвердити</b><span class="kb"> · <kbd>Пробіл</kbd></span>`
       : `Торкніться варіанту<span class="kb"> або натисніть <kbd>1</kbd>–<kbd>${opts.length}</kbd></span>`;
   }
 
@@ -403,10 +398,8 @@ function paint() {
 
   // Док знизу
   const multiOpen = qq.type === "multi" && canAnswer() && multiSel.size > 0;
-  const need = Number(qq.pick) || 0;
-  $("confirm-cnt").textContent = need ? `${multiSel.size}/${need}` : multiSel.size;
+  $("confirm-cnt").textContent = multiSel.size;
   $("confirm-btn").classList.toggle("show", multiOpen);
-  $("confirm-btn").disabled = !!need && multiSel.size !== need;
   $("lock-banner").classList.toggle("show", !!myAnswer && st.status === "question");
   $("late-banner").classList.toggle("show", !myAnswer && !sending && st.status === "question" && timeLeft() <= 0);
   $("q-hint").hidden = !!isReveal || locked;
@@ -482,21 +475,12 @@ $("answers-grid").addEventListener("click", (e) => {
   const i = +b.dataset.i;
   if (q()?.type === "multi") {
     if (!canAnswer()) return;
-    const need = Number(q().pick) || 0;
-    if (multiSel.has(i)) multiSel.delete(i);
-    else if (need && multiSel.size >= need) {
-      // Уже обрано потрібну кількість — підказуємо, а не мовчки додаємо зайве
-      const h = $("q-hint").querySelector(".pick-hint");
-      h?.classList.remove("shake"); void h?.offsetWidth; h?.classList.add("shake");
-      navigator.vibrate?.(40);
-      return;
-    } else multiSel.add(i);
+    multiSel.has(i) ? multiSel.delete(i) : multiSel.add(i);
     paint();
   } else submit(i);
 });
 $("confirm-btn").addEventListener("click", () => {
-  const need = Number(q()?.pick) || 0;
-  if (multiSel.size && (!need || multiSel.size === need)) submit([...multiSel].sort((a, b) => a - b));
+  if (multiSel.size) submit([...multiSel].sort((a, b) => a - b));
 });
 $("text-form").addEventListener("submit", (e) => {
   e.preventDefault();
