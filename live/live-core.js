@@ -31,7 +31,11 @@ export async function requireTeacher() {
   const { getAuth, onAuthStateChanged } = await import(AUTH_URL);
   const auth = getAuth(app);
   const user = await new Promise(r => { const u = onAuthStateChanged(auth, x => { u(); r(x); }); });
-  if (!user) { location.href = pageUrl("../login"); throw new Error("no auth"); }
+  if (!user) {
+    const here = "live/" + (location.pathname.split("/").pop() || "") + location.search;
+    location.href = pageUrl("../login") + "?next=" + encodeURIComponent(here);
+    throw new Error("no auth");
+  }
   return user;
 }
 

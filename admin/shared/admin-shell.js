@@ -137,7 +137,7 @@ function getCurrentUser(){
 }
 
 export function doLogout(){
-  try { localStorage.removeItem("qf_admin_user"); } catch {}
+  try { localStorage.removeItem("qf_admin_user"); localStorage.removeItem("qf_signed_in"); } catch {}
   _signOut(_adminAuth);
   location.href = "admin-login";
 }
