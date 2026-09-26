@@ -109,17 +109,24 @@ const _adminFbUser = await new Promise(resolve => {
   const unsub = onAuthStateChanged(_adminAuth, u => { unsub(); resolve(u); });
 });
 
+// Після входу повертаємо на ту саму сторінку адмінки (admin-login?next=…)
+const _adminNext = () => { const h = (location.pathname.split("/").pop() || "") + location.search; return h ? "next=" + encodeURIComponent(h) : ""; };
 if (!_adminFbUser) {
-  location.href = "admin-login";
+  location.href = "admin-login" + (_adminNext() ? "?" + _adminNext() : "");
   throw new Error("no auth");
 }
 
 // Читаємо профіль з DB і перевіряємо role === "admin"
 const _adminProfileSnap = await get(ref(db, `users/${_adminFbUser.uid}`));
 if (!_adminProfileSnap.exists() || _adminProfileSnap.val().role !== "admin") {
-  await _signOut(_adminAuth);
-  location.href = "admin-login";
+  // Викладача не розлогінюємо (інакше він вилетить і з панелі викладача) — сторінка входу пояснить
+  location.href = "admin-login?denied=1" + (_adminNext() ? "&" + _adminNext() : "");
   throw new Error("not admin");
+}
+if (_adminProfileSnap.val().blocked === true) {
+  await _signOut(_adminAuth);
+  location.href = "admin-login?blocked=1";
+  throw new Error("blocked");
 }
 
 const _adminProfile = _adminProfileSnap.val();

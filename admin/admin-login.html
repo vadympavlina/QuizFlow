@@ -2,319 +2,351 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><path d='M16 5l8 3v6c0 4.5-3.2 8.5-8 9-4.8-.5-8-4.5-8-9V8l8-3z' fill='none' stroke='white' stroke-width='2.2' stroke-linejoin='round'/><path d='M13 16l2 2 4-4' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
 <title>QuizFlow Admin — Вхід</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0D0A2E">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --nav-950:#050817; --nav-900:#0A0F2C; --nav-850:#0E1638;
-    --violet-500:#7C3AED; --violet-400:#A78BFA; --indigo-500:#4F46E5;
-    --ink-900:#0B1437; --ink-700:#2A3458; --ink-500:#5B6A8F; --ink-400:#8691AC;
-    --line:#E3E8F2;
-  }
-  *{box-sizing:border-box; margin:0; padding:0}
-  html, body{height:100%}
-  body{
-    font-family:"Manrope", system-ui, sans-serif; color:#fff;
-    background:
-      radial-gradient(circle at 20% 0%, rgba(124,58,237,.28), transparent 50%),
-      radial-gradient(circle at 100% 100%, rgba(59,130,246,.18), transparent 60%),
-      linear-gradient(180deg, #050817 0%, #0A0F2C 50%, #0E1638 100%);
-    min-height:100vh;
-    display:flex; align-items:center; justify-content:center;
-    padding:24px; position:relative; overflow:hidden;
-    -webkit-font-smoothing:antialiased;
-  }
-  body::before{
-    content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
-    background-image:
-      linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
-    background-size:32px 32px;
-    -webkit-mask-image: radial-gradient(circle at 50% 50%, #000, transparent 70%);
-            mask-image: radial-gradient(circle at 50% 50%, #000, transparent 70%);
-  }
+/* Палітра — як у фіолетовій навігації адмінки (admin-shell.css .asb) */
+:root{
+  --v-1:#140B3A; --v-2:#0D0A2E; --v-3:#080722;
+  --acc:#8B5CF6; --acc-2:#6D28D9; --acc-3:#4F46E5; --acc-soft:#C4B5FD;
+  --t:rgba(233,228,255,.7); --t-mute:rgba(233,228,255,.42); --ln:rgba(255,255,255,.08);
+  --ink:#0B1437; --ink-2:#24335A; --muted:#5B6A8F; --faint:#8691AC; --line:#E3E8F2; --bg:#F6F4FD;
+  --bad:#DC2626; --ok:#15803D; --ease:cubic-bezier(.32,.72,0,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Manrope',system-ui,sans-serif;font-size:14px;color:var(--ink);-webkit-font-smoothing:antialiased;
+  min-height:100vh;min-height:100dvh;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(440px,560px);
+  background:
+    radial-gradient(70% 55% at 8% 0%, rgba(139,92,246,.32) 0%, transparent 60%),
+    radial-gradient(55% 45% at 100% 100%, rgba(59,130,246,.16) 0%, transparent 60%),
+    linear-gradient(160deg,var(--v-1) 0%,var(--v-2) 55%,var(--v-3) 100%);
+}
+button,input{font:inherit;color:inherit}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 
-  @keyframes cardIn{
-    from{opacity:0; transform:translateY(24px) scale(.97)}
-    to{opacity:1; transform:none}
-  }
-  @keyframes pulseRing{
-    0%{box-shadow:0 0 0 0 rgba(124,58,237,.6)}
-    70%{box-shadow:0 0 0 16px rgba(124,58,237,0)}
-    100%{box-shadow:0 0 0 0 rgba(124,58,237,0)}
-  }
+/* ═══ Ліва частина ═══ */
+.hero{position:relative;padding:40px 56px;display:flex;flex-direction:column;gap:40px;color:var(--t);overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+  background-size:44px 44px;mask-image:radial-gradient(70% 60% at 30% 40%,#000,transparent);-webkit-mask-image:radial-gradient(70% 60% at 30% 40%,#000,transparent)}
+.hero>*{position:relative}
+.logo{display:inline-flex;align-items:center;gap:11px;color:#fff;width:max-content}
+.logo-i{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(140deg,#A78BFA 0%,#7C3AED 50%,#4F46E5 100%);box-shadow:0 10px 22px -10px rgba(139,92,246,.95),inset 0 1px 0 rgba(255,255,255,.35)}
+.logo-t{font-size:19px;font-weight:800;letter-spacing:-.01em}
+.logo-t em{font-style:normal;color:var(--acc-soft)}
+.logo-tag{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border-radius:7px;color:var(--acc-soft);background:rgba(139,92,246,.16);border:1px solid rgba(196,181,253,.25)}
+.hero-main{margin:auto 0;max-width:520px}
+.kicker{display:inline-flex;align-items:center;gap:8px;padding:5px 11px 5px 9px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--ln);font-size:12px;font-weight:700;color:var(--acc-soft);margin-bottom:18px}
+.kicker svg{color:#6EE7B7}
+.hero h1{font-size:clamp(28px,3vw,40px);line-height:1.12;letter-spacing:-.03em;font-weight:800;color:#fff}
+.hero h1 span{background:linear-gradient(90deg,var(--acc-soft),#fff 75%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-p{margin-top:14px;font-size:15px;line-height:1.6;max-width:460px}
+.feats{margin-top:30px;display:flex;flex-direction:column;gap:4px;padding:8px;border-radius:20px;max-width:440px;
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid var(--ln);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 24px 48px -24px rgba(0,0,0,.55)}
+.feat{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:13px}
+.feat.on{background:linear-gradient(135deg,rgba(139,92,246,.26),rgba(79,70,229,.14));box-shadow:inset 0 0 0 1px rgba(196,181,253,.28)}
+.feat-i{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;color:var(--acc-soft);background:rgba(255,255,255,.06);border:1px solid var(--ln)}
+.feat.on .feat-i{background:linear-gradient(140deg,#A78BFA,#7C3AED 55%,#4F46E5);color:#fff;border-color:transparent;box-shadow:0 6px 16px -6px rgba(139,92,246,.95)}
+.feat b{display:block;color:#fff;font-size:13.5px;font-weight:700}
+.feat span{font-size:12.5px;color:var(--t-mute);line-height:1.4}
+.hero-foot{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--t-mute)}
+.hero-foot svg{color:#6EE7B7;flex:0 0 auto}
 
-  .card{
-    position:relative; z-index:1;
-    background:#fff; color:var(--ink-900);
-    border-radius:22px;
-    padding:38px 36px;
-    width:100%; max-width:420px;
-    box-shadow:
-      0 32px 80px -20px rgba(124,58,237,.45),
-      0 8px 24px -8px rgba(11,20,55,.4);
-    animation: cardIn .45s cubic-bezier(.34,1.56,.64,1) both;
-  }
+/* ═══ Картка ═══ */
+.side{display:flex;align-items:center;justify-content:center;padding:28px}
+.card{width:100%;max-width:440px;background:#fff;border-radius:24px;padding:34px 36px 28px;
+  box-shadow:0 40px 90px -30px rgba(76,29,149,.75),0 2px 8px rgba(8,7,34,.25);animation:rise .45s var(--ease) both}
+@keyframes rise{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+.shield{width:52px;height:52px;border-radius:15px;display:grid;place-items:center;margin-bottom:16px;color:#fff;
+  background:linear-gradient(140deg,#A78BFA,#7C3AED 55%,#4F46E5);box-shadow:0 14px 28px -12px rgba(124,58,237,.8),inset 0 1px 0 rgba(255,255,255,.3)}
+.card h2{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.sub{margin-top:6px;color:var(--muted);font-size:14px;line-height:1.5}
+.form{margin-top:22px;display:flex;flex-direction:column;gap:14px}
+.fld label{display:block;font-size:12.5px;font-weight:700;color:var(--ink-2);margin-bottom:6px}
+.inp{position:relative}
+.inp>svg{position:absolute;z-index:1;left:13px;top:50%;transform:translateY(-50%);color:var(--faint);pointer-events:none;transition:color .15s}
+.inp input{width:100%;height:46px;border:1px solid var(--line);border-radius:12px;padding:0 44px 0 40px;font-size:14.5px;color:var(--ink);background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+.inp input::placeholder{color:#AAB3C7}
+.inp input:focus{border-color:#B9A5F7;box-shadow:0 0 0 4px rgba(139,92,246,.15)}
+.inp:focus-within>svg{color:var(--acc-2)}
+.inp input.bad{border-color:var(--bad);box-shadow:0 0 0 4px rgba(220,38,38,.1)}
+.shake{animation:shake .35s ease}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+.eye{position:absolute;z-index:1;right:8px;top:50%;transform:translateY(-50%);width:32px;height:32px;border:0;border-radius:8px;background:transparent;color:var(--faint);cursor:pointer;display:grid;place-items:center}
+.eye:hover{background:var(--bg);color:var(--ink)}
+.caps{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;font-weight:700;color:#B45309}
+.sw{display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;user-select:none}
+.sw input{position:absolute;opacity:0;pointer-events:none}
+.sw b{width:34px;height:20px;border-radius:999px;background:#D3DAE8;position:relative;transition:background .2s;flex:0 0 auto}
+.sw b::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:transform .2s var(--ease)}
+.sw input:checked+b{background:var(--acc-2)}
+.sw input:checked+b::after{transform:translateX(14px)}
+.sw input:focus-visible+b{outline:2px solid var(--acc);outline-offset:2px}
+.sw small{display:block;font-size:11.5px;font-weight:500;color:var(--faint)}
+.msg{display:flex;align-items:flex-start;gap:9px;padding:11px 13px;border-radius:12px;font-size:13px;font-weight:600;line-height:1.45}
+.msg svg{flex:0 0 auto;margin-top:1px}
+.msg.err{background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA}
+.msg.info{background:#F5F3FF;color:#5B21B6;border:1px solid #DDD6FE}
+.msg.warn{background:#FFFBEB;color:#92400E;border:1px solid #FDE68A}
+.btn{height:48px;width:100%;border:0;border-radius:13px;display:inline-flex;align-items:center;justify-content:center;gap:9px;font-size:14.5px;font-weight:800;cursor:pointer;transition:transform .12s var(--ease),box-shadow .2s,opacity .15s}
+.btn.pri{color:#fff;background:linear-gradient(135deg,#8B5CF6 0%,#6D28D9 55%,#4F46E5 100%);box-shadow:0 14px 30px -12px rgba(109,40,217,.85),inset 0 1px 0 rgba(255,255,255,.2)}
+.btn.pri:hover:not(:disabled){transform:translateY(-1px)}
+.btn.ghost{background:#fff;color:var(--ink-2);border:1px solid var(--line)}
+.btn.ghost:hover{background:var(--bg)}
+.btn:disabled{opacity:.7;cursor:progress}
+.btn.done{background:linear-gradient(135deg,#22C55E,#15803D)}
+.spin{width:17px;height:17px;border-radius:50%;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:rot .7s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.who{display:flex;align-items:center;gap:11px;margin-top:18px;padding:12px;border-radius:14px;background:var(--bg);border:1px solid #EAE5FB}
+.who-ava{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:0 0 auto;color:#fff;font-weight:800;background:linear-gradient(140deg,#93C5FD,#3B82F6)}
+.who b{display:block;font-size:13.5px}
+.who span{font-size:12.5px;color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.card-foot{margin-top:20px;padding-top:16px;border-top:1px solid #EEF1F7;display:flex;justify-content:center}
+.back{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:9px}
+.back:hover{color:var(--ink);background:var(--bg)}
+.checking{text-align:center;padding:30px 0 12px}
+.checking .shield{margin:0 auto 16px}
+html.resume .views{display:none}
+html:not(.resume) .checking{display:none}
 
-  .brand{
-    display:flex; flex-direction:column; align-items:center; gap:10px;
-    margin-bottom:22px;
-  }
-  .brand-mark{
-    width:60px; height:60px; border-radius:18px;
-    background: linear-gradient(135deg, #7C3AED, #4F46E5);
-    display:grid; place-items:center;
-    box-shadow:
-      0 14px 28px -8px rgba(124,58,237,.6),
-      inset 0 -2px 0 rgba(0,0,0,.25);
-    animation: pulseRing 2.4s infinite;
-  }
-  .brand-name{
-    font-size:18px; font-weight:800; letter-spacing:-.02em;
-    color:var(--ink-900);
-  }
-  .brand-name em{font-style:normal; color:var(--violet-500)}
-
-  .admin-tag{
-    display:inline-flex; align-items:center; gap:5px;
-    font-size:10px; font-weight:800; letter-spacing:.15em; text-transform:uppercase;
-    background: linear-gradient(135deg, #7C3AED, #4F46E5);
-    color:#fff; padding:4px 10px; border-radius:6px;
-    box-shadow: 0 4px 12px -4px rgba(124,58,237,.5);
-  }
-  .admin-tag::before{
-    content:""; width:6px; height:6px; border-radius:50%;
-    background:#fff; box-shadow:0 0 8px rgba(255,255,255,.85);
-  }
-
-  h1{
-    font-size:24px; font-weight:800; letter-spacing:-.02em;
-    text-align:center; margin-top:14px; margin-bottom:6px;
-    color:var(--ink-900);
-  }
-  .subtitle{
-    text-align:center; color:var(--ink-500); font-size:13.5px;
-    margin-bottom:26px;
-  }
-
-  .err-msg{
-    background:rgba(220,38,38,.08);
-    border:1px solid rgba(220,38,38,.25);
-    border-radius:10px; padding:10px 14px;
-    color:#B91C1C; font-size:13px; font-weight:600;
-    margin-bottom:14px; display:none;
-    align-items:center; gap:8px;
-  }
-  .err-msg.show{display:flex; animation: cardIn .2s ease}
-  .err-msg svg{flex:0 0 auto; color:#DC2626}
-
-  .field-group{margin-bottom:14px}
-  .field-label{
-    font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
-    color:var(--ink-400); font-weight:700;
-    margin-bottom:7px;
-  }
-  .field-input-wrap{position:relative; display:flex; align-items:center}
-  .field-input-wrap svg{
-    position:absolute; left:13px; color:var(--ink-400);
-    pointer-events:none;
-  }
-  .field-input{
-    width:100%; padding:13px 14px 13px 40px;
-    border-radius:11px;
-    border:1.5px solid var(--line);
-    font-family:"Manrope", sans-serif; font-size:14px;
-    color:var(--ink-900); outline:none;
-    transition: all .15s;
-    background:#FAFBFE;
-  }
-  .field-input::placeholder{color:var(--ink-400)}
-  .field-input:focus{
-    border-color:#7C3AED;
-    box-shadow:0 0 0 3px rgba(124,58,237,.12);
-    background:#fff;
-  }
-
-  .btn{
-    width:100%; padding:14px;
-    background: linear-gradient(135deg, #7C3AED, #4F46E5);
-    color:#fff; border:0; border-radius:12px;
-    font-family:"Manrope", sans-serif;
-    font-weight:700; font-size:14px; letter-spacing:.01em;
-    cursor:pointer; transition:all .2s;
-    box-shadow: 0 8px 22px -8px rgba(124,58,237,.5);
-    margin-top:6px;
-    display:inline-flex; align-items:center; justify-content:center; gap:8px;
-  }
-  .btn:hover:not(:disabled){
-    transform:translateY(-1px);
-    box-shadow: 0 14px 30px -10px rgba(124,58,237,.6);
-    filter:brightness(1.05);
-  }
-  .btn:active:not(:disabled){transform:translateY(0)}
-  .btn:disabled{opacity:.6; cursor:not-allowed; transform:none}
-  .btn svg{width:14px; height:14px}
-
-  .back-link{
-    display:flex; align-items:center; justify-content:center; gap:6px;
-    text-align:center; margin-top:18px;
-    font-size:12.5px; color:var(--ink-500);
-    text-decoration:none; transition:color .15s; font-weight:600;
-  }
-  .back-link:hover{color:var(--violet-500)}
-  .back-link svg{width:13px; height:13px}
-
-  /* Footer hint */
-  .foot-hint{
-    margin-top:24px;
-    font-size:11.5px; color:rgba(255,255,255,.55);
-    text-align:center; letter-spacing:.04em;
-    position:relative; z-index:1;
-  }
-
-  @media (max-width:520px){
-    .card{padding:30px 22px; border-radius:18px}
-    h1{font-size:20px}
-    .field-input{font-size:16px}  /* запобігаємо zoom на iOS */
-  }
+@media (max-width:1080px){
+  body{grid-template-columns:1fr}
+  .hero{padding:28px 24px 0;gap:0}
+  .hero-main,.hero-foot{display:none}
+  .side{padding:22px 16px 32px;align-items:flex-start}
+}
+@media (max-width:480px){.card{padding:26px 20px 22px;border-radius:20px}.card h2{font-size:21px}.inp input{font-size:16px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 
-  <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
-    <div class="card">
-      <div class="brand">
-        <div class="brand-mark">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            <path d="M9 12l2 2 4-4"/>
-          </svg>
-        </div>
-        <span class="admin-tag">Admin Access</span>
-      </div>
-
-      <h1>Адмін-панель</h1>
-      <div class="subtitle">Вхід тільки для адміністраторів QuizFlow</div>
-
-      <div class="err-msg" id="err">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r=".8" fill="currentColor"/></svg>
-        <span id="err-text"></span>
-      </div>
-
-      <div class="field-group">
-        <div class="field-label">Email</div>
-        <div class="field-input-wrap">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-          <input class="field-input" type="email" id="login" autocomplete="email" placeholder="admin@example.com">
-        </div>
-      </div>
-
-      <div class="field-group">
-        <div class="field-label">Пароль</div>
-        <div class="field-input-wrap">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-          <input class="field-input" type="password" id="password" autocomplete="current-password" placeholder="••••••••">
-        </div>
-      </div>
-
-      <button class="btn" id="loginBtn" onclick="doLogin()">
-        <span id="loginBtn-text">Увійти</span>
-        <svg id="loginBtn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-      </button>
-
-      <a href="../login" class="back-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        Я викладач, повернутися
-      </a>
-    </div>
-
-    <div class="foot-hint">Захищена область · сесія діє лише на цій вкладці</div>
+<aside class="hero">
+  <div class="logo">
+    <span class="logo-i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></span>
+    <span class="logo-t">quiz<em>flow</em></span>
+    <span class="logo-tag">Admin</span>
   </div>
 
+  <div class="hero-main">
+    <div class="kicker"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>Захищена зона</div>
+    <h1>Керування <span>платформою QuizFlow</span></h1>
+    <p class="hero-p">Викладачі, ролі й доступи, налаштування AI, новини та звіти — в одній панелі.</p>
+    <div class="feats" aria-hidden="true">
+      <div class="feat on"><span class="feat-i"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></span><div><b>Викладачі</b><span>Запрошення, блокування, скидання пароля</span></div></div>
+      <div class="feat"><span class="feat-i"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span><div><b>Ролі й навігація</b><span>Хто які розділи бачить</span></div></div>
+      <div class="feat"><span class="feat-i"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9z"/></svg></span><div><b>AI та інтеграції</b><span>Ключі, моделі, Telegram-бот</span></div></div>
+      <div class="feat"><span class="feat-i"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span><div><b>Статистика й звіти</b><span>Активність і повідомлення про проблеми</span></div></div>
+    </div>
+  </div>
+
+  <div class="hero-foot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Вхід лише для адміністраторів. Усі дії в панелі записуються з вашим акаунтом.</div>
+</aside>
+
+<main class="side">
+  <div class="card">
+    <div class="checking" aria-live="polite">
+      <div class="shield"><span class="spin"></span></div>
+      <h2>Перевіряємо доступ…</h2>
+      <p class="sub" id="checkWho">Зачекайте секунду</p>
+    </div>
+
+    <div class="views">
+      <!-- Вхід -->
+      <section id="vLogin">
+        <div class="shield"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <h2>Вхід в адмін-панель</h2>
+        <p class="sub">Лише для адміністраторів QuizFlow.</p>
+        <form class="form" id="loginF" novalidate>
+          <div class="msg" id="loginMsg" role="alert" hidden></div>
+          <div class="fld">
+            <label for="email">Email</label>
+            <div class="inp">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+              <input id="email" type="email" inputmode="email" placeholder="admin@school.ua" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+            </div>
+          </div>
+          <div class="fld">
+            <label for="pass">Пароль</label>
+            <div class="inp">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+              <input id="pass" type="password" placeholder="••••••••" autocomplete="current-password" required>
+              <button type="button" class="eye" id="eye" aria-label="Показати пароль" aria-pressed="false"></button>
+            </div>
+            <div class="caps" id="caps" hidden><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l8 8h-5v6H9v-6H4z"/></svg>Увімкнено Caps Lock</div>
+          </div>
+          <label class="sw"><input type="checkbox" id="stay"><b></b><span>Залишатися в системі<small>Інакше вихід — після закриття вкладки</small></span></label>
+          <button type="submit" class="btn pri" id="loginBtn"><span>Увійти</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+        </form>
+        <div class="card-foot"><a class="back" href="../login"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Я викладач — до входу викладача</a></div>
+      </section>
+
+      <!-- Увійшли акаунтом без прав адміністратора -->
+      <section id="vDenied" hidden>
+        <div class="shield" style="background:linear-gradient(140deg,#FCD34D,#F59E0B);box-shadow:0 14px 28px -12px rgba(245,158,11,.7)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></div>
+        <h2>Потрібен акаунт адміністратора</h2>
+        <p class="sub">Ви увійшли акаунтом без прав адміністратора — адмін-панель для нього недоступна.</p>
+        <div class="who"><div class="who-ava" id="whoAva">?</div><div><b id="whoName"></b><span id="whoRole"></span></div></div>
+        <div class="stack">
+          <button type="button" class="btn pri" id="switchBtn">Увійти іншим акаунтом</button>
+          <a class="btn ghost" href="../" style="text-decoration:none">Повернутися в панель викладача</a>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
 <script type="module">
-  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-  const cfg = {apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",authDomain:"quizflow-8a978.firebaseapp.com",databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",projectId:"quizflow-8a978",storageBucket:"quizflow-8a978.firebasestorage.app",messagingSenderId:"206469794166",appId:"1:206469794166:web:55cd7007b429607acd5257"};
-  const app  = getApps().length ? getApps()[0] : initializeApp(cfg);
-  const auth = getAuth(app);
-  const db   = getDatabase(app);
-
-  const errEl  = document.getElementById("err");
-  const errTxt = document.getElementById("err-text");
-  function showErr(msg){ errTxt.textContent = msg; errEl.classList.add("show"); }
-  function hideErr(){ errEl.classList.remove("show"); }
-  function setBusy(busy){
-    const btn = document.getElementById("loginBtn");
-    btn.disabled = busy;
-    document.getElementById("loginBtn-text").textContent = busy ? "Перевірка..." : "Увійти";
-    document.getElementById("loginBtn-arrow").style.display = busy ? "none" : "";
+const app = getApps().length ? getApps()[0] : initializeApp({
+  apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",
+  authDomain:"quizflow-8a978.firebaseapp.com",
+  databaseURL:"https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"quizflow-8a978",
+  storageBucket:"quizflow-8a978.firebasestorage.app",
+  messagingSenderId:"206469794166",
+  appId:"1:206469794166:web:55cd7007b429607acd5257"
+});
+const auth = getAuth(app);
+auth.languageCode = "uk";
+let _db = null;
+const profileOf = async uid => {
+  if (!_db){
+    const m = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+    _db = { db: m.getDatabase(app), ref: m.ref, get: m.get };
   }
+  const s = await _db.get(_db.ref(_db.db, `users/${uid}`));
+  return s.exists() ? s.val() : null;
+};
 
-  // Якщо вже залогінений через Firebase Auth — перевіряємо чи admin
-  onAuthStateChanged(auth, async (fbUser) => {
-    if (fbUser) {
-      try {
-        const snap = await get(ref(db, `users/${fbUser.uid}`));
-        if (snap.exists() && snap.val().role === "admin" && !snap.val().blocked) {
-          location.replace("overview");
-        }
-      } catch {}
+const $ = id => document.getElementById(id);
+const qs = new URLSearchParams(location.search);
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Повернення лише на сторінку адмінки (відносна адреса без переходу вгору)
+const nextUrl = (() => {
+  const n = qs.get("next") || "";
+  return /^[a-z0-9][a-z0-9\-]*(\.html)?(\?[^#\s]*)?$/i.test(n) && !/^admin-login\b/.test(n) ? n : "overview";
+})();
+const go = () => location.replace(nextUrl);
+
+const ICON = {
+  err: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>',
+  info: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>',
+};
+function msg(kind, text){
+  const el = $("loginMsg");
+  if (!text){ el.hidden = true; return; }
+  el.className = `msg ${kind}`; el.innerHTML = (ICON[kind] || ICON.info) + "<span></span>"; el.lastChild.textContent = text; el.hidden = false;
+}
+function flagBad(inp){ inp.classList.add("bad"); inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake"); inp.focus(); }
+document.addEventListener("input", e => { e.target.classList?.remove("bad"); if (e.target.closest("#loginF")) msg(); });
+
+// Показати пароль / Caps Lock
+const EYE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_OFF = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.9 17.9A10.4 10.4 0 0112 19c-6.5 0-10-7-10-7a18 18 0 015.1-5.9M9.9 5.2A9.6 9.6 0 0112 5c6.5 0 10 7 10 7a18.4 18.4 0 01-2.2 3.2M14.1 14.1a3 3 0 01-4.2-4.2M2 2l20 20"/></svg>';
+$("eye").innerHTML = EYE;
+$("eye").addEventListener("click", () => {
+  const show = $("pass").type === "password";
+  $("pass").type = show ? "text" : "password";
+  $("eye").innerHTML = show ? EYE_OFF : EYE;
+  $("eye").setAttribute("aria-pressed", show); $("eye").setAttribute("aria-label", show ? "Сховати пароль" : "Показати пароль");
+  $("pass").focus({ preventScroll: true });
+});
+$("pass").addEventListener("keyup", e => { if (e.getModifierState) $("caps").hidden = !e.getModifierState("CapsLock"); });
+$("pass").addEventListener("blur", () => { $("caps").hidden = true; });
+
+function showView(v){
+  document.documentElement.classList.remove("resume");
+  $("vLogin").hidden = v !== "login"; $("vDenied").hidden = v !== "denied";
+  if (v === "login") setTimeout(() => ($("email").value ? $("pass") : $("email")).focus(), 40);
+}
+function showDenied(user, profile){
+  const name = [profile?.name, profile?.surname].filter(Boolean).join(" ") || user.email || "Користувач";
+  $("whoName").textContent = name;
+  $("whoRole").textContent = [user.email, profile ? (profile.role === "teacher" ? "викладач" : profile.role) : "без профілю"].filter(Boolean).join(" · ");
+  $("whoAva").textContent = name.split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase() || "?";
+  showView("denied");
+}
+$("switchBtn").addEventListener("click", async () => {
+  await signOut(auth);
+  try { localStorage.removeItem("qf_signed_in"); } catch {}
+  $("email").value = ""; $("pass").value = ""; msg();
+  showView("login");
+});
+
+// ─── Початковий стан ───────────────────────────────────────────────────
+if (qs.get("blocked") === "1") msg("err", "Акаунт заблоковано. Зверніться до іншого адміністратора.");
+else if (qs.get("next")) msg("info", "Увійдіть, щоб продовжити роботу в адмін-панелі.");
+
+let busy = false;
+onAuthStateChanged(auth, async user => {
+  if (busy) return;
+  if (!user) return showView("login");
+  // Сесія вже є — перевіряємо роль (форму поки не показуємо)
+  document.documentElement.classList.add("resume");
+  if (user.email) $("checkWho").textContent = user.email;
+  let p = null;
+  try { p = await profileOf(user.uid); } catch {}
+  if (p?.role === "admin" && p.blocked !== true) return go();
+  if (p?.role === "admin" && p.blocked === true){ await signOut(auth); msg("err", "Акаунт заблоковано. Зверніться до іншого адміністратора."); return showView("login"); }
+  showDenied(user, p);
+});
+
+// ─── Вхід ──────────────────────────────────────────────────────────────
+const AUTH_ERR = {
+  "auth/invalid-credential": "Невірний email або пароль",
+  "auth/wrong-password": "Невірний email або пароль",
+  "auth/user-not-found": "Невірний email або пароль",
+  "auth/invalid-email": "Невірний формат email",
+  "auth/user-disabled": "Акаунт вимкнено.",
+  "auth/too-many-requests": "Забагато невдалих спроб. Вхід тимчасово заблоковано — спробуйте за кілька хвилин.",
+  "auth/network-request-failed": "Немає з'єднання з інтернетом.",
+};
+$("loginF").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (busy) return;
+  const email = $("email").value.trim(), pass = $("pass").value;
+  if (!EMAIL_RE.test(email)){ msg("err", email ? "Перевірте email — схоже, в ньому помилка" : "Вкажіть email"); return flagBad($("email")); }
+  if (!pass){ msg("err", "Вкажіть пароль"); return flagBad($("pass")); }
+  const btn = $("loginBtn"), html = btn.innerHTML;
+  busy = true; btn.disabled = true; btn.innerHTML = `<span class="spin"></span><span>Перевірка доступу…</span>`; msg();
+  try {
+    // Адмінська сесія за замовчуванням живе лише до закриття вкладки
+    await setPersistence(auth, $("stay").checked ? browserLocalPersistence : browserSessionPersistence);
+    const cred = await signInWithEmailAndPassword(auth, email, pass);
+    const p = await profileOf(cred.user.uid);
+    if (!p || p.role !== "admin" || p.blocked === true){
+      await signOut(auth);
+      throw { code: !p || p.role !== "admin" ? "qf/not-admin" : "qf/blocked" };
     }
-  });
-
-  window.doLogin = async () => {
-    hideErr();
-    const email    = document.getElementById("login").value.trim();
-    const password = document.getElementById("password").value;
-    if (!email || !password) { showErr("Введіть email і пароль"); return; }
-
-    setBusy(true);
-
-    try {
-      const cred = await signInWithEmailAndPassword(auth, email, password);
-      const snap = await get(ref(db, `users/${cred.user.uid}`));
-
-      if (!snap.exists()) {
-        await auth.signOut();
-        showErr("Профіль не знайдено"); setBusy(false); return;
-      }
-
-      const u = snap.val();
-      if (u.role !== "admin") {
-        await auth.signOut();
-        showErr("Доступ заборонено — тільки для адміністраторів"); setBusy(false); return;
-      }
-      if (u.blocked) {
-        await auth.signOut();
-        showErr("Акаунт заблоковано"); setBusy(false); return;
-      }
-
-      location.href = "overview";
-    } catch(e) {
-      const msg = ["auth/invalid-credential","auth/wrong-password","auth/user-not-found"].includes(e.code)
-        ? "Невірний email або пароль"
-        : e.code === "auth/too-many-requests"
-        ? "Забагато спроб. Спробуйте пізніше"
-        : "Помилка: " + e.message;
-      showErr(msg);
-      setBusy(false);
-    }
-  };
-
-  document.getElementById("password").addEventListener("keydown", e => {
-    if (e.key === "Enter") doLogin();
-  });
-  document.getElementById("login").addEventListener("keydown", e => {
-    if (e.key === "Enter") document.getElementById("password").focus();
-  });
-
-  setTimeout(() => document.getElementById("login").focus(), 100);
+    btn.classList.add("done"); btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>Доступ підтверджено</span>`;
+    setTimeout(go, 250);
+  } catch (err){
+    busy = false; btn.disabled = false; btn.innerHTML = html;
+    const text = err.code === "qf/not-admin" ? "У цього акаунта немає прав адміністратора."
+      : err.code === "qf/blocked" ? "Акаунт заблоковано. Зверніться до іншого адміністратора."
+      : AUTH_ERR[err.code] || "Не вдалося увійти: " + (err.message || err.code);
+    msg("err", text);
+    if (/credential|password|user-not-found/.test(err.code || "")){ $("pass").select(); flagBad($("pass")); }
+    else if (err.code === "auth/invalid-email") flagBad($("email"));
+  }
+});
 </script>
 </body>
 </html>
