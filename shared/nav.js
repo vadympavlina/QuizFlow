@@ -35,6 +35,7 @@
     clock:      '<path d="M12 3v3"/><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2"/>',
     link:       '<path d="M10 13a4 4 0 005.66 0l3-3a4 4 0 00-5.66-5.66l-1.5 1.5"/><path d="M14 11a4 4 0 00-5.66 0l-3 3a4 4 0 005.66 5.66l1.5-1.5"/>',
     "chart-bar":'<path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M3 20h18"/>',
+    help:       '<circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 015.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
     book:       '<path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>',
     users:      '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.6 2-4.8 4.5-5"/>',
     bell:       '<path d="M6 15V11a6 6 0 1112 0v4l1.5 3h-15z"/><path d="M10 20a2 2 0 004 0"/>',
@@ -185,6 +186,8 @@
             '<span class="sb-ico">' + icon("zap") + '</span><span class="ni-label">Live</span></a>' +
           '<a href="/admin/overview" id="admin-panel-btn" target="_blank" rel="noopener" data-tip="Адмін-панель (нова вкладка)" aria-label="Адмін-панель (нова вкладка)" class="ni ni-admin"' + (isAdmin ? "" : " hidden") + ">" +
             '<span class="sb-ico">' + icon("shield") + '</span><span class="ni-label">Адмін</span></a>' +
+          '<a href="onboarding" data-tip="Знайомство з QuizFlow" aria-label="Знайомство з QuizFlow" class="ni ni-guide">' +
+            '<span class="sb-ico">' + icon("help") + '</span><span class="ni-label">Гайд</span></a>' +
           '<button type="button" class="ni ni-report" data-tip="Повідомити про помилку" aria-label="Повідомити про помилку" onclick="window.openBugReport && window.openBugReport()">' +
             '<span class="sb-ico">' + icon("alert") + '</span><span class="ni-label">Помилка</span></button>' +
         "</div>" +

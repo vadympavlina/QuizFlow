@@ -5524,70 +5524,23 @@ selectAnalyticsDrop(field, value, label){
     finally{ ldr(false); }
   }}
 
-window.openOnboarding = () => {
-  _obStep = 0;
-  const el = document.getElementById("m-onboarding");
-  if (!el) {
-    console.warn("[onboarding] m-onboarding не знайдено в DOM");
-    return;
-  }
-  el.style.display = "flex";
-  renderObStep();
-};
-const OB_STEPS = [
-  {icon:"👋",title:"Ласкаво просимо до QuizFlow!",text:"QuizFlow — платформа для створення тестів та відстеження результатів студентів. За кілька хвилин ви дізнаєтесь як нею користуватись.",color:"#2d5be3"},
-  {icon:"📁",title:"Папки та тести",text:"Спочатку створіть <b>папку</b> для організації тестів по темах або групах. Перейдіть у вкладку <b>Тести</b> → кнопка «Нова папка».",color:"#9333ea"},
-  {icon:"✏️",title:"Конструктор тестів",text:"Натисніть на тест щоб відкрити <b>конструктор</b>. Є типи питань: одна відповідь, кілька, текстова, розгорнута, числова та впорядкування.",color:"#0d9e85"},
-  {icon:"⚡",title:"AI Генерація питань",text:"В конструкторі натисніть <b>AI Генерація</b> — вкажіть тему, складність і кількість. ШІ згенерує питання з варіантами відповідей.",color:"#f59e0b"},
-  {icon:"🔗",title:"Посилання для студентів",text:"Щоб відправити тест — створіть <b>посилання</b>. Вкажіть групу і ліміт спроб. Скопіюйте та відправте — студенти відкриють без реєстрації.",color:"#2d5be3"},
-  {icon:"📊",title:"Результати та оцінки",text:"Всі спроби у вкладці <b>Спроби</b>. Натисніть «Переглянути» щоб побачити відповіді, оцінку від ШІ та персональний розбір помилок.",color:"#0d9e85"},
-  {icon:"👥",title:"Картки студентів",text:"Вкладка <b>Студенти</b> накопичує картки з усіма спробами. Можна об'єднати картки якщо студент вводив різні написання імені.",color:"#9333ea"},
-  {icon:"⚠️",title:"Моніторинг та безпека",text:"<b>Онлайн зараз</b> — хто проходить тест і на якому питанні. <b>Підозрілі</b> — спроби де були переключення вкладок або копіювання.",color:"#f43f5e"},
-  {icon:"📓",title:"Журнал оцінок",text:"Вкладка <b>Журнал</b> — таблиця всіх оцінок по групах та тестах. Можна експортувати в CSV або HTML для звітності.",color:"#0ea5e9"},
-  {icon:"🎉",title:"Все готово!",text:"Ви знаєте основи QuizFlow. Натисніть <b>Інструкція</b> в меню щоб переглянути цей гайд ще раз. Успіхів!",color:"#0d9e85"}
-];
-let _obStep = 0;
-
-function renderObStep(){
-  const step = OB_STEPS[_obStep];
-  const total = OB_STEPS.length;
-  const isLast = _obStep === total - 1;
-  document.getElementById("ob-progress").style.width = (((_obStep+1)/total)*100)+"%";
-  document.getElementById("ob-dots").innerHTML = OB_STEPS.map((_,i) =>
-    '<div style="width:'+(i===_obStep?20:7)+'px;height:7px;border-radius:4px;background:'+(i===_obStep?'var(--primary)':'var(--border)')+';transition:all .3s"></div>'
-  ).join("");
-  document.getElementById("ob-content").innerHTML =
-    '<div style="width:64px;height:64px;border-radius:18px;background:'+step.color+'18;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:22px">'+step.icon+'</div>'
-    +'<div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Крок '+(_obStep+1)+' з '+total+'</div>'
-    +'<div style="font-family:Syne,sans-serif;font-weight:800;font-size:22px;color:var(--text);margin-bottom:14px;line-height:1.25">'+step.title+'</div>'
-    +'<div style="font-size:15px;color:var(--muted);line-height:1.7">'+step.text+'</div>';
-  const prev = document.getElementById("ob-prev");
-  const next = document.getElementById("ob-next");
-  if(prev) prev.style.display = _obStep === 0 ? "none" : "";
-  if(next){
-    if(isLast){
-      next.textContent = "Розпочати роботу ✓";
-      next.style.background = "linear-gradient(135deg,#0d9e85,#077a67)";
-      next.onclick = () => { document.getElementById("m-onboarding").style.display = "none"; };
-    } else {
-      next.textContent = "Далі →";
-      next.style.background = "var(--grad)";
-      next.onclick = () => window.obNav(1);
-    }
-  }
-}
-
+// ─── Знайомство з платформою (onboarding.html) ─────────────────────────
+// Новий викладач потрапляє туди одразу після реєстрації. Якщо знайомство не
+// завершили — один раз перенаправляємо з головної, але лише для свіжих акаунтів
+// (старі викладачі його ніколи не бачили, і нав'язувати його їм не треба).
+window.openOnboarding = () => { location.href = "onboarding"; };
 async function checkOnboarding(){
   try{
-    const snap = await dbGet("meta/onboardingDone");
-    if(!snap.exists() || snap.val() !== true) setTimeout(() => window.openOnboarding(), 1200);
+    const onDash = /\/(index(\.html)?)?$/.test(location.pathname);
+    const key = "qf_ob_seen_" + _uid;
+    if (!onDash || localStorage.getItem(key)) return;
+    const [done, created] = await Promise.all([dbGet("meta/onboardingDone"), get(ref(db, `users/${_uid}/createdAt`))]);
+    if (done.val() === true) return;
+    const fresh = (Date.now() - (Number(created.val()) || 0)) < 14 * 864e5;
+    localStorage.setItem(key, "1");
+    if (fresh) location.href = "onboarding";
   }catch{}
 }
-
-const _obEl = document.getElementById("m-onboarding");
-if (_obEl) _obEl.addEventListener("click", function(e){
-  if(e.target === this) this.style.display = "none";
-});
 
 // ─── NEWS ────────────────────────────────────────────────────────────────────
 // Новини пише адмін (admin/news). Чернетки (draft:true) викладачам не показуються,
