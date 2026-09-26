@@ -34,8 +34,10 @@ const _fbUser = await new Promise((resolve) => {
   const unsub = onAuthStateChanged(auth, (u) => { unsub(); resolve(u); });
 });
 
+// Після входу повертаємо на ту саму сторінку (login?next=…)
+const _here = () => (location.pathname.split("/").pop() || "") + location.search + location.hash;
 if (!_fbUser) {
-  location.href = "login";
+  location.href = "login" + (_here() ? "?next=" + encodeURIComponent(_here()) : "");
   throw new Error("no auth");
 }
 
@@ -43,7 +45,7 @@ if (!_fbUser) {
 const _userSnap = await get(ref(db, `users/${_fbUser.uid}`));
 if (!_userSnap.exists()) {
   await signOut(auth);
-  location.href = "login";
+  location.href = "login?noprofile=1";
   throw new Error("no user profile");
 }
 
@@ -52,8 +54,8 @@ const _userDb = _userSnap.val();
 // Перевіряємо чи не заблокований
 if (_userDb.blocked === true) {
   await signOut(auth);
-  alert("Ваш акаунт заблоковано. Зверніться до адміністратора.");
-  location.href = "login";
+  try { localStorage.removeItem("qf_signed_in"); } catch {}
+  location.href = "login?blocked=1";
   throw new Error("blocked");
 }
 
@@ -114,6 +116,7 @@ window.doLogout = async () => {
   localStorage.removeItem("qf_nav_cache");
   localStorage.removeItem("qf_nav_ts");
   localStorage.removeItem("qf_user_cache");
+  localStorage.removeItem("qf_signed_in");
   sessionStorage.clear();
   await signOut(auth);
   location.href = "login";

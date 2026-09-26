@@ -633,7 +633,7 @@ const app = getApps().length ? getApps()[0] : initializeApp({
 const auth = getAuth(app);
 const db   = getDatabase(app);
 const user = await new Promise(res => { const un = onAuthStateChanged(auth, u => { un(); res(u); }); });
-if (!user) { location.href = "login"; throw new Error("no auth"); }
+if (!user) { location.href = "login?next=" + encodeURIComponent("constructor" + location.search); throw new Error("no auth"); }
 const UID = user.uid;
 const tp  = p => `teachers/${UID}/${p}`;
 

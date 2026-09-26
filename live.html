@@ -547,7 +547,7 @@ const db  = getDatabase(app);
 
 // ─── Auth: Firebase Auth (як у shared/app.js) — працює і в новій вкладці ──
 const _fbUser = await new Promise(res => { const un = onAuthStateChanged(getAuth(app), u => { un(); res(u); }); });
-if (!_fbUser) { location.href = "login"; throw new Error("no auth"); }
+if (!_fbUser) { location.href = "login?next=" + encodeURIComponent("live" + location.search); throw new Error("no auth"); }
 const _profSnap = await get(ref(db, `users/${_fbUser.uid}`));
 if (!_profSnap.exists() || _profSnap.val().blocked === true) { location.href = "login"; throw new Error("no profile"); }
 const _prof = _profSnap.val();
