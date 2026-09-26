@@ -9,9 +9,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/styles.css?v=20">
-<link rel="modulepreload" href="shared/app.js?v=19">
-<link rel="modulepreload" href="shared/features.js?v=20">
+<link rel="stylesheet" href="shared/styles.css?v=21">
+<link rel="modulepreload" href="shared/app.js?v=20">
+<link rel="modulepreload" href="shared/features.js?v=21">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
    ПОСИЛАННЯ — сторінка (scoped під #sec-links). Модалки — у shared/styles.css
@@ -22,6 +22,7 @@
   font-family:'Manrope',system-ui,sans-serif; color:var(--ink-900);
 }
 #sec-links.on{display:flex;flex-direction:column;gap:16px}
+#sec-links [hidden]{display:none!important}
 #sec-links .l-page-title{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
 #sec-links .l-page-title h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:0}
 #sec-links .l-page-title p{margin:6px 0 0;color:var(--ink-500);font-size:14px;max-width:620px}
@@ -53,8 +54,6 @@
 #sec-links .l-tab.active{background:#fff;color:var(--ink-900);box-shadow:0 1px 3px rgba(11,20,55,.1)}
 #sec-links .l-tab-n{font-family:'Geist Mono',monospace;font-size:11px;font-weight:600;opacity:.65}
 #sec-links .l-sort{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-500);font-weight:600}
-#sec-links .l-sort select{height:38px;border:1px solid var(--line);border-radius:10px;padding:0 30px 0 12px;font:inherit;font-size:13px;font-weight:700;color:var(--ink-900);background:#fff url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%238691AC' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 11px center;appearance:none;-webkit-appearance:none;cursor:pointer;outline:none}
-#sec-links .l-sort select:focus{border-color:#93B0F5}
 
 /* Картки */
 #sec-links .l-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
@@ -180,9 +179,7 @@
         <button class="l-tab" data-status="closed" role="tab">Закриті <span class="l-tab-n" id="lnk-tab-closed">0</span></button>
         <button class="l-tab" data-status="" role="tab">Усі <span class="l-tab-n" id="lnk-tab-all">0</span></button>
       </div>
-      <label class="l-sort">Сортування
-        <select id="lnk-sort"></select>
-      </label>
+      <div class="l-sort"><span>Сортування</span><div id="lnk-sort"></div></div>
     </div>
 
     <div class="l-grid" id="lnk-tbl"></div>
@@ -212,8 +209,8 @@ const srch = document.getElementById("lnk-srch"), srchX = document.getElementByI
 srch.addEventListener("input", () => { srchX.hidden = !srch.value; window.renderLinks?.(); });
 srchX.addEventListener("click", () => { srch.value = ""; srchX.hidden = true; srch.focus(); window.renderLinks?.(); });
 
-const { initApp } = await import("./shared/app.js?v=19");
-const featuresP = import("./shared/features.js?v=20");
+const { initApp } = await import("./shared/app.js?v=20");
+const featuresP = import("./shared/features.js?v=21");
 
 window.showSec = function(name){
   const pageMap = { dashboard: "./", tests: "tests", attempts: "attempts", links: "links", analytics: "analytics", gradebook: "gradebook",
@@ -225,10 +222,12 @@ await initApp("links");
 await featuresP;
 await window.initFeatures();
 
-const sortSel = document.getElementById("lnk-sort");
-sortSel.innerHTML = Object.entries(window.LNK_SORTS || {}).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join("");
-sortSel.value = window._lnkSort;
-sortSel.addEventListener("change", () => { window._lnkSort = sortSel.value; _ls.set("qf_lnk_sort", sortSel.value); window.renderLinks?.(); });
+// Сортування — власний дропдаун (qfDrop), без стандартного <select>
+window.qfDrop(document.getElementById("lnk-sort"), {
+  items: Object.entries(window.LNK_SORTS || {}).map(([k, v]) => ({ value: k, label: v.label })),
+  value: window._lnkSort, defaultValue: window._lnkSort, search: false, width: 210,
+  onChange: v => { window._lnkSort = v; _ls.set("qf_lnk_sort", v); window.renderLinks?.(); },
+});
 
 if (window.renderAll) window.renderAll();
 // Посилання на конкретний тест: links?new=<testId> відкриває створення одразу

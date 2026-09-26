@@ -233,7 +233,7 @@ async function loadModals() {
   // Якщо сторінка уже містить <div id="modals-root"> — туди й вставимо,
   // інакше створимо новий контейнер перед </body>
   try {
-    const resp = await fetch("shared/modals?v=20");
+    const resp = await fetch("shared/modals?v=21");
     if (!resp.ok) throw new Error("modals.html " + resp.status);
     const html = await resp.text();
     let root = document.getElementById("modals-root");
@@ -348,6 +348,30 @@ window.invalidateQfCache = function() {
   try { sessionStorage.removeItem("qf_cache_v1"); } catch {}
 };
 
+// ─── Живі дані: links і attempts ────────────────────────────────────────
+// Один підписник на вузол. Його перший знімок і є початковим завантаженням —
+// раніше сторінка тягнула ці вузли двічі (get() тут і onValue() у features.js),
+// а спроби — найважчі дані (у кожній копія питань тесту).
+// Кожна зміна → window.links / window.attempts + подія "qf:live" (features.js
+// збирає події пачкою й перемальовує сторінку не частіше ніж раз на ~200 мс).
+const _sortDesc = (a, b) => (b.createdAt || 0) - (a.createdAt || 0);
+const _liveStarted = new Set();
+function startLive(name) {
+  if (_liveStarted.has(name)) return Promise.resolve();
+  _liveStarted.add(name);
+  window._qfLive = true;
+  return new Promise(resolve => {
+    let first = true;
+    const done = () => { if (first) { first = false; resolve(); } };
+    onValue(ref(db, tp(name)), snap => {
+      window[name] = toArr(snap).sort(_sortDesc);
+      const wasFirst = first;
+      done();
+      document.dispatchEvent(new CustomEvent("qf:live", { detail: { name, first: wasFirst } }));
+    }, err => { console.warn(`[app.js] live ${name}:`, err.message); done(); });
+  });
+}
+
 async function loadAllData() {
   try {
     // ─── 1) Пробуємо sessionStorage-кеш ─────────────────────────────────
@@ -362,17 +386,16 @@ async function loadAllData() {
       window.attempts = cached.attempts;
       console.log(`⚡ [app.js] з кешу (${cached.tests.length} тестів, вік ${Math.round((Date.now()-cached.savedAt)/1000)}с)`);
       notifyReady();
+      startLive("links"); startLive("attempts");   // свіжі дані прийдуть подією qf:live
       return;
     }
 
     // ─── 2) Кешу немає — тягнемо свіже з Firebase ───────────────────────
-    const [fs, ts_, ls, as] = await Promise.all([
-      dbGet("folders"), dbGet("tests"), dbGet("links"), dbGet("attempts")
+    const [fs, ts_] = await Promise.all([
+      dbGet("folders"), dbGet("tests"), startLive("links"), startLive("attempts")
     ]);
     window.folders  = toArr(fs).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-    window.tests    = toArr(ts_).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    window.links    = toArr(ls).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    window.attempts = toArr(as).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    window.tests    = toArr(ts_).sort(_sortDesc);
     console.log(`✅ [app.js] data loaded (${window.tests.length} tests, ${window.attempts.length} attempts)`);
 
     saveCache(CACHE_KEY);
