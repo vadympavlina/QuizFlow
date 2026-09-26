@@ -66,7 +66,7 @@
         "answers": {
           "$qi": {
             "$pid": {
-              ".write": "!data.exists() && newData.hasChild('value') && !newData.hasChild('points') && root.child('rooms/' + $code + '/players/' + $pid + '/active').val() !== false && root.child('rooms/' + $code + '/players/' + $pid).exists()"
+              ".write": "!data.exists() && root.child('rooms/' + $code + '/status').val() === 'question' && (root.child('rooms/' + $code + '/currentQ').val() + '') === $qi && newData.child('answeredAt').val() === now && (newData.child('value').isNumber() || (newData.child('value').isString() && newData.child('value').val().length <= 200) || newData.child('value').hasChildren()) && !newData.hasChild('points') && !newData.hasChild('isCorrect') && !newData.hasChild('gradedByTeacher') && root.child('rooms/' + $code + '/players/' + $pid + '/active').val() !== false && root.child('rooms/' + $code + '/players/' + $pid).exists()"
             }
           }
         }

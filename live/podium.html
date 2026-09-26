@@ -9,11 +9,11 @@
 <link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="modulepreload" href="live-core.js">
+<link rel="modulepreload" href="live-core.js?v=2">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
   [hidden]{display:none !important}
   *,*::before,*::after{box-sizing:border-box}
@@ -23,7 +23,7 @@
     --ink:#201C33; --ink-dim:#6B6480; --accent:#5B4FE8; --accent-ink:#FFFFFF;
     --gold:#C9971A; --silver:#8A8DA0; --bronze:#B0693C; --good:#2F9E62; --bad:#D14343;
   }
-  body{font-family:"Space Grotesk",system-ui,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;overflow-x:hidden}
+  body{font-family:Manrope,system-ui,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;overflow-x:hidden}
   body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.6;background-image:radial-gradient(rgba(32,28,51,.06) 1px, transparent 1px);background-size:28px 28px}
   .band{position:absolute;inset:0 0 auto 0;height:340px;z-index:0;opacity:.14;-webkit-mask-image:linear-gradient(#000,transparent);mask-image:linear-gradient(#000,transparent)}
 
@@ -52,16 +52,16 @@
   .pod-body > .av{width:76px;height:76px;border-radius:14px;margin:0 auto 14px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:26px}
   .pod-1 .pod-body > .av{width:92px;height:92px;font-size:32px}
   .pod-body .name{font-size:21px;font-weight:700;letter-spacing:-.01em;overflow-wrap:anywhere}
-  .pod-body .score{margin-top:8px;font-family:"JetBrains Mono",monospace;font-size:32px;font-weight:700;letter-spacing:-.02em}
+  .pod-body .score{margin-top:8px;font-family:"Geist Mono",monospace;font-size:32px;font-weight:700;letter-spacing:-.02em}
   .pod-body .extra{margin-top:6px;font-size:12.5px;color:var(--ink-dim);font-weight:500}
   .tie-badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--accent-ink);background:var(--accent);padding:4px 12px;border-radius:6px;margin-bottom:12px}
-  .pod-score-shared{font-family:"JetBrains Mono",monospace;font-size:28px;font-weight:700;margin-bottom:14px}
+  .pod-score-shared{font-family:"Geist Mono",monospace;font-size:28px;font-weight:700;margin-bottom:14px}
   .pod-players{display:flex;flex-direction:column;gap:9px;max-height:220px;overflow-y:auto;text-align:left}
   .pod-player{display:flex;align-items:center;gap:10px}
   .pod-player .av{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:12.5px;flex:0 0 auto}
   .pod-player .name{font-size:14.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pod-player .sub{font-size:11px;color:var(--ink-dim)}
-  .pod-rank{display:flex;align-items:center;justify-content:center;gap:9px;padding:16px 20px;font-family:"JetBrains Mono",monospace;font-weight:700;color:#fff}
+  .pod-rank{display:flex;align-items:center;justify-content:center;gap:9px;padding:16px 20px;font-family:"Geist Mono",monospace;font-weight:700;color:#fff}
   .pod-rank .num{font-size:26px;line-height:1}
   .pod-rank .lbl{font-size:11px;font-weight:600;opacity:.9}
   .pod-1 .pod-rank{background:var(--gold);padding:44px 20px}
@@ -78,13 +78,13 @@
   .row{display:grid;grid-template-columns:48px 1fr repeat(3,80px) 110px;gap:14px;align-items:center;border-bottom:1px solid var(--card-line);padding:12px 6px}
   .row.head{font-size:11px;font-weight:600;color:var(--ink-dim);letter-spacing:.06em;text-transform:uppercase;padding-top:14px}
   .row:not(.head):hover{background:rgba(91,79,232,.045)}
-  .row .rank{font-family:"JetBrains Mono",monospace;font-size:16px;font-weight:700;color:var(--ink-dim);text-align:center}
+  .row .rank{font-family:"Geist Mono",monospace;font-size:16px;font-weight:700;color:var(--ink-dim);text-align:center}
   .row .who{display:flex;align-items:center;gap:12px;min-width:0}
   .row .av{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:12.5px;flex:0 0 auto}
   .row .name{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .row .stat{font-family:"JetBrains Mono",monospace;font-size:14px;font-weight:700;text-align:center}
+  .row .stat{font-family:"Geist Mono",monospace;font-size:14px;font-weight:700;text-align:center}
   .row .stat.g{color:var(--good)} .row .stat.r{color:var(--bad)} .row .stat.s{color:var(--ink-dim)}
-  .row .score{font-family:"JetBrains Mono",monospace;font-size:17px;font-weight:700;text-align:right;color:var(--accent)}
+  .row .score{font-family:"Geist Mono",monospace;font-size:17px;font-weight:700;text-align:right;color:var(--accent)}
 
   .footer-cta{text-align:center;padding:0 20px 60px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap;position:relative;z-index:2}
   .btn{background:var(--card);border:2px solid var(--card-line);color:var(--ink);padding:13px 20px;border-radius:10px;font:inherit;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;text-decoration:none}
@@ -124,6 +124,7 @@
 <div class="footer-cta">
   <a class="btn" id="history-btn" href="../game-history">📚 Історія ігор</a>
   <a class="btn" id="again-btn" href="#">↻ Зіграти ще раз</a>
+  <button class="btn" id="csv-btn" type="button">⬇ Результати CSV</button>
   <button class="btn btn-primary" id="end-btn">✓ Завершити гру</button>
 </div>
 
@@ -131,7 +132,7 @@
 import {
   db, ref, get, update, requireTeacher, readParams, isValidCode, fatal, toast,
   esc, initialsOf, avatarColor, standings, THEMES, DEFAULT_THEME, plural, fmtNum, HOME_URL, serverNow,
-} from "./live-core.js";
+} from "./live-core.js?v=2";
 
 const $ = (id) => document.getElementById(id);
 const user = await requireTeacher();
@@ -222,6 +223,23 @@ function confetti() {
   }
   setTimeout(() => { host.innerHTML = ""; }, 9000);
 }
+
+// CSV для Excel: BOM + «;» (українська локаль). На відміну від історії ігор,
+// тут є розбір по кожному питанню — кімната ще зберігає всі відповіді.
+$("csv-btn").hidden = !list.length;
+$("csv-btn").addEventListener("click", () => {
+  const q = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const head = ["Місце", "Учасник", "Правильно", "Помилки", "Пропущено", "Бали", ...Array.from({ length: totalQ }, (_, i) => `П${i + 1}`)];
+  const rows = list.map(p => [p.rank, p.nickname, p.correct, p.answered - p.correct, Math.max(0, totalQ - p.answered), p.score,
+    ...Array.from({ length: totalQ }, (_, i) => { const a = room.answers?.[i]?.[p.pid]; return !a ? "—" : a.isCorrect ? `✓ ${a.points || 0}` : "✗"; })]);
+  const csv = "\ufeff" + [head, ...rows].map(r => r.map(q).join(";")).join("\r\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  a.download = `${(room.testTitle || "Гра").replace(/[\\/:*?"<>|]+/g, " ").trim().slice(0, 60)} — ${new Date().toLocaleDateString("uk-UA")} (${code}).csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast("CSV завантажено", "ok");
+});
 
 $("end-btn").addEventListener("click", async () => {
   const btn = $("end-btn"); btn.disabled = true;

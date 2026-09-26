@@ -10,10 +10,10 @@
 <link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="modulepreload" href="live-core.js">
+<link rel="modulepreload" href="live-core.js?v=2">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800;900&family=Geist+Mono:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
   [hidden]{display:none !important}
   *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -127,6 +127,9 @@
   .feedback .big{font-size:24px;font-weight:900}
   .feedback .pts{font-family:"Geist Mono",monospace;font-size:20px;font-weight:800;color:#FDE68A;margin-top:4px}
   .feedback .sub{font-size:13px;color:rgba(255,255,255,.7);margin-top:6px}
+  .feedback .place{margin-top:12px;padding-top:11px;border-top:1px solid rgba(255,255,255,.14);font-size:14.5px;font-weight:700;color:#E0E7FF}
+  .feedback .place b{color:#FDE68A;font-family:"Geist Mono",monospace}
+  .feedback .place span{display:block;margin-top:3px;font-size:12.5px;font-weight:600;color:rgba(255,255,255,.65)}
   .feedback .ref{font-family:"Geist Mono",monospace;font-size:20px;font-weight:800;margin-top:4px;overflow-wrap:anywhere}
 
   /* Оверлеї */
@@ -237,7 +240,8 @@ import {
   db, ref, get, set, onValue, serverTimestamp, readParams, isValidCode, esc, initialsOf, avatarColor,
   applyTheme, serverNow, watchFields, OPT_CLASSES, OPT_LETTERS, TYPE_LABELS, isFreeform,
   seededOrder, fmtNum, pageUrl, trackPresence, asIndexList, fitText, fitGroup, onRefit,
-} from "./live-core.js";
+  richHtml, toast, plural,
+} from "./live-core.js?v=2";
 
 const $ = (id) => document.getElementById(id);
 let timerId = null, wasOpen = false;
@@ -282,7 +286,7 @@ let myAnswer = null;          // моя відповідь на поточне �
 let sending = false;
 let multiSel = new Set();
 let unsubMine = null;
-const myPoints = {};          // qi -> бали (приходять від викладача під час розкриття)
+let myRank = null;            // { r: місце, s: бали, g: до попереднього місця, n: гравців } — пише викладач під час розкриття
 
 const q = () => questions[st.currentQ];
 const answered = () => !!myAnswer || sending;
@@ -292,7 +296,7 @@ const timeLeft = () => st.status === "paused" ? Number(st.pausedLeft) || 0
 const canAnswer = () => st.status === "question" && !answered() && timeLeft() > 0;
 
 function renderScore() {
-  const total = Object.values(myPoints).reduce((s, v) => s + v, 0);
+  const total = Number(myRank?.s) || 0;
   const el = $("my-score");
   if (el.textContent !== fmtNum(total)) {
     el.textContent = fmtNum(total);
@@ -300,12 +304,8 @@ function renderScore() {
   }
 }
 
-// Бали за попередні питання (після перезавантаження сторінки)
-async function loadPastPoints(upTo) {
-  const snaps = await Promise.all(Array.from({ length: upTo }, (_, i) => get(ref(db, `${base}/answers/${i}/${pid}/points`)).catch(() => null)));
-  snaps.forEach((s, i) => { const v = Number(s?.val()); if (v) myPoints[i] = v; });
-  renderScore();
-}
+// Моє місце й бали: один маленький вузол замість читання відповідей за кожне питання
+onValue(ref(db, `${base}/ranks/${pid}`), s => { myRank = s.val(); renderScore(); if (st.status === "reveal") paint(); });
 
 // ─── Питання ───────────────────────────────────────────────────────────
 function renderQuestion(qi) {
@@ -315,7 +315,7 @@ function renderQuestion(qi) {
   if (!qq) return;
   $("q-lbl").textContent = `${qi + 1} / ${totalQ}`;
   $("q-bar").style.width = `${((qi + 1) / totalQ) * 100}%`;
-  $("q-text").innerHTML = qq.text || "";
+  $("q-text").innerHTML = richHtml(qq.text);
   $("q-meta-time").textContent = `⏱ ${timePerQ} с на відповідь`;
   const t = TYPE_LABELS[qq.type] || TYPE_LABELS.single;
   $("q-type-badge").className = "type-badge " + t.cls;
@@ -359,7 +359,7 @@ function renderQuestion(qi) {
   unsubMine = onValue(ref(db, `${base}/answers/${qi}/${pid}`), s => {
     if (qi !== shownQ) return;
     myAnswer = s.val();
-    if (myAnswer) { sending = false; if (typeof myAnswer.points === "number") { myPoints[qi] = myAnswer.points; } }
+    if (myAnswer) sending = false;
     paint();
   });
 }
@@ -430,6 +430,10 @@ function renderFeedback(qq) {
     }
     cls = "bad"; html = `<div class="big">✗ Неправильно</div>${why}${myAnswer.gradedByTeacher ? `<div class="sub">Перевірено викладачем</div>` : ""}${refLine}`;
   }
+  if (myRank?.r && myRank.n > 1) {
+    const gap = Number(myRank.g) || 0;
+    html += `<div class="place">${myRank.r === 1 ? "🏆 Ви лідер!" : `Ви на <b>${myRank.r}-му</b> місці з ${myRank.n}`}${myRank.r > 1 && gap > 0 ? `<span>до ${myRank.r - 1}-го місця — ${fmtNum(gap)} ${plural(gap, "бал", "бали", "балів")}</span>` : ""}</div>`;
+  }
   if (fb.dataset.sig !== cls + html) {
     fb.dataset.sig = cls + html;
     fb.className = "feedback show " + cls; fb.innerHTML = html;
@@ -466,7 +470,9 @@ async function submit(value) {
     console.error(e);
     sending = false; multiSel = new Set();
     paint();
-    alert("Не вдалося надіслати відповідь. Перевірте з'єднання та спробуйте ще раз.");
+    // Правила бази відхиляють відповідь, якщо питання вже закрилось
+    const closed = /permission/i.test(e.code || e.message || "");
+    toast(closed ? "Час на це питання вийшов — відповідь не прийнято" : "Не вдалося надіслати відповідь. Перевірте з'єднання й спробуйте ще раз.", "err", 4000);
   }
 }
 
@@ -519,7 +525,6 @@ function startTimer() { if (!timerId) timerId = setInterval(tick, 200); tick(); 
 function stopTimer() { clearInterval(timerId); timerId = null; }
 
 // ─── Головний цикл ─────────────────────────────────────────────────────
-let firstState = true;
 function applyState(s) {
   const kicked = s[`players/${pid}/active`] === false;
   st = { ...st, status: s.status, currentQ: Number(s.currentQ) || 0, questionStartedAt: Number(s.questionStartedAt) || 0, pausedLeft: s.pausedLeft, revealed: s.revealed || {} };
@@ -528,7 +533,6 @@ function applyState(s) {
   if (!s.status) { showEnd("🏁", "Гру закрито", "Викладач закрив цю кімнату."); return; }
   if (s.status === "leaderboard" || s.status === "finished") { stopTimer(); location.replace(resultUrl()); return; }
 
-  if (firstState) { firstState = false; loadPastPoints(st.currentQ); }
 
   $("lobby-overlay").classList.toggle("show", s.status === "lobby");
   $("pause-overlay").classList.toggle("show", s.status === "paused");

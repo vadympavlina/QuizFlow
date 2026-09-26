@@ -70,6 +70,37 @@ export const isValidCode = (c) => /^\d{8}$/.test(String(c || ""));
 const ESC = { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" };
 export const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ESC[c]);
 
+// Текст питання — HTML з конструктора (жирний, курсив, колір). Конструктор
+// очищає його при збереженні, але старі тести могли зберегтися раніше — тож
+// на екранах гри ще раз лишаємо лише безпечні теги.
+const RICH_OK = new Set(["B", "STRONG", "I", "EM", "U", "S", "SUB", "SUP", "BR", "P", "DIV", "SPAN", "UL", "OL", "LI", "CODE", "PRE", "MARK", "SMALL", "IMG"]);
+const COLOR_RE = /^(#[0-9a-f]{3,8}|rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*(,\s*[\d.]+\s*)?\))$/i;
+export function richHtml(html) {
+  const src = String(html ?? "");
+  if (!/[<&]/.test(src)) return esc(src).replace(/\r?\n/g, "<br>");
+  const doc = new DOMParser().parseFromString(`<div>${src}</div>`, "text/html");
+  const walk = (from, to) => {
+    for (const n of [...from.childNodes]) {
+      if (n.nodeType === 3) { to.appendChild(document.createTextNode(n.textContent)); continue; }
+      if (n.nodeType !== 1 || /^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED|SVG|MATH|TEMPLATE|FORM|INPUT|BUTTON|TEXTAREA|SELECT)$/.test(n.tagName)) continue;
+      if (!RICH_OK.has(n.tagName)) { walk(n, to); continue; }
+      const el = document.createElement(n.tagName);
+      if (n.tagName === "IMG") {
+        const srcAttr = n.getAttribute("src") || "";
+        if (!/^(https:\/\/|data:image\/(png|jpe?g|gif|webp);)/i.test(srcAttr)) continue;
+        el.src = srcAttr; el.alt = n.getAttribute("alt") || ""; el.loading = "lazy";
+      }
+      const col = (n.style?.color || "").trim();
+      if (col && COLOR_RE.test(col)) el.style.color = col;
+      walk(n, el);
+      to.appendChild(el);
+    }
+  };
+  const out = document.createElement("div");
+  walk(doc.body.firstChild, out);
+  return out.innerHTML;
+}
+
 export function initialsOf(nick) {
   const parts = String(nick || "").trim().split(/\s+/).filter(Boolean);
   if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
@@ -224,6 +255,19 @@ export function standings(players, allAnswers) {
   return denseRank(list);
 }
 
+// Компактна таблиця для телефонів учнів: { pid: { r: місце, s: бали, g: до попереднього місця, n: гравців } }.
+// Викладач пише її разом із розкриттям відповіді — учень слухає лише свій рядок
+// замість усіх відповідей класу.
+export function rankMap(list) {
+  const out = {};
+  let prevRankScore = null, lastScore = null, lastRank = 0;
+  list.forEach(p => {
+    if (p.rank !== lastRank) { prevRankScore = lastScore; lastRank = p.rank; lastScore = p.score; }
+    out[p.pid] = { r: p.rank, s: p.score, g: p.rank > 1 && prevRankScore != null ? prevRankScore - p.score : 0, n: list.length };
+  });
+  return out;
+}
+
 // Детерміноване перемішування (однакове для учня після перезавантаження).
 export function seededOrder(n, seedStr) {
   let h = 2166136261;
@@ -299,11 +343,51 @@ export function toast(msg, kind = "info", ms = 3200) {
   }
   const el = document.createElement("div");
   const bg = kind === "err" ? "#B42323" : kind === "ok" ? "#1F7A4A" : "#201C33";
-  el.style.cssText = `background:${bg};color:#fff;padding:11px 18px;border-radius:12px;font:600 14px/1.35 system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.28);pointer-events:auto;transition:opacity .25s,transform .25s;opacity:0;transform:translateY(8px)`;
+  el.style.cssText = `background:${bg};color:#fff;padding:11px 18px;border-radius:12px;font:600 14px/1.35 Manrope,system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.28);pointer-events:auto;transition:opacity .25s,transform .25s;opacity:0;transform:translateY(8px)`;
   el.textContent = msg;
   host.appendChild(el);
   requestAnimationFrame(() => { el.style.opacity = "1"; el.style.transform = "none"; });
   setTimeout(() => { el.style.opacity = "0"; setTimeout(() => el.remove(), 300); }, ms);
+}
+
+// Власне вікно підтвердження замість confirm(): на проєкторі й телефонах
+// системне вікно виглядає чужорідно, а в повноекранному режимі ще й виходить з нього.
+export function confirmDlg({ title, text = "", ok = "Так", cancel = "Скасувати", danger = false } = {}) {
+  return new Promise(resolve => {
+    const prevFocus = document.activeElement;
+    const bd = document.createElement("div");
+    bd.className = "lv-dlg-bd";
+    bd.innerHTML = `<div class="lv-dlg" role="alertdialog" aria-modal="true" aria-labelledby="lv-dlg-t" aria-describedby="lv-dlg-x">
+      <h2 id="lv-dlg-t">${esc(title)}</h2>${text ? `<p id="lv-dlg-x">${esc(text)}</p>` : ""}
+      <div class="lv-dlg-a"><button type="button" data-v="0">${esc(cancel)}</button><button type="button" data-v="1" class="${danger ? "danger" : "ok"}">${esc(ok)}</button></div></div>`;
+    if (!document.getElementById("lv-dlg-css")) {
+      const st = document.createElement("style"); st.id = "lv-dlg-css";
+      st.textContent = `.lv-dlg-bd{position:fixed;inset:0;z-index:2000;display:grid;place-items:center;padding:20px;background:rgba(8,10,30,.55);backdrop-filter:blur(6px);animation:lvDlgF .15s ease-out}
+.lv-dlg{width:100%;max-width:400px;background:#fff;color:#1D1930;border-radius:18px;padding:22px 22px 18px;box-shadow:0 30px 70px -20px rgba(0,0,0,.5);font-family:Manrope,system-ui,sans-serif;animation:lvDlgU .2s cubic-bezier(.22,1,.36,1)}
+.lv-dlg h2{margin:0;font-size:18px;font-weight:800;letter-spacing:-.01em;line-height:1.3}
+.lv-dlg p{margin:8px 0 0;font-size:14px;line-height:1.5;color:#5F5876}
+.lv-dlg-a{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.lv-dlg-a button{font:700 14px Manrope,system-ui,sans-serif;padding:11px 16px;border-radius:11px;border:1.5px solid #E4E1F4;background:#fff;color:#1D1930;cursor:pointer}
+.lv-dlg-a button:hover{background:#F6F5FB}
+.lv-dlg-a .ok{background:#5B4FE8;border-color:#5B4FE8;color:#fff}.lv-dlg-a .ok:hover{background:#4A3FD1}
+.lv-dlg-a .danger{background:#D14343;border-color:#D14343;color:#fff}.lv-dlg-a .danger:hover{background:#B83636}
+.lv-dlg-a button:focus-visible{outline:2.5px solid #5B4FE8;outline-offset:2px}
+@keyframes lvDlgF{from{opacity:0}}@keyframes lvDlgU{from{opacity:0;transform:translateY(10px) scale(.98)}}`;
+      document.head.appendChild(st);
+    }
+    const close = (v) => { document.removeEventListener("keydown", onKey, true); bd.remove(); prevFocus?.focus?.({ preventScroll: true }); resolve(v); };
+    const onKey = (e) => {
+      if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(false); }
+      else if (e.key === "Tab") {           // фокус не виходить за межі вікна
+        const b = [...bd.querySelectorAll("button")], i = b.indexOf(document.activeElement);
+        e.preventDefault(); b[(i + (e.shiftKey ? -1 : 1) + b.length) % b.length].focus();
+      } else e.stopPropagation();           // пробіл/Enter/P не доходять до гарячих клавіш сторінки
+    };
+    bd.addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) close(b.dataset.v === "1"); else if (e.target === bd) close(false); });
+    document.addEventListener("keydown", onKey, true);
+    document.body.appendChild(bd);
+    bd.querySelector(danger ? "[data-v='0']" : "[data-v='1']").focus();
+  });
 }
 
 export function fatal(msg, backHref = HOME_URL) {
