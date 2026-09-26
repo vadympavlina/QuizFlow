@@ -9,12 +9,12 @@
 <link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="modulepreload" href="live-core.js">
+<link rel="modulepreload" href="live-core.js?v=2">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="live-ui.css">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="live-ui.css?v=2">
 <!-- QR-код для швидкого входу. Якщо CDN недоступний — лобі працює без нього. -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js" defer></script>
 <style>
@@ -138,8 +138,8 @@
 <script type="module">
 import {
   db, ref, get, update, onValue, requireTeacher, readParams, isValidCode, fatal, toast,
-  esc, initialsOf, avatarColor, joinUrl, HOME_URL, serverNow, isActive, isOnline,
-} from "./live-core.js";
+  esc, initialsOf, avatarColor, joinUrl, HOME_URL, serverNow, isActive, isOnline, confirmDlg,
+} from "./live-core.js?v=2";
 
 const $ = (id) => document.getElementById(id);
 const user = await requireTeacher();
@@ -184,7 +184,7 @@ $("stat-shuffle").hidden = !options?.shuffle;
 $("copy-btn").addEventListener("click", async () => {
   const lbl = $("copy-btn").querySelector("span");
   try { await navigator.clipboard.writeText(url); lbl.textContent = "Скопійовано ✓"; }
-  catch { prompt("Скопіюйте посилання:", url); }
+  catch { toast(url, "info", 8000); }   // буфер обміну недоступний — показуємо посилання, щоб скопіювати вручну
   setTimeout(() => { lbl.textContent = "Посилання"; }, 2000);
 });
 $("fs-btn").addEventListener("click", () => {
@@ -295,7 +295,7 @@ $("start-btn").addEventListener("click", async () => {
   const btn = $("start-btn");
   if (btn.disabled) return;
   const n = Object.entries(players).filter(([pid, p]) => isOnline(p) && !pendingKick[pid]).length;
-  if (n === 0 && !confirm("У лобі немає жодного гравця онлайн. Почати гру попри це?")) return;
+  if (n === 0 && !await confirmDlg({ title: "У лобі немає жодного гравця", text: "Почати гру попри це? Учні зможуть приєднатися й під час гри.", ok: "Почати" })) return;
   btn.disabled = true;
   try {
     await flushKicks();
@@ -310,7 +310,7 @@ $("start-btn").addEventListener("click", async () => {
 });
 
 $("close-btn").addEventListener("click", async () => {
-  if (!confirm("Закрити кімнату? Учні побачать, що гру скасовано.")) return;
+  if (!await confirmDlg({ title: "Закрити кімнату?", text: "Учні побачать, що гру скасовано. Кімнату буде видалено.", ok: "Закрити", danger: true })) return;
   try {
     leaving = true;
     await update(ref(db), { [`rooms/${code}`]: null, [`teachers/${user.uid}/liveRooms/${code}`]: null });

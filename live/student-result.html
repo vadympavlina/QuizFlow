@@ -9,10 +9,10 @@
 <link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="modulepreload" href="live-core.js">
+<link rel="modulepreload" href="live-core.js?v=2">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
   [hidden]{display:none !important}
   *,*::before,*::after{box-sizing:border-box}
@@ -22,7 +22,7 @@
     --ink:#201C33; --ink-dim:#6B6480; --accent:#5B4FE8; --accent-ink:#FFFFFF;
     --good:#2F9E62; --bad:#D14343; --gold:#C9971A;
   }
-  body{font-family:"Space Grotesk",system-ui,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh}
+  body{font-family:Manrope,system-ui,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh}
   body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.6;background-image:radial-gradient(rgba(32,28,51,.06) 1px, transparent 1px);background-size:26px 26px;mask-image:radial-gradient(ellipse at center, black 30%, transparent 90%)}
   .wrap{max-width:540px;margin:0 auto;padding:28px 18px 60px;position:relative;z-index:1}
   .brand{display:flex;align-items:center;gap:9px;justify-content:center;margin-bottom:22px}
@@ -38,7 +38,7 @@
   .player-info{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:12px}
   .player-info .av{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:16px}
   .player-info .name{font-size:19px;font-weight:700;overflow-wrap:anywhere;text-align:left}
-  .place-num{font-family:"JetBrains Mono",monospace;font-size:76px;font-weight:700;line-height:1;letter-spacing:-.03em;color:var(--accent);margin:6px 0}
+  .place-num{font-family:"Geist Mono",monospace;font-size:76px;font-weight:700;line-height:1;letter-spacing:-.03em;color:var(--accent);margin:6px 0}
   .hero.top .place-num{color:var(--gold)}
   .place-meta{font-size:13.5px;color:var(--ink-dim)}
   .place-meta b{color:var(--ink)}
@@ -46,12 +46,12 @@
   .score-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--card-line);border:2px solid var(--card-line);border-radius:12px;overflow:hidden;margin-top:20px}
   .score-strip > div{background:var(--card-2);padding:13px 8px;text-align:center}
   .score-strip .l{font-size:11px;font-weight:500;color:var(--ink-dim)}
-  .score-strip .v{font-family:"JetBrains Mono",monospace;font-size:22px;font-weight:700;margin-top:4px}
+  .score-strip .v{font-family:"Geist Mono",monospace;font-size:22px;font-weight:700;margin-top:4px}
   .v.green{color:var(--good)} .v.red{color:var(--bad)} .v.dim{color:var(--ink-dim)}
   .total-points{margin-top:18px;background:var(--card-2);border:2px solid var(--accent);border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:14px;text-align:left}
   .total-points .ico{font-size:26px}
   .total-points .lbl{font-size:11.5px;font-weight:500;color:var(--ink-dim)}
-  .total-points .pts{font-family:"JetBrains Mono",monospace;font-size:28px;font-weight:700;line-height:1.2;margin-top:2px}
+  .total-points .pts{font-family:"Geist Mono",monospace;font-size:28px;font-weight:700;line-height:1.2;margin-top:2px}
   .accuracy{margin-left:auto;text-align:right}
   .accuracy .pts{font-size:20px}
 
@@ -59,7 +59,7 @@
   .card h3{margin:0 0 12px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
   .card h3 small{margin-left:auto;font-weight:500;color:var(--ink-dim);font-size:12px}
   .pips{display:grid;grid-template-columns:repeat(auto-fill,minmax(34px,1fr));gap:6px;margin-bottom:12px}
-  .pip{aspect-ratio:1;border-radius:7px;display:grid;place-items:center;font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:700;color:#fff}
+  .pip{aspect-ratio:1;border-radius:7px;display:grid;place-items:center;font-family:"Geist Mono",monospace;font-size:11px;font-weight:700;color:#fff}
   .pip.ok{background:var(--good)} .pip.no{background:var(--bad)}
   .pip.skip{background:var(--card-2);color:var(--ink-dim);border:1px solid var(--card-line)}
   .legend{display:flex;justify-content:center;gap:16px;font-size:12px;color:var(--ink-dim);flex-wrap:wrap}
@@ -70,15 +70,15 @@
   .lr-row:last-child{border-bottom:0}
   .lr-row.you{background:var(--card-2);border-radius:8px;box-shadow:inset 3px 0 0 var(--accent)}
   .lr-gap{text-align:center;color:var(--ink-dim);font-size:12px;padding:4px 0;letter-spacing:.3em}
-  .lr-rank{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:13px;color:var(--ink-dim);width:30px}
+  .lr-rank{font-family:"Geist Mono",monospace;font-weight:700;font-size:13px;color:var(--ink-dim);width:30px}
   .lr-name{flex:1;font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .lr-row.you .lr-name::after{content:" · ви";color:var(--accent);font-size:11px}
-  .lr-pts{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:13px;color:var(--accent)}
+  .lr-pts{font-family:"Geist Mono",monospace;font-weight:700;font-size:13px;color:var(--accent)}
 
   .actions{margin-top:22px;display:flex;flex-direction:column;gap:10px;align-items:center}
   .btn{display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-weight:700;text-decoration:none;box-shadow:4px 4px 0 rgba(91,79,232,.22)}
   .footer-msg{font-size:12.5px;color:var(--ink-dim)}
-  .footer-msg b{color:var(--accent);font-family:"JetBrains Mono",monospace}
+  .footer-msg b{color:var(--accent);font-family:"Geist Mono",monospace}
 
   .waiting{text-align:center;padding:60px 20px;color:var(--ink-dim)}
   .spinner{width:36px;height:36px;margin:0 auto 14px;border:3px solid var(--card-line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
@@ -99,7 +99,7 @@
 import {
   db, ref, get, onValue, readParams, isValidCode, esc, initialsOf, avatarColor, standings,
   plural, fmtNum, pageUrl,
-} from "./live-core.js";
+} from "./live-core.js?v=2";
 
 const $ = (id) => document.getElementById(id);
 const { code, pid, nickname: nickParam } = readParams("code", "pid", "nickname");

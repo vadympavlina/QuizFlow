@@ -30,7 +30,7 @@ await env.withSecurityRulesDisabled(async c => {
       },
       bl: { tests: { B1: { title: "b" } } },
     },
-    rooms: { "11112222": { hostUid: "t1", status: "question", players: { p1: { nickname: "Ann", active: true, online: true }, off: { nickname: "Z", active: false } } } },
+    rooms: { "11112222": { hostUid: "t1", status: "question", currentQ: 0, players: { p1: { nickname: "Ann", active: true, online: true }, off: { nickname: "Z", active: false }, p5: { nickname: "Kim", active: true } } } },
   });
 });
 
@@ -147,12 +147,21 @@ await t("anon overwrite player", false, () => set(ref(anon, `${R}/players/p1`), 
 await t("anon set score", false, () => set(ref(anon, `${R}/players/p1/score`), 9999));
 await t("anon online flag", true, () => set(ref(anon, `${R}/players/p1/online`), false));
 await t("anon answer", true, () => set(ref(anon, `${R}/answers/0/p1`), { value: 2, answeredAt: serverTimestamp() }));
+await t("anon answer forged time", false, () => set(ref(anon, `${R}/answers/0/p2`), { value: 2, answeredAt: now - 60000 }));
+await t("anon answer future question", false, () => set(ref(anon, `${R}/answers/3/p2`), { value: 1, answeredAt: serverTimestamp() }));
+await t("anon answer with isCorrect", false, () => set(ref(anon, `${R}/answers/0/p2`), { value: 1, isCorrect: true, answeredAt: serverTimestamp() }));
+await t("anon answer huge text", false, () => set(ref(anon, `${R}/answers/0/p2`), { value: "x".repeat(500), answeredAt: serverTimestamp() }));
+await t("anon answer multi", true, () => set(ref(anon, `${R}/answers/0/p2`), { value: [0, 2], answeredAt: serverTimestamp() }));
 await t("anon answer again", false, () => set(ref(anon, `${R}/answers/0/p1`), { value: 3 }));
 await t("anon answer with points", false, () => set(ref(anon, `${R}/answers/1/p1`), { value: 1, points: 1000 }));
 await t("anon answer for missing player", false, () => set(ref(anon, `${R}/answers/0/ghost`), { value: 1 }));
 await t("anon answer kicked player", false, () => set(ref(anon, `${R}/answers/0/off`), { value: 1 }));
 await t("anon change status", false, () => set(ref(anon, `${R}/status`), "finished"));
 await t("anon create room", false, () => set(ref(anon, "rooms/99990000"), { hostUid: "x" }));
+await t("host write ranks", true, () => set(ref(t1, `${R}/ranks/p1`), { r: 1, s: 900, g: 0, n: 2 }));
+await t("anon write ranks", false, () => set(ref(anon, `${R}/ranks/p1`), { r: 1, s: 99999 }));
+await t("host reveal", true, () => set(ref(t1, `${R}/status`), "reveal"));
+await t("anon answer during reveal", false, () => set(ref(anon, `${R}/answers/0/p5`), { value: 1, answeredAt: serverTimestamp() }));
 await t("host update room", true, () => update(ref(t1, R), { status: "leaderboard" }));
 await t("host write points", true, () => set(ref(t1, `${R}/answers/0/p1/points`), 800));
 await t("host kick player", true, () => update(ref(t1, `${R}/players/p2`), { active: false }));

@@ -9,12 +9,12 @@
 <link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="modulepreload" href="live-core.js">
+<link rel="modulepreload" href="live-core.js?v=2">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="live-ui.css">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="live-ui.css?v=2">
 <style>
   .page{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:22px 28px 40px}
   .lv-head{margin-bottom:22px}
@@ -225,8 +225,8 @@
 <script type="module">
 import {
   db, ref, get, update, requireTeacher, readParams, fatal, toast, safeStore,
-  THEMES, PATTERNS, DEFAULT_THEME, applyTheme, LIVE_TYPES, pageUrl, esc, plural, pickCount,
-} from "./live-core.js";
+  THEMES, PATTERNS, DEFAULT_THEME, applyTheme, LIVE_TYPES, pageUrl, esc, plural, pickCount, confirmDlg,
+} from "./live-core.js?v=2";
 
 const $ = (id) => document.getElementById(id);
 const user = await requireTeacher();
@@ -276,7 +276,7 @@ const IN_GAME = ["question", "paused", "reveal"];
     $("resume-go").href = `${target}?code=${r.code}`;
     $("resume").hidden = false;
     $("resume-close").onclick = async () => {
-      if (!confirm(`Закрити гру ${r.code}? Учні побачать, що її завершено.`)) return;
+      if (!await confirmDlg({ title: `Закрити гру ${r.code}?`, text: "Учні побачать, що гру завершено.", ok: "Закрити гру", danger: true })) return;
       try {
         await update(ref(db), { [`rooms/${r.code}/status`]: "finished", [`teachers/${uid}/liveRooms/${r.code}`]: null });
         $("resume").hidden = true; toast("Гру закрито", "ok");
@@ -455,6 +455,7 @@ async function createRoom() {
         // КІЛЬКОСТІ правильних (інакше її видно в DevTools).
         questions: list.map(q => ({ id: q.id || "", type: q.type || "single", text: q.text || "", options: q.options || null })),
         testTitle: testData.title || "",
+        qCount: list.length,          // сторінці входу учня не треба тягнути всі питання
         createdAt: now,
       },
       [`teachers/${uid}/liveRooms/${code}`]: { createdAt: now, key: answerKey },

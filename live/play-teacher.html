@@ -9,11 +9,11 @@
 <link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="modulepreload" href="live-core.js">
+<link rel="modulepreload" href="live-core.js?v=2">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800;900&family=Geist+Mono:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
   [hidden]{display:none !important}
   *,*::before,*::after{box-sizing:border-box}
@@ -83,6 +83,7 @@
   .answered-bar .bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,#34D399,#A78BFA);border-radius:999px;transition:width .4s}
   .answered-bar .nums{font-family:"Geist Mono",monospace;font-size:20px;font-weight:800;white-space:nowrap}
   .answered-bar .nums .dim{color:#8D97C4}
+  .answered-wait{max-width:1400px;margin:-16px auto 22px;text-align:center;font-size:14px;font-weight:700;color:#C7CCEA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
   .q-type-wrap{display:flex;justify-content:center;margin-bottom:14px}
   .q-type-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 16px;border-radius:999px;font-size:13px;font-weight:800;letter-spacing:.04em;border:1.5px solid}
@@ -211,6 +212,7 @@
     <div class="bar"><i id="answered-fill"></i></div>
     <span class="nums"><span id="answered-num">0</span> <span class="dim">/ <span id="answered-total">0</span></span></span>
   </div>
+  <div class="answered-wait" id="answered-wait" hidden></div>
   <div class="q-type-wrap"><span class="q-type-badge single" id="q-type-badge">◉ Одна правильна</span></div>
   <div class="question-text qf-rich" id="q-text"></div>
   <div class="answers" id="answers-grid"></div>
@@ -241,7 +243,8 @@ import {
   esc, initialsOf, avatarColor, applyTheme, serverNow, watchFields, safeStore, HOME_URL,
   OPT_CLASSES, OPT_LETTERS, TYPE_LABELS, isFreeform, checkCorrect, calcPoints, LATE_GRACE_MS,
   standings, fmtNum, isActive, isOnline, asIndexList, fitText, fitGroup, onRefit,
-} from "./live-core.js";
+  richHtml, confirmDlg, rankMap,
+} from "./live-core.js?v=2";
 
 const $ = (id) => document.getElementById(id);
 const user = await requireTeacher();
@@ -422,11 +425,18 @@ function elapsedFor(t) {
   }
   return Math.max(0, (Number(t) || 0) - start);
 }
+function firstStart() {
+  const log = Array.isArray(state.startLog) ? state.startLog : Object.values(state.startLog || {});
+  return log.length ? Number(log[0].start) || state.questionStartedAt : state.questionStartedAt;
+}
 function gradeOne(qi, a, forceCorrect) {
   const q = questions[qi];
-  const isCorrect = forceCorrect ?? checkCorrect(q, keyFor(qi), a?.value);
+  // Відповідь «з минулого» (раніше, ніж питання з'явилось) не зараховується.
+  // Правила бази такого не пропускають; це страховка для старих правил.
+  const early = (Number(a?.answeredAt) || 0) < firstStart() - 2000;
+  const isCorrect = forceCorrect ?? (!early && checkCorrect(q, keyFor(qi), a?.value));
   const elapsedMs = elapsedFor(a?.answeredAt);
-  const late = elapsedMs > timePerQ * 1000 + LATE_GRACE_MS;
+  const late = early || elapsedMs > timePerQ * 1000 + LATE_GRACE_MS;
   return { isCorrect, points: late ? 0 : calcPoints({ scoring, isCorrect, elapsedMs, timePerQ }) };
 }
 
@@ -445,7 +455,7 @@ function renderQuestion(qi) {
   $("q-bar").style.width = `${((qi + 1) / totalQ) * 100}%`;
   if (!q) return;
   const qt = $("q-text");
-  qt.innerHTML = q.text || "";
+  qt.innerHTML = richHtml(q.text);
 
   const t = TYPE_LABELS[q.type] || TYPE_LABELS.single;
   $("q-type-badge").className = "q-type-badge " + t.cls;
@@ -505,6 +515,13 @@ function renderAnswered() {
   $("answered-num").textContent = answered;
   $("answered-total").textContent = total;
   $("footer-players").textContent = total;
+  // Хто ще не відповів — коли лишилось кілька людей, викладач може їх гукнути
+  const ans = currentAnswers();
+  const waiting = activePids().filter(p => isOnline(players[p]) && !ans[p]).map(p => players[p].nickname || "—");
+  const w = $("answered-wait");
+  const showW = state.status === "question" && answered > 0 && waiting.length > 0 && waiting.length <= 6;
+  w.hidden = !showW;
+  if (showW) w.textContent = "Чекаємо: " + waiting.sort((a, b) => a.localeCompare(b, "uk")).join(", ");
 }
 
 // ─── Розкриття ─────────────────────────────────────────────────────────
@@ -581,6 +598,7 @@ $("grading").addEventListener("click", async (e) => {
     upd[`rooms/${code}/answers/${qi}/${pid}/points`] = r.points;
     upd[`rooms/${code}/answers/${qi}/${pid}/gradedByTeacher`] = true;
   });
+  withRanks(qi, upd);
   try { await update(ref(db), upd); }
   catch (err) { toast("Не вдалося зберегти: " + err.message, "err"); btn.disabled = false; }
 });
@@ -608,7 +626,8 @@ function applyState(s) {
   $("loading").classList.add("hide");
   switch (state.status) {
     case "lobby": leaving = true; location.replace(`lobby?code=${code}`); return;
-    case "leaderboard": leaving = true; location.replace(`podium?code=${code}`); return;
+    // finish() сам переходить на подіум — не дублюємо навігацію (друга переривала першу)
+    case "leaderboard": if (!leaving) { leaving = true; location.replace(`podium?code=${code}`); } return;
     case "finished": case null: case undefined:
       leaving = true; stopMusic(); fatal("Гру завершено"); return;
   }
@@ -618,6 +637,7 @@ function applyState(s) {
   const isPaused = state.status === "paused";
   $("pause-banner").classList.toggle("show", isPaused);
   $("answered-bar").style.display = isReveal ? "none" : "";
+  renderAnswered();
   $("pause-btn").hidden = isReveal;
   $("pause-btn").innerHTML = isPaused ? `▶ Продовжити <span class="k">P</span>` : `⏸ Пауза <span class="k">P</span>`;
   const last = state.currentQ >= totalQ - 1;
@@ -666,11 +686,25 @@ function reveal() {
       upd[`rooms/${code}/answers/${qi}/${pid}/isCorrect`] = r.isCorrect;
       upd[`rooms/${code}/answers/${qi}/${pid}/points`] = r.points;
     });
+    withRanks(qi, upd);
     upd[`rooms/${code}/revealed/${qi}`] = { correct: keyFor(qi), at: serverNow() };
     upd[`rooms/${code}/status`] = "reveal";
     upd[`rooms/${code}/pausedLeft`] = null;
     await update(ref(db), upd);
   });
+}
+
+// Додає до запису таблицю місць після цього питання (з урахуванням щойно
+// виставлених балів) — телефони учнів показують «ви на 3-му місці».
+function withRanks(qi, upd) {
+  const pre = `rooms/${code}/answers/${qi}/`;
+  const cur = { ...(allAnswers[qi] || {}) };
+  Object.entries(upd).forEach(([k, v]) => {
+    if (!k.startsWith(pre)) return;
+    const [pid, field] = k.slice(pre.length).split("/");
+    cur[pid] = { ...(cur[pid] || {}), [field]: v };
+  });
+  upd[`rooms/${code}/ranks`] = rankMap(standings(players, { ...allAnswers, [qi]: cur }));
 }
 
 function next() {
@@ -718,8 +752,8 @@ async function finish() {
 
 $("next-btn").addEventListener("click", () => next());
 $("pause-btn").addEventListener("click", () => togglePause());
-$("end-btn").addEventListener("click", () => {
-  if (!confirm("Завершити гру достроково? Поточні результати збережуться в історії ігор.")) return;
+$("end-btn").addEventListener("click", async () => {
+  if (!await confirmDlg({ title: "Завершити гру достроково?", text: "Поточні результати збережуться в історії ігор, учні побачать свої підсумки.", ok: "Завершити", danger: true })) return;
   act(async () => {
     leaving = true;
     stopMusic();
