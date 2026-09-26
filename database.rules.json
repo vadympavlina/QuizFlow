@@ -63,6 +63,13 @@
             }
           }
         },
+        "drafts": {
+          "$qi": {
+            "$pid": {
+              ".write": "root.child('rooms/' + $code + '/status').val() === 'question' && (root.child('rooms/' + $code + '/currentQ').val() + '') === $qi && newData.child('at').val() === now && newData.child('value').isString() && newData.child('value').val().length <= 200 && root.child('rooms/' + $code + '/players/' + $pid).exists() && root.child('rooms/' + $code + '/players/' + $pid + '/active').val() !== false"
+            }
+          }
+        },
         "answers": {
           "$qi": {
             "$pid": {

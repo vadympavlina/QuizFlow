@@ -99,6 +99,8 @@
   .text-input:focus{border-color:#C4B5FD}
   .text-input::placeholder{color:rgba(255,255,255,.4)}
   .text-input:disabled{opacity:.6}
+  .draft-note{margin-top:10px;font-size:12.5px;font-weight:600;color:rgba(255,255,255,.6);text-align:center}
+  .draft-note.saved::before{content:"✓ ";color:#86EFAC}
   .primary-btn{margin-top:12px;width:100%;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,#A78BFA,#7C3AED);color:#fff;font:800 16px Manrope,sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(124,58,237,.4);transition:transform .12s, opacity .15s}
   .primary-btn:active:not(:disabled){transform:scale(.98)}
   .primary-btn:disabled{opacity:.5;cursor:not-allowed}
@@ -223,6 +225,7 @@
   <form class="text-answer-wrap" id="text-form" hidden autocomplete="off">
     <input class="text-input" id="text-inp" placeholder="Введіть відповідь…" enterkeyhint="send" maxlength="200">
     <button class="primary-btn" id="text-submit" type="submit">Відповісти</button>
+    <div class="draft-note" id="draft-note" hidden></div>
   </form>
 
   <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
@@ -328,6 +331,7 @@ function renderQuestion(qi) {
     $("answers-grid").innerHTML = "";
     const inp = $("text-inp");
     inp.value = ""; inp.disabled = false;
+    clearTimeout(draftTimer); draftSent = ""; $("draft-note").hidden = true;
     inp.inputMode = qq.type === "number" ? "decimal" : "text";
     inp.placeholder = qq.type === "number" ? "Введіть число…" : "Введіть відповідь…";
     $("text-submit").disabled = false;
@@ -394,6 +398,7 @@ function paint() {
     if (myAnswer && document.activeElement !== inp) inp.value = String(myAnswer.value ?? "");
     inp.disabled = locked; $("text-submit").disabled = locked;
     if (myAnswer) $("text-submit").textContent = "Відповідь надіслано ✓";
+    if (myAnswer || !canAnswer()) $("draft-note").hidden = true;
   }
 
   // Док знизу
@@ -419,7 +424,7 @@ function renderFeedback(qq) {
   } else if (!graded) {
     cls = "none"; html = `<div class="big">Перевіряємо…</div>${refLine}`;
   } else if (myAnswer.isCorrect) {
-    cls = "ok"; html = `<div class="big">✓ Правильно!</div><div class="pts">+${fmtNum(myAnswer.points || 0)}</div>${myAnswer.gradedByTeacher ? `<div class="sub">Зараховано викладачем</div>` : ""}${refLine}`;
+    cls = "ok"; html = `<div class="big">✓ Правильно!</div><div class="pts">+${fmtNum(myAnswer.points || 0)}</div>${myAnswer.gradedByTeacher ? `<div class="sub">Зараховано викладачем</div>` : ""}${myAnswer.auto ? `<div class="sub">Ви не натиснули «Відповісти» — зараховано введене</div>` : ""}${refLine}`;
   } else {
     let why = "";
     if (qq.type === "multi") {
@@ -428,7 +433,7 @@ function renderFeedback(qq) {
       why = `<div class="sub">${hit < want.length ? `Обрано ${hit} з ${want.length} правильних` : ""}${hit < want.length && extra ? " · " : ""}${extra ? `${extra} ${extra === 1 ? "зайвий варіант" : "зайві варіанти"}` : ""}</div>
         <div class="sub">Зараховується лише повністю правильна відповідь: ${want.map(i => OPT_LETTERS[i]).join(", ")}</div>`;
     }
-    cls = "bad"; html = `<div class="big">✗ Неправильно</div>${why}${myAnswer.gradedByTeacher ? `<div class="sub">Перевірено викладачем</div>` : ""}${refLine}`;
+    cls = "bad"; html = `<div class="big">✗ Неправильно</div>${why}${myAnswer.auto ? `<div class="sub">Зараховано введене: «${esc(myAnswer.value)}»</div>` : ""}${myAnswer.gradedByTeacher ? `<div class="sub">Перевірено викладачем</div>` : ""}${refLine}`;
   }
   if (myRank?.r && myRank.n > 1) {
     const gap = Number(myRank.g) || 0;
@@ -476,6 +481,25 @@ async function submit(value) {
   }
 }
 
+// ─── Чернетка текстової відповіді ──────────────────────────────────────
+// Введене зберігається в базу, поки учень друкує. Якщо час вийде (або викладач
+// розкриє відповідь раніше), а кнопку «Відповісти» так і не натиснули —
+// викладач зарахує чернетку як відповідь. Навіть одну букву.
+let draftTimer = null, draftSent = "", draftQ = -1;
+function saveDraft(now = false) {
+  clearTimeout(draftTimer);
+  const run = () => {
+    const qi = st.currentQ, v = $("text-inp").value.trim().slice(0, 200);
+    if (!canAnswer() || myAnswer || (v === draftSent && draftQ === qi)) return;
+    draftSent = v; draftQ = qi;
+    set(ref(db, `${base}/drafts/${qi}/${pid}`), { value: v, at: serverTimestamp() })
+      .then(() => { if (st.currentQ === qi && !myAnswer) { const n = $("draft-note"); n.hidden = !v; n.className = "draft-note saved"; n.textContent = "Чернетку збережено — якщо не встигнете натиснути, вона зарахується"; } })
+      .catch(() => { draftSent = ""; });
+  };
+  if (now) run(); else draftTimer = setTimeout(run, 350);
+}
+$("text-inp").addEventListener("input", () => saveDraft());
+
 $("answers-grid").addEventListener("click", (e) => {
   const b = e.target.closest(".ans"); if (!b || b.disabled) return;
   const i = +b.dataset.i;
@@ -518,6 +542,8 @@ function tick() {
   $("timer-num").textContent = st.status === "reveal" ? "✓" : Math.ceil(left);
   el.style.setProperty("--p", st.status === "reveal" ? 0 : (left / timePerQ).toFixed(4));
   el.className = "timer" + (st.status === "reveal" || (st.status === "question" && left <= 0) ? " done" : left <= 5 ? " danger" : left <= 10 ? " warn" : "");
+  // За пів секунди до кінця — дописуємо чернетку негайно, без затримки
+  if (st.status === "question" && left > 0 && left <= 0.6 && isFreeform(q()) && !myAnswer) saveDraft(true);
   const open = canAnswer();
   if (open !== wasOpen) { wasOpen = open; paint(); }   // таймер щойно сплив — блокуємо ввід
 }
