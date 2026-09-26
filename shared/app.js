@@ -258,7 +258,7 @@ function ensureNavScript() {
   if (window.QFNav) return Promise.resolve();
   return new Promise(res => {
     const s = document.createElement("script");
-    s.src = new URL("./nav.js?v=16", import.meta.url).href;
+    s.src = new URL("./nav.js?v=17", import.meta.url).href;
     s.onload = s.onerror = () => res();
     document.head.appendChild(s);
   });

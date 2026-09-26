@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css?v=21">
-<link rel="modulepreload" href="shared/app.js?v=21">
-<link rel="modulepreload" href="shared/features.js?v=21">
+<link rel="modulepreload" href="shared/app.js?v=22">
+<link rel="modulepreload" href="shared/features.js?v=22">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
    TESTS PAGE REDESIGN — scoped під #sec-tests
@@ -355,7 +355,7 @@
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
-<script src="shared/nav.js?v=16"></script>
+<script src="shared/nav.js?v=17"></script>
 <main class="main">
 
   <!-- TESTS (новий дизайн) -->
@@ -453,8 +453,8 @@
 
 <script type="module">
 // ─── Ініціалізація (паралельне завантаження — як в оригіналі) ───
-const { initApp } = await import("./shared/app.js?v=21");
-const featuresP = import("./shared/features.js?v=21");
+const { initApp } = await import("./shared/app.js?v=22");
+const featuresP = import("./shared/features.js?v=22");
 
 window.showSec = function(name){
   if (name === "tests"){
@@ -488,6 +488,11 @@ await featuresP;
 await window.initFeatures();
 
 if (window.renderAll) window.renderAll();
+// tests?new=1 — одразу форма нового тесту (напр. з кроку «Створіть перший тест» у знайомстві)
+if (new URLSearchParams(location.search).get("new") === "1" && window.G?.openTestInFolder){
+  history.replaceState(null, "", location.pathname);
+  setTimeout(() => window.G.openTestInFolder(null), 300);
+}
 
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
