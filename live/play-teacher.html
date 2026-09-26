@@ -680,6 +680,19 @@ function reveal() {
   return act(async () => {
     if (state.status !== "question" && state.status !== "paused") return;
     const qi = state.currentQ, upd = {};
+    // Текстові питання: хто надрукував, але не натиснув «Відповісти», —
+    // зараховуємо збережену чернетку як відповідь (навіть одну букву).
+    if (isFreeform(questions[qi])) {
+      const drafts = (await get(ref(db, `rooms/${code}/drafts/${qi}`)).catch(() => null))?.val() || {};
+      Object.entries(drafts).forEach(([pid, d]) => {
+        const v = String(d?.value ?? "").trim();
+        if (!v || allAnswers[qi]?.[pid] || !isActive(players[pid])) return;
+        const a = { value: v, answeredAt: Number(d.at) || serverNow(), auto: true };
+        const r = gradeOne(qi, a);
+        const p = `rooms/${code}/answers/${qi}/${pid}/`;
+        Object.assign(upd, { [p + "value"]: a.value, [p + "answeredAt"]: a.answeredAt, [p + "auto"]: true, [p + "isCorrect"]: r.isCorrect, [p + "points"]: r.points });
+      });
+    }
     Object.entries(allAnswers[qi] || {}).forEach(([pid, a]) => {
       if (a?.gradedByTeacher) return;
       const r = gradeOne(qi, a);
