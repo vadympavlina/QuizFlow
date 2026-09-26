@@ -5,8 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%230d9e85'/><stop offset='1' stop-color='%23077a67'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='8' y='6' width='16' height='20' rx='2' fill='white' opacity='.9'/><rect x='11' y='10' width='10' height='1.8' rx='.9' fill='%230d9e85'/><rect x='11' y='14' width='7' height='1.8' rx='.9' fill='%230d9e85'/><polyline points='10,20 13,23 20,17' fill='none' stroke='%230d9e85' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <title>QuizFlow — Тест</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#F4F6FB">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
+<link rel="modulepreload" href="shared/qorder.js?v=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#f0f3fa;--primary:#2d5be3;--primary-light:#4d78ff;
@@ -19,7 +26,7 @@
     --grad:linear-gradient(135deg,#2d5be3,#1a3ab8);
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+  body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
   .screen{min-height:100vh;display:none}
   .screen.flex{display:flex}
 
@@ -46,12 +53,12 @@
     position:relative;z-index:1;animation:cardIn .5s cubic-bezier(.34,1.56,.64,1) both}
   .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:28px}
   .logo-mark{width:40px;height:40px;background:var(--grad);border-radius:12px;
-    display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;
+    display:flex;align-items:center;justify-content:center;font-family:'Manrope',sans-serif;
     font-weight:800;font-size:18px;color:white;box-shadow:0 4px 14px rgba(45,91,227,.4)}
-  .logo-name{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.3px}
+  .logo-name{font-family:'Manrope',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.3px}
   .test-info-box{padding:20px;background:linear-gradient(135deg,rgba(45,91,227,.04),rgba(20,212,180,.03));
     border-radius:18px;border:1.5px solid rgba(45,91,227,.1);margin-bottom:26px}
-  .test-info-title{font-family:'Syne',sans-serif;font-weight:700;font-size:21px;
+  .test-info-title{font-family:'Manrope',sans-serif;font-weight:700;font-size:21px;
     letter-spacing:-.3px;margin-bottom:12px;line-height:1.25}
   .test-info-meta{display:flex;gap:12px;flex-wrap:wrap}
   .meta-item{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--text-muted);
@@ -61,11 +68,11 @@
   .field-label{font-size:11px;letter-spacing:.7px;text-transform:uppercase;
     color:var(--text-muted);margin-bottom:7px;font-weight:600}
   .field-input{width:100%;padding:14px 18px;border-radius:14px;border:2px solid var(--border);
-    font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);outline:none;
+    font-family:'Manrope',sans-serif;font-size:15px;color:var(--text);outline:none;
     transition:border-color .2s,box-shadow .2s;background:#fafbff}
   .field-input:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(45,91,227,.08);background:white}
   .start-btn{width:100%;padding:16px;background:var(--grad);color:white;border:none;
-    border-radius:16px;font-family:'Syne',sans-serif;font-weight:700;font-size:16px;
+    border-radius:16px;font-family:'Manrope',sans-serif;font-weight:700;font-size:16px;
     cursor:pointer;transition:all .2s;box-shadow:0 8px 28px rgba(45,91,227,.35);margin-top:8px;
     letter-spacing:.2px}
   .start-btn:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(45,91,227,.45)}
@@ -78,11 +85,11 @@
     border-bottom:1.5px solid var(--border);position:sticky;top:0;z-index:50;
     box-shadow:0 2px 16px rgba(13,19,64,.06)}
   .test-topbar-row1{display:flex;align-items:center;padding:10px 20px;gap:12px}
-  .test-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;
+  .test-logo{font-family:'Manrope',sans-serif;font-weight:800;font-size:15px;
     display:flex;align-items:center;gap:8px;white-space:nowrap;color:var(--text)}
   .test-logo .logo-mark{width:26px;height:26px;font-size:11px}
   .test-timer{display:flex;align-items:center;gap:6px;padding:5px 13px;
-    background:rgba(45,91,227,.07);border-radius:20px;font-family:'Syne',sans-serif;
+    background:rgba(45,91,227,.07);border-radius:20px;font-family:'Manrope',sans-serif;
     font-weight:700;font-size:13px;color:var(--primary);margin-left:auto;letter-spacing:.2px}
   .test-timer.warn{background:rgba(244,63,94,.09);color:var(--rose);animation:timerWarn 1s ease infinite}
   @keyframes timerWarn{0%,100%{opacity:1}50%{opacity:.7}}
@@ -90,7 +97,7 @@
   .q-navigator{display:flex;align-items:center;gap:5px;padding:8px 20px;
     overflow-x:auto;flex-wrap:wrap;border-top:1.5px solid var(--border);background:white}
   .q-dot{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;
-    font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer;
+    font-family:'Manrope',sans-serif;font-weight:700;font-size:12px;cursor:pointer;
     transition:all .18s;flex-shrink:0;border:1.5px solid var(--border);background:white;color:var(--light)}
   .q-dot:hover{border-color:var(--primary);color:var(--primary);background:rgba(45,91,227,.04)}
   .q-dot.current{background:var(--primary);border-color:var(--primary);color:white;
@@ -116,7 +123,7 @@
     font-weight:700;letter-spacing:.3px}
   .q-type-badge{padding:3px 9px;background:rgba(20,212,180,.1);color:#0b9e82;
     border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.2px}
-  .q-text{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;line-height:1.42;
+  .q-text{font-family:'Manrope',sans-serif;font-weight:700;font-size:20px;line-height:1.42;
     letter-spacing:-.2px;margin-bottom:20px;color:var(--text)}
   .q-options-label{font-size:11px;text-transform:uppercase;letter-spacing:.8px;
     color:var(--light);font-weight:600;margin-bottom:10px}
@@ -132,34 +139,29 @@
     transform:translateX(3px)}
   .choice-item.selected .choice-marker{background:var(--primary);border-color:var(--primary);color:white}
   .choice-marker{width:32px;height:32px;border-radius:9px;border:1.5px solid rgba(45,91,227,.2);
-    display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;
+    display:flex;align-items:center;justify-content:center;font-family:'Manrope',sans-serif;
     font-weight:800;font-size:13px;color:var(--primary);flex-shrink:0;transition:all .15s;
     background:rgba(45,91,227,.05)}
   .choice-text{font-size:15px;line-height:1.4;font-weight:500;color:var(--text)}
 
   /* ── ТЕКСТОВА ВІДПОВІДЬ ───────────────────────────────────────────────────── */
   .text-answer{width:100%;padding:16px 18px;background:white;border:2px solid rgba(45,91,227,.1);
-    border-radius:16px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);
+    border-radius:16px;font-family:'Manrope',sans-serif;font-size:15px;color:var(--text);
     outline:none;transition:all .2s;resize:vertical;min-height:56px;margin-bottom:28px;
     line-height:1.55;box-shadow:var(--shadow-sm)}
   .text-answer:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(45,91,227,.08),var(--shadow-sm)}
   .text-answer::placeholder{color:rgba(107,114,128,.45)}
 
-  /* ── ЗІСТАВЛЕННЯ ──────────────────────────────────────────────────────────── */
-  .matching-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:10px 14px;
-    align-items:center;margin-bottom:28px}
-  .match-left{padding:13px 17px;background:white;border:2px solid rgba(45,91,227,.1);
-    border-radius:14px;font-size:14px;font-weight:500;box-shadow:var(--shadow-sm)}
-  .match-connector{width:28px;height:2px;background:rgba(45,91,227,.18);position:relative}
-  .match-connector::after{content:'→';position:absolute;right:-7px;top:-11px;
-    font-size:14px;color:rgba(45,91,227,.4)}
-  .match-select{padding:12px 14px;background:white;border:2px solid rgba(45,91,227,.1);
-    border-radius:14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);
-    outline:none;cursor:pointer;transition:border-color .2s;appearance:none;
-    background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;
-    width:100%;box-shadow:var(--shadow-sm)}
-  .match-select:focus{border-color:var(--primary)}
+  /* ── ЗІСТАВЛЕННЯ: кнопки-варіанти замість системного списку ─────────────── */
+  .match-list{display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+  .match-row{padding:14px;border:1.5px solid var(--border);border-radius:16px;background:var(--card)}
+  .match-left{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;margin-bottom:10px;color:var(--text)}
+  .match-n{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;flex:0 0 auto;font:700 12px 'Geist Mono',monospace;background:rgba(45,91,227,.09);color:var(--primary)}
+  .match-opts{display:flex;flex-wrap:wrap;gap:8px}
+  .match-opt{font:600 14px 'Manrope',sans-serif;padding:9px 14px;border-radius:11px;border:1.5px solid rgba(45,91,227,.16);background:rgba(45,91,227,.03);color:var(--text);cursor:pointer;transition:all .15s;text-align:left;max-width:100%;overflow-wrap:anywhere}
+  .match-opt:hover{border-color:rgba(45,91,227,.45)}
+  .match-opt.sel{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 4px 14px rgba(45,91,227,.3)}
+  .match-opt.sel::before{content:"✓ "}
 
   /* ── ВПОРЯДКУВАННЯ ────────────────────────────────────────────────────────── */
   .ordering-list{display:flex;flex-direction:column;gap:8px;margin-bottom:28px}
@@ -171,14 +173,44 @@
   .order-handle{display:flex;flex-direction:column;gap:3.5px;flex-shrink:0;padding:2px}
   .order-handle span{display:block;width:16px;height:2px;background:rgba(107,114,128,.35);border-radius:1px}
   .order-num{width:28px;height:28px;border-radius:9px;background:rgba(45,91,227,.09);
-    display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;
+    display:flex;align-items:center;justify-content:center;font-family:'Manrope',sans-serif;
     font-weight:800;font-size:12px;color:var(--primary);flex-shrink:0}
-  .order-text{font-size:14px;flex:1;font-weight:500}
+  .order-text{font-size:14px;flex:1;font-weight:600;min-width:0;overflow-wrap:anywhere}
+  .order-item.moved{animation:ordMoved .4s ease}
+  @keyframes ordMoved{from{background:rgba(45,91,227,.12)}}
+  .ord-btns{display:flex;gap:4px;flex:0 0 auto}
+  .ord-btn{width:34px;height:34px;border-radius:9px;border:1.5px solid var(--border);background:var(--card);color:var(--text-muted);font-size:15px;font-weight:800;cursor:pointer;transition:all .15s}
+  .ord-btn:hover:not(:disabled){border-color:var(--primary);color:var(--primary)}
+  .ord-btn:disabled{opacity:.3;cursor:default}
+
+  /* ── Дрібниці ── */
+  button.choice-item{width:100%;text-align:left;font:inherit;color:inherit}
+  button.q-dot{font-family:'Geist Mono',monospace;padding:0}
+  button.un-q-item{width:100%;text-align:left;font:inherit;color:inherit}
+  .choice-item.multi .choice-marker{border-radius:7px}
+  .q-hint{font-size:13px;font-weight:600;color:var(--text-muted);margin:-8px 0 14px}
+  .ordering-list + .q-hint{margin:-16px 0 20px}
+  .kb-hint{margin-top:14px;font-size:12px;color:var(--light);text-align:center}
+  .kb-hint kbd{font:600 11px 'Geist Mono',monospace;padding:1px 6px;border-radius:5px;border:1px solid var(--border);background:rgba(45,91,227,.04)}
+  @media (hover:none){ .kb-hint{display:none} }
+  .long-count{font-size:12px;color:var(--light);text-align:right;margin:-22px 2px 20px}
+  .q-progress{height:3px;background:rgba(45,91,227,.08)}
+  .q-progress i{display:block;height:100%;width:0;background:var(--grad);transition:width .35s ease}
+  .q-progress-lbl{font:600 12px 'Geist Mono',monospace;color:var(--text-muted);padding:4px 9px;border-radius:8px;background:rgba(45,91,227,.05)}
+  .restore-hint{margin-top:6px;margin-bottom:4px;padding:12px 14px;border-radius:14px;background:rgba(45,91,227,.06);border:1.5px solid rgba(45,91,227,.14);font-size:13.5px;line-height:1.5;color:var(--text)}
+  .restore-hint span{font-size:12px;color:var(--text-muted)}
+  .entry-note{margin-top:12px;text-align:center;font-size:12.5px;color:var(--light)}
+  .field-input.bad{border-color:var(--rose);box-shadow:0 0 0 4px rgba(244,63,94,.1)}
+  .btn-spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:6px}
+  .preview-banner{position:fixed;top:0;left:0;right:0;z-index:9999;background:var(--grad);color:#fff;text-align:center;padding:10px;font:600 13px 'Manrope',sans-serif}
+  .preview-banner a{color:rgba(255,255,255,.85);cursor:pointer;text-decoration:underline;margin-left:8px}
+  :focus-visible{outline:2.5px solid var(--primary);outline-offset:2px}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
   /* ── НАВІГАЦІЯ ─────────────────────────────────────────────────────────────── */
   .q-nav{display:flex;gap:10px;align-items:center;padding-top:6px}
   .q-nav-btn{display:flex;align-items:center;gap:8px;padding:13px 24px;border-radius:14px;
-    font-family:'Syne',sans-serif;font-size:14px;font-weight:600;cursor:pointer;
+    font-family:'Manrope',sans-serif;font-size:14px;font-weight:600;cursor:pointer;
     transition:all .2s;border:none;letter-spacing:.2px}
   .q-nav-btn.prev{background:white;border:2px solid rgba(45,91,227,.12);color:var(--text-muted);
     box-shadow:var(--shadow-sm)}
@@ -213,19 +245,19 @@
   .result-emoji{font-size:44px;margin-bottom:12px;position:relative;z-index:1}
   .result-student-name{font-size:13px;color:rgba(255,255,255,.55);margin-bottom:3px;
     position:relative;z-index:1;letter-spacing:.3px}
-  .result-test-name{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;
+  .result-test-name{font-family:'Manrope',sans-serif;font-weight:700;font-size:18px;
     color:white;margin-bottom:20px;position:relative;z-index:1;line-height:1.3}
   .grade-big{display:inline-flex;align-items:baseline;gap:3px;
     background:rgba(255,255,255,.1);padding:14px 40px;border-radius:18px;
     backdrop-filter:blur(10px);border:1.5px solid rgba(255,255,255,.18);position:relative;z-index:1}
-  .grade-main{font-family:'DM Sans',sans-serif;font-weight:900;font-size:68px;line-height:1;color:white!important}
-  .grade-denom{font-family:'DM Sans',sans-serif;font-weight:400;font-size:24px;
+  .grade-main{font-family:'Manrope',sans-serif;font-weight:900;font-size:68px;line-height:1;color:white!important}
+  .grade-denom{font-family:'Manrope',sans-serif;font-weight:400;font-size:24px;
     color:rgba(255,255,255,.45);margin-bottom:6px;margin-left:2px}
   .result-body{background:white;padding:26px 28px}
   .result-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
   .result-stat{text-align:center;padding:14px 8px;background:rgba(45,91,227,.03);
     border-radius:14px;border:1.5px solid var(--border)}
-  .result-stat-val{font-family:'DM Sans',sans-serif;font-weight:900;font-size:24px}
+  .result-stat-val{font-family:'Manrope',sans-serif;font-weight:900;font-size:24px}
   .result-stat-label{font-size:10px;color:var(--text-muted);margin-top:3px;
     text-transform:uppercase;letter-spacing:.5px;font-weight:600}
   .ai-comment-box{background:rgba(45,91,227,.03);border:1.5px solid rgba(45,91,227,.1);
@@ -235,7 +267,7 @@
   .ai-badge::before{content:'✦';font-size:10px}
   .ai-comment-text{font-size:14px;line-height:1.7;color:var(--text)}
   .result-actions{display:flex;gap:8px}
-  .result-btn{flex:1;padding:12px 10px;border-radius:12px;font-family:'Syne',sans-serif;
+  .result-btn{flex:1;padding:12px 10px;border-radius:12px;font-family:'Manrope',sans-serif;
     font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;border:none;
     display:flex;align-items:center;justify-content:center;gap:7px}
   .result-btn.primary{background:linear-gradient(135deg,#2d5be3,#1a3ab8);color:white;box-shadow:0 4px 18px rgba(45,91,227,.35)}
@@ -248,7 +280,7 @@
   .error-card{background:white;border-radius:28px;padding:52px 44px;text-align:center;
     max-width:440px;box-shadow:var(--shadow-lg);animation:cardIn .4s ease both}
   .error-icon{font-size:56px;margin-bottom:18px}
-  .error-title{font-family:'Syne',sans-serif;font-weight:700;font-size:23px;margin-bottom:10px;
+  .error-title{font-family:'Manrope',sans-serif;font-weight:700;font-size:23px;margin-bottom:10px;
     letter-spacing:-.3px}
   .error-msg{font-size:15px;color:var(--text-muted);line-height:1.65}
 
@@ -270,7 +302,7 @@
     .test-logo{font-size:14px}
     .test-logo .logo-mark{width:24px;height:24px;font-size:10px}
     .test-timer{font-size:12px;padding:5px 10px}
-    .q-navigator{padding:7px 10px;gap:4px}
+    .q-navigator{padding:7px 10px;gap:4px;flex-wrap:nowrap}
     .q-dot{width:28px;height:28px;border-radius:8px;font-size:11px}
 
     /* Question card */
@@ -290,9 +322,11 @@
     .text-answer{font-size:15px;padding:12px 14px}
 
     /* Matching */
-    .matching-grid{grid-template-columns:1fr}
-    .match-connector{display:none}
-    .match-select{font-size:14px;padding:8px 10px}
+    .match-row{padding:12px}
+    .match-opt{font-size:14px;padding:9px 12px}
+    .order-item{padding:10px 10px 10px 12px;gap:8px}
+    .order-handle{display:none}
+    .q-progress-lbl{display:none}
 
     /* Navigation */
     .q-nav{gap:8px;padding-top:12px}
@@ -338,7 +372,7 @@
   .ob-step{display:none;animation:fadeSlide .3s ease}
   .ob-step.active{display:block}
   @keyframes fadeSlide{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
-  .ob-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--text);text-align:center;margin-bottom:8px;letter-spacing:-.3px}
+  .ob-title{font-family:'Manrope',sans-serif;font-weight:800;font-size:22px;color:var(--text);text-align:center;margin-bottom:8px;letter-spacing:-.3px}
   .ob-desc{font-size:14px;color:var(--text-muted);text-align:center;line-height:1.65;margin-bottom:22px}
   .ob-tips{display:flex;flex-direction:column;gap:8px;margin-bottom:22px}
   .ob-tip{display:flex;align-items:flex-start;gap:11px;padding:11px 14px;
@@ -347,7 +381,7 @@
   .ob-tip-icon{font-size:17px;flex-shrink:0;margin-top:1px}
   .ob-btn{width:100%;padding:14px;border-radius:14px;border:none;
     background:linear-gradient(135deg,#2d5be3,#1a3ab8);color:white;
-    font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;
+    font-family:'Manrope',sans-serif;font-weight:700;font-size:15px;cursor:pointer;
     transition:all .2s;box-shadow:0 6px 22px rgba(45,91,227,.32);letter-spacing:.2px}
   .ob-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(45,91,227,.42)}
   .ob-btn-skip{width:100%;padding:9px;background:none;border:none;color:var(--text-muted);font-size:13px;cursor:pointer;margin-top:6px;transition:color .15s}
@@ -363,12 +397,12 @@
   .un-q-list{display:flex;flex-direction:column;gap:6px;margin:16px 0 20px;max-height:200px;overflow-y:auto}
   .un-q-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:rgba(244,63,94,.05);border:1.5px solid rgba(244,63,94,.15);border-radius:11px;cursor:pointer;transition:all .15s}
   .un-q-item:hover{background:rgba(244,63,94,.1);border-color:rgba(244,63,94,.3)}
-  .un-q-num{width:26px;height:26px;border-radius:7px;background:rgba(244,63,94,.12);color:#be123c;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .un-q-num{width:26px;height:26px;border-radius:7px;background:rgba(244,63,94,.12);color:#be123c;font-family:'Manrope',sans-serif;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
   .un-q-text{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .un-actions{display:flex;flex-direction:column;gap:8px}
-  .un-btn-finish{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#2d5be3,#1a3ab8);color:white;font-family:'Syne',sans-serif;font-weight:600;font-size:15px;cursor:pointer;transition:all .2s}
+  .un-btn-finish{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#2d5be3,#1a3ab8);color:white;font-family:'Manrope',sans-serif;font-weight:600;font-size:15px;cursor:pointer;transition:all .2s}
   .un-btn-finish:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(45,91,227,.35)}
-  .un-btn-back{width:100%;padding:12px;border-radius:14px;border:1.5px solid var(--border);background:white;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:15px;cursor:pointer;transition:all .15s}
+  .un-btn-back{width:100%;padding:12px;border-radius:14px;border:1.5px solid var(--border);background:white;color:var(--text-muted);font-family:'Manrope',sans-serif;font-size:15px;cursor:pointer;transition:all .15s}
   .un-btn-back:hover{border-color:var(--primary);color:var(--primary)}
 
   /* ─── ТЕМНА ТЕМА ─────────────────────────────────────────────────────────── */
@@ -487,7 +521,12 @@
 
   /* ── Matching / Ordering ── */
   [data-theme="dark"] .match-term { background: #1e2235; border-color: rgba(255,255,255,.1); color: #d0d7f0; }
-  [data-theme="dark"] .match-select { background: #1e2235; border-color: rgba(255,255,255,.1); color: #d0d7f0; }
+  [data-theme="dark"] .match-row { background: #1a1d27; border-color: rgba(255,255,255,.08); }
+  [data-theme="dark"] .match-left { color: #e8ecf8; }
+  [data-theme="dark"] .match-opt { background: #1e2235; border-color: rgba(255,255,255,.12); color: #d0d7f0; }
+  [data-theme="dark"] .match-opt.sel { background: var(--primary); border-color: var(--primary); color: #fff; }
+  [data-theme="dark"] .ord-btn { background: #1a1d27; border-color: rgba(255,255,255,.12); color: #8b92a9; }
+  [data-theme="dark"] .q-progress-lbl { background: rgba(255,255,255,.06); color: #8b92a9; }
   [data-theme="dark"] .order-item { background: #1e2235; border-color: rgba(255,255,255,.1); color: #d0d7f0; }
 
   /* Перемикач теми */
@@ -533,7 +572,7 @@
     <!-- Логотип -->
     <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:28px">
       <div class="logo-mark" style="width:30px;height:30px;font-size:13px">Q</div>
-      <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:var(--text)">QuizFlow</span>
+      <span style="font-family:'Manrope',sans-serif;font-weight:700;font-size:16px;color:var(--text)">QuizFlow</span>
     </div>
 
     <!-- Прогрес-точки -->
@@ -599,11 +638,7 @@
         </div>
         <div class="meta-item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/></svg>
-          <span id="infoQuestions">—</span> питань
-        </div>
-        <div class="meta-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-          <span id="infoAttempts">—</span>
+          <span id="infoQuestions">—</span>
         </div>
         <div class="meta-item" id="infoGroupRow" style="display:none">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
@@ -613,13 +648,15 @@
     </div>
     <div class="field-group">
       <div class="field-label">Ім'я</div>
-      <input class="field-input" type="text" id="inputName" placeholder="Введіть ваше ім'я">
+      <input class="field-input" type="text" id="inputName" placeholder="Напр. Олена" autocomplete="given-name" maxlength="40" enterkeyhint="next">
     </div>
     <div class="field-group">
       <div class="field-label">Прізвище</div>
-      <input class="field-input" type="text" id="inputSurname" placeholder="Введіть ваше прізвище">
+      <input class="field-input" type="text" id="inputSurname" placeholder="Напр. Коваль" autocomplete="family-name" maxlength="40" enterkeyhint="go">
     </div>
-    <button class="start-btn" id="startBtn">Розпочати тест →</button>
+    <div class="restore-hint" id="restoreHint" hidden></div>
+    <button class="start-btn" id="startBtn" type="button">Розпочати тест →</button>
+    <div class="entry-note">Викладач побачить ваше ім'я та результат</div>
   </div>
 </div>
 
@@ -628,15 +665,17 @@
   <div class="test-topbar">
     <div class="test-topbar-row1">
       <div class="test-logo"><div class="logo-mark">Q</div>QuizFlow</div>
+      <span class="q-progress-lbl" id="qProgressLbl" title="Відповідей дано"></span>
       <button class="theme-toggle" id="themeToggle" onclick="window.toggleTheme()" title="Змінити тему">
         <span class="theme-toggle-icon" id="themeIcon">🌙</span>
       </button>
-      <div class="test-timer" id="timer">
+      <div class="test-timer" id="timer" role="timer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
         <span id="timerValue">—</span>
       </div>
     </div>
-    <div class="q-navigator" id="qNavigator"></div>
+    <div class="q-progress" aria-hidden="true"><i id="qProgress"></i></div>
+    <div class="q-navigator" id="qNavigator" aria-label="Питання"></div>
   </div>
   <div class="question-area">
     <div class="question-card" id="questionCard"></div>
@@ -647,8 +686,8 @@
 <div class="screen" id="processingScreen">
   <div class="processing-card">
     <div class="processing-icon">✦</div>
-    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;margin-bottom:8px">Обробка результатів</div>
-    <div style="font-size:14px;color:var(--text-muted)">Аналізуємо результати...</div>
+    <div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:22px;margin-bottom:8px">Обробка результатів</div>
+    <div style="font-size:14px;color:var(--text-muted)" id="processingSub">Зберігаємо відповіді…</div>
   </div>
 </div>
 
@@ -670,7 +709,7 @@
         <div style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border:2px solid #fbbf24;border-radius:18px;padding:22px 28px;display:flex;align-items:center;gap:16px">
           <div style="font-size:32px;flex-shrink:0">⏳</div>
           <div style="flex:1">
-            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:#92400e;margin-bottom:4px">Тест на перевірці</div>
+            <div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:16px;color:#92400e;margin-bottom:4px">Тест на перевірці</div>
             <div style="font-size:14px;color:#b45309;line-height:1.55">
               Розгорнута відповідь отримана і чекає на перевірку викладача. Оцінка з'явиться після перевірки.
             </div>
@@ -686,21 +725,6 @@
         <div class="ai-badge">Коментар</div>
         <div class="ai-comment-text" id="aiComment"></div>
       </div>
-      <!-- Персональний розбір помилок -->
-      <div id="errorAnalysisBox" style="display:none;margin-bottom:18px;padding:16px 20px;
-        background:rgba(244,63,94,.04);border:1.5px solid rgba(244,63,94,.15);border-radius:16px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <span style="font-size:16px">🔍</span>
-          <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--rose)">
-            Персональний розбір помилок
-          </span>
-        </div>
-        <div id="errorAnalysisText" style="font-size:14px;line-height:1.65;color:var(--text-muted);font-style:italic">
-          <span style="display:inline-block;width:16px;height:16px;border:2px solid var(--rose);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:8px"></span>
-          Аналізуємо помилки...
-        </div>
-      </div>
-
       <div class="result-actions">
         <button class="result-btn secondary" id="downloadBtn">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -715,15 +739,17 @@
 <!-- ERROR -->
 <div class="screen" id="errorScreen">
   <div class="error-card">
-    <div class="error-icon">🔒</div>
-    <div class="error-title">Доступ недоступний</div>
+    <div class="error-icon" id="errorIcon">🔒</div>
+    <div class="error-title" id="errorTitle">Доступ недоступний</div>
     <div class="error-msg" id="errorMsg">Щось пішло не так. Зверніться до викладача.</div>
+    <button class="start-btn" id="retryBtn" type="button" hidden style="margin-top:22px">↻ Спробувати ще раз</button>
   </div>
 </div>
 
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, get, set, push, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, get, set, push, update, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { qVersionKey, makeOrder, buildQuestions, seededRandom, shuffledIdx, richHtml, plainText } from "./shared/qorder.js?v=1";
 
 // Глобальна tp — читає teacherUid з URL
 function tp(path){
@@ -748,23 +774,18 @@ const firebaseConfig = {
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
-// Завантажуємо налаштування AI одразу (глобальні + індивідуальні)
+// Налаштування AI: глобальні (settings/ai) + індивідуальні викладача, якому належить тест
 (async()=>{
   await loadAISettings(db);
-  // Читаємо індивідуальні налаштування викладача
+  const tuid = new URLSearchParams(location.search).get("t");
+  if (!tuid) return;
   try{
-    const _s = sessionStorage.getItem("qf_user");
-    const _u = _s ? JSON.parse(_s) : null;
-    if(_u?.id){
-      const { get:_g, ref:_r } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
-      const tSnap = await _g(_r(db,`users/${_u.id}/aiSettings`));
-      if(tSnap.exists()){
-        const t = tSnap.val();
-        if(t.aiComments  !== undefined) window._AI_COMMENTS   = t.aiComments;
-        if(t.aiAnalysis  !== undefined) window._AI_ANALYSIS   = t.aiAnalysis;
-        if(t.aiGeneration!== undefined) window._AI_GENERATION = t.aiGeneration;
-        if(t.aiTextCheck !== undefined) window._AI_TEXTCHECK  = t.aiTextCheck;
-      }
+    const tSnap = await get(ref(db, `users/${tuid}/aiSettings`));
+    if(tSnap.exists()){
+      const t = tSnap.val();
+      if(t.aiComments  !== undefined) window._AI_COMMENTS   = t.aiComments;
+      if(t.aiAnalysis  !== undefined) window._AI_ANALYSIS   = t.aiAnalysis;
+      if(t.aiTextCheck !== undefined) window._AI_TEXTCHECK  = t.aiTextCheck;
     }
   }catch(e){ console.warn("Teacher AI settings:", e.message); }
 })();
@@ -812,9 +833,7 @@ async function getLink(linkId) {
 
 
 async function incrementLinkUsage(linkId) {
-  const snap = await get(ref(db, tp(`links/${linkId}/usedAttempts`)));
-  const current = snap.exists() ? snap.val() : 0;
-  await set(ref(db, tp(`links/${linkId}/usedAttempts`)), current + 1);
+  await runTransaction(ref(db, tp(`links/${linkId}/usedAttempts`)), n => (Number(n) || 0) + 1);
 }
 
 // ─── ATTEMPTS ─────────────────────────────────────────────────────────────────
@@ -834,7 +853,11 @@ async function createAttempt(data) {
     status:            data.status             || "in_progress",
     startedAt:         data.startedAt          || nowTs(),
     finishedAt:        data.finishedAt         ?? null,
+    // Питання спроби: ключ версії + порядок (див. shared/qorder.js); повна копія — лише запасний варіант
     questionsSnapshot: data.questionsSnapshot  ?? null,
+    qVer:              data.qVer               ?? null,
+    qOrder:            data.qOrder             ?? null,
+    optOrder:          data.optOrder           ?? null,
     createdAt: nowTs()
   });
   set(ref(db, tp(`attemptIndex/${data.testId}/${nameKey(data.name, data.surname)}`)), newRef.key).catch(() => {});
@@ -934,6 +957,9 @@ const UA_SYSTEM = {
            "Якщо щось не знаєш українською — все одно пиши по-українськи."
 };
 
+// Студент не має чекати на AI вічно: після 20 с показуємо результат без коментаря
+const aiSignal = () => (typeof AbortSignal !== "undefined" && AbortSignal.timeout) ? AbortSignal.timeout(20000) : undefined;
+
 async function callGroq(messages, maxTokens = 800, temperature = 0.5, feature = "comments") {
   if (aiProviderFor(feature) === "gemini") return callGemini(messages, maxTokens, temperature);
   if (!GROQ_API_KEY) throw new Error("AI не налаштовано: немає ключа Groq");
@@ -942,6 +968,7 @@ async function callGroq(messages, maxTokens = 800, temperature = 0.5, feature = 
 
   const res = await fetch(GROQ_URL, {
     method: "POST",
+    signal: aiSignal(),
     headers: {
       "Content-Type":  "application/json",
       "Authorization": `Bearer ${GROQ_API_KEY}`
@@ -973,6 +1000,7 @@ async function callGroq(messages, maxTokens = 800, temperature = 0.5, feature = 
 async function callGemini(messages, maxTokens = 800, temperature = 0.5) {
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
     method: "POST",
+    signal: aiSignal(),
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: UA_SYSTEM.content }] },
@@ -1072,62 +1100,6 @@ async function getStudentAIComment({ testTitle, totalQuestions, correctCount, pe
 
 
 
-// ─── AI перефразування питання ────────────────────────────────────────────────
-
-async function rephraseQuestion(questionText, options = []) {
-  let prompt = `Перефразуй тестове питання ІНШИМИ словами, зберігаючи зміст.
-
-ПРАВИЛА:
-- Відповідай ТІЛЬКИ українською мовою
-- Зміни формулювання, але зміст і правильні відповіді — ті самі
-- JSON без markdown
-
-Питання: "${questionText}"`;
-
-  if (options.length > 0) {
-    prompt += `
-Варіанти: ${JSON.stringify(options)}
-Формат: {"question":"нове питання","options":["А","Б","В","Г"]}`;
-  } else {
-    prompt += `
-Формат: {"question":"нове питання"}`;
-  }
-
-  const raw = await callGroq([{ role: "user", content: prompt }], 400, 0.6, "generation");
-  try {
-    return JSON.parse(raw.replace(/```json|```/g, "").trim());
-  } catch {
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("Невірний формат");
-    return JSON.parse(match[0]);
-  }
-}
-
-// ─── AI генерація кількох питань ─────────────────────────────────────────────
-
-async function generateQuestions({ topic, difficulty, type, count = 5 }) {
-  const typeMap = {
-    mix:    "мікс типів: single choice, multiple choice, text",
-    single: "тільки одна правильна відповідь (single choice)",
-    multi:  "тільки кілька правильних відповідей (multiple choice)",
-    text:   "тільки коротка текстова відповідь"
-  };
-
-  const prompt = `Ти — викладач. Створи ${count} тестових питань українською мовою на тему "${topic}".
-Складність: ${difficulty}
-Тип: ${typeMap[type] || type}
-
-Відповідай ТІЛЬКИ масивом JSON без markdown:
-[
-  {"type":"single","text":"питання","options":["A","B","C","D"],"correct":[0]},
-  {"type":"multi","text":"питання","options":["A","B","C","D"],"correct":[1,2]},
-  {"type":"text","text":"питання","correct":"відповідь"}
-]`;
-
-  const raw = await callGroq([{ role: "user", content: prompt }], 2000, 0.5, "generation");
-  return JSON.parse(raw.replace(/```json|```/g, "").trim());
-}
-
 // ─── Допоміжна функція оцінки ─────────────────────────────────────────────────
 
 function percentToGrade(percent) {
@@ -1222,7 +1194,9 @@ function checkAnswer(question, studentAnswer) {
 
     // ── Number ────────────────────────────────────────────────────────────
     case "number": {
-      const correct = Number(studentAnswer) === Number(question.correct);
+      const num = v => Number(String(v ?? "").trim().replace(/\s+/g, "").replace(",", "."));
+      const a = num(studentAnswer), c = num(question.correct);
+      const correct = Number.isFinite(a) && Number.isFinite(c) && Math.abs(a - c) < 1e-9;
       return { correct, partial: false, points: correct ? 1 : 0 };
     }
 
@@ -1250,7 +1224,7 @@ function checkAnswer(question, studentAnswer) {
       // часткова: рахуємо елементи на своїх місцях
       let hits = 0;
       (question.items || []).forEach((item, i) => {
-        if (studentAnswer[i] === item) hits++;
+        if (Array.isArray(studentAnswer) && studentAnswer[i] === item) hits++;
       });
       const partial = !correct && hits > 0;
       return {
@@ -1405,6 +1379,7 @@ function generateResultHTML({ student, test, attempt, questions }) {
     const statusColor = isPending ? "#b45309" : isCorrect ? "#0d9e85" : isPartial ? "#f59e0b" : "#f43f5e";
     const statusText  = isPending ? "⏳ Очікує перевірки" : isCorrect ? "✓ Правильно" : isPartial ? "~ Частково" : "✗ Неправильно";
 
+    answerDisplay = escHtml(answerDisplay); correctDisplay = escHtml(correctDisplay);
     return `
     <div class="question-block" style="border-left: 3px solid ${statusColor};">
       <div class="q-meta">
@@ -1412,7 +1387,7 @@ function generateResultHTML({ student, test, attempt, questions }) {
         <span class="q-type">${getTypeName(q.type)}</span>
         <span class="q-status" style="color:${statusColor};background:${statusColor}18;padding:2px 9px;border-radius:20px">${statusText}</span>
       </div>
-      <div class="q-text">${q.text}</div>
+      <div class="q-text">${richHtml(q.text)}</div>
       <div class="q-answers">
         <div class="answer-row student-answer">
           <span class="answer-label">Ваша відповідь:</span>
@@ -1434,12 +1409,12 @@ function generateResultHTML({ student, test, attempt, questions }) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Результат — ${name} ${surname}</title>
+<title>Результат — ${escHtml(name)} ${escHtml(surname)}</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'DM Sans',sans-serif;background:#f0f3fa;color:#0d1340;padding:36px 20px;min-height:100vh}
+  body{font-family:'Manrope',sans-serif;background:#f0f3fa;color:#0d1340;padding:36px 20px;min-height:100vh}
   .container{max-width:700px;margin:0 auto}
 
   /* ─── ШАПКА ─────────────────────────────────────── */
@@ -1453,12 +1428,12 @@ function generateResultHTML({ student, test, attempt, questions }) {
     border-radius:50%;background:rgba(45,91,227,.2);top:-80px;right:-60px
   }
   .logo-line{
-    font-family:'Syne',sans-serif;font-size:11px;font-weight:700;
+    font-family:'Manrope',sans-serif;font-size:11px;font-weight:700;
     letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.45);
     margin-bottom:16px;position:relative;z-index:1
   }
   .student-name{
-    font-family:'Syne',sans-serif;font-weight:800;font-size:26px;
+    font-family:'Manrope',sans-serif;font-weight:800;font-size:26px;
     color:white;margin-bottom:4px;position:relative;z-index:1
   }
   .test-name{
@@ -1475,11 +1450,11 @@ function generateResultHTML({ student, test, attempt, questions }) {
     border:1.5px solid rgba(255,255,255,.18);position:relative;z-index:1
   }
   .grade-num{
-    font-family:'DM Sans',sans-serif;font-weight:900;font-size:60px;
+    font-family:'Manrope',sans-serif;font-weight:900;font-size:60px;
     line-height:1;color:white
   }
   .grade-denom{
-    font-family:'DM Sans',sans-serif;font-weight:400;font-size:22px;
+    font-family:'Manrope',sans-serif;font-weight:400;font-size:22px;
     color:rgba(255,255,255,.45);margin-bottom:5px;margin-left:2px
   }
 
@@ -1493,7 +1468,7 @@ function generateResultHTML({ student, test, attempt, questions }) {
     border:1.5px solid rgba(45,91,227,.1);padding:18px;text-align:center
   }
   .stat-val{
-    font-family:'DM Sans',sans-serif;font-weight:900;font-size:28px;line-height:1
+    font-family:'Manrope',sans-serif;font-weight:900;font-size:28px;line-height:1
   }
   .stat-label{
     font-size:11px;color:#6b7280;margin-top:4px;
@@ -1522,7 +1497,7 @@ function generateResultHTML({ student, test, attempt, questions }) {
 
   /* ─── СЕКЦІЯ ПИТАНЬ ──────────────────────────────── */
   .section-title{
-    font-family:'Syne',sans-serif;font-weight:700;font-size:16px;
+    font-family:'Manrope',sans-serif;font-weight:700;font-size:16px;
     margin-bottom:14px;padding-bottom:10px;
     border-bottom:1.5px solid rgba(45,91,227,.1)
   }
@@ -1545,7 +1520,7 @@ function generateResultHTML({ student, test, attempt, questions }) {
     padding:2px 10px;border-radius:20px
   }
   .q-text{
-    font-family:'Syne',sans-serif;font-weight:600;
+    font-family:'Manrope',sans-serif;font-weight:600;
     font-size:15px;line-height:1.4;margin-bottom:12px;color:#0d1340
   }
   .answer-row{
@@ -1570,8 +1545,8 @@ function generateResultHTML({ student, test, attempt, questions }) {
 
   <div class="result-header">
     <div class="logo-line">QuizFlow · Результат тесту</div>
-    <div class="student-name">${name} ${surname}</div>
-    <div class="test-name">${test.title}</div>
+    <div class="student-name">${escHtml(name)} ${escHtml(surname)}</div>
+    <div class="test-name">${escHtml(test.title)}</div>
     <div class="result-date">${date}</div>
     ${attempt.status==="pending_review"
       ? '<div style="display:inline-block;background:rgba(245,158,11,.2);border:1.5px solid rgba(245,158,11,.4);border-radius:12px;padding:10px 20px;font-size:13px;color:#fbbf24;position:relative;z-index:1">⏳ Очікує перевірки</div>'
@@ -1595,8 +1570,8 @@ function generateResultHTML({ student, test, attempt, questions }) {
   </div>
 
   ${attempt.status==="pending_review"
-    ? '<div class="pending-box"><span style="font-size:22px;flex-shrink:0">⏳</span><div><div style="font-family:Syne,sans-serif;font-weight:700;font-size:14px;color:#b45309;margin-bottom:2px">Очікує перевірки</div><div style="font-size:13px;color:#b45309;opacity:.85">Розгорнуті відповіді чекають на оцінювання викладача</div></div></div>'
-    : (attempt.aiComment ? '<div class="ai-box"><div class="ai-label">Коментар</div><div class="ai-text">'+attempt.aiComment+'</div></div>' : "")
+    ? '<div class="pending-box"><span style="font-size:22px;flex-shrink:0">⏳</span><div><div style="font-family:Manrope,sans-serif;font-weight:700;font-size:14px;color:#b45309;margin-bottom:2px">Очікує перевірки</div><div style="font-size:13px;color:#b45309;opacity:.85">Розгорнуті відповіді чекають на оцінювання викладача</div></div></div>'
+    : (attempt.aiComment ? '<div class="ai-box"><div class="ai-label">Коментар</div><div class="ai-text">'+escHtml(attempt.aiComment)+'</div></div>' : "")
   }
 
   <div class="section-title">Детальні відповіді</div>
@@ -1623,31 +1598,26 @@ function getTypeName(type) {
   return map[type] || type;
 }
 
-function downloadHTML(html, filename) {
-  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement("a");
-  a.href     = url;
-  a.download = filename || "result.html";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
 // js/testRunner.js — Проходження тесту студентом
 
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let linkData    = null;
-let testData    = null;
+let testData    = null;     // testData.questions — у тому порядку, як їх бачить студент
+let baseQuestions = [];     // питання в порядку викладача (з бази)
 let currentQ    = 0;
-let answers     = {};   // { questionId: value }
+let answers     = {};       // { questionId: value }
 let timerSecs   = 0;
 let timerHandle = null;
+let deadline    = 0;        // коли вийде час (мс); 0 — без обмеження
 let startTime   = null;
 let attemptId   = null;
 let resultData  = null;
-let studentName    = "";   // ← зберігаємо в стані, не читаємо з DOM після перемикання
+let seed        = "";       // зерно перемішування цієї спроби — стабільне після перезавантаження
+let order       = {};       // { qOrder?, optOrder? } — порядок питань і варіантів цієї спроби
+let studentName    = "";
 let studentSurname = "";
+let _finishing  = false;
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 let previewMode = new URLSearchParams(window.location.search).get("preview") === "1";
@@ -1655,31 +1625,19 @@ let previewMode = new URLSearchParams(window.location.search).get("preview") ===
 document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
   const linkId = params.get("link");
-  const teacherUid = params.get("t") || "";
-  // tp визначена глобально
 
-  // ── РЕЖИМ ПЕРЕГЛЯДУ ─────────────────────────────────────────────────────
-  const previewTestId = new URLSearchParams(window.location.search).get("testId");
-  const previewTeacherUid = new URLSearchParams(window.location.search).get("t") || "";
-  // tp глобальна
-
+  // ── РЕЖИМ ПЕРЕГЛЯДУ (викладач дивиться тест як студент) ────────────────
+  const previewTestId = params.get("testId");
   if(previewMode && previewTestId){
-    // В preview режимі переовизначаємо tp для правильного шляху
-    if(previewTeacherUid) {
-      const _pt = previewTeacherUid;
-      // tp вже визначена вище з teacherUid з URL (?t=...)
-      // previewTeacherUid і teacherUid мають бути однакові
-    }
     try{
       testData = await getTest(previewTestId);
       if(!testData) return showError("Тест не знайдено.");
-      // Показуємо банер що це режим перегляду
+      baseQuestions = testData.questions;
       const banner = document.createElement("div");
-      banner.style.cssText="position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#2d5be3,#1a3ab8);color:white;text-align:center;padding:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500";
-      banner.innerHTML='👁 Режим перегляду — таймер і збереження результатів вимкнено. <a onclick="window.close()" style="color:rgba(255,255,255,.8);cursor:pointer;text-decoration:underline;margin-left:8px">Закрити</a>';
+      banner.className = "preview-banner";
+      banner.innerHTML = '👁 Режим перегляду — таймер і збереження результатів вимкнено. <a onclick="window.close()">Закрити</a>';
       document.body.appendChild(banner);
-      document.body.style.paddingTop="40px";
-      // Запускаємо тест напряму без перевірок
+      document.body.style.paddingTop = "40px";
       fillTestInfoPreview();
       showScreen("entryScreen");
     }catch(e){ showError("Помилка: "+e.message); }
@@ -1687,35 +1645,39 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   if (!linkId) return showError("Невірне посилання. Зверніться до викладача.");
-
   showScreen("loadingScreen");
 
   try {
+    // Посилання й тест — паралельно (раніше по черзі)
     linkData = await getLink(linkId);
     if (!linkData)                               return showError("Посилання не знайдено.");
     const _fmtWhen = t => new Date(t).toLocaleString("uk-UA", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
     const _max = Number(linkData.maxAttempts) > 0 ? Number(linkData.maxAttempts) : 0;   // 0 — без ліміту
     if (linkData.status !== "active")            return showError(linkData.closedReason === "expired" ? "Час доступу до тесту вийшов." : "Доступ до тесту закрито.");
     if (linkData.closeAt && Date.now() > linkData.closeAt) return showError("Час доступу до тесту вийшов. Посилання автоматично закрито.");
-    if (linkData.openAt && Date.now() < linkData.openAt)   return showError(`Тест відкриється ${_fmtWhen(linkData.openAt)}. Оновіть сторінку в цей час.`);
-    if (_max && (linkData.usedAttempts || 0) >= _max)
-                                                 return showError("Вичерпано ліміт студентів для цього посилання.");
+    if (linkData.openAt && Date.now() < linkData.openAt)   return showError(`Тест відкриється ${_fmtWhen(linkData.openAt)}. Оновіть сторінку в цей час.`, { icon: "⏰", title: "Ще зарано" });
 
     testData = await getTest(linkData.testId);
     if (!testData || !testData.questions?.length) return showError("Тест не знайдено або він порожній.");
     if (testData.status === "draft")  return showError("Тест ще не опублікований. Зверніться до викладача.");
     if (testData.status === "closed") return showError("Тест закрито. Зверніться до викладача.");
     if (testData.status === "archived") return showError("Тест більше не доступний. Зверніться до викладача.");
+    baseQuestions = testData.questions;
+
+    // Ліміт перевіряємо після тесту: студент, що повертається до незавершеної спроби, не рахується вдруге
+    const saved = loadSavedProgress();
+    if (_max && (linkData.usedAttempts || 0) >= _max && !saved?.attemptId)
+      return showError("Вичерпано ліміт студентів для цього посилання.");
 
     fillTestInfo();
     obStart();
   } catch (e) {
-    showError("Помилка завантаження: " + e.message);
+    showError("Помилка завантаження: " + e.message, { retry: () => location.reload() });
   }
 });
 
 const THEMES = {
-  default:  {grad:"linear-gradient(135deg,#2d5be3,#1a3ab8)",  primary:"#2d5be3"},
+  default:  {grad:"linear-gradient(135deg,#3B6BF6,#1E40AF)",  primary:"#3B6BF6"},
   ocean:    {grad:"linear-gradient(135deg,#0891b2,#0e7490)",  primary:"#0891b2"},
   forest:   {grad:"linear-gradient(135deg,#16a34a,#14532d)",  primary:"#16a34a"},
   sunset:   {grad:"linear-gradient(135deg,#ea580c,#9a3412)",  primary:"#ea580c"},
@@ -1729,216 +1691,159 @@ function applyTestTheme(theme){
   document.documentElement.style.setProperty("--primary-light", t.primary);
 }
 
+const plural = (n, one, few, many) => { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? many : b === 1 ? one : b >= 2 && b <= 4 ? few : many; };
+
 function fillTestInfo() {
   applyTestTheme(linkData?.theme || "default");
   setEl("infoTitle",    testData.title);
-  setEl("infoQuestions", testData.questions.length);
+  document.title = `${testData.title} — QuizFlow`;
+  const n = testData.questions.length;
+  setEl("infoQuestions", `${n} ${plural(n, "питання", "питання", "питань")}`);
   const mins = testData.timeLimit ? Math.round(testData.timeLimit / 60) : 0;
-  setEl("infoTime", mins > 0 ? mins + " хвилин" : "Без обмежень");
-  setEl("infoAttempts", Number(linkData.maxAttempts) > 0 ? `${linkData.usedAttempts || 0} / ${linkData.maxAttempts} студентів` : `${linkData.usedAttempts || 0} студентів`);
+  setEl("infoTime", mins > 0 ? `${mins} хв` : "Без обмеження часу");
   if (linkData.group) {
     const row = document.getElementById("infoGroupRow");
     if (row) row.style.display = "flex";
-    setEl("infoGroup", "Група: " + linkData.group);
+    setEl("infoGroup", linkData.group);
   }
 
-  // Підтягуємо збережений прогрес — підставляємо ім'я і показуємо банер
+  // Незавершена спроба на цьому пристрої — підставляємо ім'я й показуємо нагадування
   const saved = loadSavedProgress();
-  if(saved && Object.keys(saved.answers||{}).length > 0 && saved.studentName){
-    // Заповнюємо поля імені автоматично
+  if(saved && saved.studentName){
     const nameEl = document.getElementById("inputName");
     const surnameEl = document.getElementById("inputSurname");
     if(nameEl) nameEl.value = saved.studentName;
     if(surnameEl) surnameEl.value = saved.studentSurname || "";
-
-    // Показуємо банер-нагадування
-    const count = Object.keys(saved.answers).length;
-    const total = testData.questions.length;
-    const ago = saved.savedAt ? Math.round((Date.now()-saved.savedAt)/60000) : 0;
-    const agoStr = ago < 1 ? "щойно" : ago < 60 ? `${ago} хв тому` : `${Math.round(ago/60)} год тому`;
-
-    let banner = document.getElementById("restore-banner");
-    if(!banner){
-      banner = document.createElement("div");
-      banner.id = "restore-banner";
-      banner.style.cssText = "background:rgba(45,91,227,.07);border:1.5px solid rgba(45,91,227,.15);border-radius:14px;padding:14px 18px;margin-top:16px;font-size:14px;line-height:1.5;color:var(--text)";
-      const form = document.querySelector(".entry-card") || document.querySelector("#entryScreen");
-      const startBtn = document.getElementById("startBtn");
-      if(startBtn && startBtn.parentNode) startBtn.parentNode.insertBefore(banner, startBtn);
+    const count = Object.keys(saved.answers || {}).length;
+    const agoStr = fmtAgo(saved.savedAt);
+    const banner = document.getElementById("restoreHint");
+    if (banner){
+      banner.hidden = false;
+      banner.innerHTML = `💾 <b>Незавершений тест</b> — ${count} з ${n} відповідей · ${agoStr}<br><span>Введіть те саме ім'я й натисніть «Розпочати», щоб продовжити</span>`;
     }
-    banner.innerHTML = `💾 <strong>Незавершений тест знайдено</strong> — ${count} з ${total} відповідей · ${agoStr}<br><span style="font-size:12px;color:var(--text-muted)">Натисніть "Розпочати" щоб продовжити</span>`;
   }
+}
+function fmtAgo(t){
+  const ago = t ? Math.round((Date.now() - t) / 60000) : 0;
+  return ago < 1 ? "щойно" : ago < 60 ? `${ago} хв тому` : `${Math.round(ago / 60)} год тому`;
 }
 
 // ─── START ────────────────────────────────────────────────────────────────────
-
-// ── Shuffle utility ──────────────────────────────────────────────────────────
-function shuffleArray(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-function applyShuffleSettings(questions, shuffleQ, shuffleA) {
-  let qs = shuffleQ ? shuffleArray(questions) : [...questions];
-  if (shuffleA) {
-    qs = qs.map(q => {
-      if ((q.type === "single" || q.type === "multi") && q.options?.length) {
-        // Перемішуємо варіанти і оновлюємо correct індекси
-        const indexed = q.options.map((opt, i) => ({ opt, origIdx: i }));
-        const shuffled = shuffleArray(indexed);
-        const newOptions = shuffled.map(x => x.opt);
-        const idxMap = {}; // старий індекс -> новий
-        shuffled.forEach((x, newI) => { idxMap[x.origIdx] = newI; });
-        const oldCorrect = Array.isArray(q.correct) ? q.correct : [q.correct];
-        const newCorrect = oldCorrect.map(i => idxMap[Number(i)]);
-        return { ...q, options: newOptions, correct: newCorrect, _idxMap: idxMap };
-      }
-      return q;
-    });
-  }
-  return qs;
-}
+// Відмітка «вже проходив» — окремо для кожного студента: на спільному комп'ютері
+// в класі наступний студент теж має змогу пройти тест.
+const doneKey = () => `test_${testData.id}_done_${nameKey(studentName, studentSurname)}`;
 
 document.getElementById("startBtn")?.addEventListener("click", startTest);
+["inputName", "inputSurname"].forEach(id => document.getElementById(id)?.addEventListener("keydown", e => {
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  if (id === "inputName" && !document.getElementById("inputSurname").value.trim()) document.getElementById("inputSurname").focus();
+  else document.getElementById("startBtn").click();
+}));
+
+function askRestore(saved){
+  return new Promise(resolve => {
+    const count = Object.keys(saved.answers || {}).length;
+    const total = baseQuestions.length;
+    const left = saved.deadline ? Math.max(0, Math.ceil((saved.deadline - Date.now()) / 60000)) : null;
+    const msgEl = document.getElementById("restoreMsg");
+    if(msgEl) msgEl.innerHTML = `Ви відповіли на <strong>${count} з ${total}</strong> питань<br><span style="font-size:12px;opacity:.7">Збережено: ${fmtAgo(saved.savedAt)}${left !== null ? ` · залишилось ≈ ${left} хв` : ""}</span>`;
+    const modal = document.getElementById("restoreModal");
+    modal.style.display = "flex";
+    window._restoreConfirm = (doRestore) => { modal.style.display = "none"; resolve(doRestore); };
+  });
+}
 
 async function startTest() {
-  // Блокуємо в режимі перегляду
   if(previewMode) return;
-  const name    = document.getElementById("inputName")?.value.trim();
-  const surname = document.getElementById("inputSurname")?.value.trim();
-
+  const name    = document.getElementById("inputName")?.value.replace(/\s+/g, " ").trim();
+  const surname = document.getElementById("inputSurname")?.value.replace(/\s+/g, " ").trim();
   if (!name) { highlight("inputName"); return; }
   if (!surname) { highlight("inputSurname"); return; }
+  studentName = name; studentSurname = surname;
 
-  // зберігаємо в стані
-  studentName    = name;
-  studentSurname = surname;
+  if (localStorage.getItem(doneKey())) return showError(`${name} ${surname} вже проходив(ла) цей тест на цьому пристрої.`, { icon: "✅", title: "Тест уже пройдено" });
 
-  // local duplicate check
-  const localKey = `test_${testData.id}_done`;
-  if (localStorage.getItem(localKey)) {
-    return showError("Ви вже проходили цей тест.");
-  }
-
-  // firestore duplicate check
   showBtnLoading("startBtn", true);
-  const isDupe = await checkDuplicateAttempt(testData.id, name, surname);
-  if (isDupe) {
-    showBtnLoading("startBtn", false);
-    return showError(`${name} ${surname} вже проходив(ла) цей тест.`);
-  }
-  showBtnLoading("startBtn", false);
+  try {
+    // Незавершена спроба цього ж студента на цьому пристрої
+    const saved = loadSavedProgress();
+    const mine = saved && nameKey(saved.studentName, saved.studentSurname) === nameKey(name, surname);
+    if (saved && !mine) clearSavedProgress();          // чужий прогрес на спільному комп'ютері не пропонуємо
 
-  // reset state
-  currentQ  = 0;
-  answers   = {};
-  startTime = Date.now();
-
-  // Перевіряємо збережений прогрес
-  const saved = loadSavedProgress();
-  let restoringSession = false;
-  if(saved && Object.keys(saved.answers||{}).length > 0){
-    await new Promise(resolve => {
-      const count = Object.keys(saved.answers).length;
-      const total = testData.questions.length;
-      const ago = saved.savedAt ? Math.round((Date.now()-saved.savedAt)/60000) : 0;
-      const agoStr = ago < 1 ? "щойно" : ago < 60 ? `${ago} хв тому` : `${Math.round(ago/60)} год тому`;
-      const msgEl = document.getElementById("restoreMsg");
-      if(msgEl) msgEl.innerHTML = `Ви відповіли на <strong>${count} з ${total}</strong> питань<br><span style="font-size:12px;opacity:.7">Збережено: ${agoStr}</span>`;
-      const modal = document.getElementById("restoreModal");
-      if(modal) modal.style.display = "flex";
-      window._restoreConfirm = (doRestore) => {
-        if(modal) modal.style.display = "none";
-        if(doRestore){
-          answers   = saved.answers;
-          currentQ  = saved.currentQ || 0;
-          startTime = saved.startTime || Date.now();
-          // Відновлюємо існуючий attemptId — не створюємо нову спробу
-          if(saved.attemptId) {
-            attemptId = saved.attemptId;
-            restoringSession = true;
-          }
-        } else {
-          clearSavedProgress();
-        }
-        resolve();
-      };
-    });
-  }
-
-  // Застосовуємо перемішування якщо увімкнено для цього посилання
-  const doShuffleQ = linkData.shuffleQuestions === true;
-  const doShuffleA = linkData.shuffleAnswers   === true;
-  if (doShuffleQ || doShuffleA) {
-    testData = {
-      ...testData,
-      questions: applyShuffleSettings(testData.questions, doShuffleQ, doShuffleA)
-    };
-  }
-
-  // Створюємо спробу тільки якщо не відновлюємо існуючу
-  if(!restoringSession){
-    try {
-      attemptId = await createAttempt({
-        testId:        testData.id,
-        linkId:        linkData.id,
-        group:         linkData.group || "",   // копіюємо групу з посилання
-        name, surname,
-        answers:       [],
-        score:         null,
-        grade12:       null,
-        aiComment:     null,
-        status:        "in_progress",
-        startedAt:     Date.now(),
-        questionsSnapshot: testData.questions
-      });
-    } catch (e) {
-      console.warn("Could not pre-create attempt:", e.message);
+    let restoring = false;
+    currentQ = 0; answers = {}; startTime = Date.now(); attemptId = null; seed = ""; order = {};
+    if (mine && (saved.attemptId || Object.keys(saved.answers || {}).length)) {
+      showBtnLoading("startBtn", false);
+      if (await askRestore(saved)) {
+        answers = saved.answers || {}; currentQ = saved.currentQ || 0; startTime = saved.startTime || Date.now();
+        attemptId = saved.attemptId || null; seed = saved.seed || ""; order = saved.order || {};
+        restoring = !!attemptId;
+      } else clearSavedProgress();
+      showBtnLoading("startBtn", true);
     }
-  } else {
-    // Оновлюємо статус існуючої спроби
-    try {
-      await updateAttempt(attemptId, { status: "in_progress" });
-    } catch(e){ console.warn("Could not update attempt:", e.message); }
-  }
 
-  // Відраховуємо спробу при старті
-  if(!restoringSession){
-    try { await incrementLinkUsage(linkData.id); } catch(e){}
-  }
+    if (!restoring) {
+      const isDupe = await checkDuplicateAttempt(testData.id, name, surname);
+      if (isDupe) return showError(`${name} ${surname} вже проходив(ла) цей тест.`, { icon: "✅", title: "Тест уже пройдено" });
+    }
 
+    // Порядок питань і варіантів — один раз на спробу. Після перезавантаження той самий:
+    // інакше збережені індекси відповідей вказували б на інші варіанти.
+    if (!seed) seed = Math.random().toString(36).slice(2, 10);
+    if (!restoring || !saved?.order)
+      order = makeOrder(baseQuestions, { shuffleQ: linkData.shuffleQuestions === true, shuffleA: linkData.shuffleAnswers === true }, seededRandom(seed));
+    testData = { ...testData, questions: buildQuestions(baseQuestions, order.qOrder, order.optOrder) };
+    if (currentQ >= testData.questions.length) currentQ = 0;
+
+    if (!restoring) {
+      // Питання зберігаються один раз на версію тесту, а спроба — лише ключ і порядок
+      const qVer = await qVersionKey(baseQuestions);
+      if (qVer) await set(ref(db, tp(`qVersions/${qVer}`)), baseQuestions).catch(() => {});   // уже є — база не дасть перезаписати, це нормально
+      try {
+        attemptId = await createAttempt({
+          testId: testData.id, linkId: linkData.id, group: linkData.group || "",
+          name, surname, answers: [], status: "in_progress", startedAt: startTime,
+          ...(qVer ? { qVer, qOrder: order.qOrder || null, optOrder: order.optOrder || null } : { questionsSnapshot: testData.questions }),
+        });
+      } catch (e) { console.warn("Could not pre-create attempt:", e.message); }
+      incrementLinkUsage(linkData.id).catch(() => {});
+    } else {
+      updateAttempt(attemptId, { status: "in_progress", lastSeen: Date.now() }).catch(e => console.warn("Could not update attempt:", e.message));
+    }
+  } finally { showBtnLoading("startBtn", false); }
+
+  // Час рахуємо від старту спроби, а не від відкриття сторінки: перезавантаження не дає нових хвилин
+  deadline = testData.timeLimit ? startTime + testData.timeLimit * 1000 : 0;
+  saveProgressLocally();
   showScreen("testScreen");
   renderQuestion();
-  startTimer();
   startActivityMonitor();
-  // Автозбереження прогресу кожні 15 секунд
-  setInterval(saveProgressLocally, 15000);
+  startTimer();
+  setInterval(heartbeat, 15000);   // «онлайн» для сторінки моніторингу
 }
 
 // ─── TIMER ────────────────────────────────────────────────────────────────────
+// Залишок рахується від дедлайну, а не відніманням секунд: у фоновій вкладці
+// телефону setInterval засинає, і раніше таймер там просто зупинявся.
 function startTimer() {
-  // timeLimit = 0 означає "без обмежень" — таймер не запускаємо
-  if (!testData.timeLimit || testData.timeLimit === 0) {
-    const timerEl = document.getElementById("timer");
-    if (timerEl) timerEl.style.display = "none";
-    return;
-  }
-  timerSecs = testData.timeLimit;
-  updateTimerUI();
-
-  timerHandle = setInterval(() => {
-    timerSecs--;
-    updateTimerUI();
-    if (timerSecs <= 0) {
-      clearInterval(timerHandle);
-      finishTest(true);
-    }
-  }, 1000);
+  const timerEl = document.getElementById("timer");
+  if (!deadline) { if (timerEl) timerEl.style.display = "none"; return; }
+  clearInterval(timerHandle);
+  tickTimer();
+  if (timerSecs > 0) timerHandle = setInterval(tickTimer, 500);
 }
+function tickTimer() {
+  if (!deadline) return;
+  timerSecs = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+  updateTimerUI();
+  if (timerSecs <= 0) {
+    clearInterval(timerHandle); timerHandle = null;
+    document.getElementById("unModal")?.classList.remove("open");
+    finishTest(true);
+  }
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden && timerHandle) tickTimer(); });
 
 function updateTimerUI() {
   const m = Math.floor(timerSecs / 60);
@@ -1946,16 +1851,13 @@ function updateTimerUI() {
   const el = document.getElementById("timerValue");
   if (el) el.textContent = `${m}:${s.toString().padStart(2, "0")}`;
   const wrap = document.getElementById("timer");
-  if (wrap) wrap.classList.toggle("warn", timerSecs <= 60);
+  if (wrap) { wrap.classList.toggle("warn", timerSecs <= 60); wrap.setAttribute("aria-label", `Залишилось ${m} хв ${s} с`); }
 }
 
 // ─── RENDER QUESTION ─────────────────────────────────────────────────────────
 function renderQuestion() {
   const qs  = testData.questions;
   const q   = qs[currentQ];
-  const pct = ((currentQ + 1) / qs.length * 100).toFixed(1);
-
-  // оновлюємо навігатор питань
   renderQNavigator();
 
   const card = document.getElementById("questionCard");
@@ -1964,353 +1866,317 @@ function renderQuestion() {
   card.style.animation = "";
 
   const isLast = currentQ === qs.length - 1;
-
   card.innerHTML = `
     <div class="q-header">
       <span class="q-number">Питання ${currentQ + 1} / ${qs.length}</span>
       <span class="q-type-badge">${getTypeName(q.type)}</span>
     </div>
-    <div class="q-text qf-rich">${q.text||""}</div>
+    <div class="q-text qf-rich">${richHtml(q.text)}</div>
+    ${q.type === "multi" ? `<div class="q-hint">Оберіть усі правильні варіанти</div>` : ""}
     ${renderAnswerUI(q)}
     <div class="q-nav">
-      ${currentQ > 0 ? `<button class="q-nav-btn prev" id="prevBtn">← Назад</button>` : ""}
-      <button class="q-nav-btn ${isLast ? "finish" : "next"}" id="nextBtn">
+      ${currentQ > 0 ? `<button type="button" class="q-nav-btn prev" id="prevBtn">← Назад</button>` : ""}
+      <button type="button" class="q-nav-btn ${isLast ? "finish" : "next"}" id="nextBtn">
         ${isLast ? "✓ Завершити тест" : "Далі →"}
       </button>
-    </div>`;
+    </div>
+    <div class="kb-hint">${q.type === "single" || q.type === "multi" ? "Клавіші <kbd>1</kbd>–<kbd>" + Math.min(9, (q.options || []).length) + "</kbd> — вибір · " : ""}<kbd>←</kbd> <kbd>→</kbd> — між питаннями</div>`;
 
-  document.getElementById("prevBtn")?.addEventListener("click", () => {
-    currentQ--;
-    renderQuestion();
-  });
-  document.getElementById("nextBtn")?.addEventListener("click", () => {
-    if (isLast) finishTest(false);
-    else { currentQ++; renderQuestion(); }
-  });
-
-  // restore saved answer
+  document.getElementById("prevBtn")?.addEventListener("click", () => goTo(currentQ - 1));
+  document.getElementById("nextBtn")?.addEventListener("click", () => { if (isLast) finishTest(false); else goTo(currentQ + 1); });
   restoreAnswer(q);
+  saveProgress();
+  window.scrollTo(0, 0);
 }
+function goTo(idx){
+  if (idx < 0 || idx >= testData.questions.length || idx === currentQ) return;
+  currentQ = idx;
+  renderQuestion();
+}
+
+const hasAnswer = (a) => a !== undefined && a !== null && a !== "" &&
+  !(Array.isArray(a) && a.length === 0) && !(typeof a === "object" && !Array.isArray(a) && Object.keys(a).length === 0);
 
 function renderQNavigator() {
   const nav = document.getElementById("qNavigator");
   if (!nav || !testData?.questions) return;
   const qs = testData.questions;
+  const done = qs.filter(q => hasAnswer(answers[q.id])).length;
   nav.innerHTML = qs.map((q, i) => {
-    const hasAnswer = answers[q.id] !== undefined && answers[q.id] !== null &&
-      !(Array.isArray(answers[q.id]) && answers[q.id].length === 0);
-    const isCurrent = i === currentQ;
     let cls = "q-dot";
-    if (isCurrent) cls += " current";
-    else if (hasAnswer) cls += " answered";
-    return `<div class="${cls}" title="Питання ${i+1}" onclick="window.goToQuestion(${i})">${i+1}</div>`;
+    if (i === currentQ) cls += " current";
+    if (hasAnswer(answers[q.id])) cls += " answered";
+    return `<button type="button" class="${cls}" data-go="${i}" aria-label="Питання ${i + 1}${hasAnswer(answers[q.id]) ? ", є відповідь" : ""}"${i === currentQ ? ' aria-current="step"' : ""}>${i + 1}</button>`;
   }).join("");
+  const pr = document.getElementById("qProgress");
+  if (pr) { pr.style.width = (qs.length ? done / qs.length * 100 : 0) + "%"; }
+  const pl = document.getElementById("qProgressLbl");
+  if (pl) pl.textContent = `${done} / ${qs.length}`;
 }
-
-window.goToQuestion = (idx) => {
-  currentQ = idx;
-  renderQuestion();
-};
+document.getElementById("qNavigator")?.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) goTo(+b.dataset.go); });
+window.goToQuestion = goTo;
 
 function renderAnswerUI(q) {
   switch (q.type) {
-
     case "single":
     case "multi": {
-      return `<div class="choices-grid">
+      return `<div class="choices-grid" role="${q.type === "single" ? "radiogroup" : "group"}">
         ${(q.options || []).map((opt, i) => `
-          <div class="choice-item" data-idx="${i}" onclick="window.selectChoice(this, '${q.id}', ${i}, '${q.type}')">
-            <div class="choice-marker">${String.fromCharCode(65 + i)}</div>
+          <button type="button" class="choice-item${q.type === "multi" ? " multi" : ""}" data-idx="${i}" role="${q.type === "single" ? "radio" : "checkbox"}" aria-checked="false">
+            <span class="choice-marker">${String.fromCharCode(65 + i)}</span>
             <span class="choice-text">${escHtml(opt)}</span>
-          </div>`).join("")}
+          </button>`).join("")}
       </div>`;
     }
-
-    case "text": {
-      return `<input type="text" class="text-answer" id="ans_${q.id}"
-                placeholder="Ваша відповідь..."
-                oninput="window.saveTextAnswer('${q.id}', this.value)">`;
-    }
-
-    case "number": {
-      return `<input type="number" class="text-answer" id="ans_${q.id}"
-                placeholder="Введіть число..."
-                oninput="window.saveTextAnswer('${q.id}', this.value)">`;
-    }
-
-    case "long": {
-      return `<textarea class="text-answer" id="ans_${q.id}" rows="6"
-                placeholder="Розгорнута відповідь..."
-                oninput="window.saveTextAnswer('${q.id}', this.value)"></textarea>`;
-    }
-
+    case "text":
+      return `<input type="text" class="text-answer" id="ans_${escHtml(q.id)}" data-q="${escHtml(q.id)}" placeholder="Ваша відповідь…" autocomplete="off" enterkeyhint="next" maxlength="500">`;
+    case "number":
+      // type=text + inputmode: на телефоні цифрова клавіатура, а «3,5» не губиться (type=number його відкидав)
+      return `<input type="text" inputmode="decimal" class="text-answer" id="ans_${escHtml(q.id)}" data-q="${escHtml(q.id)}" placeholder="Введіть число…" autocomplete="off" enterkeyhint="next" maxlength="40">`;
+    case "long":
+      return `<textarea class="text-answer" id="ans_${escHtml(q.id)}" data-q="${escHtml(q.id)}" rows="6" placeholder="Розгорнута відповідь…"></textarea>
+        <div class="long-count" id="cnt_${escHtml(q.id)}"></div>`;
     case "matching": {
+      // Кнопки-варіанти замість системного списку: зручно пальцем і однаково в усіх браузерах.
+      // Порядок варіантів перемішано (стабільно для спроби) — у конструкторі правильний часто перший.
       const pairs = q.pairs || [];
-      // shuffle right options for display
-      const rightOpts = pairs.map(p => p.options || []);
-      return `<div class="matching-grid">
-        ${pairs.map((pair, pi) => `
-          <div class="match-left">${escHtml(pair.left)}</div>
-          <div class="match-connector"></div>
-          <select class="match-select" onchange="window.saveMatchAnswer('${q.id}', ${pi}, this.value)">
-            <option value="">— оберіть —</option>
-            ${(pair.options || []).map((opt, oi) => `<option value="${oi}">${escHtml(opt)}</option>`).join("")}
-          </select>`).join("")}
+      return `<div class="match-list">
+        ${pairs.map((pair, pi) => {
+          const opts = pair.options || [];
+          const ord = shuffledIdx(opts.length, seededRandom(`${seed}:${q.id}:${pi}`));
+          return `<div class="match-row">
+            <div class="match-left"><span class="match-n">${pi + 1}</span>${escHtml(pair.left)}</div>
+            <div class="match-opts" role="radiogroup" aria-label="${escHtml(pair.left)}">
+              ${ord.map(oi => `<button type="button" class="match-opt" data-p="${pi}" data-o="${oi}" role="radio" aria-checked="false">${escHtml(opts[oi])}</button>`).join("")}
+            </div>
+          </div>`;
+        }).join("")}
       </div>`;
     }
-
     case "ordering": {
-      const items = [...(answers[q.id] || q.items || [])];
-      return `<div class="ordering-list" id="orderList_${q.id}">
-        ${items.map((item, i) => `
-          <div class="order-item" draggable="true" data-item="${escHtml(item)}"
-               ondragstart="window.orderDragStart(event, '${q.id}')"
-               ondragover="window.orderDragOver(event)"
-               ondrop="window.orderDrop(event, '${q.id}')">
-            <div class="order-handle"><span></span><span></span><span></span></div>
-            <div class="order-num">${i + 1}</div>
-            <span class="order-text">${escHtml(item)}</span>
-          </div>`).join("")}
-      </div>`;
+      // Початковий порядок — перемішаний (раніше показувався одразу правильний).
+      // Кнопки ↑ ↓ працюють і на телефоні, де перетягування не спрацьовує.
+      // Відповідь з'являється лише після першого переміщення — інакше непрочитане
+      // питання виглядало б «відповіданим» і не потрапляло в список пропущених.
+      return `<div class="ordering-list" id="orderList" data-q="${escHtml(q.id)}">${orderItemsHtml(orderView(q))}</div>
+        <div class="q-hint">Розставте у правильному порядку: перетягніть або скористайтесь стрілками</div>`;
     }
-
     default:
-      return `<div style="color:var(--text-muted);font-size:14px">Тип питання: ${q.type}</div>`;
+      return `<div style="color:var(--text-muted);font-size:14px">Тип питання: ${escHtml(q.type)}</div>`;
   }
+}
+const orderView = (q) => Array.isArray(answers[q.id]) ? answers[q.id] : initialOrder(q);
+function initialOrder(q){
+  const items = q.items || [];
+  if (items.length < 2) return [...items];
+  const rnd = seededRandom(`${seed}:${q.id}:ord`);
+  for (let t = 0; t < 5; t++) {
+    const idx = shuffledIdx(items.length, rnd);
+    if (idx.some((v, i) => v !== i)) return idx.map(i => items[i]);
+  }
+  return [...items].reverse();
+}
+function orderItemsHtml(list){
+  return list.map((item, i) => `
+    <div class="order-item" draggable="true" data-i="${i}">
+      <div class="order-handle" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="order-num">${i + 1}</div>
+      <span class="order-text">${escHtml(item)}</span>
+      <span class="ord-btns">
+        <button type="button" class="ord-btn" data-mv="-1" aria-label="Вище"${i === 0 ? " disabled" : ""}>↑</button>
+        <button type="button" class="ord-btn" data-mv="1" aria-label="Нижче"${i === list.length - 1 ? " disabled" : ""}>↓</button>
+      </span>
+    </div>`).join("");
 }
 
 function restoreAnswer(q) {
   const saved = answers[q.id];
   if (saved === undefined || saved === null) return;
-
   if (q.type === "single" || q.type === "multi") {
-    const savedArr = Array.isArray(saved) ? saved : [saved];
+    const savedArr = (Array.isArray(saved) ? saved : [saved]).map(Number);
     document.querySelectorAll(".choice-item").forEach(el => {
-      if (savedArr.includes(Number(el.dataset.idx))) el.classList.add("selected");
+      const on = savedArr.includes(Number(el.dataset.idx));
+      el.classList.toggle("selected", on); el.setAttribute("aria-checked", on);
     });
   }
   if (q.type === "text" || q.type === "number" || q.type === "long") {
-    const el = document.getElementById(`ans_${q.id}`);
-    if (el) el.value = saved;
+    const el = document.querySelector(".text-answer");
+    if (el) { el.value = saved; updateLongCount(el); }
   }
   if (q.type === "matching") {
-    // saved — об'єкт {0: val, 1: val} або масив
-    document.querySelectorAll(".match-select").forEach((sel, pi) => {
-      const val = Array.isArray(saved) ? saved[pi] : saved?.[pi];
-      if (val !== undefined && val !== null) sel.value = val;
+    document.querySelectorAll(".match-opt").forEach(b => {
+      const v = Array.isArray(saved) ? saved[b.dataset.p] : saved?.[b.dataset.p];
+      const on = v !== undefined && v !== null && Number(v) === Number(b.dataset.o);
+      b.classList.toggle("sel", on); b.setAttribute("aria-checked", on);
     });
   }
 }
 
 // ─── ANSWER HANDLERS ─────────────────────────────────────────────────────────
-window.selectChoice = (el, qId, idx, type) => {
-  if (type === "single") {
-    document.querySelectorAll(".choice-item").forEach(c => c.classList.remove("selected"));
-    el.classList.add("selected");
-    answers[qId] = [idx];
-  } else {
-    el.classList.toggle("selected");
-    if (!answers[qId]) answers[qId] = [];
-    const pos = answers[qId].indexOf(idx);
-    if (pos === -1) answers[qId].push(idx);
-    else answers[qId].splice(pos, 1);
+const curQ = () => testData.questions[currentQ];
+function answerChanged(){ renderQNavigator(); saveProgress(); }
+
+function pickChoice(idx){
+  const q = curQ(); if (!q || (q.type !== "single" && q.type !== "multi")) return;
+  if (q.type === "single") answers[q.id] = [idx];
+  else {
+    const cur = new Set((answers[q.id] || []).map(Number));
+    cur.has(idx) ? cur.delete(idx) : cur.add(idx);
+    answers[q.id] = [...cur].sort((a, b) => a - b);
   }
-};
+  restoreAnswer(q);
+  answerChanged();
+}
+function updateLongCount(el){
+  const c = document.getElementById("cnt_" + el.dataset.q);
+  if (c) { const w = el.value.trim() ? el.value.trim().split(/\s+/).length : 0; c.textContent = w ? `${w} ${plural(w, "слово", "слова", "слів")}` : ""; }
+}
 
-window.saveTextAnswer  = (qId, val) => { answers[qId] = val; };
-window.saveMatchAnswer = (qId, pi, val) => {
-  if (!answers[qId]) answers[qId] = {};
-  answers[qId][pi] = Number(val);
-};
-
-// ─── ORDERING DnD ─────────────────────────────────────────────────────────────
-let orderDragItem = null;
-window.orderDragStart = (e, qId) => {
-  orderDragItem = e.currentTarget;
-  e.currentTarget.classList.add("dragging");
-};
-window.orderDragOver  = (e) => e.preventDefault();
-window.orderDrop = (e, qId) => {
-  e.preventDefault();
-  const target = e.currentTarget;
-  if (!orderDragItem || orderDragItem === target) {
-    orderDragItem?.classList.remove("dragging");
-    orderDragItem = null;
+const qCard = document.getElementById("questionCard");
+qCard?.addEventListener("click", e => {
+  const ch = e.target.closest(".choice-item");
+  if (ch) return pickChoice(Number(ch.dataset.idx));
+  const mo = e.target.closest(".match-opt");
+  if (mo) {
+    const q = curQ(), p = +mo.dataset.p, o = +mo.dataset.o;
+    const cur = { ...(answers[q.id] || {}) };
+    if (Number(cur[p]) === o && cur[p] !== undefined) delete cur[p]; else cur[p] = o;   // повторний дотик знімає вибір
+    answers[q.id] = cur;
+    restoreAnswer(q); answerChanged();
     return;
   }
-  const list = document.getElementById(`orderList_${qId}`);
-  const allItems = [...list.querySelectorAll(".order-item")];
-  const srcIdx = allItems.indexOf(orderDragItem);
-  const tgtIdx = allItems.indexOf(target);
+  const mv = e.target.closest(".ord-btn");
+  if (mv) {
+    const item = mv.closest(".order-item");
+    moveOrder(+item.dataset.i, +item.dataset.i + Number(mv.dataset.mv), true);
+  }
+});
+qCard?.addEventListener("input", e => {
+  const el = e.target.closest(".text-answer"); if (!el) return;
+  answers[el.dataset.q] = el.value;
+  if (!el.value.trim()) delete answers[el.dataset.q];
+  updateLongCount(el);
+  answerChanged();
+});
+qCard?.addEventListener("keydown", e => {
+  // Enter у короткій відповіді — до наступного питання
+  if (e.key === "Enter" && e.target.matches("input.text-answer")) { e.preventDefault(); document.getElementById("nextBtn")?.click(); }
+});
 
-  if (srcIdx < tgtIdx) list.insertBefore(orderDragItem, target.nextSibling);
-  else                  list.insertBefore(orderDragItem, target);
+function moveOrder(from, to, focusBtn){
+  const q = curQ(); const list = [...orderView(q)];
+  if (to < 0 || to >= list.length || from === to) return;
+  const [it] = list.splice(from, 1); list.splice(to, 0, it);
+  answers[q.id] = list;
+  const host = document.getElementById("orderList");
+  host.innerHTML = orderItemsHtml(list);
+  const moved = host.children[to];
+  moved?.classList.add("moved"); setTimeout(() => moved?.classList.remove("moved"), 400);
+  if (focusBtn) moved?.querySelector(`.ord-btn[data-mv="${to > from ? 1 : -1}"]:not([disabled])`)?.focus() || moved?.querySelector(".ord-btn:not([disabled])")?.focus();
+  answerChanged();
+}
+// Перетягування (миша)
+let dragFrom = -1;
+qCard?.addEventListener("dragstart", e => { const it = e.target.closest?.(".order-item"); if (!it) return; dragFrom = +it.dataset.i; it.classList.add("dragging"); e.dataTransfer.effectAllowed = "move"; });
+qCard?.addEventListener("dragover", e => { if (dragFrom >= 0 && e.target.closest(".order-item")) e.preventDefault(); });
+qCard?.addEventListener("drop", e => { const it = e.target.closest(".order-item"); if (!it || dragFrom < 0) return; e.preventDefault(); moveOrder(dragFrom, +it.dataset.i); dragFrom = -1; });
+qCard?.addEventListener("dragend", () => { dragFrom = -1; document.querySelectorAll(".order-item.dragging").forEach(x => x.classList.remove("dragging")); });
 
-  orderDragItem.classList.remove("dragging");
-
-  // оновлюємо відповідь
-  const newOrder = [...list.querySelectorAll(".order-item")].map(el => el.dataset.item);
-  answers[qId] = newOrder;
-
-  // перенумеровуємо
-  list.querySelectorAll(".order-num").forEach((el, i) => { el.textContent = i + 1; });
-  orderDragItem = null;
-};
+// Клавіатура: 1–9 — варіант, ← → — між питаннями
+document.addEventListener("keydown", e => {
+  if (document.getElementById("testScreen")?.style.display === "none" || _finishing) return;
+  if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+  if (e.target.closest?.("input,textarea,select") || document.querySelector(".un-modal.open,#restoreModal[style*='flex']")) return;
+  if (/^[1-9]$/.test(e.key)) {
+    const q = curQ();
+    if ((q?.type === "single" || q?.type === "multi") && +e.key <= (q.options || []).length) { e.preventDefault(); pickChoice(+e.key - 1); }
+  } else if (e.key === "ArrowRight") { e.preventDefault(); if (currentQ < testData.questions.length - 1) goTo(currentQ + 1); }
+  else if (e.key === "ArrowLeft") { e.preventDefault(); goTo(currentQ - 1); }
+});
 
 // ─── FINISH TEST ─────────────────────────────────────────────────────────────
 async function finishTest(timeUp = false) {
-  clearInterval(timerHandle);
-
+  if (_finishing) return;
   if (!timeUp) {
-    const unansweredQs = testData.questions.filter(q => {
-      const a = answers[q.id];
-      if (a === null || a === undefined || a === "") return true;
-      if (Array.isArray(a) && a.length === 0) return true;
-      if (typeof a === "object" && !Array.isArray(a) && Object.keys(a).length === 0) return true;
-      return false;
-    });
-
+    const unansweredQs = testData.questions.filter(q => !hasAnswer(answers[q.id]));
     if (unansweredQs.length > 0) {
-      // Відновлюємо таймер поки модал відкритий
-      timerHandle = setInterval(() => {
-        timerSecs--;
-        updateTimerUI();
-        if (timerSecs <= 0) {
-          clearInterval(timerHandle);
-          document.getElementById("unModal")?.classList.remove("open");
-          finishTest(true);
-        }
-      }, 1000);
-
-      // Показуємо кастомний модал
       document.getElementById("unCount").textContent = unansweredQs.length;
+      document.getElementById("unWord").textContent = plural(unansweredQs.length, "питання", "питання", "питань");
       document.getElementById("unList").innerHTML = unansweredQs.map(q => {
         const idx = testData.questions.indexOf(q);
-        return `<div class="un-q-item" onclick="window._goToUnanswered(${idx})">
-          <div class="un-q-num">${idx + 1}</div>
-          <div class="un-q-text">${escHtml(q.text)}</div>
-        </div>`;
+        return `<button type="button" class="un-q-item" data-un="${idx}">
+          <span class="un-q-num">${idx + 1}</span>
+          <span class="un-q-text">${escHtml(plainText(q.text) || getTypeName(q.type))}</span>
+        </button>`;
       }).join("");
-
-      document.getElementById("unModal").classList.add("open");
-
-      // Обробники кнопок
-      return new Promise(resolve => {
-        window._confirmFinish = () => {
-          clearInterval(timerHandle);
-          document.getElementById("unModal").classList.remove("open");
-          resolve(true);
-        };
-        window._cancelFinish = () => {
-          document.getElementById("unModal").classList.remove("open");
-          resolve(false);
-        };
-        window._goToUnanswered = (idx) => {
-          clearInterval(timerHandle);
-          document.getElementById("unModal").classList.remove("open");
-          currentQ = idx;
-          renderQuestion();
-          // Відновлюємо таймер
-          timerHandle = setInterval(() => {
-            timerSecs--;
-            updateTimerUI();
-            if (timerSecs <= 0) { clearInterval(timerHandle); finishTest(true); }
-          }, 1000);
-          resolve(false);
-        };
-      }).then(confirmed => {
-        if (!confirmed) return;
-        return _doFinish();
+      const modal = document.getElementById("unModal");
+      modal.classList.add("open");
+      setTimeout(() => modal.querySelector(".un-btn-back")?.focus(), 50);
+      // Таймер при цьому не зупиняється: якщо час вийде, тест завершиться сам
+      const ok = await new Promise(resolve => {
+        window._confirmFinish = () => { modal.classList.remove("open"); resolve(true); };
+        window._cancelFinish  = () => { modal.classList.remove("open"); resolve(false); };
+        window._goToUnanswered = (idx) => { modal.classList.remove("open"); goTo(idx); resolve(false); };
       });
+      if (!ok || _finishing) return;
     }
   }
-
+  _finishing = true;
+  clearInterval(timerHandle); timerHandle = null;
   return _doFinish();
 }
+document.getElementById("unList")?.addEventListener("click", e => { const b = e.target.closest("[data-un]"); if (b) window._goToUnanswered?.(+b.dataset.un); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && document.getElementById("unModal")?.classList.contains("open")) window._cancelFinish?.(); });
 
 async function _doFinish() {
   stopActivityMonitor();
   showScreen("processingScreen");
+  saveProgressLocally();   // якщо щось піде не так — відповіді лишаються на пристрої
 
   const name    = studentName;
   const surname = studentSurname;
-  const formattedAnswers = testData.questions.map(q => {
-    let val = answers[q.id] ?? null;
-    // Серіалізуємо об'єкти (matching) в зрозумілий формат
-    // null/undefined — зберігаємо як null (немає відповіді)
-    return { questionId: q.id, value: val };
-  });
+  const formattedAnswers = testData.questions.map(q => ({ questionId: q.id, value: answers[q.id] ?? null }));
 
-  // score (передаємо raw answers object)
   const scoreResult = await scoreTest(testData.questions, answers);
   const grade       = percentToGrade(scoreResult.percent);
-
-  // merge score details into formatted answers
   scoreResult.details.forEach(d => {
     const fa = formattedAnswers.find(a => a.questionId === d.questionId);
     if (fa) { fa.correct = d.correct; fa.partial = d.partial; fa.points = d.points; }
   });
 
-  // save attempt
   try {
-    const formattedAnswersToSave = formattedAnswers;
-
     if (attemptId) {
-      // Оновлюємо існуючу спробу (створену при старті)
       await updateAttempt(attemptId, {
-        answers:     formattedAnswersToSave,
-        score:       scoreResult,
-        grade12:     null,
-        aiComment:   null,
-        status:      "in_progress",
-        startedAt:   startTime,
-        finishedAt:  Date.now()
+        answers: formattedAnswers, score: scoreResult, grade12: null, aiComment: null,
+        status: "in_progress", startedAt: startTime, finishedAt: Date.now()
       });
     } else {
-      // Якщо з якоїсь причини спроби ще немає — створюємо
       attemptId = await createAttempt({
-        testId:    testData.id,
-        linkId:    linkData.id,
-        name, surname,
-        answers:   formattedAnswersToSave,
-        score:     scoreResult,
-        grade12:   null,
-        aiComment: null,
-        status:    "in_progress",
-        startedAt: startTime,
-        finishedAt: Date.now()
+        testId: testData.id, linkId: linkData.id, group: linkData.group || "",
+        name, surname, answers: formattedAnswers, score: scoreResult, status: "in_progress",
+        startedAt: startTime, finishedAt: Date.now(), questionsSnapshot: testData.questions
       });
     }
+    localStorage.setItem(doneKey(), "1");
 
-    localStorage.setItem(`test_${testData.id}_done`, "true");
-
-    // get AI comment — тільки якщо немає питань на перевірку
+    // AI-коментар — лише якщо немає питань на ручну перевірку
     const hasPendingQ = scoreResult.pending > 0;
     let aiResult = { grade: hasPendingQ ? null : grade, comment: "" };
-    // Перевіряємо чи AI коментарі дозволені для цього викладача
-    const aiCommentsAllowed = window._AI_COMMENTS !== false;
-    if(!hasPendingQ && aiCommentsAllowed){
+    if (!hasPendingQ && window._AI_COMMENTS !== false && AI_ENABLED) {
+      setEl("processingSub", "Готуємо коментар до результату…");
       try {
         aiResult = await getStudentAIComment({
-          testTitle:      testData.title,
-          totalQuestions: testData.questions.length,
-          correctCount:   scoreResult.correct,
-          percent:        scoreResult.percent,
-          answers:        formattedAnswers,
-          questions:      testData.questions,
-          studentName:    name,
-          studentSurname: surname
+          testTitle: testData.title, totalQuestions: testData.questions.length,
+          correctCount: scoreResult.correct, percent: scoreResult.percent,
+          answers: formattedAnswers, questions: testData.questions,
+          studentName: name, studentSurname: surname
         });
       } catch (e) {
         console.warn("AI failed:", e.message);
         aiResult = { grade, comment: "" };
       }
-    } else if(!hasPendingQ && !aiCommentsAllowed){
-      // AI вимкнено — ставимо оцінку без коментаря
-      aiResult = { grade, comment: "" };
     }
 
-    // Оновлюємо з фінальною оцінкою і статусом
     await updateAttempt(attemptId, {
       grade12:         hasPendingQ ? null : aiResult.grade,
       aiComment:       hasPendingQ ? null : (aiResult.comment || null),
@@ -2322,16 +2188,9 @@ async function _doFinish() {
     });
     clearSavedProgress();
 
-    // Синхронізуємо картку студента
-    await syncStudentCard({
-      name:      name,
-      surname:   surname,
-      grade12:   aiResult.grade,
-      testId:    testData.id,
-      testTitle: testData.title,
-      percent:   scoreResult.percent,
-      attemptId: attemptId,
-      group:     linkData?.group || ""
+    syncStudentCard({
+      name, surname, grade12: aiResult.grade, testId: testData.id, testTitle: testData.title,
+      percent: scoreResult.percent, attemptId, group: linkData?.group || ""
     });
 
     resultData = {
@@ -2346,32 +2205,27 @@ async function _doFinish() {
       },
       questions: testData.questions
     };
-
     showResult(scoreResult, aiResult);
-
   } catch (e) {
-    showError("Помилка збереження: " + e.message);
+    // Відповіді не губляться: вони на пристрої, а кнопка пробує зберегти ще раз
+    showError("Не вдалося зберегти результат. Перевірте інтернет — ваші відповіді збережено на цьому пристрої.", { icon: "📡", title: "Немає з'єднання", retry: () => _doFinish() });
   }
 }
-
 
 
 // ─── PREVIEW MODE ─────────────────────────────────────────────────────────────
 function fillTestInfoPreview(){
   setEl("infoTitle", testData.title);
-  setEl("infoQuestions", testData.questions.length);
+  setEl("infoQuestions", `${testData.questions.length} ${plural(testData.questions.length, "питання", "питання", "питань")}`);
   setEl("infoTime", "Без ліміту (перегляд)");
-  setEl("infoAttempts", "Режим перегляду");
   document.getElementById("startBtn")?.addEventListener("click", startPreview, {once:true});
 }
 
 function startPreview(){
-  currentQ = 0; answers = {}; startTime = Date.now();
-  // Застосовуємо перемішування якщо потрібно (ні)
+  currentQ = 0; answers = {}; startTime = Date.now(); seed = "preview"; deadline = 0;
   showScreen("testScreen");
-  renderQuestion();
-  // Не запускаємо таймер і не зберігаємо результати
-  renderQNavigator();
+  document.getElementById("timer").style.display = "none";
+  renderQuestion();   // таймер і збереження в режимі перегляду вимкнено
 }
 
 // ─── ТЕМНА ТЕМА ──────────────────────────────────────────────────────────────
@@ -2395,48 +2249,42 @@ window.toggleTheme = () => {
 };
 
 // ─── ЗБЕРЕЖЕННЯ ПРОГРЕСУ ─────────────────────────────────────────────────────
+// Локально — після кожної зміни (раніше раз на 15 с: закрита вкладка губила останні відповіді).
+// У базу — лише номер питання для сторінки «Онлайн», не частіше ніж раз на 3 с.
+let _saveT = 0, _lastRemote = 0;
+function saveProgress(){ clearTimeout(_saveT); _saveT = setTimeout(saveProgressLocally, 250); }
 function saveProgressLocally(){
-  if(!testData || !linkData) return;
-  const key = `qf_progress_${linkData.id}`;
-  localStorage.setItem(key, JSON.stringify({
-    answers,
-    currentQ,
-    startTime,
-    attemptId,
-    studentName,
-    studentSurname,
-    savedAt: Date.now()
-  }));
-  // Зберігаємо поточне питання у Firebase для моніторингу онлайн
-  if(attemptId){
-    const total = testData?.questions?.length || 0;
-    update(ref(db, tp(`attempts/${attemptId}`)), {
-      currentQ: currentQ + 1,
-      totalQ: total,
-      lastSeen: Date.now()
-    }).catch(()=>{});
-  }
+  if(!testData || !linkData || previewMode) return;
+  try {
+    localStorage.setItem(`qf_progress_${linkData.id}`, JSON.stringify({
+      answers, currentQ, startTime, deadline, attemptId, studentName, studentSurname, seed, order, savedAt: Date.now()
+    }));
+  } catch {}
+  if (attemptId && Date.now() - _lastRemote > 3000) heartbeat();
 }
+function heartbeat(){
+  if (!attemptId || _finishing || previewMode) return;
+  _lastRemote = Date.now();
+  update(ref(db, tp(`attempts/${attemptId}`)), {
+    currentQ: currentQ + 1, totalQ: testData?.questions?.length || 0, lastSeen: Date.now()
+  }).catch(()=>{});
+}
+window.addEventListener("pagehide", () => { if (!_finishing) saveProgressLocally(); });
 
 function loadSavedProgress(){
   if(!linkData) return false;
   const key = `qf_progress_${linkData.id}`;
-  const raw = localStorage.getItem(key);
-  if(!raw) return false;
   try {
-    const data = JSON.parse(raw);
-    // Не відновлюємо якщо більше 24 годин
-    if(Date.now() - data.savedAt > 86400000){
-      localStorage.removeItem(key);
-      return false;
-    }
+    const data = JSON.parse(localStorage.getItem(key) || "null");
+    if (!data) return false;
+    if(Date.now() - data.savedAt > 86400000){ localStorage.removeItem(key); return false; }   // старше доби — не відновлюємо
     return data;
-  } catch{ return false; }
+  } catch { return false; }
 }
 
 function clearSavedProgress(){
   if(!linkData) return;
-  localStorage.removeItem(`qf_progress_${linkData.id}`);
+  try { localStorage.removeItem(`qf_progress_${linkData.id}`); } catch {}
 }
 
 // ─── ЛОГУВАННЯ ПІДОЗРІЛОЇ АКТИВНОСТІ ─────────────────────────────────────────
@@ -2645,7 +2493,7 @@ function showWarningBanner(msg){
       position:fixed;top:0;left:0;right:0;z-index:9999;
       background:linear-gradient(90deg,#f43f5e,#be123c);
       color:white;text-align:center;padding:12px 20px;
-      font-family:'Syne',sans-serif;font-weight:600;font-size:14px;
+      font-family:'Manrope',sans-serif;font-weight:600;font-size:14px;
       animation:warningSlide .3s ease;
     `;
     document.body.appendChild(banner);
@@ -2710,35 +2558,15 @@ function showResult(scoreResult, aiResult) {
 }
 
 
-async function generatePersonalErrorAnalysis(answers, questions, score){
-  const el = document.getElementById("errorAnalysisText");
-  if(!el) return;
-
-  const wrongItems = questions.map(q=>{
-    const ans = answers.find(a=>a.questionId===q.id);
-    if(!ans || ans.correct) return null;
-    let correctAns = "";
-    if(q.type==="single"||q.type==="multi"){
-      const idxs = Array.isArray(q.correct)?q.correct:[q.correct];
-      correctAns = idxs.map(i=>(q.options||[])[i]).filter(Boolean).join(", ");
-    } else { correctAns = String(q.correct||""); }
-    const studentAns = Array.isArray(ans.value)
-      ? ans.value.map(i=>(q.options||[])[i]).join(", ")
-      : String(ans.value||"(без відповіді)");
-    return `- Питання: "${q.text}"\n  Ваша відповідь: "${studentAns}"\n  Правильно: "${correctAns}"`;
-  }).filter(Boolean).slice(0,6).join("\n\n");
-
-  if(!wrongItems){ el.textContent = ""; return; }
-
-  try {
-    const prompt = `Студент допустив помилки в тесті "${testData.title}". Напиши короткий персональний розбір (3-4 речення) українською: що саме не так і що конкретно повторити. Звертайся до студента напряму, по-доброму.\n\nПомилки:\n${wrongItems}`;
-    const raw = await callGroq([{role:"user", content:prompt}], 400, 0.5, "analysis");
-    el.textContent = raw.trim();
-  } catch(e){
-    document.getElementById("errorAnalysisBox").style.display = "none";
-  }
+function loadJSZip(){
+  if (window.JSZip) return Promise.resolve(window.JSZip);
+  return new Promise((res, rej) => {
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+    s.onload = () => res(window.JSZip); s.onerror = rej;
+    document.head.appendChild(s);
+  });
 }
-
 // ─── DOWNLOAD ─────────────────────────────────────────────────────────────────
 document.getElementById("downloadBtn")?.addEventListener("click", async () => {
   if (!resultData) return;
@@ -2746,6 +2574,14 @@ document.getElementById("downloadBtn")?.addEventListener("click", async () => {
   const html = generateResultHTML(resultData);
   const name = `${resultData.student.name}_${resultData.student.surname}_result.html`;
 
+  // JSZip (≈100 КБ) вантажимо лише тут — раніше він блокував відкриття сторінки тесту
+  const JSZip = await loadJSZip().catch(() => null);
+  if (!JSZip) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
+    a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    return;
+  }
   const zip = new JSZip();
   zip.file(name, html);
 
@@ -2771,18 +2607,18 @@ document.getElementById("closeTestBtn")?.addEventListener("click", () => {
     setTimeout(() => {
       document.body.innerHTML = `
         <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
-          min-height:100vh;font-family:'DM Sans',sans-serif;background:#f0f3fa;gap:16px;text-align:center;padding:24px">
+          min-height:100vh;font-family:'Manrope',sans-serif;background:#f0f3fa;gap:16px;text-align:center;padding:24px">
           <div style="font-size:48px">✅</div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;color:#0d1340">Тест завершено</div>
+          <div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:22px;color:#0d1340">Тест завершено</div>
           <div style="font-size:15px;color:#6b7280">Ви можете закрити цю вкладку</div>
         </div>`;
     }, 300);
   } catch(e) {
     document.body.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
-        min-height:100vh;font-family:'DM Sans',sans-serif;background:#f0f3fa;gap:16px;text-align:center;padding:24px">
+        min-height:100vh;font-family:'Manrope',sans-serif;background:#f0f3fa;gap:16px;text-align:center;padding:24px">
         <div style="font-size:48px">✅</div>
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;color:#0d1340">Тест завершено</div>
+        <div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:22px;color:#0d1340">Тест завершено</div>
         <div style="font-size:15px;color:#6b7280">Ви можете закрити цю вкладку</div>
       </div>`;
   }
@@ -2827,24 +2663,22 @@ window.obSkip = () => {
 };
 
 function showScreen(id) {
-  const screens = {
-    loadingScreen:       "flex",
-    onboardingScreen:    "flex",
-    entryScreen:         "flex",
-    testScreen:       "flex",
-    processingScreen: "flex",
-    resultScreen:     "flex",
-    errorScreen:      "flex"
-  };
-  Object.keys(screens).forEach(s => {
+  ["loadingScreen", "onboardingScreen", "entryScreen", "testScreen", "processingScreen", "resultScreen", "errorScreen"].forEach(s => {
     const el = document.getElementById(s);
-    if (el) el.style.display = s === id ? screens[s] : "none";
+    if (el) el.style.display = s === id ? "flex" : "none";
   });
 }
 
-function showError(msg) {
-  const el = document.getElementById("errorMsg");
-  if (el) el.textContent = msg;
+// Екран помилки; retry — кнопка «Спробувати ще раз» (напр., коли не вдалося зберегти результат)
+function showError(msg, { icon = "🔒", title = "Доступ недоступний", retry = null } = {}) {
+  setEl("errorMsg", msg);
+  setEl("errorIcon", icon);
+  setEl("errorTitle", title);
+  const b = document.getElementById("retryBtn");
+  if (b) {
+    b.hidden = !retry;
+    b.onclick = retry ? () => { b.disabled = true; Promise.resolve(retry()).finally(() => { b.disabled = false; }); } : null;
+  }
   showScreen("errorScreen");
 }
 
@@ -2855,42 +2689,42 @@ function setEl(id, val) {
 }
 
 function escHtml(str) {
-  return String(str || "")
+  return String(str ?? "")
     .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
-
 
 function highlight(id) {
   const el = document.getElementById(id);
   if (!el) return;
-  el.style.borderColor = "var(--rose)";
+  el.classList.add("bad");
   el.focus();
-  el.addEventListener("input", () => el.style.borderColor = "", { once: true });
+  el.addEventListener("input", () => el.classList.remove("bad"), { once: true });
 }
 
 function showBtnLoading(id, state) {
   const el = document.getElementById(id);
   if (!el) return;
   el.disabled = state;
-  el.textContent = state ? "Перевірка..." : "Розпочати тест →";
+  el.innerHTML = state ? `<span class="btn-spin"></span> Перевірка…` : "Розпочати тест →";
 }
 </script>
+
 
 <!-- UNANSWERED QUESTIONS MODAL -->
 <!-- RESTORE PROGRESS MODAL -->
 <div class="un-modal" id="restoreModal" style="display:none">
   <div class="un-box" style="max-width:380px;text-align:center">
     <div style="font-size:42px;margin-bottom:12px">💾</div>
-    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:19px;margin-bottom:8px">Незавершений тест</div>
+    <div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:19px;margin-bottom:8px">Незавершений тест</div>
     <div style="font-size:14px;color:var(--text-muted);line-height:1.55;margin-bottom:24px" id="restoreMsg"></div>
     <div style="display:flex;flex-direction:column;gap:10px">
       <button onclick="window._restoreConfirm(true)"
-        style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#2d5be3,#1a3ab8);color:white;font-family:'Syne',sans-serif;font-weight:600;font-size:15px;cursor:pointer">
+        style="width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#2d5be3,#1a3ab8);color:white;font-family:'Manrope',sans-serif;font-weight:600;font-size:15px;cursor:pointer">
         ▶ Продовжити з місця зупинки
       </button>
       <button onclick="window._restoreConfirm(false)"
-        style="width:100%;padding:12px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer">
+        style="width:100%;padding:12px;border-radius:14px;border:1.5px solid var(--border);background:transparent;color:var(--text-muted);font-family:'Manrope',sans-serif;font-size:14px;cursor:pointer">
         Почати спочатку
       </button>
     </div>
@@ -2898,12 +2732,12 @@ function showBtnLoading(id, state) {
 </div>
 
 
-<div class="un-modal" id="unModal">
+<div class="un-modal" id="unModal" role="dialog" aria-modal="true" aria-labelledby="unTitle">
   <div class="un-box">
     <div style="text-align:center;margin-bottom:4px">
       <div style="font-size:44px;margin-bottom:12px">📋</div>
-      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:20px;margin-bottom:6px">Є питання без відповіді</div>
-      <div style="font-size:14px;color:var(--text-muted);line-height:1.5">Ви пропустили <strong id="unCount" style="color:var(--rose)">0</strong> питань. Натисніть на питання щоб повернутись до нього, або завершіть тест.</div>
+      <div id="unTitle" style="font-family:'Manrope',sans-serif;font-weight:800;font-size:20px;margin-bottom:6px">Є питання без відповіді</div>
+      <div style="font-size:14px;color:var(--text-muted);line-height:1.5">Без відповіді <strong id="unCount" style="color:var(--rose)">0</strong> <span id="unWord">питань</span>. Натисніть на питання, щоб повернутися до нього, або завершіть тест.</div>
     </div>
     <div class="un-q-list" id="unList"></div>
     <div class="un-actions">

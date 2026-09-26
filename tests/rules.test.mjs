@@ -137,6 +137,15 @@ await t("admin tokens", true, () => set(ref(adm, "invite_tokens/tok2"), { create
 await t("admin tasks", true, () => set(push(ref(adm, "adminTasks")), { title: "x" }));
 await t("admin read root", false, () => get(ref(adm, "/")));
 
+// ── Версії питань спроб ──
+const QV = "teachers/t1/qVersions/" + "a".repeat(32);
+await t("anon create qVersion", true, () => set(ref(anon, QV), [{ id: "q1", type: "single", text: "x" }]));
+await t("anon overwrite qVersion", false, () => set(ref(anon, QV), [{ id: "q1", text: "forged" }]));
+await t("anon read qVersion", false, () => get(ref(anon, QV)));
+await t("anon qVersion bad key", false, () => set(ref(anon, "teachers/t1/qVersions/hack"), [{ id: "q" }]));
+await t("owner read qVersion", true, () => get(ref(t1, QV)));
+await t("other teacher read qVersion", false, () => get(ref(t2, QV)));
+
 // ── Живі ігри ──
 const R = "rooms/11112222";
 await t("anon read room", true, () => get(ref(anon, R)));

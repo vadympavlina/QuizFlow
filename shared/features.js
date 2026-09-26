@@ -6,8 +6,44 @@
 // ═══════════════════════════════════════════════════════════════════════
 
 import { sanitizeNewsHtml, newsPlainText, newsExcerpt, readMinutes, catOf, isPublished } from "./news-utils.js?v=1";
+import { buildQuestions, qVersionKey } from "./qorder.js?v=1";
 
 const { db, ref, get, set, push, update, remove, onValue, off } = window._fb;
+
+// ─── Питання спроби ──────────────────────────────────────────────────────
+// Нові спроби не тримають копію питань: лише qVer (ключ версії в
+// teachers/{uid}/qVersions) і порядок, у якому студент їх бачив. Версію
+// перевіряємо за SHA-256 — підкладений вміст під чужий ключ не пройде.
+const _qv = new Map();   // qVer -> { p: Promise, v: питання | null, done }
+function loadQVer(ver){
+  let e = _qv.get(ver);
+  if (!e) {
+    e = { done: false, v: null };
+    e.p = (async () => {
+      try {
+        const v = (await get(ref(db, tp(`qVersions/${ver}`)))).val();
+        const base = Array.isArray(v) ? v : v ? Object.values(v) : null;
+        return base && await qVersionKey(base) === ver ? base : null;
+      } catch { return null; }
+    })().then(v => { e.v = v; e.done = true; return v; });
+    _qv.set(ver, e);
+  }
+  return e;
+}
+// Питання так, як їх бачив студент. undefined — версія ще вантажиться.
+function attemptQs(a, t){
+  if (Array.isArray(a.questionsSnapshot)) return a.questionsSnapshot;
+  if (a.qVer) {
+    const e = loadQVer(a.qVer);
+    if (!e.done) return undefined;
+    if (e.v) return buildQuestions(e.v, a.qOrder, a.optOrder);
+  }
+  return t?.questions || [];
+}
+async function attemptQsAsync(a, t){
+  if (a.qVer && !Array.isArray(a.questionsSnapshot)) await loadQVer(a.qVer).p;
+  return attemptQs(a, t) || [];
+}
 const _user = window._user;
 const _uid = window._uid;
 const tp = window.tp;
@@ -3778,7 +3814,11 @@ selectAnalyticsDrop(field, value, label){
     if (!a){ toast("Спробу не знайдено","err"); return; }
     const t = tests.find(x => x.id === a.testId);
     const l = links.find(x => x.id === a.linkId);
-    const qs = Array.isArray(a.questionsSnapshot) ? a.questionsSnapshot : (t?.questions || []);
+    if (a.qVer && !Array.isArray(a.questionsSnapshot)) {
+      const e = loadQVer(a.qVer);
+      if (!e.done) { e.p.then(() => G.viewAtt(id)); return; }   // версію питань ще вантажимо — відкриємо, щойно буде
+    }
+    const qs = attemptQs(a, t) || [];
     const ans = Array.isArray(a.answers) ? a.answers : [];
  
     try {
@@ -4064,7 +4104,7 @@ selectAnalyticsDrop(field, value, label){
 
     try{
       const t=tests.find(x=>x.id===a.testId);
-      const qs=Array.isArray(a.questionsSnapshot)?a.questionsSnapshot:(t?.questions||[]);
+      const qs=await attemptQsAsync(a,t);
       const ans=Array.isArray(a.answers)?a.answers:[];
 
       const wrongList=qs.map((q,i)=>{

@@ -124,6 +124,11 @@
             ".write": "newData.exists() && newData.child('name').isString() && newData.child('surname').isString()"
           }
         },
+        "qVersions": {
+          "$ver": {
+            ".write": "!data.exists() && newData.hasChildren() && $ver.matches(/^[0-9a-f]{32}$/)"
+          }
+        },
         "studentIndex": {
           "$key": {
             ".read": true,
