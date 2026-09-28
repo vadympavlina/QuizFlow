@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="modulepreload" href="live-core.js?v=2">
+<link rel="modulepreload" href="live-core.js?v=3">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -171,8 +171,8 @@
       <section class="lv-card">
         <h2 class="lv-card-h"><span class="n">2</span>Нарахування балів</h2>
         <div class="choice" id="scoring" role="radiogroup" aria-label="Нарахування балів">
-          <button type="button" role="radio" data-v="speed"><b>⚡ За швидкість</b><small>500–1000 балів: хто швидше відповів правильно — отримує більше</small></button>
-          <button type="button" role="radio" data-v="correct"><b>✓ За правильність</b><small>1000 балів за кожну правильну відповідь, час не важливий</small></button>
+          <button type="button" role="radio" data-v="speed"><b><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>За швидкість</b><small>500–1000 балів: хто швидше відповів правильно — отримує більше</small></button>
+          <button type="button" role="radio" data-v="correct"><b><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><polyline points="20 6 9 17 4 12"/></svg>За правильність</b><small>1000 балів за кожну правильну відповідь, час не важливий</small></button>
         </div>
       </section>
 
@@ -226,7 +226,7 @@
 import {
   db, ref, get, update, requireTeacher, readParams, fatal, toast, safeStore,
   THEMES, PATTERNS, DEFAULT_THEME, applyTheme, LIVE_TYPES, pageUrl, esc, plural, pickCount, confirmDlg,
-} from "./live-core.js?v=2";
+} from "./live-core.js?v=3";
 
 const $ = (id) => document.getElementById(id);
 const user = await requireTeacher();
@@ -306,7 +306,7 @@ if (excluded) {
 }
 if (brokenMulti) {
   const n = document.createElement("div"); n.className = "lv-notice";
-  n.textContent = `⚠ ${brokenMulti} ${plural(brokenMulti, "питання", "питання", "питань")} з кількома відповідями не мають позначених правильних варіантів — за них ніхто не отримає балів. Виправте в конструкторі.`;
+  n.textContent = `${brokenMulti} ${plural(brokenMulti, "питання", "питання", "питань")} з кількома відповідями не мають позначених правильних варіантів — за них ніхто не отримає балів. Виправте в конструкторі.`;
   $("excluded-note").after(n);
 }
 const firstQ = document.createElement("div");
@@ -339,7 +339,7 @@ function renderTime(fromInput = false) {
     b.classList.toggle("on", on); b.setAttribute("aria-checked", on); b.setAttribute("role", "radio");
   });
   $("time-note").textContent = state.time < 15 && hasFreeform
-    ? "⚠ У тесті є питання з введенням відповіді — учням може не вистачити часу надрукувати."
+    ? "У тесті є питання з введенням відповіді — учням може не вистачити часу надрукувати."
     : state.time >= 90 ? "Довгий час підходить для задач із розрахунками." : "Стандартний ритм гри: 20–30 с на питання.";
   renderSummary();
 }

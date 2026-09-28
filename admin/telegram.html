@@ -337,7 +337,7 @@ async function validateToken(){
   if (!t){ m.className = "t-msg"; m.textContent = ""; return null; }
   if (!/^\d{5,}:[\w-]{30,}$/.test(t)){ m.className = "t-msg bad"; m.textContent = "Формат токена: 123456789:AA… (цифри, двокрапка, ключ)"; return false; }
   m.className = "t-msg"; m.textContent = "Перевіряємо…";
-  try { const me = await tgApi(t, "getMe"); m.className = "t-msg ok"; m.textContent = `✓ Бот @${me.username} — ${me.first_name}`; return me; }
+  try { const me = await tgApi(t, "getMe"); m.className = "t-msg ok"; m.textContent = `Бот @${me.username} — ${me.first_name}`; return me; }
   catch (e){ m.className = "t-msg bad"; m.textContent = e.code === 401 || e.code === 404 ? "Telegram не приймає цей токен" : "Помилка: " + e.message; return false; }
 }
 document.getElementById("tg-check-btn").addEventListener("click", validateToken);

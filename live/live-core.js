@@ -177,8 +177,8 @@ export const isFreeform = (q) => q?.type === "text" || q?.type === "number";
 
 export const TYPE_LABELS = {
   single: { cls:"single", label:"◉ Одна правильна" },
-  multi:  { cls:"multi",  label:"☑ Кілька правильних" },
-  text:   { cls:"text",   label:"✏ Текстова відповідь" },
+  multi:  { cls:"multi",  label:"Кілька правильних" },
+  text:   { cls:"text",   label:"Текстова відповідь" },
   number: { cls:"number", label:"# Числова відповідь" },
 };
 
@@ -392,7 +392,7 @@ export function confirmDlg({ title, text = "", ok = "Так", cancel = "Скас
 
 export function fatal(msg, backHref = HOME_URL) {
   document.body.innerHTML = `<div style="min-height:100vh;display:grid;place-items:center;padding:24px;font-family:system-ui,sans-serif;background:#F6F5FB;color:#201C33;text-align:center">
-    <div style="max-width:420px"><div style="font-size:44px;margin-bottom:10px">⚠️</div>
+    <div style="max-width:420px"><div style="width:60px;height:60px;margin:0 auto 12px;border-radius:18px;background:#FEF3C7;color:#B45309;display:grid;place-items:center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
     <h1 style="font-size:22px;margin:0 0 8px">${esc(msg)}</h1>
     <a href="${esc(backHref)}" style="display:inline-block;margin-top:14px;padding:11px 20px;border-radius:10px;background:#5B4FE8;color:#fff;text-decoration:none;font-weight:700">Повернутися</a></div></div>`;
   throw new Error(msg);

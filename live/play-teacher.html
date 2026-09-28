@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="modulepreload" href="live-core.js?v=2">
+<link rel="modulepreload" href="live-core.js?v=3">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -197,16 +197,16 @@
   <span class="code-chip">Код <b id="code-chip">—</b></span>
   <div class="actions">
     <div class="vol-wrap">
-      <button class="vol-icon" id="vol-icon" title="Звук (M)" aria-label="Увімкнути або вимкнути звук">🔊</button>
+      <button class="vol-icon" id="vol-icon" title="Звук (M)" aria-label="Увімкнути або вимкнути звук"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14"/></svg></button>
       <input class="vol-slider" id="vol-slider" type="range" min="0" max="100" value="70" aria-label="Гучність">
     </div>
-    <button class="btn" id="pause-btn">⏸ Пауза <span class="k">P</span></button>
+    <button class="btn" id="pause-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>Пауза <span class="k">P</span></button>
     <button class="btn btn-primary" id="next-btn">Показати відповідь <span class="k">␣</span></button>
   </div>
 </div>
 
 <main class="stage" id="stage">
-  <div class="pause-banner" id="pause-banner">⏸ Гру призупинено — учні бачать екран паузи</div>
+  <div class="pause-banner" id="pause-banner"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>Гру призупинено — учні бачать екран паузи</div>
   <div class="answered-bar" id="answered-bar">
     <span class="l">Відповіли</span>
     <div class="bar"><i id="answered-fill"></i></div>
@@ -216,21 +216,21 @@
   <div class="q-type-wrap"><span class="q-type-badge single" id="q-type-badge">◉ Одна правильна</span></div>
   <div class="question-text qf-rich" id="q-text"></div>
   <div class="answers" id="answers-grid"></div>
-  <div class="text-wait-hint" id="text-wait-hint" hidden>✏️ Учні вводять власну відповідь<br><b>Прогрес видно на смузі вище</b></div>
+  <div class="text-wait-hint" id="text-wait-hint" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>Учні вводять власну відповідь<br><b>Прогрес видно на смузі вище</b></div>
 
   <div class="reveal-grid" id="reveal-grid">
     <div class="panel grading" id="grading"></div>
     <div class="panel">
-      <h3>🏆 Лідери <small id="leaders-sub"></small></h3>
+      <h3><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3"/></svg>Лідери <small id="leaders-sub"></small></h3>
       <div class="leaders" id="leaders"></div>
     </div>
   </div>
 </main>
 
 <div class="footer">
-  <span class="stat">👥 Гравців: <b id="footer-players">0</b></span>
-  <span class="stat">★ Лідер: <b id="footer-top">—</b></span>
-  <span class="stat">✓ Точність: <b id="footer-acc">—</b></span>
+  <span class="stat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Гравців: <b id="footer-players">0</b></span>
+  <span class="stat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Лідер: <b id="footer-top">—</b></span>
+  <span class="stat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><polyline points="20 6 9 17 4 12"/></svg>Точність: <b id="footer-acc">—</b></span>
   <span class="hint">Пробіл — далі · P — пауза · M — звук</span>
   <div class="right">
     <button class="btn btn-danger" id="end-btn">Завершити гру</button>
@@ -238,13 +238,14 @@
 </div>
 
 <script type="module">
+const VOL_IC = {vol0:"<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><polygon points=\"11 5 6 9 2 9 2 15 6 15 11 19 11 5\"/><line x1=\"23\" y1=\"9\" x2=\"17\" y2=\"15\"/><line x1=\"17\" y1=\"9\" x2=\"23\" y2=\"15\"/></svg>",vol1:"<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><polygon points=\"11 5 6 9 2 9 2 15 6 15 11 19 11 5\"/></svg>",vol2:"<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><polygon points=\"11 5 6 9 2 9 2 15 6 15 11 19 11 5\"/><path d=\"M15.54 8.46a5 5 0 010 7.07\"/></svg>",vol:"<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><polygon points=\"11 5 6 9 2 9 2 15 6 15 11 19 11 5\"/><path d=\"M15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14\"/></svg>"};
 import {
   db, ref, get, set, update, onValue, requireTeacher, readParams, isValidCode, fatal, toast,
   esc, initialsOf, avatarColor, applyTheme, serverNow, watchFields, safeStore, HOME_URL,
   OPT_CLASSES, OPT_LETTERS, TYPE_LABELS, isFreeform, checkCorrect, calcPoints, LATE_GRACE_MS,
   standings, fmtNum, isActive, isOnline, asIndexList, fitText, fitGroup, onRefit,
   richHtml, confirmDlg, rankMap,
-} from "./live-core.js?v=2";
+} from "./live-core.js?v=3";
 
 const $ = (id) => document.getElementById(id);
 const user = await requireTeacher();
@@ -303,7 +304,7 @@ function paintVolume() {
   const v = _muted ? 0 : Math.round(_vol * 100);
   $("vol-slider").value = v;
   $("vol-slider").style.setProperty("--vol", v + "%");
-  $("vol-icon").textContent = _muted || v === 0 ? "🔇" : v < 40 ? "🔈" : v < 75 ? "🔉" : "🔊";
+  $("vol-icon").innerHTML = VOL_IC[_muted || v === 0 ? "vol0" : v < 40 ? "vol1" : v < 75 ? "vol2" : "vol"];
   if (_master) _master.gain.setTargetAtTime(_muted ? 0 : _vol, _ac.currentTime, 0.05);
 }
 $("vol-slider").addEventListener("input", (e) => {
@@ -639,9 +640,9 @@ function applyState(s) {
   $("answered-bar").style.display = isReveal ? "none" : "";
   renderAnswered();
   $("pause-btn").hidden = isReveal;
-  $("pause-btn").innerHTML = isPaused ? `▶ Продовжити <span class="k">P</span>` : `⏸ Пауза <span class="k">P</span>`;
+  $("pause-btn").innerHTML = isPaused ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><polygon points="6 4 20 12 6 20 6 4"/></svg>Продовжити <span class="k">P</span>` : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>Пауза <span class="k">P</span>`;
   const last = state.currentQ >= totalQ - 1;
-  $("next-btn").innerHTML = (isReveal ? (last ? "🏁 Фінальні результати" : "Наступне питання →") : "Показати відповідь") + ` <span class="k">␣</span>`;
+  $("next-btn").innerHTML = (isReveal ? (last ? "Фінальні результати" : "Наступне питання →") : "Показати відповідь") + ` <span class="k">␣</span>`;
 
   if (isReveal) { stopMusic(); renderReveal(); }
   else if (isPaused) stopMusic();

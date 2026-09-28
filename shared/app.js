@@ -236,7 +236,7 @@ async function loadModals() {
   // Якщо сторінка уже містить <div id="modals-root"> — туди й вставимо,
   // інакше створимо новий контейнер перед </body>
   try {
-    const resp = await fetch("shared/modals?v=21");
+    const resp = await fetch("shared/modals?v=22");
     if (!resp.ok) throw new Error("modals.html " + resp.status);
     const html = await resp.text();
     let root = document.getElementById("modals-root");
@@ -387,7 +387,7 @@ async function loadAllData() {
       window.tests    = cached.tests;
       window.links    = cached.links;
       window.attempts = cached.attempts;
-      console.log(`⚡ [app.js] з кешу (${cached.tests.length} тестів, вік ${Math.round((Date.now()-cached.savedAt)/1000)}с)`);
+      console.log(`[app.js] з кешу (${cached.tests.length} тестів, вік ${Math.round((Date.now()-cached.savedAt)/1000)}с)`);
       notifyReady();
       startLive("links"); startLive("attempts");   // свіжі дані прийдуть подією qf:live
       return;
@@ -399,7 +399,7 @@ async function loadAllData() {
     ]);
     window.folders  = toArr(fs).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
     window.tests    = toArr(ts_).sort(_sortDesc);
-    console.log(`✅ [app.js] data loaded (${window.tests.length} tests, ${window.attempts.length} attempts)`);
+    console.log(`[app.js] data loaded (${window.tests.length} tests, ${window.attempts.length} attempts)`);
 
     saveCache(CACHE_KEY);
     notifyReady();
