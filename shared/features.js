@@ -430,7 +430,10 @@ function renderAll(){
   // Таблиця посилань
   if (has("lnk-tbl")) renderLinks();
   // Селекти фільтрів (заповнюються лише якщо хоч один select існує)
-  if (has("nl-t") || has("an-test") || has("an-group")) fillSelects();
+  if (has("nl-t")) fillSelects();
+  // Журнал і аналітика оновлюються разом з даними (раніше — лише при відкритті сторінки)
+  if (has("gradebook-body") && GB.bound) G.renderGradebook();
+  if (has("analytics-body")) G.renderAnalytics();
   // Бейджі в sidebar (завжди, бо sidebar підвантажений на кожній сторінці)
   updateBadges();
   // Архів
@@ -1391,38 +1394,130 @@ document.addEventListener("keydown", e => {
   });
 })();
 
+// ═════════════════════════════════════════════════════════════════════
+// ЖУРНАЛ І АНАЛІТИКА — спільні розрахунки
+// • Група береться зі спроби (a.group): посилання могли видалити, а
+//   результати мають лишитися в журналі.
+// • Один студент — одне ім'я без урахування регістру й зайвих пробілів
+//   («Коваль Олена» і «коваль  олена» — один рядок).
+// • Оцінка без значення — «—», а не 0.
+// ═════════════════════════════════════════════════════════════════════
+const _rpNorm = s => String(s ?? "").trim().replace(/\s+/g, " ").toLowerCase().replace(/[’ʼ`]/g, "'");
+const _rpGrade = a => { const g = Number(a.grade12); return a.grade12 != null && a.grade12 !== "" && Number.isFinite(g) ? g : null; };
+const _rpTone = g => g == null ? "none" : g >= 10 ? "best" : g >= 7 ? "good" : g >= 4 ? "mid" : "bad";
+const _rpAvg = arr => arr.length ? arr.reduce((x, y) => x + y, 0) / arr.length : null;
+const _r1 = v => v == null ? "—" : (Math.round(v * 10) / 10).toLocaleString("uk-UA");
+const _rpPlain = html => new DOMParser().parseFromString(String(html ?? ""), "text/html").body.textContent.replace(/\s+/g, " ").trim();
+const _rpIc = p => `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const _RP_IC_GROUP = _rpIc('<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>');
+const _RP_IC_TEST  = _rpIc('<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/>');
+
+function _rpRows(){
+  const lMap = new Map(links.map(l => [l.id, l]));
+  const out = [];
+  for (const a of attempts){
+    if (a.status !== "completed" && a.status !== "pending_review") continue;
+    out.push({
+      a, group: a.group || lMap.get(a.linkId)?.group || "",
+      grade: a.status === "completed" ? _rpGrade(a) : null,
+      key: _rpNorm(a.surname) + "|" + _rpNorm(a.name),
+      t: a.finishedAt || a.createdAt || 0,
+    });
+  }
+  return out;
+}
+// Групи для фільтра з кількістю результатів; архівовані групи (усі посилання приховані) не показуємо
+function _rpGroupItems(rows, allLabel){
+  const hidden = new Set(), shown = new Set();
+  links.forEach(l => { if (l.group) (l.groupHidden ? hidden : shown).add(l.group); });
+  const cnt = new Map();
+  rows.forEach(r => { if (r.group) cnt.set(r.group, (cnt.get(r.group) || 0) + 1); });
+  const items = [...cnt].filter(([g]) => !(hidden.has(g) && !shown.has(g)))
+    .map(([g, n]) => ({ value: g, label: g, count: n })).sort((a, b) => a.label.localeCompare(b.label, "uk"));
+  return allLabel ? [{ value: "", label: allLabel }, ...items] : items;
+}
+function _rpTestItems(rows, allLabel){
+  const cnt = new Map();
+  rows.forEach(r => cnt.set(r.a.testId, (cnt.get(r.a.testId) || 0) + 1));
+  const tMap = new Map(tests.map(t => [t.id, t]));
+  return [{ value: "", label: allLabel }, ...[...cnt].map(([id, n]) => ({ value: id, label: tMap.get(id)?.title || "Тест видалено", count: n }))
+    .sort((a, b) => a.label.localeCompare(b.label, "uk"))];
+}
+// Фільтри в адресі — сторінку можна оновити або надіслати посилання колезі
+function _rpUrl(params){
+  const u = new URL(location.href);
+  Object.entries(params).forEach(([k, v]) => v ? u.searchParams.set(k, v) : u.searchParams.delete(k));
+  if (u.search !== location.search) history.replaceState(null, "", u.pathname + u.search);
+}
+function _rpDownload(name, blob){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name.replace(/[\\/:*?"<>|]+/g, " ").trim();
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+// CSV для Excel з українською локаллю: BOM + «;»
+const _rpCsv = rows => "﻿" + rows.map(r => r.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(";")).join("\r\n");
+
+// Підказка при наведенні на елементи з data-tip (стовпці, точки графіка, клітинки)
+let _rpTipEl = null;
+function _rpBindTips(root){
+  if (!root || root._tips) return;
+  root._tips = true;
+  const hide = () => { if (_rpTipEl) _rpTipEl.hidden = true; };
+  root.addEventListener("mouseover", e => {
+    const t = e.target.closest("[data-tip]"); if (!t || !root.contains(t)) return hide();
+    if (!_rpTipEl){ _rpTipEl = document.createElement("div"); _rpTipEl.className = "rp-tip"; _rpTipEl.setAttribute("role", "tooltip"); document.body.appendChild(_rpTipEl); }
+    _rpTipEl.innerHTML = t.dataset.tip; _rpTipEl.hidden = false;
+    const r = t.getBoundingClientRect(), w = _rpTipEl.offsetWidth, h = _rpTipEl.offsetHeight;
+    _rpTipEl.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + "px";
+    _rpTipEl.style.top = (r.top - h - 8 < 8 ? r.bottom + 8 : r.top - h - 8) + "px";
+  });
+  root.addEventListener("mouseleave", hide);
+  addEventListener("scroll", hide, true);
+}
+
+// ─── Журнал: матриця «студент × тест» ────────────────────────────────
+const GB = { group: null, test: "", q: "", sort: "name", drops: {}, urlDone: false, bound: false };
+function _gbBuild(rows){
+  const sel = rows.filter(r => r.group === GB.group && (!GB.test || r.a.testId === GB.test));
+  const tMap = new Map(tests.map(t => [t.id, t]));
+  // Колонки — тести в порядку першого проходження (як у паперовому журналі)
+  const first = new Map();
+  sel.forEach(r => { const f = first.get(r.a.testId); if (f == null || r.t < f) first.set(r.a.testId, r.t); });
+  const cols = [...first].sort((a, b) => a[1] - b[1]).map(([id]) => ({ id, title: tMap.get(id)?.title || "Тест видалено" }));
+  const studs = new Map();
+  sel.forEach(r => {
+    let s = studs.get(r.key);
+    if (!s) studs.set(r.key, s = { key: r.key, name: "", surname: "", t: -1, cells: {} });
+    // Написання імені: з великої літери має перевагу, серед рівних — найновіше
+    const nm = String(r.a.name || "").trim().replace(/\s+/g, " "), sn = String(r.a.surname || "").trim().replace(/\s+/g, " ");
+    const nice = /^\p{Lu}/u.test(sn) + /^\p{Lu}/u.test(nm);
+    if (s.t < 0 || nice > s.nice || (nice === s.nice && r.t >= s.t)){ s.t = r.t; s.nice = nice; s.name = nm || s.name; s.surname = sn || s.surname; }
+    const c = s.cells[r.a.testId] || (s.cells[r.a.testId] = { tries: 0, best: null, id: null, pending: null });
+    c.tries++;
+    if (r.grade != null){ if (c.best == null || r.grade > c.best){ c.best = r.grade; c.id = r.a.id; } }
+    else if (r.a.status === "pending_review" && !c.pending) c.pending = r.a.id;
+  });
+  const list = [...studs.values()];
+  list.forEach(s => {
+    const g = cols.map(c => s.cells[c.id]?.best).filter(v => v != null);
+    s.avg = _rpAvg(g); s.debts = g.filter(v => v < 4).length;
+  });
+  const colStats = cols.map(c => {
+    const g = list.map(s => s.cells[c.id]?.best).filter(v => v != null);
+    return { n: g.length, avg: _rpAvg(g), pass: g.filter(v => v >= 4).length };
+  });
+  return { sel, cols, list, colStats };
+}
+
+// ─── Аналітика ───────────────────────────────────────────────────────
+const AN = { group: "", test: "", drops: {}, urlDone: false, showAll: false, allQ: false, bound: false };
+const _weekStart = t => { const d = new Date(t); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.getTime(); };
+
 // ATTEMPTS
 fillSelects = function(){
   // Групи з посилань (без прихованих через архівацію студентської групи)
   const groups=[...new Set(links.filter(l=>!l.groupHidden).map(l=>l.group).filter(Boolean))].sort();
-  // Аналітика - тести
-  const anTest=$("an-test");
-  if(anTest){
-    const prev=anTest.value;
-    anTest.innerHTML=`<option value="">Оберіть тест...</option>`+
-      tests.filter(t=>t.status!=="archived").map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join("");
-    if(prev) anTest.value=prev;
-  }
-  const anMenu=document.getElementById("cd-an-test-menu");
-  if(anMenu){
-    const curAn=$("an-test")?.value||"";
-    anMenu.innerHTML=`<div class="cd-item${!curAn?" cd-active":""}" data-val="_none" onclick="G.selectAnalyticsDrop('test','','Оберіть тест...')">— Без фільтру</div>`+
-      tests.filter(t=>t.status!=="archived").map(t=>
-        `<div class="cd-item${curAn===t.id?" cd-active":""}" data-val="${t.id}" onclick="G.selectAnalyticsDrop('test','${t.id}',${jsq(t.title)})">${esc(t.title)}</div>`
-      ).join("");
-  }
-  // Аналітика - групи
-  const anGrp=$("an-group");
-  if(anGrp){
-    anGrp.innerHTML=`<option value="">Всі групи</option>`+groups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join("");
-  }
-  const anGrpMenu=document.getElementById("cd-an-group-menu");
-  if(anGrpMenu){
-    const curGrpAn=$("an-group")?.value||"";
-    anGrpMenu.innerHTML=`<div class="cd-item${!curGrpAn?" cd-active":""}" data-val="_none" onclick="G.selectAnalyticsDrop('group','','Всі групи')">Всі групи</div>`+
-      groups.map(g=>`<div class="cd-item${curGrpAn===g?" cd-active":""}" data-val="${esc(g)}" onclick="G.selectAnalyticsDrop('group',${jsq(g)},${jsq(g)})">${esc(g)}</div>`
-      ).join("");
-  }
   // Посилання - тест у модалі (тепер покроковий пікер папка→тест; оновлюємо
   // лише якщо модалка зараз відкрита і пікер видимий, щоб список був актуальний після змін)
   if (document.getElementById("nl-picker-content") && document.getElementById("nl-picker-box")?.style.display !== "none") G.renderNlPicker();
@@ -2274,68 +2369,6 @@ window.G = {
     // Закриваємо меню
     document.getElementById(wrapId+"-menu")?.classList.remove("open");
     _attPage=1; renderAttempts();
-  },
-
-selectAnalyticsDrop(field, value, label){
-    const ids = field==="test"
-      ? {wrap:"cd-an-test", sel:"an-test", lbl:"cd-an-test-label"}
-      : {wrap:"cd-an-group", sel:"an-group", lbl:"cd-an-group-label"};
-    const labelEl=document.getElementById(ids.lbl);
-    if(labelEl) labelEl.textContent=label;
-    const menu=document.getElementById(ids.wrap+"-menu");
-    menu?.querySelectorAll(".cd-item").forEach(el=>{
-      el.classList.toggle("cd-active", el.dataset.val===value || (!value && el.dataset.val==="_none"));
-    });
-    const sel=document.getElementById(ids.sel);
-    if(sel) sel.value=value;
-    const btn=document.querySelector(`#${ids.wrap} .cd-btn`);
-    btn?.classList.toggle("active", !!value);
-    menu?.classList.remove("open");
- 
-    // ── НОВЕ: при виборі групи — перебудовуємо dropdown тестів ──
-    if (field === "group"){
-      // Тести, що мають посилання з обраною групою (або всі якщо група не обрана)
-      const validTestIds = value
-        ? new Set(links.filter(l => l.group === value).map(l => l.testId))
-        : null;
-      const filteredTests = tests.filter(t => {
-        if (t.status === "archived") return false;
-        if (!validTestIds) return true;       // група "Всі" → всі тести
-        return validTestIds.has(t.id);
-      });
- 
-      // Перебудовуємо menu тестів
-      const anTestMenu = document.getElementById("cd-an-test-menu");
-      const anTestSel  = document.getElementById("an-test");
-      const curTestId  = anTestSel?.value || "";
-      // Чи актуальний обраний тест ще доступний у новому списку?
-      const stillValid = curTestId && filteredTests.some(t => t.id === curTestId);
- 
-      if (anTestMenu){
-        const noneActive = !stillValid;
-        anTestMenu.innerHTML = `<div class="cd-item${noneActive?" cd-active":""}" data-val="_none" onclick="G.selectAnalyticsDrop('test','','Оберіть тест...')">— Без фільтру</div>` +
-          filteredTests.map(t =>
-            `<div class="cd-item${(stillValid && curTestId===t.id)?" cd-active":""}" data-val="${t.id}" onclick="G.selectAnalyticsDrop('test','${t.id}',${jsq(t.title)})">${esc(t.title)}</div>`
-          ).join("");
-      }
- 
-      // Перебудовуємо <select> теж (щоб renderAnalytics брав актуальне значення)
-      if (anTestSel){
-        anTestSel.innerHTML = `<option value="">Оберіть тест...</option>` +
-          filteredTests.map(t => `<option value="${t.id}">${esc(t.title)}</option>`).join("");
-        anTestSel.value = stillValid ? curTestId : "";
-      }
- 
-      // Якщо обраний тест більше не валідний — скидаємо лейбл і active state
-      if (!stillValid){
-        const testLbl = document.getElementById("cd-an-test-label");
-        if (testLbl) testLbl.textContent = "Оберіть тест...";
-        const testBtn = document.querySelector("#cd-an-test .cd-btn");
-        testBtn?.classList.remove("active");
-      }
-    }
- 
-    G.renderAnalytics();
   },
 
   // ─── Крок 1: список папок ────────────────────────────────────────────
@@ -4889,333 +4922,168 @@ selectAnalyticsDrop(field, value, label){
       </div>`;
     }).join("")}</div>`;
   },
+  // ═══ ЖУРНАЛ ОЦІНОК ═══════════════════════════════════════════════════
   initGradebook(){
-    window._gbTestF = window._gbTestF!==undefined ? window._gbTestF : "";
-    window._gbGrpF  = window._gbGrpF!==undefined  ? window._gbGrpF  : "";
-    // Заповнюємо тести
-    const curTestF=window._gbTestF||"";
-    const curGrpF=window._gbGrpF||"";
-    const gbTestMenu=document.getElementById("cd-gb-test-menu");
-    if(gbTestMenu){
-      gbTestMenu.innerHTML=`<div class="cd-item${!curTestF?" cd-active":""}" data-val="" onclick="G.selectGbFilter('test','','Всі тести')">Всі тести</div>`+
-        tests.filter(t=>t.status!=="archived").map(t=>
-          `<div class="cd-item${curTestF===t.id?" cd-active":""}" data-val="${t.id}" onclick="G.selectGbFilter('test','${t.id}',${jsq(t.title)})">${esc(t.title)}</div>`
-        ).join("");
-      const lbl=document.getElementById("cd-gb-test-label");
-      if(lbl&&curTestF){const t=tests.find(x=>x.id===curTestF);if(t)lbl.textContent=t.title;}
-    }
-    // Заповнюємо групи (без прихованих через архівацію студентської групи)
-    const groups=[...new Set(links.filter(l=>!l.groupHidden).map(l=>l.group).filter(Boolean))].sort();
-    const gbGrpMenu=document.getElementById("cd-gb-group-menu");
-    if(gbGrpMenu){
-      gbGrpMenu.innerHTML=`<div class="cd-item${!curGrpF?" cd-active":""}" data-val="" onclick="G.selectGbFilter('group','','Всі групи')">Всі групи</div>`+
-        groups.map(g=>`<div class="cd-item${curGrpF===g?" cd-active":""}" data-val="${esc(g)}" onclick="G.selectGbFilter('group',${jsq(g)},${jsq(g)})">${esc(g)}</div>`
-        ).join("");
-      const lbl2=document.getElementById("cd-gb-group-label");
-      if(lbl2&&curGrpF)lbl2.textContent=curGrpF;
+    if (!GB.bound && $("gradebook-body")){
+      GB.bound = true;
+      $("gb-q")?.addEventListener("input", e => { GB.q = e.target.value; G.renderGradebook(); });
+      $("gradebook-body").addEventListener("click", e => {
+        const att = e.target.closest("[data-att]"); if (att) return G.viewAtt(att.dataset.att);
+        const grp = e.target.closest("[data-gb-group]"); if (grp) return G._gbSetGroup(grp.dataset.gbGroup);
+        const srt = e.target.closest("[data-sort]"); if (srt){ GB.sort = GB.sort === srt.dataset.sort && srt.dataset.sort !== "name" ? "name" : srt.dataset.sort; G.renderGradebook(); }
+      });
+      _rpBindTips($("gradebook-body"));
     }
     G.renderGradebook();
   },
-
- selectGbFilter(field, value, label){
-    const wrap  = field === "test" ? "cd-gb-test" : "cd-gb-group";
-    const selId = field === "test" ? "gb-test"    : "gb-group";
- 
-    // Оновлюємо лейбл, активний пункт, select
-    const lbl = document.getElementById(wrap + "-label");
-    if (lbl) lbl.textContent = label;
-    const menu = document.getElementById(wrap + "-menu");
-    menu?.querySelectorAll(".cd-item").forEach(el => {
-      el.classList.toggle("cd-active", el.dataset.val === value || (!value && el.dataset.val === ""));
-    });
-    menu?.classList.remove("open");
-    const btn = document.querySelector(`#${wrap} .cd-btn`);
-    btn?.classList.toggle("active", !!value);
-    const sel = document.getElementById(selId);
-    if (sel) sel.value = value;
- 
-    // Зберігаємо в window-змінні (використовує initGradebook при перезавантаженні)
-    if (field === "test") window._gbTestF = value;
-    else                  window._gbGrpF  = value;
- 
-    // ── НОВЕ: при виборі групи — перебудовуємо dropdown тестів ──
-    if (field === "group"){
-      // Тести, що мають посилання з обраною групою (або всі якщо група не обрана)
-      const validTestIds = value
-        ? new Set(links.filter(l => l.group === value).map(l => l.testId))
-        : null;
-      const filteredTests = tests.filter(t => {
-        if (t.status === "archived") return false;
-        if (!validTestIds) return true;
-        return validTestIds.has(t.id);
-      });
- 
-      // Перебудовуємо menu тестів
-      const gbTestMenu = document.getElementById("cd-gb-test-menu");
-      const gbTestSel  = document.getElementById("gb-test");
-      const curTestId  = window._gbTestF || gbTestSel?.value || "";
-      // Чи актуальний обраний тест ще доступний у новому списку?
-      const stillValid = curTestId && filteredTests.some(t => t.id === curTestId);
- 
-      if (gbTestMenu){
-        gbTestMenu.innerHTML =
-          `<div class="cd-item${!stillValid ? " cd-active" : ""}" data-val="" onclick="G.selectGbFilter('test','','Всі тести')">Всі тести</div>` +
-          filteredTests.map(t =>
-            `<div class="cd-item${(stillValid && curTestId === t.id) ? " cd-active" : ""}" data-val="${t.id}" onclick="G.selectGbFilter('test','${t.id}',${jsq(t.title)})">${esc(t.title)}</div>`
-          ).join("");
-      }
- 
-      // Перебудовуємо <select> теж
-      if (gbTestSel){
-        gbTestSel.innerHTML = `<option value="">Всі тести</option>` +
-          filteredTests.map(t => `<option value="${t.id}">${esc(t.title)}</option>`).join("");
-        gbTestSel.value = stillValid ? curTestId : "";
-      }
- 
-      // Якщо обраний тест більше не валідний — скидаємо лейбл і active state
-      if (!stillValid){
-        const testLbl = document.getElementById("cd-gb-test-label");
-        if (testLbl) testLbl.textContent = "Всі тести";
-        const testBtn = document.querySelector("#cd-gb-test .cd-btn");
-        testBtn?.classList.remove("active");
-        window._gbTestF = "";
-      }
-    }
- 
-    G.renderGradebook && G.renderGradebook();
+  _gbSetGroup(g){
+    GB.group = g; GB.test = "";
+    try { localStorage.setItem("qf_gb_group", g); } catch {}
+    G.renderGradebook();
   },
- 
 
   renderGradebook(){
-    const body=document.getElementById("gradebook-body");
-    if(!body) return;
-    // Читаємо активний елемент з меню (найнадійніший спосіб)
-    const activeTestEl=document.querySelector("#cd-gb-test-menu .cd-item.cd-active");
-    const activeGrpEl=document.querySelector("#cd-gb-group-menu .cd-item.cd-active");
-    const testF=activeTestEl?.dataset?.val||"";
-    const groupF=activeGrpEl?.dataset?.val||"";
+    const body = $("gradebook-body"); if (!body) return;
+    const rows = _rpRows();
+    if (!GB.urlDone){
+      const p = new URLSearchParams(location.search);
+      if (p.get("group")) GB.group = p.get("group");
+      GB.test = p.get("test") || "";
+      GB.urlDone = true;
+    }
+    const gItems = _rpGroupItems(rows);
+    // Група не обрана — остання з цього пристрою або єдина наявна
+    if (!GB.group && rows.length){
+      let last = ""; try { last = localStorage.getItem("qf_gb_group") || ""; } catch {}
+      GB.group = gItems.some(i => i.value === last) ? last : gItems.length === 1 ? gItems[0].value : "";
+    }
+    const inGroup = GB.group ? rows.filter(r => r.group === GB.group) : [];
+    const tItems = _rpTestItems(inGroup, "Усі тести");
+    if (GB.test && rows.length && !tItems.some(i => i.value === GB.test)) GB.test = "";
 
-    // Кнопки експорту працюють лише коли обрано групу
-    const csvBtn=document.getElementById("gb-export-csv");
-    const htmlBtn=document.getElementById("gb-export-html");
-    if(csvBtn)  csvBtn.disabled=!groupF;
-    if(htmlBtn) htmlBtn.disabled=!groupF;
+    const gDropItems = GB.group && !gItems.some(i => i.value === GB.group) ? [...gItems, { value: GB.group, label: GB.group, count: 0 }] : gItems;
+    if (!GB.drops.group && $("gb-f-group")){
+      GB.drops.group = qfDrop($("gb-f-group"), { items: gDropItems, value: GB.group || "", placeholder: "Оберіть групу", width: 220, searchPlaceholder: "Пошук групи…", icon: _RP_IC_GROUP, onChange: v => G._gbSetGroup(v) });
+      GB.drops.test = qfDrop($("gb-f-test"), { items: tItems, value: GB.test, width: 280, searchPlaceholder: "Пошук тесту…", icon: _RP_IC_TEST, onChange: v => { GB.test = v; G.renderGradebook(); } });
+    } else if (GB.drops.group){
+      GB.drops.group.setItems(gDropItems); GB.drops.group.set(GB.group || "");
+      GB.drops.test.setItems(tItems); GB.drops.test.set(GB.test);
+    }
+    ["gb-export-csv", "gb-export-html", "gb-q"].forEach(id => { const el = $(id); if (el) el.disabled = !GB.group; });
+    _rpUrl({ group: GB.group, test: GB.test });
 
-    // Поки не обрано групу — не рахуємо і не рендеримо журнал по УСІХ спробах
-    // одразу (це і є те, що гальмувало сторінку при завантаженні).
-    if(!groupF){
-      body.innerHTML=`<div class="empty" style="padding:80px 20px">
-        <div class="ei">👥</div>
-        <div class="et">Оберіть групу</div>
-        <div class="es">Щоб побачити журнал, виберіть групу</div>
-      </div>`;
+    if (!rows.length){
+      body.innerHTML = `<div class="rp-empty"><div class="rp-empty-ic">📋</div><b>Поки немає результатів</b><span>Коли студенти пройдуть тести за посиланнями, оцінки з'являться тут</span></div>`;
+      return;
+    }
+    if (!GB.group){
+      body.innerHTML = `<div class="rp-empty"><div class="rp-empty-ic">👥</div><b>Оберіть групу</b><span>Журнал складається окремо для кожної групи</span>
+        <div class="rp-chips">${gItems.map(g => `<button type="button" class="rp-chip" data-gb-group="${esc(g.value)}">${esc(g.label)}<i>${g.count}</i></button>`).join("")}</div></div>`;
+      return;
+    }
+    const d = _gbBuild(rows);
+    if (!d.list.length){
+      body.innerHTML = `<div class="rp-empty"><div class="rp-empty-ic">📋</div><b>Немає завершених спроб</b><span>У групі «${esc(GB.group)}» поки немає оцінок${GB.test ? " за цим тестом" : ""}</span></div>`;
       return;
     }
 
-    let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
-    att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
-    if(testF)  att=att.filter(a=>a.testId===testF);
+    // Пошук і сортування
+    const q = _rpNorm(GB.q);
+    let list = q ? d.list.filter(s => _rpNorm(`${s.surname} ${s.name}`).includes(q)) : [...d.list];
+    const byName = (a, b) => (a.surname || "").localeCompare(b.surname || "", "uk") || (a.name || "").localeCompare(b.name || "", "uk");
+    if (GB.sort === "avg") list.sort((a, b) => (b.avg ?? -1) - (a.avg ?? -1) || byName(a, b));
+    else if (GB.sort === "debts") list.sort((a, b) => b.debts - a.debts || (a.avg ?? 99) - (b.avg ?? 99) || byName(a, b));
+    else list.sort(byName);
 
-    if(!att.length){
-      body.innerHTML=`<div class="empty" style="padding:80px 20px"><div class="ei">📋</div><div class="et">Немає завершених спроб</div><div class="es">У цій групі поки немає результатів для журналу</div></div>`;
-      return;
-    }
+    const allGrades = d.list.flatMap(s => d.cols.map(c => s.cells[c.id]?.best).filter(v => v != null));
+    const groupAvg = _rpAvg(allGrades);
+    const debtStud = d.list.filter(s => s.debts).length;
+    const pend = d.list.reduce((n, s) => n + d.cols.filter(c => s.cells[c.id]?.pending && s.cells[c.id]?.best == null).length, 0);
+    const arrow = k => GB.sort === k ? " ↓" : "";
 
-    // Студенти — беремо найкращу оцінку по кожному тесту
-    const studentMap={};
-    att.forEach(a=>{
-      const key=`${a.surname}|||${a.name}`;
-      if(!studentMap[key]) studentMap[key]={name:a.name,surname:a.surname,attempts:{}};
-      const prev=studentMap[key].attempts[a.testId];
-      if(!prev || (a.grade12!=null && (prev.grade==null || a.grade12>prev.grade)))
-        studentMap[key].attempts[a.testId]={grade:a.grade12,status:a.status,id:a.id};
-    });
-
-    const usedTestIds=testF?[testF]:[...new Set(att.map(a=>a.testId))];
-    const usedTests=usedTestIds.map(id=>tests.find(t=>t.id===id)).filter(Boolean);
-    const students=Object.values(studentMap).sort((a,b)=>a.surname.localeCompare(b.surname,"uk"));
-
-    // Статистика по тестах (для підсумкового рядка)
-    const testStats=usedTests.map(t=>{
-      const grades=students.map(s=>s.attempts[t.id]?.grade).filter(g=>g!=null);
-      const avg=grades.length?Math.round(grades.reduce((s,g)=>s+g,0)/grades.length*10)/10:null;
-      const pass=grades.filter(g=>g>=4).length;
-      return {avg,pass,total:grades.length};
-    });
-
-    const gradeColor=g=>g>=10?"#0d9e85":g>=7?"#2d5be3":g>=4?"#f59e0b":"#f43f5e";
-    const gradeBg=g=>g>=10?"rgba(13,158,133,.1)":g>=7?"rgba(45,91,227,.1)":g>=4?"rgba(245,158,11,.1)":"rgba(244,63,94,.1)";
-
-    const thCells=usedTests.map((t,i)=>{
-      const st=testStats[i];
-      return `<th style="padding:10px 12px;font-size:12px;font-weight:600;text-align:center;min-width:110px;max-width:150px;color:var(--text)">
-        <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px" title="${esc(t.title)}">${esc(t.title.length>18?t.title.substring(0,18)+"…":t.title)}</div>
-        ${st.avg!=null?`<div style="font-size:10px;color:var(--muted);font-weight:400">${st.pass}/${st.total} здали · ø${st.avg}</div>`:""}
-      </th>`;
-    }).join("");
-
-    const rows=students.map((s,si)=>{
-      const cells=usedTests.map(t=>{
-        const a_=s.attempts[t.id];
-        if(!a_) return `<td style="padding:10px 12px;text-align:center"><span style="color:var(--border);font-size:18px">·</span></td>`;
-        if(a_.status==="pending_review") return `<td style="padding:10px 12px;text-align:center"><span style="font-size:13px" title="Очікує перевірки">⏳</span></td>`;
-        const g=a_.grade!=null?a_.grade:0;
-        return `<td style="padding:8px 12px;text-align:center;cursor:pointer" onclick="G.viewAtt('${a_.id}')">
-          <div style="display:inline-flex;align-items:center;justify-content:center;width:38px;height:28px;border-radius:8px;background:${gradeBg(g)};color:${gradeColor(g)};font-weight:700;font-size:13px;transition:all .15s"
-            onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform=''">${g}</div>
-        </td>`;
-      }).join("");
-
-      // Середня оцінка студента
-      const grds=usedTests.map(t=>s.attempts[t.id]?.grade).filter(g=>g!=null);
-      const avg=grds.length?Math.round(grds.reduce((s,g)=>s+g,0)/grds.length*10)/10:null;
-      const avgCol=avg!=null?gradeColor(avg):"var(--muted)";
-
-      return `<tr style="border-top:1px solid rgba(229,232,240,.6);transition:background .1s" onmouseover="this.style.background='rgba(45,91,227,.02)'" onmouseout="this.style.background=''">
-        <td style="padding:12px 16px;white-space:nowrap">
-          <div style="font-weight:600;font-size:14px">${esc(s.surname)} ${esc(s.name)}</div>
-        </td>
-        ${cells}
-        <td style="padding:12px 16px;text-align:center">
-          ${avg!=null?`<div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:16px;color:${avgCol}">${avg}</div><div style="font-size:10px;color:var(--muted)">середня</div>`:`<span style="color:var(--border)">—</span>`}
-        </td>
-      </tr>`;
-    }).join("");
-
-    body.innerHTML=`
-      <!-- Метрики -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
-        <div style="background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:16px 20px">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Студентів</div>
-          <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:32px;color:var(--primary);line-height:1">${students.length}</div>
-        </div>
-        <div style="background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:16px 20px">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Тестів</div>
-          <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:32px;color:#9333ea;line-height:1">${usedTests.length}</div>
-        </div>
-        <div style="background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:16px 20px">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Спроб всього</div>
-          <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:32px;color:#f59e0b;line-height:1">${att.length}</div>
-        </div>
-        <div style="background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:16px 20px">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-bottom:8px">Здали (≥4)</div>
-          <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:32px;color:#0d9e85;line-height:1">${att.filter(a=>a.grade12>=4).length}</div>
-        </div>
+    body.innerHTML = `
+      <div class="rp-kpis">
+        <div class="rp-kpi"><span>Студентів</span><b>${d.list.length}</b><small>у групі ${esc(GB.group)}</small></div>
+        <div class="rp-kpi"><span>Тестів</span><b>${d.cols.length}</b><small>${allGrades.length} ${_plural(allGrades.length, "оцінка", "оцінки", "оцінок")}</small></div>
+        <div class="rp-kpi"><span>Середній бал</span><b class="t-${_rpTone(groupAvg)}">${_r1(groupAvg)}</b><small>за шкалою 1–12</small></div>
+        <div class="rp-kpi" data-sort="debts" style="cursor:pointer" title="Показати спершу студентів із заборгованостями"><span>Мають оцінку &lt; 4</span><b class="${debtStud ? "t-bad" : "t-best"}">${debtStud}</b><small>${debtStud ? "натисніть, щоб показати їх першими" : "заборгованостей немає"}${pend ? ` · ${pend} на перевірці` : ""}</small></div>
       </div>
-
-      <!-- Таблиця -->
-      <div style="background:#fff;border:1.5px solid var(--border);border-radius:18px;overflow:hidden">
-        <div style="overflow-x:auto">
-          <table style="width:100%;border-collapse:collapse;min-width:500px">
-            <thead>
-              <tr style="background:rgba(45,91,227,.03)">
-                <th style="padding:12px 16px;font-size:12px;font-weight:700;text-align:left;color:var(--text);min-width:180px;border-bottom:1.5px solid var(--border)">Студент</th>
-                ${thCells.replace(/border-bottom:[^;]+;/g,'')} <!-- fix double border -->
-                <th style="padding:12px 16px;font-size:12px;font-weight:700;text-align:center;color:var(--text);border-bottom:1.5px solid var(--border);min-width:80px">Середня</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
+      <div class="gb-card">
+        <div class="gb-scroll">
+          <table class="gb-tbl">
+            <thead><tr>
+              <th class="gb-sticky"><button type="button" class="gb-sort${GB.sort === "name" ? " on" : ""}" data-sort="name">Студент${arrow("name")}</button></th>
+              ${d.cols.map((c, i) => { const st = d.colStats[i]; return `<th class="gb-th-test" title="${esc(c.title)}"><div class="gb-th-t">${esc(c.title)}</div><div class="gb-th-s">${st.n ? `ø ${_r1(st.avg)} · склали ${st.pass}/${st.n}` : "немає оцінок"}</div></th>`; }).join("")}
+              <th class="gb-th-avg"><button type="button" class="gb-sort${GB.sort === "avg" ? " on" : ""}" data-sort="avg">Середня${arrow("avg")}</button></th>
+            </tr></thead>
+            <tbody>${list.length ? list.map(s => `<tr>
+              <td class="gb-sticky gb-stud"><b>${esc(s.surname)}</b> ${esc(s.name)}${s.debts ? `<span class="gb-debt" title="Оцінок нижче 4: ${s.debts}">${s.debts}</span>` : ""}</td>
+              ${d.cols.map(c => {
+                const x = s.cells[c.id];
+                if (!x) return `<td class="gb-c"><span class="gb-miss" title="Не проходив(ла)">—</span></td>`;
+                if (x.best == null) return `<td class="gb-c"><button type="button" class="gb-cell t-pend" data-att="${esc(x.pending || "")}" data-tip="Очікує перевірки викладача">⏳</button></td>`;
+                return `<td class="gb-c"><button type="button" class="gb-cell t-${_rpTone(x.best)}" data-att="${esc(x.id)}" data-tip="${esc(c.title)}<br><b>${x.best}/12</b>${x.tries > 1 ? ` · найкраща з ${x.tries} спроб` : ""}">${x.best}${x.tries > 1 ? `<sup>×${x.tries}</sup>` : ""}</button></td>`;
+              }).join("")}
+              <td class="gb-c gb-avg t-${_rpTone(s.avg)}">${_r1(s.avg)}</td>
+            </tr>`).join("") : `<tr><td class="gb-sticky gb-none" colspan="${d.cols.length + 2}">Нікого не знайдено за «${esc(GB.q)}»</td></tr>`}</tbody>
+            <tfoot><tr>
+              <td class="gb-sticky">Середнє по групі</td>
+              ${d.colStats.map(st => `<td class="gb-c t-${_rpTone(st.avg)}">${_r1(st.avg)}</td>`).join("")}
+              <td class="gb-c t-${_rpTone(groupAvg)}">${_r1(groupAvg)}</td>
+            </tr></tfoot>
           </table>
         </div>
       </div>
-      <div style="font-size:12px;color:var(--muted);margin-top:10px;display:flex;align-items:center;gap:12px">
-        <span>⏳ — очікує перевірки</span>
-        <span>· — не проходив</span>
-        <span>Натисніть на оцінку щоб переглянути деталі</span>
+      <div class="gb-legend">
+        <span><i class="t-best"></i>10–12</span><span><i class="t-good"></i>7–9</span><span><i class="t-mid"></i>4–6</span><span><i class="t-bad"></i>1–3</span>
+        <span>⏳ на перевірці</span><span>— не проходив(ла)</span><span><sup>×2</sup> кілька спроб, показано найкращу</span>
+        <span class="gb-legend-hint">Натисніть на оцінку, щоб відкрити спробу</span>
       </div>`;
   },
 
-  async exportGradebook(format='csv'){
-    // Читаємо активний елемент з меню (найнадійніший спосіб)
-    const activeTestEl=document.querySelector("#cd-gb-test-menu .cd-item.cd-active");
-    const activeGrpEl=document.querySelector("#cd-gb-group-menu .cd-item.cd-active");
-    const testF=activeTestEl?.dataset?.val||"";
-    const groupF=activeGrpEl?.dataset?.val||"";
-    if(!groupF){ toast("Спочатку виберіть групу","err"); return; }
-    let att=attempts.filter(a=>a.status==="completed"||a.status==="pending_review");
-    att=att.filter(a=>{const l=links.find(x=>x.id===a.linkId);return (l?.group||"")===groupF;});
-    if(testF)  att=att.filter(a=>a.testId===testF);
-    if(!att.length){toast("Немає даних для експорту","err");return;}
-
-    const studentMap={};
-    att.forEach(a=>{
-      const key=`${a.surname}|||${a.name}`;
-      if(!studentMap[key]) studentMap[key]={name:a.name,surname:a.surname,attempts:{}};
-      const prev=studentMap[key].attempts[a.testId];
-      if(!prev||(a.grade12!=null&&(prev===null||a.grade12>prev)))
-        studentMap[key].attempts[a.testId]=a.grade12;
-    });
-    const usedTestIds=testF?[testF]:[...new Set(att.map(a=>a.testId))];
-    const usedTests=usedTestIds.map(id=>tests.find(t=>t.id===id)).filter(Boolean);
-    const students=Object.values(studentMap).sort((a,b)=>a.surname.localeCompare(b.surname,"uk"));
-    const dateStr=new Date().toLocaleDateString("uk-UA");
-    const fname="Журнал_"+(groupF||"всі")+"_"+dateStr;
-
-    if(format==="csv"){
-      const header=["Прізвище","Ім'я",...usedTests.map(t=>t.title),"Середня"].join(",");
-      const csvRows=students.map(s=>{
-        const grades=usedTests.map(t=>s.attempts[t.id]!=null?s.attempts[t.id]:"");
-        const nums=grades.filter(g=>g!=="");
-        const avg=nums.length?(nums.reduce((a,b)=>a+b,0)/nums.length).toFixed(1):"";
-        return [s.surname,s.name,...grades,avg].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",");
-      });
-      const csv="\uFEFF"+header+"\n"+csvRows.join("\n");
-      const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
-      const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=fname+".csv";document.body.appendChild(a);a.click();document.body.removeChild(a);
-      toast("CSV завантажено ✅");
-    } else {
-      const thHTML=usedTests.map(t=>`<th>${esc(t.title)}</th>`).join("");
-      const rowsHTML=students.map(s=>{
-        const cells=usedTests.map(t=>{
-          const g=s.attempts[t.id];
-          if(g==null) return `<td style="text-align:center;color:#9ca3af">—</td>`;
-          const col=g>=10?"#0d9e85":g>=7?"#2d5be3":g>=4?"#f59e0b":"#f43f5e";
-          return `<td style="text-align:center;font-weight:700;color:${col}">${g}/12</td>`;
-        }).join("");
-        const nums=usedTests.map(t=>s.attempts[t.id]).filter(g=>g!=null);
-        const avg=nums.length?(nums.reduce((a,b)=>a+b,0)/nums.length).toFixed(1):"—";
-        return `<tr><td>${esc(s.surname)} ${esc(s.name)}</td>${cells}<td style="text-align:center;font-weight:700">${avg}</td></tr>`;
-      }).join("");
-
-      const html=`<!DOCTYPE html><html lang="uk"><head><meta charset="UTF-8">
-<title>Журнал оцінок — ${esc(groupF||"Всі групи")} — ${dateStr}</title>
+  exportGradebook(format = "csv"){
+    if (!GB.group){ toast("Спочатку виберіть групу", "err"); return; }
+    const d = _gbBuild(_rpRows());
+    if (!d.list.length){ toast("Немає даних для експорту", "err"); return; }
+    const list = [...d.list].sort((a, b) => (a.surname || "").localeCompare(b.surname || "", "uk") || (a.name || "").localeCompare(b.name || "", "uk"));
+    const cell = x => !x ? "" : x.best != null ? x.best : x.pending ? "на перевірці" : "";
+    const dateStr = new Date().toLocaleDateString("uk-UA");
+    const fname = `Журнал ${GB.group} ${dateStr}`;
+    if (format === "csv"){
+      const rows = [["Прізвище", "Ім'я", ...d.cols.map(c => c.title), "Середня"],
+        ...list.map(s => [s.surname, s.name, ...d.cols.map(c => cell(s.cells[c.id])), s.avg == null ? "" : _r1(s.avg)]),
+        ["Середнє по групі", "", ...d.colStats.map(st => st.avg == null ? "" : _r1(st.avg)), _r1(_rpAvg(list.map(s => s.avg).filter(v => v != null)))]];
+      _rpDownload(fname + ".csv", new Blob([_rpCsv(rows)], { type: "text/csv;charset=utf-8" }));
+      toast("CSV завантажено");
+      return;
+    }
+    const col = g => g == null ? "#8691AC" : g >= 10 ? "#15803D" : g >= 7 ? "#1E40AF" : g >= 4 ? "#B45309" : "#B91C1C";
+    const html = `<!DOCTYPE html><html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Журнал оцінок — ${esc(GB.group)} — ${dateStr}</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Arial',sans-serif;padding:40px;background:#f5f7fa;color:#0d1340}
-  h1{font-size:24px;font-weight:700;margin-bottom:4px}
-  .meta{font-size:13px;color:#6b7280;margin-bottom:28px}
-  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px}
-  .stat-card{background:white;border-radius:12px;padding:16px 20px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-  .stat-n{font-size:28px;font-weight:900;line-height:1}
-  .stat-l{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;margin-top:4px}
-  table{width:100%;border-collapse:collapse;background:white;border-radius:14px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.08)}
-  th{background:#1e2d6b;color:white;padding:13px 16px;font-size:12px;text-transform:uppercase;letter-spacing:.5px;text-align:left}
-  th:not(:first-child){text-align:center}
-  td{padding:12px 16px;border-bottom:1px solid #e5e7eb;font-size:14px}
-  td:not(:first-child){text-align:center}
-  tr:last-child td{border-bottom:none}
-  tr:nth-child(even) td{background:#f9faff}
-  .footer{margin-top:20px;font-size:12px;color:#9ca3af;text-align:center}
+  body{font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;padding:32px;background:#F4F6FB;color:#0B1437}
+  h1{font-size:22px;font-weight:800;margin-bottom:4px}
+  .meta{font-size:13px;color:#5B6A8F;margin-bottom:22px}
+  table{border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(11,20,55,.08);min-width:60%}
+  th{background:#1E3A8A;color:#fff;padding:10px 12px;font-size:12px;text-align:center;font-weight:700}
+  th:first-child,td:first-child{text-align:left}
+  td{padding:9px 12px;border-bottom:1px solid #E3E8F2;font-size:14px;text-align:center;font-variant-numeric:tabular-nums}
+  tfoot td{background:#F4F6FB;font-weight:700}
+  .foot{margin-top:16px;font-size:12px;color:#8691AC}
+  @media print{body{background:#fff;padding:0}table{box-shadow:none}th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 </style></head><body>
-<h1>Журнал оцінок${groupF?" — "+esc(groupF):""}</h1>
-<div class="meta">Сформовано ${dateStr} · ${students.length} студентів · ${usedTests.length} тестів · QuizFlow</div>
-<div class="stats">
-  <div class="stat-card"><div class="stat-n" style="color:#2d5be3">${students.length}</div><div class="stat-l">Студентів</div></div>
-  <div class="stat-card"><div class="stat-n" style="color:#0d9e85">${att.filter(a=>a.grade12>=4).length}</div><div class="stat-l">Склали (≥4)</div></div>
-  <div class="stat-card"><div class="stat-n" style="color:#f59e0b">${att.length}</div><div class="stat-l">Всього спроб</div></div>
-</div>
-<table><thead><tr><th>Студент</th>${thHTML}<th>Середня</th></tr></thead>
-<tbody>${rowsHTML}</tbody></table>
-<div class="footer">QuizFlow — система тестування · ${dateStr}</div>
+<h1>Журнал оцінок — ${esc(GB.group)}</h1>
+<div class="meta">${dateStr} · ${list.length} ${_plural(list.length, "студент", "студенти", "студентів")} · ${d.cols.length} ${_plural(d.cols.length, "тест", "тести", "тестів")} · шкала 1–12</div>
+<table><thead><tr><th>Студент</th>${d.cols.map(c => `<th>${esc(c.title)}</th>`).join("")}<th>Середня</th></tr></thead>
+<tbody>${list.map(s => `<tr><td>${esc(s.surname)} ${esc(s.name)}</td>${d.cols.map(c => { const x = s.cells[c.id]; const v = cell(x); return `<td style="color:${col(x?.best)};font-weight:700">${v === "" ? "—" : esc(String(v))}</td>`; }).join("")}<td style="font-weight:800;color:${col(s.avg)}">${_r1(s.avg)}</td></tr>`).join("")}</tbody>
+<tfoot><tr><td>Середнє по групі</td>${d.colStats.map(st => `<td>${_r1(st.avg)}</td>`).join("")}<td>${_r1(_rpAvg(list.map(s => s.avg).filter(v => v != null)))}</td></tr></tfoot></table>
+<div class="foot">Сформовано в QuizFlow · найкраща оцінка з кількох спроб</div>
 </body></html>`;
+    _rpDownload(fname + ".html", new Blob([html], { type: "text/html;charset=utf-8" }));
+    toast("HTML-звіт завантажено");
+  },
 
-      const blob=new Blob([html],{type:"text/html;charset=utf-8"});
-      const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=fname+".html";document.body.appendChild(a);a.click();document.body.removeChild(a);
-      toast("HTML завантажено ✅");
-    }
-  }
-
-,
   // ─── SHARE TEST ──────────────────────────────────────────────────────────────
   _shareTestId: null,
   _shareSelectedUid: null,
@@ -5317,184 +5185,168 @@ selectAnalyticsDrop(field, value, label){
   }
 ,
 
- renderAnalytics(){
-    const testId = document.getElementById("an-test")?.value || "";
-    const groupF = document.getElementById("an-group")?.value || "";
-    const body   = document.getElementById("analytics-body");
-    if(!body) return;
+  // ═══ АНАЛІТИКА ════════════════════════════════════════════════════════
+  renderAnalytics(){
+    const body = $("analytics-body"); if (!body) return;
+    const rows = _rpRows();
+    if (!AN.urlDone){
+      const p = new URLSearchParams(location.search);
+      AN.group = p.get("group") || ""; AN.test = p.get("test") || "";
+      AN.urlDone = true;
+    }
+    if (!AN.bound){
+      AN.bound = true;
+      body.addEventListener("click", e => {
+        const att = e.target.closest("[data-att]"); if (att) return G.viewAtt(att.dataset.att);
+        if (e.target.closest("[data-an-more]")){ AN.showAll = true; G.renderAnalytics(); }
+        if (e.target.closest("[data-an-allq]")){ AN.allQ = !AN.allQ; G.renderAnalytics(); }
+        const t = e.target.closest("[data-an-test]"); if (t){ AN.test = t.dataset.anTest; G.renderAnalytics(); }
+      });
+      _rpBindTips(body);
+    }
+    const gItems = _rpGroupItems(rows, "Усі групи");
+    const inGroup = AN.group ? rows.filter(r => r.group === AN.group) : rows;
+    const tItems = _rpTestItems(inGroup, "Усі тести");
+    if (AN.test && rows.length && !tItems.some(i => i.value === AN.test)) AN.test = "";
+    if (!AN.drops.group && $("an-f-group")){
+      AN.drops.group = qfDrop($("an-f-group"), { items: gItems, value: AN.group, width: 220, searchPlaceholder: "Пошук групи…", icon: _RP_IC_GROUP, onChange: v => { AN.group = v; AN.showAll = false; G.renderAnalytics(); } });
+      AN.drops.test = qfDrop($("an-f-test"), { items: tItems, value: AN.test, width: 280, searchPlaceholder: "Пошук тесту…", icon: _RP_IC_TEST, onChange: v => { AN.test = v; AN.showAll = false; AN.allQ = false; G.renderAnalytics(); } });
+    } else if (AN.drops.group){
+      AN.drops.group.setItems(gItems); AN.drops.group.set(AN.group);
+      AN.drops.test.setItems(tItems); AN.drops.test.set(AN.test);
+    }
+    _rpUrl({ group: AN.group, test: AN.test });
+    const t = AN.test ? tests.find(x => x.id === AN.test) : null;
+    const chip = $("a-chip");
+    if (chip) chip.textContent = [t?.title || (AN.test ? "Тест видалено" : ""), AN.group].filter(Boolean).join(" · ") || "Усі групи й тести";
 
-    // Оновлюємо chip-meta
-    const chip = document.getElementById("a-chip");
-
-    // Поки не обрано групу — не рахуємо аналітику по УСІХ спробах одразу
-    // (саме це гальмувало відкриття сторінки).
-    if(!groupF){
-      if (chip) chip.textContent = "Оберіть групу";
-      body.innerHTML = `<div class="a-empty">
-        <div class="a-empty-ico">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        </div>
-        <div class="a-empty-title">Оберіть групу</div>
-        <div class="a-empty-hint">Щоб побачити аналітику, виберіть групу</div>
-      </div>`;
+    const sel = inGroup.filter(r => !AN.test || r.a.testId === AN.test);
+    if (!sel.length){
+      body.innerHTML = `<div class="rp-empty"><div class="rp-empty-ic">📊</div><b>${rows.length ? "Немає результатів за цими фільтрами" : "Поки немає результатів"}</b><span>${rows.length ? "Оберіть іншу групу або тест" : "Аналітика з'явиться, щойно студенти пройдуть тести"}</span></div>`;
       return;
     }
-    if (chip){
-      const t = tests.find(x => x.id === testId);
-      const parts = [];
-      if (t) parts.push(t.title);
-      if (groupF) parts.push(groupF);
-      chip.textContent = parts.length ? parts.join(" · ") : "Дані за весь період";
+
+    const graded = sel.filter(r => r.grade != null);
+    const grades = graded.map(r => r.grade);
+    const avg = _rpAvg(grades);
+    const pass = grades.filter(g => g >= 4).length, fail = grades.length - pass;
+    const pendN = sel.filter(r => r.a.status === "pending_review").length;
+    const passRate = grades.length ? Math.round(pass / grades.length * 100) : 0;
+    const students = new Set(sel.map(r => r.key)).size;
+
+    // Розподіл оцінок 1–12
+    const dist = Array.from({ length: 12 }, (_, i) => grades.filter(g => g === i + 1).length);
+    const maxC = Math.max(1, ...dist);
+
+    // Динаміка: середня оцінка по тижнях (лише якщо є хоча б 2 тижні з оцінками)
+    const wk = new Map();
+    graded.forEach(r => { if (!r.t) return; const k = _weekStart(r.t); const w = wk.get(k) || { s: 0, n: 0 }; w.s += r.grade; w.n++; wk.set(k, w); });
+    const weeks = [...wk].sort((a, b) => a[0] - b[0]).slice(-12).map(([k, w]) => ({ k, avg: w.s / w.n, n: w.n }));
+    let trend = "";
+    if (weeks.length >= 2){
+      // Ширина — за контейнером, щоб текст осей не збільшувався разом із графіком
+      const W = Math.max(420, Math.round((body.clientWidth || 900) - 40)), H = 180, L = 30, R = 14, T = 12, B = 26;
+      const x = i => L + (W - L - R) * (i / (weeks.length - 1));
+      const y = v => T + (H - T - B) * (1 - v / 12);
+      const fmtW = k => new Date(k).toLocaleDateString("uk-UA", { day: "numeric", month: "short" });
+      const pts = weeks.map((w, i) => `${x(i).toFixed(1)},${y(w.avg).toFixed(1)}`).join(" ");
+      const every = Math.ceil(weeks.length / 6);
+      trend = `<div class="a-card"><div class="a-card-h"><h3>Середня оцінка по тижнях</h3><span class="a-card-h-meta">останні ${weeks.length} ${_plural(weeks.length, "тиждень", "тижні", "тижнів")} з результатами</span></div>
+        <div class="a-card-body"><svg class="a-trend" viewBox="0 0 ${W} ${H}" role="img" aria-label="Середня оцінка по тижнях">
+          ${[4, 8, 12].map(v => `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" class="a-grid"/><text x="${L - 8}" y="${y(v) + 4}" class="a-ax" text-anchor="end">${v}</text>`).join("")}
+          <line x1="${L}" x2="${W - R}" y1="${y(0)}" y2="${y(0)}" class="a-base"/>
+          <polyline points="${pts}" class="a-line"/>
+          ${weeks.map((w, i) => `<circle cx="${x(i)}" cy="${y(w.avg)}" r="4.5" class="a-dot"/>
+            <circle cx="${x(i)}" cy="${y(w.avg)}" r="14" class="a-hit" data-tip="Тиждень з ${fmtW(w.k)}<br><b>ø ${_r1(w.avg)}</b> · ${w.n} ${_plural(w.n, "оцінка", "оцінки", "оцінок")}"/>
+            ${i % every === 0 || i === weeks.length - 1 ? `<text x="${x(i)}" y="${H - 6}" class="a-ax" text-anchor="${i === 0 ? "start" : i === weeks.length - 1 ? "end" : "middle"}">${fmtW(w.k)}</text>` : ""}`).join("")}
+        </svg></div></div>`;
     }
 
-    // Фільтруємо спроби
-    let att = attempts.filter(a => a.status === "completed" || a.status === "pending_review");
-    if(testId)  att = att.filter(a => a.testId === testId);
-    att = att.filter(a => { const l=links.find(x=>x.id===a.linkId); return (l?.group||"") === groupF; });
- 
-    if(!att.length){
-      body.innerHTML = `<div class="a-empty">
-        <div class="a-empty-ico">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M3 20h18"/></svg>
-        </div>
-        <div class="a-empty-title">Немає даних для відображення</div>
-        <div class="a-empty-hint">Оберіть інший тест або змініть фільтри</div>
-      </div>`;
-      return;
+    // Складність питань — лише для одного тесту: частка правильних відповідей на кожне питання
+    let diff = "";
+    if (t && Array.isArray(t.questions) && t.questions.length){
+      const st = new Map(t.questions.map((q, i) => [q.id, { q, i, ok: 0, part: 0, n: 0, skip: 0 }]));
+      sel.forEach(r => (Array.isArray(r.a.answers) ? r.a.answers : []).forEach(a => {
+        const s = st.get(a?.questionId); if (!s) return;
+        const has = a.value !== null && a.value !== undefined && a.value !== "" && !(Array.isArray(a.value) && !a.value.length);
+        if (!has){ s.skip++; return; }
+        s.n++; if (a.correct) s.ok++; else if (a.partial) s.part++;
+      }));
+      const qs = [...st.values()].filter(s => s.n + s.skip > 0).map(s => ({ ...s, pct: s.n ? Math.round((s.ok + s.part * .5) / (s.n + s.skip) * 100) : 0 }))
+        .sort((a, b) => a.pct - b.pct || a.i - b.i);
+      if (qs.length){
+        const shown = AN.allQ ? qs : qs.slice(0, 8);
+        diff = `<div class="a-card"><div class="a-card-h"><h3>Складність питань</h3><span class="a-card-h-meta">частка правильних відповідей · спершу найважчі</span></div>
+          <div class="a-card-body a-qs">${shown.map(s => {
+            const txt = _rpPlain(s.q.text) || "Питання без тексту";
+            return `<div class="a-q" data-tip="Питання ${s.i + 1}<br>правильно ${s.ok}${s.part ? ` · частково ${s.part}` : ""} · неправильно ${s.n - s.ok - s.part}${s.skip ? ` · без відповіді ${s.skip}` : ""}">
+              <span class="a-q-n">${s.i + 1}</span>
+              <span class="a-q-t">${esc(txt.length > 120 ? txt.slice(0, 120) + "…" : txt)}${s.pct < 40 ? `<em>складне</em>` : ""}</span>
+              <span class="a-q-bar"><i style="width:${Math.max(s.pct, 1)}%"></i></span>
+              <span class="a-q-v">${s.pct}%</span>
+            </div>`; }).join("")}
+            ${qs.length > 8 ? `<button type="button" class="a-more" data-an-allq>${AN.allQ ? "Згорнути" : `Показати всі ${qs.length}`}</button>` : ""}
+          </div></div>`;
+      }
+    } else if (!AN.test){
+      // Без обраного тесту — швидкий вибір найчастіших тестів, щоб подивитись складність питань
+      const top = tItems.slice(1).sort((a, b) => b.count - a.count).slice(0, 5);
+      if (top.length) diff = `<div class="a-card"><div class="a-card-h"><h3>Складність питань</h3><span class="a-card-h-meta">оберіть тест</span></div>
+        <div class="a-card-body"><div class="rp-chips" style="justify-content:flex-start;margin:0">${top.map(i => `<button type="button" class="rp-chip" data-an-test="${esc(i.value)}">${esc(i.label)}<i>${i.count}</i></button>`).join("")}</div></div></div>`;
     }
- 
-    const completed = att.filter(a=>a.status==="completed");
-    const grades    = completed.map(a=>a.grade12).filter(g=>g!=null);
-    const avgGrade  = grades.length ? (grades.reduce((s,g)=>s+g,0)/grades.length).toFixed(1) : "—";
-    const maxGrade  = grades.length ? Math.max(...grades) : "—";
-    const minGrade  = grades.length ? Math.min(...grades) : "—";
-    const passCount = grades.filter(g=>g>=4).length;
-    const failCount = grades.filter(g=>g<4).length;
-    const passRate  = grades.length ? Math.round(passCount/grades.length*100) : 0;
- 
-    // Розподіл оцінок 1-12
-    const dist = Array.from({length:12},(_,i)=>({grade:i+1,count:grades.filter(g=>g===i+1).length}));
-    const maxCount = Math.max(...dist.map(d=>d.count),1);
- 
-    // Кольори для оцінок
-    const gradeColor = g => g>=10?"#16A34A":g>=7?"#1E40AF":g>=4?"#F59E0B":"#DC2626";
-    const gradePillCls = g => g>=10?"g-best":g>=7?"g-good":g>=4?"g-mid":"g-bad";
- 
-    // Sparklines (декоративні, статичні — щоб KPI не виглядали голими)
-    const spark = (color, points) => `<svg class="a-kpi-spark" width="130" height="42" viewBox="0 0 130 42">${points}</svg>`;
- 
+
+    // Результати
+    const done = [...graded].sort((a, b) => b.grade - a.grade || b.t - a.t);
+    const lim = AN.showAll ? done : done.slice(0, 30);
+
     body.innerHTML = `
-      <!-- KPI -->
-      <div class="a-kpi-grid">
- 
-        <div class="a-kpi">
-          <div class="a-kpi-l">Всього спроб</div>
-          <div class="a-kpi-v info">${att.length}</div>
-          <div class="a-kpi-d"><span>${completed.length} завершено</span><span>·</span><span>${att.length-completed.length} на перевірці</span></div>
-          ${spark("#3B82F6", `<polyline points="0,32 18,28 36,30 54,22 72,24 90,16 108,18 130,12" fill="none" stroke="#3B82F6" stroke-width="2.2"/>`)}
-        </div>
- 
-        <div class="a-kpi">
-          <div class="a-kpi-l">Середня оцінка</div>
-          <div class="a-kpi-v ${avgGrade!=="—"?gradePillCls(parseFloat(avgGrade)):""}">${avgGrade}${avgGrade!=="—"?'<span style="font-size:14px;font-weight:600;color:var(--ink-400);margin-left:2px">/12</span>':""}</div>
-          <div class="a-kpi-d"><span>мін: <b style="color:var(--ink-700);font-family:'Geist Mono',monospace;font-weight:700">${minGrade}</b></span><span>·</span><span>макс: <b style="color:var(--ink-700);font-family:'Geist Mono',monospace;font-weight:700">${maxGrade}</b></span></div>
-          ${spark("#1E40AF", `<polyline points="0,30 18,26 36,28 54,22 72,18 90,20 108,14 130,10" fill="none" stroke="#1E40AF" stroke-width="2.2"/>`)}
-        </div>
- 
-        <div class="a-kpi">
-          <div class="a-kpi-l">Здали (≥4)</div>
-          <div class="a-kpi-v ok">${passCount}</div>
-          <div class="a-kpi-d"><span class="pos">${passRate}%</span><span>від завершених</span></div>
-          ${spark("#16A34A", `<polyline points="0,34 18,30 36,28 54,22 72,24 90,16 108,12 130,8" fill="none" stroke="#16A34A" stroke-width="2.2"/>`)}
-        </div>
- 
-        <div class="a-kpi">
-          <div class="a-kpi-l">Не здали (&lt;4)</div>
-          <div class="a-kpi-v bad">${failCount}</div>
-          <div class="a-kpi-d"><span class="neg">${grades.length?100-passRate:0}%</span><span>від завершених</span></div>
-          ${spark("#DC2626", `<polyline points="0,18 18,22 36,16 54,24 72,18 90,26 108,22 130,30" fill="none" stroke="#DC2626" stroke-width="2.2"/>`)}
-        </div>
- 
+      <div class="rp-kpis">
+        <div class="rp-kpi"><span>Результатів</span><b>${sel.length}</b><small>${students} ${_plural(students, "студент", "студенти", "студентів")}${pendN ? ` · ${pendN} на перевірці` : ""}</small></div>
+        <div class="rp-kpi"><span>Середня оцінка</span><b class="t-${_rpTone(avg)}">${_r1(avg)}</b><small>${grades.length ? `мін ${Math.min(...grades)} · макс ${Math.max(...grades)}` : "немає оцінок"}</small></div>
+        <div class="rp-kpi"><span>Склали (≥ 4)</span><b class="t-best">${pass}</b><small>${passRate}% оцінених</small></div>
+        <div class="rp-kpi"><span>Не склали (&lt; 4)</span><b class="${fail ? "t-bad" : ""}">${fail}</b><small>${grades.length ? 100 - passRate : 0}% оцінених</small></div>
       </div>
- 
-      <!-- Розподіл оцінок -->
       <div class="a-card">
-        <div class="a-card-h">
-          <h3>Розподіл оцінок</h3>
-          <span class="a-card-h-meta">шкала 1–12 балів</span>
-        </div>
+        <div class="a-card-h"><h3>Розподіл оцінок</h3><span class="a-card-h-meta">${grades.length} ${_plural(grades.length, "оцінка", "оцінки", "оцінок")} · шкала 1–12</span></div>
         <div class="a-card-body">
-          <div class="a-dist">
-            ${dist.map(d=>{
-              const h = d.count ? Math.max(8, Math.round(d.count/maxCount*120)) : 0;
-              const col = gradeColor(d.grade);
-              return `<div class="a-dist-col">
-                <div class="a-dist-cnt" style="color:${d.count?col:"transparent"}">${d.count||"·"}</div>
-                <div class="a-dist-bar-wrap">
-                  <div class="a-dist-bar" style="background:${col};height:${h}px;opacity:${d.count?1:0}"></div>
-                </div>
-                <div class="a-dist-grade">${d.grade}</div>
-              </div>`;
-            }).join("")}
-          </div>
+          <div class="a-dist">${dist.map((c, i) => `<div class="a-dist-col" data-tip="Оцінка ${i + 1}<br><b>${c}</b> ${_plural(c, "результат", "результати", "результатів")}${grades.length ? ` · ${Math.round(c / grades.length * 100)}%` : ""}">
+              <div class="a-dist-cnt">${c || ""}</div>
+              <div class="a-dist-bar-wrap"><div class="a-dist-bar t-${_rpTone(i + 1)}" style="height:${c ? Math.max(4, Math.round(c / maxC * 100)) : 0}%"></div></div>
+              <div class="a-dist-grade">${i + 1}</div>
+            </div>`).join("")}</div>
           <div class="a-dist-legend">
-            <div class="a-dist-legend-item"><i style="background:#16A34A"></i>Відмінно (10–12)</div>
-            <div class="a-dist-legend-item"><i style="background:#1E40AF"></i>Добре (7–9)</div>
-            <div class="a-dist-legend-item"><i style="background:#F59E0B"></i>Задовільно (4–6)</div>
-            <div class="a-dist-legend-item"><i style="background:#DC2626"></i>Незадовільно (1–3)</div>
+            <div class="a-dist-legend-item"><i class="t-best"></i>Відмінно (10–12)</div>
+            <div class="a-dist-legend-item"><i class="t-good"></i>Добре (7–9)</div>
+            <div class="a-dist-legend-item"><i class="t-mid"></i>Задовільно (4–6)</div>
+            <div class="a-dist-legend-item"><i class="t-bad"></i>Незадовільно (1–3)</div>
           </div>
         </div>
       </div>
- 
-      <!-- Топ студентів -->
-      ${completed.length ? `
-      <div class="a-card">
-        <div class="a-card-h">
-          <h3>Результати студентів</h3>
-          <span class="a-card-h-meta">${completed.length} ${completed.length===1?"запис":(completed.length>=2&&completed.length<=4)?"записи":"записів"}</span>
-        </div>
+      ${trend}
+      ${diff}
+      ${done.length ? `<div class="a-card">
+        <div class="a-card-h"><h3>Результати студентів</h3><span class="a-card-h-meta">${done.length} ${_plural(done.length, "запис", "записи", "записів")} · натисніть рядок, щоб відкрити спробу</span></div>
         <table class="a-tbl">
-          <thead><tr>
-            <th class="a-rank" style="width:40px">#</th>
-            <th>Студент</th>
-            <th style="width:90px">Оцінка</th>
-            <th style="width:70px">%</th>
-            <th>Група</th>
-            <th>Дата</th>
-          </tr></thead>
-          <tbody>
-            ${[...completed].sort((a,b)=>(b.grade12||0)-(a.grade12||0)).map((a,i)=>{
-              const g=a.grade12||0;
-              const l=links.find(x=>x.id===a.linkId);
-              const dateStr=a.createdAt?new Date(a.createdAt).toLocaleDateString("uk-UA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"—";
-              const pillCls=gradePillCls(g);
-              const pct = a.score?.percent ?? 0;
-              const pctColor = pct>=70?"#15803D":pct>=40?"#1E40AF":"#B91C1C";
-              return `<tr>
-                <td class="a-rank">${i+1}</td>
-                <td><span class="a-stud">${esc(a.surname||"")} ${esc(a.name||"")}</span></td>
-                <td><span class="a-grade-pill ${pillCls}">${g}/12</span></td>
-                <td class="a-mono" style="font-weight:700;color:${pctColor}">${pct}%</td>
-                <td>${esc(l?.group||"—")}</td>
-                <td class="a-mono" style="color:var(--ink-500);font-size:12px;white-space:nowrap">${dateStr}</td>
-              </tr>`;
-            }).join("")}
-          </tbody>
+          <thead><tr><th class="a-rank">#</th><th>Студент</th><th>Оцінка</th><th>%</th>${AN.group ? "" : "<th>Група</th>"}${AN.test ? "" : "<th>Тест</th>"}<th>Дата</th></tr></thead>
+          <tbody>${lim.map((r, i) => {
+            const tt = AN.test ? null : tests.find(x => x.id === r.a.testId);
+            const pct = r.a.score?.percent;
+            return `<tr data-att="${esc(r.a.id)}">
+              <td class="a-rank">${i + 1}</td>
+              <td><span class="a-stud">${esc(r.a.surname || "")} ${esc(r.a.name || "")}</span></td>
+              <td><span class="a-grade-pill t-${_rpTone(r.grade)}">${r.grade}/12</span></td>
+              <td class="a-mono">${pct != null ? pct + "%" : "—"}</td>
+              ${AN.group ? "" : `<td>${esc(r.group || "—")}</td>`}
+              ${AN.test ? "" : `<td class="a-tt">${esc(tt?.title || "Тест видалено")}</td>`}
+              <td class="a-mono a-date">${r.t ? new Date(r.t).toLocaleDateString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"}</td>
+            </tr>`; }).join("")}</tbody>
         </table>
-      </div>
-      ` : ""}
-    `;
+        ${done.length > lim.length ? `<button type="button" class="a-more" data-an-more>Показати всі ${done.length}</button>` : ""}
+      </div>` : ""}`;
   },
 
-  showStats(testId){
-    showSec("analytics");
-    const sel=document.getElementById("an-test");
-    if(sel){ sel.value=testId; }
-    const lbl=document.getElementById("cd-an-test-label");
-    const t=tests.find(x=>x.id===testId);
-    if(lbl&&t) lbl.textContent=t.title;
-    window.G.renderAnalytics&&window.G.renderAnalytics();
-  },
+  // Кнопка «Статистика» веде сюди з уже вибраним тестом
+  showStats(testId){ location.href = "analytics?test=" + encodeURIComponent(testId); },
 
   // ── Attempt deletion ──────────────────────────────────────────────────────
   confDelAttempt(id, name){ G.confDelAttempts([id], name); },
@@ -5795,6 +5647,7 @@ function _afterAttemptsChanged(){
   if (typeof updateBadges === "function") try { updateBadges(); } catch {}
   const sec = document.querySelector(".sec.on")?.id;
   if(sec==="sec-analytics" && window.G?.renderAnalytics) try { window.G.renderAnalytics(); } catch {}
+  if(sec==="sec-gradebook" && GB.bound) try { G.renderGradebook(); } catch {}
   if(sec==="sec-students" && window.G?.renderStudents) try { window.G.renderStudents(); } catch {}
 }
 function _afterLinksChanged(){
