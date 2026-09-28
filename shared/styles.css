@@ -378,8 +378,11 @@ div[onclick*="setFF"]:hover .folder-actions{opacity:1 !important}
 .fs:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(45,91,227,.08)}
 .fs:focus{border-color:var(--primary)}
 /* MODALS */
-.mo{position:fixed;inset:0;background:rgba(10,15,46,.55);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;padding:12px}
-.mo.on{opacity:1;pointer-events:all}
+/* Закрита модалка — display:none. Раніше всі модалки сторінки (≈18) стояли на весь екран з opacity:0
+   і backdrop-filter:blur: браузер перераховував розмиття кожного кадру, і панель помітно висла.
+   openM() ставить display:flex перед появою, closeM() — none після анімації зникнення. */
+.mo{position:fixed;inset:0;background:rgba(10,15,46,.55);backdrop-filter:blur(6px);z-index:200;display:none;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;padding:12px}
+.mo.on{display:flex;opacity:1;pointer-events:all}
 .mb{background:#fff;border-radius:22px;padding:24px;width:100%;max-width:500px;max-height:94vh;overflow-y:auto;overflow-x:hidden;box-shadow:0 24px 80px rgba(0,0,0,.18);transform:translateY(20px);transition:transform .3s cubic-bezier(.34,1.56,.64,1);position:relative}
 .mo.on .mb{transform:translateY(0)}.mb.wd{max-width:860px}
 .mtl{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;margin-bottom:3px}
