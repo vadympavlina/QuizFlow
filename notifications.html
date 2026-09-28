@@ -5,11 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/><circle cx='24' cy='22' r='5' fill='none' stroke='white' stroke-width='2.2'/><line x1='27.5' y1='25.5' x2='29.5' y2='27.5' stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>">
 <title>QuizFlow — Сповіщення</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css?v=22">
 <link rel="modulepreload" href="shared/app.js?v=22">
-<link rel="modulepreload" href="shared/features.js?v=25">
+<link rel="modulepreload" href="shared/features.js?v=26">
 
 <style>
 /* ── Page tokens (not present in shared styles.css) ── */
@@ -175,8 +176,42 @@
 }
 @keyframes nfPulse{0%,100%{opacity:1}50%{opacity:.35}}
 
-/* Sound button states */
-#sec-notifications .nf-btn.snd-off{opacity:.55}
+/* ── Оновлення: оцінка в іконці, чипи, «показати ще» ── */
+#sec-notifications .notif-ico .g{font-family:"Geist Mono",monospace;font-weight:800;font-size:16px}
+#sec-notifications .notif.can-open{cursor:pointer}
+#sec-notifications .notif:not(.can-open){cursor:default}
+#sec-notifications .notif-title b{font-weight:800}
+#sec-notifications .notif-meta .tag.ok{background:#DCFCE7;color:#15803D}
+#sec-notifications .notif-meta .tag.warn{background:#FEF3C7;color:#B45309}
+#sec-notifications .notif-meta .tag.bad{background:#FEE2E2;color:#B91C1C}
+#sec-notifications .notif-meta .tag.info{background:#DBEAFE;color:#1E40AF}
+#sec-notifications .notif-meta .chip{
+  font-family:"Manrope",sans-serif;font-size:11px;font-weight:600;
+  padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--ink-700);background:#fff;
+}
+#sec-notifications .notif-meta .chip b{font-family:"Geist Mono",monospace;font-weight:800}
+#sec-notifications .notif-meta .chip.ok{border-color:#BBF7D0;color:#15803D;background:#F0FDF4}
+#sec-notifications .notif-meta .chip.info{border-color:#BFDBFE;color:#1E40AF;background:#EFF6FF}
+#sec-notifications .notif-meta .chip.warn{border-color:#FDE68A;color:#B45309;background:#FFFBEB}
+#sec-notifications .notif-meta .chip.bad{border-color:#FECACA;color:#B91C1C;background:#FEF2F2}
+#sec-notifications .notif-meta .chip.live{border-color:#BBF7D0;color:#15803D}
+#sec-notifications .notif-meta .chip.muted{color:var(--ink-400);background:#F8FAFD}
+#sec-notifications .notif-actions{flex-direction:row;align-self:center;opacity:.55;transition:opacity .15s}
+#sec-notifications .notif:hover .notif-actions,#sec-notifications .notif:focus-within .notif-actions{opacity:1}
+#sec-notifications .nf-more{
+  display:block;width:100%;padding:13px;border:0;border-top:1px solid var(--line);background:#FAFBFE;
+  font:inherit;font-size:13px;font-weight:700;color:var(--nav-600);cursor:pointer;font-family:"Manrope",sans-serif;
+}
+#sec-notifications .nf-more:hover{background:#F2F7FF}
+#sec-notifications .nf-btn:disabled{opacity:.45;cursor:default}
+#sec-notifications .nf-tab[hidden]{display:none}
+#sec-notifications .nf-tab.on .cnt.warn{background:#fff;color:var(--nav-600)}
+#sec-notifications .nf-tab .cnt.warn{background:#DBEAFE;color:#1E40AF}
+#sec-notifications .nf-btn.icon svg{width:16px;height:16px}
+#sec-notifications .nf-btn.icon .off{display:none}
+#sec-notifications .nf-btn.icon.snd-off .on{display:none}
+#sec-notifications .nf-btn.icon.snd-off .off{display:block}
+#sec-notifications .nf-btn.snd-off{opacity:1;color:var(--ink-400)}
 </style>
 </head>
 <body>
@@ -186,7 +221,7 @@
   <div style="width:80px;height:80px;background:linear-gradient(135deg,#2d5be3,#4d78ff);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-bottom:28px;box-shadow:0 20px 50px rgba(45,91,227,.4)">
     <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="3"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
   </div>
-  <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;margin-bottom:12px;max-width:320px;line-height:1.3">Мобільна версія недоступна</div>
+  <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:22px;margin-bottom:12px;max-width:320px;line-height:1.3">Мобільна версія недоступна</div>
   <div style="font-size:15px;opacity:.75;max-width:340px;line-height:1.5;margin-bottom:28px">Панель викладача оптимізована для планшетів та комп'ютерів. Відкрийте з ширшого екрану</div>
   <div style="display:inline-flex;gap:8px;background:rgba(255,255,255,.08);padding:10px 18px;border-radius:14px;backdrop-filter:blur(10px);font-size:13px;opacity:.65">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
@@ -197,7 +232,7 @@
 <!-- Initial loader -->
 <div id="app-loader" style="position:fixed;inset:0;background:#f0f3fa;z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .25s ease">
   <div style="width:44px;height:44px;border:3.5px solid rgba(45,91,227,.15);border-top-color:#2d5be3;border-radius:50%;animation:appSpin .8s linear infinite"></div>
-  <div style="font-size:13px;color:#6b7280;margin-top:12px;font-family:'DM Sans',sans-serif">Завантаження...</div>
+  <div style="font-size:13px;color:#6b7280;margin-top:12px;font-family:'Manrope',sans-serif">Завантаження...</div>
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
@@ -210,16 +245,19 @@
     <div class="nf-head">
       <div>
         <h1>Сповіщення</h1>
-        <p><span id="nf-unread-count">0</span> непрочитаних · автоматичне оновлення</p>
+        <p><span id="nf-unread-count">Нових немає</span> · оновлюється автоматично</p>
       </div>
       <div class="nf-actions">
-        <span class="nf-rt">real-time</span>
-        <button class="nf-btn icon" id="notif-sound-btn" onclick="G.toggleNotifSound()" title="Звук сповіщень">🔔</button>
-        <button class="nf-btn" onclick="G.markAllNotifsAsRead()" title="Позначити всі прочитаними">
+        <span class="nf-rt">Наживо</span>
+        <button class="nf-btn icon" id="notif-sound-btn" type="button" onclick="G.toggleNotifSound()" title="Звук сповіщень" aria-label="Звук сповіщень">
+          <svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14"/></svg>
+          <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+        </button>
+        <button class="nf-btn" type="button" onclick="G.markAllNotifsAsRead()" title="Зняти позначку «нове» з усіх">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           Прочитати всі
         </button>
-        <button class="nf-btn danger" onclick="G.clearAllNotifs()">
+        <button class="nf-btn danger" id="nf-clear" type="button" onclick="G.clearAllNotifs()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
           Очистити
         </button>
@@ -230,30 +268,15 @@
     <div class="nf-card">
 
       <div class="nf-tabs-wrap">
-        <div class="nf-tabs" id="nf-tabs">
-          <button class="nf-tab on" data-val="">Всі <span class="cnt" id="cnt-all">0</span></button>
-          <button class="nf-tab" data-val="unread">Непрочитані <span class="cnt warn" id="cnt-unread">0</span></button>
-          <button class="nf-tab" data-val="warn">Підозрілі <span class="cnt" id="cnt-warn">0</span></button>
-          <button class="nf-tab" data-val="completed">Завершили <span class="cnt" id="cnt-completed">0</span></button>
-          <button class="nf-tab" data-val="started">Почали <span class="cnt" id="cnt-started">0</span></button>
+        <div class="nf-tabs" id="nf-tabs" role="tablist">
+          <button type="button" class="nf-tab on" data-val="">Усі <span class="cnt">0</span></button>
+          <button type="button" class="nf-tab" data-val="fresh">Нові <span class="cnt warn">0</span></button>
+          <button type="button" class="nf-tab" data-val="completed">Завершили <span class="cnt">0</span></button>
+          <button type="button" class="nf-tab" data-val="started">Почали <span class="cnt">0</span></button>
+          <button type="button" class="nf-tab" data-val="warn">Підозрілі <span class="cnt">0</span></button>
+          <button type="button" class="nf-tab" data-val="shared" hidden>Від колег <span class="cnt">0</span></button>
         </div>
         <span class="nf-meta-r" id="nf-meta-r">—</span>
-
-        <!-- ОБОВ'ЯЗКОВО для compatibility з G.selectNotifFilter (не видаляти, просто сховано) -->
-        <div class="cd-wrap" id="cd-notif-filter" style="display:none">
-          <div class="cd-menu" id="cd-notif-filter-menu">
-            <div class="cd-item cd-active" data-val="">Всі</div>
-            <div class="cd-item" data-val="warn">Підозрілі</div>
-            <div class="cd-item" data-val="completed">Завершили</div>
-            <div class="cd-item" data-val="started">Почали</div>
-          </div>
-          <select id="notif-filter">
-            <option value="">Всі</option>
-            <option value="warn">Підозрілі</option>
-            <option value="completed">Завершили</option>
-            <option value="started">Почали</option>
-          </select>
-        </div>
       </div>
 
       <div class="nf-list" id="notif-list">
@@ -273,7 +296,7 @@
 
 <script type="module">
 const { initApp } = await import("./shared/app.js?v=22");
-const featuresP = import("./shared/features.js?v=25");
+const featuresP = import("./shared/features.js?v=26");
 
 window.showSec = function(name){
   if (name === "notifications") {
@@ -301,19 +324,7 @@ await featuresP;
 await window.initFeatures();
 
 if (window.renderAll) window.renderAll();
-if (window.G?.renderNotifications) try { window.G.renderNotifications(); } catch {}
-
-// Wire tabs
-document.querySelectorAll("#nf-tabs .nf-tab").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const val = btn.dataset.val || "";
-    document.querySelectorAll("#nf-tabs .nf-tab").forEach(b => b.classList.toggle("on", b === btn));
-    if (window.G?.selectNotifFilter) {
-      const lbl = btn.textContent.trim().split(" ")[0];
-      window.G.selectNotifFilter(val, lbl);
-    }
-  });
-});
+if (window.G?.renderNotifications) try { window.G.renderNotifications(); } catch (e) { console.error(e); }
 
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
