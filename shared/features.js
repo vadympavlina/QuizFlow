@@ -392,7 +392,7 @@ function _nfView(n, aMap){
     text = a ? testT : _nfTxt(n.desc || n.msg);
     if (a?.status === "pending_review") {
       lv = "warn"; ico = _NF_ICO.pending; tag = "На перевірці";
-      chips.push(`<span class="chip warn">⏳ чекає перевірки</span>`);
+      chips.push(`<span class="chip warn">${_svg(_IC.clock, 11)} чекає перевірки</span>`);
     } else if (a && a.grade12 != null) {
       const g = +a.grade12;
       lv = g >= 10 ? "ok" : g >= 7 ? "info" : g >= 4 ? "warn" : "bad";
@@ -404,7 +404,7 @@ function _nfView(n, aMap){
     title = a ? `<b>${who}</b> розпочав(ла) тест` : _nfTxt(n.title);
     text = a ? testT : _nfTxt(n.desc || n.msg);
     ico = _NF_ICO.started;
-    if (a?.status === "in_progress") chips.push(`<span class="chip live">● проходить зараз</span>`);
+    if (a?.status === "in_progress") chips.push(`<span class="chip live"><i class="dot"></i>проходить зараз</span>`);
   } else if (kind === "screenshot") {
     lv = "bad"; tag = "Скріншот"; ico = _NF_ICO.shot;
     title = a ? `<b>${who}</b> зробив(ла) скріншот` : _nfTxt(n.title);
@@ -423,7 +423,7 @@ function _nfView(n, aMap){
     if (a.tabSwitches)  bits.push(`${a.tabSwitches} ${_plural(a.tabSwitches, "вихід", "виходи", "виходів")}`);
     if (a.copyAttempts) bits.push(`${a.copyAttempts} копіюв.`);
     if (a.screenshots)  bits.push(`${a.screenshots} скрін.`);
-    chips.push(`<span class="chip bad">⚑ ${bits.join(" · ") || "підозріла активність"}</span>`);
+    chips.push(`<span class="chip bad">${_svg(_IC.flag, 11)} ${bits.join(" · ") || "підозріла активність"}</span>`);
   }
   if (n.attemptId && !a && kind !== "shared") chips.push(`<span class="chip muted">спробу видалено</span>`);
 
@@ -484,12 +484,12 @@ function showNotification(attempt, type){
   const name = `${attempt.name||""} ${attempt.surname||""}`.trim() || "Студент";
   const testTitle = test?.title || "—";
   const started = type === "started";
-  const icon  = started ? "🎓" : "✅";
+  const icon  = _svg(started ? _IC.play : _IC.check, 18);
   const title = `${name} ${started ? "розпочав(ла)" : "завершив(ла)"} тест`;
   const desc  = !started && attempt.grade12 != null ? `${testTitle} · Оцінка ${attempt.grade12}/12` : testTitle;
   const color = started ? "#2d5be3" : "#0d9e85";
 
-  addNotification({ icon, title, desc, attemptId: attempt.id, type, ts: Date.now() });
+  addNotification({ title, desc, attemptId: attempt.id, type, ts: Date.now() });
 
   // Ім'я й назву пише студент/викладач — у банер лише екрановані
   _notifQueue.push({icon, msg: `<strong>${esc(name)}</strong> · ${esc(desc)}`, color, id: attempt.id});
@@ -526,7 +526,7 @@ function showNotifBanner({icon, msg, color, id}){
     animation:notifIn .3s cubic-bezier(.34,1.56,.64,1);
   `;
   el.innerHTML = `
-    <span style="font-size:20px;flex-shrink:0">${icon}</span>
+    <span style="display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:${color};color:#fff;flex-shrink:0">${icon}</span>
     <div style="flex:1;line-height:1.4">${msg}</div>
     <button onclick="this.closest('[style]').remove()" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:18px;padding:0;line-height:1;flex-shrink:0">×</button>
   `;
@@ -654,12 +654,25 @@ function _suspBadge(){
 }
 // ─── Сторінка «Підозрілі»: стан і хелпери ─────────────────────────────
 const SP = { tab: "open", group: "", test: "", period: "", level: "", sort: "risk", limit: 20, drops: {}, bound: false, open: new Set(), fresh: new Set(), seen: null };
+// Іконки-SVG замість емодзі (див. CLAUDE.md)
+const _svg = (d, w = 13) => `<svg class="ic" width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const _IC = {
+  swap:   '<path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/>',
+  window: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/>',
+  copy:   '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>',
+  camera: '<path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/>',
+  code:   '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
+  clock:  '<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>',
+  flag:   '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>',
+  check:  '<polyline points="20 6 9 17 4 12"/>',
+  play:   '<polygon points="6 4 20 12 6 20 6 4"/>',
+};
 const _SP_EV = {
-  tab_hidden:   ["🔄", "Відкрив(ла) іншу вкладку"],
-  window_blur:  ["🪟", "Перейшов(ла) в інше вікно"],
-  copy_attempt: ["📋", "Спроба скопіювати текст"],
-  screenshot:   ["📸", "Спроба зробити скріншот"],
-  devtools:     ["🛠", "Спроба відкрити інструменти розробника"],
+  tab_hidden:   [_IC.swap, "Відкрив(ла) іншу вкладку"],
+  window_blur:  [_IC.window, "Перейшов(ла) в інше вікно"],
+  copy_attempt: [_IC.copy, "Спроба скопіювати текст"],
+  screenshot:   [_IC.camera, "Спроба зробити скріншот"],
+  devtools:     [_IC.code, "Спроба відкрити інструменти розробника"],
 };
 function _spMMSS(ms){
   const s = Math.max(0, Math.round(ms / 1000));
@@ -674,12 +687,12 @@ function _spCase(c){
   let h = 0; for (const ch of who) h = (h * 31 + ch.charCodeAt(0)) | 0;
   const ava = ["", "b", "g", "o", "r"][Math.abs(h) % 5];
   const when = c.at ? new Date(c.at).toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—";
-  const grade = a.status === "pending_review" ? `<span class="case-grade warn">⏳ на перевірці</span>`
+  const grade = a.status === "pending_review" ? `<span class="case-grade warn">${_svg(_IC.clock, 12)} на перевірці</span>`
     : a.grade12 != null ? `<span class="case-grade ${_stTone(+a.grade12)}"><b>${+a.grade12}</b>/12</span>` : "";
   const tags = [
-    a.tabSwitches  ? `<span class="case-tag tabs" title="Виходи з тесту (вкладка/вікно)">🔄 ${a.tabSwitches}</span>` : "",
-    a.copyAttempts ? `<span class="case-tag copies" title="Спроби копіювання">📋 ${a.copyAttempts}</span>` : "",
-    a.screenshots  ? `<span class="case-tag shots" title="Спроби скріншоту">📸 ${a.screenshots}</span>` : "",
+    a.tabSwitches  ? `<span class="case-tag tabs" title="Виходи з тесту (вкладка/вікно)">${_svg(_IC.swap, 11)} ${a.tabSwitches}</span>` : "",
+    a.copyAttempts ? `<span class="case-tag copies" title="Спроби копіювання">${_svg(_IC.copy, 11)} ${a.copyAttempts}</span>` : "",
+    a.screenshots  ? `<span class="case-tag shots" title="Спроби скріншоту">${_svg(_IC.camera, 11)} ${a.screenshots}</span>` : "",
   ].join("");
 
   const concl = [];
@@ -695,8 +708,8 @@ function _spCase(c){
   const evs = evRaw.filter(e => e && e.time).sort((x, y) => x.time - y.time);
   const timeline = evs.length ? `<div class="case-section-l">Хронологія · ${evs.length} ${_plural(evs.length, "подія", "події", "подій")}</div>
     <ol class="sp-tl">${evs.slice(0, 30).map(e => {
-      const [ico, txt] = _SP_EV[e.type] || ["•", ""];
-      return `<li><span class="tm">${start && e.time >= start ? "+" + _spMMSS(e.time - start) : new Date(e.time).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })}</span><span class="ic">${ico}</span><span>${esc(txt || e.description || e.type || "Подія")}</span></li>`;
+      const [ico, txt] = _SP_EV[e.type] || ['<circle cx="12" cy="12" r="3"/>', ""];
+      return `<li><span class="tm">${start && e.time >= start ? "+" + _spMMSS(e.time - start) : new Date(e.time).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })}</span><span class="ic">${_svg(ico, 14)}</span><span>${esc(txt || e.description || e.type || "Подія")}</span></li>`;
     }).join("")}${evs.length > 30 ? `<li class="more">і ще ${evs.length - 30}…</li>` : ""}</ol>` : "";
 
   const meter = (cls, ico, label, v, mul) => `<div class="meter ${v ? cls : "zero"}">
@@ -707,7 +720,7 @@ function _spCase(c){
     <div class="case-h" data-sp-toggle role="button" tabindex="0" aria-expanded="${SP.open.has(a.id)}">
       <div class="case-ava ${ava}">${esc(initials)}</div>
       <div class="case-info">
-        <div class="case-name">${SP.fresh.has(a.id) && !c.reviewed ? `<span class="case-new">нове</span>` : ""}${esc(who)}${c.reviewed ? `<span class="case-ok">✓ переглянуто</span>` : ""}</div>
+        <div class="case-name">${SP.fresh.has(a.id) && !c.reviewed ? `<span class="case-new">нове</span>` : ""}${esc(who)}${c.reviewed ? `<span class="case-ok">${_svg(_IC.check, 11)} переглянуто</span>` : ""}</div>
         <div class="case-sub">${esc(t?.title || "Видалений тест")}${c.group ? ` · ${esc(c.group)}` : ""} · ${when}</div>
       </div>
       <div class="case-right">
@@ -720,9 +733,9 @@ function _spCase(c){
     </div>
     <div class="case-body">
       <div class="meters">
-        ${meter("tabs", "🔄", "Виходи з тесту", a.tabSwitches, 2)}
-        ${meter("copies", "📋", "Копіювання", a.copyAttempts, 3)}
-        ${meter("shots", "📸", "Скріншоти", a.screenshots, 5)}
+        ${meter("tabs", _svg(_IC.swap, 12), "Виходи з тесту", a.tabSwitches, 2)}
+        ${meter("copies", _svg(_IC.copy, 12), "Копіювання", a.copyAttempts, 3)}
+        ${meter("shots", _svg(_IC.camera, 12), "Скріншоти", a.screenshots, 5)}
       </div>
       ${timeline}
       <div class="case-concl ${lv}">
@@ -4856,7 +4869,6 @@ window.G = {
       const senderName=esc(_user.name||_user.login);
       const testName=esc(test.title);
       await _s(nRef,{
-        icon:"🔗",
         title:"Новий тест від "+senderName,
         msg:"<strong>"+senderName+"</strong> поділився тестом «<strong>"+testName+"</strong>»",
         color:"#2d5be3", read:false, ts:ts(),
