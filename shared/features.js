@@ -4847,9 +4847,7 @@ async function loadTeacherNews(){
     _newsLoaded = true;
     renderNews();
     updateNewsBadge();
-    // news?id=… — одразу відкрити новину (посилання з дашборду чи від колеги)
-    const nid = $("news-teacher-list") && new URLSearchParams(location.search).get("id");
-    if (nid && _newsItems.some(n => n.id === nid)) openNews(nid);
+
   }catch(e){ console.warn("loadTeacherNews:",e.message); }
 }
 
@@ -4885,11 +4883,13 @@ function renderDashNews(){
 }
 
 const _NW_IC = {
-  news: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h6M7 17h4"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/></svg>',
-  pin:  '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 3h6l-1 6 4 4H6l4-4z"/></svg>',
-  go:   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
-  search: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
-  check:  '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  news:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h6M7 17h4"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/></svg>',
+  pin:    '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 3h6l-1 6 4 4H6l4-4z"/></svg>',
+  prev:   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>',
+  next:   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+  link:   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>',
+  search: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  check:  '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
 };
 const _nwWhen = n => n.publishedAt || n.createdAt || 0;
 // Підсвічування збігу пошуку — у вже екранованому тексті
@@ -4899,16 +4899,32 @@ const _nwMark = (s, q) => {
   const qe = esc(q).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return e.replace(new RegExp(qe, "gi"), m => `<mark>${m}</mark>`);
 };
+let _nwSel = null;          // відкрита в читанні новина
+let _nwShown = [];          // поточний відфільтрований список (для ↑↓)
 
 function _nwBind(){
   _nwBound = true;
   $("nw-filter")?.addEventListener("click", e => { const b = e.target.closest("[data-f]"); if (b) setNewsFilter(b.dataset.f); });
   $("nw-cats")?.addEventListener("click", e => { const b = e.target.closest("[data-cat]"); if (b){ _newsCat = _newsCat === b.dataset.cat ? "" : b.dataset.cat; renderNews(); } });
   $("nw-q")?.addEventListener("input", e => setNewsQuery(e.target.value));
-  const list = $("news-teacher-list");
-  list?.addEventListener("click", e => {
+  $("news-teacher-list")?.addEventListener("click", e => {
     if (e.target.closest("[data-nw-reset]")){ _newsCat = ""; _newsFilter = "all"; _newsQuery = ""; const q = $("nw-q"); if (q) q.value = ""; renderNews(); return; }
     const b = e.target.closest("[data-nid]"); if (b) openNews(b.dataset.nid);
+  });
+  $("nw-reader")?.addEventListener("click", e => {
+    const b = e.target.closest("[data-nw-go]"); if (b) return openNews(b.dataset.nwGo);
+    if (e.target.closest("[data-nw-copy]")){
+      const url = `${location.origin}${location.pathname}?id=${encodeURIComponent(_nwSel)}`;
+      navigator.clipboard?.writeText(url).then(() => toast("Посилання скопійовано"), () => toast("Не вдалося скопіювати", "err"));
+    }
+  });
+  // ↑↓ (або j/k) — гортати список, коли фокус не в полі вводу
+  document.addEventListener("keydown", e => {
+    if (!_nwSel || e.target.closest("input, textarea, [contenteditable]") || document.querySelector(".mo.on")) return;
+    const d = e.key === "ArrowDown" || e.key === "j" ? 1 : e.key === "ArrowUp" || e.key === "k" ? -1 : 0;
+    if (!d) return;
+    const i = _nwShown.findIndex(n => n.id === _nwSel), n = _nwShown[i + d];
+    if (n){ e.preventDefault(); openNews(n.id); }
   });
 }
 
@@ -4928,75 +4944,80 @@ function renderNews(){
   document.querySelectorAll("#nw-filter [data-f]").forEach(b => { b.classList.toggle("on", b.dataset.f === _newsFilter); b.setAttribute("aria-selected", b.dataset.f === _newsFilter); });
   const cntU = $("nw-f-unread"); if (cntU) cntU.textContent = unread || "";
 
-  // Категорії — лише ті, що є
   const cats = $("nw-cats");
   if (cats){
     const used = Object.entries(NEWS_CATS).map(([k, c]) => [k, c, _newsItems.filter(n => n.category === k).length]).filter(x => x[2]);
     if (_newsCat && !used.some(x => x[0] === _newsCat)) _newsCat = "";
-    cats.innerHTML = used.length > 1 ? used.map(([k, c, n]) => `<button type="button" class="nw-cf${_newsCat === k ? " on" : ""}" data-cat="${k}" style="--c:${c.color};--cb:${c.bg}" aria-pressed="${_newsCat === k}"><i></i>${esc(c.label)}<small>${n}</small></button>`).join("") : "";
+    cats.hidden = used.length < 2;
+    cats.innerHTML = used.map(([k, c, n]) => `<button type="button" class="nw-cf${_newsCat === k ? " on" : ""}" data-cat="${k}" style="--c:${c.color};--cb:${c.bg}" aria-pressed="${_newsCat === k}"><i></i>${esc(c.label)}<small>${n}</small></button>`).join("");
   }
 
+  const wrap = $("nw-wrap");
   if (!total){
-    list.innerHTML = `<div class="nw-empty"><div class="ei">${_NW_IC.news}</div><div class="et">Поки що тут тихо</div>
-      <div class="es">Тут з'являтимуться оновлення платформи, нові функції та поради від команди QuizFlow.</div></div>`;
+    wrap?.classList.add("empty");
+    list.innerHTML = "";
+    const r = $("nw-reader");
+    if (r) r.innerHTML = `<div class="nw-blank"><span class="ei">${_NW_IC.news}</span><b>Поки що тут тихо</b><span>Тут з'являтимуться оновлення платформи, нові функції та поради від команди QuizFlow.</span></div>`;
     return;
   }
+  wrap?.classList.remove("empty");
 
   const q = _newsQuery.trim().toLowerCase();
-  const items = _newsItems.filter(n => (_newsFilter !== "unread" || !_readNews.has(n.id))
+  _nwShown = _newsItems.filter(n => (_newsFilter !== "unread" || !_readNews.has(n.id) || n.id === _nwSel)
     && (!_newsCat || n.category === _newsCat)
     && (!q || (n.title || "").toLowerCase().includes(q) || newsPlainText(n.text).toLowerCase().includes(q)));
-  if (!items.length){
+
+  if (!_nwShown.length){
     const onlyUnread = _newsFilter === "unread" && !q && !_newsCat;
-    list.innerHTML = `<div class="nw-empty"><div class="ei">${onlyUnread ? _NW_IC.check : _NW_IC.search}</div>
-      <div class="et">${onlyUnread ? "Усе прочитано" : "Нічого не знайдено"}</div>
-      <div class="es">${onlyUnread ? "Нових публікацій немає." : "Спробуйте інший запит або"} <button type="button" class="nw-link" data-nw-reset>${onlyUnread ? "Показати всі" : "скиньте фільтри"}</button></div></div>`;
-    return;
+    list.innerHTML = `<div class="nw-list-empty"><span class="ei">${onlyUnread ? _NW_IC.check : _NW_IC.search}</span>
+      <b>${onlyUnread ? "Усе прочитано" : "Нічого не знайдено"}</b>
+      <button type="button" class="nw-link" data-nw-reset>${onlyUnread ? "Показати всі" : "Скинути фільтри"}</button></div>`;
+  } else {
+    list.innerHTML = _nwShown.map(n => {
+      const c = catOf(n), isNew = !_readNews.has(n.id);
+      return `<button type="button" class="nw-li${n.id === _nwSel ? " sel" : ""}${isNew ? " unread" : ""}" data-nid="${esc(n.id)}" style="${c ? `--c:${c.color};--cb:${c.bg}` : ""}" aria-current="${n.id === _nwSel}">
+        <span class="nw-li-top">
+          ${c ? `<span class="nw-li-cat">${esc(c.label)}</span>` : `<span class="nw-li-cat">Новина</span>`}
+          ${n.pinned ? `<span class="nw-li-pin" title="Закріплено">${_NW_IC.pin}</span>` : ""}
+          <span class="nw-li-d">${esc(_newsDate(n, { day: "numeric", month: "short" }))}</span>
+        </span>
+        <span class="nw-li-t">${isNew ? `<i class="nw-dot" title="Не прочитано"></i>` : ""}${_nwMark(n.title || "—", q)}</span>
+        <span class="nw-li-x">${_nwMark(newsExcerpt(n, 140), q)}</span>
+      </button>`;
+    }).join("");
+    list.querySelector(".nw-li.sel")?.scrollIntoView({ block: "nearest" });
   }
 
-  const catVars = c => c ? `--c:${c.color};--cb:${c.bg}` : "";
-  const newMark = n => _readNews.has(n.id) ? "" : `<span class="nw-new">Нове</span>`;
-  const hero = !q && !_newsCat && _newsFilter === "all" ? items.find(n => n.pinned) : null;
-  let html = "";
-  if (hero){
-    const c = catOf(hero);
-    html += `<button type="button" class="nw-pin" data-nid="${esc(hero.id)}" style="${catVars(c)}">
-      <span class="nw-pin-ic">${_NW_IC.news}</span>
-      <span class="nw-pin-b">
-        <span class="nw-meta"><span class="nw-pinmark">${_NW_IC.pin}Закріплено</span>${_newsCatPill(hero)}${newMark(hero)}</span>
-        <span class="nw-pin-t" style="display:block">${esc(hero.title || "—")}</span>
-        <span class="nw-pin-x" style="display:block">${esc(newsExcerpt(hero, 220))}</span>
-        <span class="nw-meta" style="margin-top:10px"><span class="d">${esc(_newsDate(hero))}</span>·<span>${readMinutes(hero.text)} хв читання</span></span>
-      </span>
-      <span class="nw-pin-go">Читати ${_NW_IC.go}</span>
-    </button>`;
+  // Що показати в читанні: вибрана → з адреси → перша непрочитана → перша
+  if (!_nwSel || !_newsItems.some(n => n.id === _nwSel)){
+    const fromUrl = new URLSearchParams(location.search).get("id");
+    const pick = _newsItems.find(n => n.id === fromUrl) || _nwShown.find(n => !_readNews.has(n.id)) || _nwShown[0] || _newsItems[0];
+    if (pick) openNews(pick.id);
   }
-  const rest = hero ? items.filter(n => n !== hero) : items;
-  let month = null, open = false;
-  rest.forEach(n => {
-    const d = new Date(_nwWhen(n));
-    const m = _nwWhen(n) ? d.toLocaleDateString("uk-UA", { month: "long", year: "numeric" }).replace(" р.", "") : "Без дати";
-    if (m !== month){
-      if (open) html += `</div>`;
-      month = m; open = true;
-      html += `<div class="nw-month">${esc(m.charAt(0).toUpperCase() + m.slice(1))}</div><div class="nw-group">`;
-    }
-    const c = catOf(n);
-    html += `<button type="button" class="nw-row${_readNews.has(n.id) ? "" : " unread"}" data-nid="${esc(n.id)}" style="${catVars(c)}">
-      <span class="bar"></span>
-      <span class="b">
-        <span class="nw-meta">${_newsCatPill(n)}${n.pinned ? `<span class="nw-pinmark">${_NW_IC.pin}Закріплено</span>` : ""}${newMark(n)}<span class="d">${esc(_newsDate(n, { day: "numeric", month: "short" }))}</span>·<span>${readMinutes(n.text)} хв</span></span>
-        <span class="t">${_nwMark(n.title || "—", q)}</span>
-        <span class="x">${_nwMark(newsExcerpt(n, 200), q)}</span>
-      </span>
-      <span class="go">${_NW_IC.go}</span>
-    </button>`;
-  });
-  if (open) html += `</div>`;
-  list.innerHTML = html;
 }
 
-// Прочитане дописуємо ключами {id: true}: дві вкладки не перетирають одна одну
+function _nwRenderReader(n){
+  const r = $("nw-reader"); if (!r) return;
+  const c = catOf(n);
+  const i = _nwShown.findIndex(x => x.id === n.id);
+  const prev = i > 0 ? _nwShown[i - 1] : null, next = i >= 0 ? _nwShown[i + 1] : null;
+  r.style.cssText = c ? `--c:${c.color};--cb:${c.bg}` : "";
+  r.innerHTML = `<article class="nw-art">
+      <div class="nw-art-meta">
+        ${c ? `<span class="nw-cat" style="--c:${c.color};--cb:${c.bg}">${esc(c.label)}</span>` : `<span class="nw-cat">Новина</span>`}
+        ${n.pinned ? `<span class="nw-cat pin">${_NW_IC.pin} Закріплено</span>` : ""}
+        <span class="nw-art-d">${esc(_newsDate(n))} · ${readMinutes(n.text)} хв читання</span>
+        <button type="button" class="nw-art-copy" data-nw-copy title="Скопіювати посилання на новину">${_NW_IC.link}</button>
+      </div>
+      <h2 class="nw-art-t">${esc(n.title || "—")}</h2>
+      <div class="nw-art-body nv-text">${sanitizeNewsHtml(n.text)}</div>
+    </article>
+    <nav class="nw-art-nav">
+      ${prev ? `<button type="button" class="nw-step" data-nw-go="${esc(prev.id)}"><small>${_NW_IC.prev} Новіша</small><span>${esc(prev.title || "")}</span></button>` : "<span></span>"}
+      ${next ? `<button type="button" class="nw-step next" data-nw-go="${esc(next.id)}"><small>Старіша ${_NW_IC.next}</small><span>${esc(next.title || "")}</span></button>` : ""}
+    </nav>`;
+}
+
 async function _saveReadNews(ids){
   const upd = {};
   (ids || [..._readNews]).forEach(id => { if (/^[\w-]{1,64}$/.test(id)) upd[id] = true; });
@@ -5010,6 +5031,17 @@ window.openNews = async (id) => {
   const idx=_newsItems.findIndex(x=>x.id===id);
   const n=_newsItems[idx];
   if(!n) return;
+  // Сторінка «Новини» — читання в правій панелі; деінде (дашборд) — модалка
+  if($("nw-reader")){
+    _nwSel = id;
+    history.replaceState(null, "", `${location.pathname}?id=${encodeURIComponent(id)}`);
+    if(!_readNews.has(id)){ _readNews.add(id); updateNewsBadge(); _saveReadNews([id]); }
+    renderNews();
+    _nwRenderReader(n);
+    $("nw-reader").scrollTop = 0;
+    if ($("nw-reader").getBoundingClientRect().top < 0) $("nw-reader").scrollIntoView({ block: "start", behavior: "smooth" });
+    return;
+  }
   const c=catOf(n);
   const cat=$("news-view-cat");
   if(cat){ cat.innerHTML = c ? `<span class="nw-cat" style="--c:${c.color};--cb:${c.bg}">${esc(c.label)}</span>` : `<span class="nw-cat">Новина</span>`; if(n.pinned) cat.innerHTML += `<span class="nw-cat pin">Закріплено</span>`; }
