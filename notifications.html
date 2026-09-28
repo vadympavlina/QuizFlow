@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css?v=22">
 <link rel="modulepreload" href="shared/app.js?v=22">
-<link rel="modulepreload" href="shared/features.js?v=27">
+<link rel="modulepreload" href="shared/features.js?v=28">
 
 <style>
 /* ── Page tokens (not present in shared styles.css) ── */
@@ -202,6 +202,8 @@
   display:block;width:100%;padding:13px;border:0;border-top:1px solid var(--line);background:#FAFBFE;
   font:inherit;font-size:13px;font-weight:700;color:var(--nav-600);cursor:pointer;font-family:"Manrope",sans-serif;
 }
+#sec-notifications .notif-meta .chip{display:inline-flex;align-items:center;gap:4px}
+#sec-notifications .notif-meta .chip .dot{width:6px;height:6px;border-radius:50%;background:#22C55E;animation:nfPulse 1.4s infinite}
 #sec-notifications .nf-more:hover{background:#F2F7FF}
 #sec-notifications .nf-btn:disabled{opacity:.45;cursor:default}
 #sec-notifications .nf-tab[hidden]{display:none}
@@ -296,7 +298,7 @@
 
 <script type="module">
 const { initApp } = await import("./shared/app.js?v=22");
-const featuresP = import("./shared/features.js?v=27");
+const featuresP = import("./shared/features.js?v=28");
 
 window.showSec = function(name){
   if (name === "notifications") {
