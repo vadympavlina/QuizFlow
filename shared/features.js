@@ -118,6 +118,71 @@ const dbDel  = async path => { const r = await remove(ref(db, tp(path))); _bust(
 // Стан (деякі модалки/функції з G використовують ці змінні)
 let _students = [], _fid = null, _pid = null;
 
+// ═════════════════════════════════════════════════════════════════════
+// СТУДЕНТИ: картка (teachers/{uid}/students) + живі спроби
+// Картку створює сторінка тесту, і список спроб у ній лише копія: видалена
+// спроба в ній лишалась, «на перевірці» рахувалась як 0, а пізніше виставлена
+// оцінка не підтягувалась. Тепер усі цифри рахуються з самих спроб; картка
+// дає лише ім'я, групи, архів і прив'язку (id спроб + studentIndex).
+// ═════════════════════════════════════════════════════════════════════
+let _stIndex = {};           // studentIndex: ключ імені → id картки
+let _stCache = null, _stReloadAt = 0, _stReloadN = 0;
+// Те саме, що nameKey() у test.html — інакше індекс не збігатиметься
+const _stKey = (name, surname) => `${String(surname || "").trim()}_${String(name || "").trim()}`.toLowerCase()
+  .replace(/\s+/g, " ").replace(/[.#$\[\]\/\x00-\x1f\x7f]/g, "_").slice(0, 200) || "_";
+const _stTone = g => g == null ? "" : g >= 10 ? "ok" : g >= 7 ? "info" : g >= 4 ? "warn" : "bad";
+const _stColor = g => g == null ? "var(--ink-400)" : g >= 10 ? "#15803D" : g >= 7 ? "#1E40AF" : g >= 4 ? "#B45309" : "#B91C1C";
+const _stColorOnDark = g => g == null ? "#fff" : g >= 10 ? "#4ADE80" : g >= 7 ? "#93C5FD" : g >= 4 ? "#FCD34D" : "#FCA5A5";
+const _stFmt1 = v => v == null ? "—" : (Math.round(v * 10) / 10).toLocaleString("uk-UA");
+
+function _stDerive(){
+  if (_stCache && _stCache.a === attempts && _stCache.s === _students && _stCache.t === tests && _stCache.l === links) return _stCache.list;
+  const byId = new Map(_students.map(c => [c.id, c]));
+  const keyTo = new Map();
+  _students.forEach(c => keyTo.set(_stKey(c.name, c.surname), c.id));
+  Object.entries(_stIndex || {}).forEach(([k, id]) => { if (byId.has(id) && !keyTo.has(k)) keyTo.set(k, id); });
+  const own = new Map();   // id спроби → id картки (зі списку в картці)
+  _students.forEach(c => (Array.isArray(c.attempts) ? c.attempts : Object.values(c.attempts || {}))
+    .forEach(e => { const aid = e?.attemptId || e?.id; if (aid && !own.has(aid)) own.set(aid, c.id); }));
+  const tMap = new Map(tests.map(t => [t.id, t])), lMap = new Map(links.map(l => [l.id, l]));
+  const acc = new Map(_students.map(c => [c.id, []]));
+  let orphans = 0;
+  for (const a of attempts){
+    if (a.status !== "completed" && a.status !== "pending_review") continue;
+    const cid = own.get(a.id) || keyTo.get(_stKey(a.name, a.surname));
+    if (!cid || !acc.has(cid)){ orphans++; continue; }
+    acc.get(cid).push(a);
+  }
+  const list = _students.map(c => {
+    const at = acc.get(c.id).map(a => {
+      const g = Number(a.grade12);
+      return {
+        id: a.id, testId: a.testId, title: tMap.get(a.testId)?.title || "Тест видалено",
+        grade: a.status === "completed" && a.grade12 != null && a.grade12 !== "" && Number.isFinite(g) ? g : null,
+        pending: a.status === "pending_review", percent: a.score?.percent ?? null,
+        date: a.finishedAt || a.createdAt || 0, group: a.group || lMap.get(a.linkId)?.group || "",
+        flags: (a.tabSwitches || 0) + (a.copyAttempts || 0) + (a.screenshots || 0),
+      };
+    }).sort((x, y) => x.date - y.date);
+    const g = at.filter(x => x.grade != null).map(x => x.grade);
+    return {
+      ...c, _att: at, _graded: g,
+      _avg: g.length ? g.reduce((s, v) => s + v, 0) / g.length : null,
+      _best: g.length ? Math.max(...g) : null,
+      _pass: g.length ? Math.round(g.filter(v => v >= 4).length / g.length * 100) : null,
+      _pending: at.filter(x => x.pending).length,
+      _flags: at.filter(x => x.flags > 0).length,
+      _last: at.length ? at[at.length - 1].date : (c.lastSeen || 0),
+      _groups: [...new Set([...(c.groups || []), ...at.map(x => x.group)].filter(Boolean))],
+    };
+  });
+  _stCache = { a: attempts, s: _students, t: tests, l: links, list, orphans };
+  // Спроба без картки (картку щойно створили) — підтягуємо картки ще раз, не частіше ніж раз на 10 с
+  if (orphans && _stReloadN < 5 && Date.now() - _stReloadAt > 10000 && $("students-body")){ _stReloadAt = Date.now(); _stReloadN++; setTimeout(() => G.initStudents?.(true), 300); }
+  return list;
+}
+const _stFind = id => _stDerive().find(s => s.id === id);
+
 // ─── buildChips: відображає вибрану папку у модалці m-test (в існуючий #nt-chips) ─
 function buildChips(){
   // Рендеримо в елемент #nt-chips який вже є в modals.html
@@ -1857,10 +1922,12 @@ function _atSyncDrops(rows){
 function _atApplyUrl(rows){
   if (AT.urlDone) return;
   const p = new URLSearchParams(location.search);
-  if (!p.has("test") && !p.has("group") && !p.has("status")){ AT.urlDone = true; return; }
+  if (!p.has("test") && !p.has("group") && !p.has("status") && !p.has("q")){ AT.urlDone = true; return; }
   if (p.get("test") && !rows.length && !tests.length) return;   // дані ще не прийшли
   AT.urlDone = true;
   AT.test = p.get("test") || ""; AT.group = p.get("group") || "";
+  AT.q = p.get("q") || "";
+  if (AT.q && $("att-srch")){ $("att-srch").value = AT.q; $("att-srch-wrap")?.classList.add("has-q"); }
   const s = p.get("status"); if (["completed", "in_progress", "pending_review", "flagged"].includes(s)) AT.status = s;
 }
 
@@ -3299,459 +3366,253 @@ window.G = {
   },
 
 
-  // ─── ЗАМІНИТИ метод initStudents: ───────────────────────────────────────────
- 
-   async initStudents(){
-    // Завантажуємо студентів з Firebase
+  // ═══ СТУДЕНТИ ═════════════════════════════════════════════════════════
+  async initStudents(reload){
     try {
-      const snap = await dbGet("students");
+      const [snap, idx] = await Promise.all([dbGet("students"), dbGet("studentIndex").catch(() => null)]);
       _students = snap.exists()
-        ? Object.entries(snap.val()).map(([id,v]) => ({ id, ...v }))
-            .sort((a,b) => (a.surname || "").localeCompare(b.surname || "", "uk"))
+        ? Object.entries(snap.val()).map(([id, v]) => ({ ...v, id }))
+            .sort((a, b) => (a.surname || "").localeCompare(b.surname || "", "uk") || (a.name || "").localeCompare(b.name || "", "uk"))
         : [];
-    } catch(e) { _students = []; }
- 
-    // Бейдж sidebar
-    const badge = $("nb-students");
-    if (badge) { badge.textContent = _students.filter(s=>!s.archived).length; badge.style.display = _students.length ? "" : "none"; }
-
-    // Вкладки Активні / Архів
+      _stIndex = idx?.val() || {};
+    } catch (e) { if (!reload) _students = []; }
+    _stCache = null;
     if (window._stTab == null) window._stTab = "active";
-    const ctActive = document.getElementById("st-ct-active");
-    const ctArchived = document.getElementById("st-ct-archived");
-    if (ctActive) ctActive.textContent = _students.filter(s=>!s.archived).length;
-    if (ctArchived) ctArchived.textContent = _students.filter(s=>s.archived).length;
-    const tabSeg = document.getElementById("st-tab-seg");
+    if (window._stGroup == null){
+      const p = new URLSearchParams(location.search);
+      window._stGroup = p.get("group") || "";
+      if (p.get("q") && $("student-srch")) $("student-srch").value = p.get("q");
+    }
+    const tabSeg = $("st-tab-seg");
     if (tabSeg && !tabSeg.dataset.wired){
       tabSeg.dataset.wired = "1";
       tabSeg.addEventListener("click", e => {
-        const btn = e.target.closest("button[data-tab]");
-        if (!btn) return;
+        const btn = e.target.closest("button[data-tab]"); if (!btn) return;
         window._stTab = btn.dataset.tab;
-        tabSeg.querySelectorAll("button").forEach(b => b.classList.toggle("on", b===btn));
-        window._stFiltersChanged = true;
-        window._selectedStId = null;
+        tabSeg.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === btn));
+        window._stFiltersChanged = true; window._selectedStId = null;
         G.renderStudents();
       });
-    }
- 
-    // Групи — рахуємо ЗАНОВО щоразу (не кешуємо), і лише з активної вкладки
-    // (Активні/Архів), щоб видалена чи повністю заархівована група одразу
-    // зникала з фільтрів і на цій сторінці.
-    G.refreshStGroupFilters();
- 
-    // Підсумок у заголовку
-    const summary = document.getElementById("st-summary");
-    if (summary){
-      const allGroupsCount = new Set(_students.flatMap(s => s.groups || []).filter(Boolean)).size;
-      summary.innerHTML = `<b>${_students.length}</b> ${_students.length === 1 ? "студент" : (_students.length>=2 && _students.length<=4) ? "студенти" : "студентів"} у <b>${allGroupsCount}</b> ${allGroupsCount === 1 ? "групі" : "групах"}`;
-    }
-    const chip = document.getElementById("st-page-chip");
-    if (chip){
-      // Загальний середній бал
-      const allGrades = _students.map(s => s.avgGrade || 0).filter(g => g > 0);
-      const avgAll = allGrades.length ? (allGrades.reduce((s,g) => s+g, 0) / allGrades.length).toFixed(1) : "—";
-      chip.textContent = `Сер. ${avgAll}/12`;
-    }
- 
-    G.renderStudents();
-  },
- 
-
-// ─── ЗАМІНИТИ метод selectStFilter: ──────────────────────────────────────────
- 
-  selectStFilter(value, label){
-    // Старі контракти (для сумісності з G.toggleDrop)
-    const lblEl = document.getElementById("cd-st-group-label");
-    if (lblEl) lblEl.textContent = label;
-    const sel = document.getElementById("st-group");
-    if (sel) sel.value = value;
-    const menu = document.getElementById("cd-st-group-menu");
-    menu?.querySelectorAll(".cd-item").forEach(el => el.classList.toggle("cd-active", el.dataset.val === value));
-    menu?.classList.remove("open");
-    document.querySelector("#cd-st-group .cd-btn")?.classList.toggle("active", !!value);
- 
-    // Новий chip-фільтр
-    const chipsEl = document.getElementById("st-chips");
-    if (chipsEl){
-      chipsEl.querySelectorAll(".st-chip").forEach(c => c.classList.toggle("on", (c.dataset.val||"") === value));
-    }
- 
-    // При зміні фільтра — скидаємо на першу сторінку
-    window._stFiltersChanged = true;
- 
-    G.renderStudents();
-  },
-  
- // ─── ЗАМІНИТИ метод renderStudents: ──────────────────────────────────────────
- 
-  refreshStGroupFilters(){
-    const tab = window._stTab || "active";
-    const pool = _students.filter(s => tab === "archived" ? !!s.archived : !s.archived);
-    const groups = [...new Set(pool.flatMap(s => s.groups || []).filter(Boolean))].sort();
-    const curSel = document.getElementById("st-group")?.value || "";
-
-    // Лічильники на вкладках — рахуємо заново щоразу, щоб не залежати від
-    // initStudents() (яка виконується лише один раз при завантаженні сторінки)
-    const ctActive = document.getElementById("st-ct-active");
-    const ctArchived = document.getElementById("st-ct-archived");
-    if (ctActive) ctActive.textContent = _students.filter(s=>!s.archived).length;
-    if (ctArchived) ctArchived.textContent = _students.filter(s=>s.archived).length;
-
-    const chipsEl = document.getElementById("st-chips");
-    if (chipsEl){
-      chipsEl.innerHTML =
-        `<span class="st-chip${curSel?"":" on"}" data-val="">Всі групи</span>` +
-        groups.map(g => `<span class="st-chip${curSel===g?" on":""}" data-val="${esc(g)}">${esc(g)}</span>`).join("");
-      chipsEl.querySelectorAll(".st-chip").forEach(el => {
-        el.addEventListener("click", () => {
-          G.selectStFilter(el.dataset.val || "", el.textContent);
-        });
+      $("st-chips")?.addEventListener("click", e => { const c = e.target.closest(".st-chip"); if (c) G.selectStFilter(c.dataset.val || ""); });
+      $("students-body")?.addEventListener("click", e => {
+        const pg = e.target.closest("[data-st-page]"); if (pg){ G.setStudentsPage(+pg.dataset.stPage); return; }
+        const tr = e.target.closest("tr[data-st-id]"); if (tr) G.selectStudent(tr.dataset.stId);
       });
     }
-
-    const sel = document.getElementById("st-group");
-    if (sel){
-      sel.innerHTML = `<option value="">Всі групи</option>` +
-        groups.map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join("");
-      // Якщо група, що була обрана, більше не існує в цій вкладці — скидаємо фільтр
-      if (groups.includes(curSel)) sel.value = curSel;
-      else { sel.value = ""; window._stFiltersChanged = true; }
-    }
-
-    const menu = document.getElementById("cd-st-group-menu");
-    if (menu){
-      menu.innerHTML = `<div class="cd-item cd-active" data-val="" onclick="G.selectStFilter('','Всі групи')">Всі групи</div>` +
-        groups.map(g => `<div class="cd-item" data-val="${esc(g)}" onclick="G.selectStFilter(${jsq(g)},${jsq(g)})">${esc(g)}</div>`).join("");
-    }
-    const lblEl = document.getElementById("cd-st-group-label");
-    if (lblEl && !groups.includes(curSel)) lblEl.textContent = "Всі групи";
-
-    // Кнопка "Архівувати/Відновити групу" — залежить від активної вкладки
-    const archBtn = document.getElementById("st-gbar-archive-btn");
-    if (archBtn){
-      if (tab === "archived"){
-        archBtn.textContent = "Відновити групу";
-        archBtn.onclick = () => G.restoreGroupBulk();
-      } else {
-        archBtn.textContent = "Архівувати групу";
-        archBtn.onclick = () => G.archiveGroupBulk();
-      }
-    }
+    G.renderStudents();
   },
+
+  selectStFilter(value){
+    window._stGroup = value || "";
+    window._stFiltersChanged = true;
+    G.renderStudents();
+  },
+
+  refreshStGroupFilters(list){
+    const tab = window._stTab || "active";
+    const all = list || _stDerive();
+    const pool = all.filter(s => tab === "archived" ? !!s.archived : !s.archived);
+    const cnt = new Map();
+    pool.forEach(s => s._groups.forEach(g => cnt.set(g, (cnt.get(g) || 0) + 1)));
+    const groups = [...cnt.keys()].sort((a, b) => a.localeCompare(b, "uk"));
+    if (window._stGroup && !cnt.has(window._stGroup)){ window._stGroup = ""; window._stFiltersChanged = true; }
+    const cur = window._stGroup || "";
+    const ctA = $("st-ct-active"), ctR = $("st-ct-archived");
+    if (ctA) ctA.textContent = all.filter(s => !s.archived).length;
+    if (ctR) ctR.textContent = all.filter(s => s.archived).length;
+    const chipsEl = $("st-chips");
+    if (chipsEl){
+      const html = `<button type="button" class="st-chip${cur ? "" : " on"}" data-val="">Усі групи</button>` +
+        groups.map(g => `<button type="button" class="st-chip${cur === g ? " on" : ""}" data-val="${esc(g)}">${esc(g)} <i>${cnt.get(g)}</i></button>`).join("");
+      if (chipsEl.innerHTML !== html) chipsEl.innerHTML = html;
+    }
+    const archBtn = $("st-gbar-archive-btn");
+    if (archBtn){
+      archBtn.textContent = tab === "archived" ? "Відновити групу" : "Архівувати групу";
+      archBtn.onclick = () => tab === "archived" ? G.restoreGroupBulk() : G.archiveGroupBulk();
+    }
+    // Підсумок у заголовку
+    const summary = $("st-summary");
+    if (summary){
+      const act = all.filter(s => !s.archived), gAll = new Set(act.flatMap(s => s._groups)).size;
+      summary.innerHTML = `<b>${act.length}</b> ${_plural(act.length, "студент", "студенти", "студентів")} у <b>${gAll}</b> ${_plural(gAll, "групі", "групах", "групах")}`;
+    }
+    const chip = $("st-page-chip");
+    if (chip){
+      const g = all.filter(s => !s.archived).flatMap(s => s._graded);
+      chip.textContent = g.length ? `Середній бал ${_stFmt1(g.reduce((a, b) => a + b, 0) / g.length)}` : "Ще немає оцінок";
+    }
+    const badge = $("nb-students");
+    if (badge){ const n = all.filter(s => !s.archived).length; badge.textContent = n; badge.style.display = n ? "" : "none"; }
+  },
+
   renderStudents(){
-    G.refreshStGroupFilters();
-    const body = document.getElementById("students-body");
+    const body = $("students-body");
     if (!body) return;
-    const q = (document.getElementById("student-srch")?.value || "").toLowerCase().trim();
-    const grp = document.getElementById("st-group")?.value || "";
+    const all = _stDerive();
+    G.refreshStGroupFilters(all);
+    const q = _rpNorm($("student-srch")?.value || "");
+    const grp = window._stGroup || "";
     const tab = window._stTab || "active";
 
-    let list = _students.filter(s => tab === "archived" ? !!s.archived : !s.archived);
-    if (q) list = list.filter(s => (s.name + " " + s.surname).toLowerCase().includes(q) || (s.surname + " " + s.name).toLowerCase().includes(q));
-    if (grp) list = list.filter(s => (s.groups || []).includes(grp));
+    let list = all.filter(s => tab === "archived" ? !!s.archived : !s.archived);
+    if (q) list = list.filter(s => _rpNorm(`${s.surname} ${s.name}`).includes(q) || _rpNorm(`${s.name} ${s.surname}`).includes(q));
+    if (grp) list = list.filter(s => s._groups.includes(grp));
 
-    // Панель масових дій по групі — видно тільки коли обрано конкретну групу
-    const gbar = document.getElementById("st-group-bar");
+    const gbar = $("st-group-bar");
     if (gbar){
-      if (grp){
-        gbar.style.display = "flex";
-        document.getElementById("st-gbar-name").textContent = grp;
-        document.getElementById("st-gbar-count").textContent = list.length;
-      } else {
-        gbar.style.display = "none";
-      }
+      gbar.hidden = !grp;
+      if (grp){ $("st-gbar-name").textContent = grp; $("st-gbar-count").textContent = list.length; }
     }
- 
-    // ── Пагінація ──
-    const PAGE_SIZE = 15;
+
+    const PAGE_SIZE = 20;
     const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
-    if (window._stPage == null) window._stPage = 1;
-    // Якщо змінилися фільтри — на 1 сторінку (через прапорець)
-    if (window._stFiltersChanged){
-      window._stPage = 1;
-      window._stFiltersChanged = false;
-    }
-    if (window._stPage > totalPages) window._stPage = totalPages;
-    if (window._stPage < 1) window._stPage = 1;
-    const page = window._stPage;
-    const startIdx = (page - 1) * PAGE_SIZE;
-    const endIdx = Math.min(startIdx + PAGE_SIZE, list.length);
-    const pageList = list.slice(startIdx, endIdx);
- 
-    // Лічильник
-    const cntEl = document.getElementById("st-list-count");
-    if (cntEl){
-      if (list.length === 0) cntEl.textContent = `0 / ${_students.length}`;
-      else cntEl.textContent = `${startIdx + 1}–${endIdx} / ${list.length}`;
-    }
- 
+    if (window._stPage == null || window._stFiltersChanged){ window._stPage = 1; window._stFiltersChanged = false; }
+    window._stPage = Math.min(Math.max(1, window._stPage), totalPages);
+    const page = window._stPage, from = (page - 1) * PAGE_SIZE, to = Math.min(from + PAGE_SIZE, list.length);
+    const pageList = list.slice(from, to);
+    const cntEl = $("st-list-count");
+    if (cntEl) cntEl.textContent = list.length ? (totalPages > 1 ? `${from + 1}–${to} з ${list.length}` : `${list.length}`) : "0";
+
     if (!list.length){
       body.innerHTML = `<div class="st-empty">
-        <div class="st-empty-ico">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="4"/><path d="M3 21c0-4 4-7 9-7s9 3 9 7"/></svg>
-        </div>
-        <div class="st-empty-title">${q || grp ? "Нічого не знайдено" : "Ще немає студентів"}</div>
-        <div class="st-empty-hint">${q || grp ? "Спробуйте змінити запит або фільтр" : "Студенти з'являться після першого проходження тесту"}</div>
+        <div class="st-empty-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="4"/><path d="M3 21c0-4 4-7 9-7s9 3 9 7"/></svg></div>
+        <div class="st-empty-title">${q || grp ? "Нічого не знайдено" : tab === "archived" ? "Архів порожній" : "Ще немає студентів"}</div>
+        <div class="st-empty-hint">${q || grp ? "Спробуйте змінити запит або групу" : tab === "archived" ? "Сюди потрапляють заархівовані студенти й групи" : "Студенти з'являться після першого проходження тесту"}</div>
       </div>`;
+      G.selectStudent(null);
       return;
     }
- 
-    // Палітра кольорів аватарок (детермінована)
+
     const avaColors = ["#3B82F6","#DB2777","#16A34A","#F59E0B","#6366F1","#0EA5E9","#8B5CF6","#EF4444","#14B8A6"];
- 
-    // Допоміжні
-    const gradePctClass = (g12) => {
-      if (g12 == null) return "";
-      if (g12 >= 10) return "ok";
-      if (g12 >= 7)  return "info";
-      if (g12 >= 4)  return "warn";
-      return "bad";
-    };
- 
     const rows = pageList.map(s => {
-      const att = Array.isArray(s.attempts) ? s.attempts : [];
-      const groups = (s.groups || []).filter(Boolean);
       const initials = ((s.surname?.[0] || "") + (s.name?.[0] || "")).toUpperCase() || "?";
- 
-      // Колір аватарки за hash імені
-      const seed = String(s.surname || "") + String(s.name || "");
-      let h = 0; for (let i = 0; i < seed.length; i++) h = (h + seed.charCodeAt(i)) | 0;
+      let h = 0; for (const ch of String(s.surname || "") + String(s.name || "")) h = (h * 31 + ch.codePointAt(0)) | 0;
       const color = avaColors[Math.abs(h) % avaColors.length];
- 
-      const avg = s.avgGrade != null ? s.avgGrade : null;
-      const best = att.length ? Math.max(...att.map(a => a.grade || 0)) : null;
-      const passRate = att.length ? Math.round(att.filter(a => (a.grade||0) >= 4).length / att.length * 100) : null;
-      const flagsCount = att.filter(a => (a.tabSwitches||0)*2 + (a.copyAttempts||0)*3 + (a.screenshots||0)*5 > 0).length;
- 
-      const isSelected = window._selectedStId === s.id;
- 
-      return `<tr class="${isSelected ? "is-selected" : ""}" data-st-id="${s.id}">
+      const n = s._att.length;
+      return `<tr class="${window._selectedStId === s.id ? "is-selected" : ""}" data-st-id="${esc(s.id)}">
         <td>
           <div class="st-stud">
             <div class="st-ava" style="background:linear-gradient(135deg, ${color}DD, ${color})">${esc(initials)}</div>
             <div class="st-stud-info">
-              <div class="st-stud-name">
-                ${esc((s.surname||"") + " " + (s.name||""))}
-                ${flagsCount ? `<span class="st-stud-flag">⚑${flagsCount}</span>` : ""}
-              </div>
-              <div class="st-stud-sub">${att.length} ${att.length === 1 ? "спроба" : (att.length>=2 && att.length<=4) ? "спроби" : "спроб"}</div>
+              <div class="st-stud-name">${esc(`${s.surname || ""} ${s.name || ""}`.trim() || "Без імені")}${s._flags ? `<span class="st-stud-flag" title="Спроб з підозрілою активністю: ${s._flags}">⚑${s._flags}</span>` : ""}</div>
+              <div class="st-stud-sub">${n} ${_plural(n, "спроба", "спроби", "спроб")}${s._pending ? ` · ${s._pending} на перевірці` : ""}${s._last ? ` · ${timeAgo(s._last)}` : ""}</div>
             </div>
           </div>
         </td>
-        <td>${groups.length ? groups.map(g => `<span class="st-pill">${esc(g)}</span>`).join(" ") : `<span style="color:var(--ink-400);font-size:11.5px;font-style:italic">—</span>`}</td>
-        <td class="mono">${att.length}</td>
-        <td class="mono ${gradePctClass(avg)}">${avg != null ? avg.toFixed(1) : "—"}</td>
-        <td class="mono ${gradePctClass(best)}">${best != null ? best : "—"}</td>
-        <td class="mono">${passRate != null ? passRate + "%" : "—"}</td>
+        <td>${s._groups.length ? s._groups.map(g => `<span class="st-pill">${esc(g)}</span>`).join(" ") : `<span class="st-none">—</span>`}</td>
+        <td class="mono">${n}</td>
+        <td class="mono ${_stTone(s._avg)}">${_stFmt1(s._avg)}</td>
+        <td class="mono ${_stTone(s._best)}">${s._best ?? "—"}</td>
+        <td class="mono">${s._pass != null ? s._pass + "%" : "—"}</td>
       </tr>`;
     }).join("");
- 
-    // ── Pagination ──
+
     let pagHtml = "";
     if (totalPages > 1){
-      const winSize = 5; // максимум кнопок-чисел
-      let from = Math.max(1, page - Math.floor(winSize / 2));
-      let to = Math.min(totalPages, from + winSize - 1);
-      if (to - from + 1 < winSize) from = Math.max(1, to - winSize + 1);
- 
-      const btn = (p, label, disabled, extra="") =>
-        `<button class="st-pg-btn ${extra}" ${disabled ? "disabled" : `onclick="G.setStudentsPage(${p})"`}>${label}</button>`;
- 
-      const numbers = [];
-      if (from > 1){
-        numbers.push(btn(1, "1"));
-        if (from > 2) numbers.push(`<span class="st-pg-ellipsis">…</span>`);
-      }
-      for (let p = from; p <= to; p++){
-        numbers.push(btn(p, String(p), false, p === page ? "is-active" : ""));
-      }
-      if (to < totalPages){
-        if (to < totalPages - 1) numbers.push(`<span class="st-pg-ellipsis">…</span>`);
-        numbers.push(btn(totalPages, String(totalPages)));
-      }
- 
-      pagHtml = `<div class="st-pagination">
-        ${btn(page - 1, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>`, page <= 1, "prev")}
-        ${numbers.join("")}
-        ${btn(page + 1, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>`, page >= totalPages, "next")}
-      </div>`;
+      let a = Math.max(1, page - 2), b = Math.min(totalPages, a + 4); a = Math.max(1, b - 4);
+      const btn = (p, label, dis, cls = "") => `<button type="button" class="st-pg-btn ${cls}" ${dis ? "disabled" : `data-st-page="${p}"`}>${label}</button>`;
+      const nums = [];
+      if (a > 1){ nums.push(btn(1, "1")); if (a > 2) nums.push(`<span class="st-pg-ellipsis">…</span>`); }
+      for (let p = a; p <= b; p++) nums.push(btn(p, String(p), false, p === page ? "is-active" : ""));
+      if (b < totalPages){ if (b < totalPages - 1) nums.push(`<span class="st-pg-ellipsis">…</span>`); nums.push(btn(totalPages, String(totalPages))); }
+      const chev = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="${d}"/></svg>`;
+      pagHtml = `<div class="st-pagination">${btn(page - 1, chev("15 18 9 12 15 6"), page <= 1, "prev")}${nums.join("")}${btn(page + 1, chev("9 18 15 12 9 6"), page >= totalPages, "next")}</div>`;
     }
- 
+
     body.innerHTML = `<table class="st-tbl">
-      <thead><tr>
-        <th>Студент</th>
-        <th>Група</th>
-        <th>Спроб</th>
-        <th>Сер. бал</th>
-        <th>Кращий</th>
-        <th>Здав</th>
-      </tr></thead>
+      <thead><tr><th>Студент</th><th>Група</th><th>Спроб</th><th title="Середня оцінка за оціненими спробами">Сер. бал</th><th>Кращий</th><th title="Частка оцінених спроб з оцінкою 4 і вище">Склав</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>${pagHtml}`;
- 
-    // Click handlers — обираємо студента
-    body.querySelectorAll("tr[data-st-id]").forEach(tr => {
-      tr.addEventListener("click", () => {
-        G.selectStudent(tr.dataset.stId);
-      });
-    });
- 
-    // Якщо є вибраний — перемалювати правий блок
-    if (window._selectedStId && list.some(s => s.id === window._selectedStId)) {
-      G.selectStudent(window._selectedStId, /*skipTableUpdate*/ true);
-    } else if (!window._selectedStId && pageList.length){
-      // Автоматично обираємо першого з поточної сторінки
-      G.selectStudent(pageList[0].id);
-    } else if (window._selectedStId && !list.some(s => s.id === window._selectedStId)){
-      // Поточний вибраний пропав з фільтра — скидаємо
-      window._selectedStId = null;
-      G.selectStudent(null);
-    }
+
+    // Профіль праворуч: вибраний, або перший на сторінці
+    if (window._selectedStId && list.some(s => s.id === window._selectedStId)) G.selectStudent(window._selectedStId, true);
+    else G.selectStudent(pageList[0].id);
   },
- // ─── ДОДАТИ новий метод setStudentsPage: ─────────────────────────────────────
- 
+
   setStudentsPage(page){
     window._stPage = page;
+    window._selectedStId = null;
     G.renderStudents();
-    // Скрол до верху таблиці
-    const body = document.getElementById("students-body");
-    if (body) body.scrollIntoView({ behavior: "smooth", block: "start" });
+    $("students-body")?.scrollIntoView({ behavior: "smooth", block: "start" });
   },
- 
- 
-// ─── ДОДАТИ новий метод searchStudents (викликається з input.oninput): ───────
- 
+
   searchStudents(){
     window._stFiltersChanged = true;
     G.renderStudents();
   },
- 
- 
-// ─── ДОДАТИ новий метод selectStudent: ───────────────────────────────────────
- 
+
   selectStudent(id, skipTableUpdate){
     window._selectedStId = id;
- 
-    // Підсвітка обраного у таблиці
-    if (!skipTableUpdate) {
-      document.querySelectorAll("#students-body tr[data-st-id]").forEach(tr => {
-        tr.classList.toggle("is-selected", tr.dataset.stId === id);
-      });
-    }
- 
-    const noneEl = document.getElementById("pf-none");
-    const contEl = document.getElementById("pf-content");
+    if (!skipTableUpdate) document.querySelectorAll("#students-body tr[data-st-id]").forEach(tr => tr.classList.toggle("is-selected", tr.dataset.stId === id));
+    const noneEl = $("pf-none"), contEl = $("pf-content");
     if (!contEl || !noneEl) return;
- 
-    if (!id){
-      noneEl.style.display = "block";
-      contEl.style.display = "none";
-      contEl.innerHTML = "";
-      return;
-    }
- 
-    const s = _students.find(x => x.id === id);
-    if (!s){
-      noneEl.style.display = "block";
-      contEl.style.display = "none";
-      return;
-    }
- 
-    noneEl.style.display = "none";
-    contEl.style.display = "block";
- 
-    const att = Array.isArray(s.attempts) ? s.attempts : [];
-    const groups = (s.groups || []).filter(Boolean);
+    const s = id ? _stFind(id) : null;
+    if (!s){ noneEl.style.display = "block"; contEl.style.display = "none"; contEl.innerHTML = ""; return; }
+    noneEl.style.display = "none"; contEl.style.display = "block";
+
+    const att = s._att;
     const initials = ((s.surname?.[0] || "") + (s.name?.[0] || "")).toUpperCase() || "?";
-    const fullName = ((s.surname||"") + " " + (s.name||"")).trim() || "Студент";
- 
-    const avg = s.avgGrade != null ? s.avgGrade.toFixed(1) : "—";
-    const best = att.length ? Math.max(...att.map(a => a.grade || 0)) : "—";
- 
-    // Last activity
-    const lastTs = att.length ? Math.max(...att.map(a => a.date || 0)) : 0;
-    const lastStr = lastTs ? timeAgo(lastTs) : "—";
- 
-    // History bars (останні 8)
-    const recent = att.slice(-8);
-    const barsHtml = recent.length
-      ? `<div class="pf-bars">${recent.map(a => {
-          const g = a.grade || 0;
-          const pct = Math.max(8, Math.round(g/12*100));
-          const c = g >= 10 ? "#16A34A" : g >= 7 ? "#1E40AF" : g >= 4 ? "#F59E0B" : "#DC2626";
-          return `<div class="pf-bar" title="${g}/12"><i style="height:${pct}%;background:${c}"></i></div>`;
-        }).join("")}</div>`
-      : `<div class="pf-bars-empty">Поки що немає історії</div>`;
- 
-    // Recent attempts (останні 5)
-    const sortedAtt = [...att].sort((a,b) => (b.date||0) - (a.date||0)).slice(0, 5);
-    const listHtml = sortedAtt.length ? `<div class="pf-list">
-      ${sortedAtt.map(a => {
-        const t = tests.find(x => x.id === a.testId);
-        const title = t?.title || a.testTitle || "Тест";
-        const dateStr = a.date ? new Date(a.date).toLocaleDateString("uk-UA",{day:"numeric",month:"short"}) + " · " + new Date(a.date).toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"}) : "—";
-        const g = a.grade || 0;
-        const c = g >= 10 ? "#15803D" : g >= 7 ? "#1E40AF" : g >= 4 ? "#B45309" : "#B91C1C";
-        return `<div class="pf-list-item" onclick="G.viewAtt && G.viewAtt('${a.attemptId || a.id || ''}')" style="${a.attemptId || a.id ? 'cursor:pointer' : ''}">
-          <div class="pf-li-l">
-            <div class="pf-li-name">${esc(title)}</div>
-            <div class="pf-li-date">${dateStr}</div>
-          </div>
-          <span class="pf-li-grade" style="color:${c}">${g}/12</span>
-        </div>`;
-      }).join("")}
-    </div>` : `<div style="font-size:12.5px;color:var(--ink-400);padding:6px 0">Жодної спроби ще немає</div>`;
- 
+    const fullName = `${s.surname || ""} ${s.name || ""}`.trim() || "Студент";
+    const graded = att.filter(a => a.grade != null).slice(-10);
+    const barsHtml = graded.length
+      ? `<div class="pf-bars">${graded.map(a => `<div class="pf-bar" title="${esc(a.title)} · ${a.grade}/12"><i style="height:${Math.max(8, Math.round(a.grade / 12 * 100))}%;background:${_stColor(a.grade)}"></i></div>`).join("")}</div>`
+      : `<div class="pf-bars-empty">${att.length ? "Оцінок ще немає — спроби на перевірці" : "Поки що немає історії"}</div>`;
+    const recent = [...att].reverse().slice(0, 6);
+    const listHtml = recent.length ? `<div class="pf-list">${recent.map(a => {
+        const dateStr = a.date ? new Date(a.date).toLocaleDateString("uk-UA", { day: "numeric", month: "short" }) + " · " + new Date(a.date).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" }) : "—";
+        return `<div class="pf-list-item" role="button" tabindex="0" onclick="G.viewAtt('${esc(a.id)}')">
+          <div class="pf-li-l"><div class="pf-li-name">${esc(a.title)}</div><div class="pf-li-date">${dateStr}${a.group ? " · " + esc(a.group) : ""}</div></div>
+          <span class="pf-li-grade" style="color:${_stColor(a.grade)}">${a.pending ? "⏳" : a.grade != null ? a.grade + "/12" : "—"}</span>
+        </div>`; }).join("")}</div>`
+      : `<div style="font-size:12.5px;color:var(--ink-400);padding:6px 0">Жодної спроби ще немає</div>`;
+
     contEl.innerHTML = `
       <div class="pf-head">
         <div class="pf-ava">${esc(initials)}</div>
         <div class="pf-info">
           <div class="pf-name">${esc(fullName)}</div>
-          <div class="pf-sub">${groups.length ? groups.map(esc).join(" · ") : "без групи"}</div>
-          <div class="pf-status">${att.length ? `Остання активність: ${lastStr}` : "ще не проходив тести"}</div>
+          <div class="pf-sub">${s._groups.length ? s._groups.map(esc).join(" · ") : "без групи"}</div>
+          <div class="pf-status">${s._last ? `Остання активність: ${timeAgo(s._last)}` : "ще не проходив(ла) тести"}</div>
         </div>
       </div>
       <div class="pf-stat">
         <div><div class="l">Спроб</div><div class="v">${att.length}</div></div>
-        <div><div class="l">Сер. бал</div><div class="v" style="color:${avg !== '—' && parseFloat(avg)>=10?'#16A34A':parseFloat(avg)>=7?'#1E40AF':parseFloat(avg)>=4?'#F59E0B':'#DC2626'}">${avg}</div></div>
-        <div><div class="l">Кращий</div><div class="v" style="color:${best !== '—' && best>=10?'#16A34A':best>=7?'#1E40AF':best>=4?'#F59E0B':'#DC2626'}">${best}</div></div>
+        <div><div class="l">Сер. бал</div><div class="v" style="color:${_stColor(s._avg)}">${_stFmt1(s._avg)}</div></div>
+        <div><div class="l">Кращий</div><div class="v" style="color:${_stColor(s._best)}">${s._best ?? "—"}</div></div>
       </div>
-      <div class="pf-block">
-        <div class="pf-block-h">Динаміка балів</div>
-        ${barsHtml}
-      </div>
-      <div class="pf-block">
-        <div class="pf-block-h">Останні спроби</div>
-        ${listHtml}
-      </div>
+      ${s._pending ? `<div class="pf-note">⏳ ${s._pending} ${_plural(s._pending, "спроба чекає", "спроби чекають", "спроб чекають")} на перевірку</div>` : ""}
+      ${s._flags ? `<div class="pf-note warn">⚑ Підозріла активність у ${s._flags} ${_plural(s._flags, "спробі", "спробах", "спробах")}</div>` : ""}
+      <div class="pf-block"><div class="pf-block-h">Динаміка оцінок</div>${barsHtml}</div>
+      <div class="pf-block"><div class="pf-block-h">Останні спроби</div>${listHtml}</div>
       <div class="pf-foot">
-        <button class="pf-btn" onclick="G.openStudentCard && G.openStudentCard('${s.id}')">
+        <button class="pf-btn" type="button" onclick="G.openStudentCard('${esc(s.id)}')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
           Картка
         </button>
-        <button class="pf-btn primary" onclick="G.viewStudentAttempts && G.viewStudentAttempts('${s.id}')">
-          Усі спроби
-        </button>
-        <button class="pf-btn" title="${s.archived ? 'Повернути у список активних' : 'Приховати зі списку активних, дані збережуться'}" onclick="G.archiveStudent('${s.id}', ${s.archived ? 'false' : 'true'})">
-          ${s.archived ? '↩ Відновити' : '🗄 Архівувати'}
-        </button>
-        <button class="pf-btn danger" onclick="G.deleteStudent('${s.id}')">
-          🗑 Видалити
-        </button>
+        <button class="pf-btn primary" type="button" onclick="G.viewStudentAttempts('${esc(s.id)}')">Усі спроби</button>
+        <button class="pf-btn" type="button" title="${s.archived ? "Повернути у список активних" : "Приховати зі списку активних, дані збережуться"}" onclick="G.archiveStudent('${esc(s.id)}', ${s.archived ? "false" : "true"})">${s.archived ? "↩ Відновити" : "🗄 Архівувати"}</button>
+        <button class="pf-btn danger" type="button" onclick="G.deleteStudent('${esc(s.id)}')">🗑 Видалити</button>
       </div>`;
   },
+
+  // «Усі спроби» — сторінка спроб з пошуком за цим студентом
+  viewStudentAttempts(id){
+    const s = _stFind(id); if (!s) return;
+    location.href = "attempts?q=" + encodeURIComponent(`${s.surname || ""} ${s.name || ""}`.trim());
+  },
+
   async archiveStudent(id, archived){
     const idx = _students.findIndex(s => s.id === id);
     if (idx < 0) return;
     await dbUpd(`students/${id}`, { archived, archivedAt: archived ? Date.now() : null });
-    _students[idx] = { ..._students[idx], archived, archivedAt: archived ? Date.now() : null };
+    _students = _students.map(s => s.id === id ? { ...s, archived, archivedAt: archived ? Date.now() : null } : s);
     toast(archived ? "Студента архівовано" : "Студента відновлено");
     window._selectedStId = null;
     G.renderStudents();
   },
   async archiveGroupBulk(){
-    const grp = document.getElementById("st-group")?.value || "";
+    const grp = window._stGroup || "";
     if (!grp) return;
     const targets = _students.filter(s => (s.groups||[]).includes(grp) && !s.archived);
     if (!targets.length){ toast("Немає активних студентів у цій групі","err"); return; }
@@ -3779,7 +3640,7 @@ window.G = {
     G.renderStudents();
   },
   async restoreGroupBulk(){
-    const grp = document.getElementById("st-group")?.value || "";
+    const grp = window._stGroup || "";
     if (!grp) return;
     const targets = _students.filter(s => (s.groups||[]).includes(grp) && s.archived);
     if (!targets.length){ toast("Немає архівних студентів у цій групі","err"); return; }
@@ -3807,14 +3668,15 @@ window.G = {
     G.renderStudents();
   },
   async deleteGroupBulk(){
-    const grp = document.getElementById("st-group")?.value || "";
+    const grp = window._stGroup || "";
     if (!grp) return;
     const tab = window._stTab || "active";
     const targets = _students.filter(s => (s.groups||[]).includes(grp) && (tab === "archived" ? !!s.archived : !s.archived));
     if (!targets.length){ toast("Немає студентів для видалення в цій групі","err"); return; }
     const grpLinks = links.filter(l => l.group === grp);
-    const linkAttemptIds = attempts.filter(a => grpLinks.some(l => l.id === a.linkId)).map(a => a.id);
-    const studentAttemptIds = targets.flatMap(s => (s.attempts||[]).map(a => a.attemptId || a.id).filter(Boolean));
+    const grpLinkIds = new Set(grpLinks.map(l => l.id));
+    const linkAttemptIds = attempts.filter(a => grpLinkIds.has(a.linkId) || a.group === grp).map(a => a.id);
+    const studentAttemptIds = targets.flatMap(s => (_stFind(s.id)?._att || []).map(a => a.id));
     const attemptIds = [...new Set([...studentAttemptIds, ...linkAttemptIds])];
     const ok = window.stConfirm
       ? await window.stConfirm({
@@ -3825,22 +3687,24 @@ window.G = {
         })
       : confirm(`Видалити НАЗАВЖДИ ${targets.length} студентів і всю групу «${grp}»?\n\nРазом з ними буде видалено ${grpLinks.length} посилань-запрошень і ${attemptIds.length} записів про спроби. Група зникне звідусіль. Це незворотно.`);
     if (!ok) return;
-    await Promise.all([
-      ...targets.map(s => dbDel(`students/${s.id}`)),
-      ...grpLinks.map(l => dbDel(`links/${l.id}`)),
-      ...attemptIds.map(aid => dbDel(`attempts/${aid}`)),
-    ]);
+    // Одним записом у базу (раніше — окремий запит на кожну спробу, студента й посилання)
+    const upd = {};
+    targets.forEach(s => { upd[`students/${s.id}`] = null; });
+    grpLinks.forEach(l => { upd[`links/${l.id}`] = null; });
+    attemptIds.forEach(aid => { upd[`attempts/${aid}`] = null; });
+    Object.entries(_stIndex).forEach(([k, v]) => { if (targets.some(t => t.id === v)) { upd[`studentIndex/${k}`] = null; delete _stIndex[k]; } });
+    try { await update(ref(db, `teachers/${_uid}`), upd); } catch (e) { toast("Не вдалося видалити: " + e.message, "err"); return; }
     const ids = new Set(targets.map(s => s.id));
     const linkIds = new Set(grpLinks.map(l => l.id));
     _students = _students.filter(s => !ids.has(s.id));
     links = links.filter(l => !linkIds.has(l.id));
-    attempts = attempts.filter(a => !attemptIds.includes(a.id));
+    const delSet = new Set(attemptIds);
+    attempts = attempts.filter(a => !delSet.has(a.id));
     window.links = links;
     window.attempts = attempts;
     toast(`Видалено групу «${grp}»: ${targets.length} студентів, ${grpLinks.length} посилань, ${attemptIds.length} спроб`);
     window._selectedStId = null;
-    G.selectStFilter && G.selectStFilter("", "Всі групи");
-    G.renderStudents();
+    G.selectStFilter("");
   },
   viewAtt(id){
     const a = attempts.find(x => x.id === id);
@@ -4192,135 +4056,47 @@ window.G = {
     document.getElementById("ai-side-overlay").style.display="none";
   },
 
-    openStudentCard(id){
-    const s=_students.find(x=>x.id===id);
-    if(!s) return;
-    const att=Array.isArray(s.attempts)?s.attempts:[];
-    const groups=(s.groups||[]).filter(Boolean);
-    const gc=s.avgGrade>=10?"#0d9e85":s.avgGrade>=7?"#2d5be3":s.avgGrade>=4?"#f59e0b":"#f43f5e";
-    const gradeEmoji=s.avgGrade>=10?"🏆":s.avgGrade>=7?"✅":s.avgGrade>=4?"📈":"📉";
-    const passCount=att.filter(a=>(a.grade||0)>=4).length;
-    const passRate=att.length?Math.round(passCount/att.length*100):0;
-    const bestGrade=att.length?Math.max(...att.map(a=>a.grade||0)):0;
-    const totalTests=[...new Set(att.map(a=>a.testId))].length;
-    const initials=(s.name||"?").slice(0,1)+(s.surname||"").slice(0,1);
-
-    // Динаміка — останні 8 спроб
-    const bars=att.slice(-8).map((a,i)=>{
-      const pct=Math.max(6,Math.round((a.grade||0)/12*100));
-      const c=a.grade>=10?"#0d9e85":a.grade>=7?"#2d5be3":a.grade>=4?"#f59e0b":"#f43f5e";
-      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
-        <div style="font-size:9px;color:rgba(255,255,255,.6);font-weight:600">${a.grade||0}</div>
-        <div style="width:100%;border-radius:4px 4px 0 0;background:rgba(255,255,255,.12);height:40px;position:relative;overflow:hidden">
-          <div style="position:absolute;bottom:0;left:0;right:0;background:${c};height:${pct}%;border-radius:4px 4px 0 0"></div>
+  openStudentCard(id){
+    const s = _stFind(id);
+    if (!s) return;
+    const att = s._att, g = s._graded;
+    const initials = ((s.surname?.[0] || "") + (s.name?.[0] || "")).toUpperCase() || "?";
+    const tests_ = new Set(att.map(a => a.testId)).size;
+    const passN = g.filter(v => v >= 4).length;
+    const bars = att.filter(a => a.grade != null).slice(-10).map(a => `<div class="sc-bar" title="${esc(a.title)} · ${a.grade}/12"><span>${a.grade}</span><i><b style="height:${Math.max(6, Math.round(a.grade / 12 * 100))}%;background:${_stColor(a.grade)}"></b></i></div>`).join("");
+    const rows = [...att].reverse().map(a => `<tr class="sc-row" onclick="closeM('m-student');G.viewAtt('${esc(a.id)}')" title="Відкрити спробу">
+        <td class="sc-t">${esc(a.title)}</td>
+        <td class="sc-c">${a.pending ? `<span class="sc-pill pend">⏳ на перевірці</span>` : a.grade != null ? `<span class="sc-pill" style="color:${_stColor(a.grade)}">${a.grade}/12</span>` : "—"}</td>
+        <td class="sc-c sc-m">${a.percent != null ? a.percent + "%" : "—"}</td>
+        <td class="sc-m">${esc(a.group || "—")}</td>
+        <td class="sc-m sc-d">${a.date ? new Date(a.date).toLocaleDateString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"}</td>
+        <td class="sc-c">${a.flags ? `<span class="sc-flag" title="Підозріла активність">⚑</span>` : ""}</td>
+      </tr>`).join("");
+    $("m-student-body").innerHTML = `
+      <div class="sc-head">
+        <div class="sc-ava">${esc(initials)}</div>
+        <div class="sc-who">
+          <div class="sc-kicker">Студент${s.archived ? " · в архіві" : ""}</div>
+          <div class="sc-name"><span id="sc-fullname">${esc(`${s.surname || ""} ${s.name || ""}`.trim())}</span>
+            <button type="button" class="sc-edit" onclick="G.editStudentName('${esc(s.id)}')">✎ Редагувати</button></div>
+          <div class="sc-groups">${s._groups.length ? s._groups.map(x => `<span>${esc(x)}</span>`).join("") : `<em>Без групи</em>`}</div>
         </div>
-      </div>`;
-    }).join("");
-
-    // Рядки спроб
-    const attRows=att.slice().reverse().map(a=>{
-      const gc2=a.grade>=10?"bg-g":a.grade>=7?"bg-b":a.grade>=4?"bg-a":"bg-r";
-      const dateStr=new Date(a.date).toLocaleDateString("uk-UA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
-      return `<tr style="border-bottom:1px solid rgba(229,232,240,.5)">
-        <td style="padding:11px 16px;font-size:13px;font-weight:500">${esc(a.testTitle||"—")}</td>
-        <td style="padding:11px 12px;text-align:center">${a.grade!=null?`<span class="bdg ${gc2}">${a.grade}/12</span>`:"—"}</td>
-        <td style="padding:11px 10px;font-size:13px;font-weight:600;text-align:center;color:var(--muted)">${a.percent||0}%</td>
-        <td style="padding:11px 10px;font-size:12px;color:var(--muted)">${esc(a.group||"—")}</td>
-        <td style="padding:11px 12px;font-size:12px;color:var(--muted);white-space:nowrap">${dateStr}</td>
-        <td style="padding:11px 10px">${a.attemptId?`<span style="font-size:12px;color:var(--primary);cursor:pointer;font-weight:500" onclick="closeM('m-student');G.viewAtt('${a.attemptId}')">деталі →</span>`:""}</td>
-      </tr>`;
-    }).join("");
-
-    $("m-student-body").innerHTML=`
-      <!-- Шапка -->
-      <div style="background:linear-gradient(135deg,#1e2d6b 0%,#0d1340 100%);padding:28px;position:relative;overflow:hidden;color:#fff">
-        <div style="position:absolute;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,.04);top:-100px;right:-80px"></div>
-        <div style="position:absolute;width:160px;height:160px;border-radius:50%;background:rgba(45,91,227,.15);bottom:-60px;left:20px"></div>
-        <div style="position:relative;z-index:1;display:flex;align-items:flex-start;gap:18px;margin-bottom:${att.length>=2?"20":"0"}px">
-          <!-- Аватар -->
-          <div style="width:60px;height:60px;border-radius:16px;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:#fff;flex-shrink:0">${initials}</div>
-          <!-- Ім'я -->
-          <div style="flex:1;min-width:0;padding-top:4px">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;opacity:.5;margin-bottom:6px">Студент</div>
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-              <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:21px;line-height:1.2" id="sc-fullname">${esc(s.surname)} ${esc(s.name)}</div>
-              <button onclick="G.editStudentName('${s.id}')" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s"
-                onmouseover="this.style.background='rgba(255,255,255,.2)'"
-                onmouseout="this.style.background='rgba(255,255,255,.1)'">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                Редагувати
-              </button>
-            </div>
-            <div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap">
-              ${groups.length
-                ?groups.map(g=>`<span style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500">${esc(g)}</span>`).join("")
-                :`<span style="opacity:.4;font-size:12px;font-style:italic">Без групи</span>`}
-            </div>
-          </div>
-          <!-- Середня оцінка -->
-          <div style="text-align:right;flex-shrink:0;padding-top:4px">
-            <div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Середня</div>
-            <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:48px;line-height:1;color:${gc==="var(--primary)"?"#fff":gc};text-shadow:0 2px 12px rgba(0,0,0,.3)">${s.avgGrade||"—"}</div>
-            <div style="font-size:12px;opacity:.5;margin-top:2px">/ 12 ${gradeEmoji}</div>
-          </div>
-        </div>
-        <!-- Графік динаміки -->
-        ${att.length>=2?`<div style="position:relative;z-index:1">
-          <div style="font-size:9px;opacity:.45;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px">Динаміка оцінок</div>
-          <div style="display:flex;gap:4px;height:52px;align-items:flex-end">${bars}</div>
-        </div>`:""}
+        <div class="sc-avg"><small>Середня</small><b style="color:${_stColorOnDark(s._avg)}">${_stFmt1(s._avg)}</b><em>із 12</em></div>
       </div>
-
-      <!-- Метрики -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border)">
-        ${[
-          {val:att.length,  label:"Спроб",      col:"var(--primary)",  bg:"rgba(45,91,227,.04)"},
-          {val:passCount,   label:"Склав",       col:"#0d9e85",         bg:"rgba(13,158,133,.04)"},
-          {val:passRate+"%",label:"Успішність",  col:"#d97706",         bg:"rgba(245,158,11,.04)"},
-          {val:bestGrade,   label:"Найкраща",    col:"#9333ea",         bg:"rgba(147,51,234,.04)"},
-        ].map(m=>`<div style="background:${m.bg};padding:16px;text-align:center">
-          <div style="font-family:'DM Sans',sans-serif;font-weight:900;font-size:24px;color:${m.col};line-height:1">${m.val}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.4px">${m.label}</div>
-        </div>`).join("")}
+      ${bars ? `<div class="sc-bars">${bars}</div>` : ""}
+      <div class="sc-kpis">
+        <div><b>${att.length}</b><span>Спроб</span></div>
+        <div><b>${tests_}</b><span>Тестів</span></div>
+        <div><b>${passN}${g.length ? `<small>/${g.length}</small>` : ""}</b><span>Склав (≥ 4)</span></div>
+        <div><b>${s._best ?? "—"}</b><span>Найкраща</span></div>
       </div>
-
-      <!-- Таблиця спроб -->
-      <div style="padding:20px 24px 8px">
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Всі спроби</div>
-        ${att.length
-          ?`<div style="border:1.5px solid var(--border);border-radius:14px;overflow:hidden">
-              <table class="tbl" style="margin:0">
-                <thead><tr>
-                  <th style="padding:10px 16px">Тест</th>
-                  <th style="padding:10px 12px;text-align:center">Оцінка</th>
-                  <th style="padding:10px 10px;text-align:center">%</th>
-                  <th style="padding:10px 10px">Група</th>
-                  <th style="padding:10px 12px">Дата</th>
-                  <th></th>
-                </tr></thead>
-                <tbody>${attRows}</tbody>
-              </table>
-            </div>`
-          :`<div style="text-align:center;padding:32px;background:#f8faff;border-radius:14px;border:1.5px solid var(--border)">
-              <div style="font-size:32px;margin-bottom:8px">📭</div>
-              <div style="color:var(--muted);font-size:14px">Немає спроб</div>
-            </div>`}
+      <div class="sc-body">
+        ${att.length ? `<table class="sc-tbl"><thead><tr><th>Тест</th><th class="sc-c">Оцінка</th><th class="sc-c">%</th><th>Група</th><th>Дата</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
+          : `<div class="sc-empty">📭 Немає спроб</div>`}
       </div>
-
-      <!-- Дії -->
-      <div style="padding:16px 24px 24px;display:flex;justify-content:space-between;align-items:center">
-        <button onclick="G.openMergeModal('${s.id}')" style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:11px;border:1.5px solid var(--border);background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:var(--text);transition:all .15s"
-          onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
-          onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-          Об'єднати картки
-        </button>
-        <button onclick="G.deleteStudent('${s.id}')" style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:11px;border:1.5px solid rgba(244,63,94,.25);background:rgba(244,63,94,.05);font-size:13px;font-weight:600;cursor:pointer;color:#be123c;transition:all .15s"
-          onmouseover="this.style.background='rgba(244,63,94,.12)'"
-          onmouseout="this.style.background='rgba(244,63,94,.05)'">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-          Видалити картку
-        </button>
+      <div class="sc-foot">
+        <button type="button" class="sc-btn" onclick="G.openMergeModal('${esc(s.id)}')">🔗 Об'єднати з іншою карткою</button>
+        <button type="button" class="sc-btn danger" onclick="G.deleteStudent('${esc(s.id)}')">🗑 Видалити картку</button>
       </div>`;
     openM("m-student");
   },
@@ -4329,7 +4105,7 @@ window.G = {
   openMergeModal(sourceId){
     closeM("m-merge");  // на випадок якщо вже відкрито
     closeM("m-student");
-    const source = _students.find(s=>s.id===sourceId);
+    const source = _stFind(sourceId);
     if(!source) return;
     window._mergeSourceId = sourceId;
     window._mergeTargetId = null;
@@ -4339,19 +4115,18 @@ window.G = {
 
     // Показуємо всіх студентів крім поточного
     const list = document.getElementById("m-merge-list");
-    const others = _students.filter(s=>s.id!==sourceId);
+    const others = _stDerive().filter(s=>s.id!==sourceId);
 
     if(!others.length){
       list.innerHTML=`<div style="color:var(--muted);font-size:14px;text-align:center;padding:16px">Немає інших карток для об'єднання</div>`;
       document.getElementById("merge-confirm-btn").disabled=true;
     } else {
       list.innerHTML = others.map(s=>{
-        const att = Array.isArray(s.attempts)?s.attempts:[];
         return `<div class="merge-item" id="mi-${s.id}" data-name="${esc((s.surname||'')+ ' '+(s.name||''))}" onclick="G.selectMergeTarget('${s.id}')"
           style="padding:12px 14px;border:1.5px solid var(--border);border-radius:13px;cursor:pointer;transition:all .15s;display:flex;justify-content:space-between;align-items:center">
           <div>
             <div style="font-weight:600;font-size:14px">${esc(s.surname)} ${esc(s.name)}</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:2px">${att.length} спроб · Середня: ${s.avgGrade||"—"}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">${s._att.length} ${_plural(s._att.length, "спроба", "спроби", "спроб")} · середня ${_stFmt1(s._avg)}${s._groups.length ? " · " + esc(s._groups.join(", ")) : ""}</div>
           </div>
           <div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);flex-shrink:0" id="mi-dot-${s.id}"></div>
         </div>`;
@@ -4412,13 +4187,18 @@ window.G = {
     const grades = merged.map(a=>a.grade).filter(g=>g>0);
     const avgGrade = grades.length ? Math.round((grades.reduce((a,b)=>a+b,0)/grades.length)*10)/10 : 0;
 
-    // Зберігаємо в target і видаляємо source
-    await dbUpd(`students/${targetId}`, { attempts: merged, groups, avgGrade, lastSeen: Date.now() });
-    await dbDel(`students/${sourceId}`);
+    // Одним записом: target отримує спроби, source видаляється, а всі ключі імені
+    // source у studentIndex тепер ведуть на target. Інакше наступна спроба під
+    // старим написанням імені знову створювала окрему картку.
+    const upd = { [`students/${targetId}/attempts`]: merged, [`students/${targetId}/groups`]: groups, [`students/${targetId}/avgGrade`]: avgGrade, [`students/${targetId}/lastSeen`]: Date.now(), [`students/${sourceId}`]: null };
+    const srcKeys = new Set([_stKey(source.name, source.surname), ...Object.entries(_stIndex).filter(([, v]) => v === sourceId).map(([k]) => k)]);
+    srcKeys.forEach(k => { upd[`studentIndex/${k}`] = targetId; _stIndex[k] = targetId; });
+    try { await update(ref(db, `teachers/${_uid}`), upd); }
+    catch (e) { toast("Не вдалося об'єднати: " + e.message, "err"); btn.disabled = false; btn.textContent = "Об'єднати →"; return; }
 
     _students = _students.filter(s=>s.id!==sourceId);
-    const tIdx = _students.findIndex(s=>s.id===targetId);
-    if(tIdx>=0) _students[tIdx] = { ..._students[tIdx], attempts: merged, groups, avgGrade };
+    _students = _students.map(s => s.id === targetId ? { ...s, attempts: merged, groups, avgGrade } : s);
+    window._selectedStId = targetId;
 
     closeM("m-merge");
     G.renderStudents();
@@ -4450,9 +4230,12 @@ window.G = {
     errEl.textContent = "";
 
     try {
-      await dbUpd(`students/${sid}`, { surname, name });
-      const idx = _students.findIndex(x=>x.id===sid);
-      if(idx>=0) _students[idx] = { ..._students[idx], surname, name };
+      // Нове написання теж веде на цю картку (старе лишається — студент може й далі так писати)
+      const nk = _stKey(name, surname);
+      const upd = { [`students/${sid}/surname`]: surname, [`students/${sid}/name`]: name };
+      if (!_stIndex[nk] || !_students.some(x => x.id === _stIndex[nk])) { upd[`studentIndex/${nk}`] = sid; _stIndex[nk] = sid; }
+      await update(ref(db, `teachers/${_uid}`), upd);
+      _students = _students.map(x => x.id === sid ? { ...x, surname, name } : x);
 
       closeM("m-edit-student");
       G.renderStudents();
@@ -4466,19 +4249,20 @@ window.G = {
   },
 
   deleteStudent(id){
-    const s=_students.find(x=>x.id===id);
+    const s=_stFind(id);
     if(!s) return;
     const nameEl=document.getElementById("del-student-name");
     if(nameEl) nameEl.textContent=`${s.surname} ${s.name}`;
     document.getElementById("del-student-confirm-btn").onclick = async () => {
       closeM("m-del-student");
-      const attemptIds = (s.attempts||[]).map(a => a.attemptId || a.id).filter(Boolean);
-      await Promise.all([
-        dbDel(`students/${id}`),
-        ...attemptIds.map(aid => dbDel(`attempts/${aid}`)),
-      ]);
+      const attemptIds = s._att.map(a => a.id);
+      const upd = { [`students/${id}`]: null };
+      attemptIds.forEach(aid => { upd[`attempts/${aid}`] = null; });
+      Object.entries(_stIndex).forEach(([k, v]) => { if (v === id) { upd[`studentIndex/${k}`] = null; delete _stIndex[k]; } });
+      try { await update(ref(db, `teachers/${_uid}`), upd); } catch (e) { toast("Не вдалося видалити: " + e.message, "err"); return; }
+      const del = new Set(attemptIds);
       _students=_students.filter(x=>x.id!==id);
-      attempts=attempts.filter(a=>!attemptIds.includes(a.id));
+      attempts=attempts.filter(a=>!del.has(a.id));
       window.attempts=attempts;
       window._selectedStId = null;
       closeM("m-student");

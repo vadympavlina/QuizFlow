@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css?v=22">
 <link rel="modulepreload" href="shared/app.js?v=22">
-<link rel="modulepreload" href="shared/features.js?v=24">
+<link rel="modulepreload" href="shared/features.js?v=25">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
    STUDENTS PAGE REDESIGN — scoped під #sec-students
@@ -64,6 +64,66 @@
   display:inline-flex;align-items:center;white-space:nowrap;
 }
 #sec-students .st-chip:hover{background:#E7EEFC;color:var(--ink-700)}
+#sec-students button.st-chip{font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+#sec-students .st-chip i{font-style:normal;font-family:'Geist Mono',monospace;font-size:10.5px;opacity:.65;margin-left:3px}
+#sec-students .st-none{color:var(--ink-400);font-size:11.5px}
+/* Панель дій з обраною групою */
+#sec-students .st-gbar{display:flex;align-items:center;gap:10px;padding:10px 18px;background:#FFF7ED;border-bottom:1px solid #FDE4BC;font-size:12.5px;color:#9A3412}
+#sec-students .st-gbar[hidden]{display:none}
+#sec-students .st-gbar b{font-weight:700}
+#sec-students .st-gbar-act{display:flex;gap:8px;margin-left:auto}
+#sec-students .st-gbar-btn{border:1px solid #FDE4BC;background:#fff;color:#9A3412;padding:6px 12px;border-radius:8px;font:600 12px 'Manrope',sans-serif;cursor:pointer;white-space:nowrap}
+#sec-students .st-gbar-btn:hover{background:#FFEDD5}
+#sec-students .st-gbar-btn.danger{border-color:#FCA5A5;color:#B91C1C}
+#sec-students .st-gbar-btn.danger:hover{background:#FEE2E2}
+#sec-students .pf-note{margin:0 0 12px;padding:9px 12px;border-radius:10px;background:#F1F5FB;color:var(--ink-700);font-size:12.5px;font-weight:600}
+#sec-students .pf-note.warn{background:#FEF2F2;color:#B91C1C}
+#sec-students .pf-list-item:focus-visible{outline:2px solid #3B6BF6;outline-offset:2px}
+/* ═══ Картка студента (модалка m-student) ═══ */
+#m-student .sc-head{display:flex;gap:18px;align-items:flex-start;padding:26px 28px 20px;background:linear-gradient(135deg,#1E2D6B,#0D1340);color:#fff;font-family:'Manrope',sans-serif}
+#m-student .sc-ava{width:58px;height:58px;border-radius:16px;display:grid;place-items:center;flex:0 0 auto;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.16);font-weight:800;font-size:20px}
+#m-student .sc-who{flex:1;min-width:0}
+#m-student .sc-kicker{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;opacity:.55;font-weight:700}
+#m-student .sc-name{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:21px;font-weight:800;margin-top:4px;line-height:1.25}
+#m-student .sc-edit{border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);font:600 11.5px 'Manrope',sans-serif;padding:4px 10px;border-radius:7px;cursor:pointer}
+#m-student .sc-edit:hover{background:rgba(255,255,255,.2)}
+#m-student .sc-groups{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+#m-student .sc-groups span{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:600}
+#m-student .sc-groups em{opacity:.5;font-size:12px}
+#m-student .sc-avg{text-align:right;flex:0 0 auto;padding-right:26px}
+#m-student .sc-avg small{display:block;font-size:10.5px;opacity:.55;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+#m-student .sc-avg b{display:block;font:800 44px 'Geist Mono',monospace;line-height:1.05;margin:2px 0}
+#m-student .sc-bars{display:flex;gap:6px;align-items:stretch;height:96px;padding:10px 28px 14px;background:#0D1340}
+#m-student .sc-avg em{display:block;font-style:normal;font-size:12px;opacity:.6}
+#m-student .sc-bar{flex:1;max-width:72px;display:flex;flex-direction:column;align-items:center;gap:3px}
+#m-student .sc-bar span{font:700 10px 'Geist Mono',monospace;color:rgba(255,255,255,.6)}
+#m-student .sc-bar i{display:block;flex:1;width:100%;background:rgba(255,255,255,.1);border-radius:4px 4px 0 0;position:relative;overflow:hidden}
+#m-student .sc-bar b{position:absolute;left:0;right:0;bottom:0;border-radius:4px 4px 0 0}
+#m-student .sc-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line,#E3E8F2)}
+#m-student .sc-kpis>div{background:#fff;padding:14px;text-align:center;font-family:'Manrope',sans-serif}
+#m-student .sc-kpis b{display:block;font:800 22px 'Geist Mono',monospace;color:#0B1437}
+#m-student .sc-kpis b small{font-size:13px;color:#8691AC}
+#m-student .sc-kpis span{font-size:11px;color:#8691AC;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+#m-student .sc-body{padding:18px 24px 6px;font-family:'Manrope',sans-serif}
+#m-student .sc-tbl{width:100%;border-collapse:separate;border-spacing:0;border:1px solid #E3E8F2;border-radius:12px;overflow:hidden}
+#m-student .sc-tbl th{background:#FAFBFE;padding:9px 12px;font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:#8691AC;text-align:left;border-bottom:1px solid #E3E8F2}
+#m-student .sc-tbl td{padding:10px 12px;font-size:13px;border-bottom:1px solid #EEF1F7;color:#24335A}
+#m-student .sc-tbl tr:last-child td{border-bottom:0}
+#m-student .sc-row{cursor:pointer}
+#m-student .sc-row:hover td{background:#FAFBFE}
+#m-student .sc-t{font-weight:700;color:#0B1437}
+#m-student .sc-c{text-align:center}
+#m-student .sc-m{color:#5B6A8F;font-size:12.5px}
+#m-student .sc-d{white-space:nowrap}
+#m-student .sc-pill{font:700 12.5px 'Geist Mono',monospace}
+#m-student .sc-pill.pend{font:600 12px 'Manrope',sans-serif;color:#5B6A8F}
+#m-student .sc-flag{color:#DC2626;font-weight:800}
+#m-student .sc-empty{text-align:center;padding:30px;color:#8691AC;background:#F8FAFF;border-radius:12px}
+#m-student .sc-foot{display:flex;justify-content:space-between;gap:10px;padding:14px 24px 22px}
+#m-student .sc-btn{border:1px solid #E3E8F2;background:#fff;border-radius:10px;padding:9px 14px;font:700 13px 'Manrope',sans-serif;color:#24335A;cursor:pointer}
+#m-student .sc-btn:hover{border-color:#93B0F5;color:#1E3A8A}
+#m-student .sc-btn.danger{color:#B91C1C;border-color:#FECACA;background:#FEF2F2}
+#m-student .sc-btn.danger:hover{background:#FEE2E2}
 #sec-students .st-chip.on{background:var(--nav-600);color:#fff;border-color:var(--nav-600)}
 
 #sec-students .st-meta{font-size:12px;color:var(--ink-500);font-family:'Geist Mono',monospace;margin-left:auto;flex:0 0 auto}
@@ -278,17 +338,6 @@
       <span class="st-page-chip" id="st-page-chip">—</span>
     </div>
 
-    <!-- Hidden dropdown wrap (для G.toggleDrop сумісності) -->
-    <div class="cd-wrap" id="cd-st-group" style="position:absolute;visibility:hidden;pointer-events:none">
-      <button class="cd-btn" onclick="G.toggleDrop('cd-st-group')">
-        <span class="cd-label" id="cd-st-group-label">Всі групи</span>
-      </button>
-      <div class="cd-menu" id="cd-st-group-menu">
-        <div class="cd-item cd-active" data-val="" onclick="G.selectStFilter('','Всі групи')">Всі групи</div>
-      </div>
-      <select id="st-group" style="display:none"></select>
-    </div>
-
     <!-- Split: table + profile -->
     <div class="st-split">
 
@@ -304,15 +353,15 @@
             <input type="text" id="student-srch" placeholder="Пошук студента..." oninput="window.G && G.searchStudents && G.searchStudents()" autocomplete="off">
           </div>
           <div class="st-chips" id="st-chips">
-            <span class="st-chip on" data-val="">Всі групи</span>
+            <button type="button" class="st-chip on" data-val="">Усі групи</button>
           </div>
           <span class="st-meta" id="st-list-count"></span>
         </div>
-        <div id="st-group-bar" style="display:none !important;align-items:center !important;gap:10px !important;padding:10px 18px !important;background:#FFF7ED !important;border-bottom:1px solid #FDE4BC !important;font-size:12.5px !important;color:#9A3412 !important;font-family:'Manrope',sans-serif !important;transform:none !important;position:static !important;box-sizing:border-box !important;width:100% !important;">
-          <span style="all:unset !important;font-size:12.5px !important;color:#9A3412 !important;font-family:'Manrope',sans-serif !important;">Група <b id="st-gbar-name" style="font-weight:700 !important;color:#9A3412 !important;">—</b> · <b id="st-gbar-count" style="font-weight:700 !important;color:#9A3412 !important;">0</b> студентів</span>
-          <div style="all:unset !important;display:flex !important;gap:8px !important;margin-left:auto !important;">
-            <button id="st-gbar-archive-btn" onclick="G.archiveGroupBulk()" style="all:unset !important;box-sizing:border-box !important;border:1px solid #FDE4BC !important;background:#fff !important;color:#9A3412 !important;padding:6px 12px !important;border-radius:8px !important;font-family:'Manrope',sans-serif !important;font-size:12px !important;font-weight:600 !important;cursor:pointer !important;white-space:nowrap !important;transform:none !important;display:inline-block !important;line-height:1.4 !important;">Архівувати групу</button>
-            <button onclick="G.deleteGroupBulk()" style="all:unset !important;box-sizing:border-box !important;border:1px solid #FCA5A5 !important;background:#fff !important;color:#B91C1C !important;padding:6px 12px !important;border-radius:8px !important;font-family:'Manrope',sans-serif !important;font-size:12px !important;font-weight:600 !important;cursor:pointer !important;white-space:nowrap !important;transform:none !important;display:inline-block !important;line-height:1.4 !important;">Видалити групу</button>
+        <div id="st-group-bar" class="st-gbar" hidden>
+          <span>Група <b id="st-gbar-name">—</b> · <b id="st-gbar-count">0</b> студентів</span>
+          <div class="st-gbar-act">
+            <button type="button" id="st-gbar-archive-btn" class="st-gbar-btn">Архівувати групу</button>
+            <button type="button" class="st-gbar-btn danger" onclick="G.deleteGroupBulk()">Видалити групу</button>
           </div>
         </div>
         <div id="students-body"></div>
@@ -340,7 +389,7 @@
 
 <script type="module">
 const { initApp } = await import("./shared/app.js?v=22");
-const featuresP = import("./shared/features.js?v=24");
+const featuresP = import("./shared/features.js?v=25");
 
 window.showSec = function(name){
   if (name === "students") {
