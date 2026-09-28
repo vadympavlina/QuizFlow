@@ -288,18 +288,6 @@ document.addEventListener("click", e=>{
   if(!e.target.closest("#nt-chips") && !e.target.closest("#nt-folder-drop")) _closeFolderDrop();
 });
 
-async function loadStoredNotifs(){
-  try {
-    const snap = await dbGet("notifications");
-    _notifications = snap.exists()
-      ? Object.entries(snap.val())
-          .map(([id,v])=>({id,...v}))
-          .sort((a,b)=>(b.ts||0)-(a.ts||0))
-      : [];
-    if (typeof updateNotifBadge === "function") updateNotifBadge();
-  } catch(e){ console.warn("Notifs load error:", e.message); _notifications=[]; }
-}
-
 // ─── NOTIFICATION SOUND ──────────────────────────────────────────────
 let _audioCtx = null;
 let _soundEnabled = localStorage.getItem("qf_sound") !== "0"; // увімкнено за замовчуванням
@@ -342,28 +330,15 @@ function playNotifSound(isWarning = false){
 }
 
 async function addNotification(notif){
-  const id = Date.now()+"_"+Math.random().toString(36).slice(2);
+  // Стабільний id: якщо відкрито кілька вкладок, усі пишуть той самий запис — без дублів
+  const id = notif.attemptId && notif.type ? `a_${notif.attemptId}_${notif.type}` : Date.now()+"_"+Math.random().toString(36).slice(2);
+  if (_notifications.some(n => n.id === id)) return;
   const item = { ...notif, id, read: false, ts: notif.ts||Date.now() };
   _notifications.unshift(item);
   updateNotifBadge();
-  playNotifSound(!!notif.isWarning);
   if(document.querySelector("#sec-notifications.on")) G.renderNotifications();
-  // Зберігаємо в Firebase асинхронно
+  // Звук грає слухач notifications (один раз на нове сповіщення)
   try { await dbSet(`notifications/${id}`, item); } catch(e){ console.warn(e.message); }
-}
-
-async function markNotifRead(id){
-  _notifications = _notifications.map(n=>n.id===id?{...n,read:true}:n);
-  updateNotifBadge();
-  try { await dbUpd(`notifications/${id}`, {read:true}); } catch{}
-}
-
-async function markAllNotifsRead(){
-  const unread = _notifications.filter(n=>!n.read);
-  _notifications = _notifications.map(n=>({...n,read:true}));
-  updateNotifBadge();
-  // Оновлюємо в Firebase паралельно
-  await Promise.all(unread.map(n=>dbUpd(`notifications/${n.id}`,{read:true}).catch(()=>{})));
 }
 
 function updateNotifBadge(){
@@ -377,12 +352,127 @@ function updateNotifBadge(){
     badge.style.display = "none";
   }
 }
-loadStoredNotifs();
-// Синхронізуємо кнопку звуку при завантаженні
-setTimeout(()=>{
-  const btn = document.getElementById("notif-sound-btn");
-  if(btn && !_soundEnabled){ btn.textContent="🔕"; btn.style.opacity="0.5"; }
-}, 500);
+
+// ─── Сторінка сповіщень: стан і хелпери ───────────────────────────────
+const NF = { filter: "", limit: 50, fresh: new Set(), bound: false, known: null, pending: new Set(), timer: null };
+const NF_MAX = 300;                       // зберігаємо не більше стільки сповіщень
+const _nfSafeId = s => typeof s === "string" && /^[\w-]{1,64}$/.test(s);
+// Сповіщення може записати будь-хто (студент — про скріншот, колега — про тест),
+// тому весь текст — лише як текст: теги прибираємо, решту екрануємо.
+const _nfTxt = s => esc(String(s ?? "").replace(/<[^>]*>/g, "").replace(/&(amp|lt|gt|quot|#39);/g, (m, e) => ({ amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'" })[e]));
+const _nfSusp = a => a ? (a.tabSwitches || 0) * 2 + (a.copyAttempts || 0) * 3 + (a.screenshots || 0) * 5 : 0;
+const _NF_ICO = {
+  started:  `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 001.5.86l10.5-6.5a1 1 0 000-1.72L9.5 4.64A1 1 0 008 5.5z"/></svg>`,
+  shot:     `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>`,
+  shared:   `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>`,
+  pending:  `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>`,
+  done:     `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  bell:     `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1112 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 004 0"/></svg>`,
+};
+
+// Одне сповіщення → що показати. Ім'я, тест і оцінку беремо з живої спроби
+// (оцінка могла змінитися після перевірки), збережений текст — лише запасний.
+function _nfView(n, aMap){
+  const a = n.attemptId ? aMap.get(n.attemptId) : null;
+  const kind = n.sharedTestId ? "shared"
+    : n.type === "screenshot" ? "screenshot"
+    : (n.type === "completed" || n.type === "new") ? "completed"
+    : n.type === "started" ? "started" : "other";
+  const t = a ? tests.find(x => x.id === a.testId) : null;
+  const who = a ? esc(`${a.surname || ""} ${a.name || ""}`.trim() || "Студент") : "";
+  const testT = t ? esc(t.title) : a?.testTitle ? esc(a.testTitle) : "";
+  const score = _nfSusp(a);
+  const warn = kind === "screenshot" || !!n.isWarning || (kind === "completed" && score > 0);
+  const chips = [];
+  let lv = "info", ico = _NF_ICO.bell, tag = "Активність", title, text = "";
+
+  if (kind === "completed") {
+    tag = "Завершено";
+    title = a ? `<b>${who}</b> завершив(ла) тест` : _nfTxt(n.title);
+    text = a ? testT : _nfTxt(n.desc || n.msg);
+    if (a?.status === "pending_review") {
+      lv = "warn"; ico = _NF_ICO.pending; tag = "На перевірці";
+      chips.push(`<span class="chip warn">⏳ чекає перевірки</span>`);
+    } else if (a && a.grade12 != null) {
+      const g = +a.grade12;
+      lv = g >= 10 ? "ok" : g >= 7 ? "info" : g >= 4 ? "warn" : "bad";
+      ico = `<span class="g">${g}</span>`;
+      chips.push(`<span class="chip ${lv}"><b>${g}</b>/12${a.percent != null ? ` · ${Math.round(a.percent)}%` : ""}</span>`);
+    } else { lv = "ok"; ico = _NF_ICO.done; }
+  } else if (kind === "started") {
+    tag = "Розпочато";
+    title = a ? `<b>${who}</b> розпочав(ла) тест` : _nfTxt(n.title);
+    text = a ? testT : _nfTxt(n.desc || n.msg);
+    ico = _NF_ICO.started;
+    if (a?.status === "in_progress") chips.push(`<span class="chip live">● проходить зараз</span>`);
+  } else if (kind === "screenshot") {
+    lv = "bad"; tag = "Скріншот"; ico = _NF_ICO.shot;
+    title = a ? `<b>${who}</b> зробив(ла) скріншот` : _nfTxt(n.title);
+    text = _nfTxt(n.desc || n.msg);
+  } else if (kind === "shared") {
+    tag = "Від колеги"; ico = _NF_ICO.shared;
+    title = _nfTxt(n.title) || "Вам надіслали тест";
+    text = _nfTxt(n.msg || n.desc);
+  } else {
+    title = _nfTxt(n.title) || "Сповіщення";
+    text = _nfTxt(n.desc || n.msg);
+  }
+  if (a?.group) chips.push(`<span class="chip">${esc(a.group)}</span>`);
+  if (warn && kind === "completed") {
+    const bits = [];
+    if (a.tabSwitches)  bits.push(`${a.tabSwitches} ${_plural(a.tabSwitches, "вихід", "виходи", "виходів")}`);
+    if (a.copyAttempts) bits.push(`${a.copyAttempts} копіюв.`);
+    if (a.screenshots)  bits.push(`${a.screenshots} скрін.`);
+    chips.push(`<span class="chip bad">⚑ ${bits.join(" · ") || "підозріла активність"}</span>`);
+  }
+  if (n.attemptId && !a && kind !== "shared") chips.push(`<span class="chip muted">спробу видалено</span>`);
+
+  const open = kind === "shared" ? _nfSafeId(n.sharedTestId) : !!a;
+  return { id: n.id, ts: n.ts, aid: n.attemptId || null, kind, warn, lv, ico, tag, title, text, chips: chips.join(""), open };
+}
+
+// Прочитано — одним multi-path записом (замість запиту на кожне сповіщення)
+function _nfMarkRead(ids){
+  ids.forEach(id => NF.pending.add(id));
+  _notifications = _notifications.map(n => NF.pending.has(n.id) ? { ...n, read: true } : n);
+  updateNotifBadge();
+  clearTimeout(NF.timer);
+  return new Promise(res => {
+    NF.timer = setTimeout(async () => {
+      const upd = {};
+      NF.pending.forEach(id => { if (_nfSafeId(id)) upd[`${id}/read`] = true; });
+      NF.pending.clear();
+      if (Object.keys(upd).length) {
+        try { await update(ref(db, tp("notifications")), upd); } catch (e) { console.warn("notif read:", e.message); }
+      }
+      res();
+    }, 250);
+  });
+}
+
+function _nfSyncSoundBtn(){
+  const btn = $("notif-sound-btn");
+  if (!btn) return;
+  btn.classList.toggle("snd-off", !_soundEnabled);
+  btn.title = _soundEnabled ? "Звук увімкнено — натисніть, щоб вимкнути" : "Звук вимкнено — натисніть, щоб увімкнути";
+  btn.setAttribute("aria-pressed", String(_soundEnabled));
+}
+
+function _nfBind(){
+  NF.bound = true;
+  _nfSyncSoundBtn();
+  $("nf-tabs")?.addEventListener("click", e => {
+    const b = e.target.closest(".nf-tab"); if (b) G.selectNotifFilter(b.dataset.val || "");
+  });
+  $("notif-list")?.addEventListener("click", e => {
+    const act = e.target.closest("[data-nf]")?.dataset.nf;
+    if (act === "more") { NF.limit += 50; G.renderNotifications(); return; }
+    const row = e.target.closest(".notif"); if (!row) return;
+    const id = row.dataset.nid;
+    if (act === "del") G.delNotif(id);
+    else if (act === "open" || row.classList.contains("can-open")) G.openNotif(id);
+  });
+}
 
 
 // ─── Нотифікації ─────────────────────────────────────────────────────────────
@@ -391,37 +481,18 @@ let _notifActive = false;
 
 function showNotification(attempt, type){
   const test = tests.find(t=>t.id===attempt.testId);
-  const name = `${attempt.name} ${attempt.surname}`;
+  const name = `${attempt.name||""} ${attempt.surname||""}`.trim() || "Студент";
   const testTitle = test?.title || "—";
+  const started = type === "started";
+  const icon  = started ? "🎓" : "✅";
+  const title = `${name} ${started ? "розпочав(ла)" : "завершив(ла)"} тест`;
+  const desc  = !started && attempt.grade12 != null ? `${testTitle} · Оцінка ${attempt.grade12}/12` : testTitle;
+  const color = started ? "#2d5be3" : "#0d9e85";
 
-  let icon, title, desc, color, isWarning = false;
+  addNotification({ icon, title, desc, attemptId: attempt.id, type, ts: Date.now() });
 
-  if(type==="completed"){
-    icon  = "✅";
-    title = `${name} завершив(ла) тест`;
-    desc  = `${testTitle}${attempt.grade12 ? ` · Оцінка ${attempt.grade12}/12` : ""}`;
-    color = "#0d9e85";
-    // Підозріла активність — показуємо тільки у вкладці "Підозрілі", не в сповіщеннях
-  } else if(type==="started"){
-    icon  = "🎓";
-    title = `${name} розпочав(ла) тест`;
-    desc  = testTitle;
-    color = "#2d5be3";
-  } else {
-    icon  = "🎯";
-    title = `${name} завершив(ла) тест`;
-    desc  = testTitle;
-    color = "#0d9e85";
-  }
-
-  // Зберігаємо в store
-  addNotification({ icon, title, desc, color, isWarning, attemptId: attempt.id, type, ts: Date.now() });
-
-  // Показуємо банер
-  const bannerMsg = isWarning
-    ? `${icon} ${name} — ${testTitle} ⚠️`
-    : `${icon} ${name} — ${testTitle}`;
-  _notifQueue.push({icon, msg: `<strong>${name}</strong> · ${desc}`, color, id: attempt.id});
+  // Ім'я й назву пише студент/викладач — у банер лише екрановані
+  _notifQueue.push({icon, msg: `<strong>${esc(name)}</strong> · ${esc(desc)}`, color, id: attempt.id});
   if(!_notifActive) processNotifQueue();
 }
 
@@ -3153,167 +3224,124 @@ window.G = {
   // Attempts
   rAttempts:renderAttempts,
 
+  // ═══ СПОВІЩЕННЯ ═══════════════════════════════════════════════════════
+  // Показ без markAll при кожному рендері: непрочитані, що були на момент
+  // відкриття сторінки (або прийшли поки вона відкрита), лишаються підсвіченими
+  // як «нові» до кінця візиту, а в базі одним записом стають прочитаними.
   renderNotifications(){
-    const list=$("notif-list");
-    if(!list) return;
-    // ВАЖЛИВО: на новій сторінці виклик markAllNotifsRead викликався тут — це робило
-    // всі сповіщення прочитаними при ВІДКРИТТІ сторінки. Це бажана поведінка тільки
-    // на старій сторінці. Тут лишаємо так само щоб не зламати логіку badge.
-    markAllNotifsRead();
- 
-    const fVal = $("notif-filter")?.value || "";
-    let filtered = _notifications;
-    if(fVal === "warn")      filtered = filtered.filter(n => n.isWarning);
-    if(fVal === "completed") filtered = filtered.filter(n => n.type === "completed");
-    if(fVal === "started")   filtered = filtered.filter(n => n.type === "started");
-    if(fVal === "unread")    filtered = filtered.filter(n => !n.read);
- 
-    // Лічильники по табах (нова сторінка)
-    const elAll       = document.getElementById("cnt-all");
-    const elUnread    = document.getElementById("cnt-unread");
-    const elWarn      = document.getElementById("cnt-warn");
-    const elCompleted = document.getElementById("cnt-completed");
-    const elStarted   = document.getElementById("cnt-started");
-    if (elAll)       elAll.textContent       = _notifications.length;
-    if (elUnread)    elUnread.textContent    = _notifications.filter(n => !n.read).length;
-    if (elWarn)      elWarn.textContent      = _notifications.filter(n => n.isWarning).length;
-    if (elCompleted) elCompleted.textContent = _notifications.filter(n => n.type === "completed").length;
-    if (elStarted)   elStarted.textContent   = _notifications.filter(n => n.type === "started").length;
- 
-    // Лічильник у page-head (нова сторінка)
-    const elHeadUnread = document.getElementById("nf-unread-count");
-    if (elHeadUnread) elHeadUnread.textContent = _notifications.filter(n => !n.read).length;
- 
-    // Лічильник справа в нав-bar
-    const elMetaR = document.getElementById("nf-meta-r");
-    if (elMetaR) elMetaR.textContent = `${filtered.length} ${filtered.length === 1 ? "сповіщення" : "сповіщень"}`;
- 
-    if(!filtered.length){
+    const list = $("notif-list");
+    if (!list) return;
+    if (!NF.bound) _nfBind();
+
+    const unread = _notifications.filter(n => n.id && !n.read);
+    if (unread.length && document.querySelector("#sec-notifications.on")) {
+      unread.forEach(n => NF.fresh.add(n.id));
+      _nfMarkRead(unread.map(n => n.id));
+    }
+
+    const aMap = new Map(attempts.map(a => [a.id, a]));
+    const all = _notifications.map(n => _nfView(n, aMap));
+    const doneIds = new Set(all.filter(v => v.kind === "completed" && v.aid).map(v => v.aid));
+    // «Почав» зникає, коли є «Завершив» по тій самій спробі — інакше дублі
+    const base = all.filter(v => !(v.kind === "started" && doneIds.has(v.aid)));
+
+    const cnt = {
+      "":        base.length,
+      fresh:     all.filter(v => NF.fresh.has(v.id)).length,
+      completed: all.filter(v => v.kind === "completed").length,
+      started:   all.filter(v => v.kind === "started").length,
+      warn:      all.filter(v => v.warn).length,
+      shared:    all.filter(v => v.kind === "shared").length,
+    };
+    document.querySelectorAll("#nf-tabs .nf-tab").forEach(b => {
+      const k = b.dataset.val || "";
+      const c = b.querySelector(".cnt"); if (c) c.textContent = cnt[k] ?? 0;
+      b.classList.toggle("on", k === NF.filter);
+      if (k === "shared") b.hidden = !cnt.shared && NF.filter !== "shared";
+    });
+    const head = $("nf-unread-count");
+    if (head) head.textContent = cnt.fresh
+      ? `${cnt.fresh} ${_plural(cnt.fresh, "нове", "нові", "нових")} з останнього візиту`
+      : "Нових немає";
+
+    const f = NF.filter;
+    const rows = f === ""        ? base
+               : f === "fresh"   ? all.filter(v => NF.fresh.has(v.id))
+               : f === "warn"    ? all.filter(v => v.warn)
+               : all.filter(v => v.kind === f);
+
+    const meta = $("nf-meta-r");
+    if (meta) meta.textContent = `${rows.length} ${_plural(rows.length, "сповіщення", "сповіщення", "сповіщень")}`;
+    const clr = $("nf-clear"); if (clr) clr.disabled = !_notifications.length;
+
+    if (!rows.length) {
       list.innerHTML = `<div class="nf-empty">
         <div class="ei"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1112 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 004 0"/></svg></div>
-        <div class="et">${fVal ? "Немає сповіщень за фільтром" : "Немає сповіщень"}</div>
-        <div class="es">${fVal ? "Спробуйте змінити фільтр" : "Тут з'являтимуться повідомлення про активність студентів"}</div>
+        <div class="et">${f ? "Тут порожньо" : "Немає сповіщень"}</div>
+        <div class="es">${f ? "У цій вкладці поки немає сповіщень" : "Тут з'являтимуться повідомлення про активність студентів"}</div>
       </div>`;
       return;
     }
- 
+
     const today = new Date().toDateString();
-    const yest  = new Date(Date.now() - 86400000).toDateString();
-    let lastGroup = null;
- 
-    list.innerHTML = filtered.map(n => {
-      const d = new Date(n.ts);
-      const dStr = d.toDateString();
-      const groupLabel = dStr === today ? "Сьогодні"
-                       : dStr === yest  ? "Вчора"
-                       : d.toLocaleDateString("uk-UA", { day:"numeric", month:"long" });
- 
-      let groupHtml = "";
-      if (groupLabel !== lastGroup){
-        lastGroup = groupLabel;
-        groupHtml = `<div class="nf-day-sep"><div class="ln"></div><span class="lbl">${groupLabel}</span><div class="ln"></div></div>`;
+    const yest  = new Date(Date.now() - 864e5).toDateString();
+    let lastDay = null;
+    const shown = rows.slice(0, NF.limit);
+    list.innerHTML = shown.map(v => {
+      const d = new Date(v.ts || 0);
+      const ds = d.toDateString();
+      let sep = "";
+      if (ds !== lastDay) {
+        lastDay = ds;
+        const lbl = ds === today ? "Сьогодні" : ds === yest ? "Вчора"
+          : d.toLocaleDateString("uk-UA", { day: "numeric", month: "long", ...(d.getFullYear() !== new Date().getFullYear() ? { year: "numeric" } : {}) });
+        sep = `<div class="nf-day-sep"><div class="ln"></div><span class="lbl">${lbl}</span><div class="ln"></div></div>`;
       }
- 
-      const time = d.toLocaleTimeString("uk-UA", { hour:"2-digit", minute:"2-digit" });
-      const isWarn = n.isWarning;
-      const nid = n.id || "";
-      const aid = n.attemptId || "";
-      const isUnread = !n.read;
- 
-      // Визначаємо рівень (для кольору іконки) на основі n.type / isWarning
-      let lv = "info";
-      if (isWarn) lv = "bad";
-      else if (n.type === "completed") lv = "ok";
-      else if (n.type === "started") lv = "info";
-      else if (n.type === "warn" || n.type === "warning") lv = "warn";
- 
-      // Тег для меню
-      const tag = isWarn ? "Анти-чіт"
-                : n.type === "completed" ? "Завершено"
-                : n.type === "started"   ? "Розпочато"
-                : "Активність";
- 
-      // Іконка — оригінальна з n.icon (емодзі)
-      const ico = n.icon || (lv === "bad" ? "⚠️" : lv === "ok" ? "✅" : lv === "warn" ? "⚡" : "🔔");
- 
-      const sharedLink = n.sharedTestId
-        ? `<div class="nf-shared-link" onclick="event.stopPropagation();G.openSharedTest('${n.sharedTestId}')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            Відкрити тест
-          </div>`
-        : "";
- 
-      const detailsBtn = aid
-        ? `<button class="ib" title="Деталі" onclick="event.stopPropagation();G.viewAtt('${aid}')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>`
-        : "";
- 
-      return groupHtml + `
-        <div class="notif${isUnread ? " unread" : ""}" data-nid="${nid}" onclick="G.openNotif('${nid}')">
-          <div class="notif-ico ${lv}">${ico}</div>
+      const time = d.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
+      const when = ds === today ? `${timeAgo(v.ts)} · ${time}` : time;
+      return sep + `
+        <div class="notif${NF.fresh.has(v.id) ? " unread" : ""}${v.open ? " can-open" : ""}" data-nid="${esc(v.id)}">
+          <div class="notif-ico ${v.lv}">${v.ico}</div>
           <div class="notif-body">
-            ${n.title ? `<div class="notif-title">${n.title}</div>` : ""}
-            <div class="notif-text">${n.msg || n.desc || ""}</div>
-            ${sharedLink}
+            <div class="notif-title">${v.title}</div>
+            ${v.text ? `<div class="notif-text">${v.text}</div>` : ""}
             <div class="notif-meta">
-              <span class="item">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                ${time}
-              </span>
-              <span class="tag">${tag}</span>
+              <span class="item"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${when}</span>
+              <span class="tag ${v.kind === "completed" ? (v.lv === "warn" ? "warn" : "ok") : v.lv}">${v.tag}</span>
+              ${v.chips}
             </div>
           </div>
           <div class="notif-actions">
-            ${detailsBtn}
-            <button class="ib d" title="Видалити" onclick="event.stopPropagation();G.delNotif('${nid}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-            </button>
+            ${v.open ? `<button type="button" class="ib" data-nf="open" title="${v.kind === "shared" ? "Відкрити тест" : "Деталі спроби"}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>` : ""}
+            <button type="button" class="ib d" data-nf="del" title="Видалити"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>
           </div>
         </div>`;
-    }).join("");
+    }).join("") + (rows.length > shown.length
+      ? `<button type="button" class="nf-more" data-nf="more">Показати ще ${Math.min(50, rows.length - shown.length)} · залишилось ${rows.length - shown.length}</button>`
+      : "");
   },
-  // ─── ДОДАТИ новий метод markAllNotifsAsRead (повна заміна _notifications): ──
- 
+
   async markAllNotifsAsRead(){
-    if (typeof markAllNotifsRead === "function") {
-      await markAllNotifsRead();
-    } else {
-      _notifications = _notifications.map(n => ({ ...n, read: true }));
-      if (typeof updateNotifBadge === "function") updateNotifBadge();
-    }
+    const ids = _notifications.filter(n => n.id && !n.read).map(n => n.id);
+    NF.fresh.clear();
+    if (ids.length) await _nfMarkRead(ids);
     G.renderNotifications();
-    if (window.toast) toast("Всі сповіщення позначено прочитаними");
+    toast(ids.length ? "Усі сповіщення прочитано" : "Усе вже прочитано");
   },
- 
- 
-// ─── ДОДАТИ новий метод openNotif — відкриває сповіщення (deep-link) ────────
-//   Якщо є attemptId → відкриває деталі; якщо sharedTestId → переходить на тест;
-//   інакше — нічого не робить (просто прочитане).
- 
+
   openNotif(id){
     const n = _notifications.find(x => x.id === id);
     if (!n) return;
-    // Позначаємо прочитаним (markAllNotifsRead уже у renderNotifications, але про всяк)
-    if (n.attemptId && window.G?.viewAtt) {
-      G.viewAtt(n.attemptId);
-    } else if (n.sharedTestId && window.G?.openSharedTest) {
-      G.openSharedTest(n.sharedTestId);
-    }
+    if (n.sharedTestId && _nfSafeId(n.sharedTestId)) { location.href = `tests?hl=${encodeURIComponent(n.sharedTestId)}`; return; }
+    if (n.attemptId && attempts.some(a => a.id === n.attemptId)) G.viewAtt(n.attemptId);
+    else if (n.attemptId) toast("Спробу вже видалено", "err");
   },
- 
-  selectNotifFilter(value, label){
-    document.getElementById("notif-filter").value = value;
-    document.getElementById("cd-notif-filter-label").textContent = label;
-    const menu = document.getElementById("cd-notif-filter-menu");
-    menu?.querySelectorAll(".cd-item").forEach(el=>{
-      el.classList.toggle("cd-active", el.dataset.val===value);
-    });
-    menu?.classList.remove("open");
-    const btn = document.querySelector("#cd-notif-filter .cd-btn");
-    btn?.classList.toggle("active", !!value);
-    btn?.classList.remove("open");
+
+  selectNotifFilter(value){
+    NF.filter = value || "";
+    NF.limit = 50;
     G.renderNotifications();
+    $("notif-list")?.scrollTo?.(0, 0);
   },
 
   openSharedTest(testId){
@@ -3334,35 +3362,31 @@ window.G = {
   },
 
   async delNotif(id){
-    _notifications=_notifications.filter(n=>n.id!==id);
+    _notifications = _notifications.filter(n => n.id !== id);
+    NF.fresh.delete(id);
     updateNotifBadge();
     G.renderNotifications();
-    try{ await dbDel(`notifications/${id}`); }catch(e){console.warn(e);}
+    try { await dbDel(`notifications/${id}`); } catch (e) { console.warn(e); toast("Не вдалося видалити", "err"); }
   },
 
-// ─── ОНОВЛЕННЯ toggleNotifSound (опційно — для класу .snd-off в новому дизайні) ──
-// Якщо хочеш можеш ЗАМІНИТИ існуючий toggleNotifSound:
- 
   toggleNotifSound(){
     _soundEnabled = !_soundEnabled;
-    localStorage.setItem("qf_sound", _soundEnabled ? "1" : "0");
-    const btn = document.getElementById("notif-sound-btn");
-    if(btn){
-      btn.textContent = _soundEnabled ? "🔔" : "🔕";
-      btn.title = _soundEnabled ? "Звук увімкнено" : "Звук вимкнено";
-      btn.classList.toggle("snd-off", !_soundEnabled);
-      btn.style.opacity = "";  // скидаємо inline якщо був
-    }
-    if (window.toast) toast(_soundEnabled ? "Звук сповіщень увімкнено" : "Звук сповіщень вимкнено");
+    try { localStorage.setItem("qf_sound", _soundEnabled ? "1" : "0"); } catch {}
+    _nfSyncSoundBtn();
+    if (_soundEnabled) playNotifSound(false);
+    toast(_soundEnabled ? "Звук сповіщень увімкнено" : "Звук сповіщень вимкнено");
   },
 
   async clearAllNotifs(){
-    const ids=[..._notifications.map(n=>n.id)];
-    _notifications=[];
+    if (!_notifications.length) return;
+    if (!confirm(`Видалити всі ${_notifications.length} ${_plural(_notifications.length, "сповіщення", "сповіщення", "сповіщень")}? Це незворотно.`)) return;
+    const prev = _notifications;
+    _notifications = [];
+    NF.fresh.clear();
     updateNotifBadge();
     G.renderNotifications();
-    toast("Сповіщення очищено");
-    await Promise.all(ids.map(id=>dbDel(`notifications/${id}`).catch(()=>{})));
+    try { await dbDel("notifications"); toast("Сповіщення очищено"); }
+    catch (e) { _notifications = prev; updateNotifBadge(); G.renderNotifications(); toast("Не вдалося очистити: " + e.message, "err"); }
   },
 
 
@@ -5419,8 +5443,9 @@ function _notifyAttemptChanges(prev, next){
   const byId = new Map(prev.map(a => [a.id, a]));
   for (const na of next){
     const old = byId.get(na.id);
-    if (!old && na.status === "completed") showNotification(na, "new");
-    else if (old && old.status === "in_progress" && na.status === "completed") showNotification(na, "completed");
+    // pending_review — теж завершення (є відкриті питання), раніше про нього не сповіщали
+    const done = na.status === "completed" || na.status === "pending_review";
+    if (done && (!old || old.status === "in_progress")) showNotification(na, "completed");
     else if (!old && na.status === "in_progress") showNotification(na, "started");
   }
 }
@@ -5501,7 +5526,6 @@ function startRealtimeListeners(){
   });
   }
 
-  let _prevNotifCount = 0;
   onValue(ref(db, tp("meta/suspReadCount")), (snap) => {
     const suspRead = snap.exists() ? (snap.val()||0) : 0;
     const suspCount = attempts.filter(a=>
@@ -5515,15 +5539,22 @@ function startRealtimeListeners(){
 
   onValue(ref(db, tp("notifications")), (snap) => {
     const all = snap.exists()
-      ? Object.entries(snap.val()).map(([id,v])=>({id,...v})).sort((a,b)=>(b.ts||0)-(a.ts||0))
+      ? Object.entries(snap.val()).map(([id,v])=>({...v,id})).sort((a,b)=>(b.ts||0)-(a.ts||0))
       : [];
-    const newCount = all.filter(n=>!n.read).length;
-    if(_prevNotifCount > 0 && newCount > _prevNotifCount){
-      const newest = all[0];
-      playNotifSound(!!(newest?.isWarning));
+    // Звук — лише на справді нові непрочитані (після першого завантаження)
+    if (NF.known) {
+      const fresh = all.filter(n => !n.read && !NF.known.has(n.id));
+      if (fresh.length) playNotifSound(fresh.some(n => n.isWarning || n.type === "screenshot"));
     }
-    _prevNotifCount = newCount;
-    _notifications = all;
+    NF.known = new Set(all.map(n => n.id));
+    // Прибираємо найстаріші понад ліміт — одним записом
+    if (all.length > NF_MAX) {
+      const upd = {};
+      all.slice(NF_MAX).forEach(n => { if (_nfSafeId(n.id)) upd[n.id] = null; });
+      update(ref(db, tp("notifications")), upd).catch(()=>{});
+      all.length = NF_MAX;
+    }
+    _notifications = all.map(n => NF.pending.has(n.id) ? { ...n, read: true } : n);
     window._notifications = _notifications;
     if (typeof updateNotifBadge === "function") try { updateNotifBadge(); } catch {}
     if(document.querySelector("#sec-notifications.on") && window.G?.renderNotifications) {

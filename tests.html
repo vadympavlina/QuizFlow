@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css?v=22">
 <link rel="modulepreload" href="shared/app.js?v=22">
-<link rel="modulepreload" href="shared/features.js?v=25">
+<link rel="modulepreload" href="shared/features.js?v=26">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
    TESTS PAGE REDESIGN — scoped під #sec-tests
@@ -331,6 +331,7 @@
   #sec-tests .t-folders-grid{grid-template-columns:1fr!important}
   #sec-tests .t-quizzes-grid{grid-template-columns:1fr!important}
 }
+.t-hl{outline:2px solid #3B82F6;outline-offset:3px;border-radius:14px;transition:outline-color .6s}
 </style>
 </head>
 <body>
@@ -454,7 +455,7 @@
 <script type="module">
 // ─── Ініціалізація (паралельне завантаження — як в оригіналі) ───
 const { initApp } = await import("./shared/app.js?v=22");
-const featuresP = import("./shared/features.js?v=25");
+const featuresP = import("./shared/features.js?v=26");
 
 window.showSec = function(name){
   if (name === "tests"){
@@ -492,6 +493,24 @@ if (window.renderAll) window.renderAll();
 if (new URLSearchParams(location.search).get("new") === "1" && window.G?.openTestInFolder){
   history.replaceState(null, "", location.pathname);
   setTimeout(() => window.G.openTestInFolder(null), 300);
+}
+
+// tests?hl=ID — підсвітити тест (напр. надісланий колегою, зі сповіщень)
+const _hl = new URLSearchParams(location.search).get("hl");
+if (_hl) {
+  history.replaceState(null, "", location.pathname);
+  setTimeout(() => {
+    const t = (window.tests || []).find(x => x.id === _hl);
+    if (!t) { window.toast?.("Тест не знайдено — можливо, його вже видалено", "err"); return; }
+    window.G?.setFF?.(t.folderId || "none");
+    requestAnimationFrame(() => {
+      const el = document.querySelector(`.t-quiz-card[data-id="${CSS.escape(_hl)}"], tr[data-id="${CSS.escape(_hl)}"]`);
+      if (!el) return;
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+      el.classList.add("t-hl");
+      setTimeout(() => el.classList.remove("t-hl"), 2600);
+    });
+  }, 300);
 }
 
 requestAnimationFrame(() => {
