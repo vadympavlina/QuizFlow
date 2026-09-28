@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="modulepreload" href="live-core.js?v=2">
+<link rel="modulepreload" href="live-core.js?v=3">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -68,7 +68,7 @@
   .pod-1 .pod-rank .num{font-size:38px}
   .pod-2 .pod-rank{background:var(--silver);padding:26px 20px}
   .pod-3 .pod-rank{background:var(--bronze);padding:12px 20px}
-  .crown{position:absolute;top:-26px;left:50%;transform:translateX(-50%);font-size:38px;z-index:2;animation:bob 2s ease-in-out infinite 2.6s}
+  .crown{position:absolute;top:-30px;left:50%;transform:translateX(-50%);color:#FBBF24;line-height:0;z-index:2;animation:bob 2s ease-in-out infinite 2.6s}
   @keyframes bob{50%{transform:translateX(-50%) translateY(-6px) rotate(-6deg)}}
 
   .standings{max-width:1000px;margin:52px auto 40px;padding:0 24px;position:relative;z-index:2}
@@ -110,29 +110,29 @@
 
 <div class="header">
   <div class="meta">QuizFlow Live · Фінальні результати</div>
-  <h1>🏆 <span id="test-title">—</span></h1>
+  <h1><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-5px;margin-right:10px;color:#FCD34D"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3"/></svg><span id="test-title">—</span></h1>
   <div class="quiz" id="game-meta">&nbsp;</div>
 </div>
 
 <div class="podium-wrap" id="podium-wrap"></div>
 
 <div class="standings" id="standings">
-  <h2 id="standings-h">📊 Усі гравці <small id="total-lbl"></small></h2>
+  <h2 id="standings-h">Усі гравці <small id="total-lbl"></small></h2>
   <div id="standings-list"></div>
 </div>
 
 <div class="footer-cta">
-  <a class="btn" id="history-btn" href="../game-history">📚 Історія ігор</a>
-  <a class="btn" id="again-btn" href="#">↻ Зіграти ще раз</a>
-  <button class="btn" id="csv-btn" type="button">⬇ Результати CSV</button>
-  <button class="btn btn-primary" id="end-btn">✓ Завершити гру</button>
+  <a class="btn" id="history-btn" href="../game-history"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>Історія ігор</a>
+  <a class="btn" id="again-btn" href="#"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M4 12a8 8 0 0113.7-5.7L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 01-13.7 5.7L4 16"/><path d="M4 20v-4h4"/></svg>Зіграти ще раз</a>
+  <button class="btn" id="csv-btn" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Результати CSV</button>
+  <button class="btn btn-primary" id="end-btn">Завершити гру</button>
 </div>
 
 <script type="module">
 import {
   db, ref, get, update, requireTeacher, readParams, isValidCode, fatal, toast,
   esc, initialsOf, avatarColor, standings, THEMES, DEFAULT_THEME, plural, fmtNum, HOME_URL, serverNow,
-} from "./live-core.js?v=2";
+} from "./live-core.js?v=3";
 
 const $ = (id) => document.getElementById(id);
 const user = await requireTeacher();
@@ -171,7 +171,7 @@ if (!list.length) {
   pod.innerHTML = display.map(rank => {
     const g = groups[rank], tied = g.length > 1;
     const body = tied
-      ? `<div class="tie-badge">⚖ Нічия · ${g.length} ${plural(g.length, "гравець", "гравці", "гравців")}</div>
+      ? `<div class="tie-badge">Нічия · ${g.length} ${plural(g.length, "гравець", "гравці", "гравців")}</div>
          <div class="pod-score-shared">${fmtNum(g[0].score)}</div>
          <div class="pod-players">${g.map(p => `<div class="pod-player">${av(p)}
            <div style="min-width:0"><div class="name">${esc(p.nickname)}</div><div class="sub">${p.correct} / ${totalQ} правильно</div></div></div>`).join("")}</div>`
@@ -180,7 +180,7 @@ if (!list.length) {
          <div class="score">${fmtNum(g[0].score)}</div>
          <div class="extra">${g[0].correct} / ${totalQ} правильно</div>`;
     return `<div class="pod-col pod-${rank}">
-      ${rank === 1 ? '<span class="crown">👑</span>' : ""}
+      ${rank === 1 ? '<span class="crown"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 18h20l-2-11-5 5-3-7-3 7-5-5z"/></svg></span>' : ""}
       <div class="pod-card"><div class="pod-body">${body}</div>
       <div class="pod-rank"><span class="num">${rank}</span><span class="lbl">місце</span></div></div>
     </div>`;
@@ -198,7 +198,7 @@ if (!list.length) {
 const rest = showPodium ? list.filter(p => p.rank > 3) : list;
 if (list.length && !rest.length) $("standings").hidden = true;
 $("total-lbl").textContent = `${list.length} ${plural(list.length, "учасник", "учасники", "учасників")}`;
-if (showPodium) $("standings-h").firstChild.textContent = "📊 Інші гравці ";
+if (showPodium) $("standings-h").firstChild.textContent = "Інші гравці ";
 $("standings-list").innerHTML = rest.length ? `<div class="row head"><div>#</div><div>Гравець</div><div class="stat">Прав.</div><div class="stat">Помил.</div><div class="stat">Пропуск</div><div style="text-align:right">Бали</div></div>` + rest.map(p =>
   `<div class="row">
     <div class="rank">${p.rank}</div>

@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="modulepreload" href="live-core.js?v=2">
+<link rel="modulepreload" href="live-core.js?v=3">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -139,7 +139,7 @@
   .overlay.show{display:flex}
   .overlay h2{font-size:26px;font-weight:900;margin:0}
   .overlay p{font-size:15px;color:rgba(255,255,255,.7);margin:0;max-width:340px;line-height:1.5}
-  .overlay .ico{font-size:60px;line-height:1}
+  .overlay .ico{font-size:60px;line-height:1;display:grid;place-items:center;opacity:.9}
   .overlay a{margin-top:6px;color:#fff;background:linear-gradient(135deg,#A78BFA,#7C3AED);text-decoration:none;font-weight:800;padding:12px 22px;border-radius:12px}
   #lobby-overlay{background:linear-gradient(160deg,#0F1844,#1E3A8A)}
   #pause-overlay{background:rgba(5,8,30,.72);backdrop-filter:blur(14px)}
@@ -185,19 +185,19 @@
 </div>
 
 <div class="overlay" id="pause-overlay">
-  <div class="ico">⏸</div>
+  <div class="ico"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></div>
   <h2>Гра на паузі</h2>
   <p>Зачекайте, викладач скоро продовжить</p>
 </div>
 
 <div class="overlay" id="kicked-overlay">
-  <div class="ico">🚫</div>
+  <div class="ico"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="5.6" y1="5.6" x2="18.4" y2="18.4"/></svg></div>
   <h2>Вас видалено з гри</h2>
   <p>Викладач прибрав вас зі списку учасників.</p>
 </div>
 
 <div class="overlay" id="end-overlay">
-  <div class="ico" id="end-ico">🏁</div>
+  <div class="ico" id="end-ico"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V4"/><path d="M4 4h12l-2 4 2 4H4"/></svg></div>
   <h2 id="end-title">Гру закрито</h2>
   <p id="end-text">Викладач скасував цю гру.</p>
   <a id="end-link" href="../play">Приєднатись до іншої гри</a>
@@ -208,7 +208,7 @@
     <span class="lbl" id="q-lbl">— / —</span>
     <div class="progress-bar"><i id="q-bar"></i></div>
   </div>
-  <span class="score" id="score">★ <span id="my-score">0</span></span>
+  <span class="score" id="score"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span id="my-score">0</span></span>
   <div class="player-pill"><span class="av" id="my-av">?</span><span id="my-name">—</span></div>
 </div>
 
@@ -235,16 +235,17 @@
 <div class="dock">
   <button class="confirm-btn" id="confirm-btn" type="button">Підтвердити <span class="cnt" id="confirm-cnt">0</span></button>
   <div class="banner lock" id="lock-banner">✓ Відповідь прийнято — чекаємо інших</div>
-  <div class="banner late" id="late-banner">⏱ Час вийшов</div>
+  <div class="banner late" id="late-banner"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>Час вийшов</div>
 </div>
 
 <script type="module">
+const EIC = {search:"<svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"m20 20-3.5-3.5\"/></svg>",flagend:"<svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 22V4\"/><path d=\"M4 4h12l-2 4 2 4H4\"/></svg>",ban:"<svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><line x1=\"5.6\" y1=\"5.6\" x2=\"18.4\" y2=\"18.4\"/></svg>",pause:"<svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"6\" y=\"4\" width=\"4\" height=\"16\" rx=\"1\"/><rect x=\"14\" y=\"4\" width=\"4\" height=\"16\" rx=\"1\"/></svg>",trophy:"<svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z\"/><path d=\"M17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3\"/></svg>",clock:"<svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><polyline points=\"12 7 12 12 15 14\"/></svg>",star:"<svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><polygon points=\"12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2\"/></svg>",alert:"<svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z\"/><line x1=\"12\" y1=\"9\" x2=\"12\" y2=\"13\"/><line x1=\"12\" y1=\"17\" x2=\"12.01\" y2=\"17\"/></svg>",zap:"<svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><polygon points=\"13 2 3 14 12 14 11 22 21 10 12 10 13 2\"/></svg>"};
 import {
   db, ref, get, set, onValue, serverTimestamp, readParams, isValidCode, esc, initialsOf, avatarColor,
   applyTheme, serverNow, watchFields, OPT_CLASSES, OPT_LETTERS, TYPE_LABELS, isFreeform,
   seededOrder, fmtNum, pageUrl, trackPresence, asIndexList, fitText, fitGroup, onRefit,
   richHtml, toast, plural,
-} from "./live-core.js?v=2";
+} from "./live-core.js?v=3";
 
 const $ = (id) => document.getElementById(id);
 let timerId = null, wasOpen = false;
@@ -252,7 +253,7 @@ const { code, pid, nickname: nickParam } = readParams("code", "pid", "nickname")
 if (!isValidCode(code) || !pid) { location.replace(pageUrl("../play")); throw new Error("bad params"); }
 
 function showEnd(ico, title, text, linkText = "Приєднатись до іншої гри") {
-  $("end-ico").textContent = ico; $("end-title").textContent = title; $("end-text").textContent = text;
+  $("end-ico").innerHTML = (EIC[ico] || EIC.flagend).replace(/width="24" height="24"/, 'width="56" height="56"'); $("end-title").textContent = title; $("end-text").textContent = text;
   $("end-link").textContent = linkText;
   $("end-overlay").classList.add("show");
   stopTimer();
@@ -265,7 +266,7 @@ const [qS, tS, thS, oS, ttS, meS] = await Promise.all(
 );
 const me = meS.val();
 if (!qS.exists() || !me) {
-  showEnd("🔍", "Гру не знайдено", "Можливо, її вже закрито. Перевірте код і приєднайтесь ще раз.");
+  showEnd("search", "Гру не знайдено", "Можливо, її вже закрито. Перевірте код і приєднайтесь ще раз.");
   throw new Error("no room");
 }
 const questions = Array.isArray(qS.val()) ? qS.val() : Object.values(qS.val());
@@ -319,7 +320,7 @@ function renderQuestion(qi) {
   $("q-lbl").textContent = `${qi + 1} / ${totalQ}`;
   $("q-bar").style.width = `${((qi + 1) / totalQ) * 100}%`;
   $("q-text").innerHTML = richHtml(qq.text);
-  $("q-meta-time").textContent = `⏱ ${timePerQ} с на відповідь`;
+  $("q-meta-time").innerHTML = `${EIC.clock.replace(/width="24" height="24"/, 'width="13" height="13" style="vertical-align:-2px;margin-right:4px"')}${timePerQ} с на відповідь`;
   const t = TYPE_LABELS[qq.type] || TYPE_LABELS.single;
   $("q-type-badge").className = "type-badge " + t.cls;
   $("q-type-badge").textContent = t.label;
@@ -420,7 +421,7 @@ function renderFeedback(qq) {
   const refLine = isFreeform(qq) && ref_ != null && ref_ !== "" ? `<div class="sub">Правильна відповідь:</div><div class="ref">${esc(ref_)}</div>` : "";
   let cls, html;
   if (!myAnswer) {
-    cls = "none"; html = `<div class="big">⏱ Без відповіді</div>${refLine}`;
+    cls = "none"; html = `<div class="big">Без відповіді</div>${refLine}`;
   } else if (!graded) {
     cls = "none"; html = `<div class="big">Перевіряємо…</div>${refLine}`;
   } else if (myAnswer.isCorrect) {
@@ -437,7 +438,7 @@ function renderFeedback(qq) {
   }
   if (myRank?.r && myRank.n > 1) {
     const gap = Number(myRank.g) || 0;
-    html += `<div class="place">${myRank.r === 1 ? "🏆 Ви лідер!" : `Ви на <b>${myRank.r}-му</b> місці з ${myRank.n}`}${myRank.r > 1 && gap > 0 ? `<span>до ${myRank.r - 1}-го місця — ${fmtNum(gap)} ${plural(gap, "бал", "бали", "балів")}</span>` : ""}</div>`;
+    html += `<div class="place">${myRank.r === 1 ? "Ви лідер!" : `Ви на <b>${myRank.r}-му</b> місці з ${myRank.n}`}${myRank.r > 1 && gap > 0 ? `<span>до ${myRank.r - 1}-го місця — ${fmtNum(gap)} ${plural(gap, "бал", "бали", "балів")}</span>` : ""}</div>`;
   }
   if (fb.dataset.sig !== cls + html) {
     fb.dataset.sig = cls + html;
@@ -556,7 +557,7 @@ function applyState(s) {
   st = { ...st, status: s.status, currentQ: Number(s.currentQ) || 0, questionStartedAt: Number(s.questionStartedAt) || 0, pausedLeft: s.pausedLeft, revealed: s.revealed || {} };
 
   if (kicked) { stopTimer(); if (unsubMine) unsubMine(); $("kicked-overlay").classList.add("show"); return; }
-  if (!s.status) { showEnd("🏁", "Гру закрито", "Викладач закрив цю кімнату."); return; }
+  if (!s.status) { showEnd("flagend", "Гру закрито", "Викладач закрив цю кімнату."); return; }
   if (s.status === "leaderboard" || s.status === "finished") { stopTimer(); location.replace(resultUrl()); return; }
 
 

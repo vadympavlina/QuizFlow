@@ -282,7 +282,7 @@ function render(){
   T("t-new", cnt.new); T("t-prog", cnt.in_progress); T("t-late", cnt.late); T("t-done", cnt.done7);
   document.getElementById("tile-late")?.classList.toggle("hot", cnt.late > 0);
   const open = cnt.new + cnt.in_progress;
-  T("pb-sub", open ? `${open} відкритих · ${cnt.new} нових${cnt.late ? ` · ${cnt.late} прострочено` : ""}` : "Відкритих проблем немає 🎉");
+  T("pb-sub", open ? `${open} відкритих · ${cnt.new} нових${cnt.late ? ` · ${cnt.late} прострочено` : ""}` : "Відкритих проблем немає");
 
   // Фільтри
   const words = S.q.trim().toLowerCase().split(/\s+/).filter(Boolean);

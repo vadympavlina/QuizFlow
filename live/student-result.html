@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="modulepreload" href="live-core.js?v=2">
+<link rel="modulepreload" href="live-core.js?v=3">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -96,10 +96,11 @@
 </div>
 
 <script type="module">
+const MIC = {search:"<svg width=\"40\" height=\"40\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"m20 20-3.5-3.5\"/></svg>",alert:"<svg width=\"40\" height=\"40\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z\"/><line x1=\"12\" y1=\"9\" x2=\"12\" y2=\"13\"/><line x1=\"12\" y1=\"17\" x2=\"12.01\" y2=\"17\"/></svg>"};
 import {
   db, ref, get, onValue, readParams, isValidCode, esc, initialsOf, avatarColor, standings,
   plural, fmtNum, pageUrl,
-} from "./live-core.js?v=2";
+} from "./live-core.js?v=3";
 
 const $ = (id) => document.getElementById(id);
 const { code, pid, nickname: nickParam } = readParams("code", "pid", "nickname");
@@ -107,7 +108,7 @@ if (!isValidCode(code) || !pid) { location.replace(pageUrl("../play")); throw ne
 const joinAgain = pageUrl("../play");
 
 function message(ico, title, text) {
-  $("content").innerHTML = `<div class="waiting"><div style="font-size:44px">${ico}</div><h2 style="color:var(--ink);margin:10px 0 6px">${esc(title)}</h2>${esc(text)}
+  $("content").innerHTML = `<div class="waiting"><div style="color:var(--ink-3,#8691AC);display:grid;place-items:center">${MIC[ico] || MIC.alert}</div><h2 style="color:var(--ink);margin:10px 0 6px">${esc(title)}</h2>${esc(text)}
     <div class="actions"><a class="btn" href="${esc(joinAgain)}">Приєднатись до гри</a></div></div>`;
 }
 
@@ -116,7 +117,7 @@ let done = false;
 const unsub = onValue(ref(db, `rooms/${code}/status`), async snap => {
   if (done) return;
   const status = snap.val();
-  if (!status) { done = true; unsub(); message("🔍", "Гру не знайдено", "Можливо, кімнату вже видалено."); return; }
+  if (!status) { done = true; unsub(); message("search", "Гру не знайдено", "Можливо, кімнату вже видалено."); return; }
   if (status !== "leaderboard" && status !== "finished") {
     // Гра ще триває (наприклад, учень відкрив посилання завчасно) — повертаємо в гру
     location.replace(`play-student?code=${code}&pid=${encodeURIComponent(pid)}&nickname=${encodeURIComponent(nickParam || "")}`);
@@ -124,7 +125,7 @@ const unsub = onValue(ref(db, `rooms/${code}/status`), async snap => {
   }
   done = true; unsub();
   try { await render(); }
-  catch (e) { console.error(e); message("⚠️", "Не вдалося завантажити результати", e.message); }
+  catch (e) { console.error(e); message("alert", "Не вдалося завантажити результати", e.message); }
 });
 
 async function render() {
@@ -145,7 +146,7 @@ async function render() {
   const acc = totalQ ? Math.round(correct / totalQ * 100) : 0;
   const top = place && place <= 3;
 
-  const badge = !place ? "Результат" : place === 1 ? "🥇 Переможець!" : place === 2 ? "🥈 Друге місце!" : place === 3 ? "🥉 Третє місце!" : `Місце #${place}`;
+  const badge = !place ? "Результат" : place === 1 ? "Переможець!" : place === 2 ? "Друге місце!" : place === 3 ? "Третє місце!" : `Місце #${place}`;
 
   // Топ-5 + рядок з вами, якщо ви нижче
   const top5 = list.slice(0, 5);
@@ -175,14 +176,14 @@ async function render() {
         <div><div class="l">Пропущено</div><div class="v dim">${skipped}</div></div>
       </div>
       <div class="total-points">
-        <div class="ico">⚡</div>
+        <div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
         <div><div class="lbl">Ваші бали</div><div class="pts">${fmtNum(score)}</div></div>
         <div class="accuracy"><div class="lbl">Точність</div><div class="pts">${acc}%</div></div>
       </div>
     </div>
 
     <div class="card">
-      <h3>📋 Розбір питань</h3>
+      <h3>Розбір питань</h3>
       <div class="pips">${pips}</div>
       <div class="legend">
         <span><i style="background:var(--good)"></i> Правильно</span>
@@ -192,7 +193,7 @@ async function render() {
     </div>
 
     <div class="card">
-      <h3>👑 Лідерборд <small>${list.length} ${plural(list.length, "гравець", "гравці", "гравців")}</small></h3>
+      <h3>Лідерборд <small>${list.length} ${plural(list.length, "гравець", "гравці", "гравців")}</small></h3>
       ${lr || `<div class="footer-msg">Немає даних</div>`}
     </div>
 

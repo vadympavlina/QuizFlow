@@ -387,7 +387,7 @@ async function loadAllData() {
       window.tests    = cached.tests;
       window.links    = cached.links;
       window.attempts = cached.attempts;
-      console.log(`⚡ [app.js] з кешу (${cached.tests.length} тестів, вік ${Math.round((Date.now()-cached.savedAt)/1000)}с)`);
+      console.log(`[app.js] з кешу (${cached.tests.length} тестів, вік ${Math.round((Date.now()-cached.savedAt)/1000)}с)`);
       notifyReady();
       startLive("links"); startLive("attempts");   // свіжі дані прийдуть подією qf:live
       return;
@@ -399,7 +399,7 @@ async function loadAllData() {
     ]);
     window.folders  = toArr(fs).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
     window.tests    = toArr(ts_).sort(_sortDesc);
-    console.log(`✅ [app.js] data loaded (${window.tests.length} tests, ${window.attempts.length} attempts)`);
+    console.log(`[app.js] data loaded (${window.tests.length} tests, ${window.attempts.length} attempts)`);
 
     saveCache(CACHE_KEY);
     notifyReady();

@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="modulepreload" href="live-core.js?v=2">
+<link rel="modulepreload" href="live-core.js?v=3">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -97,7 +97,7 @@
     <div class="title">Лобі · <b id="game-title">—</b></div>
     <div class="actions">
       <button class="lv-btn ghost danger hide-sm" id="close-btn" type="button" title="Скасувати гру і видалити кімнату">Закрити</button>
-      <button class="lv-btn hide-sm" id="fs-btn" type="button" title="Повноекранний режим для проєктора">⛶ <span>На весь екран</span></button>
+      <button class="lv-btn hide-sm" id="fs-btn" type="button" title="Повноекранний режим для проєктора"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg><span>На весь екран</span></button>
       <button class="lv-btn" id="copy-btn" type="button"><span>Посилання</span></button>
       <button class="lv-btn primary" id="start-btn" type="button" disabled>▶ Почати гру <span class="k hide-sm">Enter</span></button>
     </div>
@@ -121,7 +121,7 @@
     <span><b id="stat-q">—</b> питань</span>
     <span><b id="stat-time">—</b> с на питання</span>
     <span id="stat-scoring">—</span>
-    <span id="stat-shuffle" hidden>🔀 варіанти перемішуються</span>
+    <span id="stat-shuffle" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>варіанти перемішуються</span>
   </div>
 
   <div class="players-h">
@@ -139,7 +139,7 @@
 import {
   db, ref, get, update, onValue, requireTeacher, readParams, isValidCode, fatal, toast,
   esc, initialsOf, avatarColor, joinUrl, HOME_URL, serverNow, isActive, isOnline, confirmDlg,
-} from "./live-core.js?v=2";
+} from "./live-core.js?v=3";
 
 const $ = (id) => document.getElementById(id);
 const user = await requireTeacher();
@@ -178,12 +178,12 @@ $("game-title").textContent = testTitle || "—";
 document.title = `Лобі ${code.slice(0, 4)} ${code.slice(4)} · QuizFlow Live`;
 $("stat-q").textContent = (questions || []).length;
 $("stat-time").textContent = timePerQ || 20;
-$("stat-scoring").textContent = scoring === "speed" ? "⚡ бали за швидкість" : "✓ бали за правильність";
+$("stat-scoring").textContent = scoring === "speed" ? "бали за швидкість" : "бали за правильність";
 $("stat-shuffle").hidden = !options?.shuffle;
 
 $("copy-btn").addEventListener("click", async () => {
   const lbl = $("copy-btn").querySelector("span");
-  try { await navigator.clipboard.writeText(url); lbl.textContent = "Скопійовано ✓"; }
+  try { await navigator.clipboard.writeText(url); lbl.textContent = "Скопійовано"; }
   catch { toast(url, "info", 8000); }   // буфер обміну недоступний — показуємо посилання, щоб скопіювати вручну
   setTimeout(() => { lbl.textContent = "Посилання"; }, 2000);
 });
@@ -253,7 +253,7 @@ function render() {
     if (want !== el) grid.insertBefore(el, want);
     prev = el;
   });
-  if (!list.length) grid.insertAdjacentHTML("beforeend", `<div class="empty"><div class="big">📱</div><b>Чекаємо на гравців</b>Попросіть учнів відкрити посилання та ввести код</div>`);
+  if (!list.length) grid.insertAdjacentHTML("beforeend", `<div class="empty"><div class="big"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div><b>Чекаємо на гравців</b>Попросіть учнів відкрити посилання та ввести код</div>`);
   else if (q && list.every(([pid]) => cards.get(pid).hidden)) grid.insertAdjacentHTML("beforeend", `<div class="empty"><b>Нікого не знайдено</b>за запитом «${esc(q)}»</div>`);
   firstRender = false;
 }

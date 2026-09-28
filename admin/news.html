@@ -285,7 +285,7 @@ function render(hlId){
     return `<div class="nt-row${n.draft ? " draft" : ""}${n.id === hlId ? " hl" : ""}" data-id="${esc(n.id)}">
       <div class="nt-ico" style="${cat ? `background:linear-gradient(135deg,${cat.color}CC,${cat.color})` : ""}">${ic("news", 20)}</div>
       <div class="nt-body">
-        <div class="nt-tags">${n.draft ? `<span class="tag draft">Чернетка</span>` : ""}${cat ? `<span class="tag" style="--c:${cat.color};--cb:${cat.bg}">${esc(cat.label)}</span>` : ""}${n.pinned ? `<span class="tag pin">★ Закріплено</span>` : ""}</div>
+        <div class="nt-tags">${n.draft ? `<span class="tag draft">Чернетка</span>` : ""}${cat ? `<span class="tag" style="--c:${cat.color};--cb:${cat.bg}">${esc(cat.label)}</span>` : ""}${n.pinned ? `<span class="tag pin"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px;margin-right:3px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Закріплено</span>` : ""}</div>
         <div class="nt-title" data-act="edit" title="Редагувати">${esc(n.title || "Без заголовка")}</div>
         <div class="nt-ex">${esc(newsExcerpt(n, 180)) || '<span style="color:var(--ink-300)">Порожній текст</span>'}</div>
         <div class="nt-m"><span>${esc(when)}</span><span>${readMinutes(n.text)} хв читання</span></div>
