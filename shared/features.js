@@ -594,18 +594,8 @@ function updateBadges(){
   const nbt = $("nb-t"); if(nbt) nbt.textContent=tests.filter(t=>t.status!=="archived").length;
   const nba = $("nb-a"); if(nba) nba.textContent=attempts.length;
   const nbl = $("nb-l"); if(nbl) nbl.textContent=links.filter(l=>_isOpenState(linkState(l))).length;
-  // Підозрілі
-  const suspCount = attempts.filter(a=>(a.tabSwitches||0)*2+(a.copyAttempts||0)*3+(a.screenshots||0)*5>0&&(a.status==="completed"||a.status==="pending_review")).length;
-  // Підозрілі — порівнюємо з збереженим в Firebase
-  dbGet("meta/suspReadCount").then(snap=>{
-    const suspRead = snap.exists() ? (snap.val()||0) : 0;
-    const suspNew = Math.max(0, suspCount - suspRead);
-    const nbS=$("nb-suspicious");
-    if(nbS){ nbS.textContent=suspNew; nbS.style.display=suspNew>0?"":"none"; }
-  }).catch(()=>{
-    const nbS=$("nb-suspicious");
-    if(nbS){ nbS.textContent=suspCount; nbS.style.display=suspCount>0?"":"none"; }
-  });
+  // Підозрілі — з локального стану, без запиту до бази на кожну зміну спроб
+  _suspBadge();
   // Архів
   const nbArc=document.getElementById("nb-archive");
   if(nbArc) nbArc.textContent=tests.filter(t=>t.status==="archived").length;
@@ -642,9 +632,148 @@ function _spark(vals, color){
   </svg>`;
 }
 function _isSusp(a){
-  return (a.tabSwitches || 0) * 2 + (a.copyAttempts || 0) * 3 + (a.screenshots || 0) * 5 > 0
-    && (a.status === "completed" || a.status === "pending_review");
+  return _suspScore(a) > 0 && (a.status === "completed" || a.status === "pending_review");
 }
+function _suspScore(a){ return (a.tabSwitches || 0) * 2 + (a.copyAttempts || 0) * 3 + (a.screenshots || 0) * 5; }
+const _suspAt = a => a.finishedAt || a.createdAt || 0;
+// «Нові» підозрілі — завершені після останнього візиту на сторінку (meta/suspSeenAt)
+// і ще не переглянуті. Раніше рахувалося як «кількість − збережена кількість»:
+// після видалення спроби нові ховалися, а стан тягнувся запитом на кожну зміну спроб.
+const _suspMeta = { loaded: false, seenAt: null, readCount: 0 };
+function _suspNewCount(){
+  if (!_suspMeta.loaded) return 0;
+  const list = attempts.filter(a => _isSusp(a) && !a.suspReviewed);
+  if (_suspMeta.seenAt == null) return Math.max(0, attempts.filter(_isSusp).length - _suspMeta.readCount);
+  return list.filter(a => _suspAt(a) > _suspMeta.seenAt).length;
+}
+function _suspBadge(){
+  const n = document.querySelector("#sec-suspicious.on") ? 0 : _suspNewCount();
+  const nbS = $("nb-suspicious");
+  if (nbS){ nbS.textContent = n; nbS.style.display = n > 0 ? "" : "none"; }
+  return n;
+}
+// ─── Сторінка «Підозрілі»: стан і хелпери ─────────────────────────────
+const SP = { tab: "open", group: "", test: "", period: "", level: "", sort: "risk", limit: 20, drops: {}, bound: false, open: new Set(), fresh: new Set(), seen: null };
+const _SP_EV = {
+  tab_hidden:   ["🔄", "Відкрив(ла) іншу вкладку"],
+  window_blur:  ["🪟", "Перейшов(ла) в інше вікно"],
+  copy_attempt: ["📋", "Спроба скопіювати текст"],
+  screenshot:   ["📸", "Спроба зробити скріншот"],
+  devtools:     ["🛠", "Спроба відкрити інструменти розробника"],
+};
+function _spMMSS(ms){
+  const s = Math.max(0, Math.round(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+function _spCase(c){
+  const a = c.a, t = tests.find(x => x.id === a.testId);
+  const lv = c.score >= 10 ? "bad" : c.score >= 5 ? "warn" : "info";
+  const lvTxt = lv === "bad" ? "Високий" : lv === "warn" ? "Середній" : "Низький";
+  const who = `${a.surname || ""} ${a.name || ""}`.trim() || "Студент";
+  const initials = ((a.surname?.[0] || "") + (a.name?.[0] || "")).toUpperCase() || "?";
+  let h = 0; for (const ch of who) h = (h * 31 + ch.charCodeAt(0)) | 0;
+  const ava = ["", "b", "g", "o", "r"][Math.abs(h) % 5];
+  const when = c.at ? new Date(c.at).toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—";
+  const grade = a.status === "pending_review" ? `<span class="case-grade warn">⏳ на перевірці</span>`
+    : a.grade12 != null ? `<span class="case-grade ${_stTone(+a.grade12)}"><b>${+a.grade12}</b>/12</span>` : "";
+  const tags = [
+    a.tabSwitches  ? `<span class="case-tag tabs" title="Виходи з тесту (вкладка/вікно)">🔄 ${a.tabSwitches}</span>` : "",
+    a.copyAttempts ? `<span class="case-tag copies" title="Спроби копіювання">📋 ${a.copyAttempts}</span>` : "",
+    a.screenshots  ? `<span class="case-tag shots" title="Спроби скріншоту">📸 ${a.screenshots}</span>` : "",
+  ].join("");
+
+  const concl = [];
+  if (a.screenshots)  concl.push(`${a.screenshots} ${_plural(a.screenshots, "спроба", "спроби", "спроб")} зробити скріншот`);
+  if (a.copyAttempts) concl.push(`${a.copyAttempts} ${_plural(a.copyAttempts, "спроба", "спроби", "спроб")} скопіювати текст питань`);
+  if (a.tabSwitches)  concl.push(`${a.tabSwitches} ${_plural(a.tabSwitches, "вихід", "виходи", "виходів")} з тесту`);
+  const advice = lv === "bad" ? "Варто поговорити зі студентом або переглянути відповіді."
+    : lv === "warn" ? "Перегляньте відповіді на питання, де був вихід."
+    : "Найімовірніше випадковість — наприклад, сповіщення на екрані.";
+
+  const evRaw = a.suspiciousEvents ? (Array.isArray(a.suspiciousEvents) ? a.suspiciousEvents : Object.values(a.suspiciousEvents)) : [];
+  const start = a.startedAt || a.createdAt || 0;
+  const evs = evRaw.filter(e => e && e.time).sort((x, y) => x.time - y.time);
+  const timeline = evs.length ? `<div class="case-section-l">Хронологія · ${evs.length} ${_plural(evs.length, "подія", "події", "подій")}</div>
+    <ol class="sp-tl">${evs.slice(0, 30).map(e => {
+      const [ico, txt] = _SP_EV[e.type] || ["•", ""];
+      return `<li><span class="tm">${start && e.time >= start ? "+" + _spMMSS(e.time - start) : new Date(e.time).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })}</span><span class="ic">${ico}</span><span>${esc(txt || e.description || e.type || "Подія")}</span></li>`;
+    }).join("")}${evs.length > 30 ? `<li class="more">і ще ${evs.length - 30}…</li>` : ""}</ol>` : "";
+
+  const meter = (cls, ico, label, v, mul) => `<div class="meter ${v ? cls : "zero"}">
+      <div class="meter-l"><span class="ico">${ico}</span> ${label}</div>
+      <div class="meter-v">${v || 0}</div><div class="meter-sub">${v ? `+${v * mul} до ризику` : `×${mul} за подію`}</div></div>`;
+  const id = esc(a.id);
+  return `<div class="case${SP.open.has(a.id) ? " expanded" : ""}${c.reviewed ? " reviewed" : ""}" data-case-id="${id}">
+    <div class="case-h" data-sp-toggle role="button" tabindex="0" aria-expanded="${SP.open.has(a.id)}">
+      <div class="case-ava ${ava}">${esc(initials)}</div>
+      <div class="case-info">
+        <div class="case-name">${SP.fresh.has(a.id) && !c.reviewed ? `<span class="case-new">нове</span>` : ""}${esc(who)}${c.reviewed ? `<span class="case-ok">✓ переглянуто</span>` : ""}</div>
+        <div class="case-sub">${esc(t?.title || "Видалений тест")}${c.group ? ` · ${esc(c.group)}` : ""} · ${when}</div>
+      </div>
+      <div class="case-right">
+        <div class="case-tags">${tags}</div>
+        ${grade}
+        <div class="case-score" title="Бал ризику: вихід ×2, копіювання ×3, скріншот ×5"><span class="l">Ризик</span><span class="v ${lv}">${c.score}</span></div>
+        <span class="case-pill ${lv}">${lvTxt}</span>
+        <span class="case-chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+      </div>
+    </div>
+    <div class="case-body">
+      <div class="meters">
+        ${meter("tabs", "🔄", "Виходи з тесту", a.tabSwitches, 2)}
+        ${meter("copies", "📋", "Копіювання", a.copyAttempts, 3)}
+        ${meter("shots", "📸", "Скріншоти", a.screenshots, 5)}
+      </div>
+      ${timeline}
+      <div class="case-concl ${lv}">
+        <span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+        <div><div class="t">${lvTxt} ризик · ${c.score} ${_plural(c.score, "бал", "бали", "балів")}</div>
+          <div class="d">${esc(concl.join(", "))}. ${advice}</div></div>
+      </div>
+      <div class="case-foot">
+        <button type="button" class="sp-btn" data-sp-act="student">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Усі спроби студента
+        </button>
+        <button type="button" class="sp-btn" data-sp-act="view">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Відповіді
+        </button>
+        ${c.reviewed
+          ? `<button type="button" class="sp-btn" data-sp-act="unreview">Повернути в роботу</button>`
+          : `<button type="button" class="sp-btn primary" data-sp-act="review"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Переглянуто</button>`}
+      </div>
+    </div>
+  </div>`;
+}
+function _spBind(){
+  SP.bound = true;
+  $("sp-tabs")?.addEventListener("click", e => { const b = e.target.closest("[data-sp-tab]"); if (b) G.setSuspTab(b.dataset.spTab); });
+  $("sp-kpi-grid")?.addEventListener("click", e => { const b = e.target.closest("[data-sp-level]"); if (b) G.setSuspLevel(b.dataset.spLevel); });
+  $("sp-reset")?.addEventListener("click", () => G.resetSuspFilters());
+  const body = $("suspicious-body");
+  body?.addEventListener("click", e => {
+    if (e.target.closest("[data-sp-reset]")) return G.resetSuspFilters();
+    if (e.target.closest("[data-sp-more]")) { SP.limit += 20; return G.renderSuspicious(); }
+    const card = e.target.closest(".case"); if (!card) return;
+    const id = card.dataset.caseId;
+    const act = e.target.closest("[data-sp-act]")?.dataset.spAct;
+    if (act === "view") return G.viewAtt(id);
+    if (act === "review" || act === "unreview") return G.setSuspReviewed(id, act === "review");
+    if (act === "student") {
+      const a = attempts.find(x => x.id === id);
+      if (a) location.href = "attempts?q=" + encodeURIComponent(`${a.surname || ""} ${a.name || ""}`.trim());
+      return;
+    }
+    if (e.target.closest("[data-sp-toggle]")) G.toggleSuspCase(id);
+  });
+  body?.addEventListener("keydown", e => {
+    if ((e.key === "Enter" || e.key === " ") && e.target.matches("[data-sp-toggle]")) {
+      e.preventDefault(); G.toggleSuspCase(e.target.closest(".case").dataset.caseId);
+    }
+  });
+}
+
 function _gradeTone(a){
   if (a.grade12 != null) return { txt: a.grade12 + "/12", tone: a.grade12 >= 10 ? "ok" : a.grade12 >= 4 ? "mid" : "bad" };
   const pct = a.score?.percent;
@@ -755,13 +884,10 @@ function renderDashAtt(){
   // Підозрілі (нові)
   const suspBlock = $("dash-suspicious-block");
   if (suspBlock){
-    dbGet("meta/suspReadCount").then(snap => {
-      const suspRead = snap.exists() ? (snap.val() || 0) : 0;
-      const suspNew = Math.max(0, attempts.filter(_isSusp).length - suspRead);
-      suspBlock.hidden = !suspNew;
-      const txt = $("dash-suspicious-text");
-      if (txt && suspNew) txt.textContent = `${suspNew} ${plural(suspNew, ["нова підозріла спроба", "нові підозрілі спроби", "нових підозрілих спроб"])} — перевірте деталі`;
-    }).catch(() => { suspBlock.hidden = true; });
+    const suspNew = _suspNewCount();
+    suspBlock.hidden = !suspNew;
+    const txt = $("dash-suspicious-text");
+    if (txt && suspNew) txt.textContent = `${suspNew} ${plural(suspNew, ["нова підозріла спроба", "нові підозрілі спроби", "нових підозрілих спроб"])} — перевірте деталі`;
   }
 
   renderDashTests();
@@ -4337,398 +4463,148 @@ window.G = {
     </table></div></div>`;
   },
 
-// ─── ЗАМІНИТИ toggleSuspDrop (тепер підтримує "group"): ─────────────────────
- 
-  toggleSuspDrop(which){
-    const test = document.getElementById("susp-test-menu");
-    const date = document.getElementById("susp-date-menu");
-    const group = document.getElementById("susp-group-menu");
-    [test, date, group].forEach(m => {
-      if (!m) return;
-      const target = (which === "test"  && m === test) ||
-                     (which === "date"  && m === date) ||
-                     (which === "group" && m === group);
-      if (target) m.classList.toggle("on");
-      else m.classList.remove("on");
-    });
-  },
- 
-// ─── ЗАМІНИТИ setSuspTest: ──────────────────────────────────────────────────
- 
-  setSuspTest(id, label){
-    const inp = document.getElementById("susp-filter-test");
-    if (inp) inp.value = id || "";
-    const lbl = document.getElementById("susp-test-label");
-    if (lbl) lbl.textContent = label || "Всі тести";
-    const btn = document.getElementById("susp-test-btn");
-    if (btn) btn.classList.toggle("active", !!id);
-    document.getElementById("susp-test-menu")?.classList.remove("on");
-    document.querySelectorAll("#susp-test-menu .it").forEach(it => {
-      it.classList.toggle("on", (it.dataset.val || "") === (id || ""));
-    });
-    G.renderSuspicious();
-  },
- 
-// ─── ЗАМІНИТИ setSuspDate: ──────────────────────────────────────────────────
- 
-  setSuspDate(val){
-    const lbl = document.getElementById("susp-date-label");
-    if (lbl) lbl.textContent = val
-      ? new Date(val + "T00:00:00").toLocaleDateString("uk-UA", { day:"numeric", month:"short", year:"numeric" })
-      : "Будь-яка дата";
-    const btn = document.getElementById("susp-date-btn");
-    if (btn) btn.classList.toggle("active", !!val);
-    document.getElementById("susp-date-menu")?.classList.remove("on");
-    G.renderSuspicious();
-  },
-  
-// ─── ДОДАТИ новий setSuspGroup: ─────────────────────────────────────────────
- 
-  setSuspGroup(group, label){
-    const inp = document.getElementById("susp-filter-group");
-    if (inp) inp.value = group || "";
-    const lbl = document.getElementById("susp-group-label");
-    if (lbl) lbl.textContent = label || "Усі групи";
-    const btn = document.getElementById("susp-group-btn");
-    if (btn) btn.classList.toggle("active", !!group);
-    document.getElementById("susp-group-menu")?.classList.remove("on");
-    document.querySelectorAll("#susp-group-menu .it").forEach(it => {
-      it.classList.toggle("on", (it.dataset.val || "") === (group || ""));
-    });
-    G.renderSuspicious();
-  },
- 
-// ─── ЗАМІНИТИ resetSuspFilters (тепер скидає й групу): ──────────────────────
- 
+  // ═══ ПІДОЗРІЛІ ════════════════════════════════════════════════════════
+  setSuspTab(tab){ SP.tab = tab; SP.limit = 20; G.renderSuspicious(); },
+  setSuspLevel(lv){ SP.level = SP.level === lv ? "" : lv; SP.limit = 20; G.renderSuspicious(); },
   resetSuspFilters(){
-    const inp = document.getElementById("susp-filter-test");
-    if (inp) inp.value = "";
-    const dateInp = document.getElementById("susp-filter-date");
-    if (dateInp) dateInp.value = "";
-    const grpInp = document.getElementById("susp-filter-group");
-    if (grpInp) grpInp.value = "";
- 
-    ["susp-test-btn", "susp-date-btn", "susp-group-btn"].forEach(id => {
-      document.getElementById(id)?.classList.remove("active");
-    });
- 
-    const tLbl = document.getElementById("susp-test-label");
-    if (tLbl) tLbl.textContent = "Всі тести";
-    const dLbl = document.getElementById("susp-date-label");
-    if (dLbl) dLbl.textContent = "Будь-яка дата";
-    const gLbl = document.getElementById("susp-group-label");
-    if (gLbl) gLbl.textContent = "Усі групи";
- 
-    document.querySelectorAll("#susp-test-menu .it").forEach(it => it.classList.toggle("on", !it.dataset.val));
-    document.querySelectorAll("#susp-group-menu .it").forEach(it => it.classList.toggle("on", !it.dataset.val));
- 
+    Object.assign(SP, { group: "", test: "", period: "", level: "", limit: 20 });
     G.renderSuspicious();
   },
- 
- 
-  
-// ─── ДОДАТИ toggleSuspCase: ─────────────────────────────────────────────────
- 
   toggleSuspCase(id){
-    const el = document.querySelector(`[data-case-id="${id}"]`);
-    if (!el) return;
-    el.classList.toggle("expanded");
+    SP.open.has(id) ? SP.open.delete(id) : SP.open.add(id);
+    document.querySelector(`.case[data-case-id="${CSS.escape(id)}"]`)?.classList.toggle("expanded", SP.open.has(id));
   },
- 
- 
-// ─── ЗАМІНИТИ повністю renderSuspicious (тепер з group filter): ─────────────
- 
-  renderSuspicious(filterTest, filterDate){
-    const body = document.getElementById("suspicious-body");
-    if (!body) return;
- 
-    const allScored = attempts
-      .filter(a => a.status === "completed" || a.status === "pending_review")
-      .map(a => {
-        const score = (a.tabSwitches||0)*2 + (a.copyAttempts||0)*3 + (a.screenshots||0)*5;
-        return { ...a, suspScore: score };
-      })
-      .filter(a => a.suspScore > 0);
- 
-    dbUpd("meta", { suspReadCount: allScored.length }).catch(()=>{});
-    const badge = $("nb-suspicious");
-    if (badge){ badge.textContent = "0"; badge.style.display = "none"; }
- 
-    // ─── Filters ───
-    const fTest  = filterTest || document.getElementById("susp-filter-test")?.value || "";
-    const fDate  = filterDate || document.getElementById("susp-filter-date")?.value || "";
-    const fGroup = document.getElementById("susp-filter-group")?.value || "";
- 
-    let scored = [...allScored];
-    if (fTest)  scored = scored.filter(a => a.testId === fTest);
-    if (fGroup) scored = scored.filter(a => {
-      const l = links.find(x => x.id === a.linkId);
-      return (l?.group || "") === fGroup;
-    });
-    if (fDate){
-      const d = new Date(fDate); d.setHours(0,0,0,0);
-      const d2 = new Date(fDate); d2.setHours(23,59,59,999);
-      scored = scored.filter(a => a.createdAt >= d.getTime() && a.createdAt <= d2.getTime());
+  async setSuspReviewed(id, on){
+    const a = attempts.find(x => x.id === id); if (!a) return;
+    const prev = a.suspReviewed ?? null;
+    a.suspReviewed = on ? Date.now() : null;
+    SP.open.delete(id);
+    G.renderSuspicious(); _suspBadge();
+    try {
+      await dbUpd(`attempts/${id}`, { suspReviewed: a.suspReviewed });
+      toast(on ? "Позначено як переглянуте" : "Повернуто в «Потребують уваги»");
+    } catch (e) {
+      a.suspReviewed = prev; G.renderSuspicious(); _suspBadge();
+      toast("Не вдалося зберегти: " + e.message, "err");
     }
-    scored.sort((a, b) => b.suspScore - a.suspScore);
- 
-    // ─── Page head: lichilnyk i chip ───
-    const headCount = document.getElementById("sp-cases-count");
-    if (headCount) headCount.textContent = allScored.length;
- 
-    const statusChip = document.getElementById("sp-status-chip");
-    if (statusChip){
-      const high = allScored.filter(a => a.suspScore >= 10).length;
-      if (high > 0){
-        statusChip.className = "sp-chip bad";
-        statusChip.textContent = `${high} high-risk`;
-      } else if (allScored.length > 0){
-        statusChip.className = "sp-chip ok";
-        statusChip.textContent = "під спостереженням";
-      } else {
-        statusChip.className = "sp-chip ok";
-        statusChip.textContent = "все спокійно";
-      }
-    }
- 
-    // ─── KPI strip ───
-    const kpiGrid = document.getElementById("sp-kpi-grid");
-    if (kpiGrid){
-      const high = allScored.filter(a => a.suspScore >= 10).length;
-      const mid  = allScored.filter(a => a.suspScore >= 5 && a.suspScore < 10).length;
- 
-      const today = new Date(); today.setHours(0,0,0,0);
-      const yest = new Date(today); yest.setDate(yest.getDate() - 1);
-      const todayCount = allScored.filter(a => (a.createdAt||0) >= today.getTime()).length;
-      const yestCount = allScored.filter(a => {
-        const ts = a.createdAt || 0;
-        return ts >= yest.getTime() && ts < today.getTime();
-      }).length;
-      const totalFlags = allScored.reduce((s, a) => s + (a.tabSwitches||0) + (a.copyAttempts||0) + (a.screenshots||0), 0);
-      const cleanCount = attempts.filter(a => (a.status === "completed" || a.status === "pending_review")).length - allScored.length;
- 
-      kpiGrid.innerHTML = `
-        <div class="risk-card bad">
-          <div class="risk-l">High risk</div>
-          <div class="risk-score bad">${high}</div>
-          <div class="sub">${high === 0 ? "немає кейсів" : (high === 1 ? "потребує перевірки" : "потребують перевірки")}</div>
-        </div>
-        <div class="risk-card warn">
-          <div class="risk-l">Medium risk</div>
-          <div class="risk-score warn">${mid}</div>
-          <div class="sub">${mid === 0 ? "немає кейсів" : "на спостереженні"}</div>
-        </div>
-        <div class="risk-card info">
-          <div class="risk-l">Всього флагів</div>
-          <div class="risk-score info">${totalFlags}</div>
-          <div class="sub">${todayCount} за сьогодні${yestCount ? ` · ${todayCount > yestCount ? "+" : ""}${todayCount - yestCount} vs вчора` : ""}</div>
-        </div>
-        <div class="risk-card good">
-          <div class="risk-l">Чистих спроб</div>
-          <div class="risk-score good">${cleanCount}</div>
-          <div class="sub">без порушень</div>
-        </div>
-      `;
-    }
- 
-    // ─── Filter bar ───
-    const filtersDiv = document.getElementById("susp-filters");
-    if (filtersDiv && !filtersDiv.dataset.built){
-      filtersDiv.dataset.built = "1";
-      filtersDiv.className = "sp-fb";
- 
-      const testOpts = `<div class="it on" data-val="" onclick="G.setSuspTest('','Всі тести')">Всі тести</div>` +
-        tests.filter(t => t.status !== "archived").map(t =>
-          `<div class="it" data-val="${t.id}" onclick="G.setSuspTest('${t.id}',${jsq(t.title)})">${esc(t.title)}</div>`
-        ).join("");
- 
-      const groupsList = [...new Set(links.filter(l=>!l.groupHidden).map(l => l.group).filter(Boolean))].sort();
-      const groupOpts = `<div class="it on" data-val="" onclick="G.setSuspGroup('','Усі групи')">Усі групи</div>` +
-        groupsList.map(g =>
-          `<div class="it" data-val="${esc(g)}" onclick="G.setSuspGroup(${jsq(g)},${jsq(g)})">${esc(g)}</div>`
-        ).join("");
- 
-      filtersDiv.innerHTML = `
-        <span class="sp-fb-l">Фільтри:</span>
+  },
 
-        <div class="sp-drop" id="susp-group-wrap">
-          <button onclick="event.stopPropagation();G.toggleSuspDrop('group')" id="susp-group-btn">
-            <span id="susp-group-label">Усі групи</span>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div class="sp-drop-menu" id="susp-group-menu">${groupOpts}</div>
-        </div>
- 
- 
-        <div class="sp-drop" id="susp-test-wrap">
-          <button onclick="event.stopPropagation();G.toggleSuspDrop('test')" id="susp-test-btn">
-            <span id="susp-test-label">Всі тести</span>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div class="sp-drop-menu" id="susp-test-menu">${testOpts}</div>
-        </div>
- 
-        <div class="sp-drop" id="susp-date-wrap">
-          <button onclick="event.stopPropagation();G.toggleSuspDrop('date')" id="susp-date-btn">
-            <span id="susp-date-label">Будь-яка дата</span>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div class="sp-drop-menu" id="susp-date-menu" style="padding:10px;width:240px">
-            <input type="date" id="susp-filter-date" onchange="G.setSuspDate(this.value)">
-          </div>
-        </div>
- 
-        <span class="sp-fb-meta">${scored.length} / ${allScored.length}</span>
- 
-        <input type="hidden" id="susp-filter-test" value="">
-        <input type="hidden" id="susp-filter-group" value="">
-      `;
-    } else if (filtersDiv){
-      // Оновлюємо лічильник
-      const meta = filtersDiv.querySelector(".sp-fb-meta");
-      if (meta) meta.textContent = `${scored.length} / ${allScored.length}`;
- 
-      // Reset кнопка — додаємо/прибираємо в залежності від наявності фільтрів
-      const existingReset = document.getElementById("susp-reset-btn");
-      const hasFilters = !!(fTest || fDate || fGroup);
-      if (hasFilters && !existingReset){
-        const resetBtn = document.createElement("button");
-        resetBtn.className = "sp-reset";
-        resetBtn.id = "susp-reset-btn";
-        resetBtn.onclick = () => G.resetSuspFilters();
-        resetBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Скинути`;
-        if (meta) filtersDiv.insertBefore(resetBtn, meta);
-      } else if (!hasFilters && existingReset){
-        existingReset.remove();
+  renderSuspicious(){
+    const body = $("suspicious-body");
+    if (!body) return;
+    const onPage = !!document.querySelector("#sec-suspicious.on");
+    if (!SP.bound) _spBind();
+
+    const all = attempts.filter(_isSusp).map(a => {
+      const l = a.linkId ? links.find(x => x.id === a.linkId) : null;
+      return { a, score: _suspScore(a), at: _suspAt(a), group: a.group || l?.group || "", reviewed: !!a.suspReviewed };
+    });
+
+    // «Нові з останнього візиту»: підсвічуємо до кінця візиту, у базі — одна позначка часу
+    if (onPage && _suspMeta.loaded) {
+      if (SP.seen == null) {
+        SP.seen = _suspMeta.seenAt;
+        if (SP.seen == null) {           // старий формат (лічильник) → останні N за часом
+          const n = Math.max(0, all.length - _suspMeta.readCount);
+          [...all].sort((x, y) => y.at - x.at).slice(0, n).forEach(c => SP.fresh.add(c.a.id));
+        }
       }
- 
-      // Update test menu (на випадок якщо тести змінились)
-      const tMenu = document.getElementById("susp-test-menu");
-      if (tMenu){
-        const cur = document.getElementById("susp-filter-test")?.value || "";
-        tMenu.innerHTML = `<div class="it${!cur?" on":""}" data-val="" onclick="G.setSuspTest('','Всі тести')">Всі тести</div>` +
-          tests.filter(t => t.status !== "archived").map(t =>
-            `<div class="it${cur===t.id?" on":""}" data-val="${t.id}" onclick="G.setSuspTest('${t.id}',${jsq(t.title)})">${esc(t.title)}</div>`
-          ).join("");
+      const newer = all.filter(c => !c.reviewed && SP.seen != null && c.at > SP.seen);
+      newer.forEach(c => SP.fresh.add(c.a.id));
+      const maxAt = Math.max(Date.now(), ...all.map(c => c.at));
+      if (SP.seen == null || newer.length || _suspMeta.seenAt == null) {
+        SP.seen = maxAt;
+        _suspMeta.seenAt = maxAt;
+        dbUpd("meta", { suspSeenAt: maxAt, suspReadCount: null }).catch(() => {});
       }
- 
-      // Update group menu (на випадок якщо посилання/групи змінились)
-      const gMenu = document.getElementById("susp-group-menu");
-      if (gMenu){
-        const cur = document.getElementById("susp-filter-group")?.value || "";
-        const groupsList = [...new Set(links.filter(l=>!l.groupHidden).map(l => l.group).filter(Boolean))].sort();
-        gMenu.innerHTML = `<div class="it${!cur?" on":""}" data-val="" onclick="G.setSuspGroup('','Усі групи')">Усі групи</div>` +
-          groupsList.map(g =>
-            `<div class="it${cur===g?" on":""}" data-val="${esc(g)}" onclick="G.setSuspGroup(${jsq(g)},${jsq(g)})">${esc(g)}</div>`
-          ).join("");
-      }
+      _suspBadge();
     }
- 
-    // ─── Cases body ───
-    if (!scored.length){
+
+    // Фільтри (без рівня — він обирається карткою KPI)
+    const now = new Date(); now.setHours(0, 0, 0, 0);
+    const since = SP.period === "today" ? now.getTime() : SP.period ? Date.now() - (+SP.period) * 864e5 : 0;
+    const scope = all.filter(c =>
+      (!SP.group || c.group === SP.group) &&
+      (!SP.test || c.a.testId === SP.test) &&
+      (!since || c.at >= since));
+    const tabCnt = { open: scope.filter(c => !c.reviewed).length, reviewed: scope.filter(c => c.reviewed).length, all: scope.length };
+    const inTab = SP.tab === "all" ? scope : scope.filter(c => SP.tab === "reviewed" ? c.reviewed : !c.reviewed);
+    const lvOf = c => c.score >= 10 ? "high" : c.score >= 5 ? "mid" : "low";
+    const rows = (SP.level ? inTab.filter(c => lvOf(c) === SP.level) : inTab)
+      .sort(SP.sort === "new" ? (x, y) => y.at - x.at : (x, y) => y.score - x.score || y.at - x.at);
+
+    // Шапка
+    const openAll = all.filter(c => !c.reviewed);
+    const high = openAll.filter(c => c.score >= 10).length;
+    const hc = $("sp-cases-count");
+    if (hc) hc.textContent = openAll.length
+      ? `${openAll.length} ${_plural(openAll.length, "потребує", "потребують", "потребують")} уваги${SP.fresh.size ? ` · ${SP.fresh.size} ${_plural(SP.fresh.size, "нова", "нові", "нових")}` : ""}`
+      : "Усе переглянуто";
+    const chip = $("sp-status-chip");
+    if (chip) {
+      chip.className = "sp-chip " + (high ? "bad" : openAll.length ? "warn" : "ok");
+      chip.textContent = high ? `${high} з високим ризиком` : openAll.length ? "Є що перевірити" : "Усе спокійно";
+    }
+
+    // KPI (у межах вкладки й фільтрів)
+    const kpi = $("sp-kpi-grid");
+    if (kpi) {
+      const n = { high: 0, mid: 0, low: 0 };
+      inTab.forEach(c => n[lvOf(c)]++);
+      const done = attempts.filter(a => (a.status === "completed" || a.status === "pending_review") &&
+        (!SP.group || (a.group || links.find(l => l.id === a.linkId)?.group || "") === SP.group) &&
+        (!SP.test || a.testId === SP.test) && (!since || _suspAt(a) >= since));
+      const clean = done.length - scope.length;
+      const card = (lv, cls, label, v, sub) => `<button type="button" class="risk-card ${cls}${SP.level === lv ? " on" : ""}" data-sp-level="${lv}" aria-pressed="${SP.level === lv}">
+          <div class="risk-l">${label}</div><div class="risk-score ${cls}">${v}</div><div class="sub">${sub}</div></button>`;
+      kpi.innerHTML =
+        card("high", "bad", "Високий ризик", n.high, "10+ балів · скріншоти, копіювання") +
+        card("mid", "warn", "Середній ризик", n.mid, "5–9 балів") +
+        card("low", "info", "Низький ризик", n.low, "до 5 балів · 1–2 виходи") +
+        `<div class="risk-card good"><div class="risk-l">Чесні спроби</div>
+          <div class="risk-score good">${done.length ? Math.round(clean / done.length * 100) + "%" : "—"}</div>
+          <div class="sub">${clean} з ${done.length} без жодного порушення</div></div>`;
+    }
+
+    // Вкладки, дропдауни, лічильник
+    document.querySelectorAll("#sp-tabs [data-sp-tab]").forEach(b => {
+      b.classList.toggle("on", b.dataset.spTab === SP.tab);
+      const c = b.querySelector(".cnt"); if (c) c.textContent = tabCnt[b.dataset.spTab];
+    });
+    const gCount = new Map(), tCount = new Map();
+    all.forEach(c => { if (c.group) gCount.set(c.group, (gCount.get(c.group) || 0) + 1); tCount.set(c.a.testId, (tCount.get(c.a.testId) || 0) + 1); });
+    const gItems = [{ value: "", label: "Усі групи" }, ...[...gCount].sort((x, y) => x[0].localeCompare(y[0], "uk")).map(([g, n]) => ({ value: g, label: g, count: n }))];
+    const tItems = [{ value: "", label: "Усі тести" }, ...[...tCount].map(([id, n]) => ({ value: id, label: tests.find(t => t.id === id)?.title || "Видалений тест", count: n })).sort((x, y) => x.label.localeCompare(y.label, "uk"))];
+    const pItems = [{ value: "", label: "За весь час" }, { value: "today", label: "Сьогодні" }, { value: "7", label: "Останні 7 днів" }, { value: "30", label: "Останні 30 днів" }];
+    const sItems = [{ value: "risk", label: "Спершу ризиковані" }, { value: "new", label: "Спершу нові" }];
+    if (!SP.drops.group && $("sp-f-group")) {
+      const re = () => { SP.limit = 20; G.renderSuspicious(); };
+      SP.drops.group  = qfDrop($("sp-f-group"),  { items: gItems, value: SP.group, width: 200, searchPlaceholder: "Пошук групи…", icon: _RP_IC_GROUP, onChange: v => { SP.group = v; re(); } });
+      SP.drops.test   = qfDrop($("sp-f-test"),   { items: tItems, value: SP.test, width: 260, searchPlaceholder: "Пошук тесту…", icon: _RP_IC_TEST, onChange: v => { SP.test = v; re(); } });
+      SP.drops.period = qfDrop($("sp-f-period"), { items: pItems, value: SP.period, width: 180, search: false, onChange: v => { SP.period = v; re(); } });
+      SP.drops.sort   = qfDrop($("sp-f-sort"),   { items: sItems, value: SP.sort, defaultValue: "risk", width: 190, search: false, onChange: v => { SP.sort = v; re(); } });
+    } else if (SP.drops.group) {
+      SP.drops.group.setItems(gItems); SP.drops.group.set(SP.group);
+      SP.drops.test.setItems(tItems);  SP.drops.test.set(SP.test);
+      SP.drops.period.set(SP.period);  SP.drops.sort.set(SP.sort);
+    }
+    const filtered = !!(SP.group || SP.test || SP.period || SP.level);
+    const rst = $("sp-reset"); if (rst) rst.hidden = !filtered;
+    const meta = $("sp-fb-meta"); if (meta) meta.textContent = `${rows.length} ${_plural(rows.length, "випадок", "випадки", "випадків")}`;
+
+    if (!rows.length) {
+      const ok = !filtered && SP.tab !== "reviewed";
       body.innerHTML = `<div class="sp-empty">
-        <div class="ei"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="et">${(fTest || fDate || fGroup) ? "За цим фільтром нічого немає" : "Підозрілих спроб немає"}</div>
-        <div class="es">${(fTest || fDate || fGroup) ? "Спробуйте інший фільтр" : "Студенти проходили тести без порушень"}</div>
+        <div class="ei">${ok ? `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>` : `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>`}</div>
+        <div class="et">${filtered ? "За цими фільтрами нічого немає" : SP.tab === "reviewed" ? "Переглянутих поки немає" : SP.tab === "open" && all.length ? "Усе переглянуто" : "Підозрілих спроб немає"}</div>
+        <div class="es">${filtered ? `<button type="button" class="sp-link" data-sp-reset>Скинути фільтри</button>` : SP.tab === "reviewed" ? "Позначайте випадки переглянутими — вони переїдуть сюди" : "Студенти проходили тести без порушень"}</div>
       </div>`;
       return;
     }
- 
-    const AVA_PALETTE = ["", "b", "g", "o", "r"];
- 
-    body.innerHTML = `<div class="case-list">${scored.map(a => {
-      const t = tests.find(x => x.id === a.testId);
-      const l = links.find(x => x.id === a.linkId);
-      const score = a.suspScore;
-      const lvl = score >= 10 ? "bad" : score >= 5 ? "warn" : "info";
-      const lvlIcon = lvl === "bad" ? "⚑ high" : lvl === "warn" ? "medium" : "low";
- 
-      const dateStr = a.createdAt ? new Date(a.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" }) : "—";
-      const initials = ((a.surname?.[0] || "") + (a.name?.[0] || "")).toUpperCase() || "?";
-      const seed = String(a.surname || "") + String(a.name || "");
-      let h = 0; for (let i = 0; i < seed.length; i++) h = (h + seed.charCodeAt(i)) | 0;
-      const avaCls = AVA_PALETTE[Math.abs(h) % AVA_PALETTE.length];
- 
-      const barColor = lvl === "bad" ? "#DC2626" : lvl === "warn" ? "#F59E0B" : "#3B82F6";
-      const barPct = Math.min(100, score * 6);
-      const caseId = "S-" + (a.id ? a.id.slice(-5).toUpperCase() : "?????");
- 
-      const compactTags = [];
-      if (a.tabSwitches > 0) compactTags.push(`<span class="case-tag tabs">🔄 ${a.tabSwitches}</span>`);
-      if (a.copyAttempts > 0) compactTags.push(`<span class="case-tag copies">📋 ${a.copyAttempts}</span>`);
-      if (a.screenshots > 0) compactTags.push(`<span class="case-tag shots">📸 ${a.screenshots}</span>`);
- 
-      const conclParts = [];
-      if (a.tabSwitches >= 3) conclParts.push("часті переключення між вкладками");
-      if (a.copyAttempts >= 1) conclParts.push("спроби скопіювати текст питань");
-      if (a.screenshots >= 1) conclParts.push("спроби зробити скріншот");
-      const conclusion = conclParts.length
-        ? conclParts.join(", ").charAt(0).toUpperCase() + conclParts.join(", ").slice(1) + "."
-        : "Підозріла активність зафіксована, але показники в межах допустимого.";
- 
-      return `<div class="case" data-case-id="${a.id}">
-        <div class="case-h" onclick="G.toggleSuspCase('${a.id}')">
-          <div class="case-ava ${avaCls}">${esc(initials)}</div>
-          <div class="case-info">
-            <div class="case-id">${caseId}</div>
-            <div class="case-name">
-              ${esc(a.surname || "")} ${esc(a.name || "")}
-              <span class="ms">· ${esc(t?.title || "—")}${l?.group ? " · " + esc(l.group) : ""}</span>
-            </div>
-          </div>
-          <div class="case-right">
-            <div class="case-tags">${compactTags.join("")}</div>
-            <div class="case-score">
-              <span class="l">Risk score</span>
-              <span class="v ${lvl}">${score}</span>
-            </div>
-            <div class="case-bar"><i style="width:${barPct}%; background:${barColor}"></i></div>
-            <span class="case-pill ${lvl}">${lvlIcon}</span>
-            <span class="case-chev">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </span>
-          </div>
-        </div>
- 
-        <div class="case-body">
-          <div class="case-section-l">Метрики анти-чіту</div>
-          <div class="meters">
-            <div class="meter ${a.tabSwitches > 0 ? "tabs" : "zero"}">
-              <div class="meter-l"><span class="ico">🔄</span> Перемикання вкладок</div>
-              <div class="meter-v">${a.tabSwitches || 0}</div>
-              <div class="meter-sub">×2 балів за подію</div>
-            </div>
-            <div class="meter ${a.copyAttempts > 0 ? "copies" : "zero"}">
-              <div class="meter-l"><span class="ico">📋</span> Копії в буфер</div>
-              <div class="meter-v">${a.copyAttempts || 0}</div>
-              <div class="meter-sub">×3 балів за спробу</div>
-            </div>
-            <div class="meter ${a.screenshots > 0 ? "shots" : "zero"}">
-              <div class="meter-l"><span class="ico">📸</span> Скріншоти</div>
-              <div class="meter-v">${a.screenshots || 0}</div>
-              <div class="meter-sub">×5 балів за спробу</div>
-            </div>
-          </div>
- 
-          <div class="case-concl">
-            <span class="ico">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            </span>
-            <div>
-              <div class="t">Висновок аналізатора</div>
-              <div class="d">${conclusion} Дата спроби: <span class="mono">${dateStr}</span></div>
-            </div>
-          </div>
- 
-          <div class="case-foot">
-            <button class="sp-btn" onclick="event.stopPropagation();G.viewAtt('${a.id}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              Переглянути спробу
-            </button>
-          </div>
-        </div>
-      </div>`;
-    }).join("")}</div>`;
+
+    const shown = rows.slice(0, SP.limit);
+    body.innerHTML = `<div class="case-list">${shown.map(_spCase).join("")}</div>` + (rows.length > shown.length
+      ? `<button type="button" class="sp-more" data-sp-more>Показати ще ${Math.min(20, rows.length - shown.length)} · залишилось ${rows.length - shown.length}</button>` : "");
   },
   // ═══ ЖУРНАЛ ОЦІНОК ═══════════════════════════════════════════════════
   initGradebook(){
@@ -5458,6 +5334,7 @@ function _afterAttemptsChanged(){
   if(sec==="sec-analytics" && window.G?.renderAnalytics) try { window.G.renderAnalytics(); } catch {}
   if(sec==="sec-gradebook" && GB.bound) try { G.renderGradebook(); } catch {}
   if(sec==="sec-students" && window.G?.renderStudents) try { window.G.renderStudents(); } catch {}
+  if(sec==="sec-suspicious") try { G.renderSuspicious(); } catch (e) { console.error(e); }
 }
 function _afterLinksChanged(){
   if (typeof renderLinks === "function") try { renderLinks(); } catch {}
@@ -5526,15 +5403,14 @@ function startRealtimeListeners(){
   });
   }
 
-  onValue(ref(db, tp("meta/suspReadCount")), (snap) => {
-    const suspRead = snap.exists() ? (snap.val()||0) : 0;
-    const suspCount = attempts.filter(a=>
-      (a.tabSwitches||0)*2+(a.copyAttempts||0)*3+(a.screenshots||0)*5>0
-      &&(a.status==="completed"||a.status==="pending_review")
-    ).length;
-    const suspNew = Math.max(0, suspCount - suspRead);
-    const nbS=$("nb-suspicious");
-    if(nbS){ nbS.textContent=suspNew; nbS.style.display=suspNew>0?"":"none"; }
+  onValue(ref(db, tp("meta")), (snap) => {
+    const m = snap.val() || {};
+    _suspMeta.loaded = true;
+    _suspMeta.seenAt = typeof m.suspSeenAt === "number" ? m.suspSeenAt : null;
+    _suspMeta.readCount = m.suspReadCount || 0;
+    _suspBadge();
+    if (document.querySelector("#sec-suspicious.on") && SP.seen == null) try { G.renderSuspicious(); } catch {}
+    if (typeof renderDashAtt === "function" && $("dash-suspicious-block")) try { renderDashAtt(); } catch {}
   });
 
   onValue(ref(db, tp("notifications")), (snap) => {
