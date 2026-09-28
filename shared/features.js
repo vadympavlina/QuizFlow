@@ -1595,6 +1595,91 @@ function qfDrop(host, opt = {}){
 window.qfDrop = qfDrop;
 
 // ═════════════════════════════════════════════════════════════════════
+// qfDateTime — власний вибір дати й часу замість <input type="datetime-local">.
+// Поле лишається звичайним input (value у форматі «YYYY-MM-DDTHH:MM», як у
+// datetime-local), тому код, що читає/пише .value, не змінюється.
+// ═════════════════════════════════════════════════════════════════════
+const _DT_MON = ["Січень","Лютий","Березень","Квітень","Травень","Червень","Липень","Серпень","Вересень","Жовтень","Листопад","Грудень"];
+function qfDateTime(inp){
+  if (!inp || inp._qfdt) return;
+  inp._qfdt = true;
+  const p2 = n => String(n).padStart(2, "0");
+  const parse = v => { const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(v || ""); return m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) : null; };
+  const fmt = d => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}T${p2(d.getHours())}:${p2(d.getMinutes())}`;
+  const btn = document.createElement("button");
+  btn.type = "button"; btn.className = "qdt-btn " + inp.className;
+  btn.setAttribute("aria-haspopup", "dialog");
+  inp.type = "hidden";
+  inp.after(btn);
+  const paint = () => {
+    const d = parse(inp.value);
+    btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>` +
+      (d ? `<span>${d.toLocaleDateString("uk-UA", { day: "numeric", month: "long" })}, <b>${p2(d.getHours())}:${p2(d.getMinutes())}</b></span>` : `<span class="qdt-ph">${esc(inp.placeholder || "Не задано")}</span>`);
+    btn.classList.toggle("set", !!d);
+  };
+  // Програмна зміна .value (пресети «через 1 год» тощо) одразу видна на кнопці
+  const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+  Object.defineProperty(inp, "value", { get(){ return desc.get.call(this); }, set(v){ desc.set.call(this, v); paint(); }, configurable: true });
+  const commit = d => { inp.value = d ? fmt(d) : ""; inp.dispatchEvent(new Event("input", { bubbles: true })); inp.dispatchEvent(new Event("change", { bubbles: true })); };
+
+  let pop = null, view = null;
+  function close(){ if (!pop) return; pop.remove(); pop = null; btn.classList.remove("open"); document.removeEventListener("mousedown", outside, true); removeEventListener("keydown", onKey, true); }
+  const outside = e => { if (pop && !pop.contains(e.target) && e.target !== btn && !btn.contains(e.target)) close(); };
+  const onKey = e => { if (e.key === "Escape" && pop){ e.stopImmediatePropagation(); e.preventDefault(); close(); btn.focus(); } };
+  function render(){
+    const cur = parse(inp.value), today = new Date(); today.setHours(0, 0, 0, 0);
+    const y = view.getFullYear(), m = view.getMonth();
+    const first = (new Date(y, m, 1).getDay() + 6) % 7, days = new Date(y, m + 1, 0).getDate();
+    let cells = "";
+    for (let i = 0; i < first; i++) cells += `<span></span>`;
+    for (let d = 1; d <= days; d++){
+      const dt = new Date(y, m, d), past = dt < today;
+      const sel = cur && cur.getFullYear() === y && cur.getMonth() === m && cur.getDate() === d;
+      cells += `<button type="button" class="qdt-d${sel ? " on" : ""}${+dt === +today ? " today" : ""}${past ? " past" : ""}" data-d="${d}">${d}</button>`;
+    }
+    const hh = cur ? cur.getHours() : 9, mm = cur ? cur.getMinutes() : 0;
+    pop.innerHTML = `<div class="qdt-h"><button type="button" data-nav="-1" aria-label="Попередній місяць">‹</button><b>${_DT_MON[m]} ${y}</b><button type="button" data-nav="1" aria-label="Наступний місяць">›</button></div>
+      <div class="qdt-w">${["Пн","Вт","Ср","Чт","Пт","Сб","Нд"].map(w => `<span>${w}</span>`).join("")}</div>
+      <div class="qdt-g">${cells}</div>
+      <div class="qdt-t"><span>Час</span><input type="text" inputmode="numeric" maxlength="2" class="qdt-hh" value="${p2(hh)}" aria-label="Години"><i>:</i><input type="text" inputmode="numeric" maxlength="2" class="qdt-mm" value="${p2(mm)}" aria-label="Хвилини">
+        <span class="qdt-q">${["08:00","09:00","12:00","15:00","18:00","23:59"].map(t => `<button type="button" data-t="${t}">${t}</button>`).join("")}</span></div>
+      <div class="qdt-f"><button type="button" data-clear>Очистити</button><button type="button" class="ok" data-ok>Готово</button></div>`;
+  }
+  function readTime(){
+    const hh = Math.min(23, Math.max(0, parseInt(pop.querySelector(".qdt-hh").value, 10) || 0));
+    const mm = Math.min(59, Math.max(0, parseInt(pop.querySelector(".qdt-mm").value, 10) || 0));
+    return [hh, mm];
+  }
+  function open(){
+    document.querySelectorAll(".qd-pop,.qdt-pop").forEach(x => x._close?.());
+    const cur = parse(inp.value) || new Date();
+    view = new Date(cur.getFullYear(), cur.getMonth(), 1);
+    pop = document.createElement("div"); pop.className = "qdt-pop"; pop._close = close; pop.dataset.open = "1";
+    pop.setAttribute("role", "dialog"); pop.setAttribute("aria-label", "Вибір дати й часу");
+    document.body.appendChild(pop); render();
+    const r = btn.getBoundingClientRect(), pr = pop.getBoundingClientRect();
+    let top = r.bottom + 6; if (top + pr.height > innerHeight - 8) top = Math.max(8, r.top - pr.height - 6);
+    pop.style.left = Math.max(8, Math.min(r.left, innerWidth - pr.width - 8)) + "px"; pop.style.top = top + "px";
+    btn.classList.add("open");
+    document.addEventListener("mousedown", outside, true); addEventListener("keydown", onKey, true);
+    pop.addEventListener("mousedown", e => { if (!e.target.closest("input")) e.preventDefault(); });
+    pop.addEventListener("click", e => {
+      const nav = e.target.closest("[data-nav]"); if (nav){ view.setMonth(view.getMonth() + +nav.dataset.nav); const t = readTime(); render(); pop.querySelector(".qdt-hh").value = p2(t[0]); pop.querySelector(".qdt-mm").value = p2(t[1]); return; }
+      const d = e.target.closest("[data-d]");
+      if (d){ const [hh, mm] = readTime(); commit(new Date(view.getFullYear(), view.getMonth(), +d.dataset.d, hh, mm)); const t = readTime(); render(); pop.querySelector(".qdt-hh").value = p2(t[0]); pop.querySelector(".qdt-mm").value = p2(t[1]); return; }
+      const t = e.target.closest("[data-t]");
+      if (t){ const [hh, mm] = t.dataset.t.split(":"); pop.querySelector(".qdt-hh").value = hh; pop.querySelector(".qdt-mm").value = mm; const c = parse(inp.value) || new Date(); c.setHours(+hh, +mm, 0, 0); commit(c); render(); return; }
+      if (e.target.closest("[data-clear]")){ commit(null); close(); btn.focus(); return; }
+      if (e.target.closest("[data-ok]")){ const c = parse(inp.value); if (c){ const [hh, mm] = readTime(); c.setHours(hh, mm, 0, 0); commit(c); } close(); btn.focus(); }
+    });
+    pop.addEventListener("change", e => { if (e.target.matches(".qdt-hh,.qdt-mm")){ const c = parse(inp.value); if (c){ const [hh, mm] = readTime(); c.setHours(hh, mm, 0, 0); commit(c); } } });
+  }
+  btn.addEventListener("click", () => pop ? close() : open());
+  paint();
+}
+window.qfDateTime = qfDateTime;
+
+// ═════════════════════════════════════════════════════════════════════
 // СПРОБИ — сторінка «Спроби» (attempts.html)
 //
 // Швидкодія: рядки (тест, група, пошуковий рядок, порушення, тривалість)
@@ -3854,11 +3939,7 @@ window.G = {
     }
 
     // Відкриваємо панель з лоадером
-    document.getElementById("ai-side-content").innerHTML=`
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--muted)">
-        <div class="ai-spin" style="width:34px;height:34px;margin:0 auto 12px;border:3px solid rgba(45,91,227,.15);border-top-color:#2d5be3;border-radius:50%;animation:appSpin .8s linear infinite"></div>
-        <div style="font-size:14px">Аналізую помилки...</div>
-      </div>`;
+    document.getElementById("ai-side-content").innerHTML=`<div class="ai-panel-wait"><span class="ai-spin"></span>Аналізую помилки…</div>`;
     document.getElementById("ai-side-panel").style.right="0";
     document.getElementById("ai-side-overlay").style.display="block";
 
@@ -3908,8 +3989,7 @@ window.G = {
   },
 
   _showAiPanel(text){
-    document.getElementById("ai-side-content").innerHTML=`
-      <div style="font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap">${esc(text)}</div>`;
+    document.getElementById("ai-side-content").innerHTML=`<div class="ai-panel-text">${esc(text)}</div>`;
     document.getElementById("ai-side-panel").style.right="0";
     document.getElementById("ai-side-overlay").style.display="block";
   },
@@ -3981,18 +4061,15 @@ window.G = {
     const others = _stDerive().filter(s=>s.id!==sourceId);
 
     if(!others.length){
-      list.innerHTML=`<div style="color:var(--muted);font-size:14px;text-align:center;padding:16px">Немає інших карток для об'єднання</div>`;
+      list.innerHTML=`<div class="m-empty">Немає інших карток для об'єднання</div>`;
       document.getElementById("merge-confirm-btn").disabled=true;
     } else {
       list.innerHTML = others.map(s=>{
-        return `<div class="merge-item" id="mi-${s.id}" data-name="${esc((s.surname||'')+ ' '+(s.name||''))}" onclick="G.selectMergeTarget('${s.id}')"
-          style="padding:12px 14px;border:1.5px solid var(--border);border-radius:13px;cursor:pointer;transition:all .15s;display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <div style="font-weight:600;font-size:14px">${esc(s.surname)} ${esc(s.name)}</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:2px">${s._att.length} ${_plural(s._att.length, "спроба", "спроби", "спроб")} · середня ${_stFmt1(s._avg)}${s._groups.length ? " · " + esc(s._groups.join(", ")) : ""}</div>
-          </div>
-          <div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);flex-shrink:0" id="mi-dot-${s.id}"></div>
-        </div>`;
+        return `<button type="button" class="m-opt merge-item" id="mi-${esc(s.id)}" data-name="${esc((s.surname||'')+ ' '+(s.name||''))}" onclick="G.selectMergeTarget('${esc(s.id)}')">
+          <span class="m-opt-ava">${esc(((s.surname||"")[0]||"") + ((s.name||"")[0]||"")).toUpperCase() || "?"}</span>
+          <span class="m-opt-b"><b>${esc(s.surname)} ${esc(s.name)}</b><small>${s._att.length} ${_plural(s._att.length, "спроба", "спроби", "спроб")} · середня ${_stFmt1(s._avg)}${s._groups.length ? " · " + esc(s._groups.join(", ")) : ""}</small></span>
+          <span class="m-opt-radio"></span>
+        </button>`;
       }).join("");
       document.getElementById("merge-confirm-btn").disabled=true;
     }
@@ -4009,20 +4086,8 @@ window.G = {
   },
 
   selectMergeTarget(targetId){
-    // Скидаємо попередній вибір
-    document.querySelectorAll(".merge-item").forEach(el=>{
-      el.style.borderColor="var(--border)";
-      el.style.background="";
-    });
-    document.querySelectorAll("[id^='mi-dot-']").forEach(el=>{
-      el.style.background=""; el.style.borderColor="var(--border)";
-    });
-
     window._mergeTargetId = targetId;
-    const item = document.getElementById(`mi-${targetId}`);
-    const dot  = document.getElementById(`mi-dot-${targetId}`);
-    if(item){ item.style.borderColor="var(--primary)"; item.style.background="rgba(45,91,227,.04)"; }
-    if(dot){  dot.style.background="var(--primary)"; dot.style.borderColor="var(--primary)"; }
+    document.querySelectorAll(".merge-item").forEach(el => el.classList.toggle("on", el.id === `mi-${targetId}`));
     document.getElementById("merge-confirm-btn").disabled=false;
   },
 
@@ -4057,7 +4122,7 @@ window.G = {
     const srcKeys = new Set([_stKey(source.name, source.surname), ...Object.entries(_stIndex).filter(([, v]) => v === sourceId).map(([k]) => k)]);
     srcKeys.forEach(k => { upd[`studentIndex/${k}`] = targetId; _stIndex[k] = targetId; });
     try { await update(ref(db, `teachers/${_uid}`), upd); }
-    catch (e) { toast("Не вдалося об'єднати: " + e.message, "err"); btn.disabled = false; btn.textContent = "Об'єднати →"; return; }
+    catch (e) { toast("Не вдалося об'єднати: " + e.message, "err"); btn.disabled = false; btn.textContent = "Об'єднати"; return; }
 
     _students = _students.filter(s=>s.id!==sourceId);
     _students = _students.map(s => s.id === targetId ? { ...s, attempts: merged, groups, avgGrade } : s);
@@ -4066,7 +4131,7 @@ window.G = {
     closeM("m-merge");
     G.renderStudents();
     toast(`Картки об'єднано: ${merged.length} спроб`);
-    btn.disabled=false; btn.textContent="Об'єднати →";
+    btn.disabled=false; btn.textContent="Об'єднати";
   },
 
   editStudentName(sid){
@@ -4491,29 +4556,16 @@ window.G = {
     const list=document.getElementById("share-teachers-list");
     if(!list) return;
     const q=query.toLowerCase().trim();
-    const filtered=q
-      ? G._shareUsers.filter(u=>(u.name||u.login).toLowerCase().includes(q)||u.login.toLowerCase().includes(q))
-      : G._shareUsers;
-
-    if(!filtered.length){
-      list.innerHTML="<div style='color:var(--muted);font-size:13px;text-align:center;padding:16px'>Нікого не знайдено</div>";
-      return;
-    }
-
+    const nm=u=>u.name||u.login||"Без імені";
+    const filtered=q ? G._shareUsers.filter(u=>nm(u).toLowerCase().includes(q)||(u.login||"").toLowerCase().includes(q)) : G._shareUsers;
+    if(!filtered.length){ list.innerHTML=`<div class="m-empty">Нікого не знайдено</div>`; return; }
     list.innerHTML=filtered.map(u=>{
-      const initials=(u.name||u.login).slice(0,2).toUpperCase();
-      const isSelected=G._shareSelectedUid===u.id;
-      return `<div data-uid="${u.id}" onclick="G._selectShareTeacher('${u.id}')"
-        style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid ${isSelected?"var(--primary)":"var(--border)"};background:${isSelected?"rgba(45,91,227,.05)":""};cursor:pointer;transition:all .15s"
-        onmouseover="if('${u.id}'!==G._shareSelectedUid)this.style.borderColor='rgba(45,91,227,.3)'"
-        onmouseout="if('${u.id}'!==G._shareSelectedUid)this.style.borderColor='var(--border)'">
-        <div style="width:36px;height:36px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-weight:700;font-size:13px;color:#fff;flex-shrink:0">${initials}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:600;font-size:14px">${esc(u.name||u.login)}</div>
-          <div style="font-size:12px;color:var(--muted);font-family:monospace">@${esc(u.login)}</div>
-        </div>
-        ${isSelected?`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`:""}
-      </div>`;
+      const ini=nm(u).trim().split(/\s+/).slice(0,2).map(w=>w[0]||"").join("").toUpperCase()||"?";
+      return `<button type="button" class="m-opt${G._shareSelectedUid===u.id?" on":""}" onclick="G._selectShareTeacher('${esc(u.id)}')">
+        <span class="m-opt-ava">${esc(ini)}</span>
+        <span class="m-opt-b"><b>${esc(nm(u))}</b>${u.login?`<small>@${esc(u.login)}</small>`:""}</span>
+        <span class="m-opt-radio"></span>
+      </button>`;
     }).join("");
   },
 
@@ -4535,16 +4587,16 @@ window.G = {
     const srch=document.getElementById("share-srch");
     if(srch) srch.value="";
     const btn=document.getElementById("share-btn");
-    btn.disabled=false; btn.textContent="Поділитись →";
+    btn.disabled=false; btn.textContent="Надіслати копію";
     const list=document.getElementById("share-teachers-list");
-    list.innerHTML="<div style='color:var(--muted);font-size:14px;text-align:center;padding:20px'>Завантаження...</div>";
+    list.innerHTML=`<div class="m-empty">Завантаження…</div>`;
     openM("m-share");
     try{
       const {get:_g,ref:_r}=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
       const snap=await _g(_r(db,"users"));
-      if(!snap.exists()){ list.innerHTML="<div style='color:var(--muted);font-size:14px'>Немає викладачів</div>"; return; }
+      if(!snap.exists()){ list.innerHTML=`<div class="m-empty">Немає викладачів</div>`; return; }
       G._shareUsers=Object.entries(snap.val()).map(([id,u])=>({id,...u})).filter(u=>u.id!==_uid&&!u.blocked);
-      if(!G._shareUsers.length){ list.innerHTML="<div style='color:var(--muted);font-size:14px;padding:12px 0'>Немає інших викладачів</div>"; return; }
+      if(!G._shareUsers.length){ list.innerHTML=`<div class="m-empty">Немає інших викладачів</div>`; return; }
       G._renderShareList();
     }catch(e){ list.innerHTML="<div style='color:#be123c;font-size:13px'>"+esc(e.message)+"</div>"; }
   },
@@ -4577,7 +4629,7 @@ window.G = {
       });
       closeM("m-share");
       toast("Тест надіслано");
-    }catch(e){ errEl.textContent="Помилка: "+e.message; btn.disabled=false; btn.textContent="Поділитись →"; }
+    }catch(e){ errEl.textContent="Помилка: "+e.message; btn.disabled=false; btn.textContent="Надіслати копію"; }
   }
 ,
 
@@ -5247,6 +5299,7 @@ function startRealtimeListeners(){
 // Викликається з кожної сторінки ПІСЛЯ того як дані (tests/links/attempts)
 // завантажилися через app.js
 window.initFeatures = async function initFeatures(){
+  document.querySelectorAll("input[data-dt]").forEach(qfDateTime);
   folders = window.folders || [];
   tests = window.tests || [];
   links = window.links || [];

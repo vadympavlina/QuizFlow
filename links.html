@@ -9,9 +9,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/styles.css?v=22">
-<link rel="modulepreload" href="shared/app.js?v=22">
-<link rel="modulepreload" href="shared/features.js?v=33">
+<link rel="stylesheet" href="shared/styles.css?v=23">
+<link rel="modulepreload" href="shared/app.js?v=23">
+<link rel="modulepreload" href="shared/features.js?v=34">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
    ПОСИЛАННЯ — сторінка (scoped під #sec-links). Модалки — у shared/styles.css
@@ -209,8 +209,8 @@ const srch = document.getElementById("lnk-srch"), srchX = document.getElementByI
 srch.addEventListener("input", () => { srchX.hidden = !srch.value; window.renderLinks?.(); });
 srchX.addEventListener("click", () => { srch.value = ""; srchX.hidden = true; srch.focus(); window.renderLinks?.(); });
 
-const { initApp } = await import("./shared/app.js?v=22");
-const featuresP = import("./shared/features.js?v=33");
+const { initApp } = await import("./shared/app.js?v=23");
+const featuresP = import("./shared/features.js?v=34");
 
 window.showSec = function(name){
   const pageMap = { dashboard: "./", tests: "tests", attempts: "attempts", links: "links", analytics: "analytics", gradebook: "gradebook",

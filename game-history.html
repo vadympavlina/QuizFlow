@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/styles.css?v=22">
-<link rel="modulepreload" href="shared/app.js?v=22">
+<link rel="stylesheet" href="shared/styles.css?v=23">
+<link rel="modulepreload" href="shared/app.js?v=23">
 <style>
 #sec-history{
   --ink-900:#0B1437;--ink-700:#24335A;--ink-500:#5B6A8F;--ink-400:#8691AC;--ink-300:#CDD6E8;
@@ -275,11 +275,11 @@ mark.hl{background:#FEF08A;color:inherit;border-radius:2px;padding:0 1px}
 </div></div>
 
 <!-- Видалення гри -->
-<div class="mo" id="m-gh-del"><div class="mb mx" style="max-width:400px;text-align:center">
+<div class="mo" id="m-gh-del"><div class="mb mconf">
   <button class="mcl" onclick="closeM('m-gh-del')" aria-label="Закрити">×</button>
-  <div style="width:52px;height:52px;margin:4px auto 12px;border-radius:15px;background:#FEE2E2;color:#DC2626;display:grid;place-items:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></div>
-  <div class="mtl" style="margin-bottom:6px">Видалити гру з історії?</div>
-  <div class="msu" id="del-info" style="line-height:1.55;margin-bottom:6px"></div>
+  <div class="mx-ico t-red"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></div>
+  <div class="mtl">Видалити гру з історії?</div>
+  <p class="mtext" id="del-info"></p>
   <div class="mx-err" id="del-err" role="alert"></div>
   <div class="ma"><button type="button" class="btn bs" onclick="closeM('m-gh-del')">Скасувати</button><button type="button" class="btn bd" id="del-confirm">Видалити</button></div>
 </div></div>
@@ -306,7 +306,7 @@ mark.hl{background:#FEF08A;color:inherit;border-radius:2px;padding:0 1px}
 
 <script type="module">
 import { getDatabase, ref, get, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-const { initApp, appReady } = await import("./shared/app.js?v=22");
+const { initApp, appReady } = await import("./shared/app.js?v=23");
 await initApp("history", { skipData: true });
 
 const db = getDatabase();
