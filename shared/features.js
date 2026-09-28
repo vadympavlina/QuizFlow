@@ -594,6 +594,8 @@ function updateBadges(){
   const nbl = $("nb-l"); if(nbl) nbl.textContent=links.filter(l=>_isOpenState(linkState(l))).length;
   // Підозрілі — з локального стану, без запиту до бази на кожну зміну спроб
   _suspBadge();
+  const nbO = $("nb-online");
+  if (nbO){ const n = attempts.filter(a => _isOnline(a)).length; nbO.textContent = n; nbO.style.display = n ? "" : "none"; }
   // Архів
   const nbArc=document.getElementById("nb-archive");
   if(nbArc) nbArc.textContent=tests.filter(t=>t.status==="archived").length;
@@ -632,6 +634,10 @@ function _spark(vals, color){
 function _isSusp(a){
   return _suspScore(a) > 0 && (a.status === "completed" || a.status === "pending_review");
 }
+// Студент зараз у тесті: статус in_progress і сторінка тесту «дихала» (heartbeat кожні 15 с)
+// не більше 10 хв тому. Без цього вкладка, яку просто закрили, висіла б «онлайн» годинами.
+const _lastSeen = a => a.lastSeen || a.startedAt || a.createdAt || 0;
+function _isOnline(a, now = Date.now()){ return a.status === "in_progress" && now - _lastSeen(a) < 10 * 60e3; }
 function _suspScore(a){ return (a.tabSwitches || 0) * 2 + (a.copyAttempts || 0) * 3 + (a.screenshots || 0) * 5; }
 const _suspAt = a => a.finishedAt || a.createdAt || 0;
 // «Нові» підозрілі — завершені після останнього візиту на сторінку (meta/suspSeenAt)
@@ -5251,7 +5257,7 @@ window.initFeatures = async function initFeatures(){
   window.updateBadges = (typeof updateBadges === "function") ? updateBadges : (window.updateBadges || (()=>{}));
   window.renderDashAtt = (typeof renderDashAtt === "function") ? renderDashAtt : (window.renderDashAtt || (()=>{}));
   // Хелпери для shared/dash.js
-  window._qf = { linkState, isOpenState: _isOpenState, lnkMax: _lnkMax, isSusp: _isSusp, suspNewCount: _suspNewCount, plural, qfDrop, timeAgo };
+  window._qf = { isOnline: _isOnline, lastSeen: _lastSeen, suspScore: _suspScore, linkState, isOpenState: _isOpenState, lnkMax: _lnkMax, isSusp: _isSusp, suspNewCount: _suspNewCount, plural, qfDrop, timeAgo };
   window.renderDashLinks = (typeof renderDashLinks === "function") ? renderDashLinks : (window.renderDashLinks || (()=>{}));
   window.renderDashNews = (typeof renderDashNews === "function") ? renderDashNews : (window.renderDashNews || (()=>{}));
   window.renderNews = (typeof renderNews === "function") ? renderNews : (window.renderNews || (()=>{}));
