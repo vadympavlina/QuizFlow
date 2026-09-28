@@ -17,6 +17,8 @@
   --ink-900:#0B1437; --ink-700:#24335A; --ink-500:#5B6A8F; --ink-400:#8691AC; --ink-300:#A8B2C9;
   --line:#E3E8F2; --line-strong:#CDD6E8; --nav-600:#1E3A8A; --nav-accent:#3B82F6;
   font-family:"Manrope",system-ui,sans-serif; -webkit-font-smoothing:antialiased; color:var(--ink-900);
+  /* стрічка + панель одним блоком по центру: на широких екранах без провалу посередині */
+  max-width:1240px; margin-inline:auto;
 }
 /* Шапка */
 #sec-news .nw-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:18px}
@@ -28,8 +30,8 @@
 #sec-news .nw-btn[hidden]{display:none}
 
 /* Стрічка оновлень: дати зліва, картки на лінії, бокова панель праворуч */
-#sec-news .nwa-grid{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:32px;align-items:start}
-#sec-news .nwa-feed{display:flex;flex-direction:column;max-width:900px;min-width:0}
+#sec-news .nwa-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:32px;align-items:start}
+#sec-news .nwa-feed{display:flex;flex-direction:column;min-width:0}
 #sec-news .nwa-item{display:grid;grid-template-columns:78px minmax(0,1fr);gap:26px;position:relative;padding-bottom:22px}
 #sec-news .nwa-item::before{content:"";position:absolute;left:90px;top:14px;bottom:-4px;width:2px;background:var(--line)}
 #sec-news .nwa-item:last-child::before{display:none}
