@@ -87,6 +87,7 @@
       { id: "tests", label: "Тести", file: "tests", icon: "files" },
       { id: "attempts", label: "Спроби", file: "attempts", icon: "clock" },
       { id: "links", label: "Посилання", file: "links", icon: "link" },
+      { id: "history", label: "Історія ігор", file: "game-history", icon: "award" },
     ] },
     { label: "Аналіз", items: [
       { id: "analytics", label: "Аналітика", file: "analytics", icon: "chart-bar" },
