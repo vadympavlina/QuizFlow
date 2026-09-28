@@ -4,7 +4,8 @@
 // посиланнями (links + attempts). Дані тестів — з app.js/features.js
 // (window.attempts / links / tests), ігри — власні слухачі тут.
 // ═══════════════════════════════════════════════════════════════════════
-const { db, ref, get, onValue } = window._fb;
+import { watchRooms, liveRooms, roomTarget, roomState, IN_GAME } from "./rooms.js?v=1";
+const { db, ref, onValue } = window._fb;
 const uid = window._uid;
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -47,8 +48,7 @@ const abbr = t => { const w = String(t || "").match(/[\p{L}\p{N}]+/gu) || ["?"];
 const gradeTone = g => g == null ? "" : g >= 10 ? "ok" : g >= 7 ? "info" : g >= 4 ? "warn" : "bad";
 
 // ─── Ігри: історія та кімнати, що зараз ідуть ─────────────────────────
-const D = { games: null, rooms: new Map(), subs: new Map() };
-const IN_GAME = ["question", "paused", "reveal"];
+const D = { games: null, rooms: new Map() };
 
 function prepGame(code, g){
   const res = (Array.isArray(g.results) ? g.results : Object.values(g.results || {})).filter(Boolean)
@@ -67,32 +67,7 @@ onValue(ref(db, `teachers/${uid}/gameHistory`), snap => {
   schedule();
 }, () => { D.games = []; schedule(); });
 
-// Кімнати: список у teachers/{uid}/liveRooms, стан — публічний rooms/{code}
-onValue(ref(db, `teachers/${uid}/liveRooms`), snap => {
-  const now = Date.now(), keep = new Set();
-  Object.entries(snap.val() || {}).forEach(([code, v]) => {
-    const created = typeof v === "number" ? v : toMs(v?.createdAt);
-    if (now - created > 3 * 3600e3) return;          // старі кімнати прибирає live/setup
-    keep.add(code);
-    if (D.subs.has(code)) return;
-    const r = { code, created, status: null, q: 0, qCount: 0, title: "", players: 0 };
-    D.rooms.set(code, r);
-    const offs = [
-      onValue(ref(db, `rooms/${code}/status`), s => { r.status = s.val(); schedule(); }),
-      onValue(ref(db, `rooms/${code}/currentQ`), s => { r.q = Number(s.val()) || 0; schedule(); }),
-      onValue(ref(db, `rooms/${code}/players`), s => { r.players = Object.keys(s.val() || {}).length; schedule(); }),
-    ];
-    D.subs.set(code, offs);
-    Promise.all([get(ref(db, `rooms/${code}/testTitle`)), get(ref(db, `rooms/${code}/qCount`))])
-      .then(([t, q]) => { r.title = t.val() || ""; r.qCount = Number(q.val()) || 0; schedule(); }).catch(() => {});
-  });
-  [...D.subs.keys()].forEach(code => {
-    if (keep.has(code)) return;
-    D.subs.get(code).forEach(off => { try { typeof off === "function" && off(); } catch {} });
-    D.subs.delete(code); D.rooms.delete(code);
-  });
-  schedule();
-}, () => {});
+D.rooms = watchRooms(uid, () => schedule());
 
 // ─── Рендер (з дебаунсом: дані тестів і ігор приходять хвилями) ───────
 let raf = 0;
@@ -139,17 +114,15 @@ function render(){
 function renderNow(A, L, now){
   const box = $("dx-now"); if (!box) return;
   const items = [];
-  [...D.rooms.values()].filter(r => r.status && r.status !== "finished").sort((a, b) => b.created - a.created).forEach(r => {
+  liveRooms(D.rooms).forEach(r => {
     const inGame = IN_GAME.includes(r.status);
-    const target = r.status === "lobby" ? "lobby" : r.status === "leaderboard" ? "podium" : "play-teacher";
-    const state = r.status === "lobby" ? "Лобі відкрите" : r.status === "leaderboard" ? "Показуються результати"
-      : r.status === "paused" ? `Пауза · питання ${r.q + 1}${r.qCount ? ` з ${r.qCount}` : ""}` : `Питання ${r.q + 1}${r.qCount ? ` з ${r.qCount}` : ""}`;
+    const target = roomTarget(r), state = roomState(r);
     items.push(`<a class="dx-now-it game" href="live/${target}?code=${encodeURIComponent(r.code)}" target="_blank" rel="noopener">
       <span class="dx-now-ic">${inGame ? '<i class="dx-pulse"></i>' : ""}${svg(IC.play, 15)}</span>
-      <span class="dx-now-b" title="${esc(r.title)}"><b>Гра ${esc(r.code)} · ${r.players} ${plural(r.players, ["гравець", "гравці", "гравців"])}</b><small>${esc(state)}${r.title ? ` · ${esc(r.title)}` : ""}</small></span>
+      <span class="dx-now-b" title="${esc(r.title)}"><b>Гра ${esc(r.code)} · ${r.players.length} ${plural(r.players.length, ["гравець", "гравці", "гравців"])}</b><small>${esc(state)}${r.title ? ` · ${esc(r.title)}` : ""}</small></span>
       <span class="dx-now-go">${svg(IC.chev, 14, 2.5)}</span></a>`);
   });
-  const online = A.filter(a => a.status === "in_progress" && now - (a.createdAt || 0) < 3 * 3600e3);
+  const online = A.filter(a => qf().isOnline ? qf().isOnline(a, now) : a.status === "in_progress");
   if (online.length){
     const tIds = [...new Set(online.map(a => a.testId))];
     const tt = tIds.length === 1 ? (window.tests || []).find(t => t.id === tIds[0])?.title : "";
@@ -330,3 +303,8 @@ document.addEventListener("click", e => {
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("dx-pick")?.hidden) { e.stopPropagation(); closePicker(); } }, true);
 
 schedule();
+// ./?game=1 (напр. зі сторінки «Онлайн») — одразу вибір тесту для гри
+if (new URLSearchParams(location.search).get("game") === "1"){
+  history.replaceState(null, "", location.pathname);
+  setTimeout(openPicker, 400);
+}

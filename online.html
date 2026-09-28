@@ -5,11 +5,103 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/><circle cx='24' cy='22' r='5' fill='none' stroke='white' stroke-width='2.2'/><line x1='27.5' y1='25.5' x2='29.5' y2='27.5' stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>">
 <title>QuizFlow — Онлайн</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css?v=22">
 <link rel="modulepreload" href="shared/app.js?v=22">
-<link rel="modulepreload" href="shared/features.js?v=31">
+<link rel="modulepreload" href="shared/features.js?v=32">
+<link rel="modulepreload" href="shared/online.js?v=1">
+<style>
+#sec-online{
+  --ink-900:#0B1437; --ink-700:#24335A; --ink-500:#5B6A8F; --ink-400:#8691AC;
+  --line:#E3E8F2; --line-strong:#CDD6E8; --nav-600:#1E3A8A; --nav-accent:#3B82F6;
+  --game:#6D28D9; --game-soft:#F3EEFF;
+  font-family:"Manrope",system-ui,sans-serif; color:var(--ink-900); -webkit-font-smoothing:antialiased;
+  max-width:1240px; margin-inline:auto;
+}
+#sec-online a{color:inherit;text-decoration:none}
+.on-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:26px;flex-wrap:wrap}
+.on-head h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+.on-live{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;color:#15803D;background:#DCFCE7;padding:4px 10px;border-radius:999px;letter-spacing:.02em}
+.on-live::before{content:"";width:7px;height:7px;border-radius:50%;background:#22C55E;animation:onPulse 1.4s infinite}
+@keyframes onPulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}50%{box-shadow:0 0 0 5px rgba(34,197,94,0)}}
+.on-head p{margin:5px 0 0;color:var(--ink-500);font-size:13.5px}
+.on-btn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;font-size:13px;font-weight:700;color:var(--ink-700);cursor:pointer;white-space:nowrap;transition:all .15s}
+.on-btn:hover{border-color:var(--line-strong);color:var(--ink-900)}
+.on-btn.g{background:var(--game);border-color:var(--game);color:#fff}
+.on-btn.g:hover{background:#5B21B6;color:#fff}
+#on-body{display:flex;flex-direction:column;gap:26px}
+.on-sec-h{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.on-sec-h h2{margin:0;font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-500);display:flex;align-items:center;gap:8px}
+.on-sec-h span{font-family:"Geist Mono",monospace;font-size:12px;color:var(--ink-400)}
+.on-bar{display:block;height:6px;border-radius:4px;background:#EEF2FB;overflow:hidden;flex:1}
+.on-bar i{display:block;height:100%;border-radius:4px;background:var(--nav-accent);transition:width .4s}
+.on-bar.sm{height:5px;width:70px;flex:0 0 auto}
+/* Ігри */
+.on-games{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px}
+.on-game{background:#fff;border:1px solid #DDD0FB;border-radius:18px;padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+.on-game.live{box-shadow:0 12px 30px -22px rgba(109,40,217,.6)}
+.on-game .on-bar i{background:var(--game)}
+.on-game-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.on-game-top > div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.on-code{font-family:"Geist Mono",monospace;font-size:22px;font-weight:800;letter-spacing:.08em;color:var(--game)}
+.on-game-top b{font-size:14.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.on-state{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px;background:var(--game-soft);color:var(--game);white-space:nowrap}
+.on-state.lobby{background:#EEF2FB;color:var(--nav-600)}
+.on-state.paused{background:#FEF3C7;color:#B45309}
+.on-dot{width:7px;height:7px;border-radius:50%;background:#22C55E;animation:onPulse 1.4s infinite}
+.on-game-foot{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.on-ppl{display:flex;align-items:center;min-width:0}
+.on-ppl i{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:10px;font-weight:800;color:#fff;border:2px solid #fff;margin-left:-7px}
+.on-ppl i:first-child{margin-left:0}
+.on-ppl em{font-style:normal;font-size:11px;font-weight:800;color:var(--ink-500);margin-left:6px}
+.on-ppl small{margin-left:10px;font-size:12.5px;color:var(--ink-500);white-space:nowrap}
+/* Тести */
+.on-test{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.on-test + .on-test{margin-top:12px}
+.on-test-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);background:#FAFBFE}
+.on-test-h b{display:block;font-size:15px;font-weight:800}
+.on-test-h small{font-size:12.5px;color:var(--ink-500)}
+.on-avg{display:flex;align-items:center;gap:8px;font-family:"Geist Mono",monospace;font-size:12.5px;font-weight:700;color:var(--ink-700)}
+.on-rows{padding:6px}
+.on-row{display:grid;grid-template-columns:36px minmax(160px,1.3fr) minmax(140px,1fr) 150px 84px;gap:14px;align-items:center;width:100%;padding:9px 12px;border:0;border-radius:12px;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.on-row:hover{background:#F6F8FC}
+.on-row.idle{opacity:.6}
+.on-ava{position:relative;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-size:11.5px;font-weight:800;color:#fff}
+.on-ava i{position:absolute;right:-3px;bottom:-3px;width:11px;height:11px;border-radius:50%;background:#CBD5E1;border:2px solid #fff}
+.on-ava i.on{background:#22C55E}
+.on-who{display:flex;flex-direction:column;gap:2px;min-width:0}
+.on-who b{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.on-who small{font-size:12px;color:var(--ink-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.on-prog{display:flex;align-items:center;gap:10px}
+.on-prog small{font-family:"Geist Mono",monospace;font-size:12px;color:var(--ink-500);white-space:nowrap;min-width:52px}
+.on-flags{display:flex;gap:4px;justify-content:flex-end}
+.on-flag{display:inline-flex;align-items:center;gap:3px;font-size:11.5px;font-weight:800;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;padding:2px 7px;border-radius:999px}
+.on-time{display:flex;align-items:center;justify-content:flex-end;gap:5px;font-family:"Geist Mono",monospace;font-size:12.5px;color:var(--ink-500);font-variant-numeric:tabular-nums}
+.on-idle-t{margin-top:12px;display:inline-flex;align-items:center;gap:7px;border:0;background:none;padding:6px 2px;font:inherit;font-size:13px;font-weight:700;color:var(--ink-500);cursor:pointer}
+.on-idle-t span{display:inline-grid;transition:transform .15s}
+.on-idle-t span.up{transform:rotate(180deg)}
+.on-test.idle{margin-top:8px}
+.on-mini{font-size:13px;color:var(--ink-400);padding:4px 2px 10px}
+/* Щойно завершили */
+.on-recent{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.on-rc{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#fff;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.on-rc:hover{border-color:var(--line-strong)}
+.on-rc .on-who{flex:1}
+.on-g{font-size:12px;font-weight:700;padding:3px 9px;border-radius:8px;white-space:nowrap;border:1px solid var(--line);color:var(--ink-500)}
+.on-g b{font-family:"Geist Mono",monospace;font-weight:800;font-size:13px}
+.on-g.ok{color:#15803D;border-color:#BBF7D0;background:#F0FDF4}
+.on-g.info{color:#1E40AF;border-color:#BFDBFE;background:#EFF6FF}
+.on-g.warn{color:#B45309;border-color:#FDE68A;background:#FFFBEB}
+.on-g.bad{color:#B91C1C;border-color:#FECACA;background:#FEF2F2}
+/* Порожньо */
+.on-empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:56px 24px;background:#fff;border:1px dashed var(--line-strong);border-radius:18px;color:var(--ink-500);font-size:13.5px}
+.on-empty-ic{width:56px;height:56px;border-radius:16px;background:#EEF2FB;color:var(--nav-600);display:grid;place-items:center;margin-bottom:4px}
+.on-empty b{font-size:17px;color:var(--ink-900)}
+.on-empty > span:not(.on-empty-ic):not(.on-empty-a){max-width:420px;line-height:1.55}
+.on-empty-a{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;justify-content:center}
+</style>
 </head>
 <body>
 
@@ -18,7 +110,7 @@
   <div style="width:80px;height:80px;background:linear-gradient(135deg,#2d5be3,#4d78ff);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-bottom:28px;box-shadow:0 20px 50px rgba(45,91,227,.4)">
     <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="3"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
   </div>
-  <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;margin-bottom:12px;max-width:320px;line-height:1.3">Мобільна версія недоступна</div>
+  <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:22px;margin-bottom:12px;max-width:320px;line-height:1.3">Мобільна версія недоступна</div>
   <div style="font-size:15px;opacity:.75;max-width:340px;line-height:1.5;margin-bottom:28px">Панель викладача оптимізована для планшетів та комп'ютерів. Відкрийте з ширшого екрану</div>
   <div style="display:inline-flex;gap:8px;background:rgba(255,255,255,.08);padding:10px 18px;border-radius:14px;backdrop-filter:blur(10px);font-size:13px;opacity:.65">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
@@ -29,7 +121,7 @@
 <!-- Initial loader: видимий одразу при завантаженні HTML, зникає коли сторінка готова -->
 <div id="app-loader" style="position:fixed;inset:0;background:#f0f3fa;z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .25s ease">
   <div style="width:44px;height:44px;border:3.5px solid rgba(45,91,227,.15);border-top-color:#2d5be3;border-radius:50%;animation:appSpin .8s linear infinite"></div>
-  <div style="font-size:13px;color:#6b7280;margin-top:12px;font-family:'DM Sans',sans-serif">Завантаження...</div>
+  <div style="font-size:13px;color:#6b7280;margin-top:12px;font-family:'Manrope',sans-serif">Завантаження...</div>
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
@@ -37,17 +129,18 @@
 <main class="main">
 
   <div class="sec on" id="sec-online">
-    <div class="ph">
-      <div><div class="pt">Онлайн зараз</div><div class="ps">Студенти що проходять тест прямо зараз</div></div>
-      <button class="btn bs btn-sm" onclick="G.renderOnline()" style="font-size:13px">↻ Оновити</button>
-    </div>
-    <div id="online-body">
-      <div class="empty" style="padding:60px 20px"><div class="ei">📡</div><div class="et">Завантаження...</div></div>
-    </div>
+    <header class="on-head">
+      <div>
+        <h1>Онлайн зараз <span class="on-live">наживо</span></h1>
+        <p id="on-sub">&nbsp;</p>
+      </div>
+      <a class="on-btn" href="live" target="_blank" rel="noopener" title="Великий екран для проєктора: хто проходить тести">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><polyline points="17 2 12 7 7 2"/></svg>
+        Режим для проєктора
+      </a>
+    </header>
+    <div id="on-body"></div>
   </div>
-
-  <!-- NOTIFICATIONS -->
-
 </main>
 
 <div id="modals-root"></div>
@@ -58,7 +151,7 @@
 // потім features.js (він читає з window._fb).
 // Preload у <head> вже починає завантаження обох паралельно — тут тільки execute order.
 const { initApp } = await import("./shared/app.js?v=22");
-const featuresP = import("./shared/features.js?v=31");
+const featuresP = import("./shared/features.js?v=32");
 
 // showSec: залишаємось на сторінці якщо це та сама; інакше — йдемо на відповідний html
 window.showSec = function(name){
@@ -91,7 +184,7 @@ await window.initFeatures(); // запускає realtime + нотифікаці
 if (window.renderAll) window.renderAll();
 
 // Специфічний хук для цієї сторінки (як було в showSec оригіналу)
-if (window.G?.renderOnline) try { window.G.renderOnline(); } catch {}
+await import("./shared/online.js?v=1");
 
 // Приховуємо лоадер після того як DOM реально відрендерився
 requestAnimationFrame(() => {
