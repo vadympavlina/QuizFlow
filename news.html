@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css?v=22">
 <link rel="modulepreload" href="shared/app.js?v=22">
-<link rel="modulepreload" href="shared/features.js?v=30">
+<link rel="modulepreload" href="shared/features.js?v=31">
 
 <style>
 #sec-news{
@@ -27,77 +27,60 @@
 #sec-news .nw-btn:hover{border-color:var(--line-strong);color:var(--ink-900)}
 #sec-news .nw-btn[hidden]{display:none}
 
-/* Дві панелі: список | читання */
-#sec-news .nw-wrap{display:grid;grid-template-columns:minmax(340px,440px) minmax(0,1fr);gap:18px;align-items:start}
-#sec-news .nw-side{position:sticky;top:16px;display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;max-height:calc(100vh - 32px)}
-#sec-news .nw-side-h{padding:14px 14px 10px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--line)}
-#sec-news .nw-row1{display:flex;gap:8px;align-items:center}
-#sec-news .nw-tabs{display:inline-flex;background:#F4F6FB;border-radius:10px;padding:3px;gap:2px;flex:0 0 auto}
-#sec-news .nw-tabs button{border:0;background:transparent;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink-500);padding:6px 10px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
-#sec-news .nw-tabs button.on{background:#fff;color:var(--ink-900);box-shadow:0 1px 3px rgba(11,20,55,.1)}
-#sec-news .nw-tabs b{font-family:"Geist Mono",monospace;font-size:10.5px;background:var(--nav-accent);color:#fff;padding:0 6px;border-radius:999px}
-#sec-news .nw-tabs b:empty{display:none}
-#sec-news .nw-search{flex:1;min-width:0;position:relative;display:flex;align-items:center}
-#sec-news .nw-search svg{position:absolute;left:10px;color:var(--ink-400)}
-#sec-news .nw-search input{width:100%;height:34px;box-sizing:border-box;padding:0 10px 0 30px;border:1px solid var(--line);border-radius:9px;font:inherit;font-size:13px;background:#fff;outline:none;color:var(--ink-900)}
-#sec-news .nw-search input:focus{border-color:var(--nav-accent);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
-#sec-news .nw-cats{display:flex;gap:6px;flex-wrap:wrap}
-#sec-news .nw-cats[hidden]{display:none}
-#sec-news .nw-cf{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 9px;border-radius:999px;border:1px solid var(--line);background:#fff;font:inherit;font-size:11.5px;font-weight:700;color:var(--ink-700);cursor:pointer}
-#sec-news .nw-cf i{width:7px;height:7px;border-radius:50%;background:var(--c)}
-#sec-news .nw-cf small{font-family:"Geist Mono",monospace;font-size:10.5px;color:var(--ink-400)}
-#sec-news .nw-cf:hover{border-color:var(--line-strong)}
-#sec-news .nw-cf.on{background:var(--cb);border-color:var(--c);color:var(--c)}
-#sec-news .nw-cf.on small{color:inherit}
-#sec-news .nw-list{overflow-y:auto;padding:6px;flex:1;min-height:120px}
-#sec-news .nw-li{display:flex;flex-direction:column;gap:4px;width:100%;text-align:left;font:inherit;color:inherit;border:0;background:none;cursor:pointer;
-  padding:11px 12px 11px 14px;border-radius:12px;position:relative;transition:background .12s}
-#sec-news .nw-li + .nw-li{margin-top:2px}
-#sec-news .nw-li::before{content:"";position:absolute;left:4px;top:12px;bottom:12px;width:3px;border-radius:3px;background:var(--c,var(--line-strong));opacity:.35}
-#sec-news .nw-li:hover{background:#F6F8FC}
-#sec-news .nw-li.sel{background:#EEF3FF}
-#sec-news .nw-li.sel::before{opacity:1}
-#sec-news .nw-li:focus-visible{outline:2px solid var(--nav-accent);outline-offset:-2px}
-#sec-news .nw-li-top{display:flex;align-items:center;gap:6px;font-size:11px}
-#sec-news .nw-li-cat{font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--c,var(--ink-500));font-size:10.5px}
-#sec-news .nw-li-pin{display:inline-grid;color:#B45309}
-#sec-news .nw-li-d{margin-left:auto;font-family:"Geist Mono",monospace;color:var(--ink-400)}
-#sec-news .nw-li-t{font-size:14px;font-weight:700;line-height:1.35;color:var(--ink-900);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-#sec-news .nw-li.unread .nw-li-t{font-weight:800}
-#sec-news .nw-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--nav-accent);margin:0 7px 2px 0;vertical-align:middle}
-#sec-news .nw-li-x{font-size:12.5px;color:var(--ink-500);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* Стрічка оновлень: дати зліва, картки на лінії, бокова панель праворуч */
+#sec-news .nwa-grid{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:32px;align-items:start}
+#sec-news .nwa-feed{display:flex;flex-direction:column;max-width:900px;min-width:0}
+#sec-news .nwa-item{display:grid;grid-template-columns:78px minmax(0,1fr);gap:26px;position:relative;padding-bottom:22px}
+#sec-news .nwa-item::before{content:"";position:absolute;left:90px;top:14px;bottom:-4px;width:2px;background:var(--line)}
+#sec-news .nwa-item:last-child::before{display:none}
+#sec-news .nwa-date{text-align:right;padding-top:14px}
+#sec-news .nwa-date b{display:block;font-size:24px;font-weight:800;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+#sec-news .nwa-date span{display:block;margin-top:4px;font-size:11.5px;color:var(--ink-400);font-family:"Geist Mono",monospace;text-transform:lowercase}
+#sec-news .nwa-card{position:relative;background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px 26px 18px;transition:box-shadow .3s,border-color .3s}
+#sec-news .nwa-card::before{content:"";position:absolute;left:-22px;top:15px;width:10px;height:10px;border-radius:50%;background:#fff;border:3px solid var(--c,var(--nav-600))}
+#sec-news .nwa-card.fresh{border-color:#BFD3FF}
+#sec-news .nwa-card.focus{box-shadow:0 0 0 3px rgba(59,130,246,.35)}
+#sec-news .nwa-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#sec-news .nw-cat{display:inline-flex;align-items:center;gap:4px}
+#sec-news .nwa-new{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--nav-accent);margin-left:2px}
+#sec-news .nwa-new::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--nav-accent);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+#sec-news .nwa-rt{margin-left:auto;font-size:12px;color:var(--ink-400);font-family:"Geist Mono",monospace}
+#sec-news .nwa-copy{width:30px;height:30px;border-radius:9px;border:1px solid transparent;background:none;color:var(--ink-400);display:grid;place-items:center;cursor:pointer;transition:all .15s}
+#sec-news .nwa-copy:hover{border-color:var(--line);color:var(--ink-900);background:#F6F8FC}
+#sec-news .nwa-t{margin:10px 0 10px;font-size:21px;font-weight:800;letter-spacing:-.015em;line-height:1.3;text-wrap:balance}
+#sec-news .nwa-body{font-size:15.5px;line-height:1.75;color:var(--ink-700)}
+#sec-news .nwa-body > :last-child{margin-bottom:0}
+#sec-news .nwa-card.long:not(.open) .nwa-body{max-height:230px;overflow:hidden;-webkit-mask-image:linear-gradient(#000 60%,transparent);mask-image:linear-gradient(#000 60%,transparent)}
+#sec-news .nwa-more{margin-top:10px;display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:0;font:inherit;font-size:13.5px;font-weight:800;color:var(--nav-accent);cursor:pointer}
+#sec-news .nwa-more[hidden]{display:none}
+#sec-news .nwa-more .c{display:none}
+#sec-news .nwa-card.open .nwa-more .o{display:none}
+#sec-news .nwa-card.open .nwa-more .c{display:inline}
+#sec-news .nwa-card.open .nwa-more svg{transform:rotate(180deg)}
 #sec-news mark{background:#FEF08A;color:inherit;border-radius:3px;padding:0 1px}
-#sec-news .nw-list-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:36px 16px;text-align:center;color:var(--ink-500);font-size:13px}
-#sec-news .nw-list-empty .ei{width:44px;height:44px;border-radius:13px;background:#EEF2FB;color:var(--nav-600);display:grid;place-items:center}
-#sec-news .nw-list-empty b{font-size:14px;color:var(--ink-900)}
+#sec-news .nwa-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:60px 20px;text-align:center;color:var(--ink-500);font-size:13.5px;background:#fff;border:1px dashed var(--line-strong);border-radius:18px}
+#sec-news .nwa-empty .ei{width:52px;height:52px;border-radius:15px;background:#EEF2FB;color:var(--nav-600);display:grid;place-items:center;margin-bottom:4px}
+#sec-news .nwa-empty b{font-size:16px;color:var(--ink-900)}
+#sec-news .nwa-empty span:last-child{max-width:380px;line-height:1.55}
 #sec-news .nw-link{background:none;border:0;padding:0;font:inherit;color:var(--nav-accent);font-weight:700;cursor:pointer;text-decoration:underline}
 
-/* Читання */
-#sec-news .nw-reader{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;min-height:calc(100vh - 140px);position:relative;scroll-margin-top:16px;display:flex;flex-direction:column}
-#sec-news .nw-reader::before{content:"";display:block;height:6px;background:linear-gradient(90deg,var(--c,var(--nav-accent)),color-mix(in srgb,var(--c,var(--nav-accent)) 40%,#fff))}
-#sec-news .nw-art{padding:40px 48px 12px;max-width:860px;width:100%;margin:0 auto;box-sizing:border-box}
-#sec-news .nw-art-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-#sec-news .nw-cat{display:inline-flex;align-items:center;gap:4px}
-#sec-news .nw-art-d{font-size:12.5px;color:var(--ink-400);font-family:"Geist Mono",monospace}
-#sec-news .nw-art-copy{margin-left:auto;width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:#fff;color:var(--ink-500);display:grid;place-items:center;cursor:pointer}
-#sec-news .nw-art-copy:hover{border-color:var(--line-strong);color:var(--ink-900)}
-#sec-news .nw-art-t{margin:16px 0 20px;font-size:32px;font-weight:800;letter-spacing:-.025em;line-height:1.2}
-#sec-news .nw-art-body{font-size:16.5px;line-height:1.75}
-#sec-news .nw-art-body p{margin:0 0 14px}
-#sec-news .nw-art-nav{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:18px 48px 30px;max-width:860px;margin:auto auto 0;box-sizing:border-box;width:100%}
-#sec-news .nw-step{display:flex;flex-direction:column;gap:3px;text-align:left;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#FAFBFE;font:inherit;cursor:pointer;min-width:0}
-#sec-news .nw-step:hover{border-color:var(--line-strong);background:#fff}
-#sec-news .nw-step.next{text-align:right;grid-column:2}
-#sec-news .nw-step small{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-400)}
-#sec-news .nw-step.next small{justify-content:flex-end}
-#sec-news .nw-step span{font-size:13.5px;font-weight:700;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#sec-news .nw-blank{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;min-height:380px;padding:24px;color:var(--ink-500);font-size:13.5px}
-#sec-news .nw-blank .ei{width:56px;height:56px;border-radius:15px;background:#EEF2FB;color:var(--nav-600);display:grid;place-items:center;margin-bottom:6px}
-#sec-news .nw-blank b{font-size:17px;color:var(--ink-900)}
-#sec-news .nw-blank span:last-child{max-width:380px;line-height:1.55}
-#sec-news .nw-wrap.empty{grid-template-columns:1fr}
-#sec-news .nw-wrap.empty .nw-side{display:none}
-@media (max-width:1100px){#sec-news .nw-art{padding:26px 28px 8px}#sec-news .nw-art-nav{padding:14px 28px 24px}}
+/* Бокова панель */
+#sec-news .nwa-side{position:sticky;top:16px;display:flex;flex-direction:column;gap:12px}
+#sec-news .nw-search{position:relative;display:flex;align-items:center}
+#sec-news .nw-search svg{position:absolute;left:12px;color:var(--ink-400)}
+#sec-news .nw-search input{width:100%;height:40px;box-sizing:border-box;padding:0 12px 0 34px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:13.5px;background:#fff;outline:none;color:var(--ink-900)}
+#sec-news .nw-search input:focus{border-color:var(--nav-accent);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+#sec-news .nwa-box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px}
+#sec-news .nwa-box h4{margin:2px 6px 8px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-400)}
+#sec-news .nwa-row{display:flex;align-items:center;justify-content:space-between;width:100%;border:0;background:none;font:inherit;font-size:13.5px;font-weight:700;color:var(--ink-700);padding:8px 8px;border-radius:9px;cursor:pointer;text-align:left}
+#sec-news .nwa-row span{display:flex;align-items:center;gap:9px}
+#sec-news .nwa-row i{width:8px;height:8px;border-radius:50%}
+#sec-news .nwa-row em{font-style:normal;font-family:"Geist Mono",monospace;font-size:12px;color:var(--ink-400)}
+#sec-news .nwa-row:hover{background:#F6F8FC}
+#sec-news .nwa-row.on{background:#EEF3FF;color:var(--nav-600)}
+#sec-news .nwa-row.on em{color:var(--nav-600)}
+#sec-news .nwa-sep{height:1px;background:var(--line);margin:6px 4px}
+@media (max-width:1100px){#sec-news .nwa-grid{grid-template-columns:1fr}#sec-news .nwa-side{position:static;order:-1}}
 </style>
 </head>
 <body>
@@ -128,7 +111,7 @@
   <div class="sec on" id="sec-news">
     <div class="nw-head">
       <div>
-        <h1>Новини QuizFlow</h1>
+        <h1>Що нового в QuizFlow</h1>
         <p id="nw-sub">Оновлення платформи, нові функції та поради</p>
       </div>
       <button type="button" class="nw-btn" id="nw-mark-all" onclick="markAllNewsRead()" hidden>
@@ -137,26 +120,20 @@
       </button>
     </div>
 
-    <div class="nw-wrap" id="nw-wrap">
-      <aside class="nw-side">
-        <div class="nw-side-h">
-          <div class="nw-row1">
-            <div class="nw-tabs" id="nw-filter" role="tablist">
-              <button type="button" data-f="all" class="on" role="tab">Усі</button>
-              <button type="button" data-f="unread" role="tab">Нові <b id="nw-f-unread"></b></button>
-            </div>
-            <label class="nw-search">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-              <input type="search" id="nw-q" placeholder="Пошук…" autocomplete="off" aria-label="Пошук у новинах">
-            </label>
-          </div>
-          <div class="nw-cats" id="nw-cats" hidden></div>
+    <div class="nwa-grid">
+      <div class="nwa-feed" id="news-teacher-list" aria-live="polite">
+        <div class="nwa-empty"><b>Завантаження…</b></div>
+      </div>
+      <aside class="nwa-side" id="nw-side">
+        <label class="nw-search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input type="search" id="nw-q" placeholder="Пошук у новинах" autocomplete="off" aria-label="Пошук у новинах">
+        </label>
+        <div class="nwa-box">
+          <h4>Показати</h4>
+          <div id="nw-cats"></div>
         </div>
-        <div class="nw-list" id="news-teacher-list"></div>
       </aside>
-      <section class="nw-reader" id="nw-reader" aria-live="polite">
-        <div class="nw-blank"><b>Завантаження…</b></div>
-      </section>
     </div>
   </div>
 
@@ -166,7 +143,7 @@
 
 <script type="module">
 const { initApp } = await import("./shared/app.js?v=22");
-const featuresP = import("./shared/features.js?v=30");
+const featuresP = import("./shared/features.js?v=31");
 
 window.showSec = function(name){
   if (name === "news") {
