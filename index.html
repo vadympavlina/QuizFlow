@@ -5,201 +5,200 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232d5be3'/><stop offset='1' stop-color='%231a3ab8'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><rect x='7' y='9' width='12' height='2.5' rx='1.25' fill='white'/><rect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='white'/><rect x='7' y='20.5' width='9' height='2.5' rx='1.25' fill='white'/><circle cx='24' cy='22' r='5' fill='none' stroke='white' stroke-width='2.2'/><line x1='27.5' y1='25.5' x2='29.5' y2='27.5' stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>">
 <title>QuizFlow — Панель викладача</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css?v=22">
 <link rel="modulepreload" href="shared/app.js?v=22">
 <link rel="modulepreload" href="shared/features.js?v=29">
+<link rel="modulepreload" href="shared/dash.js?v=1">
 <style>
-/* ═══════════════════════════════════════════════════════════════════════
-   DASHBOARD REDESIGN — scoped під #sec-dashboard
-   ═══════════════════════════════════════════════════════════════════════ */
+/* ═══ Дашборд: ігри наживо + тести (shared/dash.js) ═══ */
 #sec-dashboard{
   --ink-900:#0B1437; --ink-700:#24335A; --ink-500:#5B6A8F; --ink-400:#8691AC;
-  --line:#E3E8F2; --line-strong:#CDD6E8;
-  --nav-600:#1E3A8A; --nav-accent:#3B82F6; --nav-soft:#93C5FD;
-  --good:#16A34A; --warn:#F59E0B; --bad:#DC2626;
-  font-family:'Manrope',system-ui,sans-serif;
-  color:var(--ink-900);
+  --line:#E3E8F2; --line-strong:#CDD6E8; --nav-600:#1E3A8A; --nav-accent:#3B82F6;
+  --game:#6D28D9; --game-2:#8B5CF6; --game-soft:#F3EEFF; --test:#1D4ED8; --test-2:#3B82F6; --test-soft:#EEF4FF;
+  font-family:'Manrope',system-ui,sans-serif; color:var(--ink-900);
 }
-#sec-dashboard.on{ display:flex; flex-direction:column; gap:18px; }
+#sec-dashboard.on{display:flex;flex-direction:column;gap:22px}
+#sec-dashboard a{color:inherit;text-decoration:none}
 
-/* ─── Заголовок ─── */
-#sec-dashboard .d-page-title{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:0;flex-wrap:wrap}
-#sec-dashboard .d-page-title h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:0;color:var(--ink-900);font-family:'Manrope',sans-serif}
-#sec-dashboard .d-page-title .d-greeting{font-size:13px;color:var(--ink-500);font-weight:600;margin-bottom:4px;font-family:'Manrope',sans-serif}
-#sec-dashboard .d-page-title .d-sub{margin:6px 0 0;color:var(--ink-500);font-size:13.5px;font-weight:500;min-height:18px}
-#sec-dashboard .d-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+/* Шапка */
+.dx-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.dx-head h1{margin:0;font-size:28px;font-weight:800;letter-spacing:-.025em}
+.dx-head p{margin:5px 0 0;color:var(--ink-500);font-size:13.5px;font-weight:500;min-height:18px}
+.dx-head-r{display:flex;gap:8px}
+.dx-btn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;font-size:13px;font-weight:700;color:var(--ink-700);cursor:pointer;white-space:nowrap;transition:all .15s}
+.dx-btn:hover{border-color:var(--line-strong);color:var(--ink-900)}
+.dx-btn.p{background:var(--nav-600);border-color:var(--nav-600);color:#fff}
+.dx-btn.p:hover{background:#1E40AF;color:#fff}
+.dx-btn.g{background:var(--game);border-color:var(--game);color:#fff}
+.dx-btn.g:hover{background:#5B21B6;color:#fff}
 
-/* ─── Кнопки ─── */
-#sec-dashboard .d-btn{background:#fff;border:1px solid var(--line);padding:8px 14px;border-radius:10px;font-family:'Manrope',sans-serif;font-weight:600;font-size:13px;color:var(--ink-700);cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .15s;white-space:nowrap;height:38px;line-height:1;text-decoration:none}
-#sec-dashboard .d-btn:hover{border-color:var(--line-strong);color:var(--ink-900);box-shadow:0 4px 12px -8px rgba(30,58,138,.35)}
-#sec-dashboard .d-btn.primary{background:var(--nav-600);border-color:var(--nav-600);color:#fff;box-shadow:0 6px 14px -8px rgba(30,58,138,.8)}
-#sec-dashboard .d-btn.primary:hover{background:#1E40AF;border-color:#1E40AF;color:#fff}
-#sec-dashboard .d-btn svg{width:14px;height:14px;flex:0 0 auto}
-#sec-dashboard .d-live-dot{width:8px;height:8px;border-radius:50%;background:#16A34A;flex:0 0 auto;animation:dPulse 1.6s infinite}
-#sec-dashboard button:focus-visible,#sec-dashboard a:focus-visible{outline:2px solid var(--nav-accent);outline-offset:2px}
+/* Дві головні дії */
+.dx-hero{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.dx-mode{position:relative;overflow:hidden;border-radius:20px;padding:22px 24px;color:#fff;display:flex;flex-direction:column;gap:10px;min-height:170px}
+.dx-mode.game{background:radial-gradient(120% 140% at 100% 0%,#A78BFA 0%,rgba(167,139,250,0) 55%),linear-gradient(135deg,#4C1D95,#6D28D9 60%,#7C3AED)}
+.dx-mode.test{background:radial-gradient(120% 140% at 100% 0%,#60A5FA 0%,rgba(96,165,250,0) 55%),linear-gradient(135deg,#172554,#1E3A8A 60%,#2563EB)}
+.dx-mode::after{content:"";position:absolute;right:-40px;bottom:-60px;width:220px;height:220px;border-radius:50%;border:34px solid rgba(255,255,255,.07)}
+.dx-mode-top{display:flex;align-items:center;gap:10px;position:relative;z-index:1}
+.dx-mode-ic{width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,.16);display:grid;place-items:center}
+.dx-mode-k{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.75}
+.dx-mode h2{margin:0;font-size:21px;font-weight:800;letter-spacing:-.015em;position:relative;z-index:1}
+.dx-mode p{margin:0;font-size:13.5px;line-height:1.55;opacity:.85;max-width:420px;position:relative;z-index:1}
+.dx-mode-foot{margin-top:auto;padding-top:6px;display:flex;flex-direction:column;align-items:flex-start;gap:10px;position:relative;z-index:1}
+.dx-mode-cta{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 18px;border-radius:11px;border:0;background:#fff;font:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.dx-mode.game .dx-mode-cta{color:var(--game)}
+.dx-mode.test .dx-mode-cta{color:var(--test)}
+.dx-mode-cta:hover{transform:translateY(-1px);box-shadow:0 10px 24px -10px rgba(0,0,0,.45)}
+.dx-mode-meta{font-size:12.5px;opacity:.8}
+.dx-mode-meta b{font-weight:800;opacity:1}
 
-/* ─── Сигнали: онлайн / підозрілі ─── */
-#sec-dashboard .d-alerts{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:10px}
-#sec-dashboard .d-alerts:not(:has(> :not([hidden]))){display:none}
-#sec-dashboard .d-alert{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:14px;cursor:pointer;font-family:'Manrope',sans-serif;text-align:left;transition:transform .15s,border-color .15s,box-shadow .15s}
-#sec-dashboard .d-alert:hover{transform:translateY(-1px);box-shadow:0 8px 20px -14px rgba(11,20,55,.35)}
-#sec-dashboard .d-alert-text{flex:1;font-size:13.5px;font-weight:700}
-#sec-dashboard .d-alert-go{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;opacity:.85;white-space:nowrap}
-#sec-dashboard .d-alert-live{background:linear-gradient(135deg,rgba(22,163,74,.10),rgba(22,163,74,.03));border:1px solid rgba(22,163,74,.24);color:#15803D}
-#sec-dashboard .d-alert-live:hover{border-color:rgba(22,163,74,.45)}
-#sec-dashboard .d-alert-bad{background:linear-gradient(135deg,rgba(220,38,38,.08),rgba(220,38,38,.02));border:1px solid rgba(220,38,38,.22);color:#B91C1C}
-#sec-dashboard .d-alert-bad:hover{border-color:rgba(220,38,38,.42)}
-#sec-dashboard .d-alert-ico{flex:0 0 auto}
-#sec-dashboard .d-online-dot{width:9px;height:9px;border-radius:50%;background:var(--good);flex-shrink:0;box-shadow:0 0 0 0 rgba(22,163,74,.5);animation:dPulse 1.6s infinite}
-@keyframes dPulse{0%{box-shadow:0 0 0 0 rgba(22,163,74,.5)}70%{box-shadow:0 0 0 8px rgba(22,163,74,0)}100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}}
+/* Підписи секцій */
+.dx-sec-l{font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-400);margin-bottom:10px}
 
-/* ─── KPI картки ─── */
-#sec-dashboard .kpi-grid{display:grid;gap:14px;grid-template-columns:repeat(4,minmax(0,1fr))}
-#sec-dashboard .kpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;cursor:pointer;transition:all .15s;text-align:left;font-family:'Manrope',sans-serif;color:inherit;min-height:138px}
-#sec-dashboard .kpi:hover{border-color:var(--line-strong);transform:translateY(-2px);box-shadow:0 10px 30px -18px rgba(30,58,138,.25)}
-#sec-dashboard .kpi.attn{border-color:rgba(245,158,11,.45);background:linear-gradient(180deg,#FFFBEB,#fff 70%)}
-#sec-dashboard .kpi.sk{cursor:default;background:linear-gradient(90deg,#fff 0%,#F3F6FC 50%,#fff 100%);background-size:200% 100%;animation:dSk 1.2s linear infinite}
-@keyframes dSk{to{background-position:-200% 0}}
-#sec-dashboard .kpi-head{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
-#sec-dashboard .kpi-label{font-size:11.5px;font-weight:700;color:var(--ink-500);text-transform:uppercase;letter-spacing:.06em}
-#sec-dashboard .kpi-ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:#E7EEFC;color:var(--nav-600);flex:0 0 auto}
-#sec-dashboard .kpi-ico.v2{background:#DCFCE7;color:#15803D}
-#sec-dashboard .kpi-ico.v3{background:#FEF3C7;color:#B45309}
-#sec-dashboard .kpi-ico.v4{background:#F3E8FF;color:#7E22CE}
-#sec-dashboard .kpi-value{font-size:30px;font-weight:800;letter-spacing:-.02em;font-family:'Geist Mono',monospace;color:var(--ink-900);line-height:1;font-variant-numeric:tabular-nums;position:relative;z-index:1}
-#sec-dashboard .kpi-value small{font-size:14px;font-weight:600;color:var(--ink-400);margin-left:2px}
-#sec-dashboard .kpi-trend{display:flex;align-items:center;gap:5px;flex-wrap:wrap;font-size:12px;color:var(--ink-500);min-height:16px;position:relative;z-index:1}
-#sec-dashboard .kpi-trend b{font-weight:700;color:var(--ink-700)}
-#sec-dashboard .kpi-delta{font-family:'Geist Mono',monospace;font-weight:700;font-size:11px;padding:1px 6px;border-radius:999px;background:#EEF2FB;color:var(--ink-500)}
-#sec-dashboard .kpi-delta.up{background:#DCFCE7;color:#15803D}
-#sec-dashboard .kpi-delta.down{background:#FEE2E2;color:#B91C1C}
-#sec-dashboard .kpi.attn .kpi-trend{color:#B45309;font-weight:600}
-#sec-dashboard .kpi-spark{position:absolute;left:0;right:0;bottom:0;width:100%;height:44px;opacity:.9;pointer-events:none}
+/* Зараз */
+.dx-now[hidden],#dx-kpis[hidden]{display:none}
+.dx-now-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.dx-now-it{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:#fff;border:1px solid var(--line);transition:border-color .15s,box-shadow .15s}
+.dx-now-it:hover{border-color:var(--line-strong);box-shadow:0 8px 20px -14px rgba(11,20,55,.3)}
+.dx-now-ic{position:relative;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;flex:0 0 auto}
+.dx-now-it.game .dx-now-ic{background:var(--game-soft);color:var(--game)}
+.dx-now-it.live .dx-now-ic{background:#DCFCE7;color:#15803D}
+.dx-now-it.warn .dx-now-ic{background:#FEF3C7;color:#B45309}
+.dx-now-it.bad .dx-now-ic{background:#FEE2E2;color:#B91C1C}
+.dx-now-it.game{border-color:#DDD0FB}
+.dx-pulse{position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#22C55E;border:2px solid #fff;animation:dxPulse 1.4s infinite}
+@keyframes dxPulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}50%{box-shadow:0 0 0 5px rgba(34,197,94,0)}}
+.dx-now-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.dx-now-b b{font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dx-now-b small{font-size:12px;color:var(--ink-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dx-now-go{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;color:var(--ink-400);flex:0 0 auto;transition:all .15s}
+.dx-now-it:hover .dx-now-go{background:var(--nav-600);color:#fff}
+.dx-now-it.game:hover .dx-now-go{background:var(--game)}
 
-/* ─── Перші кроки ─── */
-#sec-dashboard .d-start{background:linear-gradient(135deg,#0F1E52 0%,#1E3A8A 60%,#2B4FC4 100%);border-radius:18px;padding:20px 22px;color:#fff;box-shadow:0 18px 40px -26px rgba(30,58,138,.9)}
-#sec-dashboard .d-start[hidden]{display:none}
-#sec-dashboard .ds-head{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:14px;flex-wrap:wrap}
-#sec-dashboard .ds-title{font-size:17px;font-weight:800;letter-spacing:-.01em}
-#sec-dashboard .ds-sub{font-size:12.5px;opacity:.7;margin-top:2px}
-#sec-dashboard .ds-bar{width:200px;height:6px;border-radius:999px;background:rgba(255,255,255,.15);overflow:hidden}
-#sec-dashboard .ds-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#6EE7D8,#A5C1FF)}
-#sec-dashboard .ds-steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-#sec-dashboard .ds-steps li{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1)}
-#sec-dashboard .ds-steps li.next{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.25)}
-#sec-dashboard .ds-steps li.done{opacity:.6}
-#sec-dashboard .ds-num{width:28px;height:28px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;font-weight:800;font-size:13px;background:rgba(255,255,255,.14)}
-#sec-dashboard .ds-steps li.done .ds-num{background:#22C55E}
-#sec-dashboard .ds-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
-#sec-dashboard .ds-txt b{font-size:13.5px}
-#sec-dashboard .ds-txt small{font-size:11.5px;opacity:.7;line-height:1.35}
-#sec-dashboard .ds-steps .d-btn{height:32px;padding:6px 12px;font-size:12px;background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff}
-#sec-dashboard .ds-steps .d-btn.primary{background:#fff;color:var(--nav-600);border-color:#fff}
-#sec-dashboard .ds-steps .d-btn:hover{box-shadow:none;filter:brightness(1.08)}
-@media (max-width:1250px){#sec-dashboard .ds-steps{grid-template-columns:1fr}}
+/* KPI тижня */
+.dx-kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.dx-kpi{display:flex;flex-direction:column;gap:3px;padding:14px 16px;border-radius:14px;background:#fff;border:1px solid var(--line);position:relative;transition:border-color .15s,transform .15s}
+.dx-kpi:hover{border-color:var(--line-strong);transform:translateY(-1px)}
+.dx-kpi-ic{position:absolute;top:14px;right:14px;width:28px;height:28px;border-radius:9px;display:grid;place-items:center}
+.dx-kpi.g .dx-kpi-ic{background:var(--game-soft);color:var(--game)}
+.dx-kpi.t .dx-kpi-ic{background:var(--test-soft);color:var(--test)}
+.dx-kpi-l{font-size:11.5px;font-weight:700;color:var(--ink-500)}
+.dx-kpi-v{font-family:'Geist Mono',monospace;font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.15;margin-top:4px}
+.dx-kpi-v small{font-size:13px;color:var(--ink-400);font-weight:600}
+.dx-kpi-s{font-size:11.5px;color:var(--ink-400)}
+.dx-d{font-family:'Geist Mono',monospace;font-weight:800;color:var(--ink-500)}
+.dx-d.up{color:#15803D}
+.dx-d.down{color:#B91C1C}
 
-/* ─── Двоколонкова сітка ─── */
-#sec-dashboard .col2{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}
-@media (max-width:1100px){#sec-dashboard .col2{grid-template-columns:1fr}#sec-dashboard .kpi-grid{grid-template-columns:repeat(2,1fr)}}
+/* Дві колонки: ігри | тести */
+.dx-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.dx-col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.dx-card{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.dx-card-h{display:flex;align-items:center;gap:10px;padding:16px 18px 12px}
+.dx-card-h .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center}
+.dx-card.g .dx-card-h .ic{background:var(--game-soft);color:var(--game)}
+.dx-card.t .dx-card-h .ic{background:var(--test-soft);color:var(--test)}
+.dx-card-h h3{margin:0;font-size:16px;font-weight:800;letter-spacing:-.01em}
+.dx-card-h .meta{font-size:12px;color:var(--ink-400);font-family:'Geist Mono',monospace}
+.dx-card-h .go{margin-left:auto;display:inline-flex;align-items:center;gap:3px;font-size:12.5px;font-weight:800;color:var(--nav-600)}
+.dx-card.g .dx-card-h .go{color:var(--game)}
+.dx-card-b{padding:0 8px 8px}
+.dx-row,.dx-act,.dx-lnk{display:flex;align-items:center;gap:12px;width:100%;padding:10px 10px;border-radius:12px;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer;transition:background .12s}
+.dx-row:hover,.dx-act:hover,.dx-lnk:hover{background:#F6F8FC}
+.dx-tile{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:0 0 auto;font-size:12px;font-weight:800;letter-spacing:.02em}
+.dx-ava{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;font-size:11px;font-weight:800;color:#fff}
+.dx-row-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.dx-row-b b{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px}
+.dx-row-b small{font-size:12px;color:var(--ink-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dx-row-b small .soon{color:#B45309;font-weight:700}
+.dx-win{display:flex;align-items:center;gap:5px;font-size:12.5px;color:#B45309;max-width:150px;flex:0 0 auto}
+.dx-win b{font-weight:800;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dx-win small{font-family:'Geist Mono',monospace;color:var(--ink-400);font-size:11.5px}
+.dx-acc{width:84px;flex:0 0 auto;display:flex;align-items:center;gap:7px}
+.dx-acc .tr{flex:1;height:5px;border-radius:3px;background:#EEF2FB;overflow:hidden}
+.dx-acc .tr i{display:block;height:100%;border-radius:3px}
+.dx-acc small{font-family:'Geist Mono',monospace;font-size:11.5px;color:var(--ink-500);width:30px;text-align:right}
+.dx-sub-h{display:flex;align-items:center;justify-content:space-between;padding:10px 10px 4px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-400)}
+.dx-sub-h a{display:inline-flex;align-items:center;gap:2px;letter-spacing:0;text-transform:none;font-size:12px;color:var(--nav-600)}
+.dx-lnk{flex-wrap:wrap;row-gap:6px}
+.dx-lnk-n{font-size:12px;color:var(--ink-500);white-space:nowrap}
+.dx-lnk-n b{font-family:'Geist Mono',monospace;font-size:14px;color:var(--ink-900)}
+.dx-bar{display:block;width:100%;height:4px;border-radius:3px;background:#EEF2FB;overflow:hidden}
+.dx-bar i{display:block;height:100%;background:var(--test-2);border-radius:3px}
+.dx-b{font-size:12px;font-weight:700;padding:3px 9px;border-radius:8px;white-space:nowrap;border:1px solid var(--line);color:var(--ink-500);display:inline-flex;align-items:center}
+.dx-b b{font-family:'Geist Mono',monospace;font-weight:800;font-size:13px}
+.dx-b.ok{color:#15803D;border-color:#BBF7D0;background:#F0FDF4}
+.dx-b.info{color:#1E40AF;border-color:#BFDBFE;background:#EFF6FF}
+.dx-b.warn{color:#B45309;border-color:#FDE68A;background:#FFFBEB}
+.dx-b.bad{color:#B91C1C;border-color:#FECACA;background:#FEF2F2}
+.dx-b.live{color:#15803D;border-color:#BBF7D0}
+.dx-b.live i{margin-right:5px;width:6px;height:6px;border-radius:50%;background:#22C55E;animation:dxPulse 1.4s infinite}
+.dx-flag{color:#B91C1C;display:inline-grid}
+.dx-mini-empty{padding:10px;font-size:12.5px;color:var(--ink-400)}
+.dx-mini-empty button{background:none;border:0;padding:0;font:inherit;font-weight:700;color:var(--nav-accent);cursor:pointer;text-decoration:underline}
+.dx-empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:26px 24px 28px}
+.dx-empty-ic{width:48px;height:48px;border-radius:14px;display:grid;place-items:center}
+.dx-empty-ic.g{background:var(--game-soft);color:var(--game)}
+.dx-empty b{font-size:15px;font-weight:800}
+.dx-empty span:not(.dx-empty-ic){font-size:13px;color:var(--ink-500);line-height:1.55;max-width:360px}
+.dx-empty .dx-btn{margin-top:6px}
+.dx-skel{height:52px;margin:6px 10px;border-radius:12px;background:linear-gradient(90deg,#F1F4FA,#F8FAFD,#F1F4FA);background-size:200% 100%;animation:dxSk 1.2s infinite}
+@keyframes dxSk{to{background-position:-200% 0}}
 
-/* ─── Картка ─── */
-#sec-dashboard .d-card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
-#sec-dashboard .d-card-h{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line);gap:10px}
-#sec-dashboard .d-card-h h3{margin:0;font-size:15px;font-weight:700;letter-spacing:-.005em;color:var(--ink-900);font-family:'Manrope',sans-serif}
-#sec-dashboard .d-card-h-right{display:flex;align-items:center;gap:10px}
-#sec-dashboard .d-card-h-meta{font-size:12px;color:var(--ink-500)}
-#sec-dashboard .d-link{font-size:12px;color:var(--nav-600);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:3px;text-decoration:none;background:transparent;border:0;font-family:'Manrope',sans-serif;padding:0;transition:opacity .12s}
-#sec-dashboard .d-link:hover{opacity:.75}
-#sec-dashboard .d-link svg{width:11px;height:11px}
+/* Нижній ряд: перші кроки + новини */
+.dx-start[hidden]{display:none}
+.dx-start{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 18px}
+.dx-start-h{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.dx-start-h b{font-size:15px;font-weight:800}
+.dx-start-h span:not(.dx-bar){font-size:12px;color:var(--ink-400);font-family:'Geist Mono',monospace}
+.dx-start-h .dx-bar{flex:1;max-width:160px;margin-left:auto}
+.dx-start ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.dx-start li{display:flex;align-items:center;gap:12px;padding:8px 6px;border-radius:10px}
+.dx-start li.next{background:#F6F8FC}
+.dx-start li .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;font-size:12px;font-weight:800;border:1.5px solid var(--line-strong);color:var(--ink-500)}
+.dx-start li.done .n{background:#16A34A;border-color:#16A34A;color:#fff}
+.dx-start li.done b{text-decoration:line-through;color:var(--ink-400)}
+.dx-start .dx-btn{height:32px;font-size:12.5px}
 
-/* ─── Остання активність ─── */
-#sec-dashboard #d-att{display:flex;flex-direction:column}
-#sec-dashboard .d-act-item{display:flex;align-items:center;gap:12px;padding:12px 18px;border:0;border-bottom:1px solid var(--line);background:transparent;cursor:pointer;transition:background .12s;text-align:left;font-family:'Manrope',sans-serif;width:100%}
-#sec-dashboard .d-act-item:hover{background:#FAFBFE}
-#sec-dashboard .d-act-item:last-child{border-bottom:0}
-#sec-dashboard .d-act-ava{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-weight:700;font-size:12px;color:#fff;flex:0 0 auto;letter-spacing:-.01em}
-#sec-dashboard .d-act-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-#sec-dashboard .d-act-text{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-900);min-width:0}
-#sec-dashboard .d-act-text b{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#sec-dashboard .d-act-grp{font-size:10.5px;font-weight:700;color:var(--ink-500);background:#EEF2FB;padding:1px 7px;border-radius:6px;flex:0 0 auto}
-#sec-dashboard .d-act-meta{font-size:12px;color:var(--ink-400);display:flex;gap:6px;min-width:0;white-space:nowrap}
-#sec-dashboard .d-act-meta span+span::before{content:"·";margin-right:6px}
-#sec-dashboard .d-act-test{color:var(--ink-500);font-weight:600;overflow:hidden;text-overflow:ellipsis;min-width:0}
-#sec-dashboard .d-act-badge{font-family:'Geist Mono',monospace;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;flex:0 0 auto;letter-spacing:-.01em;white-space:nowrap}
-#sec-dashboard .d-act-badge.ok{background:#DCFCE7;color:#15803D}
-#sec-dashboard .d-act-badge.mid{background:#FEF3C7;color:#92400E}
-#sec-dashboard .d-act-badge.bad{background:#FEE2E2;color:#B91C1C}
-#sec-dashboard .d-act-badge.live{background:#DCFCE7;color:#15803D;font-family:'Manrope',sans-serif}
-#sec-dashboard .d-act-badge.live::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#16A34A;margin-right:5px;vertical-align:1px;animation:dPulse 1.6s infinite}
-
-/* ─── Порожні стани ─── */
-#sec-dashboard .d-empty{padding:40px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
-#sec-dashboard .d-empty-ico{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:#EEF2FB;color:var(--nav-600);margin-bottom:6px}
-#sec-dashboard .d-empty-t{font-size:14px;font-weight:700;color:var(--ink-900)}
-#sec-dashboard .d-empty-s{font-size:12.5px;color:var(--ink-500);max-width:320px;line-height:1.45}
-#sec-dashboard .d-empty .d-btn{margin-top:8px;height:34px}
-
-/* ─── Таблиця "Ваші тести" ─── */
-#sec-dashboard .d-table-wrap{overflow-x:auto}
-#sec-dashboard .d-qtable:has(.d-empty) thead{display:none}
-#sec-dashboard .d-qtable td:has(> .d-empty){padding:0;border:0}
-#sec-dashboard .d-qtable{width:100%;border-collapse:separate;border-spacing:0;min-width:720px}
-#sec-dashboard .d-qtable th,#sec-dashboard .d-qtable td{padding:12px 18px;text-align:left;font-size:13px;border-bottom:1px solid var(--line);font-family:'Manrope',sans-serif}
-#sec-dashboard .d-qtable th{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-400);background:#FAFBFE;user-select:none}
-#sec-dashboard .d-qtable tbody tr:last-child td{border-bottom:0}
-#sec-dashboard .d-qtable tbody tr{transition:background .12s}
-#sec-dashboard .d-qtable tbody tr:hover{background:#FAFBFE}
-#sec-dashboard .d-q-name{display:flex;align-items:center;gap:12px}
-#sec-dashboard .d-q-icon{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto;font-family:'Geist Mono',monospace;font-weight:800;font-size:11px;letter-spacing:-.02em}
-#sec-dashboard .d-q-title{font-weight:600;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px;font-size:13.5px}
-#sec-dashboard .d-q-fire{display:inline-block;margin-left:4px;vertical-align:middle;font-size:13px;line-height:1}
-#sec-dashboard .d-q-sub{font-size:11.5px;color:var(--ink-400);margin-top:2px;font-family:'Geist Mono',monospace}
-#sec-dashboard .d-q-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;font-size:11.5px;font-weight:600;border-radius:999px;white-space:nowrap;font-family:'Manrope',sans-serif}
-#sec-dashboard .d-q-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.9}
-#sec-dashboard .d-q-pill.on{background:#DCFCE7;color:#15803D}
-#sec-dashboard .d-q-pill.draft{background:#FEF3C7;color:#92400E}
-#sec-dashboard .d-q-pill.closed{background:#FEE2E2;color:#B91C1C}
-#sec-dashboard .d-q-bar{flex:1;height:6px;border-radius:999px;background:#EEF2FB;overflow:hidden;min-width:80px}
-#sec-dashboard .d-q-bar i{display:block;height:100%;border-radius:999px;transition:width .4s}
-#sec-dashboard .d-mono{font-family:'Geist Mono',monospace;font-variant-numeric:tabular-nums}
-
-/* ─── Права колонка ─── */
-#sec-dashboard .d-side{display:flex;flex-direction:column;gap:14px}
-#sec-dashboard .d-side .d-card-h{padding:13px 16px}
-#sec-dashboard .d-side .d-card-h h3{font-size:14px}
-
-/* ─── Новини ─── */
-#sec-dashboard .d-news{display:none;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
-#sec-dashboard .d-news .d-news-h{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--line)}
-#sec-dashboard .d-news .d-news-title{font-size:14px;font-weight:700;color:var(--ink-900);display:flex;align-items:center;gap:8px;font-family:'Manrope',sans-serif}
-#sec-dashboard .d-news .d-news-title svg{width:14px;height:14px;color:var(--nav-600)}
-#sec-dashboard .d-news .d-news-badge{display:none;background:var(--nav-600);color:#fff;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:999px;font-family:'Geist Mono',monospace}
-#sec-dashboard .d-news-items{padding:10px 16px;display:flex;flex-direction:column;gap:8px}
-#sec-dashboard .dn-item{display:flex;flex-direction:column;gap:4px;width:100%;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#fff;cursor:pointer;font:inherit;transition:border-color .15s,background .15s}
-#sec-dashboard .dn-item:hover{border-color:var(--line-strong);background:#FAFBFE}
-#sec-dashboard .dn-item.unread{border-color:#BFD3FF;background:#F7F9FF}
+#sec-dashboard .d-news{display:none;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+#sec-dashboard .d-news-h{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px}
+#sec-dashboard .d-news-title{font-size:16px;font-weight:800;display:flex;align-items:center;gap:10px}
+#sec-dashboard .d-news-title .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:#EEF2FB;color:var(--nav-600)}
+#sec-dashboard .d-news-badge{display:none;background:var(--nav-accent);color:#fff;font-size:10.5px;font-weight:800;padding:1px 7px;border-radius:999px;font-family:'Geist Mono',monospace}
+#sec-dashboard .d-news-h .go{display:inline-flex;align-items:center;gap:3px;font-size:12.5px;font-weight:800;color:var(--nav-600)}
+#sec-dashboard .d-news-items{padding:0 8px 8px;display:flex;flex-direction:column}
+#sec-dashboard .dn-item{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;padding:10px;border-radius:12px;border:0;background:none;cursor:pointer;font:inherit;transition:background .12s}
+#sec-dashboard .dn-item:hover{background:#F6F8FC}
 #sec-dashboard .dn-top{display:flex;align-items:center;gap:8px;min-width:0}
 #sec-dashboard .dn-dot{width:7px;height:7px;border-radius:50%;background:var(--nav-accent);flex:0 0 auto}
-#sec-dashboard .dn-title{flex:1;min-width:0;font-weight:700;font-size:13px;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#sec-dashboard .dn-date{font-size:11px;color:var(--ink-400);flex:0 0 auto;font-family:"Geist Mono",monospace}
-#sec-dashboard .dn-ex{font-size:12px;color:var(--ink-500);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#sec-dashboard .dn-title{flex:1;min-width:0;font-weight:700;font-size:13.5px;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sec-dashboard .dn-date{font-size:11px;color:var(--ink-400);flex:0 0 auto;font-family:'Geist Mono',monospace}
+#sec-dashboard .dn-ex{font-size:12px;color:var(--ink-500);line-height:1.45;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 
-/* ─── Швидкий перехід ─── */
-#sec-dashboard .d-info{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
-#sec-dashboard .d-info-h{padding:13px 16px 4px;font-size:14px;font-weight:700;color:var(--ink-900);font-family:'Manrope',sans-serif}
-#sec-dashboard .d-quick{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 12px 12px}
-#sec-dashboard .d-q{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;border:1px solid var(--line);background:#FAFBFE;cursor:pointer;font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;color:var(--ink-700);transition:all .15s;text-align:left}
-#sec-dashboard .d-q:hover{background:#fff;border-color:var(--line-strong);color:var(--ink-900);transform:translateY(-1px);box-shadow:0 6px 16px -12px rgba(30,58,138,.4)}
-#sec-dashboard .d-q-ico{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto}
-#sec-dashboard .d-q-ico svg{width:15px;height:15px}
-#sec-dashboard .d-q-ico.c1{background:#DCFCE7;color:#15803D}
-#sec-dashboard .d-q-ico.c2{background:#E7EEFC;color:var(--nav-600)}
-#sec-dashboard .d-q-ico.c3{background:#FCE7F3;color:#BE185D}
-#sec-dashboard .d-q-ico.c4{background:#F3E8FF;color:#7E22CE}
+/* Вибір тесту для гри */
+.dx-pick{position:fixed;inset:0;z-index:400;background:rgba(11,20,55,.42);display:flex;align-items:flex-start;justify-content:center;padding:12vh 16px 16px;opacity:0;transition:opacity .16s}
+.dx-pick[hidden]{display:none}
+.dx-pick.on{opacity:1}
+.dx-pick-box{width:min(560px,100%);max-height:70vh;display:flex;flex-direction:column;background:#fff;border-radius:18px;box-shadow:0 30px 70px -20px rgba(11,20,55,.5);overflow:hidden;transform:translateY(-6px);transition:transform .16s;font-family:'Manrope',sans-serif;color:#0B1437}
+.dx-pick.on .dx-pick-box{transform:none}
+.dx-pick-h{display:flex;align-items:center;gap:12px;padding:18px 18px 12px}
+.dx-pick-h .ic{width:36px;height:36px;border-radius:11px;background:#F3EEFF;color:#6D28D9;display:grid;place-items:center}
+.dx-pick-h b{font-size:16px;font-weight:800;display:block}
+.dx-pick-h small{font-size:12.5px;color:#5B6A8F}
+.dx-pick-x{margin-left:auto;width:32px;height:32px;border-radius:9px;border:0;background:#F4F6FB;color:#5B6A8F;display:grid;place-items:center;cursor:pointer}
+.dx-pick-s{position:relative;margin:0 18px 10px}
+.dx-pick-s svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#8691AC}
+.dx-pick-s input{width:100%;box-sizing:border-box;height:40px;padding:0 12px 0 36px;border:1px solid #E3E8F2;border-radius:11px;font:inherit;font-size:14px;outline:none}
+.dx-pick-s input:focus{border-color:#8B5CF6;box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+.dx-pick-list{overflow:auto;padding:0 10px 10px}
+.dx-pick-it{display:flex;align-items:center;gap:12px;width:100%;padding:9px 10px;border-radius:12px;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.dx-pick-it:hover,.dx-pick-it.kb{background:#F6F3FF}
+.dx-pick-go{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;color:#6D28D9;background:#F3EEFF;opacity:0;transition:opacity .12s}
+.dx-pick-it:hover .dx-pick-go,.dx-pick-it.kb .dx-pick-go{opacity:1}
+
+@media (max-width:1180px){.dx-kpi-row{grid-template-columns:repeat(3,1fr)}.dx-cols{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -226,141 +225,114 @@
 
 <script src="shared/nav.js?v=17"></script>
 <main class="main">
-
   <div class="sec on" id="sec-dashboard">
 
-    <!-- Заголовок: вітання + дата + головні дії -->
-    <header class="d-page-title">
+    <header class="dx-head">
       <div>
-        <div class="d-greeting" id="dash-greeting">&nbsp;</div>
-        <h1>Дашборд</h1>
-        <div class="d-sub"><span id="dash-date"></span></div>
+        <h1 id="dx-hello">&nbsp;</h1>
+        <p id="dx-sub"></p>
       </div>
-      <div class="d-actions">
-        <a class="d-btn" href="live" target="_blank" rel="noopener" title="Хто зараз проходить тести — у новій вкладці">
-          <span class="d-live-dot" aria-hidden="true"></span>
-          Live-моніторинг
+      <div class="dx-head-r">
+        <a class="dx-btn" href="live" target="_blank" rel="noopener" title="Хто зараз проходить тести — у новій вкладці">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Моніторинг
         </a>
-        <button type="button" class="d-btn" onclick="showSec('links')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1.5 1.5"/><path d="M14 11a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1.5-1.5"/></svg>
-          Посилання
-        </button>
-        <button type="button" class="d-btn primary" onclick="G.openTestInFolder(null)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <button type="button" class="dx-btn" data-dx="new">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Новий тест
         </button>
       </div>
     </header>
 
-    <!-- Сигнали: онлайн + підозрілі -->
-    <div class="d-alerts">
-      <button type="button" id="dash-online-banner" class="d-alert d-alert-live" onclick="showSec('online')" hidden>
-        <span class="d-online-dot"></span>
-        <span class="d-alert-text" id="dash-online-text"></span>
-        <span class="d-alert-go">Стежити <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
-      </button>
-      <button type="button" id="dash-suspicious-block" class="d-alert d-alert-bad" onclick="showSec('suspicious')" hidden>
-        <svg class="d-alert-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        <span class="d-alert-text" id="dash-suspicious-text"></span>
-        <span class="d-alert-go">Переглянути <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
-      </button>
-    </div>
-
-    <!-- KPI (рендерить features.js → renderDashKpi) -->
-    <div class="kpi-grid" id="dash-kpi">
-      <div class="kpi sk"></div><div class="kpi sk"></div><div class="kpi sk"></div><div class="kpi sk"></div>
-    </div>
-
-    <!-- Перші кроки (лише поки не все зроблено) -->
-    <section class="d-start" id="dash-start" hidden></section>
-
-    <!-- Двоколонкова: Остання активність + Бічна -->
-    <div class="col2">
-
-      <section class="d-card">
-        <div class="d-card-h">
-          <h3>Остання активність</h3>
-          <div class="d-card-h-right">
-            <span class="d-card-h-meta" id="d-att-count"></span>
-            <button type="button" class="d-link" onclick="showSec('attempts')">Усі спроби
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-          </div>
+    <!-- Два режими роботи -->
+    <section class="dx-hero">
+      <div class="dx-mode game">
+        <div class="dx-mode-top">
+          <span class="dx-mode-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4"/></svg></span>
+          <span class="dx-mode-k">Гра наживо</span>
         </div>
-        <div id="d-att"></div>
-      </section>
-
-      <aside class="d-side">
-        <!-- Новини -->
-        <section id="dash-news-block" class="d-news">
-          <div class="d-news-h">
-            <div class="d-news-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h6M7 17h4"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/></svg>
-              Новини QuizFlow
-              <span id="dash-news-badge" class="d-news-badge">0</span>
-            </div>
-            <button type="button" class="d-link" onclick="showSec('news')">Усі
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-          </div>
-          <div id="dash-news-items" class="d-news-items"></div>
-        </section>
-
-        <!-- Швидкий перехід -->
-        <section class="d-info">
-          <div class="d-info-h">Швидкий перехід</div>
-          <div class="d-quick">
-            <button type="button" class="d-q" onclick="showSec('attempts')">
-              <span class="d-q-ico c1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
-              <span>Спроби</span>
-            </button>
-            <button type="button" class="d-q" onclick="showSec('gradebook')">
-              <span class="d-q-ico c2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></span>
-              <span>Журнал</span>
-            </button>
-            <button type="button" class="d-q" onclick="showSec('students')">
-              <span class="d-q-ico c3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.6 2-4.8 4.5-5"/></svg></span>
-              <span>Студенти</span>
-            </button>
-            <button type="button" class="d-q" onclick="showSec('analytics')">
-              <span class="d-q-ico c4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M3 20h18"/></svg></span>
-              <span>Аналітика</span>
-            </button>
-          </div>
-        </section>
-      </aside>
-    </div>
-
-    <!-- Посилання (повна ширина внизу) -->
-    <section class="d-card">
-      <div class="d-card-h">
-        <h3>Посилання на тести</h3>
-        <div class="d-card-h-right">
-          <span class="d-card-h-meta" id="d-tests-count">—</span>
-          <button type="button" class="d-link" onclick="showSec('links')">Керувати
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        <h2>Вікторина для всього класу</h2>
+        <p>Питання на вашому екрані, учні відповідають з телефонів за кодом. Бали за швидкість, таблиця лідерів і подіум.</p>
+        <div class="dx-mode-foot">
+          <button type="button" class="dx-mode-cta" data-dx="game">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+            Запустити гру
           </button>
+          <span class="dx-mode-meta" id="dx-game-meta"></span>
         </div>
       </div>
-      <div class="d-table-wrap">
-        <table class="d-qtable">
-          <thead>
-            <tr>
-              <th style="width:32%">Тест</th>
-              <th>Статус</th>
-              <th>Спроб</th>
-              <th>Середній</th>
-              <th style="width:22%">Заповненість</th>
-              <th>Термін</th>
-            </tr>
-          </thead>
-          <tbody id="d-tests-tbody"></tbody>
-        </table>
+      <div class="dx-mode test">
+        <div class="dx-mode-top">
+          <span class="dx-mode-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg></span>
+          <span class="dx-mode-k">Тест за посиланням</span>
+        </div>
+        <h2>Самостійна чи контрольна</h2>
+        <p>Студенти проходять тест у зручний час, оцінки 1–12 рахуються автоматично й потрапляють у журнал.</p>
+        <div class="dx-mode-foot">
+          <button type="button" class="dx-mode-cta" data-dx="test">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Надіслати тест
+          </button>
+          <span class="dx-mode-meta" id="dx-test-meta"></span>
+        </div>
       </div>
     </section>
 
+    <section class="dx-start" id="dx-start" hidden></section>
+
+    <section class="dx-now" id="dx-now" hidden></section>
+
+    <section id="dx-kpis"></section>
+
+    <div class="dx-cols">
+      <div class="dx-col">
+      <section class="dx-card g">
+        <div class="dx-card-h">
+          <span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4"/></svg></span>
+          <h3>Ігри наживо</h3><span class="meta" id="dx-games-cnt"></span>
+          <a class="go" href="game-history">Історія ігор<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        </div>
+        <div class="dx-card-b" id="dx-games"><div class="dx-skel"></div><div class="dx-skel"></div><div class="dx-skel"></div></div>
+      </section>
+      <section id="dash-news-block" class="d-news">
+        <div class="d-news-h">
+          <div class="d-news-title">
+            <span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h6M7 17h4"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/></svg></span>
+            Новини QuizFlow <span id="dash-news-badge" class="d-news-badge">0</span>
+          </div>
+          <a class="go" href="news">Усі<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        </div>
+        <div id="dash-news-items" class="d-news-items"></div>
+      </section>
+      </div>
+      <div class="dx-col">
+      <section class="dx-card t">
+        <div class="dx-card-h">
+          <span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg></span>
+          <h3>Тести</h3>
+          <a class="go" href="analytics">Аналітика<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        </div>
+        <div class="dx-card-b" id="dx-tests"><div class="dx-skel"></div><div class="dx-skel"></div><div class="dx-skel"></div></div>
+      </section>
+      </div>
+    </div>
   </div>
 
+  <!-- Вибір тесту для гри наживо -->
+  <div class="dx-pick" id="dx-pick" hidden role="dialog" aria-modal="true" aria-labelledby="dx-pick-t">
+    <div class="dx-pick-box">
+      <div class="dx-pick-h">
+        <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg></span>
+        <div><b id="dx-pick-t">Запустити гру наживо</b><small>Оберіть тест — налаштування гри відкриються в новій вкладці</small></div>
+        <button type="button" class="dx-pick-x" data-dx="pick-close" aria-label="Закрити"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <label class="dx-pick-s">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" id="dx-pick-q" placeholder="Пошук тесту…" autocomplete="off" aria-label="Пошук тесту">
+      </label>
+      <div class="dx-pick-list" id="dx-pick-list"></div>
+    </div>
+  </div>
 </main>
 
 <div id="modals-root"></div>
@@ -395,8 +367,7 @@ await featuresP;
 await window.initFeatures();
 
 if (window.renderAll) window.renderAll();
-// Підстраховка: якщо renderAll ще не знає про renderDashTests
-if (window.renderDashTests) try { window.renderDashTests(); } catch(e){}
+await import("./shared/dash.js?v=1");
 
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {

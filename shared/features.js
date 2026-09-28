@@ -552,11 +552,9 @@ function renderAll(){
   // Це чистіше за try/catch: немає жодного warning у Console.
   const has = id => document.getElementById(id) !== null;
   // Дашборд: привітання, блок спроб, статистика
-  if (has("dash-greeting") || has("d-att")) renderDashAtt();
+  if (has("sec-dashboard")) renderDashAtt();
   // Дашборд: активні посилання
   if (has("d-lnk")) renderDashLinks();
-  // Дашборд: таблиця "Ваші тести"
-  if (has("d-tests-tbody")) renderDashTests();
   // Дашборд: KPI картки
   if (has("s-t") || has("s-a") || has("s-l") || has("s-pending") || has("s-passrate")) renderStats();
   // Тести + папки
@@ -787,321 +785,9 @@ function _spBind(){
   });
 }
 
-function _gradeTone(a){
-  if (a.grade12 != null) return { txt: a.grade12 + "/12", tone: a.grade12 >= 10 ? "ok" : a.grade12 >= 4 ? "mid" : "bad" };
-  const pct = a.score?.percent;
-  if (pct != null) return { txt: pct + "%", tone: pct >= 70 ? "ok" : pct >= 40 ? "mid" : "bad" };
-  return { txt: "—", tone: "mid" };
-}
+// Дашборд живе в shared/dash.js (лише на головній); тут — точка входу для старих викликів
+function renderDashAtt(){ if (typeof window.renderDash === "function") window.renderDash(); }
 
-function renderDashKpi(){
-  const box = $("dash-kpi");
-  if (!box) return;
-  const now = Date.now();
-  const live = tests.filter(t => t.status !== "archived");
-  const act = live.filter(t => t.status === "active").length;
-  const drafts = live.filter(t => t.status === "draft").length;
-  const wk = attempts.filter(a => (a.createdAt || 0) >= now - 7 * _DAY).length;
-  const prevWk = attempts.filter(a => (a.createdAt || 0) >= now - 14 * _DAY && (a.createdAt || 0) < now - 7 * _DAY).length;
-  const done = attempts.filter(a => a.status === "completed");
-  const grades = done.map(a => a.grade12).filter(g => g != null);
-  const avg = grades.length ? grades.reduce((s, g) => s + g, 0) / grades.length : null;
-  const pass = grades.length ? Math.round(grades.filter(g => g >= 4).length / grades.length * 100) : null;
-  const activeLinks = links.filter(l => l.status === "active");
-  const pending = attempts.filter(a => a.status === "pending_review").length;
-
-  const delta = wk - prevWk;
-  const deltaHtml = (wk || prevWk)
-    ? `<span class="kpi-delta ${delta > 0 ? "up" : delta < 0 ? "down" : ""}">${delta > 0 ? "▲ " + delta : delta < 0 ? "▼ " + Math.abs(delta) : "="}</span> за тиждень`
-    : "Ще немає спроб";
-  // Накопичена кількість тестів за 14 днів
-  const created = _perDay(live, 14, t => t.createdAt);
-  const before = live.filter(t => (t.createdAt || 0) < _dayStart(now) - 13 * _DAY).length;
-  let acc = before; const cum = created.map(c => (acc += c));
-
-  const card = (o) => `<button type="button" class="kpi${o.cls ? " " + o.cls : ""}" onclick="showSec('${o.go}')">
-      <div class="kpi-head"><span class="kpi-label">${o.label}</span><span class="kpi-ico ${o.ico}">${o.svg}</span></div>
-      <div class="kpi-value">${o.value}</div>
-      <div class="kpi-trend">${o.sub}</div>
-      ${o.spark || ""}
-    </button>`;
-  const I = p => `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
-  box.innerHTML = [
-    card({ go: "tests", label: "Тести", ico: "", value: live.length,
-      svg: I('<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'),
-      sub: live.length ? `<b>${act}</b> ${plural(act, ["активний", "активні", "активних"])} · <b>${drafts}</b> ${plural(drafts, ["чернетка", "чернетки", "чернеток"])}` : "Створіть перший тест",
-      spark: live.length ? _spark(cum, "#3B82F6") : "" }),
-    card({ go: "attempts", label: "Спроби", ico: "v2", value: attempts.length,
-      svg: I('<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'),
-      sub: deltaHtml, spark: attempts.length ? _spark(_perDay(attempts, 14, a => a.createdAt), "#16A34A") : "" }),
-    card({ go: "analytics", label: "Середня оцінка", ico: "v4", value: avg != null ? avg.toFixed(1) + '<small>/12</small>' : "—",
-      svg: I('<path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M3 20h18"/>'),
-      sub: pass != null ? `Здали <b>${pass}%</b> · ${grades.length} ${plural(grades.length, ["оцінка", "оцінки", "оцінок"])}` : "Ще немає оцінок" }),
-    card({ go: "attempts", label: "На перевірці", ico: "v3", value: pending, cls: pending ? "attn" : "",
-      svg: I('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'),
-      sub: pending ? `Потребу${pending === 1 ? "є" : "ють"} ручної оцінки →` : `Усе перевірено · <b>${activeLinks.length}</b> ${plural(activeLinks.length, ["активне посилання", "активні посилання", "активних посилань"])}` }),
-  ].join("");
-}
-
-// Картка «Почніть роботу» — поки не пройдено всі кроки
-function renderDashStart(){
-  const box = $("dash-start");
-  if (!box) return;
-  const steps = [
-    { done: tests.some(t => t.status !== "archived"), t: "Створіть тест", s: "Додайте питання вручну або імпортуйте", act: "G.openTestInFolder(null)", btn: "Створити" },
-    { done: links.length > 0, t: "Відкрийте доступ", s: "Посилання або код для групи студентів", act: "showSec('links')", btn: "До посилань" },
-    { done: attempts.length > 0, t: "Отримайте перші результати", s: "Спроби з'являться тут у реальному часі", act: "showSec('attempts')", btn: "Спроби" },
-  ];
-  const n = steps.filter(x => x.done).length;
-  if (n === steps.length){ box.hidden = true; box.innerHTML = ""; return; }
-  box.hidden = false;
-  const next = steps.findIndex(x => !x.done);
-  box.innerHTML = `<div class="ds-head">
-      <div><div class="ds-title">Почніть роботу з QuizFlow</div><div class="ds-sub">${n} з ${steps.length} кроків виконано</div></div>
-      <div class="ds-bar"><i style="width:${Math.round(n / steps.length * 100)}%"></i></div>
-    </div>
-    <ol class="ds-steps">${steps.map((x, i) => `<li class="${x.done ? "done" : i === next ? "next" : ""}">
-      <span class="ds-num">${x.done ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : i + 1}</span>
-      <span class="ds-txt"><b>${x.t}</b><small>${x.s}</small></span>
-      ${i === next ? `<button type="button" class="d-btn primary" onclick="${x.act}">${x.btn}</button>` : ""}
-    </li>`).join("")}</ol>`;
-}
-
-function renderDashAtt(){
-  if (!$("sec-dashboard")) return;
-  // Привітання і дата
-  const now = new Date();
-  const h = now.getHours();
-  const greeting = h < 5 ? "Доброї ночі" : h < 12 ? "Доброго ранку" : h < 18 ? "Добрий день" : "Добрий вечір";
-  const teacherFirstName = (_user.name || "").split(" ")[0] || _user.login || "";
-  const el = $("dash-greeting");
-  if (el) el.textContent = greeting + (teacherFirstName ? ", " + teacherFirstName : "") + " 👋";
-  const dateEl = $("dash-date");
-  if (dateEl){
-    const s = now.toLocaleDateString("uk-UA", { weekday:"long", day:"numeric", month:"long" });
-    dateEl.textContent = s.charAt(0).toUpperCase() + s.slice(1);
-  }
-
-  renderDashKpi();
-  renderDashStart();
-
-  // Онлайн банер
-  const online = attempts.filter(a => a.status === "in_progress");
-  const banner = $("dash-online-banner");
-  if (banner){
-    banner.hidden = !online.length;
-    const txt = $("dash-online-text");
-    if (txt && online.length) txt.textContent = `${online.length} ${plural(online.length, ["студент проходить", "студенти проходять", "студентів проходять"])} тест прямо зараз`;
-  }
-
-  // Підозрілі (нові)
-  const suspBlock = $("dash-suspicious-block");
-  if (suspBlock){
-    const suspNew = _suspNewCount();
-    suspBlock.hidden = !suspNew;
-    const txt = $("dash-suspicious-text");
-    if (txt && suspNew) txt.textContent = `${suspNew} ${plural(suspNew, ["нова підозріла спроба", "нові підозрілі спроби", "нових підозрілих спроб"])} — перевірте деталі`;
-  }
-
-  renderDashTests();
-
-  // ── Остання активність ──
-  const tb = $("d-att");
-  if (!tb) return;
-  const r = attempts.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 6);
-  const cnt = $("d-att-count");
-  if (cnt){
-    const today = attempts.filter(a => (a.createdAt || 0) >= _dayStart(Date.now())).length;
-    cnt.textContent = today ? `${today} сьогодні` : "";
-  }
-  if (!r.length){
-    tb.innerHTML = `<div class="d-empty">
-      <div class="d-empty-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-      <div class="d-empty-t">Ще немає спроб</div>
-      <div class="d-empty-s">Щойно студенти почнуть проходити тести, їхні результати з'являться тут</div>
-    </div>`;
-    return;
-  }
-
-  // Палітра кольорів аватарів — детермінована за іменем
-  const avaColors = ["#3B82F6","#DB2777","#F59E0B","#16A34A","#6366F1","#0EA5E9","#8B5CF6","#EF4444","#14B8A6","#F97316"];
-  tb.innerHTML = r.map(a => {
-    const t = tests.find(x => x.id === a.testId);
-    const fullName = `${a.surname || ""} ${a.name || ""}`.trim() || "Студент";
-    const initials = ((a.surname?.[0] || "") + (a.name?.[0] || "")).toUpperCase() || fullName.slice(0, 2).toUpperCase();
-    let hash = 0; for (let i = 0; i < fullName.length; i++) hash = (hash + fullName.charCodeAt(i)) | 0;
-    const c = avaColors[Math.abs(hash) % avaColors.length];
-
-    let badge, state;
-    if (_isSusp(a)){
-      badge = { txt: "Підозра", tone: "bad" };
-      const issues = [];
-      if (a.tabSwitches) issues.push(`${a.tabSwitches} ${plural(a.tabSwitches, ["перемикання", "перемикання", "перемикань"])}`);
-      if (a.copyAttempts) issues.push(`${a.copyAttempts} ${plural(a.copyAttempts, ["копіювання", "копіювання", "копіювань"])}`);
-      if (a.screenshots) issues.push(`${a.screenshots} ${plural(a.screenshots, ["скріншот", "скріншоти", "скріншотів"])}`);
-      state = issues.join(", ");
-    } else if (a.status === "in_progress"){
-      badge = { txt: "Проходить", tone: "live" };
-      state = "зараз онлайн";
-    } else if (a.status === "pending_review"){
-      badge = { txt: "Перевірити", tone: "mid" };
-      state = "чекає на оцінку";
-    } else if (a.status === "completed"){
-      badge = _gradeTone(a);
-      state = a.score?.correct != null && a.score?.total != null ? `${a.score.correct}/${a.score.total} правильних` : "завершено";
-    } else {
-      badge = { txt: "Нова", tone: "mid" };
-      state = "";
-    }
-    return `<button type="button" class="d-act-item" onclick="G.viewAtt && G.viewAtt('${esc(a.id)}')">
-      <span class="d-act-ava" style="background:linear-gradient(135deg, ${c}CC, ${c})">${esc(initials)}</span>
-      <span class="d-act-body">
-        <span class="d-act-text"><b>${esc(fullName)}</b>${a.group ? `<span class="d-act-grp">${esc(a.group)}</span>` : ""}</span>
-        <span class="d-act-meta"><span class="d-act-test">${esc(t?.title || "Тест видалено")}</span><span>${esc(timeAgo(a.createdAt))}</span>${state ? `<span>${esc(state)}</span>` : ""}</span>
-      </span>
-      <span class="d-act-badge ${badge.tone}">${esc(badge.txt)}</span>
-    </button>`;
-  }).join("");
-}
-
-// ─── 2) НОВА ФУНКЦІЯ: renderDashTests ──────────────────────────────────────
-// Малює таблицю "Ваші тести" в #d-tests-tbody + лічильник "X активні · Y чернетки"
-// Плюс прогрес-бар групи на основі links з тим самим testId
- 
-// ═══════════════════════════════════════════════════════════════════════════
-// ПОВНА ЗАМІНА ФУНКЦІЇ renderDashTests у shared/features.js
-//
-// Тепер рендерить ПОСИЛАННЯ (links) — не тести.
-// Кожен рядок = одне посилання: тест + група + статус + use/max + середня
-// оцінка по спробах через це посилання + прогрес + дедлайн (createdAt поки що).
-//
-// HTML-розмітка таблиці в index.html не змінюється (#d-tests-tbody, #d-tests-count).
-// ═══════════════════════════════════════════════════════════════════════════
-
-function renderDashTests(){
-  const tb = $("d-tests-tbody");
-  if (!tb) return;
-
-  // Беремо всі посилання, сортуємо: спочатку active, потім за датою (новіші зверху)
-  const list = links
-    .slice()
-    .sort((a, b) => {
-      // Активні зверху
-      const aActive = a.status === "active" ? 0 : 1;
-      const bActive = b.status === "active" ? 0 : 1;
-      if (aActive !== bActive) return aActive - bActive;
-      return (b.createdAt || 0) - (a.createdAt || 0);
-    })
-    .slice(0, 5);
-
-  // Лічильник
-  const lbl = $("d-tests-count");
-  if (lbl){
-    const act = links.filter(l => l.status === "active").length;
-    const cls = links.filter(l => l.status !== "active").length;
-    lbl.textContent = `${act} ${plural(act, ["активне", "активні", "активних"])} · ${cls} ${plural(cls, ["закрите", "закриті", "закритих"])}`;
-  }
-
-  if (!list.length){
-    tb.innerHTML = `<tr><td colspan="6"><div class="d-empty">
-      <div class="d-empty-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a4 4 0 005.66 0l3-3a4 4 0 00-5.66-5.66l-1.5 1.5"/><path d="M14 11a4 4 0 00-5.66 0l-3 3a4 4 0 005.66 5.66l1.5-1.5"/></svg></div>
-      <div class="d-empty-t">Ще немає посилань</div>
-      <div class="d-empty-s">Створіть посилання на тест, щоб студенти могли його пройти</div>
-      <button type="button" class="d-btn" onclick="showSec('links')">Перейти до посилань</button>
-    </div></td></tr>`;
-    return;
-  }
-
-  // 5 кольорових варіантів плитки за хешем title
-  const tilePalette = [
-    { bg:"linear-gradient(135deg, #DBEAFE, #93C5FD)", color:"#1E3A8A" },
-    { bg:"linear-gradient(135deg, #E9D5FF, #C084FC)", color:"#6B21A8" },
-    { bg:"linear-gradient(135deg, #BBF7D0, #4ADE80)", color:"#14532D" },
-    { bg:"linear-gradient(135deg, #FED7AA, #FB923C)", color:"#7C2D12" },
-    { bg:"linear-gradient(135deg, #FBCFE8, #F472B6)", color:"#831843" },
-  ];
-
-  // Скорочена абревіатура з назви
-  const abbr = (title) => {
-    if (!title) return "TST";
-    const words = title.trim().split(/\s+/).filter(Boolean);
-    if (words.length >= 3) return words.slice(0,3).map(w => w[0]).join("").toUpperCase();
-    if (words.length === 2) return (words[0].slice(0,2) + words[1][0]).toUpperCase();
-    return title.replace(/[^A-Za-zА-Яа-яҐЄІЇґєії0-9]/g,"").substring(0,3).toUpperCase() || "TST";
-  };
-
-  const statusMap = {
-    active: { cls:"on",     txt:"Активне" },
-    closed: { cls:"closed", txt:"Закрите" },
-    draft:  { cls:"draft",  txt:"Чернетка" },
-  };
-
-  tb.innerHTML = list.map(l => {
-    const t = tests.find(x => x.id === l.testId);
-    const title = t?.title || "—";
-
-    // Хеш для вибору плитки (за testId або назвою)
-    const seed = String(l.testId || title);
-    let h = 0;
-    for (let i = 0; i < seed.length; i++) h = (h + seed.charCodeAt(i)) | 0;
-    const tile = tilePalette[Math.abs(h) % tilePalette.length];
-
-    // Спроби через ЦЕ посилання
-    const lAttempts = attempts.filter(a => a.linkId === l.id);
-
-    // Середня оцінка
-    const completed = lAttempts.filter(a => a.status === "completed" && a.score?.percent != null);
-    const avgPct = completed.length ? Math.round(completed.reduce((s,a) => s + a.score.percent, 0) / completed.length) : null;
-
-    // Прогрес = used/max
-    const used = l.usedAttempts || 0;
-    const max = l.maxAttempts || 0;
-    const pct = max > 0 ? Math.min(100, Math.round(used / max * 100)) : 0;
-    const barColor = pct >= 100 ? "#16A34A" : pct >= 70 ? "#F59E0B" : pct >= 30 ? "#3B82F6" : "#94A3B8";
-
-    // Дедлайн / статус-дата:
-    //   - якщо closed → "Закрито"
-    //   - якщо expiresAt → дата
-    //   - інакше → дата створення
-    let deadlineStr = "—";
-    if (l.status === "closed") deadlineStr = "Закрито";
-    else if (l.expiresAt) deadlineStr = new Date(l.expiresAt).toLocaleDateString("uk-UA", { day:"numeric", month:"short" });
-    else if (l.createdAt) deadlineStr = "від " + new Date(l.createdAt).toLocaleDateString("uk-UA", { day:"numeric", month:"short" });
-
-    // Підрядок: група · N питань · M хв
-    const subParts = [];
-    if (l.group) subParts.push(l.group);
-    const qCnt = (t?.questions || []).length;
-    if (qCnt) subParts.push(`${qCnt} питань`);
-    if (t?.timeLimit) subParts.push(`${Math.round(t.timeLimit / 60)} хв`);
-
-    const s = statusMap[l.status] || statusMap.active;
-
-    return `<tr onclick="showSec('links')" style="cursor:pointer">
-      <td>
-        <div class="d-q-name">
-          <div class="d-q-icon" style="background:${tile.bg};color:${tile.color}">${esc(abbr(title))}</div>
-          <div style="min-width:0">
-            <div class="d-q-title">${esc(title)}</div>
-            <div class="d-q-sub">${subParts.length ? subParts.map(esc).join(" · ") : "—"}</div>
-          </div>
-        </div>
-      </td>
-      <td><span class="d-q-pill ${s.cls}">${s.txt}</span></td>
-      <td class="d-mono">${used}${max > 0 ? `/${max}` : ""}</td>
-      <td class="d-mono" style="font-weight:600;color:${avgPct != null ? (avgPct >= 70 ? "#15803D" : avgPct >= 40 ? "#1E40AF" : "#B91C1C") : "var(--ink-400)"}">${avgPct != null ? avgPct + "%" : "—"}</td>
-      <td>
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="d-q-bar"><i style="width:${pct}%;background:${barColor}"></i></div>
-          <span class="d-mono" style="font-size:11px;color:var(--ink-500);width:36px;text-align:right">${pct}%</span>
-        </div>
-      </td>
-      <td class="d-mono" style="color:${l.status === 'closed' ? '#B91C1C' : 'var(--ink-500)'};white-space:nowrap;font-size:11.5px">${esc(deadlineStr)}</td>
-    </tr>`;
-  }).join("");
-}
- 
- 
 function renderDashLinks(){
   const c = $("d-lnk"); if (!c) return;
   const now = Date.now();
@@ -5463,7 +5149,7 @@ function startRealtimeListeners(){
     _suspMeta.readCount = m.suspReadCount || 0;
     _suspBadge();
     if (document.querySelector("#sec-suspicious.on") && SP.seen == null) try { G.renderSuspicious(); } catch {}
-    if (typeof renderDashAtt === "function" && $("dash-suspicious-block")) try { renderDashAtt(); } catch {}
+    if ($("sec-dashboard")) try { renderDashAtt(); } catch {}
   });
 
   onValue(ref(db, tp("notifications")), (snap) => {
@@ -5513,6 +5199,8 @@ window.initFeatures = async function initFeatures(){
   window.renderStats = (typeof renderStats === "function") ? renderStats : (window.renderStats || (()=>{}));
   window.updateBadges = (typeof updateBadges === "function") ? updateBadges : (window.updateBadges || (()=>{}));
   window.renderDashAtt = (typeof renderDashAtt === "function") ? renderDashAtt : (window.renderDashAtt || (()=>{}));
+  // Хелпери для shared/dash.js
+  window._qf = { linkState, isOpenState: _isOpenState, lnkMax: _lnkMax, isSusp: _isSusp, suspNewCount: _suspNewCount, plural, qfDrop, timeAgo };
   window.renderDashLinks = (typeof renderDashLinks === "function") ? renderDashLinks : (window.renderDashLinks || (()=>{}));
   window.renderDashNews = (typeof renderDashNews === "function") ? renderDashNews : (window.renderDashNews || (()=>{}));
   window.renderNews = (typeof renderNews === "function") ? renderNews : (window.renderNews || (()=>{}));
@@ -5524,7 +5212,6 @@ window.initFeatures = async function initFeatures(){
   window.loadTeacherNews = (typeof loadTeacherNews === "function") ? loadTeacherNews : (window.loadTeacherNews || (async()=>{}));
   window.updateNewsBadge = (typeof updateNewsBadge === "function") ? updateNewsBadge : (window.updateNewsBadge || (()=>{}));
   window.checkOnboarding = (typeof checkOnboarding === "function") ? checkOnboarding : (window.checkOnboarding || (()=>{}));
-  window.renderDashTests = (typeof renderDashTests === "function") ? renderDashTests : (window.renderDashTests || (()=>{}));
   // Завантажуємо збережені нотифікації
   if (typeof loadStoredNotifs === "function") {
     try { await loadStoredNotifs(); } catch(e) { console.warn("loadStoredNotifs:", e); }
