@@ -7,7 +7,7 @@
 <title>QuizFlow — Історія ігор</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=DM+Sans:wght@400;500&family=Manrope:wght@500;600;700;800&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css?v=22">
 <link rel="modulepreload" href="shared/app.js?v=22">
 <style>
@@ -89,7 +89,12 @@
 .gh-top{display:flex;align-items:center;gap:8px;min-width:0}
 .gh-podium{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
 .gh-pr{display:flex;align-items:center;gap:6px;font-size:12.5px;min-width:0}
-.gh-pr .m{width:18px;text-align:center;flex:0 0 auto;font-size:13px}
+/* Медалі — CSS замість емодзі */
+.medal{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;flex:0 0 auto;font:800 10px "Geist Mono",monospace;color:#fff;box-shadow:inset 0 -2px 0 rgba(0,0,0,.15)}
+.medal.r1{background:linear-gradient(135deg,#FCD34D,#D97706)}
+.medal.r2{background:linear-gradient(135deg,#E5E7EB,#9CA3AF)}
+.medal.r3{background:linear-gradient(135deg,#FDBA74,#C2410C)}
+.res-rank .medal{width:24px;height:24px;font-size:12px}
 .gh-pr .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;color:var(--ink-700)}
 .gh-pr .tie{font:600 10.5px 'Geist Mono',monospace;color:var(--ink-400);flex:0 0 auto}
 .gh-pr .pt{font:700 12px 'Geist Mono',monospace;color:var(--accent);flex:0 0 auto}
@@ -137,7 +142,6 @@
 .res-table th:first-child,.res-table td:first-child{padding-left:24px;width:56px}
 .res-table th:last-child,.res-table td:last-child{padding-right:24px;text-align:right}
 .res-rank{font:700 13px 'Geist Mono',monospace;color:#8691AC}
-.res-rank.m{font-size:16px}
 .res-who{display:flex;align-items:center;gap:10px;min-width:0}
 .res-av{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;color:#fff;font:700 10.5px 'Manrope',sans-serif;flex:0 0 auto}
 .res-nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:320px}
@@ -188,7 +192,7 @@ mark.hl{background:#FEF08A;color:inherit;border-radius:2px;padding:0 1px}
   <div style="width:80px;height:80px;background:linear-gradient(135deg,#2d5be3,#4d78ff);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-bottom:28px;box-shadow:0 20px 50px rgba(45,91,227,.4)">
     <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="3"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
   </div>
-  <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;margin-bottom:12px;max-width:320px;line-height:1.3">Мобільна версія недоступна</div>
+  <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:22px;margin-bottom:12px;max-width:320px;line-height:1.3">Мобільна версія недоступна</div>
   <div style="font-size:15px;opacity:.75;max-width:340px;line-height:1.5;margin-bottom:28px">Панель викладача оптимізована для планшетів та комп'ютерів. Відкрийте з ширшого екрану</div>
   <div style="display:inline-flex;gap:8px;background:rgba(255,255,255,.08);padding:10px 18px;border-radius:14px;backdrop-filter:blur(10px);font-size:13px;opacity:.65">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
@@ -196,12 +200,12 @@ mark.hl{background:#FEF08A;color:inherit;border-radius:2px;padding:0 1px}
   </div>
 </div>
 
-<script src="shared/nav.js?v=17"></script>
+<script src="shared/nav.js?v=18"></script>
 <main class="main">
 <div class="sec" id="sec-history">
   <div class="gh-title">
     <div>
-      <h1>Історія Live ігор</h1>
+      <h1>Історія ігор наживо</h1>
       <p id="history-sub">Завантаження…</p>
     </div>
     <button class="gh-btn primary" data-act="quick">
@@ -273,7 +277,7 @@ mark.hl{background:#FEF08A;color:inherit;border-radius:2px;padding:0 1px}
 <!-- Видалення гри -->
 <div class="mo" id="m-gh-del"><div class="mb mx" style="max-width:400px;text-align:center">
   <button class="mcl" onclick="closeM('m-gh-del')" aria-label="Закрити">×</button>
-  <div style="font-size:38px;margin:4px 0 10px">🗑️</div>
+  <div style="width:52px;height:52px;margin:4px auto 12px;border-radius:15px;background:#FEE2E2;color:#DC2626;display:grid;place-items:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></div>
   <div class="mtl" style="margin-bottom:6px">Видалити гру з історії?</div>
   <div class="msu" id="del-info" style="line-height:1.55;margin-bottom:6px"></div>
   <div class="mx-err" id="del-err" role="alert"></div>
@@ -346,7 +350,7 @@ const PAL = ["#2563EB","#7C3AED","#0D9488","#EA580C","#DB2777","#0891B2","#4F46E
 const colorFor = s => { let h = 0; for (const ch of String(s || "")) h = (h * 31 + ch.codePointAt(0)) >>> 0; return PAL[h % PAL.length]; };
 const abbr = t => { const w = String(t || "").match(/[\p{L}\p{N}]+/gu) || ["?"]; return (w.length === 1 ? w[0].slice(0, 3) : w.slice(0, 3).map(x => x[0]).join("")).toUpperCase(); };
 const initials = n => { const p = String(n || "").trim().split(/\s+/).filter(Boolean); return (p.length > 1 ? p[0][0] + p[1][0] : (p[0] || "?").slice(0, 2)).toUpperCase(); };
-const MEDAL = { 1: "🥇", 2: "🥈", 3: "🥉" };
+const medal = r => `<span class="medal r${r}" aria-label="${r} місце">${r}</span>`;
 
 // ─── Підготовка даних: один раз на гру, а не при кожному рендері ────────
 function prep(code, g){
@@ -435,7 +439,7 @@ function render(){
   const host = $("games-list");
   if (!games.length){
     host.innerHTML = `<div class="gh-empty"><div class="i"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/></svg></div>
-      <h3>Ще не проводили жодної гри</h3><p>Запустіть першу Live гру — результати з'являться тут</p>
+      <h3>Ще не проводили жодної гри</h3><p>Запустіть першу гру наживо — результати з'являться тут</p>
       <button class="gh-btn primary" data-act="quick" style="margin:0 auto">Створити гру</button></div>`;
     return;
   }
@@ -460,7 +464,7 @@ function gameRow(g){
   const col = colorFor(g.testId || g.title);
   const ranks = [1, 2, 3].map(r => g.results.filter(x => x.rank === r)).filter(a => a.length);
   const podium = g.hasResults
-    ? `<div class="gh-podium">${ranks.map(grp => `<div class="gh-pr"><span class="m">${MEDAL[grp[0].rank]}</span><span class="nm" title="${esc(grp.map(x => x.nickname).join(", "))}">${esc(grp[0].nickname)}</span>${grp.length > 1 ? `<span class="tie">+${grp.length - 1}</span>` : ""}<span class="pt">${fmt(grp[0].score)}</span></div>`).join("")}</div>`
+    ? `<div class="gh-podium">${ranks.map(grp => `<div class="gh-pr">${medal(grp[0].rank)}<span class="nm" title="${esc(grp.map(x => x.nickname).join(", "))}">${esc(grp[0].nickname)}</span>${grp.length > 1 ? `<span class="tie">+${grp.length - 1}</span>` : ""}<span class="pt">${fmt(grp[0].score)}</span></div>`).join("")}</div>`
     : `<span class="gh-noresults">Ніхто не відповідав</span>`;
   const dmax = Math.max(...g.dist, 1);
   const dist = g.hasResults && g.n >= 5 ? `<div class="gh-dist" title="Розподіл балів">${g.dist.map((v, i) => `<i class="${i >= 6 ? "hi" : ""}" style="height:${Math.max(6, v / dmax * 100)}%"></i>`).join("")}</div>` : "";
@@ -535,7 +539,7 @@ function renderResults(){
       const pct = showAcc && r.correct != null ? Math.round(r.correct / g.qc * 100) : null;
       const barCol = pct == null ? "#CBD5E1" : pct >= 70 ? "#16A34A" : pct >= 40 ? "#2563EB" : "#DC2626";
       return `<tr class="${r.rank <= 3 ? "r" + r.rank : ""}">
-        <td>${r.rank <= 3 ? `<span class="res-rank m">${MEDAL[r.rank]}</span>` : `<span class="res-rank">${r.rank}</span>`}</td>
+        <td>${r.rank <= 3 ? `<span class="res-rank">${medal(r.rank)}</span>` : `<span class="res-rank">${r.rank}</span>`}</td>
         <td><div class="res-who"><span class="res-av" style="background:${colorFor(r.nickname)}">${esc(initials(r.nickname))}</span><span class="res-nm" title="${esc(r.nickname)}">${hl(r.nickname, q)}</span></div></td>
         ${showAcc ? `<td class="c-acc">${pct == null ? `<span class="res-acc"><span class="t">—</span></span>` : `<div class="res-acc"><span class="bar"><i style="width:${pct}%;background:${barCol}"></i></span><span class="t">${r.correct}/${g.qc}</span></div>`}</td>` : ""}
         <td><span class="res-pts">${fmt(r.score)}</span></td>
