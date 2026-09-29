@@ -8,9 +8,10 @@ export const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&l
 const FONT = "Manrope,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 const C = { ink: "#0D1340", text: "#2B3552", muted: "#6B7593", faint: "#8A94B0", line: "#E6EAF3", brand: "#2D5BE3" };
 const DEFAULT_SITE = "https://quizflow.space";
-// Версія логотипа в адресі: Gmail кешує картинки через свій проксі (разом з помилками),
-// тож після зміни файлу в assets/email треба підняти номер
-const LOGO_V = 2;
+// Логотип віддає сам воркер (/logo.png, див. index.js): поштові проксі можуть не
+// отримати картинку з домену сайту. Версія в адресі — бо Gmail кешує картинки
+// (разом з помилками); після зміни логотипа підніміть номер.
+export const LOGO_V = 3;
 
 // Інлайн-розмітка тексту, який пише адмін: **жирний**, посилання http(s)
 function inline(s) {
@@ -49,8 +50,8 @@ function button({ label, url }) {
     </td></tr></table>`;
 }
 
-export function layout({ site = DEFAULT_SITE, preheader = "", title = "", bodyHtml = "", button: btn = null, after = "", footer = "" }) {
-  const logo = `${String(site || DEFAULT_SITE).replace(/\/+$/, "")}/assets/email/logo-light.png?v=${LOGO_V}`;
+export function layout({ site = DEFAULT_SITE, logoUrl = "", preheader = "", title = "", bodyHtml = "", button: btn = null, after = "", footer = "" }) {
+  const logo = logoUrl || `${String(site || DEFAULT_SITE).replace(/\/+$/, "")}/assets/email/logo-light.png?v=${LOGO_V}`;
   // Gmail ховає під «•••» блоки, однакові з попередніми листами ланки (підпис, футер).
   // Невидимий унікальний маркер робить кожен лист відмінним
   const uniq = `<span style="display:none!important;font-size:0;line-height:0;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all">${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}</span>`;
@@ -85,7 +86,7 @@ const FEATURES = [
   ["Журнал і аналітика", "оцінки за 12-бальною шкалою, звіти по групах і студентах"],
   ["Ігри наживо", "вікторини на уроці з телефонів студентів"],
 ];
-export function inviteEmail({ link, name, fromName, expiresAt, message, site }) {
+export function inviteEmail({ link, name, fromName, expiresAt, message, site, logoUrl }) {
   const until = expiresAt ? new Date(expiresAt).toLocaleDateString("uk-UA", { day: "numeric", month: "long", timeZone: "Europe/Kyiv" }) : "";
   const hello = name ? `Вітаємо, ${name}!` : "Вітаємо!";
   const lead = `${fromName ? `${fromName} запрошує вас` : "Вас запрошено"} приєднатися до QuizFlow — платформи для тестів, журналу оцінок та ігор наживо зі студентами.`;
@@ -99,7 +100,7 @@ export function inviteEmail({ link, name, fromName, expiresAt, message, site }) 
   return {
     subject: "Вас запрошено до QuizFlow",
     html: layout({
-      site,
+      site, logoUrl,
       preheader: "Створіть акаунт викладача — це займе хвилину",
       title: "Вас запрошено до QuizFlow",
       bodyHtml,
@@ -112,12 +113,12 @@ export function inviteEmail({ link, name, fromName, expiresAt, message, site }) 
 }
 
 // ─── Розсилка ───────────────────────────────────────────────────────────
-export function broadcastEmail({ subject, body, button: btn, name, unsubUrl, site }) {
+export function broadcastEmail({ subject, body, button: btn, name, unsubUrl, site, logoUrl }) {
   const hello = name ? `Вітаємо, ${name}!` : "";
   return {
     subject,
     html: layout({
-      site,
+      site, logoUrl,
       preheader: plainBody(body).slice(0, 120),
       title: subject,
       bodyHtml: (hello ? `<p style="margin:0 0 18px">${esc(hello)}</p>` : "") + renderBody(body),

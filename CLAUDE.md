@@ -7,7 +7,7 @@
 
 ## Інфраструктура
 - Сайт — статичний, хоститься на GitHub Pages (quizflow.space). Firebase — лише Realtime Database і Auth; платних Cloud Functions не використовуємо.
-- Пошта: листи Firebase Auth — через SMTP Resend; запрошення й розсилки — Cloudflare Worker з `worker/` (ключ Resend лише в його секретах; деплой — вставити `worker/dist/worker.js` у редактор Cloudflare, після змін у `worker/src` перезібрати: `cd tests && npm run worker:bundle`). Див. `docs/email-setup.md`.
+- Пошта: листи Firebase Auth — через SMTP Resend; запрошення й розсилки — Cloudflare Worker з `worker/` (ключ Resend лише в його секретах; деплой — вставити `worker/dist/worker.js` у редактор Cloudflare, після змін у `worker/src` перезібрати: `cd tests && npm run worker:bundle`; логотип у листах віддає сам воркер — після зміни `assets/email/logo-light.png` виконати `npm run worker:logo` і підняти `LOGO_V`). Див. `docs/email-setup.md`.
 - Правила бази — `database.rules.json`; після змін їх треба вручну опублікувати в консолі Firebase.
 - Після змін у `shared/*.js|css` піднімати `?v=` у всіх HTML, де файл підключено.
 

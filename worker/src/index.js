@@ -12,7 +12,11 @@
 //   GET|POST /unsubscribe?u=&s= — відписка за підписаним посиланням з листа
 // ═══════════════════════════════════════════════════════════════════════
 import { HttpError, requireAdmin, dbRead } from "./auth.js";
-import { inviteEmail, broadcastEmail, esc } from "./mail.js";
+import { inviteEmail, broadcastEmail, esc, LOGO_V } from "./mail.js";
+import { LOGO_PNG_B64 } from "./logo.js";
+
+const logoUrl = origin => `${origin}/logo.png?v=${LOGO_V}`;
+const LOGO_BYTES = Uint8Array.from(atob(LOGO_PNG_B64), c => c.charCodeAt(0));
 
 const EMAIL_RE = /^[^\s@<>()",;]+@[^\s@<>()",;]+\.[^\s@<>()",;]{2,}$/;
 const MAX_RECIPIENTS = 1000;
@@ -37,6 +41,9 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     try {
       if (url.pathname === "/unsubscribe") return await unsubscribe(request, env, url);
+      // Логотип для листів: віддаємо звідси, а не з домену сайту (див. mail.js)
+      if (url.pathname === "/logo.png" && (request.method === "GET" || request.method === "HEAD"))
+        return new Response(request.method === "HEAD" ? null : LOGO_BYTES, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000, immutable", "Access-Control-Allow-Origin": "*" } });
       if (url.pathname === "/" && request.method === "GET") return json({ ok: true, service: "quizflow-mail" }, 200, cors);
       const route = `${request.method} ${url.pathname}`;
       const handler = { "GET /status": status, "POST /preview": preview, "POST /invite": invite, "POST /broadcast": broadcast }[route];
@@ -126,12 +133,12 @@ function checkMessage(b) {
   return { subject, body, button };
 }
 
-async function preview({ env, body }) {
+async function preview({ env, body, url }) {
   const m = checkMessage(body);
-  return { ok: true, html: broadcastEmail({ ...m, name: "Олена", unsubUrl: "#", site: env.SITE_URL }).html };
+  return { ok: true, html: broadcastEmail({ ...m, name: "Олена", unsubUrl: "#", site: env.SITE_URL, logoUrl: logoUrl(url.origin) }).html };
 }
 
-async function invite({ env, admin, body }) {
+async function invite({ env, admin, body, url }) {
   const to = String(body?.to || "").trim().toLowerCase();
   const token = String(body?.token || "");
   if (!EMAIL_RE.test(to) || to.length > 200) throw new HttpError(400, "Некоректна адреса email");
@@ -145,7 +152,7 @@ async function invite({ env, admin, body }) {
     link: `${env.SITE_URL}/register?token=${token}`,
     name: String(body?.name || "").trim().slice(0, 80),
     message: String(body?.message || "").trim().slice(0, 600),
-    fromName, expiresAt: inv.expiresAt, site: env.SITE_URL,
+    fromName, expiresAt: inv.expiresAt, site: env.SITE_URL, logoUrl: logoUrl(url.origin),
   });
   const res = await resend(env, "/emails", { from: env.MAIL_FROM, to: [to], subject: mail.subject, html: mail.html, text: mail.text, ...(admin.me.email ? { reply_to: admin.me.email } : {}) });
   return { ok: true, id: res.id || null, to };
@@ -179,7 +186,7 @@ async function broadcast({ env, admin, body, url }) {
     const chunk = list.slice(i, i + BATCH);
     const payload = await Promise.all(chunk.map(async r => {
       const un = await unsubUrl(url.origin, env, r.uid);
-      const mail = broadcastEmail({ ...m, name: r.name, unsubUrl: un, site: env.SITE_URL });
+      const mail = broadcastEmail({ ...m, name: r.name, unsubUrl: un, site: env.SITE_URL, logoUrl: logoUrl(url.origin) });
       return {
         from: env.MAIL_FROM, to: [r.email], subject: mail.subject, html: mail.html, text: mail.text,
         headers: { "List-Unsubscribe": `<${un}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
@@ -232,6 +239,6 @@ button:hover{background:#2447C9}button.ghost{background:#fff;color:#0D1340;box-s
 button:focus-visible{outline:3px solid rgba(45,91,227,.35);outline-offset:2px}
 .s{margin-top:40px;padding-top:18px;border-top:1px solid #E6EAF3;font-size:12.5px;color:#8A94B0}.s a{color:#8A94B0}
 @media (max-width:600px){.c{padding:40px 20px}h1{font-size:25px}button{width:100%}}</style></head>
-<body><main class="c"><a class="l" href="${esc(site)}"><img src="${esc(site)}/assets/email/logo-light.png?v=2" alt="QuizFlow"></a><h1>${esc(title)}</h1><p>${esc(text)}</p>${btn}<div class="s">QuizFlow · <a href="${esc(site)}">${esc(site.replace(/^https?:\/\//, ""))}</a></div></main></body></html>`,
+<body><main class="c"><a class="l" href="${esc(site)}"><img src="/logo.png?v=${LOGO_V}" alt="QuizFlow"></a><h1>${esc(title)}</h1><p>${esc(text)}</p>${btn}<div class="s">QuizFlow · <a href="${esc(site)}">${esc(site.replace(/^https?:\/\//, ""))}</a></div></main></body></html>`,
     { status, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
 }
