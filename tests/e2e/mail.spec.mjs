@@ -170,3 +170,45 @@ test("розсилки: без ключа AI — підказка замість
   await expect(page.locator('[data-act="ai-new"]')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
+
+test("розсилки: окремі викладачі — пошук, вибір, перехід з картки викладача", async ({ page, errors }) => {
+  const calls = [];
+  await fakeWorker(page, calls);
+  const db = mailDb();
+  db.settings = { mail: { workerUrl: WORKER } };
+  await seed(page, db, "t5");
+
+  // З картки викладача — одразу в «Розсилки» з ним обраним
+  await page.goto("/admin/teachers?id=t3");
+  await page.locator('.tp-acts [data-act="mail"]').first().click();
+  await page.waitForURL(/\/admin\/mail$/);
+  await expect(page.locator('[data-aud="pick"]')).toHaveClass(/on/);
+  await expect(page.locator('[data-pick="t3"]')).toHaveAttribute("aria-checked", "true");
+  await expect(page.locator("#sum")).toContainText("Отримають 1");
+
+  // Пошук і ще один отримувач (адмін теж доступний)
+  await page.fill("#pk-q", "адмін");
+  await expect(page.locator(".pk-it")).toHaveCount(1);
+  await page.click('[data-pick="t5"]');
+  await expect(page.locator("#sum")).toContainText("Отримають 2");
+  await expect(page.locator("#pk-q")).toHaveValue("адмін");
+  await page.fill("#pk-q", "");
+  // Відписаний і заблокований — недоступні
+  await expect(page.locator('[data-pick="t2"]')).toBeDisabled();
+  await expect(page.locator('[data-pick="t4"]')).toBeDisabled();
+
+  await page.fill("#f-subj", "Особисто");
+  await page.fill("#f-body", "Текст");
+  await page.click('[data-act="send"]');
+  await expect(page.locator("#sd-t")).toContainText("Шевченко Ірина");
+  await page.click("#sd-ok");
+  await expect(page.locator("#sd-res")).toContainText("Надіслано: 2");
+  const sent = calls.find(c => c.path === "/broadcast" && !c.body.test);
+  expect(sent.body.uids.sort()).toEqual(["t3", "t5"]);
+
+  await page.evaluate(() => closeModal("m-send"));
+  await page.click('[data-act="pick-clear"]');
+  await expect(page.locator("#sum")).toContainText("Отримають 0");
+  await expect(page.locator('[data-act="send"]')).toBeDisabled();
+  expect(errors).toEqual([]);
+});

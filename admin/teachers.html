@@ -453,6 +453,7 @@ const IC = {
   ai: SVG('<path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/>'),
   more: SVG('<circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/>'),
   roles: SVG('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>'),
+  send: SVG('<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>'),
   key: SVG('<circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3L21 2"/><path d="M16 7l3 3"/><path d="M18 5l2 2"/>'),
   mail: SVG('<rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/>'),
   unlock: SVG('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 017.9-1"/>'),
@@ -746,6 +747,7 @@ function renderDetail(){
           </div>
         </div>
         ${isMe ? "" : `<div class="tp-acts">
+          ${u.email ? `<button type="button" class="tb-btn" data-act="mail" title="Написати лист через «Розсилки»">${IC.send.replace("<svg", '<svg width="14" height="14"')} Лист</button>` : ""}
           <button type="button" class="tb-btn" data-act="reset">${IC.key.replace("<svg", '<svg width="14" height="14"')} Скинути пароль</button>
           <button type="button" class="tb-btn${blocked ? "" : " danger"}" data-act="block">${(blocked ? IC.unlock : IC.ban).replace("<svg", '<svg width="14" height="14"')} ${blocked ? "Розблокувати" : "Заблокувати"}</button>
           <button type="button" class="tb-btn danger" data-act="delete" title="Видалити назавжди" aria-label="Видалити назавжди">${IC.trash.replace("<svg", '<svg width="14" height="14"')}</button>
@@ -870,6 +872,7 @@ document.getElementById("tp-main").addEventListener("click", e => {
   const name = fullName(u);
   switch (b.dataset.act){
     case "copy":    if (u.email) navigator.clipboard.writeText(u.email).then(() => toast("Email скопійовано")); return;
+    case "mail":    location.href = `mail?to=${encodeURIComponent(u.id)}`; return;
     case "reset":   return openResetModal(u.id, name, u.email || "");
     case "block":   return openBlockModal(u.id, name, u.blocked === true);
     case "delete":  return openDeleteTeacher(u.id, name, u.email || "");
