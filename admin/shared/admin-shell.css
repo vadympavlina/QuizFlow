@@ -233,6 +233,15 @@ html.asb-boot .asb, html.asb-boot .asb *, html.asb-boot .app{ transition:none !i
 }
 
 .content{padding:24px 26px 40px 14px;display:flex;flex-direction:column;gap:18px}
+/* Вкладки розділу: сторінки одного пункту меню */
+.sec-tabs{display:flex;gap:4px;align-self:flex-start;margin:14px 26px 0 14px;padding:4px;max-width:calc(100% - 40px);overflow-x:auto;scrollbar-width:none;
+  background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(15,30,71,.04)}
+.sec-tabs::-webkit-scrollbar{display:none}
+.sec-tabs a{flex:0 0 auto;padding:8px 14px;border-radius:10px;font:700 13.5px "Manrope",sans-serif;color:var(--ink-500);text-decoration:none;white-space:nowrap;transition:background .12s,color .12s}
+.sec-tabs a:hover{background:#F4F6FB;color:var(--ink-900)}
+.sec-tabs a.on{background:var(--ink-900);color:#fff}
+.sec-tabs a:focus-visible{outline:2px solid #7C3AED;outline-offset:2px}
+.sec-tabs + .content{padding-top:18px}
 
 .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:4px;flex-wrap:wrap}
 .page-head h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em}
@@ -452,6 +461,8 @@ html.asb-boot .asb, html.asb-boot .asb *, html.asb-boot .app{ transition:none !i
   .tb-menu{ display:grid; }
   .topbar{ margin:10px 12px 0; }
   .content{ padding:18px 12px 32px; }
+  .sec-tabs{ margin:12px 12px 0; max-width:calc(100% - 24px); align-self:stretch; }
+  .sec-tabs + .content{ padding-top:14px; }
   .kpi-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); }
   .page-head h1{ font-size:23px; }
 }

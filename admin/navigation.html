@@ -10,7 +10,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/admin-shell.css?v=8">
+<link rel="stylesheet" href="shared/admin-shell.css?v=9">
 <style>
 .nav-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
 @media (max-width:1240px){.nav-layout{grid-template-columns:1fr}.pv-card{position:static!important}}
@@ -193,7 +193,7 @@
 }
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=14">
+<link rel="modulepreload" href="shared/admin-shell.js?v=15">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -201,7 +201,7 @@
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=6"></script>
+<script src="shared/admin-nav.js?v=7"></script>
 <div id="admin-root"></div>
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -235,7 +235,7 @@
 </div>
 
 <script type="module">
-import { logAction, initAdminShell, dbGet, db, ref, update, esc, toast, openModal, closeModal, hideLoader } from "./shared/admin-shell.js?v=14";
+import { logAction, initAdminShell, dbGet, db, ref, update, esc, toast, openModal, closeModal, hideLoader } from "./shared/admin-shell.js?v=15";
 
 // ─── ІКОНКИ (40 штук, 5 категорій) ────────────────────────────────────────
 const ICON_CATS = {
