@@ -214,7 +214,7 @@ html:not(.resume) .checking{display:none}
 
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, setPersistence, indexedDBLocalPersistence, browserSessionPersistence, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const app = getApps().length ? getApps()[0] : initializeApp({
   apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",
@@ -330,7 +330,7 @@ $("loginF").addEventListener("submit", async e => {
   busy = true; btn.disabled = true; btn.innerHTML = `<span class="spin"></span><span>Перевірка доступу…</span>`; msg();
   try {
     // Адмінська сесія за замовчуванням живе лише до закриття вкладки
-    await setPersistence(auth, $("stay").checked ? browserLocalPersistence : browserSessionPersistence);
+    await setPersistence(auth, $("stay").checked ? indexedDBLocalPersistence : browserSessionPersistence);   // IndexedDB — типове сховище getAuth в адмінці
     const cred = await signInWithEmailAndPassword(auth, email, pass);
     const p = await profileOf(cred.user.uid);
     if (!p || p.role !== "admin" || p.blocked === true){
