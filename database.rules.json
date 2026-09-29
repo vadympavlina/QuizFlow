@@ -10,6 +10,12 @@
         ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.child('role').val() === 'teacher' && newData.child('blocked').val() !== true && newData.child('inviteToken').isString() && root.child('invite_tokens/' + newData.child('inviteToken').val()).exists() && root.child('invite_tokens/' + newData.child('inviteToken').val()).child('used').val() !== true",
         "aiSettings": {
           ".read": true
+        },
+        "features": {
+          ".read": true
+        },
+        "customRoleIds": {
+          ".read": true
         }
       }
     },
@@ -26,6 +32,31 @@
       ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
       "ai": {
         ".read": true
+      },
+      "status": {
+        ".read": true
+      },
+      "features": {
+        ".read": true
+      }
+    },
+    "aiUsage": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      "$month": {
+        ".validate": "$month.matches(/^[0-9]{6}$/)",
+        "$uid": {
+          ".read": true,
+          ".validate": "root.child('users/' + $uid).exists()",
+          "$feature": {
+            ".validate": "$feature === 'comments' || $feature === 'analysis' || $feature === 'generation' || $feature === 'textcheck'",
+            "calls": { ".write": true, ".validate": "newData.isNumber() && newData.val() === (data.exists() ? data.val() : 0) + 1" },
+            "errors": { ".write": true, ".validate": "newData.isNumber() && newData.val() === (data.exists() ? data.val() : 0) + 1" },
+            "tokens": { ".write": true, ".validate": "newData.isNumber() && newData.val() > (data.exists() ? data.val() : 0) && newData.val() <= (data.exists() ? data.val() : 0) + 100000" },
+            "last": { ".write": true, ".validate": "newData.isNumber() && newData.val() <= now" },
+            "$other": { ".validate": false }
+          }
+        }
       }
     },
     "roles": {

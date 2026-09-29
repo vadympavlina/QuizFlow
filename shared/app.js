@@ -8,6 +8,7 @@
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, set, push, update, remove, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { loadCaps, CAP_FLAGS, CAP_LIMITS, pluralUk } from "./caps.js?v=1";
 
 // ─── Firebase ──────────────────────────────────────────────────────────
 const FC = {
@@ -78,6 +79,24 @@ export const uid  = _fbUser.uid;
 
 window._user = _user;
 window._uid  = uid;
+
+// ─── Можливості й ліміти (адмінка → «Можливості») ─────────────────────────
+// Завантажуються у фоні; поки не завантажились — нічого не блокуємо.
+export const capsReady = loadCaps(db, { ..._user, features: _userDb.features }).then(c => (window.QF_CAPS = c)).catch(() => null);
+// Чи дозволена функція. Якщо ні — пояснює викладачу чому.
+window.qfCan = (flag) => {
+  const c = window.QF_CAPS;
+  if (!c || c.flags[flag] !== false) return true;
+  toast(`«${CAP_FLAGS[flag]?.label || flag}» вимкнено адміністратором`, "err");
+  return false;
+};
+// Чи можна додати ще один об'єкт при поточній кількості current
+window.qfLimit = (key, current) => {
+  const lim = window.QF_CAPS?.limits?.[key] || 0;
+  if (!lim || current < lim) return true;
+  toast(`Досягнуто ліміту: ${lim} ${pluralUk(lim, CAP_LIMITS[key].unit)}. Зверніться до адміністратора.`, "err");
+  return false;
+};
 
 // ─── Path / DB helpers ─────────────────────────────────────────────────
 export function tp(path) {
@@ -299,6 +318,74 @@ async function refreshNavConfig() {
   }
 }
 
+// ─── Оголошення й техроботи (керуються з admin/announcements) ─────────────
+const ANN_DISMISS_KEY = "qf_ann_dismissed";
+const ANN_IC = {
+  info:     '<circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/>',
+  success:  '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>',
+  warning:  '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="16.8" r=".6" fill="currentColor"/>',
+  critical: '<circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12.5"/><circle cx="12" cy="16" r=".6" fill="currentColor"/>',
+};
+const annSvg = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+function readDismissed() { try { return JSON.parse(localStorage.getItem(ANN_DISMISS_KEY) || "{}") || {}; } catch { return {}; } }
+
+async function loadServiceNotices() {
+  try {
+    const [stSnap, anSnap] = await Promise.all([get(ref(db, "settings/status")), get(ref(db, "settings/announcements"))]);
+    const st = stSnap.val() || {};
+    if (st.panelOff === true && _user.role !== "admin") return showPanelMaintenance(st.message);
+    renderAnnouncements(anSnap.val() || {});
+  } catch (e) { console.warn("[app.js] service notices:", e.message); }
+}
+
+function renderAnnouncements(all) {
+  const now = Date.now(), dismissed = readDismissed();
+  const mine = new Set(_user.customRoleIds || []);
+  const list = Object.entries(all).filter(([id, a]) => a && a.enabled !== false
+      && (!a.startAt || a.startAt <= now) && (!a.endAt || a.endAt >= now)
+      && (a.audience !== "roles" || Object.keys(a.roleIds || {}).some(r => mine.has(r)))
+      && !(a.dismissible !== false && dismissed[id] && dismissed[id] >= (a.updatedAt || 0)))
+    .sort((x, y) => ({ critical: 0, warning: 1, info: 2, success: 3 }[x[1].level] ?? 2) - ({ critical: 0, warning: 1, info: 2, success: 3 }[y[1].level] ?? 2));
+  document.getElementById("qf-anns")?.remove();
+  if (!list.length) return;
+  const main = document.querySelector("main.main") || document.querySelector(".main");
+  if (!main) return;
+  const box = document.createElement("div");
+  box.id = "qf-anns";
+  box.innerHTML = list.map(([id, a]) => {
+    const lv = ANN_IC[a.level] ? a.level : "info";
+    const href = a.linkUrl && !/^\s*javascript:/i.test(a.linkUrl) ? a.linkUrl : "";
+    return `<div class="qf-ann ${lv}" role="status" data-ann="${esc(id)}">
+      <span class="qf-ann-ic">${annSvg(ANN_IC[lv])}</span>
+      <div class="qf-ann-b">${a.title ? `<div class="qf-ann-t">${esc(a.title)}</div>` : ""}${a.text ? `<div class="qf-ann-x">${esc(a.text)}</div>` : ""}
+        ${href ? `<a class="qf-ann-a" href="${esc(href)}"${/^https?:/i.test(href) ? ' target="_blank" rel="noopener"' : ""}>${esc(a.linkLabel || "Детальніше")}${annSvg('<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>')}</a>` : ""}</div>
+      ${a.dismissible !== false ? `<button type="button" class="qf-ann-close" aria-label="Закрити оголошення">${annSvg('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>')}</button>` : ""}
+    </div>`;
+  }).join("");
+  box.addEventListener("click", e => {
+    const b = e.target.closest(".qf-ann-close"); if (!b) return;
+    const el = b.closest("[data-ann]"), id = el.dataset.ann;
+    const d = readDismissed(); d[id] = Date.now();
+    try { localStorage.setItem(ANN_DISMISS_KEY, JSON.stringify(d)); } catch {}
+    el.classList.add("out"); setTimeout(() => { el.remove(); if (!box.children.length) box.remove(); }, 180);
+  });
+  main.prepend(box);
+}
+
+function showPanelMaintenance(msg) {
+  const ov = document.createElement("div");
+  ov.id = "qf-maint";
+  ov.setAttribute("role", "alert");
+  ov.innerHTML = `<div class="qf-maint-card">
+    <span class="qf-maint-ic">${annSvg('<path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>')}</span>
+    <h2>Технічні роботи</h2>
+    <p>${esc(msg || "Тривають технічні роботи. Спробуйте трохи пізніше.")}</p>
+    <button type="button" onclick="location.reload()">Оновити сторінку</button>
+  </div>`;
+  document.body.appendChild(ov);
+  ldr(false);
+}
+
 // ─── State ─────────────────────────────────────────────────────────────
 // features.js читає і пише в window.folders / tests / links / attempts
 window.folders = [];
@@ -462,6 +549,7 @@ export async function initApp(pageName, options = {}) {
     loadSidebar(pageName),
     loadModals()
   ]);
+  loadServiceNotices();   // оголошення й техроботи — у фоні, сторінку не затримують
   if (!options.skipData) {
     await loadAllData();
     setTimeout(backfillIndexes, 3000);

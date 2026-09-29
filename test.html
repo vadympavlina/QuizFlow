@@ -652,6 +652,9 @@ window.QI = QI;
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, set, push, update, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { qVersionKey, makeOrder, buildQuestions, seededRandom, shuffledIdx, richHtml, plainText } from "./shared/qorder.js?v=1";
+import { trackAI, tokensOf } from "./shared/ai-usage.js?v=1";
+import { resolveCaps, assertAiQuota } from "./shared/caps.js?v=1";
+const AI_OWNER = new URLSearchParams(location.search).get("t") || "";   // облік AI — на викладача, чий тест
 
 // Глобальна tp — читає teacherUid з URL
 function tp(path){
@@ -864,8 +867,32 @@ const UA_SYSTEM = {
 // Студент не має чекати на AI вічно: після 20 с показуємо результат без коментаря
 const aiSignal = () => (typeof AbortSignal !== "undefined" && AbortSignal.timeout) ? AbortSignal.timeout(20000) : undefined;
 
+// Місячний ліміт AI викладача (адмінка → «Можливості»). Вичерпано — тест працює без AI,
+// так само як при помилці AI: коментаря немає, текстові відповіді звіряються без нього.
+let _aiLimitP = null;
+const teacherAiLimit = () => _aiLimitP ||= (async () => {
+  if (!AI_OWNER) return 0;
+  const [cfg, feat, rids] = await Promise.all(["settings/features", `users/${AI_OWNER}/features`, `users/${AI_OWNER}/customRoleIds`]
+    .map(p => get(ref(db, p)).then(s => s.val()).catch(() => null)));
+  return resolveCaps(cfg || {}, { features: feat || {}, customRoleIds: rids || {} }).limits.aiPerMonth;
+})();
+
+// Обгортка: рахуємо кожне звернення (успіх / помилка) для адмінки
 async function callGroq(messages, maxTokens = 800, temperature = 0.5, feature = "comments") {
-  if (aiProviderFor(feature) === "gemini") return callGemini(messages, maxTokens, temperature);
+  await assertAiQuota(db, AI_OWNER, await teacherAiLimit());
+  try {
+    const { text, data } = aiProviderFor(feature) === "gemini"
+      ? await callGemini(messages, maxTokens, temperature)
+      : await callGroqRaw(messages, maxTokens, temperature);
+    trackAI(db, AI_OWNER, feature, { tokens: tokensOf(data) });
+    return text;
+  } catch (e) {
+    trackAI(db, AI_OWNER, feature, { ok: false });
+    throw e;
+  }
+}
+
+async function callGroqRaw(messages, maxTokens, temperature) {
   if (!GROQ_API_KEY) throw new Error("AI не налаштовано: немає ключа Groq");
   // Завжди додаємо системний промпт українською
   const allMessages = [UA_SYSTEM, ...messages];
@@ -898,7 +925,7 @@ async function callGroq(messages, maxTokens = 800, temperature = 0.5, feature = 
     console.warn("AI returned non-UA text, content may be mixed");
   }
 
-  return result;
+  return { text: result, data };
 }
 
 async function callGemini(messages, maxTokens = 800, temperature = 0.5) {
@@ -915,7 +942,7 @@ async function callGemini(messages, maxTokens = 800, temperature = 0.5) {
   });
   if (!res.ok) throw new Error(`Gemini error ${res.status}: ${await res.text()}`);
   const data = await res.json();
-  return (data.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join("");
+  return { text: (data.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join(""), data };
 }
 
 // ─── AI для студента: оцінка + коментар ──────────────────────────────────────
@@ -1539,8 +1566,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   showScreen("loadingScreen");
 
   try {
-    // Посилання й тест — паралельно (раніше по черзі)
+    // Режим техробіт (admin/announcements). Якщо правила ще не дозволяють читати — просто пропускаємо
+    const statusP = get(ref(db, "settings/status")).then(s => s.val()).catch(() => null);
     linkData = await getLink(linkId);
+    const svc = await statusP;
+    if (svc?.testsOff === true) return showError(svc.message || "Тривають технічні роботи. Спробуйте трохи пізніше.", { icon: "clock", title: "Технічні роботи", retry: () => location.reload() });
     if (!linkData)                               return showError("Посилання не знайдено.");
     const _fmtWhen = t => new Date(t).toLocaleString("uk-UA", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
     const _max = Number(linkData.maxAttempts) > 0 ? Number(linkData.maxAttempts) : 0;   // 0 — без ліміту

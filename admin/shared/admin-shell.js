@@ -317,7 +317,7 @@ window.showLoader = showLoader;
 // Огляд, статистика й викладачі показують збережені дані одразу (якщо їм
 // < 30 хв), а свіжі підтягують у фоні. У кеш і в пам'ять ідуть лише ті поля
 // спроб, які потрібні графікам — без відповідей і питань.
-const CACHE_KEY = "qf_adm_teachers_v1";
+const CACHE_KEY = "qf_adm_teachers_v2";   // v2: testsLive, activeLinks
 const slimAttempt = (a, teacherId, teacherName) => ({
   createdAt: a.createdAt || 0, finishedAt: a.finishedAt || 0, startedAt: a.startedAt || 0, lastSeen: a.lastSeen || 0,
   status: a.status || "", grade12: a.grade12 ?? null, testId: a.testId || "", teacherId, teacherName,
@@ -388,6 +388,9 @@ async function _loadAllFresh(){
       weekAttempts,
       students: ss.exists() ? Object.keys(ss.val()).length : 0,
       links: ls.exists() ? Object.keys(ls.val()).length : 0,
+      // Для лімітів з «Можливостей»: неархівні тести й відкриті посилання
+      testsLive: ts.exists() ? Object.values(ts.val()).filter(t => t && t.status !== "archived").length : 0,
+      activeLinks: ls.exists() ? Object.values(ls.val()).filter(l => l && l.status === "active" && !(l.closeAt && l.closeAt <= Date.now())).length : 0,
       games: games.length,
       gamePlayers: games.reduce((s, g) => s + g.players, 0),
       weekGames: games.filter(g => g.playedAt >= weekAgo).length,

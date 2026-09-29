@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/styles.css?v=25">
-<link rel="modulepreload" href="shared/app.js?v=25">
+<link rel="stylesheet" href="shared/styles.css?v=26">
+<link rel="modulepreload" href="shared/app.js?v=26">
 <style>
 #sec-history{
   --ink-900:#0B1437;--ink-700:#24335A;--ink-500:#5B6A8F;--ink-400:#8691AC;--ink-300:#CDD6E8;
@@ -310,7 +310,7 @@ mark.hl{background:#FEF08A;color:inherit;border-radius:2px;padding:0 1px}
 
 <script type="module">
 import { getDatabase, ref, get, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-const { initApp, appReady } = await import("./shared/app.js?v=25");
+const { initApp, appReady } = await import("./shared/app.js?v=26");
 await initApp("history", { skipData: true });
 
 const db = getDatabase();
@@ -623,8 +623,8 @@ document.addEventListener("click", e => {
   switch (el.dataset.act){
     case "open":   closeMenu(); if (g) openResults(g); break;
     case "menu":   if (menuFor === el) closeMenu(); else if (g) openMenu(el, g); break;
-    case "csv":    closeMenu(); if (g) exportCsv(g); break;
-    case "replay": closeMenu(); if (g?.testId) location.href = `live/setup?testId=${encodeURIComponent(g.testId)}`; break;
+    case "csv":    closeMenu(); if (g && (!window.qfCan || window.qfCan("export"))) exportCsv(g); break;
+    case "replay": closeMenu(); if (g?.testId && (!window.qfCan || window.qfCan("games"))) location.href = `live/setup?testId=${encodeURIComponent(g.testId)}`; break;
     case "del":    closeMenu(); if (g) askDelete(g); break;
     case "more":   ui.limit += 20; render(); break;
     case "res-more": resLimit += 200; renderResults(); break;
@@ -685,7 +685,7 @@ function qlAction(el){
   const a = el.dataset.ql;
   if (a === "back"){ qlFolder = null; $("ql-search").value = ""; renderQl(); $("ql-search").focus(); }
   else if (a === "folder"){ qlFolder = el.dataset.id; $("ql-search").value = ""; renderQl(); $("ql-search").focus(); }
-  else if (a === "test") location.href = `live/setup?testId=${encodeURIComponent(el.dataset.id)}`;
+  else if (a === "test" && (!window.qfCan || window.qfCan("games"))) location.href = `live/setup?testId=${encodeURIComponent(el.dataset.id)}`;
 }
 $("ql-search").addEventListener("input", () => qlTests && renderQl());
 </script>

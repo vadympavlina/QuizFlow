@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><path d='M16 8l2.5 5 5.5.8-4 3.9.9 5.5L16 20.7l-4.9 2.5.9-5.5-4-3.9 5.5-.8z' fill='white'/></svg>">
+<title>QuizFlow Admin — Оголошення</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/admin-shell.css?v=7">
+<style>
+/* Плашка оголошення (такий самий вигляд, як у панелі викладача) */
+.qf-ann{--c:#1D4ED8;--bg:#EFF6FF;--ln:#BFDBFE;display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:var(--bg);border:1px solid var(--ln);color:#0B1437;font-family:"Manrope",system-ui,sans-serif;text-align:left}
+.qf-ann.success{--c:#15803D;--bg:#F0FDF4;--ln:#BBF7D0}
+.qf-ann.warning{--c:#B45309;--bg:#FFFBEB;--ln:#FDE68A}
+.qf-ann.critical{--c:#B91C1C;--bg:#FEF2F2;--ln:#FECACA}
+.qf-ann-ic{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;background:#fff;color:var(--c);box-shadow:inset 0 0 0 1px var(--ln)}
+.qf-ann-ic svg{width:17px;height:17px}
+.qf-ann-b{flex:1;min-width:0;padding-top:1px}
+.qf-ann-t{font-size:14px;font-weight:800;color:#0B1437;line-height:1.35}
+.qf-ann-x{font-size:13.5px;color:#34405E;line-height:1.5;margin-top:2px;white-space:pre-line;overflow-wrap:anywhere}
+.qf-ann-a{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:13px;font-weight:700;color:var(--c);text-decoration:none}
+.qf-ann-a:hover{text-decoration:underline}
+.qf-ann-close{width:28px;height:28px;border-radius:8px;border:0;background:transparent;color:#5B6A8F;display:grid;place-items:center;cursor:pointer;flex:0 0 auto}
+.qf-ann-close:hover{background:rgba(11,20,55,.06);color:#0B1437}
+.qf-ann-close svg{width:14px;height:14px}
+.field-input{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-family:"Manrope",sans-serif;font-size:14px;color:var(--ink-900);outline:none;transition:border-color .15s,box-shadow .15s}
+.field-input:focus{border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+textarea.field-input{resize:vertical;min-height:96px;line-height:1.5}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field-l{font-size:12.5px;font-weight:700;color:var(--ink-700)}
+.field-h{font-size:11.5px;color:var(--ink-400)}
+.f-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* Перемикач */
+.toggle-sw{position:relative;display:inline-block;width:40px;height:23px;flex:0 0 auto}
+.toggle-sw input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;z-index:1}
+.toggle-sl{position:absolute;inset:0;background:#E3E8F2;border-radius:99px;transition:background .2s}
+.toggle-sl::before{content:"";position:absolute;top:2px;left:2px;width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:transform .2s}
+.toggle-sw input:checked + .toggle-sl{background:linear-gradient(135deg,#7C3AED,#4F46E5)}
+.toggle-sw.red input:checked + .toggle-sl{background:linear-gradient(135deg,#EF4444,#B91C1C)}
+.toggle-sw input:checked + .toggle-sl::before{transform:translateX(17px)}
+.toggle-sw input:focus-visible + .toggle-sl{box-shadow:0 0 0 3px rgba(124,58,237,.3)}
+.toggle-sw input:disabled + .toggle-sl{opacity:.6}
+
+/* Техроботи */
+.mt{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-bottom:18px}
+.mt.on{border-color:#FCA5A5;box-shadow:0 0 0 3px rgba(239,68,68,.08)}
+.mt-h{display:flex;align-items:center;gap:14px;padding:18px 22px;border-bottom:1px solid var(--line)}
+.mt.on .mt-h{background:linear-gradient(180deg,#FEF2F2,#fff)}
+.mt-ic{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;background:#F1F4FA;color:var(--ink-500);flex:0 0 auto}
+.mt.on .mt-ic{background:#FEE2E2;color:#B91C1C}
+.mt-ic svg{width:22px;height:22px}
+.mt-h h2{font-size:16px;font-weight:800;margin:0}
+.mt-h p{font-size:12.5px;color:var(--ink-500);margin:3px 0 0}
+.mt-st{margin-left:auto;font-size:12px;font-weight:800;padding:5px 11px;border-radius:999px;background:#DCFCE7;color:#15803D;white-space:nowrap}
+.mt.on .mt-st{background:#FEE2E2;color:#B91C1C}
+.mt-b{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:20px;padding:18px 22px}
+.mt-sws{display:flex;flex-direction:column;gap:8px}
+.mt-sw{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:#FAFBFE}
+.mt-sw.on{background:#FEF2F2;border-color:#FECACA}
+.mt-sw .i{flex:1;min-width:0}
+.mt-sw b{display:block;font-size:13.5px;color:var(--ink-900)}
+.mt-sw span{font-size:12px;color:var(--ink-500)}
+.mt-msg{display:flex;flex-direction:column;gap:8px}
+.mt-f{display:flex;justify-content:flex-end;gap:8px;padding:0 22px 18px}
+
+/* Список оголошень */
+.an-it{display:flex;align-items:flex-start;gap:11px;width:100%;padding:10px;border-radius:12px;border:0;background:none;text-align:left;cursor:pointer;font:inherit;color:inherit;transition:background .12s}
+.an-it:hover{background:#F7F8FC}
+.an-it.on{background:#F5F3FF;box-shadow:inset 0 0 0 1px #DDD6FE}
+.an-dot{width:10px;height:10px;border-radius:50%;margin-top:5px;flex:0 0 auto;background:#3B82F6}
+.an-dot.success{background:#22C55E}.an-dot.warning{background:#F59E0B}.an-dot.critical{background:#EF4444}
+.an-i{flex:1;min-width:0}
+.an-t{font-size:13.5px;font-weight:800;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.an-m{font-size:12px;color:var(--ink-400);font-weight:600;margin-top:3px}
+.an-st{font-size:10.5px;font-weight:800;letter-spacing:.04em;padding:2px 7px;border-radius:6px;white-space:nowrap;flex:0 0 auto;margin-top:1px}
+.an-st.live{background:#DCFCE7;color:#15803D}
+.an-st.plan{background:#E0E7FF;color:#4338CA}
+.an-st.past{background:#F1F4FA;color:var(--ink-400)}
+.an-st.off{background:#F1F4FA;color:var(--ink-400)}
+
+/* Редактор */
+.an-form{display:flex;flex-direction:column;gap:14px}
+.lv{display:flex;gap:6px;flex-wrap:wrap}
+.lv button{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font:700 13px "Manrope",sans-serif;color:var(--ink-700);cursor:pointer}
+.lv button i{width:9px;height:9px;border-radius:50%}
+.lv button.on{border-color:var(--ink-900);color:var(--ink-900);box-shadow:inset 0 0 0 1px var(--ink-900)}
+.aud-roles{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.aud-roles button{--rc:#7C3AED;display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:9px;border:1.5px solid var(--line);background:#fff;font:700 12.5px "Manrope",sans-serif;color:var(--ink-700);cursor:pointer}
+.aud-roles button i{width:8px;height:8px;border-radius:50%;background:var(--rc)}
+.aud-roles button.on{border-color:var(--rc);background:color-mix(in srgb,var(--rc) 10%,#fff);color:var(--ink-900)}
+.an-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:#FAFBFE}
+.an-row b{display:block;font-size:13.5px;color:var(--ink-900)}
+.an-row span{font-size:12px;color:var(--ink-500)}
+.an-prev{background:#F4F6FB;border:1px dashed var(--line-strong);border-radius:14px;padding:14px}
+.an-prev-l{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-400);margin-bottom:8px}
+.an-foot{display:flex;gap:8px;justify-content:flex-end;padding:16px 24px;border-top:1px solid var(--line);background:#FCFCFE}
+.an-foot .sp{flex:1}
+.mod-err{background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.18);border-radius:8px;padding:9px 12px;color:#B91C1C;font-size:12.5px;font-weight:600;display:none}
+.mod-err.show{display:block}
+
+@media (max-width:1180px){ .mt-b{grid-template-columns:1fr} }
+@media (max-width:640px){ .f-grid{grid-template-columns:1fr} .mt-h{flex-wrap:wrap} .mt-st{margin-left:0} .an-foot{flex-wrap:wrap} .an-foot .tb-btn{flex:1;justify-content:center} .an-foot .sp{display:none} }
+</style>
+</head>
+<body>
+
+<div id="admin-loader"><div class="spin"></div></div>
+<script src="shared/admin-nav.js?v=4"></script>
+<div id="admin-root"></div>
+<div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
+
+<div class="modal-bd" id="m-del">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-h"><span class="mh-ico red" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></span>
+      <h3>Видалити оголошення?</h3>
+      <button class="close" type="button" onclick="closeModal('m-del')" aria-label="Закрити"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-b"><div style="font-size:13.5px;color:var(--ink-500);line-height:1.5">Оголошення «<b id="del-t" style="color:var(--ink-900)"></b>» зникне в усіх викладачів. Цю дію не можна скасувати.</div></div>
+    <div class="modal-f">
+      <button class="tb-btn" type="button" onclick="closeModal('m-del')">Скасувати</button>
+      <button class="tb-btn danger" type="button" id="del-ok">Видалити</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initAdminShell, db, ref, update, dbGet, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=8";
+
+const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const sm = (svg, w = 14) => svg.replace("<svg", `<svg width="${w}" height="${w}"`);
+const IC = {
+  plus: SVG('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'),
+  tool: SVG('<path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>'),
+  ann: SVG('<path d="M3 11v2a1 1 0 001 1h2l5 4V6L6 10H4a1 1 0 00-1 1z"/><path d="M15.5 8.5a5 5 0 010 7"/><path d="M18.5 5.5a9 9 0 010 13"/>'),
+  trash: SVG('<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>'),
+  back: SVG('<polyline points="15 18 9 12 15 6"/>'),
+  x: SVG('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'),
+  arrow: SVG('<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>'),
+};
+// Іконки рівнів — ті самі, що в панелі викладача (shared/app.js)
+const LV = {
+  info:     { label: "Інформація", dot: "#3B82F6", ico: '<circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/>' },
+  success:  { label: "Новинка",    dot: "#22C55E", ico: '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>' },
+  warning:  { label: "Увага",      dot: "#F59E0B", ico: '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="16.8" r=".6" fill="currentColor"/>' },
+  critical: { label: "Критично",   dot: "#EF4444", ico: '<circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12.5"/><circle cx="12" cy="16" r=".6" fill="currentColor"/>' },
+};
+const fmtD = t => t ? new Date(t).toLocaleDateString("uk-UA", { day: "numeric", month: "short" }) : "";
+const toInp = t => { if (!t) return ""; const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+const fromInp = (v, end) => { if (!v) return null; const [y, m, d] = v.split("-").map(Number); return end ? new Date(y, m - 1, d, 23, 59, 59).getTime() : new Date(y, m - 1, d).getTime(); };
+function stateOf(a, now = Date.now()){
+  if (a.enabled === false) return ["off", "Вимкнено"];
+  if (a.endAt && a.endAt < now) return ["past", "Завершено"];
+  if (a.startAt && a.startAt > now) return ["plan", "Заплановано"];
+  return ["live", "Показується"];
+}
+function bannerHtml(a, preview){
+  const lv = LV[a.level] || LV.info;
+  return `<div class="qf-ann ${esc(a.level || "info")}" role="status">
+    <span class="qf-ann-ic">${SVG(lv.ico)}</span>
+    <div class="qf-ann-b">${a.title ? `<div class="qf-ann-t">${esc(a.title)}</div>` : ""}${a.text ? `<div class="qf-ann-x">${esc(a.text)}</div>` : ""}
+      ${a.linkUrl ? `<a class="qf-ann-a" href="${esc(a.linkUrl)}" target="_blank" rel="noopener"${preview ? ' tabindex="-1"' : ""}>${esc(a.linkLabel || "Детальніше")} ${sm(IC.arrow, 13)}</a>` : ""}</div>
+    ${a.dismissible !== false ? `<button type="button" class="qf-ann-close" aria-label="Закрити"${preview ? ' tabindex="-1"' : ""}>${IC.x}</button>` : ""}
+  </div>`;
+}
+
+const content = `
+  <div class="page-head"><div><h1>Оголошення</h1><p>Плашки вгорі панелі викладача і режим технічних робіт</p></div></div>
+  <section class="mt" id="mt"></section>
+  <div id="an-root"></div>
+`;
+const topbarRight = `<button class="tb-btn primary" type="button" id="btn-new">${sm(IC.plus)} Нове оголошення</button>`;
+await initAdminShell({ activeId: "announcements", crumbs: ["Оголошення"], content, topbarRight });
+
+let status = {}, statusSaved = {};
+let items = {};      // id -> оголошення
+let roles = {};
+let _selId = new URLSearchParams(location.search).get("id") || "";
+let draft = null;    // форма, що редагується
+const mobile = () => matchMedia("(max-width:1023px)").matches;
+
+// ─── Техроботи ────────────────────────────────────────────────────────────
+const MT = [
+  ["testsOff", "Проходження тестів", "Студенти побачать повідомлення замість тесту"],
+  ["gamesOff", "Ігри наживо", "Не можна приєднатися до гри або створити нову"],
+  ["panelOff", "Панель викладача", "Викладачі бачать екран техробіт. Адміністратори заходять як звичайно"],
+];
+const mtOn = s => MT.some(([k]) => s[k] === true);
+function renderMT(){
+  const on = mtOn(statusSaved);
+  const dirty = JSON.stringify(norm(status)) !== JSON.stringify(norm(statusSaved));
+  const el = document.getElementById("mt");
+  el.className = "mt" + (on ? " on" : "");
+  el.innerHTML = `
+    <div class="mt-h"><span class="mt-ic">${IC.tool}</span>
+      <div><h2>Технічні роботи</h2><p>Тимчасово закрийте частину сервісу з поясненням для людей</p></div>
+      <span class="mt-st">${on ? "Увімкнено: " + MT.filter(([k]) => statusSaved[k]).map(([, n]) => n.toLowerCase()).join(", ") : "Сервіс працює"}</span></div>
+    <div class="mt-b">
+      <div class="mt-sws">${MT.map(([k, n, d]) => `<label class="mt-sw${status[k] ? " on" : ""}"><span class="i"><b>${n}</b><span>${d}</span></span>
+        <span class="toggle-sw red"><input type="checkbox" data-mt="${k}" ${status[k] ? "checked" : ""} aria-label="Закрити: ${n}"><span class="toggle-sl"></span></span></label>`).join("")}</div>
+      <div class="mt-msg">
+        <div class="field"><label class="field-l" for="mt-msg">Повідомлення</label>
+          <textarea class="field-input" id="mt-msg" maxlength="300" placeholder="Наприклад: оновлюємо сервіс, повернемося о 18:00">${esc(status.message || "")}</textarea>
+          <span class="field-h">Його побачать усі, для кого розділ закрито</span></div>
+      </div>
+    </div>
+    <div class="mt-f">${dirty ? `<button class="tb-btn" type="button" data-mt-act="cancel">Скасувати</button>` : ""}<button class="tb-btn primary" type="button" data-mt-act="save"${dirty ? "" : " disabled"}>Зберегти</button></div>`;
+}
+const norm = s => ({ testsOff: s.testsOff === true, gamesOff: s.gamesOff === true, panelOff: s.panelOff === true, message: (s.message || "").trim() });
+document.getElementById("mt").addEventListener("change", e => { const k = e.target.dataset.mt; if (k){ status[k] = e.target.checked; renderMT(); } });
+document.getElementById("mt").addEventListener("input", e => {
+  if (e.target.id !== "mt-msg") return;
+  status.message = e.target.value;
+  const b = document.querySelector('[data-mt-act="save"]'); const dirty = JSON.stringify(norm(status)) !== JSON.stringify(norm(statusSaved));
+  if (b) b.disabled = !dirty;
+  if (dirty && !document.querySelector('[data-mt-act="cancel"]')) b.insertAdjacentHTML("beforebegin", `<button class="tb-btn" type="button" data-mt-act="cancel">Скасувати</button>`);
+});
+document.getElementById("mt").addEventListener("click", async e => {
+  const a = e.target.closest("[data-mt-act]")?.dataset.mtAct; if (!a) return;
+  if (a === "cancel"){ status = { ...statusSaved }; return renderMT(); }
+  const data = { ...norm(status), updatedAt: Date.now() };
+  if (mtOn(data) && !data.message) data.message = "Тривають технічні роботи. Спробуйте трохи пізніше.";
+  try {
+    await update(ref(db), { "settings/status": data });
+    status = { ...data }; statusSaved = { ...data };
+    renderMT();
+    toast(mtOn(data) ? "Режим техробіт увімкнено" : "Сервіс знову працює повністю");
+  } catch (err) { toast("Помилка: " + err.message, "err"); }
+});
+
+// ─── Оголошення ───────────────────────────────────────────────────────────
+const sortedIds = () => Object.keys(items).sort((a, b) => {
+  const r = { live: 0, plan: 1, off: 2, past: 3 };
+  return r[stateOf(items[a])[0]] - r[stateOf(items[b])[0]] || (items[b].createdAt || 0) - (items[a].createdAt || 0);
+});
+const blank = () => ({ title: "", text: "", level: "info", audience: "all", roleIds: {}, dismissible: true, enabled: true, startAt: null, endAt: null, linkUrl: "", linkLabel: "" });
+
+function render(){
+  const root = document.getElementById("an-root");
+  const ids = sortedIds();
+  if (!ids.length && _selId !== "new"){
+    root.innerHTML = `<div class="rl-start" style="background:#fff;border:1px solid var(--line);border-radius:18px;padding:40px 24px;text-align:center">
+      <div style="width:56px;height:56px;margin:0 auto 14px;border-radius:16px;background:#EDE9FE;color:#6D28D9;display:grid;place-items:center">${sm(IC.ann, 26)}</div>
+      <h2 style="font-size:19px;font-weight:800;margin:0 0 6px">Оголошень ще немає</h2>
+      <p style="font-size:13.5px;color:var(--ink-500);margin:0 auto 18px;max-width:480px;line-height:1.55">Плашка з'являється вгорі панелі у викладачів: про оновлення, нову функцію чи планові роботи. Можна задати дати показу й обрати, для яких ролей.</p>
+      <button class="tb-btn primary" type="button" data-new>${sm(IC.plus)} Створити оголошення</button></div>`;
+    return;
+  }
+  if (!mobile() && !_selId) _selId = ids[0];
+  root.innerHTML = `<div class="tp">
+    <aside class="tp-side" aria-label="Список оголошень">
+      <div class="tp-meta" style="padding-top:14px"><span>Оголошення</span><b>${ids.length}</b></div>
+      <div class="tp-items">${ids.map(id => { const a = items[id], [st, sl] = stateOf(a);
+        const when = a.startAt || a.endAt ? `${a.startAt ? "з " + fmtD(a.startAt) : ""}${a.endAt ? " до " + fmtD(a.endAt) : ""}` : "Без обмеження дат";
+        return `<button type="button" class="an-it${id === _selId ? " on" : ""}" data-id="${esc(id)}"><span class="an-dot ${esc(a.level || "info")}"></span>
+          <span class="an-i"><div class="an-t">${esc(a.title || a.text || "Без назви")}</div><div class="an-m">${esc(when.trim())}${a.audience === "roles" ? " · для ролей" : ""}</div></span>
+          <span class="an-st ${st}">${sl}</span></button>`; }).join("")}</div>
+      <div style="padding:10px 12px 12px;border-top:1px solid var(--line)"><button class="tb-btn" style="width:100%;justify-content:center" type="button" data-new>${sm(IC.plus)} Нове оголошення</button></div>
+    </aside>
+    <section class="tp-main" id="an-main"></section>
+  </div>`;
+  renderEditor();
+}
+
+function renderEditor(){
+  const host = document.getElementById("an-main"); if (!host) return;
+  if (_selId !== "new" && !items[_selId]){ host.classList.remove("open"); host.innerHTML = `<div class="tp-blank"></div>`; return; }
+  if (!draft) draft = _selId === "new" ? blank() : JSON.parse(JSON.stringify({ ...blank(), ...items[_selId] }));
+  const d = draft, isNew = _selId === "new";
+  const rids = Object.keys(roles).sort((a, b) => (roles[a].name || "").localeCompare(roles[b].name || "", "uk"));
+  const [st, sl] = isNew ? ["off", "Чернетка"] : stateOf(items[_selId]);
+  host.innerHTML = `
+    <button type="button" class="tb-btn tp-back" data-act="back">${sm(IC.back)} До списку</button>
+    <article class="tp-card">
+      <section class="tp-sec">
+        <div class="tp-sec-h"><div><h3>${isNew ? "Нове оголошення" : "Редагування"} <span class="an-st ${st}" style="margin-left:6px;vertical-align:2px">${sl}</span></h3><p>Попередній перегляд оновлюється одразу</p></div></div>
+        <div class="an-prev"><div class="an-prev-l">Так побачить викладач</div><div id="an-prev">${bannerHtml(d, true)}</div></div>
+      </section>
+      <section class="tp-sec">
+        <form class="an-form" id="an-form" autocomplete="off">
+          <div class="field"><label class="field-l" for="f-title">Заголовок</label><input class="field-input" id="f-title" maxlength="80" value="${esc(d.title)}" placeholder="Наприклад: Нова функція — ігри наживо"></div>
+          <div class="field"><label class="field-l" for="f-text">Текст</label><textarea class="field-input" id="f-text" maxlength="500" placeholder="Коротко, 1–3 речення">${esc(d.text)}</textarea></div>
+          <div class="field"><span class="field-l">Тип</span><div class="lv" role="radiogroup">${Object.entries(LV).map(([k, v]) => `<button type="button" role="radio" aria-checked="${d.level === k}" class="${d.level === k ? "on" : ""}" data-lv="${k}"><i style="background:${v.dot}"></i>${v.label}</button>`).join("")}</div></div>
+          <div class="f-grid">
+            <div class="field"><label class="field-l" for="f-start">Показувати з</label><input class="field-input" type="date" id="f-start" value="${toInp(d.startAt)}"><span class="field-h">Порожньо — одразу</span></div>
+            <div class="field"><label class="field-l" for="f-end">Показувати до</label><input class="field-input" type="date" id="f-end" value="${toInp(d.endAt)}"><span class="field-h">Порожньо — без кінця</span></div>
+          </div>
+          <div class="field"><span class="field-l">Кому показувати</span>
+            <div class="lv" role="radiogroup"><button type="button" role="radio" data-aud="all" class="${d.audience !== "roles" ? "on" : ""}" aria-checked="${d.audience !== "roles"}">Усім викладачам</button><button type="button" role="radio" data-aud="roles" class="${d.audience === "roles" ? "on" : ""}" aria-checked="${d.audience === "roles"}"${rids.length ? "" : " disabled title=\"Спочатку створіть ролі\""}>Лише окремим ролям</button></div>
+            ${d.audience === "roles" ? `<div class="aud-roles">${rids.map(id => `<button type="button" data-rid="${esc(id)}" class="${d.roleIds?.[id] ? "on" : ""}" style="--rc:${esc(roles[id].color || "#7C3AED")}" aria-pressed="${!!d.roleIds?.[id]}"><i></i>${esc(roles[id].name)}</button>`).join("")}</div>` : ""}
+          </div>
+          <div class="f-grid">
+            <div class="field"><label class="field-l" for="f-url">Посилання (необов'язково)</label><input class="field-input" id="f-url" value="${esc(d.linkUrl)}" placeholder="https://… або news"></div>
+            <div class="field"><label class="field-l" for="f-ul">Текст посилання</label><input class="field-input" id="f-ul" maxlength="30" value="${esc(d.linkLabel)}" placeholder="Детальніше"></div>
+          </div>
+          <label class="an-row"><span><b>Викладач може закрити</b><span>Закрита плашка більше не показується цьому викладачу</span></span><span class="toggle-sw"><input type="checkbox" id="f-dis" ${d.dismissible !== false ? "checked" : ""}><span class="toggle-sl"></span></span></label>
+          <label class="an-row"><span><b>Увімкнено</b><span>Вимкнене оголошення не показується, але зберігається</span></span><span class="toggle-sw"><input type="checkbox" id="f-en" ${d.enabled !== false ? "checked" : ""}><span class="toggle-sl"></span></span></label>
+          <div class="mod-err" id="an-err"></div>
+        </form>
+      </section>
+      <div class="an-foot">
+        ${isNew ? "" : `<button type="button" class="tb-btn danger" data-act="delete">${sm(IC.trash)} Видалити</button>`}
+        <span class="sp"></span>
+        ${isNew ? `<button type="button" class="tb-btn" data-act="cancel">Скасувати</button>` : ""}
+        <button type="button" class="tb-btn primary" data-act="save">${isNew ? "Опублікувати" : "Зберегти"}</button>
+      </div>
+    </article>`;
+  if (mobile()) host.classList.add("open");
+}
+const refreshPrev = () => { const p = document.getElementById("an-prev"); if (p) p.innerHTML = bannerHtml(draft, true); };
+
+function select(id){
+  _selId = id; draft = null;
+  const url = new URL(location.href); id && id !== "new" ? url.searchParams.set("id", id) : url.searchParams.delete("id"); history.replaceState(null, "", url);
+  render();
+}
+
+document.getElementById("btn-new").addEventListener("click", () => select("new"));
+document.addEventListener("click", e => {
+  if (e.target.closest("[data-new]")) return select("new");
+  const it = e.target.closest(".an-it"); if (it) return select(it.dataset.id);
+  const lv = e.target.closest("[data-lv]"); if (lv && draft){ draft.level = lv.dataset.lv; return renderEditor(); }
+  const au = e.target.closest("[data-aud]"); if (au && draft){ draft.audience = au.dataset.aud; return renderEditor(); }
+  const r = e.target.closest("[data-rid]"); if (r && draft){ draft.roleIds ||= {}; draft.roleIds[r.dataset.rid] ? delete draft.roleIds[r.dataset.rid] : draft.roleIds[r.dataset.rid] = true; return renderEditor(); }
+  const b = e.target.closest("#an-main [data-act]"); if (!b) return;
+  if (b.dataset.act === "back" || b.dataset.act === "cancel"){ document.getElementById("an-main").classList.remove("open"); return select(mobile() ? "" : (sortedIds()[0] || "")); }
+  if (b.dataset.act === "save") return save(b);
+  if (b.dataset.act === "delete"){ document.getElementById("del-t").textContent = items[_selId]?.title || "Без назви"; openModal("m-del"); }
+});
+document.addEventListener("input", e => {
+  if (!draft) return;
+  const map = { "f-title": "title", "f-text": "text", "f-url": "linkUrl", "f-ul": "linkLabel" };
+  if (map[e.target.id]){ draft[map[e.target.id]] = e.target.value; refreshPrev(); document.getElementById("an-err")?.classList.remove("show"); }
+});
+document.addEventListener("change", e => {
+  if (!draft) return;
+  if (e.target.id === "f-start") draft.startAt = fromInp(e.target.value, false);
+  if (e.target.id === "f-end") draft.endAt = fromInp(e.target.value, true);
+  if (e.target.id === "f-dis"){ draft.dismissible = e.target.checked; refreshPrev(); }
+  if (e.target.id === "f-en") draft.enabled = e.target.checked;
+});
+
+async function save(btn){
+  const d = draft, err = m => { const el = document.getElementById("an-err"); el.textContent = m; el.classList.add("show"); };
+  d.title = (d.title || "").trim(); d.text = (d.text || "").trim(); d.linkUrl = (d.linkUrl || "").trim(); d.linkLabel = (d.linkLabel || "").trim();
+  if (!d.title && !d.text) return err("Додайте заголовок або текст");
+  if (d.startAt && d.endAt && d.endAt < d.startAt) return err("Дата завершення раніше за дату початку");
+  if (d.linkUrl && /^\s*javascript:/i.test(d.linkUrl)) return err("Некоректне посилання");
+  if (d.audience === "roles" && !Object.keys(d.roleIds || {}).length) return err("Оберіть хоча б одну роль");
+  const id = _selId === "new" ? "an_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5) : _selId;
+  const data = { title: d.title, text: d.text, level: d.level || "info", audience: d.audience === "roles" ? "roles" : "all",
+    roleIds: d.audience === "roles" ? d.roleIds : null, dismissible: d.dismissible !== false, enabled: d.enabled !== false,
+    startAt: d.startAt || null, endAt: d.endAt || null, linkUrl: d.linkUrl || null, linkLabel: d.linkUrl ? (d.linkLabel || null) : null,
+    createdAt: items[id]?.createdAt || Date.now(), updatedAt: Date.now() };
+  btn.disabled = true;
+  try {
+    await update(ref(db), { [`settings/announcements/${id}`]: data });
+    items[id] = data;
+    toast(_selId === "new" ? "Оголошення опубліковано" : "Збережено");
+    select(id);
+  } catch (e) { err("Помилка: " + e.message); btn.disabled = false; }
+}
+document.getElementById("del-ok").addEventListener("click", async () => {
+  const id = _selId; if (!items[id]) return;
+  try {
+    await update(ref(db), { [`settings/announcements/${id}`]: null });
+    delete items[id];
+    closeModal("m-del");
+    toast("Оголошення видалено");
+    select(mobile() ? "" : (sortedIds()[0] || ""));
+  } catch (e) { toast("Помилка: " + e.message, "err"); }
+});
+
+document.querySelectorAll(".modal-bd").forEach(m => m.addEventListener("click", e => { if (e.target === m) closeModal(m.id); }));
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  const open = [...document.querySelectorAll(".modal-bd.on")];
+  if (open.length) return closeModal(open[open.length - 1].id);
+  if (document.getElementById("an-main")?.classList.contains("open")) select("");
+});
+
+try {
+  const [s, a, r] = await Promise.all([dbGet("settings/status"), dbGet("settings/announcements"), dbGet("roles").catch(() => null)]);
+  status = { ...(s || {}) }; statusSaved = { ...(s || {}) }; items = a || {}; roles = r || {};
+  if (_selId && _selId !== "new" && !items[_selId]) _selId = "";
+} catch (e) { toast("Не вдалося завантажити: " + e.message, "err"); }
+renderMT();
+render();
+hideLoader();
+</script>
+</body>
+</html>

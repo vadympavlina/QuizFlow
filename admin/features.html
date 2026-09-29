@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><path d='M16 8l2.5 5 5.5.8-4 3.9.9 5.5L16 20.7l-4.9 2.5.9-5.5-4-3.9 5.5-.8z' fill='white'/></svg>">
+<title>QuizFlow Admin — Можливості</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/admin-shell.css?v=7">
+<style>
+.toggle-sw{position:relative;display:inline-block;width:40px;height:23px;flex:0 0 auto}
+.toggle-sw input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;z-index:1}
+.toggle-sl{position:absolute;inset:0;background:#E3E8F2;border-radius:99px;transition:background .2s}
+.toggle-sl::before{content:"";position:absolute;top:2px;left:2px;width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:transform .2s}
+.toggle-sw input:checked + .toggle-sl{background:linear-gradient(135deg,#7C3AED,#4F46E5)}
+.toggle-sw input:checked + .toggle-sl::before{transform:translateX(17px)}
+.toggle-sw input:focus-visible + .toggle-sl{box-shadow:0 0 0 3px rgba(124,58,237,.3)}
+
+.fx-card{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.fx-h{display:flex;align-items:center;gap:14px;padding:18px 22px;border-bottom:1px solid var(--line)}
+.fx-h .ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:#EDE9FE;color:#6D28D9;flex:0 0 auto}
+.fx-h .ic svg{width:20px;height:20px}
+.fx-h h2{font-size:16px;font-weight:800;margin:0}
+.fx-h p{font-size:12.5px;color:var(--ink-500);margin:3px 0 0}
+.fx-b{padding:18px 22px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px}
+.fx-sub{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-400);margin-bottom:8px}
+.fx-list{display:flex;flex-direction:column;gap:8px}
+.fx-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:#FAFBFE;min-height:58px}
+.fx-row .i{flex:1;min-width:0}
+.fx-row b{display:block;font-size:13.5px;color:var(--ink-900)}
+.fx-row span.d{font-size:12px;color:var(--ink-500)}
+.fx-num{width:130px;flex:0 0 auto;padding:9px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font:600 14px "Geist Mono",monospace;color:var(--ink-900);outline:none;text-align:right}
+.fx-num::placeholder{font:600 12.5px "Manrope",sans-serif;color:var(--ink-400);text-align:right}
+.fx-num:focus{border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+.fx-num::-webkit-inner-spin-button{opacity:.5}
+
+/* Ролі */
+.fx-roles{display:flex;flex-direction:column}
+.fx-role{--rc:#7C3AED;display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px;padding:16px 22px;border-top:1px solid var(--line)}
+.fx-role:first-child{border-top:0}
+.fx-rn{display:flex;align-items:flex-start;gap:10px;min-width:0}
+.fx-rn i{width:12px;height:12px;border-radius:4px;background:var(--rc);margin-top:4px;flex:0 0 auto}
+.fx-rn b{display:block;font-size:14px;color:var(--ink-900);overflow:hidden;text-overflow:ellipsis}
+.fx-rn span{font-size:12px;color:var(--ink-400);font-weight:600}
+.fx-rn .mod{display:inline-block;margin-top:6px;font-size:11px;font-weight:800;padding:2px 7px;border-radius:6px;background:#FEF3C7;color:#B45309}
+.fx-rc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.fx-cell{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fx-cell label,.fx-cell .l{font-size:12px;font-weight:700;color:var(--ink-700)}
+.tri{display:inline-flex;padding:3px;border-radius:10px;background:#F1F4FA;gap:2px}
+.tri button{border:0;background:transparent;padding:6px 9px;border-radius:8px;font:700 12px "Manrope",sans-serif;color:var(--ink-500);cursor:pointer;white-space:nowrap}
+.tri button.on{background:#fff;color:var(--ink-900);box-shadow:0 1px 3px rgba(15,30,71,.12)}
+.tri button.on[data-v="1"]{color:#15803D}
+.tri button.on[data-v="0"]{color:#B91C1C}
+.fx-cell .fx-num{width:100%;text-align:left}
+.fx-cell .fx-num::placeholder{text-align:left}
+.fx-empty{padding:26px 22px;text-align:center;font-size:13px;color:var(--ink-500)}
+.fx-empty a{color:#6D28D9;font-weight:700}
+
+.fx-how{display:flex;gap:12px;align-items:flex-start;background:linear-gradient(135deg,#F5F3FF,#EEF2FF);border:1px solid #E0DAFE;border-radius:16px;padding:14px 16px;font-size:13px;color:var(--ink-700);line-height:1.55}
+.fx-how svg{flex:0 0 auto;width:18px;height:18px;color:#6D28D9;margin-top:1px}
+.fx-how b{color:var(--ink-900)}
+
+.save-bar{position:sticky;bottom:16px;z-index:20;display:flex;align-items:center;gap:12px;padding:12px 14px 12px 18px;border-radius:14px;background:#1A1040;color:#fff;box-shadow:0 18px 40px -12px rgba(20,11,58,.55);transform:translateY(calc(100% + 30px));opacity:0;pointer-events:none;transition:transform .25s cubic-bezier(.32,.72,0,1),opacity .2s}
+.save-bar.on{transform:none;opacity:1;pointer-events:auto}
+.save-bar .t{flex:1;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:8px}
+.save-bar .t::before{content:"";width:8px;height:8px;border-radius:50%;background:#FBBF24}
+.save-bar .tb-btn{height:36px}
+.save-bar .tb-btn.ghost{color:#E9E4FF}
+.save-bar .tb-btn.ghost:hover{background:rgba(255,255,255,.1);color:#fff}
+
+@media (max-width:1180px){ .fx-b{grid-template-columns:1fr} .fx-role{grid-template-columns:1fr;gap:12px} }
+@media (max-width:760px){ .fx-rc{grid-template-columns:1fr} .fx-row{flex-wrap:wrap} .fx-num{width:100%;text-align:left} .fx-num::placeholder{text-align:left} .fx-h{padding:16px} .fx-b{padding:16px} .fx-role{padding:16px} }
+</style>
+</head>
+<body>
+
+<div id="admin-loader"><div class="spin"></div></div>
+<script src="shared/admin-nav.js?v=4"></script>
+<div id="admin-root"></div>
+<div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
+
+<script type="module">
+import { initAdminShell, db, ref, update, dbGet, toast, esc, hideLoader } from "./shared/admin-shell.js?v=8";
+import { CAP_FLAGS, CAP_LIMITS } from "../shared/caps.js?v=1";
+
+const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const IC = {
+  all: SVG('<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.6 2-4.8 4.5-5"/>'),
+  roles: SVG('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>'),
+  info: SVG('<circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/>'),
+};
+const plural = (n, f) => { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? f[2] : b === 1 ? f[0] : b >= 2 && b <= 4 ? f[1] : f[2]; };
+
+const content = `
+  <div class="page-head"><div><h1>Можливості та ліміти</h1><p>Що доступно викладачам: для всіх, для окремих ролей або індивідуально в картці викладача</p></div></div>
+  <div class="fx-how">${IC.info}<span><b>Як це працює.</b> Спершу діють налаштування з картки викладача, потім — його ролей, і лише потім — для всіх. Якщо хоча б одна роль викладача дозволяє функцію, вона доступна. Серед лімітів ролей діє найбільший. Адміністраторів ці обмеження не стосуються.</span></div>
+  <section class="fx-card" id="fx-all"></section>
+  <section class="fx-card" id="fx-roles"></section>
+  <div class="save-bar" id="save-bar" role="region" aria-label="Незбережені зміни">
+    <span class="t">Є незбережені зміни</span>
+    <button type="button" class="tb-btn ghost" id="btn-discard">Скасувати</button>
+    <button type="button" class="tb-btn primary" id="btn-save">Зберегти</button>
+  </div>
+`;
+await initAdminShell({ activeId: "features", crumbs: ["Можливості"], content });
+
+let cfg = {}, saved = "{}", roles = {}, users = {};
+const clean = c => {
+  const o = { flags: {}, limits: {}, roles: {} };
+  Object.keys(CAP_FLAGS).forEach(k => { if (c.flags?.[k] === false) o.flags[k] = false; });
+  Object.keys(CAP_LIMITS).forEach(k => { const n = Number(c.limits?.[k]); if (n > 0) o.limits[k] = Math.floor(n); });
+  Object.entries(c.roles || {}).forEach(([rid, r]) => {
+    if (!roles[rid]) return;
+    const x = { flags: {}, limits: {} };
+    Object.keys(CAP_FLAGS).forEach(k => { if (typeof r.flags?.[k] === "boolean") x.flags[k] = r.flags[k]; });
+    Object.keys(CAP_LIMITS).forEach(k => { const v = r.limits?.[k]; if (v !== undefined && v !== null && v !== "" && Number(v) >= 0) x.limits[k] = Math.floor(Number(v)); });
+    if (Object.keys(x.flags).length || Object.keys(x.limits).length) o.roles[rid] = x;
+  });
+  return o;
+};
+const dirty = () => JSON.stringify(clean(cfg)) !== saved;
+const syncBar = () => document.getElementById("save-bar").classList.toggle("on", dirty());
+
+function renderAll(){
+  document.getElementById("fx-all").innerHTML = `
+    <div class="fx-h"><span class="ic">${IC.all}</span><div><h2>Для всіх викладачів</h2><p>Базові налаштування сервісу</p></div></div>
+    <div class="fx-b">
+      <div><div class="fx-sub">Функції</div><div class="fx-list">${Object.entries(CAP_FLAGS).map(([k, f]) => `<label class="fx-row"><span class="i"><b>${f.label}</b><span class="d">${f.desc}</span></span>
+        <span class="toggle-sw"><input type="checkbox" data-all-flag="${k}" ${cfg.flags?.[k] !== false ? "checked" : ""} aria-label="${f.label}"><span class="toggle-sl"></span></span></label>`).join("")}</div></div>
+      <div><div class="fx-sub">Ліміти</div><div class="fx-list">${Object.entries(CAP_LIMITS).map(([k, f]) => `<div class="fx-row"><span class="i"><b>${f.label}</b><span class="d">${f.desc}</span></span>
+        <input class="fx-num" type="number" min="0" step="1" inputmode="numeric" data-all-lim="${k}" value="${Number(cfg.limits?.[k]) > 0 ? Number(cfg.limits[k]) : ""}" placeholder="Без обмежень" aria-label="${f.label}"></div>`).join("")}</div></div>
+    </div>`;
+  const rids = Object.keys(roles).sort((a, b) => (roles[a].name || "").localeCompare(roles[b].name || "", "uk"));
+  const members = rid => Object.values(users).filter(u => u && u.customRoleIds && u.customRoleIds[rid]).length;
+  document.getElementById("fx-roles").innerHTML = `
+    <div class="fx-h"><span class="ic">${IC.roles}</span><div><h2>Для ролей</h2><p>«Як для всіх» — роль нічого не змінює. Порожній ліміт — теж як для всіх, 0 — без обмежень</p></div></div>
+    ${rids.length ? `<div class="fx-roles">${rids.map(rid => { const r = cfg.roles?.[rid] || {}, m = members(rid);
+      const changed = Object.keys(r.flags || {}).length + Object.values(r.limits || {}).filter(v => v !== "" && v !== null && v !== undefined).length;
+      return `<div class="fx-role" style="--rc:${esc(roles[rid].color || "#7C3AED")}">
+        <div class="fx-rn"><i></i><div><b>${esc(roles[rid].name || "—")}</b><span>${m} ${plural(m, ["викладач", "викладачі", "викладачів"])}</span>${changed ? `<div class="mod">Змінено: ${changed}</div>` : ""}</div></div>
+        <div>
+          <div class="fx-rc">${Object.entries(CAP_FLAGS).map(([k, f]) => { const v = r.flags?.[k];
+            return `<div class="fx-cell"><span class="l">${f.label}</span><div class="tri" role="radiogroup" aria-label="${f.label}">
+              ${[["", "Як для всіх"], ["1", "Так"], ["0", "Ні"]].map(([val, t]) => `<button type="button" role="radio" data-role="${esc(rid)}" data-flag="${k}" data-v="${val}" class="${(val === "" && typeof v !== "boolean") || (val === "1" && v === true) || (val === "0" && v === false) ? "on" : ""}">${t}</button>`).join("")}</div></div>`; }).join("")}</div>
+          <div class="fx-rc" style="margin-top:10px">${Object.entries(CAP_LIMITS).map(([k, f]) => { const v = r.limits?.[k];
+            return `<div class="fx-cell"><label for="rl-${esc(rid)}-${k}">${f.label}</label><input class="fx-num" id="rl-${esc(rid)}-${k}" type="number" min="0" step="1" inputmode="numeric" data-role="${esc(rid)}" data-lim="${k}" value="${v === undefined || v === null || v === "" ? "" : Number(v)}" placeholder="Як для всіх"></div>`; }).join("")}</div>
+        </div>
+      </div>`; }).join("")}</div>`
+      : `<div class="fx-empty">Ролей ще немає. <a href="roles">Створіть роль</a>, щоб задавати окремі можливості групам викладачів.</div>`}`;
+  syncBar();
+}
+
+const root = document.getElementById("admin-content") || document;
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (t.dataset.allFlag){ cfg.flags ||= {}; cfg.flags[t.dataset.allFlag] = t.checked; return syncBar(); }
+});
+document.addEventListener("input", e => {
+  const t = e.target;
+  if (t.dataset.allLim){ cfg.limits ||= {}; cfg.limits[t.dataset.allLim] = t.value; return syncBar(); }
+  if (t.dataset.lim && t.dataset.role){ cfg.roles ||= {}; const r = cfg.roles[t.dataset.role] ||= {}; (r.limits ||= {})[t.dataset.lim] = t.value; return syncBar(); }
+});
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-flag][data-role]"); if (!b) return;
+  cfg.roles ||= {}; const r = cfg.roles[b.dataset.role] ||= {}; r.flags ||= {};
+  if (b.dataset.v === "") delete r.flags[b.dataset.flag]; else r.flags[b.dataset.flag] = b.dataset.v === "1";
+  renderAll();
+});
+document.getElementById("btn-discard").addEventListener("click", () => { cfg = JSON.parse(saved); renderAll(); });
+async function save(){
+  const btn = document.getElementById("btn-save"); btn.disabled = true;
+  try {
+    const data = clean(cfg);
+    await update(ref(db), { "settings/features": data });
+    saved = JSON.stringify(data); cfg = JSON.parse(saved);
+    renderAll();
+    toast("Збережено — викладачі отримають зміни при наступному відкритті сторінки");
+  } catch (e) { toast("Помилка: " + e.message, "err"); }
+  finally { btn.disabled = false; }
+}
+document.getElementById("btn-save").addEventListener("click", save);
+document.addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s" && dirty()){ e.preventDefault(); save(); } });
+addEventListener("beforeunload", e => { if (dirty()){ e.preventDefault(); e.returnValue = ""; } });
+
+try {
+  const [c, r, u] = await Promise.all([dbGet("settings/features"), dbGet("roles").catch(() => null), dbGet("users").catch(() => null)]);
+  roles = r || {}; users = u || {};
+  cfg = clean(c || {}); saved = JSON.stringify(cfg); cfg = JSON.parse(saved);
+} catch (e) { toast("Не вдалося завантажити: " + e.message, "err"); }
+renderAll();
+hideLoader();
+</script>
+</body>
+</html>

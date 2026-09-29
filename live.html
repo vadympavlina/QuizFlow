@@ -354,7 +354,7 @@ function renderFeed(){
 setInterval(renderFeed, 30e3);
 
 // ─── Рендер ───────────────────────────────────────────────────────────
-let raf = 0;
+var raf = 0;   // var: таймер вище може викликати schedule() ще до цього рядка
 function schedule(){ if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }
 
 function render(){

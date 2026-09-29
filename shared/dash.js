@@ -288,7 +288,7 @@ function openPicker(){
   };
 }
 function closePicker(){ const d = $("dx-pick"); if (!d || d.hidden) return; d.classList.remove("on"); setTimeout(() => { d.hidden = true; }, 160); }
-function launch(tid){ closePicker(); window.open(`live/setup?testId=${encodeURIComponent(tid)}`, "_blank", "noopener"); }
+function launch(tid){ closePicker(); if (window.qfCan && !window.qfCan("games")) return; window.open(`live/setup?testId=${encodeURIComponent(tid)}`, "_blank", "noopener"); }
 
 // ─── Делеговані дії ───────────────────────────────────────────────────
 document.addEventListener("click", e => {
