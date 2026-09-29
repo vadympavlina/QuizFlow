@@ -4,6 +4,7 @@ name = "quizflow-mail"
 main = "src/index.js"
 compatibility_date = "2025-09-01"
 
+# Ці значення вже є в коді за замовчуванням (src/index.js → DEFAULTS); тут — лише щоб перевизначити
 [vars]
 FIREBASE_PROJECT_ID = "quizflow-8a978"
 FIREBASE_DB_URL = "https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app"

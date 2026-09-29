@@ -128,7 +128,7 @@ textarea.field-input{resize:vertical;min-height:72px;line-height:1.5}
 .dd-empty{padding:12px;text-align:center;font-size:12.5px;color:var(--ink-400)}
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=11">
+<link rel="modulepreload" href="shared/admin-shell.js?v=12">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 </head>
 <body>
@@ -161,7 +161,7 @@ textarea.field-input{resize:vertical;min-height:72px;line-height:1.5}
 </div>
 
 <script type="module">
-import { logAction, initAdminShell, esc, formatTimeAgo, toast, hideLoader, openModal, closeModal, db, ref, update, remove, onValue, get } from "./shared/admin-shell.js?v=11";
+import { logAction, initAdminShell, esc, formatTimeAgo, toast, hideLoader, openModal, closeModal, db, ref, update, remove, onValue, get } from "./shared/admin-shell.js?v=12";
 import { push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // ─── Довідники ─────────────────────────────────────────────────────────

@@ -32,6 +32,10 @@ jobs:
       - run: npm ci
       - name: Воркер пошти (юніт-тести)
         run: npm run worker
+      - name: Зібраний воркер відповідає worker/src
+        run: |
+          npm run worker:bundle
+          git diff --exit-code ../worker/dist/worker.js || (echo "worker/dist/worker.js застарів: виконайте cd tests && npm run worker:bundle" && exit 1)
       - run: npx playwright install --with-deps chromium
       - run: npm run e2e
       - name: Знімки впалих тестів

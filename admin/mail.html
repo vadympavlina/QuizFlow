@@ -79,7 +79,7 @@ textarea.field-input{resize:vertical;min-height:220px;line-height:1.55}
 @media (max-width:640px){ .card-h,.card-b{padding-left:14px;padding-right:14px} .card-f{padding:0 14px 14px} .card-f .tb-btn{flex:1;justify-content:center} .ml-btn{grid-template-columns:1fr} .hi{grid-template-columns:1fr;padding:12px 14px} .hi .r{justify-content:flex-start} }
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=11">
+<link rel="modulepreload" href="shared/admin-shell.js?v=12">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -103,7 +103,7 @@ textarea.field-input{resize:vertical;min-height:220px;line-height:1.55}
 </div>
 
 <script type="module">
-import { logAction, initAdminShell, dbGet, dbSet, db, ref, push, set, openModal, closeModal, toast, esc, hideLoader, mailApi, mailWorkerUrl, setMailWorkerUrl } from "./shared/admin-shell.js?v=11";
+import { logAction, initAdminShell, dbGet, dbSet, db, ref, push, set, openModal, closeModal, toast, esc, hideLoader, mailApi, mailWorkerUrl, setMailWorkerUrl } from "./shared/admin-shell.js?v=12";
 
 const SVG = (p, s = 14) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const IC = {
@@ -162,8 +162,8 @@ function setupHtml(){
     <div class="card-h"><div><h2>Воркер пошти</h2><p>Cloudflare Worker, який зберігає ключ Resend і надсилає листи від імені сервісу</p></div></div>
     <div class="card-b">
       <ol>
-        <li>Розгорніть воркер з папки <code>worker/</code> репозиторію (інструкція — <code>docs/email-setup.md</code>, розділ «Воркер пошти»).</li>
-        <li>Задайте секрети <code>RESEND_API_KEY</code> і <code>UNSUB_SECRET</code>, у <code>ALLOWED_ORIGINS</code> — адресу цього сайту.</li>
+        <li>На dash.cloudflare.com створіть Worker і вставте в редактор файл <code>worker/dist/worker.js</code> з репозиторію (покроково — <code>docs/email-setup.md</code>, розділ «Воркер пошти»).</li>
+        <li>У Settings воркера: прив'язка KV з назвою <code>MAIL_KV</code> і два секрети — <code>RESEND_API_KEY</code> (ключ Resend) та <code>UNSUB_SECRET</code> (будь-який довгий випадковий рядок).</li>
         <li>Вставте адресу воркера нижче й натисніть «Перевірити».</li>
       </ol>
       <div class="field"><label class="field-l" for="st-url">Адреса воркера</label>

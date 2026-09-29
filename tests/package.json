@@ -5,11 +5,13 @@
   "scripts": {
     "e2e": "playwright test",
     "rules": "firebase emulators:exec --project quizflow-rules --only database \"node rules.test.mjs\"",
-    "worker": "node --test worker/worker.test.mjs"
+    "worker": "node --test worker/worker.test.mjs && WORKER_DIST=1 node --test worker/worker.test.mjs",
+    "worker:bundle": "esbuild ../worker/src/index.js --bundle --format=esm --target=es2022 --legal-comments=none --banner:js=\"// QuizFlow Mail — один файл для редактора Cloudflare (Workers → Edit code). Не редагуйте вручну: збирається з worker/src командою  cd tests && npm run worker:bundle\" --outfile=../worker/dist/worker.js"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^4.0.1",
     "@playwright/test": "1.56.1",
+    "esbuild": "^0.25.12",
     "firebase": "^11.0.0",
     "firebase-tools": "^14.0.0"
   }

@@ -2,7 +2,8 @@
 // а Google, база Firebase, Resend і KV — підмінені.  npm run worker
 import { test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import worker from "../../worker/src/index.js";
+// WORKER_DIST=1 — ті самі тести на зібраному файлі worker/dist/worker.js (його вставляють у редактор Cloudflare)
+const worker = (await import(process.env.WORKER_DIST ? "../../worker/dist/worker.js" : "../../worker/src/index.js")).default;
 
 const PROJECT = "quizflow-test", DB = "https://db.test";
 const { publicKey, privateKey } = await crypto.subtle.generateKey({ name: "RSASSA-PKCS1-v1_5", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" }, true, ["sign", "verify"]);
