@@ -10,7 +10,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/admin-shell.css?v=8">
+<link rel="stylesheet" href="shared/admin-shell.css?v=9">
 <style>
 .ai-sec-h{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:6px 0 -4px}
 .ai-sec-h h2{margin:0;font-size:16px;font-weight:800;letter-spacing:-.01em}
@@ -156,7 +156,7 @@
 }
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=14">
+<link rel="modulepreload" href="shared/admin-shell.js?v=15">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -164,13 +164,13 @@
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=6"></script>
+<script src="shared/admin-nav.js?v=7"></script>
 <div id="admin-root"></div>
 <div id="admin-modals"></div>
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
-import { logAction, initAdminShell, dbGet, dbUpd, toast, esc, hideLoader } from "./shared/admin-shell.js?v=14";
+import { logAction, initAdminShell, dbGet, dbUpd, toast, esc, hideLoader } from "./shared/admin-shell.js?v=15";
 
 const SVG = (p, w = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const IC = {

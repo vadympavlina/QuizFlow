@@ -10,7 +10,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/admin-shell.css?v=8">
+<link rel="stylesheet" href="shared/admin-shell.css?v=9">
 <style>
 /* Плашка оголошення (такий самий вигляд, як у панелі викладача) */
 .qf-ann{--c:#1D4ED8;--bg:#EFF6FF;--ln:#BFDBFE;display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:var(--bg);border:1px solid var(--ln);color:#0B1437;font-family:"Manrope",system-ui,sans-serif;text-align:left}
@@ -107,7 +107,7 @@ textarea.field-input{resize:vertical;min-height:96px;line-height:1.5}
 @media (max-width:640px){ .f-grid{grid-template-columns:1fr} .mt-h{flex-wrap:wrap} .mt-st{margin-left:0} .an-foot{flex-wrap:wrap} .an-foot .tb-btn{flex:1;justify-content:center} .an-foot .sp{display:none} }
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=14">
+<link rel="modulepreload" href="shared/admin-shell.js?v=15">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -115,7 +115,7 @@ textarea.field-input{resize:vertical;min-height:96px;line-height:1.5}
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=6"></script>
+<script src="shared/admin-nav.js?v=7"></script>
 <div id="admin-root"></div>
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -134,7 +134,7 @@ textarea.field-input{resize:vertical;min-height:96px;line-height:1.5}
 </div>
 
 <script type="module">
-import { logAction, initAdminShell, db, ref, update, dbGet, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=14";
+import { logAction, initAdminShell, db, ref, update, dbGet, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=15";
 
 const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const sm = (svg, w = 14) => svg.replace("<svg", `<svg width="${w}" height="${w}"`);

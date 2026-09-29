@@ -10,7 +10,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/admin-shell.css?v=8">
+<link rel="stylesheet" href="shared/admin-shell.css?v=9">
 <style>
 .field-input{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-family:"Manrope",sans-serif;font-size:14px;color:var(--ink-900);outline:none;transition:border-color .15s,box-shadow .15s}
 .field-input:focus{border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
@@ -140,13 +140,13 @@
 }
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=14">
+<link rel="modulepreload" href="shared/admin-shell.js?v=15">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 </head>
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=6"></script>
+<script src="shared/admin-nav.js?v=7"></script>
 <div id="admin-root"></div>
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -225,7 +225,7 @@
 </div>
 
 <script type="module">
-import { logAction, initAdminShell, esc, dbGet, db, ref, update, openModal, closeModal, toast, formatTimeAgo, hideLoader } from "./shared/admin-shell.js?v=14";
+import { logAction, initAdminShell, esc, dbGet, db, ref, update, openModal, closeModal, toast, formatTimeAgo, hideLoader } from "./shared/admin-shell.js?v=15";
 import { push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { NEWS_CATS, catOf, sanitizeNewsHtml, newsPlainText, newsExcerpt, readMinutes } from "../shared/news-utils.js?v=1";
 
