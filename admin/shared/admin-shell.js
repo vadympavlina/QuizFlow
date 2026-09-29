@@ -16,6 +16,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import "./admin-ui.js?v=1";   // власні дропдаун і календар замість системних select / date
 import { getDatabase, ref, get, set, update, remove, onValue }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
@@ -173,45 +174,30 @@ function ensureAdminNav(){
   if (window.AdminNav) return Promise.resolve();
   return new Promise(res => {
     const s = document.createElement("script");
-    s.src = new URL("./admin-nav.js?v=1", import.meta.url).href;
+    s.src = new URL("./admin-nav.js?v=2", import.meta.url).href;
     s.onload = s.onerror = () => res();
     document.head.appendChild(s);
   });
 }
 
-function renderTopbar(crumbs){
-  const crumbsHtml = crumbs.map((c, i) => {
-    const sep = i > 0 ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>` : "";
-    const tag = i === crumbs.length - 1 ? `<b>${esc(c)}</b>` : `<span>${esc(c)}</span>`;
-    return sep + tag;
-  }).join("");
-
+// Верхня панель: кнопка меню (телефон), розділ і назва сторінки, дії сторінки,
+// дзвіночок нових проблем. Без неактивних кнопок.
+function renderTopbar(activeId, crumbs){
+  const nfo = window.AdminNav?.info(activeId) || {};
+  const title = (crumbs && crumbs[crumbs.length - 1]) || nfo.label || "";
   return `
   <header class="topbar">
-    <nav class="crumbs">
-      <span>Admin</span>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
-      ${crumbsHtml}
-    </nav>
-    <div class="tb-spacer"></div>
-    <button class="tb-icon" id="tb-help" title="Допомога">${ICONS.help}</button>
-    <div id="topbar-extras"></div>
-  </header>`;
-}
-
-function renderMobileBlock(){
-  return `
-  <div class="mobile-block">
-    <div class="mb-mark">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 7h11a4 4 0 0 1 4 4v1"/>
-        <path d="M20 17H9a4 4 0 0 1-4-4v-1"/>
-      </svg>
+    <button type="button" class="tb-menu" id="tb-menu" onclick="AdminNav.open()" aria-controls="admin-sidebar" aria-expanded="false" aria-label="Меню">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+    </button>
+    <div class="tb-title">
+      ${nfo.icon ? `<span class="tb-ico">${nfo.icon}</span>` : ""}
+      <div class="tb-tt"><small>${esc(nfo.section || "Адмінка")}</small><b>${esc(title)}</b></div>
     </div>
-    <div class="mb-h">Адмінка недоступна на мобільному</div>
-    <div class="mb-p">Адмін-панель оптимізовано під ПК або планшет з шириною від 1024px. Відкрийте з ширшого екрану.</div>
-    <div class="mb-meta">мінімум: 1024px · рекомендовано 1280px+</div>
-  </div>`;
+    <div class="tb-spacer"></div>
+    <div id="topbar-extras" class="tb-extras"></div>
+    ${activeId === "problems" ? "" : `<a class="tb-icon tb-bell" id="tb-bell" href="problems" aria-label="Проблеми" title="Проблеми">${ICONS.bell}<span class="badge" id="tb-bell-n" hidden></span></a>`}
+  </header>`;
 }
 
 // ─── Шаблон сторінки ────────────────────────────────────────────────────────
@@ -256,17 +242,22 @@ export async function initAdminShell({ activeId, crumbs, content, topbarRight })
   root.innerHTML = `
     <div class="app">
       <main class="main">
-        ${renderTopbar(crumbs || [activeId])}
+        ${renderTopbar(activeId, crumbs)}
         <div class="content" id="admin-content">${content || ""}</div>
       </main>
     </div>
-    ${renderMobileBlock()}
   `;
 
-  // Topbar extras
-  if (topbarRight){
-    const extras = document.getElementById("topbar-extras");
-    if (extras) extras.innerHTML = topbarRight;
+  // Дії сторінки у верхній панелі
+  const extras = document.getElementById("topbar-extras");
+  if (extras){
+    extras.innerHTML = topbarRight || ""; extras.hidden = !topbarRight;
+    // На телефоні кнопки показуються іконками — підпис переносимо в aria-label і підказку
+    extras.querySelectorAll(".tb-btn").forEach(b => {
+      const t = b.textContent.replace(/\s+/g, " ").trim();
+      if (t && !b.getAttribute("aria-label")) b.setAttribute("aria-label", t);
+      if (t && !b.title) b.title = t;
+    });
   }
 
   // Expose user globally
@@ -324,24 +315,37 @@ window.showLoader = showLoader;
 
 export async function loadAllTeachers(){
   const snap = await get(ref(db, "users"));
-  if (!snap.exists()) return { _users: [], _stats: {}, _allAttempts: [] };
+  if (!snap.exists()) return { _users: [], _stats: {}, _allAttempts: [], _allGames: [], _liveNow: [] };
 
   const _users = Object.entries(snap.val())
     .filter(([id,u]) => u && typeof u === "object")
     .map(([id,u]) => ({ id, ...u }));
 
   const _allAttempts = [];
+  const _allGames = [];      // історія ігор наживо всіх викладачів
+  const _liveRooms = [];     // коди кімнат, які викладачі тримають відкритими
   const _stats = {};
+  const opt = p => get(ref(db, p)).catch(() => null);   // нова гілка може бути закрита правилами — не валимо сторінку
 
   await Promise.all(_users.map(async u => {
-    const [ts, as, ss, ls] = await Promise.all([
+    const [ts, as, ss, ls, gh, lr] = await Promise.all([
       get(ref(db, `teachers/${u.id}/tests`)),
       get(ref(db, `teachers/${u.id}/attempts`)),
       get(ref(db, `teachers/${u.id}/students`)),
-      get(ref(db, `teachers/${u.id}/links`))
+      get(ref(db, `teachers/${u.id}/links`)),
+      opt(`teachers/${u.id}/gameHistory`),
+      opt(`teachers/${u.id}/liveRooms`),
     ]);
+    const tName = (u.surname ? u.surname + " " + u.name : u.name) || u.email || "";
     const atArr = as.exists() ? Object.values(as.val()) : [];
-    atArr.forEach(a => _allAttempts.push({ ...a, teacherId: u.id, teacherName: (u.surname ? u.surname + " " + u.name : u.name) || u.email || "" }));
+    atArr.forEach(a => _allAttempts.push({ ...a, teacherId: u.id, teacherName: tName }));
+    const games = gh?.exists() ? Object.entries(gh.val()).filter(([, g]) => g && typeof g === "object").map(([code, g]) => ({
+      code, teacherId: u.id, teacherName: tName, title: g.testTitle || "Без назви", testId: g.testId || "",
+      playedAt: Number(g.playedAt) || 0, players: Number(g.playerCount) || (Array.isArray(g.results) ? g.results.length : Object.keys(g.results || {}).length),
+      questions: Number(g.questionCount) || 0,
+    })) : [];
+    _allGames.push(...games);
+    if (lr?.exists()) Object.keys(lr.val()).forEach(code => _liveRooms.push({ code, teacherId: u.id, teacherName: tName }));
     const activeTests = ts.exists() ? Object.values(ts.val()).filter(t => t.status === "active").length : 0;
     const lastAct = atArr.length ? Math.max(...atArr.map(a => a.createdAt || 0)) : 0;
     const weekAgo = Date.now() - 7*24*60*60*1000;
@@ -353,16 +357,30 @@ export async function loadAllTeachers(){
       weekAttempts,
       students: ss.exists() ? Object.keys(ss.val()).length : 0,
       links: ls.exists() ? Object.keys(ls.val()).length : 0,
-      lastAct
+      games: games.length,
+      gamePlayers: games.reduce((s, g) => s + g.players, 0),
+      weekGames: games.filter(g => g.playedAt >= weekAgo).length,
+      lastAct: Math.max(lastAct, ...games.map(g => g.playedAt), 0)
     };
   }));
+
+  // Які з відкритих кімнат справді йдуть зараз (статус і кількість гравців)
+  await Promise.all(_liveRooms.map(async r => {
+    const s = await opt(`rooms/${r.code}`);
+    const v = s?.exists() ? s.val() : null;
+    r.status = v?.status || null;
+    r.title = v?.testTitle || "";
+    r.players = v?.players ? Object.keys(v.players).length : 0;
+  }));
+  const liveNow = _liveRooms.filter(r => ["lobby", "question", "paused", "reveal"].includes(r.status));
 
   // Зберігаємо в window для зручності
   window._users = _users;
   window._stats = _stats;
   window._allAttempts = _allAttempts;
+  window._allGames = _allGames;
 
-  return { _users, _stats, _allAttempts };
+  return { _users, _stats, _allAttempts, _allGames, _liveNow: liveNow };
 }
 
 // Оголосити утіли як глобальні (для inline onclick=)

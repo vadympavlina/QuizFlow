@@ -17,7 +17,7 @@
   // щоб не блимала форма перед переходом у панель. Firebase усе одно перевірить сесію.
   try { if (localStorage.getItem("qf_signed_in") === "1") document.documentElement.classList.add("resume"); } catch {}
 </script>
-<link rel="stylesheet" href="shared/auth.css?v=1">
+<link rel="stylesheet" href="shared/auth.css?v=2">
 </head>
 <body>
 
@@ -39,9 +39,6 @@
     </div>
   </div>
 
-  <div class="hero-foot">
-    <a href="play"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4"/></svg>Я учасник гри — ввести код</a>
-  </div>
 </aside>
 
 <main class="side">
@@ -56,15 +53,19 @@
     <div class="views">
       <!-- ─── Вхід ─── -->
       <section class="view" id="vLogin">
+        <div class="card-top">
+          <span class="card-mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg></span>
+          <div class="card-kick">QuizFlow<b>Вхід до панелі викладача</b></div>
+        </div>
         <h2>З поверненням</h2>
-        <p class="sub">Увійдіть, щоб продовжити роботу з тестами й групами.</p>
+        <p class="sub">Увійдіть, щоб продовжити роботу з тестами, іграми й групами.</p>
         <form class="form" id="loginF" novalidate>
           <div class="msg" id="loginMsg" role="alert" hidden></div>
           <div class="fld">
             <label for="email">Email</label>
             <div class="inp">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
-              <input id="email" name="email" type="email" inputmode="email" placeholder="you@school.ua" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+              <input id="email" name="email" type="email" inputmode="email" placeholder="you@quizflow.space" autocomplete="username" autocapitalize="none" spellcheck="false" required>
             </div>
           </div>
           <div class="fld">
@@ -97,7 +98,7 @@
               <label for="femail">Email</label>
               <div class="inp">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
-                <input id="femail" type="email" inputmode="email" placeholder="you@school.ua" autocomplete="email" autocapitalize="none" spellcheck="false">
+                <input id="femail" type="email" inputmode="email" placeholder="you@quizflow.space" autocomplete="email" autocapitalize="none" spellcheck="false">
               </div>
             </div>
             <button type="submit" class="btn pri" id="forgotBtn"><span>Надіслати посилання</span></button>
@@ -117,6 +118,9 @@
       </section>
     </div>
   </div>
+  <nav class="side-links" aria-label="Інші входи">
+    <a href="play"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4"/></svg>Я учасник гри — ввести код</a>
+  </nav>
 </main>
 
 <script type="module">

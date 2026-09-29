@@ -123,6 +123,9 @@
     var anchor = document.getElementById("admin-root") || document.currentScript;
     if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(sb, anchor);
     else document.body.insertBefore(sb, document.body.firstChild);
+    var ov = document.createElement("div");
+    ov.className = "asb-ov"; ov.setAttribute("aria-hidden", "true");
+    sb.parentNode.insertBefore(ov, sb.nextSibling);
     return sb;
   }
 
@@ -144,10 +147,44 @@
 
   function setBadge(count) {
     var b = document.getElementById("admin-problems-badge");
-    if (!b) return;
-    b.textContent = count ? String(count) : "";
-    b.hidden = !count;
+    if (b) { b.textContent = count ? String(count) : ""; b.hidden = !count; }
+    var t = document.getElementById("tb-bell-n");
+    if (t) { t.textContent = count > 99 ? "99+" : String(count || ""); t.hidden = !count; }
+    var tb = document.getElementById("tb-bell");
+    if (tb) tb.setAttribute("aria-label", count ? "Нові проблеми: " + count : "Проблеми");
   }
+
+  // Назва секції, пункту та іконка — для верхньої панелі
+  function info(id) {
+    for (var i = 0; i < NAV.length; i++) for (var j = 0; j < NAV[i].items.length; j++) {
+      var it = NAV[i].items[j];
+      if (it.id === id) return { section: NAV[i].label, label: it.label, icon: icon(it.icon, 2) };
+    }
+    return null;
+  }
+
+  // ─── Телефон / планшет: меню висувається збоку ───
+  var mq = window.matchMedia("(max-width:1023px)");
+  function isDrawer() { return mq.matches; }
+  function setOpen(o) {
+    root.classList.toggle("asb-open", !!o);
+    var b = document.getElementById("tb-menu");
+    if (b) b.setAttribute("aria-expanded", String(!!o));
+    if (o) {
+      var f = document.querySelector("#admin-sidebar .asb-item.on") || document.querySelector("#admin-sidebar .asb-item");
+      try { if (f) f.focus({ preventScroll: true }); } catch (e) {}
+    }
+  }
+  document.addEventListener("click", function (e) {
+    if (!root.classList.contains("asb-open") || !e.target.closest) return;
+    if (e.target.closest(".asb-ov") || e.target.closest("#admin-sidebar a")) setOpen(false);
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape" || !root.classList.contains("asb-open")) return;
+    e.stopPropagation(); setOpen(false);
+    var b = document.getElementById("tb-menu"); if (b) b.focus();
+  }, true);
+  if (mq.addEventListener) mq.addEventListener("change", function () { setOpen(false); });
 
   function setCollapsed(c) {
     collapsed = !!c;
@@ -168,7 +205,7 @@
   // ─── Плаваючі підказки (у згорнутому меню та для іконок-кнопок) ───
   var tipEl = null, tipFor = null;
   function tipNeeded(el) {
-    if (!el || !el.getAttribute("data-tip")) return false;
+    if (!el || !el.getAttribute("data-tip") || isDrawer()) return false;
     return collapsed || !!el.closest(".asb-strip, .asb-logout");
   }
   function showTip(el) {
@@ -206,6 +243,7 @@
   window.AdminNav = {
     setActive: setActive, setUser: setUser, setBadge: setBadge,
     setCollapsed: setCollapsed, toggle: function () { setCollapsed(!collapsed); },
+    info: info, open: function () { setOpen(true); }, close: function () { setOpen(false); },
     ensure: function () { if (!document.getElementById("admin-sidebar")) mount(); },
   };
 

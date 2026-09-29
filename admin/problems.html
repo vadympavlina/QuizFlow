@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjN0MzQUVEIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNEY0NkU1Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjkiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjQiIGZpbGw9IndoaXRlIi8+PC9zdmc+">
 <title>QuizFlow Admin · Проблеми</title>
-<link rel="stylesheet" href="shared/admin-shell.css?v=4">
+<link rel="stylesheet" href="shared/admin-shell.css?v=5">
 <style>
 /* ═══ Плитки-фільтри ═══ */
 .pb-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0 16px}
@@ -129,7 +129,7 @@ textarea.field-input{resize:vertical;min-height:72px;line-height:1.5}
 </style>
 </head>
 <body>
-<script src="shared/admin-nav.js?v=1"></script>
+<script src="shared/admin-nav.js?v=2"></script>
 <div id="admin-root"></div>
 
 <!-- Деталі / редагування -->
@@ -158,7 +158,7 @@ textarea.field-input{resize:vertical;min-height:72px;line-height:1.5}
 </div>
 
 <script type="module">
-import { initAdminShell, esc, formatTimeAgo, toast, hideLoader, openModal, closeModal, db, ref, update, remove, onValue, get } from "./shared/admin-shell.js?v=5";
+import { initAdminShell, esc, formatTimeAgo, toast, hideLoader, openModal, closeModal, db, ref, update, remove, onValue, get } from "./shared/admin-shell.js?v=6";
 import { push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // ─── Довідники ─────────────────────────────────────────────────────────
@@ -197,7 +197,6 @@ const isLate = it => dlState(it) === "late";
 const content = `
   <div class="page-head">
     <div><h1>Проблеми й задачі</h1><p id="pb-sub">Завантаження…</p></div>
-    <div class="actions"><button class="tb-btn primary" type="button" data-act="new">${ic("plus", 14, 2.5)}Нова задача</button></div>
   </div>
   <div class="pb-tiles">
     <button class="pb-tile red" data-focus="new" type="button"><span class="ico">${ic("bug", 19)}</span><span><span class="v" id="t-new">0</span><span class="l">Нові</span></span></button>
@@ -224,7 +223,7 @@ const content = `
     </section>`).join("")}
   </div>`;
 
-const { _user } = await initAdminShell({ activeId: "problems", crumbs: ["Проблеми"], content, topbarRight: "" });
+const { _user } = await initAdminShell({ activeId: "problems", crumbs: ["Проблеми"], content, topbarRight: `<button class="tb-btn primary" type="button" data-act="new">${ic("plus", 14, 2.5)}Нова задача</button>` });
 const ME = { id: _user?.id, name: [_user?.name, _user?.surname].filter(Boolean).join(" ") || _user?.email || "Адмін" };
 
 // ─── Стан ──────────────────────────────────────────────────────────────
@@ -334,7 +333,7 @@ function cardHtml(it){
       ${it.page ? `<span title="Сторінка">${ic("page", 11)}${esc(it.page)}</span>` : ""}
       <span title="${it.createdAt ? new Date(it.createdAt).toLocaleString("uk-UA") : ""}">${ic("clock", 11)}${formatTimeAgo(it.createdAt)}</span>
     </div>
-    <div class="c-ft">${who}${dl ? `<span class="dl ${dl}">${dl === "late" ? "Прострочено · " : ""}${dlTxt}</span>` : it.col === "done" && it.doneAt ? `<span class="dl done">✓ ${new Date(it.doneAt).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })}</span>` : ""}</div>
+    <div class="c-ft">${who}${dl ? `<span class="dl ${dl}">${dl === "late" ? "Прострочено · " : ""}${dlTxt}</span>` : it.col === "done" && it.doneAt ? `<span class="dl done">${ic("check", 12, 2.6)} ${new Date(it.doneAt).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })}</span>` : ""}</div>
   </article>`;
 }
 

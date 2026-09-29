@@ -8,670 +8,321 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=4">
+<link rel="stylesheet" href="shared/admin-shell.css?v=5">
 <style>
-/* ─── Page-specific styles ─── */
-
-/* Layouts */
-.row-2{display:grid; grid-template-columns:1fr 1fr; gap:14px}
-.row-mix{display:grid; grid-template-columns:2fr 1fr; gap:14px}
-@media (max-width:1280px){.row-2,.row-mix{grid-template-columns:1fr}}
-
-/* Line chart */
-.lc-wrap{position:relative}
-.lc{width:100%; height:240px; display:block}
-.lc-axis-y{
-  position:absolute; left:0; top:0; bottom:24px;
-  display:flex; flex-direction:column-reverse; justify-content:space-between;
-  font-family:"Geist Mono",monospace; font-size:10px; color:var(--ink-400); font-weight:600;
-}
-.lc-grid line{stroke:#EEF2FB; stroke-width:1}
-.lc-line{fill:none; stroke:url(#lc-grad); stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round}
-.lc-area{fill:url(#lc-area-grad); opacity:.8}
-.lc-dot{fill:#fff; stroke:#7C3AED; stroke-width:2; cursor:pointer}
-.lc-dot.peak{fill:#7C3AED; stroke:#fff; r:5}
-
-.lc-x-labels{
-  display:flex; justify-content:space-between;
-  padding:6px 0 0; margin-top:4px; border-top:1px solid var(--line);
-  font-size:10.5px; color:var(--ink-400); font-family:"Geist Mono",monospace; font-weight:600;
-}
-
-.lc-summary{
-  display:flex; gap:16px; align-items:baseline;
-  padding:14px 18px 0;
-}
-.lc-summary .big{font-family:"Geist Mono",monospace; font-size:28px; font-weight:800; letter-spacing:-.02em; line-height:1}
-.lc-summary .delta{
-  font-family:"Geist Mono",monospace; font-size:12px; font-weight:700;
-  padding:3px 8px; border-radius:999px;
-  display:inline-flex; align-items:center; gap:4px;
-}
-.lc-summary .delta.up{background:#DCFCE7; color:#15803D}
-.lc-summary .delta.down{background:#FEE2E2; color:#B91C1C}
-.lc-summary .delta.flat{background:#F4F6FB; color:var(--ink-500)}
-.lc-summary .lbl{font-size:12.5px; color:var(--ink-500)}
-
-/* Donut */
-.donut-wrap{display:flex; align-items:center; gap:18px; padding:12px 4px}
-.donut-svg{flex:0 0 auto}
-.donut-center{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none}
-.donut-center .v{font-family:"Geist Mono",monospace; font-size:24px; font-weight:800; letter-spacing:-.02em; line-height:1}
-.donut-center .l{font-size:10.5px; color:var(--ink-400); text-transform:uppercase; letter-spacing:.07em; font-weight:700; margin-top:4px}
-
-.donut-host{position:relative; width:170px; height:170px; flex:0 0 auto}
-
-.donut-legend{flex:1; min-width:0; display:flex; flex-direction:column; gap:9px}
-.donut-row{display:flex; align-items:center; gap:9px; font-size:13px}
-.donut-dot{width:10px; height:10px; border-radius:3px; flex:0 0 auto}
-.donut-name{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600; color:var(--ink-700)}
-.donut-pct{font-family:"Geist Mono",monospace; font-weight:800; font-size:13px; flex:0 0 auto}
-.donut-cnt{font-family:"Geist Mono",monospace; font-size:11px; color:var(--ink-400); flex:0 0 auto; min-width:30px; text-align:right}
-
-/* Heatmap */
-.heat-wrap{display:flex; flex-direction:column; gap:6px}
-.heat-row{display:flex; align-items:center; gap:8px; font-size:11px; color:var(--ink-400); font-weight:600}
-.heat-row .day{flex:0 0 28px; font-family:"Geist Mono",monospace}
-.heat-cells{display:grid; grid-template-columns:repeat(24, 1fr); gap:3px; flex:1}
-.heat-cell{
-  height:18px; border-radius:3px; background:#F1F5FB;
-  transition:transform .12s;
-  position:relative;
-}
-.heat-cell:hover{transform:scale(1.18)}
-.heat-cell[title]{cursor:help}
-.heat-hours{display:flex; gap:3px; padding-left:36px; padding-top:4px; font-size:9.5px; color:var(--ink-400); font-family:"Geist Mono",monospace}
-.heat-hours div{flex:1; text-align:center}
-
-.heat-legend{display:flex; align-items:center; justify-content:flex-end; gap:7px; margin-top:8px; font-size:11px; color:var(--ink-500)}
-.heat-legend-cells{display:flex; gap:2px}
-.heat-legend-cell{width:14px; height:14px; border-radius:3px}
-
-/* Stats table */
-.stats-tbl-wrap{padding:0}
-.stats-tbl-h{padding:18px 18px 0}
-
-.stats-tbl-search{display:flex; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid var(--line)}
-.stats-tbl-search .search-input{flex:1; max-width:320px; position:relative; display:inline-flex; align-items:center}
-.stats-tbl-search .search-input .input{padding-left:34px; width:100%}
-.stats-tbl-search .search-input svg{position:absolute; left:11px; color:var(--ink-400); pointer-events:none}
-.stats-tbl-search .meta{margin-left:auto; font-size:12px; color:var(--ink-500); font-family:"Geist Mono",monospace}
-
-.stats-tbl{width:100%; border-collapse:collapse}
-.stats-tbl th{
-  font-size:10.5px; text-transform:uppercase; letter-spacing:.07em;
-  color:var(--ink-400); font-weight:700; text-align:left;
-  padding:10px 14px; border-bottom:1px solid var(--line); background:#FAFBFE;
-  white-space:nowrap;
-}
-.stats-tbl td{padding:13px 14px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:middle; color:var(--ink-700)}
-.stats-tbl tr:last-child td{border-bottom:0}
-.stats-tbl tr:hover td{background:#FAFBFE}
-
-.cell-name{display:flex; align-items:center; gap:11px; min-width:0}
-.cell-name .ava{
-  width:32px; height:32px; border-radius:9px; flex:0 0 auto;
-  display:grid; place-items:center; color:#fff;
-  font-weight:700; font-size:11px;
-  background:linear-gradient(135deg, #A78BFA, #7C3AED);
-}
-.cell-name .ava.b{background:linear-gradient(135deg, #60A5FA, #1D4ED8)}
-.cell-name .ava.g{background:linear-gradient(135deg, #86EFAC, #15803D)}
-.cell-name .ava.o{background:linear-gradient(135deg, #FDBA74, #B45309)}
-.cell-name .ava.r{background:linear-gradient(135deg, #FCA5A5, #B91C1C)}
-.cell-name .info{min-width:0; flex:1}
-.cell-name .nm{font-weight:600; color:var(--ink-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.cell-name .lg{font-size:11px; color:var(--ink-400); font-family:"Geist Mono",monospace; margin-top:2px}
-
-.num-strong{font-family:"Geist Mono",monospace; font-weight:800; font-size:14px; letter-spacing:-.01em}
-
-/* Empty */
-.empty-mini{padding:60px 20px; text-align:center; color:var(--ink-500); font-size:13px}
-
-/* Period segmented */
-.period-seg{display:inline-flex; background:#F4F6FB; border:1px solid var(--line); border-radius:9px; padding:3px}
-.period-seg button{
-  background:transparent; border:0; padding:6px 12px; border-radius:7px;
-  font:inherit; font-size:12.5px; font-weight:600; color:var(--ink-500); cursor:pointer;
-}
-.period-seg button:hover:not(.on){color:var(--ink-700)}
-.period-seg button.on{background:#fff; color:var(--ink-900); box-shadow:0 1px 2px rgba(0,0,0,.04), 0 0 0 1px var(--line)}
+.row-2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.row-mix{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:16px}
+@media (max-width:1280px){.row-mix{grid-template-columns:1fr}}
+@media (max-width:1000px){.row-2{grid-template-columns:1fr}}
+.seg{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:11px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink-500);padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.seg button.on{background:#F3EEFF;color:#6D28D9}
+.st-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.st-bar .hint{font-size:12.5px;color:var(--ink-500)}
+.kpi-grid.five{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (max-width:1280px){.kpi-grid.five{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1023px){.kpi-grid.five{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi .kpi-v{font-size:28px}
+.kpi-l i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:1px}
+.delta{font-family:"Geist Mono",monospace;font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:#EEF2FB;color:var(--ink-500);white-space:nowrap}
+.delta.up{background:#DCFCE7;color:#15803D}.delta.down{background:#FEE2E2;color:#B91C1C}
+.card-h{flex-wrap:wrap;gap:8px}
+/* Теплова карта: день × година */
+.heat{display:grid;grid-template-columns:28px repeat(24,minmax(0,1fr));gap:3px;align-items:center}
+.heat .d{font:600 11px "Geist Mono",monospace;color:var(--ink-400)}
+.heat .h{font:600 9.5px "Geist Mono",monospace;color:var(--ink-400);text-align:center}
+.heat .c{height:22px;border-radius:4px;background:#F1F4FA;outline:none}
+.heat .c:hover,.heat .c:focus-visible{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #7C3AED}
+.heat-legend{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-top:12px;font-size:11.5px;color:var(--ink-500)}
+.heat-legend span.cells{display:flex;gap:3px}
+.heat-legend span.cells i{width:14px;height:14px;border-radius:4px}
+.heat-scroll{overflow-x:auto}
+.heat-scroll .heat{min-width:560px}
+/* Таблиця */
+.tbl-top{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.tbl-top .search-input{flex:1;max-width:320px}
+.tbl-top .search-input .input{width:100%}
+.tbl-top .meta{margin-left:auto;font-size:12px;color:var(--ink-500);font-family:"Geist Mono",monospace}
+.tbl-wrap{overflow-x:auto}
+#stats-body td{white-space:nowrap}
+.cell-name{display:flex;align-items:center;gap:11px;min-width:0}
+.cell-name .nm{font-weight:700;color:var(--ink-900)}
+.cell-name .lg{font-size:11px;color:var(--ink-400);font-family:"Geist Mono",monospace;margin-top:2px}
+.num{font-family:"Geist Mono",monospace;font-weight:700}
+.num small{font-weight:500;color:var(--ink-400);margin-left:4px;font-size:11px}
+.muted{color:var(--ink-300)}
+.empty-mini{padding:40px 20px;text-align:center;color:var(--ink-500);font-size:13px}
 </style>
 </head>
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=1"></script>
+<script src="shared/admin-nav.js?v=2"></script>
 <div id="admin-root"></div>
 <div id="admin-modals"></div>
 <div id="admin-toast" class="toast"></div>
 
 <script type="module">
-import { initAdminShell, loadAllTeachers, esc, hideLoader } from "./shared/admin-shell.js?v=5";
+import { initAdminShell, loadAllTeachers, esc, hideLoader, formatTimeAgo } from "./shared/admin-shell.js?v=6";
+import { bars, rank, bindTips, C } from "./shared/admin-charts.js?v=1";
+
+const DAY = 864e5;
+const plural = (n, f) => { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? f[2] : b === 1 ? f[0] : b >= 2 && b <= 4 ? f[1] : f[2]; };
+const dayStart = t => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+const fullName = u => [u.surname, u.name].filter(Boolean).join(" ") || u.email || "—";
+const I = p => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const ICO = {
+  doc: I('<path d="M14 3v5h5"/><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M9 13h6M9 17h4"/>'),
+  game: I('<rect x="2" y="6" width="20" height="12" rx="4"/><path d="M7 10v4M5 12h4"/><circle cx="15.5" cy="11" r="1" fill="currentColor"/><circle cx="18" cy="13.5" r="1" fill="currentColor"/>'),
+  users: I('<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.6 2-4.8 4.5-5"/>'),
+  star: I('<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>'),
+  team: I('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>'),
+};
 
 const content = `
-  <!-- KPI strip -->
-  <div class="kpi-grid" id="kpi-grid"></div>
+  <div class="page-head"><div><h1>Статистика</h1><p>Як платформою користуються: ігри наживо, тести, викладачі, час активності</p></div></div>
+  <div class="st-bar">
+    <div class="seg" id="period-seg" role="tablist" aria-label="Період">
+      <button type="button" data-p="7">7 днів</button>
+      <button type="button" data-p="30" class="on">30 днів</button>
+      <button type="button" data-p="90">90 днів</button>
+    </div>
+    <span class="hint" id="period-hint"></span>
+  </div>
 
-  <!-- Activity chart + Donut -->
+  <div class="kpi-grid five" id="kpi-grid"></div>
+
   <div class="row-mix">
-    <!-- Activity chart -->
-    <div class="card">
-      <div class="card-h">
-        <div>
-          <h3>Активність на платформі</h3>
-          <div class="sub">Спроби студентів за обраний період</div>
-        </div>
-        <div class="period-seg" id="period-seg">
-          <button data-period="7" class="on">7 днів</button>
-          <button data-period="14">14 днів</button>
-          <button data-period="30">30 днів</button>
-        </div>
-      </div>
-
-      <div class="lc-summary">
-        <div class="big" id="lc-total">0</div>
-        <span class="delta" id="lc-delta">—</span>
-        <span class="lbl">за останній період</span>
-      </div>
-
-      <div class="lc-wrap">
-        <svg class="lc" id="lc-svg" viewBox="0 0 700 240" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="lc-grad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stop-color="#A78BFA"/>
-              <stop offset="100%" stop-color="#7C3AED"/>
-            </linearGradient>
-            <linearGradient id="lc-area-grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#A78BFA" stop-opacity=".25"/>
-              <stop offset="100%" stop-color="#A78BFA" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-          <g id="lc-grid" class="lc-grid"></g>
-          <path id="lc-area" class="lc-area" d=""/>
-          <path id="lc-line" class="lc-line" d=""/>
-          <g id="lc-dots"></g>
-        </svg>
-        <div class="lc-x-labels" id="lc-labels"></div>
-      </div>
-    </div>
-
-    <!-- Donut: розподіл спроб по викладачах -->
-    <div class="card">
-      <div class="card-h">
-        <div>
-          <h3>Топ викладачів</h3>
-          <div class="sub">Розподіл спроб</div>
-        </div>
-      </div>
-      <div class="donut-wrap">
-        <div class="donut-host" id="donut-host">
-          <svg class="donut-svg" id="donut-svg" width="170" height="170" viewBox="0 0 170 170"></svg>
-          <div class="donut-center">
-            <div class="v" id="donut-total">0</div>
-            <div class="l">Спроб</div>
-          </div>
-        </div>
-        <div class="donut-legend" id="donut-legend"></div>
-      </div>
-    </div>
+    <section class="card">
+      <div class="card-h"><div><h3>Динаміка активності</h3><div class="sub" id="dyn-sub">Спроби тестів і участь учнів в іграх</div></div></div>
+      <div id="ch-dyn"></div>
+    </section>
+    <section class="card">
+      <div class="card-h"><div><h3>Найактивніші викладачі</h3><div class="sub">Спроби тестів + учасники ігор за період</div></div></div>
+      <div id="ch-top"></div>
+    </section>
   </div>
 
-  <!-- Heatmap -->
-  <div class="card">
-    <div class="card-h">
-      <div>
-        <h3>Розподіл за днями і годинами</h3>
-        <div class="sub">Коли студенти найактивніші</div>
-      </div>
-      <span class="pill" id="heat-period-pill">за весь час</span>
-    </div>
-    <div class="heat-hours" id="heat-hours"></div>
-    <div class="heat-wrap" id="heat-wrap"></div>
-    <div class="heat-legend">
-      <span>менше</span>
-      <div class="heat-legend-cells">
-        <div class="heat-legend-cell" style="background:#F1F5FB"></div>
-        <div class="heat-legend-cell" style="background:#DDD6FE"></div>
-        <div class="heat-legend-cell" style="background:#A78BFA"></div>
-        <div class="heat-legend-cell" style="background:#7C3AED"></div>
-        <div class="heat-legend-cell" style="background:#4F46E5"></div>
-      </div>
-      <span>більше</span>
-    </div>
+  <div class="row-2">
+    <section class="card">
+      <div class="card-h"><div><h3>Розподіл оцінок</h3><div class="sub" id="gr-sub">Оцінені спроби тестів, шкала 1–12</div></div></div>
+      <div id="ch-grades"></div>
+    </section>
+    <section class="card">
+      <div class="card-h"><div><h3>Популярні ігри</h3><div class="sub">Які вікторини запускали найчастіше</div></div></div>
+      <div id="ch-games"></div>
+    </section>
   </div>
 
-  <!-- Detailed teachers table -->
-  <div class="card stats-tbl-wrap">
-    <div class="stats-tbl-h">
-      <div class="card-h" style="margin-bottom:0">
-        <div>
-          <h3>Деталізація по викладачах</h3>
-          <div class="sub">Тести, спроби, студенти, посилання</div>
-        </div>
-      </div>
-    </div>
-    <div class="stats-tbl-search">
+  <section class="card">
+    <div class="card-h"><div><h3>Коли учні найактивніші</h3><div class="sub">Спроби тестів і учасники ігор за днем тижня та годиною</div></div><span class="pill" id="heat-pill">—</span></div>
+    <div class="heat-scroll"><div class="heat" id="heat"></div></div>
+    <div class="heat-legend">менше<span class="cells" id="heat-cells"></span>більше</div>
+  </section>
+
+  <section class="card" style="padding:0">
+    <div class="card-h" style="padding:18px 18px 0"><div><h3>Деталізація по викладачах</h3><div class="sub">Тести, спроби, ігри, студенти, посилання — за весь час</div></div></div>
+    <div class="tbl-top">
       <div class="search-input">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input class="input" id="st-search" type="text" placeholder="Пошук викладача..." autocomplete="off">
+        <input class="input" id="st-search" type="search" placeholder="Пошук: прізвище, ім'я, email…" autocomplete="off" aria-label="Пошук викладача">
       </div>
       <span class="meta" id="st-meta">—</span>
     </div>
-    <table class="stats-tbl">
-      <thead>
-        <tr>
-          <th>Викладач</th>
-          <th>Тестів</th>
-          <th>Активних</th>
-          <th>Спроб</th>
-          <th>Студентів</th>
-          <th>Посилань</th>
-          <th>Активність</th>
-        </tr>
-      </thead>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>Викладач</th><th>Тести</th><th>Спроби</th><th>Ігри</th><th>Учасники ігор</th><th>Студенти</th><th>Посилання</th><th>Остання активність</th></tr></thead>
       <tbody id="stats-body"></tbody>
-    </table>
-  </div>
+    </table></div>
+  </section>
 `;
 
 const topbarRight = `
-  <button class="tb-btn" id="btn-refresh">
+  <button class="tb-btn" id="btn-refresh" type="button">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.7L4 16"/><path d="M4 20v-4h4"/></svg>
     Оновити
-  </button>
-`;
+  </button>`;
 
-const { _user } = await initAdminShell({
-  activeId: "stats",
-  crumbs: ["Статистика"],
-  content,
-  topbarRight
-});
+await initAdminShell({ activeId: "stats", crumbs: ["Статистика"], content, topbarRight });
 
-// Page-head
-const contentEl = document.getElementById("admin-content");
-if (contentEl){
-  const pageHead = document.createElement("div");
-  pageHead.className = "page-head";
-  pageHead.innerHTML = `<div><h1>Статистика</h1><p>Активність платформи, розподіл по викладачах та часовим інтервалам</p></div>`;
-  contentEl.insertBefore(pageHead, contentEl.firstChild);
+let P = 30;
+let D = { users: [], stats: {}, attempts: [], games: [] };
+try { const v = +localStorage.getItem("qf_adm_stats_p"); if ([7, 30, 90].includes(v)) P = v; } catch {}
+document.querySelectorAll("#period-seg button").forEach(b => b.classList.toggle("on", +b.dataset.p === P));
+
+async function load(){
+  const r = await loadAllTeachers();
+  D = { users: r._users, stats: r._stats, attempts: r._allAttempts, games: r._allGames || [] };
+  renderAll();
 }
 
-// ─── State ────────────────────────────────────────────────────────────────
-let _period = 7;
-
-// ─── Helpers ──────────────────────────────────────────────────────────────
-const DONUT_COLORS = ["#7C3AED","#4F46E5","#A78BFA","#3B82F6","#22C55E","#F59E0B","#EC4899","#06B6D4"];
-
-function formatNum(n){
-  if (n >= 1000) return (n/1000).toFixed(1).replace(/\.0$/,"") + "k";
-  return String(n);
+// ─── Періоди ───
+const inRange = (t, from, to) => t && t >= from && t < to;
+function ranges(){
+  const to = dayStart(Date.now()) + DAY, from = to - P * DAY;
+  return { from, to, pFrom: from - P * DAY };
+}
+function delta(cur, prev){
+  if (!prev && !cur) return `<span class="delta">=</span>`;
+  if (!prev) return `<span class="delta up">нове</span>`;
+  const d = Math.round((cur - prev) / prev * 100);
+  return `<span class="delta ${d > 0 ? "up" : d < 0 ? "down" : ""}" title="Порівняно з попередніми ${P} днями">${d > 0 ? "+" : ""}${d}%</span>`;
 }
 
-// ─── KPIs ─────────────────────────────────────────────────────────────────
-function renderKpis(_users, _stats, _allAttempts){
-  const totalAttempts = _allAttempts.length;
-  const totalTests = _users.reduce((s, u) => s + (_stats[u.id]?.tests || 0), 0);
-  const totalActive = _users.reduce((s, u) => s + (_stats[u.id]?.activeTests || 0), 0);
-  const totalStudents = _users.reduce((s, u) => s + (_stats[u.id]?.students || 0), 0);
-
-  // За останні 7 / попередні 7 — розрахунок тренду
-  const now = Date.now();
-  const week = 7 * 24 * 60 * 60 * 1000;
-  const last7 = _allAttempts.filter(a => (a.createdAt || 0) >= now - week).length;
-  const prev7 = _allAttempts.filter(a => (a.createdAt || 0) >= now - 2*week && (a.createdAt || 0) < now - week).length;
-  const trend7 = prev7 > 0 ? Math.round(((last7 - prev7) / prev7) * 100) : (last7 > 0 ? 100 : 0);
-
-  // Average per day (period 30)
-  const last30 = _allAttempts.filter(a => (a.createdAt || 0) >= now - 30 * 24 * 60 * 60 * 1000).length;
-  const avgPerDay = last30 > 0 ? (last30 / 30).toFixed(1).replace(/\.0$/, "") : "0";
-
-  const KPIS = [
-    {
-      k:"violet", icon:"pulse",
-      value: formatNum(totalAttempts),
-      label:"Спроб всього",
-      sub: `+${last7} за останні 7 днів`,
-      trend: trend7
-    },
-    {
-      k:"blue", icon:"doc",
-      value: totalTests,
-      label:"Тестів",
-      sub: `${totalActive} опубліковано`,
-      trend: 0
-    },
-    {
-      k:"green", icon:"users",
-      value: totalStudents,
-      label:"Студентів",
-      sub: `у системі`,
-      trend: 0
-    },
-    {
-      k:"amber", icon:"trend",
-      value: avgPerDay,
-      label:"Сер. на день",
-      sub: `за останні 30 днів`,
-      trend: 0
-    }
+function renderKpis(){
+  const { from, to, pFrom } = ranges();
+  const at = D.attempts.filter(a => inRange(a.createdAt, from, to)), atP = D.attempts.filter(a => inRange(a.createdAt, pFrom, from));
+  const gm = D.games.filter(g => inRange(g.playedAt, from, to)), gmP = D.games.filter(g => inRange(g.playedAt, pFrom, from));
+  const pl = gm.reduce((s, g) => s + g.players, 0), plP = gmP.reduce((s, g) => s + g.players, 0);
+  const gr = at.filter(a => a.grade12 != null && a.status !== "in_progress").map(a => +a.grade12);
+  const avg = gr.length ? gr.reduce((s, x) => s + x, 0) / gr.length : null;
+  const act = new Set([...at.map(a => a.teacherId), ...gm.map(g => g.teacherId)]).size;
+  const K = [
+    { k: "blue", ico: ICO.doc, v: at.length, l: `<i style="background:${C.tests}"></i>Спроби тестів`, s: `${delta(at.length, atP.length)} ${atP.length} раніше` },
+    { k: "pink", ico: ICO.game, v: gm.length, l: `<i style="background:${C.games}"></i>Ігри наживо`, s: `${delta(gm.length, gmP.length)} ${gmP.length} раніше` },
+    { k: "violet", ico: ICO.team, v: pl, l: "Учасники ігор", s: `${delta(pl, plP)} ${gm.length ? `≈ ${Math.round(pl / gm.length)} на гру` : "ігор не було"}` },
+    { k: "amber", ico: ICO.star, v: avg != null ? avg.toFixed(1) : "—", l: "Середня оцінка", s: gr.length ? `${gr.length} ${plural(gr.length, ["оцінена спроба", "оцінені спроби", "оцінених спроб"])}` : "оцінок не було" },
+    { k: "green", ico: ICO.users, v: act, l: "Активні викладачі", s: `з ${D.users.length} у системі` },
   ];
-
-  const KPI_ICONS = {
-    pulse: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>',
-    doc:   '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"/><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M9 13h6M9 17h4"/></svg>',
-    users: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>',
-    trend: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>'
-  };
-
-  document.getElementById("kpi-grid").innerHTML = KPIS.map(k => `
-    <div class="kpi ${k.k}">
-      <div class="kpi-row">
-        <div class="kpi-ico">${KPI_ICONS[k.icon]}</div>
-        ${k.trend !== 0 ? `<span class="kpi-trend ${k.trend < 0 ? "down" : ""}">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${k.trend < 0 ? '<polyline points="7 10 12 15 17 10"/>' : '<polyline points="7 14 12 9 17 14"/>'}</svg>
-          ${Math.abs(k.trend)}%
-        </span>` : ""}
-      </div>
-      <div class="kpi-v">${k.value}</div>
-      <div class="kpi-l">${esc(k.label)}</div>
-      <div class="kpi-s">${k.sub}</div>
-    </div>
-  `).join("");
+  document.getElementById("kpi-grid").innerHTML = K.map(k => `<div class="kpi ${k.k}">
+      <div class="kpi-row" style="gap:12px"><div class="kpi-ico">${k.ico}</div><div class="kpi-v">${k.v}</div></div>
+      <div class="kpi-l">${k.l}</div><div class="kpi-s">${k.s}</div></div>`).join("");
+  const f = d => new Date(d).toLocaleDateString("uk-UA", { day: "numeric", month: "short" });
+  document.getElementById("period-hint").textContent = `${f(from)} — ${f(to - 1)} · зміни порівняно з попередніми ${P} днями`;
 }
 
-// ─── Line chart: спроби за період ─────────────────────────────────────────
-function renderLineChart(_allAttempts){
-  const days = _period;
-  const now = new Date(); now.setHours(23, 59, 59, 999);
-  const buckets = Array(days).fill(0);
-  _allAttempts.forEach(a => {
-    if (!a.createdAt) return;
-    const diff = Math.floor((now - a.createdAt) / (24 * 60 * 60 * 1000));
-    if (diff >= 0 && diff < days) buckets[days - 1 - diff]++;
-  });
-
-  // Загалом
-  const total = buckets.reduce((s, v) => s + v, 0);
-  document.getElementById("lc-total").textContent = formatNum(total);
-
-  // Тренд: остання половина vs попередня
-  const half = Math.floor(days / 2);
-  const recent = buckets.slice(-half).reduce((s, v) => s + v, 0);
-  const earlier = buckets.slice(0, days - half).reduce((s, v) => s + v, 0);
-  const earlierAvg = earlier / Math.max(days - half, 1);
-  const recentAvg = recent / Math.max(half, 1);
-  const deltaPct = earlierAvg > 0 ? Math.round(((recentAvg - earlierAvg) / earlierAvg) * 100) : (recentAvg > 0 ? 100 : 0);
-
-  const deltaEl = document.getElementById("lc-delta");
-  if (deltaPct === 0) {
-    deltaEl.className = "delta flat";
-    deltaEl.innerHTML = `· без змін`;
-  } else if (deltaPct > 0) {
-    deltaEl.className = "delta up";
-    deltaEl.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 14 12 9 17 14"/></svg>+${deltaPct}%`;
-  } else {
-    deltaEl.className = "delta down";
-    deltaEl.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 10 12 15 17 10"/></svg>${deltaPct}%`;
+// По днях (7/30) або по тижнях (90)
+function buckets(){
+  const { from, to } = ranges();
+  const step = P > 30 ? 7 * DAY : DAY, n = Math.ceil((to - from) / step);
+  const lbl = [], full = [];
+  for (let i = 0; i < n; i++){
+    const d = new Date(from + i * step);
+    lbl.push(P > 30 ? `${d.getDate()}.${String(d.getMonth() + 1).padStart(2, "0")}` : P <= 7 ? ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"][d.getDay()] : `${d.getDate()}.${String(d.getMonth() + 1).padStart(2, "0")}`);
+    full.push(P > 30 ? `Тиждень з ${d.toLocaleDateString("uk-UA", { day: "numeric", month: "long" })}` : d.toLocaleDateString("uk-UA", { weekday: "short", day: "numeric", month: "long" }));
   }
-
-  // SVG render
-  const W = 700, H = 240, P = 24;
-  const max = Math.max(...buckets, 1);
-  const stepX = (W - 2*P) / Math.max(days - 1, 1);
-  const points = buckets.map((v, i) => {
-    const x = P + i * stepX;
-    const y = H - P - (v / max) * (H - 2*P);
-    return [x, y];
-  });
-
-  // Path
-  const linePath = points.map((p, i) => (i === 0 ? "M" : "L") + p[0] + "," + p[1]).join(" ");
-  const areaPath = linePath + ` L${points[points.length-1][0]},${H-P} L${points[0][0]},${H-P} Z`;
-  document.getElementById("lc-line").setAttribute("d", linePath);
-  document.getElementById("lc-area").setAttribute("d", areaPath);
-
-  // Grid lines
-  const gridEl = document.getElementById("lc-grid");
-  gridEl.innerHTML = "";
-  for (let i = 0; i <= 4; i++){
-    const y = P + (H - 2*P) * (i/4);
-    gridEl.innerHTML += `<line x1="${P}" x2="${W-P}" y1="${y}" y2="${y}"/>`;
-  }
-
-  // Dots — тільки кожна Nth точка, щоб не захаращувати
-  const dotEvery = days <= 7 ? 1 : days <= 14 ? 2 : 5;
-  const dotsEl = document.getElementById("lc-dots");
-  const peakIdx = buckets.indexOf(max);
-  dotsEl.innerHTML = points.map(([x, y], i) => {
-    const show = (i === 0 || i === days - 1 || i === peakIdx || i % dotEvery === 0);
-    if (!show) return "";
-    const isPeak = i === peakIdx && max > 0;
-    return `<circle class="lc-dot${isPeak?' peak':''}" cx="${x}" cy="${y}" r="${isPeak?5:3.5}"><title>${buckets[i]} спроб</title></circle>`;
-  }).join("");
-
-  // X labels (кожна Nth)
-  const labels = [];
-  for (let i = days - 1; i >= 0; i--){
-    const d = new Date(now); d.setDate(d.getDate() - i);
-    labels.push(d);
-  }
-  const labelEvery = days <= 7 ? 1 : days <= 14 ? 2 : 5;
-  document.getElementById("lc-labels").innerHTML = labels.map((d, i) => {
-    const show = (i === 0 || i === days - 1 || i % labelEvery === 0);
-    return `<span style="opacity:${show?1:0.4}">${show ? d.toLocaleDateString("uk-UA",{day:"numeric",month:"short"}) : ""}</span>`;
-  }).join("");
+  const idx = t => Math.floor((t - from) / step);
+  const t = new Array(n).fill(0), g = new Array(n).fill(0);
+  D.attempts.forEach(a => { if (inRange(a.createdAt, from, to)) t[idx(a.createdAt)]++; });
+  D.games.forEach(x => { if (inRange(x.playedAt, from, to)) g[idx(x.playedAt)] += x.players; });
+  return { lbl, full, t, g };
 }
 
-// ─── Donut: розподіл по викладачах ────────────────────────────────────────
-function renderDonut(_users, _stats, _allAttempts){
-  const teacherTotals = _users.map(u => ({
-    name: u.name || u.login || "—",
-    count: _stats[u.id]?.attempts || 0
-  })).filter(t => t.count > 0).sort((a, b) => b.count - a.count);
-
-  const total = teacherTotals.reduce((s, t) => s + t.count, 0);
-  document.getElementById("donut-total").textContent = formatNum(total);
-
-  const svg = document.getElementById("donut-svg");
-  if (!total){
-    svg.innerHTML = `<circle cx="85" cy="85" r="64" fill="none" stroke="#F1F5FB" stroke-width="20"/>`;
-    document.getElementById("donut-legend").innerHTML = `<div class="empty-mini">Поки немає спроб</div>`;
-    return;
-  }
-
-  // Top 5 + інші
-  const top5 = teacherTotals.slice(0, 5);
-  const others = teacherTotals.slice(5);
-  const slices = [...top5];
-  if (others.length){
-    slices.push({
-      name: `Інші (${others.length})`,
-      count: others.reduce((s, t) => s + t.count, 0)
-    });
-  }
-
-  // Donut SVG
-  const cx = 85, cy = 85, r = 64, sw = 20;
-  const C = 2 * Math.PI * r;
-  let acc = 0;
-  let segments = "";
-  slices.forEach((s, i) => {
-    const pct = s.count / total;
-    const len = pct * C;
-    const dash = `${len} ${C - len}`;
-    const offset = -acc * C;
-    segments += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${DONUT_COLORS[i % DONUT_COLORS.length]}" stroke-width="${sw}" stroke-dasharray="${dash}" stroke-dashoffset="${offset}" transform="rotate(-90 ${cx} ${cy})"/>`;
-    acc += pct;
-  });
-  svg.innerHTML = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#F1F5FB" stroke-width="${sw}"/>` + segments;
-
-  // Legend
-  document.getElementById("donut-legend").innerHTML = slices.map((s, i) => {
-    const pct = ((s.count / total) * 100).toFixed(1).replace(/\.0$/, "");
-    return `<div class="donut-row">
-      <span class="donut-dot" style="background:${DONUT_COLORS[i % DONUT_COLORS.length]}"></span>
-      <span class="donut-name" title="${esc(s.name)}">${esc(s.name)}</span>
-      <span class="donut-pct" style="color:${DONUT_COLORS[i % DONUT_COLORS.length]}">${pct}%</span>
-      <span class="donut-cnt">${s.count}</span>
-    </div>`;
-  }).join("");
+function renderDyn(){
+  const b = buckets();
+  document.getElementById("dyn-sub").textContent = `Спроби тестів і участь учнів в іграх — ${P > 30 ? "по тижнях" : "по днях"}`;
+  bars(document.getElementById("ch-dyn"), { labels: b.lbl, full: b.full, highlightLast: true, height: 230,
+    series: [{ name: "Спроби тестів", color: C.tests, values: b.t }, { name: "Участь в іграх", color: C.games, values: b.g }] });
 }
 
-// ─── Heatmap: день × година ───────────────────────────────────────────────
-function renderHeatmap(_allAttempts){
-  // 7 днів × 24 години = 168 cells
-  const grid = Array(7).fill(0).map(() => Array(24).fill(0));
-  _allAttempts.forEach(a => {
-    if (!a.createdAt) return;
-    const d = new Date(a.createdAt);
-    // Ставимо понеділок=0, неділя=6
-    const dow = (d.getDay() + 6) % 7;
-    const h = d.getHours();
-    grid[dow][h]++;
-  });
-
-  let max = 0;
-  grid.forEach(row => row.forEach(v => { if (v > max) max = v; }));
-
-  const DAYS = ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"];
-
-  // Hours header (every 4)
-  document.getElementById("heat-hours").innerHTML =
-    Array.from({length: 24}, (_, h) => `<div>${h % 4 === 0 ? String(h).padStart(2, "0") : ""}</div>`).join("");
-
-  // Color levels: 0/4, 1/4, 2/4, 3/4, 4/4
-  const colors = ["#F1F5FB", "#EDE9FE", "#C4B5FD", "#A78BFA", "#7C3AED"];
-
-  const wrap = document.getElementById("heat-wrap");
-  wrap.innerHTML = grid.map((row, di) => {
-    const cells = row.map((v, h) => {
-      let level = 0;
-      if (max > 0 && v > 0){
-        const ratio = v / max;
-        if (ratio > 0.75) level = 4;
-        else if (ratio > 0.5) level = 3;
-        else if (ratio > 0.25) level = 2;
-        else level = 1;
-      }
-      const title = v ? `${DAYS[di]}, ${String(h).padStart(2,"0")}:00 — ${v} ${v===1?"спроба":(v>=2&&v<=4)?"спроби":"спроб"}` : "";
-      return `<div class="heat-cell" style="background:${colors[level]}"${title?` title="${title}"`:""}></div>`;
-    }).join("");
-    return `<div class="heat-row">
-      <span class="day">${DAYS[di]}</span>
-      <div class="heat-cells">${cells}</div>
-    </div>`;
-  }).join("");
-
-  document.getElementById("heat-period-pill").textContent = max > 0
-    ? `максимум: ${max} ${max===1?"спроба":(max>=2&&max<=4)?"спроби":"спроб"}`
-    : "ще немає даних";
+function renderTop(){
+  const { from, to } = ranges();
+  const m = new Map();
+  D.attempts.forEach(a => { if (!inRange(a.createdAt, from, to)) return; const e = m.get(a.teacherId) || { t: 0, g: 0 }; e.t++; m.set(a.teacherId, e); });
+  D.games.forEach(x => { if (!inRange(x.playedAt, from, to)) return; const e = m.get(x.teacherId) || { t: 0, g: 0 }; e.g += x.players; m.set(x.teacherId, e); });
+  const U = new Map(D.users.map(u => [u.id, u]));
+  const rows = [...m].map(([id, e]) => ({ label: U.get(id) ? fullName(U.get(id)) : "—", sub: `${e.t} ${plural(e.t, ["спроба", "спроби", "спроб"])} · ${e.g} ${plural(e.g, ["гравець", "гравці", "гравців"])}`, value: e.t + e.g }))
+    .sort((a, b) => b.value - a.value).slice(0, 7);
+  rank(document.getElementById("ch-top"), rows, { unit: "Активність учнів", color: C.violet, empty: "За цей період активності не було" });
 }
 
-// ─── Table ────────────────────────────────────────────────────────────────
-function renderTable(_users, _stats){
-  const search = (document.getElementById("st-search")?.value || "").trim().toLowerCase();
-  let list = [..._users].sort((a, b) => (_stats[b.id]?.attempts || 0) - (_stats[a.id]?.attempts || 0));
-  if (search){
-    list = list.filter(u =>
-      (u.name || "").toLowerCase().includes(search) ||
-      (u.login || "").toLowerCase().includes(search)
-    );
-  }
+function renderGrades(){
+  const { from, to } = ranges();
+  const gr = D.attempts.filter(a => inRange(a.createdAt, from, to) && a.grade12 != null && a.status !== "in_progress").map(a => Math.round(+a.grade12)).filter(g => g >= 1 && g <= 12);
+  const v = Array.from({ length: 12 }, (_, i) => gr.filter(g => g === i + 1).length);
+  document.getElementById("gr-sub").textContent = gr.length ? `${gr.length} ${plural(gr.length, ["оцінка", "оцінки", "оцінок"])} · шкала 1–12` : "Оцінених спроб за період немає";
+  bars(document.getElementById("ch-grades"), { labels: v.map((_, i) => String(i + 1)), full: v.map((_, i) => `Оцінка ${i + 1}`), height: 180,
+    series: [{ name: "Спроб", color: C.tests, values: v }] });
+}
 
-  document.getElementById("st-meta").textContent = `${list.length} / ${_users.length}`;
+function renderGames(){
+  const { from, to } = ranges();
+  const m = new Map();
+  D.games.forEach(g => { if (!inRange(g.playedAt, from, to)) return; const e = m.get(g.title) || { n: 0, p: 0, who: new Set() }; e.n++; e.p += g.players; e.who.add(g.teacherId); m.set(g.title, e); });
+  const rows = [...m].map(([t, e]) => ({ label: t, sub: `${e.p} ${plural(e.p, ["учасник", "учасники", "учасників"])} · ${e.who.size} ${plural(e.who.size, ["викладач", "викладачі", "викладачів"])}`, value: e.n }))
+    .sort((a, b) => b.value - a.value).slice(0, 6);
+  rank(document.getElementById("ch-games"), rows, { unit: "Запусків", color: C.games, empty: "За цей період ігор не було" });
+}
 
-  const AVA_PALETTE = ["", "b", "g", "o", "r"];
-  const tbody = document.getElementById("stats-body");
-  if (!list.length){
-    tbody.innerHTML = `<tr><td colspan="7" class="empty-mini">Нічого не знайдено</td></tr>`;
-    return;
-  }
+function renderHeat(){
+  const { from, to } = ranges();
+  const grid = Array.from({ length: 7 }, () => new Array(24).fill(0));
+  const add = (t, w) => { if (!inRange(t, from, to)) return; const d = new Date(t); grid[(d.getDay() + 6) % 7][d.getHours()] += w; };
+  D.attempts.forEach(a => add(a.createdAt, 1));
+  D.games.forEach(g => add(g.playedAt, g.players));
+  const max = Math.max(0, ...grid.flat());
+  // Послідовна шкала одного відтінку: світлий → темний
+  const RAMP = ["#F1F4FA", "#E4DBFD", "#C4B5FD", "#9F7AEA", "#7C3AED", "#5B21B6"];
+  const lvl = v => !v || !max ? 0 : Math.min(5, 1 + Math.floor(v / max * 4.999));
+  const DAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"], DF = ["понеділок", "вівторок", "середа", "четвер", "пʼятниця", "субота", "неділя"];
+  let h = `<span></span>` + Array.from({ length: 24 }, (_, i) => `<span class="h">${i % 3 === 0 ? String(i).padStart(2, "0") : ""}</span>`).join("");
+  grid.forEach((row, di) => {
+    h += `<span class="d">${DAYS[di]}</span>` + row.map((v, hr) => `<span class="c" tabindex="-1" style="background:${RAMP[lvl(v)]}" data-tip="${esc(`<div class="h">${DF[di]}, ${String(hr).padStart(2, "0")}:00–${String(hr + 1).padStart(2, "0")}:00</div><div class="r">Активність учнів<b>${v}</b></div>`)}"></span>`).join("");
+  });
+  const el = document.getElementById("heat"); el.innerHTML = h; bindTips(el);
+  document.getElementById("heat-cells").innerHTML = RAMP.map(c => `<i style="background:${c}"></i>`).join("");
+  let bd = 0, bh = 0; grid.forEach((r, d) => r.forEach((v, hr) => { if (v > grid[bd][bh]) { bd = d; bh = hr; } }));
+  document.getElementById("heat-pill").textContent = max ? `пік: ${DAYS[bd]}, ${String(bh).padStart(2, "0")}:00` : "ще немає даних";
+}
 
-  tbody.innerHTML = list.map(u => {
-    const s = _stats[u.id] || {};
-    const initials = (u.name || u.login || "?").slice(0, 2).toUpperCase();
-    const seed = (u.name || u.login || "").charCodeAt(0) || 0;
-    const avaCls = AVA_PALETTE[seed % AVA_PALETTE.length];
-    const dateStr = s.lastAct
-      ? new Date(s.lastAct).toLocaleDateString("uk-UA", {day:"numeric", month:"short", hour:"2-digit", minute:"2-digit"})
-      : "—";
-    const recent = s.lastAct && (Date.now() - s.lastAct < 24 * 60 * 60 * 1000);
-
-    return `<tr>
-      <td>
-        <div class="cell-name">
-          <div class="ava ${avaCls}">${esc(initials)}</div>
-          <div class="info">
-            <div class="nm">${esc(u.name || "—")}</div>
-            <div class="lg">@${esc(u.login)}</div>
-          </div>
-        </div>
-      </td>
-      <td><span class="num-strong" style="color:#15803D">${s.tests || 0}</span></td>
-      <td><span class="pill green">${s.activeTests || 0}</span></td>
-      <td><span class="num-strong" style="color:#B45309">${s.attempts || 0}</span></td>
-      <td><span class="num-strong" style="color:#6D28D9">${s.students || 0}</span></td>
-      <td><span class="num-strong" style="color:var(--violet-500, #7C3AED)">${s.links || 0}</span></td>
-      <td style="white-space:nowrap; font-size:12px; color:${recent?'#15803D':'var(--ink-500)'}; font-family:'Geist Mono',monospace">${dateStr}</td>
+function renderTable(){
+  const q = (document.getElementById("st-search").value || "").trim().toLowerCase();
+  const S = D.stats;
+  let list = [...D.users].sort((a, b) => ((S[b.id]?.attempts || 0) + (S[b.id]?.gamePlayers || 0)) - ((S[a.id]?.attempts || 0) + (S[a.id]?.gamePlayers || 0)));
+  if (q) list = list.filter(u => [fullName(u), u.login, u.email].join(" ").toLowerCase().includes(q));
+  document.getElementById("st-meta").textContent = `${list.length} / ${D.users.length}`;
+  const tb = document.getElementById("stats-body");
+  if (!list.length){ tb.innerHTML = `<tr><td colspan="8" class="empty-mini">Нічого не знайдено</td></tr>`; return; }
+  const PAL = ["", "b", "g", "o", "r"];
+  const n = (v, extra) => v ? `<span class="num">${v}${extra ? `<small>${extra}</small>` : ""}</span>` : `<span class="num muted">0</span>`;
+  tb.innerHTML = list.map(u => {
+    const s = S[u.id] || {}, name = fullName(u);
+    const ini = (((u.surname || "")[0] || "") + ((u.name || "")[0] || "") || name.slice(0, 2)).toUpperCase();
+    const recent = s.lastAct && Date.now() - s.lastAct < DAY;
+    return `<tr${u.blocked ? ' style="opacity:.55"' : ""}>
+      <td><div class="cell-name"><div class="avatar ${PAL[(name.charCodeAt(0) || 0) % PAL.length]}">${esc(ini)}</div><div><div class="nm">${esc(name)}</div><div class="lg">${esc(u.login ? "@" + u.login : u.email || "")}</div></div></div></td>
+      <td>${n(s.tests, s.activeTests ? s.activeTests + " акт." : "")}</td>
+      <td>${n(s.attempts, s.weekAttempts ? "+" + s.weekAttempts + " за тижд." : "")}</td>
+      <td>${n(s.games, s.weekGames ? "+" + s.weekGames + " за тижд." : "")}</td>
+      <td>${n(s.gamePlayers)}</td>
+      <td>${n(s.students)}</td>
+      <td>${n(s.links)}</td>
+      <td style="font:600 12px 'Geist Mono',monospace;color:${recent ? "#15803D" : "var(--ink-500)"}">${s.lastAct ? esc(formatTimeAgo(s.lastAct)) : "—"}</td>
     </tr>`;
   }).join("");
 }
 
-// ─── Master render ────────────────────────────────────────────────────────
-function renderAll(){
-  const _users = window._users || [];
-  const _stats = window._stats || {};
-  const _allAttempts = window._allAttempts || [];
-  renderKpis(_users, _stats, _allAttempts);
-  renderLineChart(_allAttempts);
-  renderDonut(_users, _stats, _allAttempts);
-  renderHeatmap(_allAttempts);
-  renderTable(_users, _stats);
-}
+function renderPeriod(){ renderKpis(); renderDyn(); renderTop(); renderGrades(); renderGames(); renderHeat(); }
+function renderAll(){ renderPeriod(); renderTable(); }
 
-// ─── Handlers ─────────────────────────────────────────────────────────────
-document.querySelectorAll("#period-seg button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    _period = parseInt(btn.dataset.period, 10);
-    document.querySelectorAll("#period-seg button").forEach(b => b.classList.toggle("on", b === btn));
-    renderLineChart(window._allAttempts || []);
-  });
+document.getElementById("period-seg").addEventListener("click", e => {
+  const b = e.target.closest("button[data-p]"); if (!b) return;
+  P = +b.dataset.p;
+  try { localStorage.setItem("qf_adm_stats_p", P); } catch {}
+  document.querySelectorAll("#period-seg button").forEach(x => x.classList.toggle("on", x === b));
+  renderPeriod();
 });
-
-document.getElementById("st-search").addEventListener("input", () => {
-  renderTable(window._users || [], window._stats || {});
-});
-
+document.getElementById("st-search").addEventListener("input", renderTable);
+let _rsT, _rsW = innerWidth;
+addEventListener("resize", () => { clearTimeout(_rsT); _rsT = setTimeout(() => { if (Math.abs(innerWidth - _rsW) < 40) return; _rsW = innerWidth; renderDyn(); renderGrades(); }, 200); });
 document.getElementById("btn-refresh").addEventListener("click", async () => {
   const btn = document.getElementById("btn-refresh");
   btn.disabled = true; btn.style.opacity = "0.5";
-  await loadAllTeachers();
-  renderAll();
+  try { await load(); } catch (e) { console.error(e); }
   btn.disabled = false; btn.style.opacity = "";
 });
 
-// First load — тримаємо loader доки дані не завантажаться
 try {
-  await loadAllTeachers();
-  renderAll();
+  await load();
 } catch (e) {
   console.error("[stats] Initial load failed:", e);
   const root = document.getElementById("admin-content");
   if (root){
-    const errBox = document.createElement("div");
-    errBox.className = "card";
-    errBox.style.padding = "40px 24px";
-    errBox.style.textAlign = "center";
-    errBox.innerHTML = `
-      <div style="width:54px;height:54px;margin:0 auto 14px;border-radius:14px;background:#FEE2E2;color:#B91C1C;display:grid;place-items:center">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r=".8" fill="currentColor"/></svg>
-      </div>
-      <div style="font-size:16px;font-weight:800;margin-bottom:6px">Не вдалося завантажити статистику</div>
-      <div style="font-size:13px;color:var(--ink-500);margin-bottom:14px">${e.message || "Невідома помилка"}</div>
+    const box = document.createElement("div");
+    box.className = "card"; box.style.cssText = "padding:40px 24px;text-align:center";
+    box.innerHTML = `<div style="font-size:16px;font-weight:800;margin-bottom:6px">Не вдалося завантажити статистику</div>
+      <div style="font-size:13px;color:var(--ink-500);margin-bottom:14px">${esc(e.message || "Невідома помилка")}</div>
       <button class="tb-btn primary" onclick="location.reload()">Спробувати знову</button>`;
-    root.appendChild(errBox);
+    root.appendChild(box);
   }
 }
 hideLoader();
