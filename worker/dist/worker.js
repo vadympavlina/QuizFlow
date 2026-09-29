@@ -61,6 +61,7 @@ var esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").re
 var FONT = "Manrope,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 var C = { ink: "#0D1340", text: "#2B3552", muted: "#6B7593", faint: "#8A94B0", line: "#E6EAF3", brand: "#2D5BE3" };
 var DEFAULT_SITE = "https://quizflow.space";
+var LOGO_V = 2;
 function inline(s) {
   return esc(s).replace(/\*\*(.+?)\*\*/g, `<strong style="color:${C.ink}">$1</strong>`).replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)"'])/g, `<a href="$1" style="color:${C.brand};text-decoration:underline">$1</a>`);
 }
@@ -104,7 +105,8 @@ function button({ label, url }) {
     </td></tr></table>`;
 }
 function layout({ site = DEFAULT_SITE, preheader = "", title = "", bodyHtml = "", button: btn = null, after = "", footer = "" }) {
-  const logo = `${String(site || DEFAULT_SITE).replace(/\/+$/, "")}/assets/email/logo-light.png`;
+  const logo = `${String(site || DEFAULT_SITE).replace(/\/+$/, "")}/assets/email/logo-light.png?v=${LOGO_V}`;
+  const uniq = `<span style="display:none!important;font-size:0;line-height:0;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all">${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}</span>`;
   return `<!doctype html>
 <html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light">
@@ -122,9 +124,9 @@ function layout({ site = DEFAULT_SITE, preheader = "", title = "", bodyHtml = ""
     ${bodyHtml}
     ${btn?.url ? button(btn) : ""}
     ${after}
-    <p style="margin:32px 0 0">\u0417 \u043F\u043E\u0432\u0430\u0433\u043E\u044E,<br><strong style="color:${C.ink}">\u041A\u043E\u043C\u0430\u043D\u0434\u0430 QuizFlow</strong></p>
+    <p style="margin:32px 0 0">${uniq}\u0417 \u043F\u043E\u0432\u0430\u0433\u043E\u044E,<br><strong style="color:${C.ink}">\u041A\u043E\u043C\u0430\u043D\u0434\u0430 QuizFlow</strong></p>
     <div style="height:1px;line-height:1px;font-size:0;background:${C.line};margin:36px 0 18px">&nbsp;</div>
-    <p style="margin:0;font-size:12.5px;line-height:1.6;color:${C.faint}">${footer}</p>
+    <p style="margin:0;font-size:12.5px;line-height:1.6;color:${C.faint}">${uniq}${footer}</p>
   </td></tr></table>
 </td></tr></table>
 </body></html>`;
@@ -425,7 +427,7 @@ button:hover{background:#2447C9}button.ghost{background:#fff;color:#0D1340;box-s
 button:focus-visible{outline:3px solid rgba(45,91,227,.35);outline-offset:2px}
 .s{margin-top:40px;padding-top:18px;border-top:1px solid #E6EAF3;font-size:12.5px;color:#8A94B0}.s a{color:#8A94B0}
 @media (max-width:600px){.c{padding:40px 20px}h1{font-size:25px}button{width:100%}}</style></head>
-<body><main class="c"><a class="l" href="${esc(site)}"><img src="${esc(site)}/assets/email/logo-light.png" alt="QuizFlow"></a><h1>${esc(title)}</h1><p>${esc(text)}</p>${btn}<div class="s">QuizFlow \xB7 <a href="${esc(site)}">${esc(site.replace(/^https?:\/\//, ""))}</a></div></main></body></html>`,
+<body><main class="c"><a class="l" href="${esc(site)}"><img src="${esc(site)}/assets/email/logo-light.png?v=2" alt="QuizFlow"></a><h1>${esc(title)}</h1><p>${esc(text)}</p>${btn}<div class="s">QuizFlow \xB7 <a href="${esc(site)}">${esc(site.replace(/^https?:\/\//, ""))}</a></div></main></body></html>`,
     { status: status2, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } }
   );
 }
