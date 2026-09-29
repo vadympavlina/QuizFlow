@@ -138,6 +138,16 @@ test("розсилка: перевірка теми, тексту й кнопк�
   assert.doesNotMatch(p.data.html, /<script>/);
 });
 
+test("логотип: воркер віддає PNG, лист посилається на нього", async () => {
+  const r = await worker.fetch(new Request("https://mail.test/logo.png?v=3"), env());
+  assert.equal(r.status, 200);
+  assert.equal(r.headers.get("Content-Type"), "image/png");
+  const b = new Uint8Array(await r.arrayBuffer());
+  assert.deepEqual([...b.slice(1, 4)].map(c => String.fromCharCode(c)).join(""), "PNG");
+  await call("POST", "/broadcast", { body: { ...msg, uids: ["t1"] } });
+  assert.match(sent[0].html, /<img src="https:\/\/mail\.test\/logo\.png\?v=\d+"/);
+});
+
 test("відписка: GET нічого не змінює, POST відписує, можна повернути; підробка — 400", async () => {
   const r = await call("POST", "/broadcast", { body: { ...msg, uids: ["t1"] } });
   assert.equal(r.status, 200);
