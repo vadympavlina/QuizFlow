@@ -7,7 +7,9 @@
 <title>QuizFlow Admin — Telegram</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="shared/admin-shell.css?v=8">
 <style>
 /* ─── Бот ─── */
@@ -139,6 +141,9 @@
   .tg-hint-k{display:none}
 }
 </style>
+<!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
+<link rel="modulepreload" href="shared/admin-shell.js?v=10">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 </head>
 <body>
 
@@ -193,7 +198,7 @@
 </div>
 
 <script type="module">
-import { logAction, initAdminShell, dbGet, dbUpd, dbRemove, db, ref as fbR, update, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=9";
+import { logAction, initAdminShell, dbGet, dbUpd, dbRemove, db, ref as fbR, update, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=10";
 import { push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const TG = "https://api.telegram.org/bot";

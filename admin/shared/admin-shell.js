@@ -383,7 +383,7 @@ window.showLoader = showLoader;
 // Огляд, статистика й викладачі показують збережені дані одразу (якщо їм
 // < 30 хв), а свіжі підтягують у фоні. У кеш і в пам'ять ідуть лише ті поля
 // спроб, які потрібні графікам — без відповідей і питань.
-const CACHE_KEY = "qf_adm_teachers_v2";   // v2: testsLive, activeLinks
+const CACHE_KEY = "qf_adm_teachers_v3";   // v3: легкі дані з attemptLog/gameLog
 const slimAttempt = (a, teacherId, teacherName) => ({
   createdAt: a.createdAt || 0, finishedAt: a.finishedAt || 0, startedAt: a.startedAt || 0, lastSeen: a.lastSeen || 0,
   status: a.status || "", grade12: a.grade12 ?? null, testId: a.testId || "", teacherId, teacherName,
@@ -424,43 +424,49 @@ async function _loadAllFresh(){
   const _stats = {};
   const opt = p => get(ref(db, p)).catch(() => null);   // нова гілка може бути закрита правилами — не валимо сторінку
 
+  const weekAgo = Date.now() - 7 * 864e5;
   await Promise.all(_users.map(async u => {
-    const [ts, as, ss, ls, gh, lr] = await Promise.all([
-      get(ref(db, `teachers/${u.id}/tests`)),
-      get(ref(db, `teachers/${u.id}/attempts`)),
-      get(ref(db, `teachers/${u.id}/students`)),
-      get(ref(db, `teachers/${u.id}/links`)),
-      opt(`teachers/${u.id}/gameHistory`),
-      opt(`teachers/${u.id}/liveRooms`),
-    ]);
     const tName = (u.surname ? u.surname + " " + u.name : u.name) || u.email || "";
-    const atArr = as.exists() ? Object.values(as.val()) : [];
-    atArr.forEach(a => { if (a && typeof a === "object") _allAttempts.push(slimAttempt(a, u.id, tName)); });
-    const games = gh?.exists() ? Object.entries(gh.val()).filter(([, g]) => g && typeof g === "object").map(([code, g]) => ({
-      code, teacherId: u.id, teacherName: tName, title: g.testTitle || "Без назви", testId: g.testId || "",
-      playedAt: Number(g.playedAt) || 0, players: Number(g.playerCount) || (Array.isArray(g.results) ? g.results.length : Object.keys(g.results || {}).length),
-      questions: Number(g.questionCount) || 0,
-    })) : [];
-    _allGames.push(...games);
+    // Легкий шлях: готові лічильники й журнали, які веде панель викладача (shared/admin-index.js).
+    // Якщо панель ще не заповнила їх (викладач не заходив після оновлення) — старий повний шлях.
+    const [tsS, alS, glS, lr] = await Promise.all([opt(`teacherStats/${u.id}`), opt(`attemptLog/${u.id}`), opt(`gameLog/${u.id}`), opt(`teachers/${u.id}/liveRooms`)]);
+    const ts0 = tsS?.val();
     if (lr?.exists()) Object.keys(lr.val()).forEach(code => _liveRooms.push({ code, teacherId: u.id, teacherName: tName }));
-    const activeTests = ts.exists() ? Object.values(ts.val()).filter(t => t.status === "active").length : 0;
-    const lastAct = atArr.reduce((m, a) => Math.max(m, a?.createdAt || 0), 0);
-    const weekAgo = Date.now() - 7*24*60*60*1000;
-    const weekAttempts = atArr.filter(a => (a.createdAt || 0) >= weekAgo).length;
+    let atArr, games, base;
+    if (ts0?.logReady){
+      atArr = Object.values(alS?.val() || {}).filter(x => x && typeof x === "object").map(x => ({
+        createdAt: Number(x.c) || 0, finishedAt: Number(x.f) || 0, startedAt: Number(x.c) || 0, lastSeen: Number(x.l) || 0,
+        status: x.s || "", grade12: x.g ?? null, testId: "", teacherId: u.id, teacherName: tName }));
+      base = { tests: ts0.tests || 0, activeTests: ts0.activeTests || 0, students: ts0.students || 0, links: ts0.links || 0, testsLive: ts0.testsLive || 0, activeLinks: ts0.activeLinks || 0 };
+    } else {
+      const [ts, as, ss, ls] = await Promise.all([`tests`, `attempts`, `students`, `links`].map(p => get(ref(db, `teachers/${u.id}/${p}`))));
+      atArr = (as.exists() ? Object.values(as.val()) : []).filter(a => a && typeof a === "object").map(a => slimAttempt(a, u.id, tName));
+      const tv = ts.exists() ? Object.values(ts.val()) : [], lv = ls.exists() ? Object.values(ls.val()) : [];
+      base = { tests: tv.length, activeTests: tv.filter(t => t?.status === "active").length, students: ss.exists() ? Object.keys(ss.val()).length : 0, links: lv.length,
+        testsLive: tv.filter(t => t && t.status !== "archived").length, activeLinks: lv.filter(l => l && l.status === "active" && !(l.closeAt && l.closeAt <= Date.now())).length };
+    }
+    if (ts0?.gameLogReady){
+      games = Object.entries(glS?.val() || {}).filter(([, g]) => g && typeof g === "object").map(([code, g]) => ({
+        code, teacherId: u.id, teacherName: tName, title: g.t || "Без назви", testId: g.id || "", playedAt: Number(g.p) || 0, players: Number(g.n) || 0, questions: Number(g.q) || 0 }));
+    } else {
+      const gh = await opt(`teachers/${u.id}/gameHistory`);
+      games = gh?.exists() ? Object.entries(gh.val()).filter(([, g]) => g && typeof g === "object").map(([code, g]) => ({
+        code, teacherId: u.id, teacherName: tName, title: g.testTitle || "Без назви", testId: g.testId || "",
+        playedAt: Number(g.playedAt) || 0, players: Number(g.playerCount) || (Array.isArray(g.results) ? g.results.length : Object.keys(g.results || {}).length),
+        questions: Number(g.questionCount) || 0,
+      })) : [];
+    }
+    _allAttempts.push(...atArr);
+    _allGames.push(...games);
+    const lastAct = atArr.reduce((m, a) => Math.max(m, a.createdAt || 0), 0);
     _stats[u.id] = {
-      tests: ts.exists() ? Object.keys(ts.val()).length : 0,
-      activeTests,
+      ...base,
       attempts: atArr.length,
-      weekAttempts,
-      students: ss.exists() ? Object.keys(ss.val()).length : 0,
-      links: ls.exists() ? Object.keys(ls.val()).length : 0,
-      // Для лімітів з «Можливостей»: неархівні тести й відкриті посилання
-      testsLive: ts.exists() ? Object.values(ts.val()).filter(t => t && t.status !== "archived").length : 0,
-      activeLinks: ls.exists() ? Object.values(ls.val()).filter(l => l && l.status === "active" && !(l.closeAt && l.closeAt <= Date.now())).length : 0,
+      weekAttempts: atArr.filter(a => (a.createdAt || 0) >= weekAgo).length,
       games: games.length,
       gamePlayers: games.reduce((s, g) => s + g.players, 0),
       weekGames: games.filter(g => g.playedAt >= weekAgo).length,
-      lastAct: games.reduce((m, g) => Math.max(m, g.playedAt), lastAct)
+      lastAct: games.reduce((m, g) => Math.max(m, g.playedAt), lastAct),
     };
   }));
 

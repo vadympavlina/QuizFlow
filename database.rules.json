@@ -127,6 +127,39 @@
         }
       }
     },
+    "attemptLog": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && root.child('users/' + auth.uid + '/blocked').val() !== true",
+        "$aid": {
+          ".write": "newData.exists() && root.child('teachers/' + $uid + '/attempts/' + $aid + '/createdAt').val() > now - 86400000",
+          "c": { ".validate": "newData.isNumber()" },
+          "f": { ".validate": "newData.isNumber()" },
+          "l": { ".validate": "newData.isNumber()" },
+          "g": { ".validate": "newData.isNumber()" },
+          "s": { ".validate": "newData.isString() && newData.val().length <= 20" },
+          "$other": { ".validate": false }
+        }
+      }
+    },
+    "gameLog": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && root.child('users/' + auth.uid + '/blocked').val() !== true"
+      }
+    },
+    "teacherStats": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && root.child('users/' + auth.uid + '/blocked').val() !== true"
+      }
+    },
     "teachers": {
       ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
       ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",

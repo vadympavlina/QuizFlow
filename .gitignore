@@ -7,3 +7,5 @@ functions/node_modules/
 Thumbs.db
 firebase-debug.log
 .firebase/
+tests/test-results/
+tests/playwright-report/

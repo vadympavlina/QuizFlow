@@ -768,11 +768,26 @@ async function createAttempt(data) {
     createdAt: nowTs()
   });
   set(ref(db, tp(`attemptIndex/${data.testId}/${nameKey(data.name, data.surname)}`)), newRef.key).catch(() => {});
+  logAttempt(newRef.key, { createdAt: nowTs(), status: data.status || "in_progress", grade12: data.grade12, finishedAt: data.finishedAt });
   return newRef.key;
 }
 
 async function updateAttempt(attemptId, data) {
   await update(ref(db, tp(`attempts/${attemptId}`)), data);
+  logAttempt(attemptId, data);
+}
+
+// Легкий журнал спроб для адмінки: attemptLog/{викладач}/{спроба} = {c,s,g,f,l} (~60 байт замість
+// повної спроби з відповідями). Пишемо поруч зі спробою; помилка не заважає тесту.
+function logAttempt(id, d) {
+  if (!AI_OWNER || !id) return;
+  const m = { createdAt: "c", status: "s", grade12: "g", finishedAt: "f", lastSeen: "l" }, upd = {};
+  Object.entries(m).forEach(([k, x]) => {
+    const v = d[k];
+    if (v === undefined) return;
+    upd[x] = v === null || v === "" ? null : x === "s" ? String(v).slice(0, 20) : typeof v === "object" ? v : (Number.isFinite(Number(v)) ? Number(v) : null);
+  });
+  if (Object.keys(upd).length) update(ref(db, `attemptLog/${AI_OWNER}/${id}`), upd).catch(() => {});
 }
 
 
@@ -2201,9 +2216,10 @@ function saveProgressLocally(){
 function heartbeat(){
   if (!attemptId || _finishing || previewMode) return;
   _lastRemote = Date.now();
+  const seen = Date.now();
   update(ref(db, tp(`attempts/${attemptId}`)), {
-    currentQ: currentQ + 1, totalQ: testData?.questions?.length || 0, lastSeen: Date.now()
-  }).catch(()=>{});
+    currentQ: currentQ + 1, totalQ: testData?.questions?.length || 0, lastSeen: seen
+  }).then(() => logAttempt(attemptId, { lastSeen: seen })).catch(()=>{});
 }
 window.addEventListener("pagehide", () => { if (!_finishing) saveProgressLocally(); });
 

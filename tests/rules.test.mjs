@@ -1,4 +1,4 @@
-// Автотести правил бази: npx firebase emulators:exec --only database "node tests/rules.test.mjs"
+// Автотести правил бази: cd tests && npm run rules  (емулятор бази Firebase, потрібна Java)
 import { initializeTestEnvironment, assertSucceeds, assertFails } from "@firebase/rules-unit-testing";
 import { ref, get, set, update, push, remove, serverTimestamp } from "firebase/database";
 import fs from "fs";
@@ -186,6 +186,27 @@ await t("teacher create room", true, () => update(ref(t1), { "rooms/33334444": {
 await t("teacher delete dead + own rooms (multi)", true, () => update(ref(t1), { "rooms/55556666": null, "rooms/33334444": null, "teachers/t1/liveRooms/33334444": null }));
 await t("blocked teacher create room", false, () => update(ref(bl), { "rooms/77778888": { hostUid: "bl" }, "teachers/bl/liveRooms/77778888": { createdAt: now } }));
 await t("teacher delete others room", false, () => remove(ref(t2, R)));
+
+// ── Легкі дані для адмінки: attemptLog / gameLog / teacherStats ──
+await t("anon attemptLog for existing attempt", true, () => update(ref(anon, "attemptLog/t1/A1"), { c: serverTimestamp(), s: "in_progress" }));
+await t("anon attemptLog finish", true, () => update(ref(anon, "attemptLog/t1/A1"), { s: "completed", g: 10, f: now, l: now }));
+await t("anon attemptLog missing attempt", false, () => update(ref(anon, "attemptLog/t1/NOPE"), { c: now }));
+await t("anon attemptLog extra field", false, () => update(ref(anon, "attemptLog/t1/A1"), { name: "x" }));
+await t("anon attemptLog bad type", false, () => update(ref(anon, "attemptLog/t1/A1"), { g: "12" }));
+await t("anon attemptLog delete", false, () => remove(ref(anon, "attemptLog/t1/A1")));
+await t("anon read attemptLog", false, () => get(ref(anon, "attemptLog/t1")));
+await t("anon attemptLog old attempt", false, () => update(ref(anon, "attemptLog/t1/OLD"), { s: "completed" }));
+await t("owner attemptLog reconcile", true, () => update(ref(t1), { "attemptLog/t1/A1": { c: now, s: "completed" }, "attemptLog/t1/GONE": null }));
+await t("owner read attemptLog", true, () => get(ref(t1, "attemptLog/t1")));
+await t("admin read attemptLog", true, () => get(ref(adm, "attemptLog")));
+await t("owner gameLog", true, () => set(ref(t1, "gameLog/t1/123456"), { p: now, n: 5, t: "Гра", q: 8 }));
+await t("other gameLog", false, () => set(ref(t2, "gameLog/t1/123456"), { p: now }));
+await t("anon gameLog", false, () => set(ref(anon, "gameLog/t1/123457"), { p: now }));
+await t("owner teacherStats", true, () => set(ref(t1, "teacherStats/t1"), { tests: 1, logReady: true, updatedAt: now }));
+await t("other teacherStats", false, () => set(ref(t2, "teacherStats/t1"), { tests: 99 }));
+await t("blocked teacherStats", false, () => set(ref(bl, "teacherStats/bl"), { tests: 1 }));
+await t("admin read teacherStats", true, () => get(ref(adm, "teacherStats")));
+await t("teacher read all teacherStats", false, () => get(ref(t1, "teacherStats")));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 await env.cleanup();

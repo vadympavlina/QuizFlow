@@ -7,9 +7,11 @@
 <title>QuizFlow — Історія ігор</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/styles.css?v=26">
-<link rel="modulepreload" href="shared/app.js?v=27">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+<link rel="stylesheet" href="shared/styles.css?v=27">
+<link rel="modulepreload" href="shared/app.js?v=28">
 <style>
 #sec-history{
   --ink-900:#0B1437;--ink-700:#24335A;--ink-500:#5B6A8F;--ink-400:#8691AC;--ink-300:#CDD6E8;
@@ -310,7 +312,7 @@ mark.hl{background:#FEF08A;color:inherit;border-radius:2px;padding:0 1px}
 
 <script type="module">
 import { getDatabase, ref, get, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-const { initApp, appReady } = await import("./shared/app.js?v=27");
+const { initApp, appReady } = await import("./shared/app.js?v=28");
 await initApp("history", { skipData: true });
 
 const db = getDatabase();
@@ -583,6 +585,7 @@ $("del-confirm").addEventListener("click", async () => {
   btn.disabled = true; btn.textContent = "Видаляємо…";
   try {
     await remove(ref(db, `teachers/${uid}/gameHistory/${delCode}`));
+    remove(ref(db, `gameLog/${uid}/${delCode}`)).catch(() => {});   // легкий запис для адмінки
     games = games.filter(g => g.code !== delCode);
     closeM("m-gh-del");
     renderKpis(); buildTestMenu();
