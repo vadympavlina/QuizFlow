@@ -8,11 +8,12 @@
 //   GET  /status        — стан налаштувань і список відписаних (адмін)
 //   POST /preview       — HTML розсилки для попереднього перегляду (адмін)
 //   POST /invite        — лист із запрошенням викладачу (адмін)
+//   POST /welcome       — дані для входу новому акаунту, створеному адміном (адмін)
 //   POST /broadcast     — розсилка викладачам або тестовий лист собі (адмін)
 //   GET|POST /unsubscribe?u=&s= — відписка за підписаним посиланням з листа
 // ═══════════════════════════════════════════════════════════════════════
 import { HttpError, requireAdmin, dbRead } from "./auth.js";
-import { inviteEmail, broadcastEmail, esc, LOGO_V } from "./mail.js";
+import { inviteEmail, broadcastEmail, welcomeEmail, esc, LOGO_V } from "./mail.js";
 import { LOGO_PNG_B64 } from "./logo.js";
 
 const logoUrl = origin => `${origin}/logo.png?v=${LOGO_V}`;
@@ -46,7 +47,7 @@ export default {
         return new Response(request.method === "HEAD" ? null : LOGO_BYTES, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000, immutable", "Access-Control-Allow-Origin": "*" } });
       if (url.pathname === "/" && request.method === "GET") return json({ ok: true, service: "quizflow-mail" }, 200, cors);
       const route = `${request.method} ${url.pathname}`;
-      const handler = { "GET /status": status, "POST /preview": preview, "POST /invite": invite, "POST /broadcast": broadcast }[route];
+      const handler = { "GET /status": status, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast }[route];
       if (!handler) throw new HttpError(404, "Невідома адреса");
       const admin = await requireAdmin(request, env);
       const body = request.method === "POST" ? await readJson(request) : null;
@@ -156,6 +157,27 @@ async function invite({ env, admin, body, url }) {
   });
   const res = await resend(env, "/emails", { from: env.MAIL_FROM, to: [to], subject: mail.subject, html: mail.html, text: mail.text, ...(admin.me.email ? { reply_to: admin.me.email } : {}) });
   return { ok: true, id: res.id || null, to };
+}
+
+// Лист новому викладачу: адресу беремо з бази (users/{uid}), а не з запиту
+async function welcome({ env, admin, body, url }) {
+  const uid = String(body?.uid || "");
+  if (!/^[\w-]{6,128}$/.test(uid)) throw new HttpError(400, "Некоректний акаунт");
+  const password = body?.password == null ? "" : String(body.password);
+  if (password && (password.length < 6 || password.length > 64)) throw new HttpError(400, "Некоректний пароль");
+  const u = await dbRead(env, `users/${uid}`, admin.token);
+  if (!u) throw new HttpError(404, "Акаунт не знайдено");
+  if (u.blocked === true) throw new HttpError(409, "Акаунт заблоковано");
+  const email = String(u.email || "").trim();
+  if (!EMAIL_RE.test(email)) throw new HttpError(400, "В акаунта немає коректного email");
+  const mail = welcomeEmail({
+    name: String(u.name || "").trim().slice(0, 80), email, password,
+    loginUrl: `${env.SITE_URL}/login?email=${encodeURIComponent(email)}`,
+    fromName: [admin.me.name, admin.me.surname].filter(Boolean).join(" "),
+    site: env.SITE_URL, logoUrl: logoUrl(url.origin),
+  });
+  const res = await resend(env, "/emails", { from: env.MAIL_FROM, to: [email], subject: mail.subject, html: mail.html, text: mail.text, ...(admin.me.email ? { reply_to: admin.me.email } : {}) });
+  return { ok: true, id: res.id || null, to: email };
 }
 
 async function broadcast({ env, admin, body, url }) {

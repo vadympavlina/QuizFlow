@@ -112,6 +112,27 @@ export function inviteEmail({ link, name, fromName, expiresAt, message, site, lo
   };
 }
 
+// ─── Новий акаунт, створений адміністратором ───────────────────────────
+export function welcomeEmail({ name, email, password, loginUrl, fromName, site, logoUrl }) {
+  const hello = name ? `Вітаємо, ${name}!` : "Вітаємо!";
+  const lead = `Для вас створено акаунт викладача в QuizFlow — платформі для тестів, журналу оцінок та ігор наживо зі студентами.${fromName ? ` Адміністратор: ${fromName}.` : ""}`;
+  const row = (k, v) => `<tr><td style="padding:6px 16px 6px 0;color:${C.muted};font-size:14px;white-space:nowrap;vertical-align:top">${k}</td><td style="padding:6px 0;font:700 15px 'Geist Mono',ui-monospace,Menlo,Consolas,monospace;color:${C.ink};word-break:break-all">${esc(v)}</td></tr>`;
+  const bodyHtml = `
+    <p style="margin:0 0 18px">${esc(hello)}</p>
+    <p style="margin:0 0 18px">${esc(lead)}</p>
+    <p style="margin:0 0 8px">Дані для входу:</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 22px;padding:10px 16px;background:#F4F6FB;border-radius:10px;width:100%">${row("Email", email)}${password ? row("Пароль", password) : ""}</table>`;
+  const after = `<p style="margin:18px 0 0;font-size:14px;line-height:1.6;color:${C.muted}">${password
+    ? "Це тимчасовий пароль. Щоб задати власний, на сторінці входу натисніть «Забули пароль?» — прийде лист із посиланням."
+    : "Пароль вам повідомить адміністратор. Або задайте власний: на сторінці входу натисніть «Забули пароль?»."}</p>`;
+  return {
+    subject: "Ваш акаунт у QuizFlow",
+    html: layout({ site, logoUrl, preheader: "Дані для входу в QuizFlow", title: "Ваш акаунт у QuizFlow", bodyHtml, button: { label: "Увійти", url: loginUrl }, after,
+      footer: "Ви отримали цей лист, бо адміністратор QuizFlow створив для вас акаунт. Якщо це помилка — просто проігноруйте лист." }),
+    text: `${hello}\n\n${lead}\n\nДані для входу:\nEmail: ${email}${password ? `\nПароль: ${password}` : ""}\n\nУвійти: ${loginUrl}\n\n${password ? "Це тимчасовий пароль. Щоб задати власний, на сторінці входу натисніть «Забули пароль?»." : "Пароль вам повідомить адміністратор або задайте власний через «Забули пароль?» на сторінці входу."}\n\nЗ повагою,\nКоманда QuizFlow`,
+  };
+}
+
 // ─── Розсилка ───────────────────────────────────────────────────────────
 export function broadcastEmail({ subject, body, button: btn, name, unsubUrl, site, logoUrl }) {
   const hello = name ? `Вітаємо, ${name}!` : "";

@@ -138,6 +138,25 @@ test("розсилка: перевірка теми, тексту й кнопк�
   assert.doesNotMatch(p.data.html, /<script>/);
 });
 
+test("новий акаунт: лист з даними для входу на адресу з бази", async () => {
+  const r = await call("POST", "/welcome", { body: { uid: "t1ab12", password: "Tmp-Pass-2026" } });
+  assert.equal(r.status, 404);
+  db.users.t1ab12 = { role: "teacher", name: "Оксана", email: "oksana@example.com" };
+  const ok = await call("POST", "/welcome", { body: { uid: "t1ab12", password: "Tmp-Pass-2026" } });
+  assert.equal(ok.status, 200, JSON.stringify(ok.data));
+  assert.deepEqual(sent[0].to, ["oksana@example.com"]);
+  assert.match(sent[0].html, /Tmp-Pass-2026/);
+  assert.match(sent[0].html, /quizflow\.space\/login\?email=oksana%40example\.com/);
+  assert.match(sent[0].text, /Пароль: Tmp-Pass-2026/);
+  const nopass = await call("POST", "/welcome", { body: { uid: "t1ab12" } });
+  assert.equal(nopass.status, 200);
+  assert.doesNotMatch(sent[1].html, /Пароль<\/td>/);
+  db.users.t1ab12.blocked = true;
+  assert.equal((await call("POST", "/welcome", { body: { uid: "t1ab12" } })).status, 409);
+  assert.equal((await call("POST", "/welcome", { uid: "t1", body: { uid: "t1ab12" } })).status, 403);
+  assert.equal((await call("POST", "/welcome", { body: { uid: "../x" } })).status, 400);
+});
+
 test("логотип: воркер віддає PNG, лист посилається на нього", async () => {
   const r = await worker.fetch(new Request("https://mail.test/logo.png?v=3"), env());
   assert.equal(r.status, 200);

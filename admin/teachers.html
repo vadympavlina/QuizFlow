@@ -176,6 +176,14 @@
   word-break:break-all;
 }
 .pass-note{font-size:11.5px; color:var(--ink-500); margin-top:10px; line-height:1.5}
+.wl-row{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#FAFBFE}
+.wl-row b{display:block;font-size:13.5px;color:var(--ink-900)}
+.wl-row span{font-size:12px;color:var(--ink-500);line-height:1.5}
+.wl-st{display:flex;align-items:center;gap:10px;margin-top:10px;padding:9px 11px;border-radius:10px;font-size:12.5px;font-weight:700;line-height:1.45}
+.wl-st span{flex:1;min-width:0;overflow-wrap:anywhere}
+.wl-st.ok{background:#F0FDF4;border:1px solid #BBF7D0;color:#15803D}
+.wl-st.err{background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C}
+.wl-st.wait{background:#F4F6FB;border:1px solid var(--line);color:var(--ink-500)}
 
 .mod-err{
   background:rgba(220,38,38,.06);
@@ -309,6 +317,11 @@
           <div class="role-check-list" id="new-custom-roles"></div>
         </div>
 
+        <div class="wl-row" id="new-welcome-row" hidden>
+          <label class="toggle-sw"><input type="checkbox" id="new-welcome" checked aria-label="Надіслати лист з даними для входу"><span class="toggle-sl"></span></label>
+          <label for="new-welcome" style="cursor:pointer"><b>Надіслати лист з даними для входу</b><span>Викладач отримає email і тимчасовий пароль та посилання на вхід</span></label>
+        </div>
+
         <div class="mod-err" id="create-err"></div>
 
         <div class="pass-box" id="created-box" style="display:none">
@@ -316,6 +329,7 @@
           <div style="font-size:12px;color:var(--ink-500);margin-bottom:6px">Email: <strong id="created-email"></strong></div>
           <div class="pass-val" id="created-pass"></div>
           <div class="pass-note">Пароль більше не відображатиметься.</div>
+          <div class="wl-st" id="created-mail" hidden></div>
           <button class="tb-btn" style="margin-top:10px;width:100%;justify-content:center" onclick="copyPass('created-pass')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
             Скопіювати пароль
@@ -442,7 +456,7 @@
 
 <script type="module">
 import { resolveCaps, CAP_FLAGS, CAP_LIMITS, monthKey } from "../shared/caps.js?v=3";
-import { logAction, initAdminShell, loadAllTeachers, cachedTeachers, esc, formatTimeAgo, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast, genPass, hideLoader } from "./shared/admin-shell.js?v=13";
+import { logAction, initAdminShell, loadAllTeachers, cachedTeachers, esc, formatTimeAgo, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast, genPass, hideLoader, mailApi, mailWorkerUrl } from "./shared/admin-shell.js?v=13";
 
 const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const IC = {
@@ -977,7 +991,12 @@ window.openCreateModal = () => {
   document.getElementById("new-role").value = "teacher";
   renderRoleCheckboxes("new-custom-roles", []);
   document.getElementById("created-box").style.display = "none";
-  document.getElementById("create-btn").style.display = "";
+  document.getElementById("created-mail").hidden = true;
+  document.getElementById("new-welcome").checked = true;
+  mailWorkerUrl().then(u => { document.getElementById("new-welcome-row").hidden = !u; }).catch(() => {});
+  // Після попереднього створення кнопка лишалась вимкненою з «Створення...»
+  const cb = document.getElementById("create-btn");
+  cb.style.display = ""; cb.disabled = false; cb.textContent = "Створити →";
   document.getElementById("create-err").classList.remove("show");
   openModal("m-create");
 };
@@ -1034,6 +1053,7 @@ window.createTeacher = async () => {
     afterChange();
     logAction("teacher.create", { type: "teacher", id: uid, label: `${surname} ${name}` }, `${email}${role === "admin" ? " · адміністратор" : ""}`);
     toast("Викладача створено");
+    if (!document.getElementById("new-welcome-row").hidden && document.getElementById("new-welcome").checked) sendWelcome(uid, email, pass, `${surname} ${name}`);
   } catch(e) {
     const msg = e.code === "auth/email-already-in-use"
       ? "Цей email вже зареєстрований"
@@ -1044,6 +1064,21 @@ window.createTeacher = async () => {
     btn.disabled = false; btn.textContent = "Створити →";
   }
 };
+
+// Лист новому викладачу з даними для входу — через воркер пошти (адмінка → Розсилки)
+async function sendWelcome(uid, email, pass, label){
+  const box = document.getElementById("created-mail");
+  box.hidden = false; box.className = "wl-st wait"; box.innerHTML = `<span>Надсилаємо лист на ${esc(email)}…</span>`;
+  try {
+    await mailApi("/welcome", { uid, password: pass });
+    box.className = "wl-st ok"; box.innerHTML = `<span>Лист з даними для входу надіслано на ${esc(email)}</span>`;
+    logAction("teacher.welcome", { type: "teacher", id: uid, label }, email);
+  } catch (e){
+    box.className = "wl-st err";
+    box.innerHTML = `<span>Лист не надіслано: ${esc(e.message)}</span><button class="tb-btn" type="button">Ще раз</button>`;
+    box.querySelector("button").onclick = () => sendWelcome(uid, email, pass, label);
+  }
+}
 
 window.copyPass = (elId) => {
   const val = document.getElementById(elId)?.textContent;
