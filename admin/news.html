@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=4">
+<link rel="stylesheet" href="shared/admin-shell.css?v=5">
 <style>
 .field-input{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-family:"Manrope",sans-serif;font-size:14px;color:var(--ink-900);outline:none;transition:border-color .15s,box-shadow .15s}
 .field-input:focus{border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
@@ -124,12 +124,24 @@
 .pv-empty{color:var(--ink-300);font-style:italic}
 .modal-f .spacer{flex:1}
 .modal-f .hint{font-size:11.5px;color:var(--ink-400);font-family:"Geist Mono",monospace}
+/* Телефон */
+@media (max-width:760px){
+  .nt-tile{padding:12px;gap:10px}.nt-tile .ico{width:36px;height:36px}.nt-tile .v{font-size:20px}
+  .nt-toolbar{flex-wrap:wrap}.nt-toolbar .search-input{max-width:none;flex:1 1 100%}
+  .nt-row{grid-template-columns:40px minmax(0,1fr);gap:10px 12px;padding:14px}
+  .nt-ico{width:40px;height:40px;border-radius:12px}
+  .nt-reads{grid-column:2}
+  .nt-acts{grid-column:1/-1;justify-content:flex-end;flex-wrap:wrap}
+  .nt-title{white-space:normal}
+  .ed-main{padding:14px}.ed-side{padding:14px}
+  .modal-f .hint{display:none}
+}
 </style>
 </head>
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=1"></script>
+<script src="shared/admin-nav.js?v=2"></script>
 <div id="admin-root"></div>
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -208,7 +220,7 @@
 </div>
 
 <script type="module">
-import { initAdminShell, esc, dbGet, db, ref, update, openModal, closeModal, toast, formatTimeAgo, hideLoader } from "./shared/admin-shell.js?v=5";
+import { initAdminShell, esc, dbGet, db, ref, update, openModal, closeModal, toast, formatTimeAgo, hideLoader } from "./shared/admin-shell.js?v=6";
 import { push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { NEWS_CATS, catOf, sanitizeNewsHtml, newsPlainText, newsExcerpt, readMinutes } from "../shared/news-utils.js?v=1";
 

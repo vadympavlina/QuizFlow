@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=4">
+<link rel="stylesheet" href="shared/admin-shell.css?v=5">
 <style>
 /* ─── Бот ─── */
 .bot{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;flex-wrap:wrap}
@@ -119,12 +119,31 @@
 .steps{margin:0;padding-left:18px;font-size:12.5px;color:var(--ink-700);line-height:1.7}
 .steps code{font-family:"Geist Mono",monospace;background:#F1F4FA;padding:1px 5px;border-radius:5px;font-size:12px}
 @media (max-width:1180px){.tg-layout{grid-template-columns:280px minmax(0,1fr)}}
+/* Телефон: як у месенджері — спершу список чатів, після вибору — переписка з кнопкою «Назад» */
+.tg-back{display:none}
+@media (max-width:760px){
+  .bot{padding:14px}
+  .bot-i{min-width:0;flex:1 1 calc(100% - 60px)}
+  .bot-acts{flex:1 1 100%}
+  .bot-acts .tb-btn{flex:1 1 auto;justify-content:center}
+  .how{flex-wrap:wrap}.how button{margin-left:26px}
+  .tg-layout{grid-template-columns:1fr;height:calc(100dvh - 110px)}
+  .how[hidden] + .tg-layout{height:calc(100dvh - 110px)}
+  .tg-layout .tg-thread{display:none}
+  .tg-layout.in-thread .tg-list{display:none}
+  .tg-layout.in-thread .tg-thread{display:flex}
+  .tg-back{display:grid}
+  .tg-thread-h{flex-wrap:wrap;row-gap:8px}
+  .notify-chip{order:5;flex:1 1 100%;justify-content:center}
+  .msg{max-width:86%}
+  .tg-hint-k{display:none}
+}
 </style>
 </head>
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=1"></script>
+<script src="shared/admin-nav.js?v=2"></script>
 <div id="admin-root"></div>
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -174,7 +193,7 @@
 </div>
 
 <script type="module">
-import { initAdminShell, dbGet, dbUpd, dbRemove, db, ref as fbR, update, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=5";
+import { initAdminShell, dbGet, dbUpd, dbRemove, db, ref as fbR, update, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=6";
 import { push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const TG = "https://api.telegram.org/bot";
@@ -209,7 +228,7 @@ const content = `
     </div>
     <div class="bot-acts">
       <label class="sw" title="Надсилати нові звернення з кнопки «Повідомити про помилку»"><input type="checkbox" id="tg-enabled"><i></i><span>Сповіщення про звернення</span></label>
-      <button type="button" class="tb-btn" id="btn-test" disabled>Тестове сповіщення</button>
+      <button type="button" class="tb-btn" id="btn-test" disabled hidden>Тестове сповіщення</button>
       <button type="button" class="tb-btn" id="btn-bot">${ic("cog")} Налаштувати</button>
     </div>
   </section>
@@ -303,7 +322,10 @@ function renderBot(){
     else { st.classList.add("ok", "live"); st.textContent = `Працює · ${n} ${plural(n, ["отримувач", "отримувачі", "отримувачів"])}`; }
     us.innerHTML = `<a href="https://t.me/${esc(bot.username)}" target="_blank" rel="noopener">@${esc(bot.username)}</a>`;
   } else { nm.textContent = "Перевірка…"; st.textContent = "…"; }
-  document.getElementById("btn-test").disabled = !(bot && Object.keys(cfg.recipients || {}).length);
+  // Неактивні елементи не показуємо: тест — коли є бот і отримувачі, перемикач — коли є токен
+  const bt = document.getElementById("btn-test");
+  bt.disabled = !(bot && Object.keys(cfg.recipients || {}).length); bt.hidden = bt.disabled;
+  const sw = tog.closest("label"); if (sw) sw.hidden = !cfg.token;
 }
 
 document.getElementById("tg-enabled").addEventListener("change", async e => {
@@ -461,6 +483,7 @@ function renderMsgs(){
 function renderThreadHead(){
   const c = chats[active] || {}, name = chatName(c, active), on = !!cfg.recipients?.[active];
   document.getElementById("tg-thread-h").innerHTML = `
+    <button type="button" class="ic tg-back" id="tg-back" aria-label="До списку чатів"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
     <span class="av" style="background:${avColor(name)}">${esc(initials(name))}</span>
     <div style="flex:1;min-width:0"><div class="nm">${esc(name)}</div><div class="un">${c.username ? "@" + esc(c.username) : isGroup(c) ? "група" : "id " + esc(active)}</div></div>
     <button type="button" class="notify-chip${on ? " on" : ""}" data-bell="${esc(active)}" aria-pressed="${on}">${SVG(IC.bell).replace("<svg", `<svg width="13" height="13"${on ? ' fill="currentColor"' : ""}`)}${on ? "Отримує сповіщення" : "Сповіщення вимкнено"}</button>
@@ -468,6 +491,7 @@ function renderThreadHead(){
 }
 async function openChat(id){
   active = id;
+  document.querySelector(".tg-layout")?.classList.add("in-thread");
   const c = chats[id] || {};
   const el = document.getElementById("tg-thread");
   el.innerHTML = `<div class="tg-thread-h" id="tg-thread-h"></div>
@@ -492,6 +516,7 @@ document.getElementById("tg-thread").addEventListener("click", async e => {
   const b = e.target.closest("[data-bell]"); if (b) return toggleNotify(b.dataset.bell);
   if (e.target.closest("#tg-send")) return send();
   if (e.target.closest("#tg-clear")) return clearThread(active);
+  if (e.target.closest("#tg-back")){ document.querySelector(".tg-layout")?.classList.remove("in-thread"); return; }
   const d = e.target.closest("[data-del]"); if (d) return delMsg(active, d.dataset.del);
 });
 document.getElementById("tg-thread").addEventListener("input", e => {

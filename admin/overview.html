@@ -8,19 +8,19 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=4">
+<link rel="stylesheet" href="shared/admin-shell.css?v=5">
 <style>
 /* ─── Page-specific styles for overview ─── */
 .page-head .date{font-size:13.5px;color:var(--ink-500);margin-top:4px}
 .page-head .date::first-letter{text-transform:uppercase}
 
-/* Пульс платформи */
-.pulse{display:flex;align-items:center;gap:16px;padding:16px 18px;border-radius:16px;background:linear-gradient(135deg,#1A1040 0%,#2E1A6B 55%,#4338CA 100%);color:#fff;box-shadow:0 18px 40px -26px rgba(76,29,149,.9);position:relative;overflow:hidden}
+/* Зараз на платформі */
+.pulse{display:flex;align-items:center;gap:16px;padding:16px 18px;border-radius:18px;background:linear-gradient(135deg,#1A1040 0%,#2E1A6B 55%,#4338CA 100%);color:#fff;box-shadow:0 18px 40px -26px rgba(76,29,149,.9);position:relative;overflow:hidden}
 .pulse::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.35),transparent 70%);pointer-events:none}
 .pulse-ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;flex:0 0 auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18)}
 .pulse-ico.live{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.4);color:#86EFAC}
-.pulse-main{flex:1;min-width:0}
-.pulse-t{font-weight:800;font-size:15px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.pulse-main{flex:1;min-width:0;position:relative;z-index:1}
+.pulse-t{font-weight:800;font-size:15px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .pulse-t .dot{width:8px;height:8px;border-radius:50%;background:#22C55E;animation:ovPulse 1.6s infinite}
 @keyframes ovPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}70%{box-shadow:0 0 0 8px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
 .pulse-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
@@ -33,46 +33,50 @@
 .pulse-live:hover{transform:translateY(-1px)}
 .pulse-live::before{content:"";width:7px;height:7px;border-radius:50%;background:#EF4444;animation:liveDot 1.4s infinite}
 @keyframes liveDot{0%,100%{opacity:1}50%{opacity:.3}}
-
-/* KPI */
-.kpi{cursor:default;min-height:150px}
-a.kpi{text-decoration:none;color:inherit;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s}
-a.kpi:hover{transform:translateY(-2px);border-color:var(--line-strong);box-shadow:var(--shadow)}
-.kpi-row{justify-content:space-between}
-.kpi-v,.kpi-l,.kpi-s,.kpi-row{position:relative;z-index:1}
-.kpi-s b{color:var(--ink-700)}
-.kpi.has-spark{padding-bottom:48px}
-.kpi .kpi-spark{position:absolute;left:0;right:0;bottom:0;width:100%;height:40px;opacity:1}
-.delta{font-family:"Geist Mono",monospace;font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:#EEF2FB;color:var(--ink-500)}
-.delta.up{background:#DCFCE7;color:#15803D}
-.delta.down{background:#FEE2E2;color:#B91C1C}
+@media (max-width:640px){.pulse{flex-wrap:wrap}.pulse-live{margin-left:0;width:100%;justify-content:center}}
 
 /* Row layouts */
-.row-2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:14px;align-items:start}
-.side-stack{display:flex;flex-direction:column;gap:14px}
+.row-2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;align-items:start}
+.side-stack{display:flex;flex-direction:column;gap:16px}
 @media (max-width:1280px){.row-2{grid-template-columns:1fr}}
-
-/* Графік активності */
-.seg{display:inline-flex;background:#F1F4FA;border-radius:9px;padding:3px;gap:2px}
-.seg button{border:0;background:transparent;font:inherit;font-size:12px;font-weight:700;color:var(--ink-500);padding:5px 10px;border-radius:7px;cursor:pointer}
+.seg{display:inline-flex;background:#F1F4FA;border-radius:10px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;font:inherit;font-size:12px;font-weight:700;color:var(--ink-500);padding:6px 11px;border-radius:8px;cursor:pointer}
 .seg button.on{background:#fff;color:#6D28D9;box-shadow:0 1px 3px rgba(15,30,71,.12)}
-.chart-sum{display:flex;gap:22px;margin:2px 0 14px}
-.chart-sum div{display:flex;flex-direction:column;gap:2px}
-.chart-sum b{font-family:"Geist Mono",monospace;font-size:20px;font-weight:800;letter-spacing:-.02em}
-.chart-sum span{font-size:11px;color:var(--ink-400);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
-.chart{position:relative;height:180px;display:flex;align-items:flex-end;gap:var(--gap,8px);padding-top:18px}
-.chart-grid{position:absolute;inset:18px 0 0 0;pointer-events:none;background-image:linear-gradient(rgba(11,20,55,.05) 1px,transparent 1px);background-size:100% 25%}
-.cb{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;cursor:default;min-width:0}
-.cb i{display:block;width:100%;max-width:38px;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,#A78BFA,#7C3AED);transition:height .35s cubic-bezier(.32,.72,0,1),filter .15s}
-.cb.zero i{background:#E6EAF3;height:3px!important}
-.cb.today i{background:linear-gradient(180deg,#8B5CF6,#4F46E5);box-shadow:0 6px 16px -6px rgba(124,58,237,.6)}
-.cb:hover i{filter:brightness(1.1)}
-.cb .v{position:absolute;bottom:calc(var(--h) + 4px);font-family:"Geist Mono",monospace;font-size:10.5px;font-weight:700;color:var(--ink-700);opacity:0;transition:opacity .15s;white-space:nowrap}
-.chart.few .cb .v,.cb:hover .v{opacity:1}
-.cb.today .v{color:#6D28D9}
-.chart-labels{display:flex;gap:var(--gap,8px);padding-top:8px;border-top:1px solid var(--line);margin-top:6px}
-.chart-labels span{flex:1;min-width:0;text-align:center;font-size:10.5px;color:var(--ink-400);font-weight:600;white-space:nowrap;overflow:hidden}
-.chart-labels span.today{color:#6D28D9;font-weight:800}
+.chart-sum{display:flex;flex-wrap:wrap;gap:10px 26px;margin:2px 0 18px}
+.chart-sum div{display:flex;flex-direction:column;gap:3px}
+.chart-sum b{font-family:"Geist Mono",monospace;font-size:21px;font-weight:800;letter-spacing:-.02em}
+.chart-sum span{font-size:11px;color:var(--ink-400);font-weight:700;text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:6px}
+.chart-sum span i{width:8px;height:8px;border-radius:2px}
+
+/* Два режими: ігри наживо і тести */
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:1100px){.modes{grid-template-columns:1fr}}
+.mode{background:#fff;border:1px solid var(--line);border-radius:var(--r-xl);padding:20px;display:flex;flex-direction:column;gap:16px;position:relative;overflow:hidden}
+.mode::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--mc)}
+.mode.games{--mc:#E11D8F;--ms:#FCE7F3;--mt:#BE185D}
+.mode.tests{--mc:#2563EB;--ms:#DBEAFE;--mt:#1D4ED8}
+.mode-h{display:flex;align-items:center;gap:12px}
+.mode-ico{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--ms);color:var(--mt);flex:0 0 auto}
+.mode-h h3{margin:0;font-size:16px;font-weight:800;letter-spacing:-.01em}
+.mode-h p{margin:2px 0 0;font-size:12px;color:var(--ink-500)}
+.mode-now{margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px;background:#F1F4FA;color:var(--ink-500);white-space:nowrap;text-decoration:none}
+.mode-now.on{background:var(--ms);color:var(--mt)}
+.mode-now.on::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--mc);animation:liveDot 1.4s infinite}
+.mode-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.mode-stats div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.mode-stats b{font:800 24px "Geist Mono",monospace;letter-spacing:-.02em;line-height:1}
+.mode-stats span{font-size:11.5px;color:var(--ink-500);font-weight:600;line-height:1.3}
+.mode-foot{display:flex;align-items:center;gap:8px;padding-top:14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-500);min-width:0}
+.mode-foot b{color:var(--ink-900);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.mode-foot small{margin-left:auto;font-family:"Geist Mono",monospace;font-size:11.5px;white-space:nowrap}
+@media (max-width:640px){.mode-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.mode{padding:16px}}
+
+/* KPI */
+a.kpi{text-decoration:none;color:inherit;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s}
+a.kpi:hover{transform:translateY(-2px);border-color:var(--line-strong);box-shadow:var(--shadow)}
+.kpi-s b{color:var(--ink-700)}
+.kpi .kpi-row{gap:12px}
+.kpi .kpi-v{font-size:28px}
 
 /* Стан викладачів */
 .status-row{display:grid;grid-template-columns:auto 110px 1fr 34px;align-items:center;gap:10px;padding:9px 0;text-decoration:none;color:inherit;border-radius:8px}
@@ -107,6 +111,7 @@ a.kpi:hover{transform:translateY(-2px);border-color:var(--line-strong);box-shado
 #ov-table tr:focus-visible td{background:#F5F3FF}
 .t-name{font-weight:700;display:flex;align-items:center;gap:7px;white-space:nowrap}
 .t-mail{font-size:11.5px;color:var(--ink-400);font-family:"Geist Mono",monospace;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:230px}
+#ov-table td{white-space:nowrap}
 .t-sub{font-size:11px;color:var(--ink-400);margin-left:4px;font-family:"Geist Mono",monospace}
 .g-pill{font-family:"Geist Mono",monospace;font-weight:700;font-size:12px;padding:3px 8px;border-radius:999px}
 .g-pill.ok{background:#DCFCE7;color:#15803D}.g-pill.mid{background:#FEF3C7;color:#92400E}.g-pill.bad{background:#FEE2E2;color:#B91C1C}
@@ -118,13 +123,14 @@ a.kpi:hover{transform:translateY(-2px);border-color:var(--line-strong);box-shado
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=1"></script>
+<script src="shared/admin-nav.js?v=2"></script>
 <div id="admin-root"></div>
 <div id="admin-modals"></div>
 <div id="admin-toast" class="toast"></div>
 
 <script type="module">
-import { initAdminShell, loadAllTeachers, esc, formatTimeAgo, dbGet, toast, hideLoader } from "./shared/admin-shell.js?v=5";
+import { initAdminShell, loadAllTeachers, esc, formatTimeAgo, dbGet, toast, hideLoader } from "./shared/admin-shell.js?v=6";
+import { bars, C } from "./shared/admin-charts.js?v=1";
 
 const DAY = 864e5;
 // Відмінювання: plural(5, ["викладач","викладачі","викладачів"])
@@ -139,6 +145,7 @@ const ICO = {
   doc:      I('<path d="M14 3v5h5"/><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M9 13h6M9 17h4"/>'),
   users:    I('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>'),
   pulse:    I('<path d="M3 12h4l3-9 4 18 3-9h4"/>'),
+  game:     I('<rect x="2" y="6" width="20" height="12" rx="4"/><path d="M7 10v4M5 12h4"/><circle cx="15.5" cy="11" r="1" fill="currentColor"/><circle cx="18" cy="13.5" r="1" fill="currentColor"/>'),
   bug:      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>',
   idea:     '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>',
   check:    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
@@ -152,7 +159,7 @@ const content = `
     </div>
   </div>
 
-  <!-- Пульс платформи -->
+  <!-- Що відбувається зараз -->
   <section class="pulse" id="ov-pulse">
     <div class="pulse-ico" id="pulse-ico">${ICO.pulse}</div>
     <div class="pulse-main">
@@ -162,14 +169,20 @@ const content = `
     <a href="../live" target="_blank" rel="noopener" class="pulse-live">Live-моніторинг</a>
   </section>
 
+  <!-- Два режими: ігри наживо і тести за посиланням -->
+  <div class="modes">
+    <section class="mode games" id="mode-games"></section>
+    <section class="mode tests" id="mode-tests"></section>
+  </div>
+
   <div class="kpi-grid" id="kpi-grid"></div>
 
   <div class="row-2">
     <section class="card">
-      <div class="card-h">
+      <div class="card-h" style="flex-wrap:wrap;gap:10px">
         <div>
-          <h3>Активність студентів</h3>
-          <div class="sub">Спроби проходження тестів по днях</div>
+          <h3>Активність учнів</h3>
+          <div class="sub">Скільки разів учні проходили тести й грали в ігри по днях</div>
         </div>
         <div class="seg" role="tablist" aria-label="Період">
           <button type="button" data-range="7">7 днів</button>
@@ -178,8 +191,7 @@ const content = `
         </div>
       </div>
       <div class="chart-sum" id="chart-sum"></div>
-      <div class="chart" id="chart-bars"></div>
-      <div class="chart-labels" id="chart-labels"></div>
+      <div id="chart-act"></div>
     </section>
 
     <div class="side-stack">
@@ -230,6 +242,7 @@ const content = `
             <th class="sortable" data-sort="tests">Тести <span class="ord"></span></th>
             <th class="sortable" data-sort="students">Студенти <span class="ord"></span></th>
             <th class="sortable" data-sort="attempts">Спроби <span class="ord"></span></th>
+            <th class="sortable" data-sort="games">Ігри <span class="ord"></span></th>
             <th class="sortable" data-sort="weekAttempts">За тиждень <span class="ord"></span></th>
             <th class="sortable" data-sort="avg">Сер. оцінка <span class="ord"></span></th>
             <th class="sortable" data-sort="lastAct">Остання активність <span class="ord"></span></th>
@@ -263,11 +276,11 @@ const { _user } = await initAdminShell({ activeId: "overview", crumbs: ["Огл�
 }
 
 // ─── Дані ────────────────────────────────────────────────────────────────────
-let D = { users: [], stats: {}, attempts: [], problems: [] };
+let D = { users: [], stats: {}, attempts: [], games: [], live: [], problems: [] };
 let _range = 14, _ovSortBy = "attempts", _ovSortDir = "desc";
 
 async function reload(){
-  const [{ _users, _stats, _allAttempts }, bugs] = await Promise.all([
+  const [{ _users, _stats, _allAttempts, _allGames, _liveNow }, bugs] = await Promise.all([
     loadAllTeachers(),
     dbGet("bugReports").catch(() => null),
   ]);
@@ -275,30 +288,27 @@ async function reload(){
   const g = {};
   _allAttempts.forEach(a => { if (a.grade12 == null || a.status === "in_progress") return; (g[a.teacherId] ||= []).push(+a.grade12); });
   _users.forEach(u => { const arr = g[u.id]; if (_stats[u.id]) _stats[u.id].avg = arr?.length ? arr.reduce((s, x) => s + x, 0) / arr.length : null; });
+  _users.forEach(u => { const s = _stats[u.id]; if (s) s.week = (s.weekAttempts || 0) + (s.weekGames || 0); });
   D = {
-    users: _users, stats: _stats, attempts: _allAttempts,
+    users: _users, stats: _stats, attempts: _allAttempts, games: _allGames || [], live: _liveNow || [],
     problems: bugs ? Object.entries(bugs).map(([id, v]) => ({ id, ...v })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)) : [],
   };
   renderAll();
 }
 
-function perDay(n){
+// Сума по днях за останні n днів: list — масив, when(x) — час, w(x) — вага (1 або к-сть гравців)
+function perDay(n, list = D.attempts, when = a => a.createdAt, w = () => 1){
   const start = dayStart(Date.now()) - (n - 1) * DAY;
   const out = new Array(n).fill(0);
-  D.attempts.forEach(a => { const t = a.createdAt; if (!t || t < start) return; const i = Math.floor((t - start) / DAY); if (i >= 0 && i < n) out[i]++; });
+  list.forEach(x => { const t = when(x); if (!t || t < start) return; const i = Math.floor((t - start) / DAY); if (i >= 0 && i < n) out[i] += w(x); });
   return out;
 }
-function spark(vals, color){
-  const w = 200, h = 46, max = Math.max(1, ...vals), step = w / (vals.length - 1 || 1);
-  const pts = vals.map((v, i) => [(i * step).toFixed(1), (h - 4 - v / max * (h - 12)).toFixed(1)]);
-  const line = pts.map((p, i) => (i ? "L" : "M") + p[0] + " " + p[1]).join(" ");
-  return `<svg class="kpi-spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
-    <defs><linearGradient id="ovsp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".22"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
-    <path d="${line} L${w} ${h} L0 ${h} Z" fill="url(#ovsp)"/><path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
-}
-
+const dayLabels = n => { const start = dayStart(Date.now()) - (n - 1) * DAY, WD = ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
+  return { short: Array.from({ length: n }, (_, i) => { const d = new Date(start + i * DAY); return n <= 7 ? WD[d.getDay()] : d.getDate() + "." + String(d.getMonth() + 1).padStart(2, "0"); }),
+    full: Array.from({ length: n }, (_, i) => new Date(start + i * DAY).toLocaleDateString("uk-UA", { weekday: "short", day: "numeric", month: "long" })) }; };
 function renderAll(){
   renderPulse();
+  renderModes();
   renderKpis();
   renderChart();
   renderProblems();
@@ -307,76 +317,104 @@ function renderAll(){
 }
 
 function renderPulse(){
-  const live = D.attempts.filter(a => a.status === "in_progress").length;
+  const nowT = Date.now();
+  const testing = D.attempts.filter(a => a.status === "in_progress" && nowT - (a.lastSeen || a.startedAt || a.createdAt || 0) < 10 * 60e3).length;
+  const games = D.live.length, players = D.live.reduce((s, r) => s + (r.players || 0), 0);
   const newProb = D.problems.filter(p => p.status === "new").length;
   const first = D.users.filter(u => u.isFirstLogin && !u.blocked).length;
-  const today = D.attempts.filter(a => (a.createdAt || 0) >= dayStart(Date.now())).length;
-  const t = document.getElementById("pulse-t");
-  const ico = document.getElementById("pulse-ico");
-  ico.classList.toggle("live", live > 0);
-  t.innerHTML = live
-    ? `<span class="dot"></span>${live} ${plural(live, ["студент проходить", "студенти проходять", "студентів проходять"])} тест прямо зараз`
-    : today ? `Сьогодні ${today} ${plural(today, ["спроба", "спроби", "спроб"])} · зараз ніхто не проходить тест` : "Сьогодні спроб ще не було";
+  const parts = [];
+  if (games) parts.push(`${games} ${plural(games, ["гра", "гри", "ігор"])} наживо${players ? ` · ${players} ${plural(players, ["гравець", "гравці", "гравців"])}` : ""}`);
+  if (testing) parts.push(`${testing} ${plural(testing, ["учень проходить", "учні проходять", "учнів проходять"])} тест`);
+  document.getElementById("pulse-ico").classList.toggle("live", !!(games || testing));
+  document.getElementById("pulse-t").innerHTML = parts.length ? `<span class="dot"></span>Зараз: ${esc(parts.join(" · "))}` : "Зараз на платформі тихо: ні ігор, ні тестів у процесі";
   const chips = [];
   if (newProb) chips.push(`<a class="pulse-chip bad" href="problems">${newProb} ${plural(newProb, ["нова проблема", "нові проблеми", "нових проблем"])}</a>`);
   if (first) chips.push(`<a class="pulse-chip warn" href="teachers">${first} ${plural(first, ["викладач ще не увійшов", "викладачі ще не увійшли", "викладачів ще не увійшли"])}</a>`);
-  if (!chips.length) chips.push(`<span class="pulse-chip ok">Усе спокійно: проблем і незавершених запрошень немає</span>`);
+  if (!chips.length) chips.push(`<span class="pulse-chip ok">Проблем і незавершених запрошень немає</span>`);
   document.getElementById("pulse-chips").innerHTML = chips.join("");
+}
+
+// Картки двох режимів: останні 30 днів + міні-графік за 14 днів
+function renderModes(){
+  const nowT = Date.now(), from = nowT - 30 * DAY;
+  const L = dayLabels(14);
+  const top = (arr, key) => { const m = new Map(); arr.forEach(x => { const k = key(x); if (k) m.set(k, (m.get(k) || 0) + 1); }); return [...m].sort((a, b) => b[1] - a[1])[0]; };
+
+  // Ігри
+  const g30 = D.games.filter(g => g.playedAt >= from);
+  const pl = g30.reduce((s, g) => s + g.players, 0);
+  const hosts = new Set(g30.map(g => g.teacherId)).size;
+  const tg = top(g30, g => g.title);
+  const liveN = D.live.length;
+  document.getElementById("mode-games").innerHTML = `
+    <div class="mode-h"><span class="mode-ico">${ICO.game}</span><div><h3>Ігри наживо</h3><p>Вікторини на уроці · останні 30 днів</p></div>
+      <a class="mode-now${liveN ? " on" : ""}" href="../live" target="_blank" rel="noopener">${liveN ? `${liveN} ${plural(liveN, ["гра", "гри", "ігор"])} зараз` : "Зараз немає"}</a></div>
+    <div class="mode-stats">
+      <div><b>${g30.length}</b><span>${plural(g30.length, ["гра", "гри", "ігор"])}</span></div>
+      <div><b>${pl}</b><span>${plural(pl, ["учасник", "учасники", "учасників"])}</span></div>
+      <div><b>${g30.length ? Math.round(pl / g30.length) : "—"}</b><span>гравців на гру</span></div>
+      <div><b>${hosts}</b><span>${plural(hosts, ["викладач проводив", "викладачі проводили", "викладачів проводили"])}</span></div>
+    </div>
+    <div id="mini-games"></div>
+    <div class="mode-foot">${tg ? `Найчастіше грали:<b>${esc(tg[0])}</b><small>${tg[1]} ${plural(tg[1], ["раз", "рази", "разів"])}</small>` : `За 30 днів ігор не було`}</div>`;
+  bars(document.getElementById("mini-games"), { compact: true, labels: L.short, full: L.full, series: [{ name: "Ігор", color: C.games, values: perDay(14, D.games, g => g.playedAt) }] });
+
+  // Тести
+  const a30 = D.attempts.filter(a => (a.createdAt || 0) >= from);
+  const graded = a30.filter(a => a.grade12 != null && a.status !== "in_progress").map(a => +a.grade12);
+  const avg = graded.length ? graded.reduce((s, x) => s + x, 0) / graded.length : null;
+  const pass = graded.length ? Math.round(graded.filter(x => x >= 4).length / graded.length * 100) : null;
+  const pend = D.attempts.filter(a => a.status === "pending_review").length;
+  const testing = D.attempts.filter(a => a.status === "in_progress" && nowT - (a.lastSeen || a.startedAt || a.createdAt || 0) < 10 * 60e3).length;
+  const tt = top(a30, a => a.testTitle || null) || top(a30, a => a.teacherName);
+  document.getElementById("mode-tests").innerHTML = `
+    <div class="mode-h"><span class="mode-ico">${ICO.doc}</span><div><h3>Тести за посиланням</h3><p>Самостійні й контрольні · останні 30 днів</p></div>
+      <span class="mode-now${testing ? " on" : ""}">${testing ? `${testing} проходять зараз` : "Зараз ніхто"}</span></div>
+    <div class="mode-stats">
+      <div><b>${a30.length}</b><span>${plural(a30.length, ["спроба", "спроби", "спроб"])}</span></div>
+      <div><b>${avg != null ? avg.toFixed(1) : "—"}</b><span>середня оцінка</span></div>
+      <div><b>${pass != null ? pass + "%" : "—"}</b><span>склали (≥ 4)</span></div>
+      <div><b>${pend}</b><span>чекають перевірки</span></div>
+    </div>
+    <div id="mini-tests"></div>
+    <div class="mode-foot">${tt ? `${a30.some(a => a.testTitle) ? "Найактивніший тест:" : "Найбільше спроб у:"}<b>${esc(tt[0])}</b><small>${tt[1]} ${plural(tt[1], ["спроба", "спроби", "спроб"])}</small>` : `За 30 днів спроб не було`}</div>`;
+  bars(document.getElementById("mini-tests"), { compact: true, labels: L.short, full: L.full, series: [{ name: "Спроб", color: C.tests, values: perDay(14) }] });
 }
 
 function renderKpis(){
   const u = D.users, active = u.filter(x => !x.blocked), blocked = u.length - active.length, first = u.filter(x => x.isFirstLogin && !x.blocked).length;
   let tests = 0, pub = 0, students = 0;
   u.forEach(x => { const s = D.stats[x.id] || {}; tests += s.tests || 0; pub += s.activeTests || 0; students += s.students || 0; });
-  const now = Date.now();
-  const wk = D.attempts.filter(a => (a.createdAt || 0) >= now - 7 * DAY).length;
-  const prev = D.attempts.filter(a => (a.createdAt || 0) >= now - 14 * DAY && (a.createdAt || 0) < now - 7 * DAY).length;
-  const d = wk - prev;
-  const delta = `<span class="delta ${d > 0 ? "up" : d < 0 ? "down" : ""}">${d > 0 ? "▲ " + d : d < 0 ? "▼ " + (-d) : "="}</span>`;
+  const players = D.games.reduce((s, g) => s + g.players, 0);
   const K = [
     { k: "violet", ico: ICO.teachers, v: u.length, l: plural(u.length, ["Викладач", "Викладачі", "Викладачів"]), href: "teachers",
       s: [`<b>${active.length - first}</b> ${plural(active.length - first, ["активний", "активні", "активних"])}`, first ? `<b>${first}</b> не увійшли` : "", blocked ? `<b>${blocked}</b> заблок.` : ""].filter(Boolean).join(" · ") },
-    { k: "blue", ico: ICO.doc, v: tests, l: plural(tests, ["Тест", "Тести", "Тестів"]), href: "stats", s: `<b>${pub}</b> опубліковано` },
+    { k: "blue", ico: ICO.doc, v: tests, l: plural(tests, ["Тест у базі", "Тести в базі", "Тестів у базі"]), href: "stats", s: `<b>${pub}</b> ${plural(pub, ["активний", "активні", "активних"])}` },
+    { k: "pink", ico: ICO.game, v: D.games.length, l: plural(D.games.length, ["Гра", "Гри", "Ігор"]) + " усього", href: "stats", s: `<b>${players}</b> ${plural(players, ["участь", "участі", "участей"])} учнів` },
     { k: "green", ico: ICO.users, v: students, l: plural(students, ["Студент", "Студенти", "Студентів"]), href: "stats",
-      s: u.length ? `≈ <b>${Math.round(students / Math.max(1, active.length))}</b> на викладача` : "—" },
-    { k: "amber", ico: ICO.pulse, v: D.attempts.length, l: plural(D.attempts.length, ["Спроба", "Спроби", "Спроб"]), href: "stats",
-      s: `${delta} <b>${wk}</b> за тиждень`, spark: D.attempts.length ? spark(perDay(14), "#D97706") : "" },
+      s: `<b>${D.attempts.length}</b> ${plural(D.attempts.length, ["спроба", "спроби", "спроб"])} тестів` },
   ];
   document.getElementById("kpi-grid").innerHTML = K.map(k => `
-    <a class="kpi ${k.k}${k.spark ? " has-spark" : ""}" href="${k.href}">
-      <div class="kpi-row"><div class="kpi-ico">${k.ico}</div></div>
-      <div class="kpi-v">${k.v}</div>
+    <a class="kpi ${k.k}" href="${k.href}">
+      <div class="kpi-row"><div class="kpi-ico">${k.ico}</div><div class="kpi-v">${k.v}</div></div>
       <div class="kpi-l">${esc(k.l)}</div>
       <div class="kpi-s">${k.s}</div>
-      ${k.spark || ""}
     </a>`).join("");
 }
 
 function renderChart(){
-  const n = _range, vals = perDay(n), max = Math.max(1, ...vals);
-  const total = vals.reduce((s, v) => s + v, 0);
-  const peak = Math.max(...vals);
-  const start = dayStart(Date.now()) - (n - 1) * DAY;
-  const WD = ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
-  const lbl = i => { const d = new Date(start + i * DAY); return n <= 7 ? WD[d.getDay()] : String(d.getDate()); };
-  const full = i => new Date(start + i * DAY).toLocaleDateString("uk-UA", { weekday: "short", day: "numeric", month: "short" });
-  const grades = D.attempts.filter(a => a.grade12 != null && (a.createdAt || 0) >= start).map(a => +a.grade12);
-  const avg = grades.length ? (grades.reduce((s, g) => s + g, 0) / grades.length).toFixed(1) : "—";
+  const n = _range, L = dayLabels(n);
+  const t = perDay(n), g = perDay(n, D.games, x => x.playedAt, x => x.players);
+  const gc = perDay(n, D.games, x => x.playedAt);
+  const sum = a => a.reduce((s, v) => s + v, 0);
+  const busiest = t.map((v, i) => v + g[i]).reduce((bi, v, i, arr) => v > arr[bi] ? i : bi, 0);
   document.getElementById("chart-sum").innerHTML = `
-    <div><b>${total}</b><span>${plural(total, ["спроба", "спроби", "спроб"])}</span></div>
-    <div><b>${(total / n).toFixed(1)}</b><span>на день</span></div>
-    <div><b>${peak}</b><span>пік за день</span></div>
-    <div><b>${avg}</b><span>сер. оцінка</span></div>`;
-  const chart = document.getElementById("chart-bars");
-  chart.style.setProperty("--gap", n > 14 ? "3px" : "8px");
-  chart.classList.toggle("few", n <= 14);
-  chart.innerHTML = `<div class="chart-grid"></div>` + vals.map((v, i) => {
-    const h = v ? Math.max(4, v / max * 100) : 0;
-    const cls = ["cb", v ? "" : "zero", i === n - 1 ? "today" : ""].filter(Boolean).join(" ");
-    return `<div class="${cls}" style="--h:${h}%" title="${esc(full(i))}: ${v} ${plural(v, ["спроба", "спроби", "спроб"])}"><span class="v">${v || ""}</span><i style="height:${h}%"></i></div>`;
-  }).join("");
-  document.getElementById("chart-labels").innerHTML = vals.map((_, i) =>
-    `<span class="${i === n - 1 ? "today" : ""}">${n > 14 && i % 3 && i !== n - 1 ? "" : lbl(i)}</span>`).join("");
+    <div><b>${sum(t)}</b><span><i style="background:${C.tests}"></i>спроб тестів</span></div>
+    <div><b>${sum(g)}</b><span><i style="background:${C.games}"></i>участей в іграх</span></div>
+    <div><b>${sum(gc)}</b><span>${plural(sum(gc), ["гра", "гри", "ігор"])} проведено</span></div>
+    <div><b>${sum(t) + sum(g) ? esc(L.short[busiest]) : "—"}</b><span>найактивніший день</span></div>`;
+  bars(document.getElementById("chart-act"), { labels: L.short, full: L.full, highlightLast: true, height: 210,
+    series: [{ name: "Спроби тестів", color: C.tests, values: t }, { name: "Участь в іграх", color: C.games, values: g }] });
 }
 
 function renderProblems(){
@@ -434,7 +472,7 @@ function renderTable(){
 
   const tb = document.getElementById("ov-table");
   if (!list.length){
-    tb.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="et">${q ? "Нічого не знайдено" : "Ще немає викладачів"}</div><div class="es">${q ? "Спробуйте інший запит" : "Додайте першого викладача на сторінці «Викладачі»"}</div></div></td></tr>`;
+    tb.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="et">${q ? "Нічого не знайдено" : "Ще немає викладачів"}</div><div class="es">${q ? "Спробуйте інший запит" : "Додайте першого викладача на сторінці «Викладачі»"}</div></div></td></tr>`;
     return;
   }
   const PAL = ["", "b", "g", "o", "r"];
@@ -461,7 +499,8 @@ function renderTable(){
       <td class="mono" style="font-weight:700">${s.tests || 0}<span class="t-sub">${s.activeTests || 0} акт.</span></td>
       <td class="mono" style="font-weight:700">${s.students || 0}</td>
       <td class="mono" style="font-weight:700">${s.attempts || 0}</td>
-      <td>${s.weekAttempts ? `<span class="pill green">+${s.weekAttempts}</span>` : `<span class="mono" style="color:var(--ink-300)">0</span>`}</td>
+      <td class="mono" style="font-weight:700">${s.games || 0}${s.gamePlayers ? `<span class="t-sub">${s.gamePlayers} грав.</span>` : ""}</td>
+      <td>${s.weekAttempts + s.weekGames ? `<span class="pill green" title="Спроб і ігор за 7 днів">+${s.weekAttempts + s.weekGames}</span>` : `<span class="mono" style="color:var(--ink-300)">0</span>`}</td>
       <td>${s.avg != null ? `<span class="g-pill ${gradeTone(s.avg)}">${s.avg.toFixed(1)}</span>` : `<span class="mono" style="color:var(--ink-300)">—</span>`}</td>
       <td><span class="last ${lastCls}">${s.lastAct ? esc(formatTimeAgo(s.lastAct)) : "—"}</span></td>
     </tr>`;
@@ -485,6 +524,9 @@ document.querySelector(".seg").addEventListener("click", e => {
   document.querySelectorAll(".seg button").forEach(x => x.classList.toggle("on", x === b));
   renderChart();
 });
+// Підписи осей залежать від ширини — перемальовуємо графіки після зміни розміру
+let _rsT, _rsW = innerWidth;
+addEventListener("resize", () => { clearTimeout(_rsT); _rsT = setTimeout(() => { if (Math.abs(innerWidth - _rsW) < 40) return; _rsW = innerWidth; renderModes(); renderChart(); }, 200); });
 document.getElementById("btn-refresh").addEventListener("click", async () => {
   const btn = document.getElementById("btn-refresh");
   btn.disabled = true; btn.style.opacity = "0.5";

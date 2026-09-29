@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=4">
+<link rel="stylesheet" href="shared/admin-shell.css?v=5">
 <style>
 .nav-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
 @media (max-width:1240px){.nav-layout{grid-template-columns:1fr}.pv-card{position:static!important}}
@@ -172,12 +172,29 @@
 .save-bar .tb-btn.ghost{color:#E9E4FF}
 .save-bar .tb-btn.ghost:hover{background:rgba(255,255,255,.1);color:#fff}
 @media (max-width:1320px){.it{grid-template-columns:22px 38px minmax(110px,1fr) minmax(130px,170px) 108px 40px 30px}}
+/* Телефон: назва, перемикач і меню — першим рядком; сторінка й ролі — під ними */
+@media (max-width:760px){
+  .nav-layout > *{min-width:0}
+  .sec-h{flex-wrap:wrap}
+  .sec-h input{min-width:0;flex:1 1 120px}
+  .it{grid-template-columns:18px 36px minmax(0,1fr) 42px 32px;row-gap:8px;padding:10px 6px}
+  .it .i-name{min-width:0}
+  .save-bar{flex-wrap:wrap;bottom:10px}
+  .save-bar .t{flex:1 1 100%}
+  .save-bar .k{display:none}
+  .it > :nth-child(4){grid-column:3 / -1;grid-row:2}
+  .it > :nth-child(5){grid-column:3 / -1;grid-row:3;justify-self:start}
+  .it > :nth-child(6){grid-column:4;grid-row:1}
+  .it > :nth-child(7){grid-column:5;grid-row:1}
+  .it > .i-err{grid-column:3 / -1}
+  .kbd-hint{display:none}
+}
 </style>
 </head>
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=1"></script>
+<script src="shared/admin-nav.js?v=2"></script>
 <div id="admin-root"></div>
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -211,7 +228,7 @@
 </div>
 
 <script type="module">
-import { initAdminShell, dbGet, db, ref, update, esc, toast, openModal, closeModal, hideLoader } from "./shared/admin-shell.js?v=5";
+import { initAdminShell, dbGet, db, ref, update, esc, toast, openModal, closeModal, hideLoader } from "./shared/admin-shell.js?v=6";
 
 // ─── ІКОНКИ (40 штук, 5 категорій) ────────────────────────────────────────
 const ICON_CATS = {
@@ -471,7 +488,7 @@ function render(flashId){ renderEditor(flashId); renderPreview(); renderDirty();
 function renderDirty(){
   const d = dirty();
   document.getElementById("save-bar").classList.toggle("on", d);
-  document.getElementById("btn-save-nav").disabled = !d;
+  { const b = document.getElementById("btn-save-nav"); b.disabled = !d; b.hidden = !d; }   // без змін кнопки не показуємо
 }
 
 // ─── Дії ──────────────────────────────────────────────────────────────────
@@ -739,7 +756,7 @@ const topbarRight = `
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>
     Стандартне меню
   </button>
-  <button class="tb-btn primary" id="btn-save-nav" type="button" disabled>
+  <button class="tb-btn primary" id="btn-save-nav" type="button" disabled hidden>
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
     Зберегти
   </button>`;

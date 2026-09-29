@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=4">
+<link rel="stylesheet" href="shared/admin-shell.css?v=5">
 <style>
 /* ─── Page-specific styles for teachers ─── */
 
@@ -118,6 +118,18 @@
   .tc-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
   .tc-row,.tc-head{grid-template-columns:minmax(200px,2fr) 104px 80px 96px 116px}
   .tc-head .c-students,.tc-row .c-students{display:none}
+}
+/* Телефон: кожен викладач — картка */
+@media (max-width:760px){
+  .tc-toolbar .search-input{max-width:none;flex:1 1 100%}
+  .tc-head{display:none}
+  .tc-row{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:12px;padding:14px!important;align-items:start}
+  .tc-row > .tc-who{grid-column:1 / -1}
+  .tc-row > .num{text-align:left}
+  .tc-row > .num::before{content:attr(data-l);display:block;font:700 10px "Manrope",sans-serif;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-400);margin-bottom:3px}
+  .tc-row > .tc-last{display:none}
+  .tc-row > .tc-acts{grid-column:1 / -1;justify-content:flex-start}
+  .tc-tile{padding:12px}
 }
 
 /* ─── Modal — fields & password box ─── */
@@ -240,7 +252,7 @@
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=1"></script>
+<script src="shared/admin-nav.js?v=2"></script>
 <div id="admin-root"></div>
 <div id="admin-modals">
 
@@ -550,7 +562,7 @@
 <div id="admin-toast" class="toast"></div>
 
 <script type="module">
-import { initAdminShell, loadAllTeachers, esc, formatTimeAgo, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast, genPass, hideLoader } from "./shared/admin-shell.js?v=5";
+import { initAdminShell, loadAllTeachers, esc, formatTimeAgo, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast, genPass, hideLoader } from "./shared/admin-shell.js?v=6";
 
 const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const IC = {
@@ -792,9 +804,9 @@ function renderGrid(){
         </div>
       </div>
       <div>${status === "blocked" ? '<span class="tc-status blocked">Заблоковано</span>' : status === "first" ? '<span class="tc-status first">Не увійшов</span>' : '<span class="tc-status ok">Активний</span>'}</div>
-      <div class="num">${s.tests || 0}<small>${s.activeTests || 0} акт.</small></div>
-      <div class="num c-students">${s.students || 0}</div>
-      <div class="num">${s.attempts || 0}<small class="${s.weekAttempts ? "up" : ""}">${s.weekAttempts ? "+" + s.weekAttempts + " за тиж." : "—"}</small></div>
+      <div class="num" data-l="Тести">${s.tests || 0}<small>${s.activeTests || 0} акт.</small></div>
+      <div class="num c-students" data-l="Студенти">${s.students || 0}</div>
+      <div class="num" data-l="Спроби">${s.attempts || 0}<small class="${s.weekAttempts ? "up" : ""}">${s.weekAttempts ? "+" + s.weekAttempts + " за тиж." : "—"}</small></div>
       <div class="tc-last ${age < DAY ? "recent" : age > 30 * DAY ? "stale" : ""}" title="${s.lastAct ? esc(new Date(s.lastAct).toLocaleString("uk-UA")) : "Спроб ще не було"}">${s.lastAct ? esc(formatTimeAgo(s.lastAct)) : "—"}</div>
       <div class="tc-acts">
         <button type="button" class="ic-btn ai${u.aiSettings ? " custom" : ""}" data-act="ai" title="AI-налаштування${u.aiSettings ? " (індивідуальні)" : ""}" aria-label="AI-налаштування для ${esc(name)}">${IC.ai}</button>
