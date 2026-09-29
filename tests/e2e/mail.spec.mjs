@@ -117,3 +117,56 @@ test("запрошення: без воркера поля email і кнопки
   await expect(page.locator("#nw-email")).toBeHidden();
   expect(errors).toEqual([]);
 });
+
+test("розсилки: AI пише лист, можна доопрацювати й повернути як було", async ({ page, errors }) => {
+  const calls = [], ai = [];
+  await fakeWorker(page, calls);
+  await page.context().route("https://api.groq.com/**", async route => {
+    const body = JSON.parse(route.request().postData());
+    ai.push(body);
+    const edit = /Поточний лист/.test(body.messages.at(-1).content);
+    const content = JSON.stringify(edit
+      ? { subject: "Оновлення QuizFlow: коротко", body: "Коротка версія.\n\n- ролі\n- ігри", button: null }
+      : { subject: "Нові ролі та історія ігор 🎉", body: "У QuizFlow з'явилися **ролі**.\n\n## Історія ігор\nТепер результати зберігаються.\n\n- ролі\n- ігри", button: { label: "Спробувати", url: "https://quizflow.space/live" } });
+    route.fulfill({ contentType: "application/json", body: JSON.stringify({ choices: [{ message: { content } }], usage: { total_tokens: 321 } }) });
+  });
+  const db = mailDb();
+  db.settings = { mail: { workerUrl: WORKER }, ai: { groqApiKey: "gsk_test", aiMail: true } };
+  await seed(page, db, "t5");
+  await page.goto("/admin/mail");
+  await page.fill("#ai-prompt", "Розкажи про ролі й історію ігор");
+  await page.click('[data-tone="formal"]');
+  await page.click('[data-act="ai-new"]');
+  await expect(page.locator("#f-subj")).toHaveValue("Нові ролі та історія ігор");   // емодзі прибрано
+  await expect(page.locator("#f-body")).toHaveValue(/## Історія ігор/);
+  await expect(page.locator("#f-btn-u")).toHaveValue("https://quizflow.space/live");
+  expect(ai[0].response_format).toEqual({ type: "json_object" });
+  expect(ai[0].messages[0].content).toMatch(/НЕ пиши привітання/);
+  expect(ai[0].messages[1].content).toMatch(/офіційно-діловий/);
+  await expect(page.frameLocator("#pv-box iframe").locator("body")).toContainText("Історія ігор");
+
+  await page.click('[data-act="ai-edit"]');
+  await expect(page.locator("#f-subj")).toHaveValue("Оновлення QuizFlow: коротко");
+  expect(ai[1].messages[1].content).toMatch(/Поточний лист:\nТема: Нові ролі та історія ігор/);
+  await expect(page.locator("#f-btn")).not.toBeChecked();
+  await page.click('[data-act="ai-undo"]');
+  await expect(page.locator("#f-subj")).toHaveValue("Нові ролі та історія ігор");
+
+  await expect.poll(async () => {
+    const u = (await readDb(page)).aiUsage || {};
+    return Object.values(u)[0]?.t5?.mail;
+  }).toMatchObject({ calls: 2, tokens: 642 });
+  expect(errors).toEqual([]);
+});
+
+test("розсилки: без ключа AI — підказка замість кнопки", async ({ page, errors }) => {
+  const calls = [];
+  await fakeWorker(page, calls);
+  const db = mailDb();
+  db.settings = { mail: { workerUrl: WORKER } };
+  await seed(page, db, "t5");
+  await page.goto("/admin/mail");
+  await expect(page.locator(".ai-off")).toContainText("AI не налаштовано");
+  await expect(page.locator('[data-act="ai-new"]')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});

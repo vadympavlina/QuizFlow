@@ -11,7 +11,7 @@
 // Адміністраторів не обмежуємо.
 // ═══════════════════════════════════════════════════════════════════════
 import { ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { limitNotice } from "./notices.js?v=1";
+import { limitNotice } from "./notices.js?v=2";
 
 export const CAP_FLAGS = {
   games:  { label: "Ігри наживо",           desc: "Запуск ігор з телефонами учнів" },

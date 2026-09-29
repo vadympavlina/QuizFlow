@@ -44,7 +44,7 @@
 @media (max-width:640px){ .cl-sum{flex-wrap:wrap} .cl-sum .v{margin-left:0;text-align:left} .cl-h{flex-wrap:wrap} .cl-n{margin-left:50px;text-align:left} }
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=12">
+<link rel="modulepreload" href="shared/admin-shell.js?v=13">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -68,7 +68,7 @@
 </div>
 
 <script type="module">
-import { logAction, initAdminShell, dbGet, db, ref, update, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=12";
+import { logAction, initAdminShell, dbGet, db, ref, update, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=13";
 
 const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const H = 3600e3, DAY = 24 * H;
