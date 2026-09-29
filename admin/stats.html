@@ -10,7 +10,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/admin-shell.css?v=9">
+<link rel="stylesheet" href="shared/admin-shell.css?v=10">
 <style>
 .row-2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
 .row-mix{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:16px}
@@ -56,7 +56,7 @@
 .empty-mini{padding:40px 20px;text-align:center;color:var(--ink-500);font-size:13px}
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=15">
+<link rel="modulepreload" href="shared/admin-shell.js?v=16">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -64,13 +64,13 @@
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=7"></script>
+<script src="shared/admin-nav.js?v=8"></script>
 <div id="admin-root"></div>
 <div id="admin-modals"></div>
 <div id="admin-toast" class="toast"></div>
 
 <script type="module">
-import { initAdminShell, loadAllTeachers, cachedTeachers, esc, hideLoader, formatTimeAgo } from "./shared/admin-shell.js?v=15";
+import { initAdminShell, loadAllTeachers, cachedTeachers, esc, hideLoader, formatTimeAgo } from "./shared/admin-shell.js?v=16";
 import { bars, rank, bindTips, C } from "./shared/admin-charts.js?v=1";
 
 const DAY = 864e5;

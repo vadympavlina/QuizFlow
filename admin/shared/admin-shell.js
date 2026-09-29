@@ -212,7 +212,7 @@ function ensureAdminNav(){
   if (window.AdminNav) return Promise.resolve();
   return new Promise(res => {
     const s = document.createElement("script");
-    s.src = new URL("./admin-nav.js?v=7", import.meta.url).href;
+    s.src = new URL("./admin-nav.js?v=8", import.meta.url).href;
     s.onload = s.onerror = () => res();
     document.head.appendChild(s);
   });
@@ -236,15 +236,6 @@ function renderTopbar(activeId, crumbs){
     <div id="topbar-extras" class="tb-extras"></div>
     <button type="button" class="tb-icon tb-bell" id="tb-bell" aria-label="Сигнали" title="Сигнали" aria-haspopup="dialog" aria-expanded="false">${ICONS.bell}<span class="badge" id="tb-bell-n" hidden></span></button>
   </header>`;
-}
-
-// Вкладки розділу (сторінки одного пункту меню) — під верхньою панеллю
-function renderTabs(activeId){
-  const tabs = window.AdminNav?.info(activeId)?.tabs || [];
-  if (tabs.length < 2) return "";
-  const sec = window.AdminNav.info(activeId).section;
-  return `<nav class="sec-tabs" aria-label="${esc(sec)}">${tabs.map(t =>
-    `<a href="${esc(t.href)}"${t.on ? ' class="on" aria-current="page"' : ""}>${esc(t.label)}</a>`).join("")}</nav>`;
 }
 
 // ─── Шаблон сторінки ────────────────────────────────────────────────────────
@@ -338,7 +329,6 @@ export async function initAdminShell({ activeId, crumbs, content, topbarRight })
     <div class="app">
       <main class="main">
         ${renderTopbar(activeId, crumbs)}
-        ${renderTabs(activeId)}
         <div class="content" id="admin-content">${content || ""}</div>
       </main>
     </div>
