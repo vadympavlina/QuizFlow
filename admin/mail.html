@@ -48,6 +48,22 @@ textarea.field-input{resize:vertical;min-height:220px;line-height:1.55}
 .toggle-sw input:checked + .toggle-sl{background:linear-gradient(135deg,#7C3AED,#4F46E5)}
 .toggle-sw input:checked + .toggle-sl::before{transform:translateX(17px)}
 .toggle-sw input:focus-visible + .toggle-sl{box-shadow:0 0 0 3px rgba(124,58,237,.3)}
+.ai{border:1px solid #D9E3FF;background:linear-gradient(180deg,#F5F8FF,#fff);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.ai-h{display:flex;align-items:center;gap:10px}
+.ai-h .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:#E6EDFF;color:#2D5BE3;flex:0 0 auto}
+.ai-h b{font-size:13.5px;color:var(--ink-900);display:block}
+.ai-h span{font-size:12px;color:var(--ink-500)}
+.ai textarea.field-input{min-height:84px}
+.ai-f{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ai-f .chips{margin-right:auto}
+.ai-st{font-size:12.5px;line-height:1.5;padding:9px 11px;border-radius:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ai-st.ok{background:#F0FDF4;border:1px solid #BBF7D0;color:#15803D}
+.ai-st.err{background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C}
+.ai-st.wait{background:#F4F6FB;border:1px solid var(--line);color:var(--ink-500)}
+.ai-st span{flex:1;min-width:0}
+.ai-st button{border:0;background:none;font:700 12.5px "Manrope",sans-serif;color:inherit;text-decoration:underline;cursor:pointer;padding:0}
+.ai-off{font-size:12.5px;color:var(--ink-500)}
+.ai-off a{color:#6D28D9;font-weight:700}
 .pv{position:sticky;top:84px}
 .pv-meta{padding:12px 20px;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--ink-500);line-height:1.6}
 .pv-meta b{color:var(--ink-900)}
@@ -79,7 +95,7 @@ textarea.field-input{resize:vertical;min-height:220px;line-height:1.55}
 @media (max-width:640px){ .card-h,.card-b{padding-left:14px;padding-right:14px} .card-f{padding:0 14px 14px} .card-f .tb-btn{flex:1;justify-content:center} .ml-btn{grid-template-columns:1fr} .hi{grid-template-columns:1fr;padding:12px 14px} .hi .r{justify-content:flex-start} }
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=12">
+<link rel="modulepreload" href="shared/admin-shell.js?v=13">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -103,13 +119,16 @@ textarea.field-input{resize:vertical;min-height:220px;line-height:1.55}
 </div>
 
 <script type="module">
-import { logAction, initAdminShell, dbGet, dbSet, db, ref, push, set, openModal, closeModal, toast, esc, hideLoader, mailApi, mailWorkerUrl, setMailWorkerUrl } from "./shared/admin-shell.js?v=12";
+import { logAction, initAdminShell, dbGet, dbSet, db, ref, push, set, openModal, closeModal, toast, esc, hideLoader, mailApi, mailWorkerUrl, setMailWorkerUrl } from "./shared/admin-shell.js?v=13";
+import { callAIRaw } from "../shared/ai-call.js?v=1";
+import { trackAI, tokensOf } from "../shared/ai-usage.js?v=3";
 
 const SVG = (p, s = 14) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const IC = {
   send: SVG('<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>'),
   flask: SVG('<path d="M9 3h6"/><path d="M10 3v6L4.5 19a1.5 1.5 0 0 0 1.3 2h12.4a1.5 1.5 0 0 0 1.3-2L14 9V3"/><path d="M7 15h10"/>'),
   gear: SVG('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'),
+  spark: SVG('<path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/>', 16),
   info: SVG('<circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16h.01"/>', 15),
 };
 const fmt = t => t ? new Date(t).toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—";
@@ -127,8 +146,9 @@ const topbarRight = `<button class="tb-btn" type="button" id="btn-setup">${IC.ge
 const { _user } = await initAdminShell({ activeId: "mail", crumbs: ["Розсилки"], content, topbarRight });
 
 let users = {}, roles = {}, log = {}, unsub = new Set(), workerUrl = "", workerStatus = null;
-let draft = Object.assign({ audience: "all", roles: [], subject: "", body: "", btnOn: false, btnLabel: "Відкрити QuizFlow", btnUrl: "https://quizflow.space/" }, lsGet(DRAFT_KEY) || {});
+let draft = Object.assign({ audience: "all", roles: [], subject: "", body: "", aiPrompt: "", aiTone: "friendly", btnOn: false, btnLabel: "Відкрити QuizFlow", btnUrl: "https://quizflow.space/" }, lsGet(DRAFT_KEY) || {});
 let showWho = false, setupOpen = false;
+let aiCfg = null, aiBusy = false, aiUndo = null, aiMsg = null;   // aiMsg: { kind: ok|err|wait, text }
 const root = document.getElementById("ml-root");
 
 // ─── Отримувачі ──────────────────────────────────────────────────────────
@@ -197,6 +217,7 @@ function composerHtml(){
     <section class="card">
       <div class="card-h"><div><h2>Новий лист</h2><p>Лист отримає кожен обраний викладач окремо, зі зверненням на ім'я</p></div></div>
       <div class="card-b">
+        ${aiHtml()}
         <div class="field"><span class="field-l">Кому</span>
           <div class="chips" id="aud" role="radiogroup" aria-label="Кому">${AUD.map(([k, l]) => `<button type="button" role="radio" aria-checked="${draft.audience === k}" data-aud="${k}" class="${draft.audience === k ? "on" : ""}">${l}</button>`).join("")}</div>
           ${draft.audience === "roles" ? (roleList.length
@@ -241,8 +262,73 @@ function renderHist(){
     <div class="r"><span class="pill ok">${x.sent || 0} надіслано</span>${x.failed ? `<span class="pill err">${x.failed} помилок</span>` : ""}${x.skipped ? `<span class="pill mute">${x.skipped} пропущено</span>` : ""}</div></div>`).join("")
     : `<div class="empty"><b>Розсилок ще не було</b>Тут з'явиться історія надісланих листів</div>`;
 }
+// ─── Написати з AI ───────────────────────────────────────────────────────
+// AI пише тему, текст (у форматі редактора) і кнопку за описом адміна. Провайдер
+// і ключ — з адмінки → AI (функція «Листи й розсилки»); облік — aiUsage/…/mail.
+const TONES = [["friendly", "Дружньо"], ["formal", "Офіційно"], ["short", "Коротко"]];
+const TONE_TXT = { friendly: "теплий, дружній, але діловий тон; звертайся на «ви»", formal: "офіційно-діловий стиль, стримано й чітко", short: "дуже коротко: 2–4 речення і, якщо треба, короткий список" };
+const aiReady = () => aiCfg && aiCfg.aiMail !== false && !!(aiCfg.groqApiKey || aiCfg.geminiApiKey || aiCfg.apiKey);
+function aiHtml(){
+  if (!aiCfg) return "";
+  const head = `<div class="ai-h"><span class="ic">${IC.spark}</span><div><b>Написати з AI</b><span>Опишіть, про що лист — AI сам напише тему, текст і кнопку</span></div></div>`;
+  if (!aiReady()) return `<div class="ai">${head}<div class="ai-off">${aiCfg.aiMail === false ? "Функцію «Листи й розсилки» вимкнено" : "AI не налаштовано"} — <a href="ai-settings">адмінка → AI</a>.</div></div>`;
+  const has = !!(draft.subject.trim() || draft.body.trim());
+  return `<div class="ai">${head}
+    <textarea class="field-input" id="ai-prompt" maxlength="3000" aria-label="Про що лист" placeholder="Наприклад: розкажи викладачам, що з'явилися ролі й історія ігор наживо, журнал став швидшим. Попроси спробувати й написати відгук через кнопку «Повідомити про проблему».">${esc(draft.aiPrompt)}</textarea>
+    <div class="ai-f">
+      <div class="chips sm" role="radiogroup" aria-label="Тон">${TONES.map(([k, l]) => `<button type="button" role="radio" aria-checked="${draft.aiTone === k}" data-tone="${k}" class="${draft.aiTone === k ? "on" : ""}">${l}</button>`).join("")}</div>
+      ${has ? `<button class="tb-btn" type="button" data-act="ai-edit" ${aiBusy ? "disabled" : ""}>Доопрацювати поточний</button>` : ""}
+      <button class="tb-btn primary" type="button" data-act="ai-new" ${aiBusy ? "disabled" : ""}>${IC.spark} ${aiBusy ? "Пишемо…" : has ? "Написати заново" : "Написати лист"}</button>
+    </div>
+    ${aiMsg ? `<div class="ai-st ${aiMsg.kind}" role="status"><span>${esc(aiMsg.text)}</span>${aiMsg.kind === "ok" && aiUndo ? `<button type="button" data-act="ai-undo">Повернути як було</button>` : ""}</div>` : ""}
+  </div>`;
+}
+const AI_SYSTEM = `Ти пишеш листи від імені команди QuizFlow для викладачів, які користуються сервісом. Пиши ВИКЛЮЧНО українською.
+QuizFlow — платформа для викладачів: тести (конструктор, 7 типів питань, AI-перевірка розгорнутих відповідей), посилання на тест для груп, журнал оцінок за 12-бальною шкалою, аналітика, картки студентів, ігри-вікторини наживо, новини сервісу. Сайт: https://quizflow.space. Розділи: https://quizflow.space/news (новини), https://quizflow.space/tests (тести), https://quizflow.space/live (ігри наживо), https://quizflow.space/gradebook (журнал), https://quizflow.space/analytics (аналітика).
+Правила:
+- НЕ пиши привітання («Вітаємо, …») і підпис («З повагою…») — вони додаються автоматично.
+- Жодних емодзі. Жодних вигаданих фактів, дат, цифр чи посилань: лише те, що є в запиті, або розділи сайту вище.
+- Формат тексту: порожній рядок між абзацами; «## » на початку рядка — підзаголовок; «- » — пункт списку; **так** — жирний. Жодного іншого markdown чи HTML.
+- Тема листа: до 70 символів, конкретна, без лапок і знаків оклику.
+- Обсяг: 60–220 слів, якщо в запиті не сказано інакше.
+- Кнопка: якщо листу потрібна одна головна дія — дай кнопку з коротким написом (2–3 слова) і https-посиланням; інакше button = null.
+Відповідай ЛИШЕ JSON без пояснень: {"subject": "...", "body": "...", "button": {"label": "...", "url": "https://..."} або null}`;
+const stripEmoji = t => String(t || "").replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{FE0F}\u{200D}]/gu, "").replace(/[ \t]+\n/g, "\n");
+function parseAI(text){
+  const raw = String(text || "").replace(/^```(?:json)?\s*|```\s*$/g, "").trim();
+  const a = raw.indexOf("{"), b = raw.lastIndexOf("}");
+  let o; try { o = JSON.parse(raw.slice(a, b + 1)); } catch { throw new Error("AI відповів у незрозумілому форматі, спробуйте ще раз"); }
+  const subject = stripEmoji(o.subject).replace(/^["«]|["»]$/g, "").trim().slice(0, 150);
+  const body = stripEmoji(o.body).trim().slice(0, 20000);
+  if (!subject || !body) throw new Error("AI не написав тему або текст, спробуйте уточнити запит");
+  const u = String(o.button?.url || "").trim();
+  const button = /^https:\/\/\S+$/.test(u) ? { label: stripEmoji(o.button.label).trim().slice(0, 40) || "Відкрити", url: u } : null;
+  return { subject, body, button };
+}
+async function aiWrite(mode){
+  readForm();
+  const req = draft.aiPrompt.trim();
+  if (!req && mode === "new"){ toast("Опишіть, про що має бути лист", "err"); document.getElementById("ai-prompt")?.focus(); return; }
+  aiBusy = true; aiMsg = { kind: "wait", text: "AI пише лист…" }; render();
+  const cur = mode === "edit" ? `\n\nПоточний лист:\nТема: ${draft.subject}\nТекст:\n${draft.body}${draft.btnOn ? `\nКнопка: ${draft.btnLabel} → ${draft.btnUrl}` : ""}\n\nДоопрацюй його${req ? " згідно з побажаннями вище" : ": зроби чіткішим і легшим для читання"}, зберігаючи зміст.` : "";
+  const user = `Тон: ${TONE_TXT[draft.aiTone] || TONE_TXT.friendly}.\n${req ? `Що має бути в листі:\n${req}` : ""}${cur}`;
+  try {
+    const { text, data } = await callAIRaw(db, [{ role: "user", content: user }], { maxTokens: 1400, temp: 0.6, feature: "mail", system: AI_SYSTEM, json: true });
+    trackAI(db, _user.id, "mail", { tokens: tokensOf(data) });
+    const m = parseAI(text);
+    aiUndo = { subject: draft.subject, body: draft.body, btnOn: draft.btnOn, btnLabel: draft.btnLabel, btnUrl: draft.btnUrl };
+    Object.assign(draft, { subject: m.subject, body: m.body, btnOn: !!m.button, ...(m.button ? { btnLabel: m.button.label, btnUrl: m.button.url } : {}) });
+    lsSet(DRAFT_KEY, draft);
+    aiMsg = { kind: "ok", text: "Готово. Перевірте текст і посилання — за потреби поправте вручну або попросіть AI доопрацювати." };
+  } catch (e){
+    if (!/незрозумілому|не написав/.test(e.message)) trackAI(db, _user.id, "mail", { ok: false });
+    aiMsg = { kind: "err", text: e.message };
+  } finally { aiBusy = false; render(); }
+}
+
 function readForm(){
   const v = id => document.getElementById(id)?.value;
+  if (document.getElementById("ai-prompt")) draft.aiPrompt = v("ai-prompt");
   if (document.getElementById("f-subj")) draft.subject = v("f-subj");
   if (document.getElementById("f-body")) draft.body = v("f-body");
   if (document.getElementById("f-btn-l")) draft.btnLabel = v("f-btn-l");
@@ -334,6 +420,7 @@ document.getElementById("sd-ok").addEventListener("click", async e => {
 root.addEventListener("input", e => {
   if (!e.target.closest(".ml-grid")) return;
   readForm();
+  if (e.target.id === "ai-prompt") return;
   if (e.target.id === "f-subj") document.getElementById("pv-subj").textContent = draft.subject || "—";
   schedulePreview();
 });
@@ -342,8 +429,12 @@ root.addEventListener("keydown", e => { if (e.target.id === "st-url" && e.key ==
 root.addEventListener("click", e => {
   const au = e.target.closest("[data-aud]"); if (au){ readForm(); draft.audience = au.dataset.aud; lsSet(DRAFT_KEY, draft); return render(); }
   const ro = e.target.closest("[data-role]"); if (ro){ readForm(); const id = ro.dataset.role; draft.roles = draft.roles.includes(id) ? draft.roles.filter(x => x !== id) : [...draft.roles, id]; lsSet(DRAFT_KEY, draft); return render(); }
+  const tn = e.target.closest("[data-tone]"); if (tn){ readForm(); draft.aiTone = tn.dataset.tone; lsSet(DRAFT_KEY, draft); return render(); }
   const b = e.target.closest("[data-act]"); if (!b) return;
   const act = b.dataset.act;
+  if (act === "ai-new") return aiWrite("new");
+  if (act === "ai-edit") return aiWrite("edit");
+  if (act === "ai-undo"){ if (aiUndo){ Object.assign(draft, aiUndo); aiUndo = null; aiMsg = null; lsSet(DRAFT_KEY, draft); render(); } return; }
   if (act === "who"){ readForm(); showWho = !showWho; return render(); }
   if (act === "test") return sendTest(b);
   if (act === "send") return askSend();
@@ -356,8 +447,8 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && !_sending)
 
 // ─── Завантаження ────────────────────────────────────────────────────────
 try {
-  const [u, r, l, url] = await Promise.all([dbGet("users"), dbGet("roles").catch(() => null), dbGet("mailLog").catch(() => null), mailWorkerUrl(true)]);
-  users = u || {}; roles = r || {}; log = l || {}; workerUrl = url || "";
+  const [u, r, l, url, ai] = await Promise.all([dbGet("users"), dbGet("roles").catch(() => null), dbGet("mailLog").catch(() => null), mailWorkerUrl(true), dbGet("settings/ai").catch(() => null)]);
+  users = u || {}; roles = r || {}; log = l || {}; workerUrl = url || ""; aiCfg = ai || {};
 } catch (e){ toast("Не вдалося завантажити: " + e.message, "err"); }
 if (workerUrl){
   try { workerStatus = await mailApi("/status"); unsub = new Set(workerStatus.unsubscribed || []); }

@@ -142,7 +142,7 @@
 }
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=12">
+<link rel="modulepreload" href="shared/admin-shell.js?v=13">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 </head>
 <body>
@@ -198,7 +198,7 @@
 </div>
 
 <script type="module">
-import { logAction, initAdminShell, dbGet, dbUpd, dbRemove, db, ref as fbR, update, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=12";
+import { logAction, initAdminShell, dbGet, dbUpd, dbRemove, db, ref as fbR, update, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=13";
 import { push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const TG = "https://api.telegram.org/bot";

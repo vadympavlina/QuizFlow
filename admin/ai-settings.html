@@ -156,7 +156,7 @@
 }
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=12">
+<link rel="modulepreload" href="shared/admin-shell.js?v=13">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -170,7 +170,7 @@
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
-import { logAction, initAdminShell, dbGet, dbUpd, toast, esc, hideLoader } from "./shared/admin-shell.js?v=12";
+import { logAction, initAdminShell, dbGet, dbUpd, toast, esc, hideLoader } from "./shared/admin-shell.js?v=13";
 
 const SVG = (p, w = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const IC = {
@@ -211,6 +211,8 @@ const FEATURES = [
     svg: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>' },
   { id: "textcheck", flag: "aiTextCheck", name: "Перевірка текстових відповідей", desc: "AI-оцінка відкритих і числових відповідей", where: "сторінка тесту → перевірка", ico: "green",
     svg: '<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>' },
+  { id: "mail", flag: "aiMail", name: "Листи й розсилки", desc: "Написання листів викладачам за описом адміністратора", where: "адмінка → розсилки", ico: "blue",
+    svg: '<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>' },
 ];
 
 const provCard = p => {
@@ -288,8 +290,8 @@ await initAdminShell({ activeId: "ai", crumbs: ["AI-налаштування"], 
 
 // ─── Стан ────────────────────────────────────────────────────────────────
 const DEF = { groqKey: "", geminiKey: "", groqModel: "llama-3.3-70b-versatile", geminiModel: "gemini-2.5-flash",
-  flags: { comments: true, analysis: true, generation: true, textcheck: true },
-  prov: { comments: "groq", analysis: "groq", generation: "groq", textcheck: "groq" } };
+  flags: { comments: true, analysis: true, generation: true, textcheck: true, mail: true },
+  prov: { comments: "groq", analysis: "groq", generation: "groq", textcheck: "groq", mail: "groq" } };
 let saved = structuredClone(DEF), cur = structuredClone(DEF);
 const fetched = { groq: null, gemini: null };  // моделі, отримані при перевірці ключа
 const tested = { groq: null, gemini: null };   // true / false / null
@@ -497,7 +499,7 @@ async function save(){
       groqModel: cur.groqModel.trim(), geminiModel: cur.geminiModel.trim(),
       // Сумісність зі старими читачами налаштувань
       apiKey: gk || mk, model: gk ? cur.groqModel.trim() : cur.geminiModel.trim(), provider: gk ? "groq" : "gemini",
-      aiComments: cur.flags.comments, aiAnalysis: cur.flags.analysis, aiGeneration: cur.flags.generation, aiTextCheck: cur.flags.textcheck,
+      aiComments: cur.flags.comments, aiAnalysis: cur.flags.analysis, aiGeneration: cur.flags.generation, aiTextCheck: cur.flags.textcheck, aiMail: cur.flags.mail,
       featProviders: { ...cur.prov }, updatedAt: Date.now(),
     });
     cur.groqKey = gk; cur.geminiKey = mk;
@@ -552,7 +554,7 @@ hideLoader();
 // ─── Використання AI (aiUsage/{yyyymm}/{uid}/{feature}) ─────────────────────
 {
   const { bars, rank, C } = await import("./shared/admin-charts.js?v=1");
-  const FN = { comments: ["Коментарі студентам", "#7C3AED"], analysis: ["Розбір помилок", "#2563EB"], generation: ["Генерація питань", "#D97706"], textcheck: ["Перевірка відповідей", "#059669"] };
+  const FN = { comments: ["Коментарі студентам", "#7C3AED"], analysis: ["Розбір помилок", "#2563EB"], generation: ["Генерація питань", "#D97706"], textcheck: ["Перевірка відповідей", "#059669"], mail: ["Листи й розсилки", "#0891B2"] };
   const MONTHS = ["січень","лютий","березень","квітень","травень","червень","липень","серпень","вересень","жовтень","листопад","грудень"];
   const mKey = d => `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}`;
   const mName = k => `${MONTHS[+k.slice(4) - 1]} ${k.slice(0, 4)}`;

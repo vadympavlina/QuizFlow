@@ -652,8 +652,8 @@ window.QI = QI;
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, set, push, update, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { qVersionKey, makeOrder, buildQuestions, seededRandom, shuffledIdx, richHtml, plainText } from "./shared/qorder.js?v=1";
-import { trackAI, tokensOf } from "./shared/ai-usage.js?v=2";
-import { resolveCaps, assertAiQuota } from "./shared/caps.js?v=2";
+import { trackAI, tokensOf } from "./shared/ai-usage.js?v=3";
+import { resolveCaps, assertAiQuota } from "./shared/caps.js?v=3";
 const AI_OWNER = new URLSearchParams(location.search).get("t") || "";   // облік AI — на викладача, чий тест
 
 // Глобальна tp — читає teacherUid з URL

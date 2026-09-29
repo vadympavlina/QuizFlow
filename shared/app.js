@@ -8,8 +8,8 @@
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, set, push, update, remove, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { loadCaps, CAP_FLAGS, CAP_LIMITS, pluralUk } from "./caps.js?v=2";
-import { limitNotice } from "./notices.js?v=1";
+import { loadCaps, CAP_FLAGS, CAP_LIMITS, pluralUk } from "./caps.js?v=3";
+import { limitNotice } from "./notices.js?v=2";
 
 // ─── Firebase ──────────────────────────────────────────────────────────
 const FC = {

@@ -260,7 +260,7 @@ function renderTopbar(activeId, crumbs){
 // ─── Дзвіночок: сигнали + нові проблеми ─────────────────────────────────────
 const _bell = { bugs: 0, notices: [], names: {} };
 const _nLabel = { maxTests: "тестів", maxActiveLinks: "активних посилань", aiPerMonth: "AI-запитів на місяць" };
-const _fLabel = { comments: "коментарі студентам", analysis: "розбір помилок", generation: "генерація питань", textcheck: "перевірка відповідей" };
+const _fLabel = { comments: "коментарі студентам", analysis: "розбір помилок", generation: "генерація питань", textcheck: "перевірка відповідей", mail: "листи й розсилки" };
 function noticeLine(n){
   const who = `<b>${esc(n.name || _bell.names[n.uid] || "Викладач")}</b>`;
   if (n.type === "limit") return n.level >= 100 ? `${who} досяг ліміту ${_nLabel[n.key] || esc(n.key)}: ${Number(n.limit) || 0}` : `${who} використав ${Number(n.used) || 0} з ${Number(n.limit) || 0} ${_nLabel[n.key] || esc(n.key)}`;

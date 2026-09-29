@@ -6,9 +6,9 @@
 // Помилка обліку ніколи не заважає самій AI-функції.
 // ═══════════════════════════════════════════════════════════════════════
 import { ref, get, update, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { aiErrorNotice } from "./notices.js?v=1";
+import { aiErrorNotice } from "./notices.js?v=2";
 
-export const AI_FEATURES = ["comments", "analysis", "generation", "textcheck"];
+export const AI_FEATURES = ["comments", "analysis", "generation", "textcheck", "mail"];
 const month = (d = new Date()) => `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}`;
 
 // Скільки токенів витратила відповідь (Groq — usage, Gemini — usageMetadata)

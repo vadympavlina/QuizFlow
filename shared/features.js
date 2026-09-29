@@ -7,8 +7,9 @@
 
 import { NEWS_CATS, sanitizeNewsHtml, newsPlainText, newsExcerpt, readMinutes, catOf, isPublished } from "./news-utils.js?v=1";
 import { buildQuestions, qVersionKey } from "./qorder.js?v=1";
-import { trackAI, tokensOf } from "./ai-usage.js?v=2";
-import { assertAiQuota } from "./caps.js?v=2";
+import { trackAI, tokensOf } from "./ai-usage.js?v=3";
+import { assertAiQuota } from "./caps.js?v=3";
+import { callAIRaw as aiCallRaw } from "./ai-call.js?v=1";
 
 const { db, ref, get, set, push, update, remove, onValue, off } = window._fb;
 
@@ -2339,61 +2340,9 @@ async function callGroq(messages, maxTokens=800, temp=0.5, feature="analysis"){
     return text;
   }catch(e){ trackAI(db, _uid, feature, { ok: false }); throw e; }
 }
-async function callAIRaw(messages, maxTokens, temp, feature){
-  const UA = "Ти — розумний асистент викладача. ОБОВ\'ЯЗКОВО відповідай ВИКЛЮЧНО українською мовою. Жодних інших мов. Якщо щось не знаєш українською — все одно пиши по-українськи.";
-  try{
-    const snap = await get(ref(db,"settings/ai"));
-    const s = snap.exists() ? snap.val() : {};
-    // Провайдер обирається для кожної функції в admin/ai-settings; без ключа — інший
-    const geminiKey = s.geminiApiKey || (s.provider === "gemini" ? s.apiKey : "") || "";
-    const groqKeyCfg = s.groqApiKey || (s.provider !== "gemini" ? s.apiKey : "") || "";
-    const want = (s.featProviders && s.featProviders[feature]) || s.provider || "groq";
-    const provider = want === "gemini" ? (geminiKey || !groqKeyCfg ? "gemini" : "groq") : (groqKeyCfg || !geminiKey ? "groq" : "gemini");
-
-    if(provider === "gemini"){
-      const key   = geminiKey;
-      const model = s.geminiModel  || "gemini-2.5-flash";
-      if(!key) throw new Error("Відсутній Gemini API ключ");
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
-      const contents = messages.map(m=>({
-        role: m.role==="assistant" ? "model" : "user",
-        parts:[{text: m.content}]
-      }));
-      const res = await fetch(url,{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({
-          systemInstruction:{parts:[{text:UA}]},
-          contents,
-          // Для flash-моделей Gemini 2.5 вимикаємо «думання», щоб воно не з'їдало ліміт токенів відповіді
-          generationConfig:{maxOutputTokens:maxTokens, temperature:temp, ...(/flash/i.test(model) ? {thinkingConfig:{thinkingBudget:0}} : {})}
-        })
-      });
-      const raw = await res.text();
-      let d;
-      try{ d = JSON.parse(raw); }
-      catch(e){ throw new Error("Gemini: невалідна відповідь — " + raw.substring(0,200)); }
-      if(d.error) throw new Error("Gemini: " + (d.error.message||JSON.stringify(d.error)));
-      return { text: d.candidates?.[0]?.content?.parts?.[0]?.text || "", data: d };
-    } else {
-      const key   = groqKeyCfg;
-      if(!key) throw new Error("AI не налаштовано: немає ключа Groq (адмінка → AI)");
-      const model = s.groqModel  || (s.provider !== "gemini" && s.model) || "llama-3.3-70b-versatile";
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions",{
-        method:"POST",
-        headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
-        body: JSON.stringify({
-          model,
-          messages:[{role:"system",content:UA},...messages],
-          max_tokens:maxTokens,
-          temperature:temp
-        })
-      });
-      const d = await res.json();
-      if(d.error) throw new Error(d.error.message);
-      return { text: d.choices?.[0]?.message?.content || "", data: d };
-    }
-  }catch(e){throw e;}
+// Сам виклик провайдера — у shared/ai-call.js (спільний з адмінкою)
+function callAIRaw(messages, maxTokens, temp, feature){
+  return aiCallRaw(db, messages, { maxTokens, temp, feature });
 }
 
 

@@ -217,6 +217,13 @@ await t("admin set mail worker url", true, () => set(ref(adm, "settings/mail/wor
 await t("teacher set mail worker url", false, () => set(ref(t1, "settings/mail/workerUrl"), "https://evil.example"));
 await t("admin write invite sentTo", true, () => update(ref(adm, "invite_tokens/tok1"), { sentTo: "a@b.co", sentAt: now }));
 
+// ── Облік AI ──
+const M = (() => { const d = new Date(); return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}`; })();
+await t("aiUsage mail +1", true, () => set(ref(adm, `aiUsage/${M}/adm/mail/calls`), 1));
+await t("aiUsage mail tokens", true, () => set(ref(adm, `aiUsage/${M}/adm/mail/tokens`), 500));
+await t("aiUsage unknown feature", false, () => set(ref(t1, `aiUsage/${M}/t1/spam/calls`), 1));
+await t("aiUsage mail jump", false, () => set(ref(t1, `aiUsage/${M}/t1/mail/calls`), 50));
+
 console.log(`\n${pass} passed, ${fail} failed`);
 await env.cleanup();
 process.exit(fail ? 1 : 0);
