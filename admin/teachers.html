@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=7">
+<link rel="stylesheet" href="shared/admin-shell.css?v=8">
 <style>
 /* ─── Викладачі: список зліва + картка викладача справа ─── */
 
@@ -253,7 +253,7 @@
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=4"></script>
+<script src="shared/admin-nav.js?v=5"></script>
 <div id="admin-root"></div>
 <div id="admin-modals">
 
@@ -369,45 +369,6 @@
     </div>
   </div>
 
-  <!-- INVITE LINK MODAL -->
-  <div class="modal-bd" id="m-invite">
-    <div class="modal" style="max-width:480px">
-      <div class="modal-h"><span class="mh-ico blue" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>
-        <h3>Запросити викладача</h3>
-        <button class="close" onclick="closeModal('m-invite')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-      </div>
-      <div class="modal-b">
-        <div style="font-size:13px;color:var(--ink-500);margin-bottom:18px">
-          Одноразове посилання для самостійної реєстрації. Викладач переходить за посиланням, вводить свої дані та створює акаунт.
-        </div>
-
-        <div id="invite-generating" style="text-align:center;padding:20px 0;color:var(--ink-500);font-size:13px">
-          <div style="width:28px;height:28px;border:2.5px solid rgba(124,58,237,.2);border-top-color:#7C3AED;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px"></div>
-          Генерація посилання...
-        </div>
-
-        <div id="invite-result" style="display:none">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-400);font-weight:700;margin-bottom:8px">Посилання для реєстрації</div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <input class="field-input" id="invite-link-input" readonly style="flex:1;font-size:12px;font-family:'Geist Mono',monospace;background:#F4F6FB">
-            <button class="tb-btn" onclick="copyInviteLink()" title="Скопіювати">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-            </button>
-          </div>
-          <div style="font-size:12px;color:var(--ink-500);margin-top:10px;line-height:1.5">
-            Посилання одноразове — після реєстрації стане недійсним. Ви можете видалити його в будь-який момент.
-          </div>
-        </div>
-      </div>
-      <div class="modal-f">
-        <button class="tb-btn" onclick="closeModal('m-invite')">Закрити</button>
-        <button class="tb-btn primary" onclick="generateInvite()" id="regen-invite-btn" style="display:none">
-          Згенерувати нове
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- BLOCK / UNBLOCK MODAL -->
   <div class="modal-bd" id="m-block">
     <div class="modal" style="max-width:400px">
@@ -474,8 +435,8 @@
 <div id="admin-toast" class="toast"></div>
 
 <script type="module">
-import { resolveCaps, CAP_FLAGS, CAP_LIMITS, monthKey } from "../shared/caps.js?v=1";
-import { initAdminShell, loadAllTeachers, cachedTeachers, esc, formatTimeAgo, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast, genPass, hideLoader } from "./shared/admin-shell.js?v=8";
+import { resolveCaps, CAP_FLAGS, CAP_LIMITS, monthKey } from "../shared/caps.js?v=2";
+import { logAction, initAdminShell, loadAllTeachers, cachedTeachers, esc, formatTimeAgo, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast, genPass, hideLoader } from "./shared/admin-shell.js?v=9";
 
 const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const IC = {
@@ -740,6 +701,10 @@ function capsSection(u, s){
     </div>
   </section>`;
 }
+const capsSummary = f => [
+  ...Object.entries(f.flags || {}).map(([k, v]) => `${CAP_FLAGS[k]?.label || k}: ${v ? "так" : "ні"}`),
+  ...Object.entries(f.limits || {}).map(([k, v]) => `${CAP_LIMITS[k]?.label || k}: ${v || "без обмежень"}`),
+].join(", ") || "як у ролі / для всіх";
 async function saveCaps(u, patch){
   const f = JSON.parse(JSON.stringify(u.features || {}));
   patch(f);
@@ -747,6 +712,7 @@ async function saveCaps(u, patch){
   try {
     await dbUpd(`users/${u.id}`, { features: Object.keys(f).length ? f : null });
     if (Object.keys(f).length) u.features = f; else delete u.features;
+    logAction("teacher.caps", { type: "teacher", id: u.id, label: fullName(u) }, capsSummary(f));
     toast("Можливості оновлено");
     afterChange();
   } catch (e) { toast("Помилка: " + e.message, "err"); renderDetail(); }
@@ -847,6 +813,7 @@ async function toggleRole(u, rid, btn){
     if (!u.customRoleIds || typeof u.customRoleIds !== "object") u.customRoleIds = {};
     Object.entries(upd).forEach(([k, v]) => { if (k === "customRoleId") delete u.customRoleId; else { const id = k.split("/")[1]; v ? u.customRoleIds[id] = true : delete u.customRoleIds[id]; } });
     toast(on ? `Роль «${(window._roles[rid] || {}).name}» додано` : "Роль знято");
+    logAction(on ? "role.member.add" : "role.member.remove", { type: "teacher", id: u.id, label: fullName(u) }, (window._roles[rid] || {}).name || rid);
     afterChange();
   } catch (e) { toast("Помилка: " + e.message, "err"); btn.disabled = false; }
 }
@@ -860,6 +827,7 @@ async function setSysRole(u, role){
   try {
     await dbUpd(`users/${u.id}`, { role });
     u.role = role;
+    logAction(role === "admin" ? "teacher.admin.grant" : "teacher.admin.revoke", { type: "teacher", id: u.id, label: fullName(u) });
     toast(role === "admin" ? "Тепер це адміністратор" : "Права адміністратора знято");
     afterChange();
   } catch (e) { toast("Помилка: " + e.message, "err"); }
@@ -871,6 +839,7 @@ async function setAI(u, key, val){
   try {
     await dbUpd(`users/${u.id}/aiSettings`, settings);
     u.aiSettings = settings;
+    logAction("teacher.ai", { type: "teacher", id: u.id, label: fullName(u) }, `${AI_FEATS.find(f => f[0] === key)?.[1] || key}: ${val ? "увімкнено" : "вимкнено"}`);
     toast("Налаштування AI збережено");
     afterChange();
   } catch (e) { toast("Помилка: " + e.message, "err"); renderDetail(); }
@@ -879,6 +848,7 @@ async function resetAI(u){
   try {
     await dbUpd(`users/${u.id}`, { aiSettings: null });
     delete u.aiSettings;
+    logAction("teacher.ai", { type: "teacher", id: u.id, label: fullName(u) }, "скинуто до глобальних");
     toast("Скинуто до глобальних налаштувань");
     afterChange();
   } catch (e) { toast("Помилка: " + e.message, "err"); }
@@ -1053,6 +1023,7 @@ window.createTeacher = async () => {
     (window._stats ||= {})[uid] = { tests: 0, activeTests: 0, attempts: 0, weekAttempts: 0, students: 0, links: 0, lastAct: 0 };
     _selId = uid;
     afterChange();
+    logAction("teacher.create", { type: "teacher", id: uid, label: `${surname} ${name}` }, `${email}${role === "admin" ? " · адміністратор" : ""}`);
     toast("Викладача створено");
   } catch(e) {
     const msg = e.code === "auth/email-already-in-use"
@@ -1091,50 +1062,15 @@ window.doResetPassword = async () => {
     await sendPasswordResetEmail(mainAuth, email, { url: location.origin + "/login?email=" + encodeURIComponent(email) });
     document.getElementById("reset-box").style.display = "";
     document.getElementById("reset-actions").style.display = "none";
+    logAction("teacher.reset", { type: "teacher", id: _resetUid, label: fullName(byId(_resetUid) || { email }) }, email);
     toast("Лист надіслано на " + email);
   } catch(e) {
     toast("Помилка: " + e.message, "err");
   }
 };
 
-// ─── INVITE LINK ──────────────────────────────────────────────────────────
-window.openInviteModal = async () => {
-  document.getElementById("invite-generating").style.display = "";
-  document.getElementById("invite-result").style.display = "none";
-  document.getElementById("regen-invite-btn").style.display = "none";
-  openModal("m-invite");
-  await generateInvite();
-};
-
-window.generateInvite = async () => {
-  document.getElementById("invite-generating").style.display = "";
-  document.getElementById("invite-result").style.display = "none";
-  try {
-    // Генеруємо унікальний токен (32 символи)
-    const token = Array.from(crypto.getRandomValues(new Uint8Array(24)))
-      .map(b => b.toString(36)).join("").slice(0, 32);
-
-    await dbSet(`invite_tokens/${token}`, {
-      createdAt: Date.now(),
-      used: false
-    });
-
-    const base = location.origin + location.pathname.replace(/\/admin\/.*/, "/");
-    const link = `${base}register?token=${token}`;
-    document.getElementById("invite-link-input").value = link;
-    document.getElementById("invite-generating").style.display = "none";
-    document.getElementById("invite-result").style.display = "";
-    document.getElementById("regen-invite-btn").style.display = "";
-  } catch(e) {
-    toast("Помилка: " + e.message, "err");
-    document.getElementById("invite-generating").style.display = "none";
-  }
-};
-
-window.copyInviteLink = () => {
-  const val = document.getElementById("invite-link-input").value;
-  if (val) navigator.clipboard.writeText(val).then(() => toast("Посилання скопійовано"));
-};
+// ─── INVITE LINK ── запрошення живуть на окремій сторінці «Запрошення»
+window.openInviteModal = () => { location.href = "invites?new=1"; };
 
 // ─── BLOCK / UNBLOCK ──────────────────────────────────────────────────────
 window.openBlockModal = (uid, name, isBlocked) => {
@@ -1162,6 +1098,7 @@ window.doToggleBlock = async () => {
   try {
     await dbUpd(`users/${_blockUid}`, { blocked: !_blockCurrent });
     const u = byId(_blockUid); if (u) u.blocked = !_blockCurrent;
+    logAction(_blockCurrent ? "teacher.unblock" : "teacher.block", { type: "teacher", id: _blockUid, label: u ? fullName(u) : _blockUid });
     closeModal("m-block");
     afterChange(_blockUid);
     toast(_blockCurrent ? "Розблоковано" : "Заблоковано");
@@ -1203,6 +1140,7 @@ window.confirmDeleteTeacher = async () => {
       dbRemove(`teachers/${_delUid}`)
     ]);
     closeModal("m-delete");
+    logAction("teacher.delete", { type: "teacher", id: _delUid, label: fullName(byId(_delUid) || { email: _delLogin }) }, _delLogin);
     window._users = (window._users || []).filter(u => u.id !== _delUid);
     delete (window._stats || {})[_delUid];
     _delUid = ""; _delLogin = "";

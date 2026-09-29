@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=7">
+<link rel="stylesheet" href="shared/admin-shell.css?v=8">
 <style>
 .nav-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
 @media (max-width:1240px){.nav-layout{grid-template-columns:1fr}.pv-card{position:static!important}}
@@ -194,7 +194,7 @@
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=4"></script>
+<script src="shared/admin-nav.js?v=5"></script>
 <div id="admin-root"></div>
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -228,7 +228,7 @@
 </div>
 
 <script type="module">
-import { initAdminShell, dbGet, db, ref, update, esc, toast, openModal, closeModal, hideLoader } from "./shared/admin-shell.js?v=8";
+import { logAction, initAdminShell, dbGet, db, ref, update, esc, toast, openModal, closeModal, hideLoader } from "./shared/admin-shell.js?v=9";
 
 // ─── ІКОНКИ (40 штук, 5 категорій) ────────────────────────────────────────
 const ICON_CATS = {
@@ -723,6 +723,7 @@ async function save(){
     // Навігація та мітка часу — одним записом: викладачі підхоплять зміни при наступному відкритті сторінки
     await update(ref(db), { "settings/navigation": data, "settings/navigation_ts": Date.now() });
     nav = clone(data); saved = clone(data);
+    logAction("nav.update", { type: "service", label: "Навігація" }, `${data.length} розділів, ${data.reduce((n, s) => n + s.items.length, 0)} пунктів`);
     render();
     toast("Навігацію збережено — викладачі побачать її при наступному відкритті сторінки");
   } catch (e){ toast("Помилка збереження: " + e.message, "err"); }

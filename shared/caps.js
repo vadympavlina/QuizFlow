@@ -11,6 +11,7 @@
 // Адміністраторів не обмежуємо.
 // ═══════════════════════════════════════════════════════════════════════
 import { ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { limitNotice } from "./notices.js?v=1";
 
 export const CAP_FLAGS = {
   games:  { label: "Ігри наживо",           desc: "Запуск ігор з телефонами учнів" },
@@ -66,6 +67,7 @@ export async function aiUsedThisMonth(db, uid){
 export async function assertAiQuota(db, uid, limit){
   if (!limit) return;
   const used = await aiUsedThisMonth(db, uid);
+  limitNotice(db, uid, "aiPerMonth", used, limit);          // 80% / 100% → сигнал адміністратору
   if (used >= limit) throw Object.assign(new Error(`Ліміт AI-запитів на цей місяць вичерпано (${limit}). Зверніться до адміністратора.`), { code: "qf/ai-quota" });
 }
 export const pluralUk = (n, f) => { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? f[2] : b === 1 ? f[0] : b >= 2 && b <= 4 ? f[1] : f[2]; };

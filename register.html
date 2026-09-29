@@ -137,6 +137,7 @@ async function checkToken(){
     const snap = await get(ref(db, `invite_tokens/${token}`));
     if (!snap.exists()) return invalid("Запрошення не знайдено", "Можливо, посилання скопійовано не повністю. Перевірте його або попросіть нове в адміністратора.");
     if (snap.val().used === true) return invalid("Запрошення вже використано", "Якщо це ви реєструвались за ним — просто увійдіть. Інакше попросіть в адміністратора нове посилання.");
+    if (snap.val().expiresAt && snap.val().expiresAt < Date.now()) return invalid("Термін запрошення минув", "Попросіть в адміністратора нове посилання-запрошення.");
     view("vForm");
     setTimeout(() => $("surname").focus(), 50);
   } catch (e){
@@ -221,6 +222,7 @@ $("regF").addEventListener("submit", async e => {
     // Токен ще раз: між відкриттям сторінки й відправкою його могли використати
     const t = await get(ref(db, `invite_tokens/${token}`));
     if (!t.exists() || t.val().used === true){ busy = false; return invalid("Запрошення вже використано", "Хтось зареєструвався за цим посиланням, поки форма була відкрита. Попросіть нове запрошення."); }
+    if (t.val().expiresAt && t.val().expiresAt < Date.now()){ busy = false; return invalid("Термін запрошення минув", "Попросіть в адміністратора нове посилання-запрошення."); }
     A = await loadAuth();
     const auth = A.getAuth(app); auth.languageCode = "uk";
     await A.setPersistence(auth, A.browserLocalPersistence);

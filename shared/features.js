@@ -7,8 +7,8 @@
 
 import { NEWS_CATS, sanitizeNewsHtml, newsPlainText, newsExcerpt, readMinutes, catOf, isPublished } from "./news-utils.js?v=1";
 import { buildQuestions, qVersionKey } from "./qorder.js?v=1";
-import { trackAI, tokensOf } from "./ai-usage.js?v=1";
-import { assertAiQuota } from "./caps.js?v=1";
+import { trackAI, tokensOf } from "./ai-usage.js?v=2";
+import { assertAiQuota } from "./caps.js?v=2";
 
 const { db, ref, get, set, push, update, remove, onValue, off } = window._fb;
 

@@ -33,6 +33,9 @@
     roles: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>',
     news: '<rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h6M7 17h4"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/>',
     sliders: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
+    audit: '<path d="M12 8v4l3 2"/><path d="M3.05 11a9 9 0 1 1 .5 4"/><polyline points="3 20 3 15 8 15"/>',
+    invite: '<rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/>',
+    db: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>',
     ann: '<path d="M3 11v2a1 1 0 001 1h2l5 4V6L6 10H4a1 1 0 00-1 1z"/><path d="M15.5 8.5a5 5 0 010 7"/><path d="M18.5 5.5a9 9 0 010 13"/>',
     menu: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/><path d="M13 9h4M13 13h4"/>',
     ai: '<path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/>',
@@ -51,11 +54,13 @@
       { id: "overview", label: "Огляд", href: "overview", icon: "overview" },
       { id: "stats", label: "Статистика", href: "stats", icon: "stats" },
       { id: "problems", label: "Проблеми", href: "problems", icon: "problems", badge: "admin-problems-badge" },
+      { id: "audit", label: "Журнал дій", href: "audit", icon: "audit" },
     ] },
     { label: "Користувачі", items: [
       { id: "teachers", label: "Викладачі", href: "teachers", icon: "teachers" },
       { id: "roles", label: "Ролі", href: "roles", icon: "roles" },
       { id: "features", label: "Можливості", href: "features", icon: "sliders" },
+      { id: "invites", label: "Запрошення", href: "invites", icon: "invite" },
     ] },
     { label: "Контент", items: [
       { id: "announcements", label: "Оголошення", href: "announcements", icon: "ann" },
@@ -65,6 +70,7 @@
     { label: "Інтеграції", items: [
       { id: "ai", label: "AI налаштування", href: "ai-settings", icon: "ai" },
       { id: "telegram", label: "Telegram", href: "telegram", icon: "telegram" },
+      { id: "cleanup", label: "Обслуговування", href: "cleanup", icon: "db" },
     ] },
   ];
 

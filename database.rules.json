@@ -7,7 +7,7 @@
       ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
-        ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.child('role').val() === 'teacher' && newData.child('blocked').val() !== true && newData.child('inviteToken').isString() && root.child('invite_tokens/' + newData.child('inviteToken').val()).exists() && root.child('invite_tokens/' + newData.child('inviteToken').val()).child('used').val() !== true",
+        ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.child('role').val() === 'teacher' && newData.child('blocked').val() !== true && newData.child('inviteToken').isString() && root.child('invite_tokens/' + newData.child('inviteToken').val()).exists() && root.child('invite_tokens/' + newData.child('inviteToken').val()).child('used').val() !== true && (!root.child('invite_tokens/' + newData.child('inviteToken').val() + '/expiresAt').exists() || root.child('invite_tokens/' + newData.child('inviteToken').val() + '/expiresAt').val() > now)",
         "aiSettings": {
           ".read": true
         },
@@ -59,6 +59,21 @@
         }
       }
     },
+    "adminLog": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      "$id": {
+        ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin' && !data.exists() && newData.exists()",
+        ".validate": "newData.child('uid').val() === auth.uid && newData.child('at').val() === now && newData.child('action').isString()"
+      }
+    },
+    "adminNotices": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      "$key": {
+        ".write": "!data.exists() && newData.exists() && (auth != null || newData.child('type').val() === 'aierr')",
+        ".validate": "data.exists() || newData.child('type').isString() && newData.child('uid').isString() && root.child('users/' + newData.child('uid').val()).exists() && newData.child('at').val() === now && (auth == null || newData.child('type').val() === 'aierr' || newData.child('uid').val() === auth.uid)"
+      }
+    },
     "roles": {
       ".read": "auth != null && root.child('users/' + auth.uid + '/role').exists() && root.child('users/' + auth.uid + '/blocked').val() !== true",
       ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'"
@@ -83,6 +98,8 @@
       }
     },
     "rooms": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
       "$code": {
         ".read": true,
         ".write": "auth != null && (data.child('hostUid').val() === auth.uid || (!data.exists() && (!newData.exists() || newData.child('hostUid').val() === auth.uid)))",

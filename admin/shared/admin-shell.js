@@ -17,7 +17,7 @@
 
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import "./admin-ui.js?v=1";   // власні дропдаун і календар замість системних select / date
-import { getDatabase, ref, get, set, update, remove, onValue }
+import { getDatabase, ref, get, set, update, remove, onValue, push, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const cfg = {
@@ -31,6 +31,20 @@ const cfg = {
 };
 const app = getApps().length ? getApps()[0] : initializeApp(cfg);
 const db = getDatabase(app);
+
+// ─── Журнал дій адміністраторів (adminLog, лише дописування) ─────────────────
+// logAction("teacher.block", { type:"teacher", id, label:"Коваль Олена" }, "необов'язкові деталі")
+// Помилка запису ніколи не заважає самій дії.
+export function logAction(action, target = {}, details = null){
+  try {
+    const u = window._user || {};
+    const name = [u.name, u.surname].filter(Boolean).join(" ") || u.email || "Адміністратор";
+    const entry = { at: serverTimestamp(), uid: u.id || "", name, action,
+      targetType: target.type || null, targetId: target.id || null, targetLabel: target.label ? String(target.label).slice(0, 120) : null,
+      details: details == null ? null : String(details).slice(0, 300) };
+    push(ref(db, "adminLog"), entry).catch(() => {});
+  } catch {}
+}
 
 // ─── Helpers (чисті утіли, без DOM) ─────────────────────────────────────────
 
@@ -174,7 +188,7 @@ function ensureAdminNav(){
   if (window.AdminNav) return Promise.resolve();
   return new Promise(res => {
     const s = document.createElement("script");
-    s.src = new URL("./admin-nav.js?v=2", import.meta.url).href;
+    s.src = new URL("./admin-nav.js?v=5", import.meta.url).href;
     s.onload = s.onerror = () => res();
     document.head.appendChild(s);
   });
@@ -196,7 +210,7 @@ function renderTopbar(activeId, crumbs){
     </div>
     <div class="tb-spacer"></div>
     <div id="topbar-extras" class="tb-extras"></div>
-    ${activeId === "problems" ? "" : `<a class="tb-icon tb-bell" id="tb-bell" href="problems" aria-label="Проблеми" title="Проблеми">${ICONS.bell}<span class="badge" id="tb-bell-n" hidden></span></a>`}
+    <button type="button" class="tb-icon tb-bell" id="tb-bell" aria-label="Сигнали" title="Сигнали" aria-haspopup="dialog" aria-expanded="false">${ICONS.bell}<span class="badge" id="tb-bell-n" hidden></span></button>
   </header>`;
 }
 
@@ -218,6 +232,54 @@ function renderTopbar(activeId, crumbs){
 //     crumbs: ["Огляд"],
 //     content: "<div>...your content with elements...</div>"
 //   });
+
+// ─── Дзвіночок: сигнали + нові проблеми ─────────────────────────────────────
+const _bell = { bugs: 0, notices: [], names: {} };
+const _nLabel = { maxTests: "тестів", maxActiveLinks: "активних посилань", aiPerMonth: "AI-запитів на місяць" };
+const _fLabel = { comments: "коментарі студентам", analysis: "розбір помилок", generation: "генерація питань", textcheck: "перевірка відповідей" };
+function noticeLine(n){
+  const who = `<b>${esc(n.name || _bell.names[n.uid] || "Викладач")}</b>`;
+  if (n.type === "limit") return n.level >= 100 ? `${who} досяг ліміту ${_nLabel[n.key] || esc(n.key)}: ${Number(n.limit) || 0}` : `${who} використав ${Number(n.used) || 0} з ${Number(n.limit) || 0} ${_nLabel[n.key] || esc(n.key)}`;
+  if (n.type === "aierr") return `Часті помилки AI у ${who}: ${_fLabel[n.feature] || esc(n.feature)}`;
+  return esc(n.text || "Сигнал");
+}
+function renderBell(){
+  const unread = _bell.notices.filter(n => !n.readAt).length;
+  const t = document.getElementById("tb-bell-n"), total = _bell.bugs + unread;
+  if (t){ t.textContent = total > 99 ? "99+" : String(total || ""); t.hidden = !total; }
+  document.getElementById("tb-bell")?.setAttribute("aria-label", total ? `Сигнали: ${total}` : "Сигнали");
+  if (document.getElementById("tb-pop")) fillBellPop();
+}
+function fillBellPop(){
+  const pop = document.getElementById("tb-pop"); if (!pop) return;
+  const list = _bell.notices.slice(0, 20), unread = list.filter(n => !n.readAt).length;
+  // Імена для сигналів зі сторінки тесту (без імені) — підтягуємо один раз
+  list.filter(n => !n.name && n.uid && !(n.uid in _bell.names)).forEach(n => { _bell.names[n.uid] = ""; get(ref(db, `users/${n.uid}`)).then(s => { const u = s.val() || {}; _bell.names[n.uid] = [u.name, u.surname].filter(Boolean).join(" ") || u.email || ""; fillBellPop(); }).catch(() => {}); });
+  const ico = n => n.type === "aierr" ? '<path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/>' : '<path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>';
+  pop.innerHTML = `<div class="tbp-h"><b>Сигнали</b>${unread ? `<button type="button" id="tbp-read">Позначити прочитаними</button>` : ""}</div>
+    <div class="tbp-l">${list.length ? list.map(n => `<a class="tbp-i${n.readAt ? "" : " new"}${n.level >= 100 || n.type === "aierr" ? " hot" : ""}" href="teachers?id=${encodeURIComponent(n.uid || "")}">
+      <span class="tbp-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ico(n)}</svg></span>
+      <span class="tbp-t">${noticeLine(n)}<small>${esc(formatTimeAgo(n.at))}</small></span></a>`).join("") : `<div class="tbp-e">Сигналів немає. Тут з'являться попередження про ліміти й часті помилки AI.</div>`}</div>
+    <a class="tbp-f" href="problems"><span>Проблеми та звернення</span>${_bell.bugs ? `<b>${_bell.bugs} нових</b>` : "<em>нових немає</em>"}</a>`;
+  document.getElementById("tbp-read")?.addEventListener("click", () => {
+    const upd = {}; _bell.notices.filter(n => !n.readAt).forEach(n => { upd[`adminNotices/${n.id}/readAt`] = Date.now(); });
+    update(ref(db), upd).catch(e => toast("Помилка: " + e.message, "err"));
+  });
+}
+function toggleBellPop(){
+  const btn = document.getElementById("tb-bell");
+  let pop = document.getElementById("tb-pop");
+  if (pop){ pop.remove(); btn?.setAttribute("aria-expanded", "false"); return; }
+  pop = document.createElement("div"); pop.id = "tb-pop"; pop.className = "tb-pop"; pop.setAttribute("role", "dialog"); pop.setAttribute("aria-label", "Сигнали");
+  document.body.appendChild(pop); fillBellPop();
+  const r = btn.getBoundingClientRect();
+  pop.style.top = (r.bottom + 8) + "px";
+  pop.style.right = Math.max(8, innerWidth - r.right) + "px";
+  btn.setAttribute("aria-expanded", "true");
+  const close = e => { if (e.type === "keydown" && e.key !== "Escape") return; if (e.type === "click" && (pop.contains(e.target) && !e.target.closest("a"))) return;
+    pop.remove(); btn.setAttribute("aria-expanded", "false"); document.removeEventListener("click", close); document.removeEventListener("keydown", close); };
+  setTimeout(() => { document.addEventListener("click", close); document.addEventListener("keydown", close); });
+}
 
 export async function initAdminShell({ activeId, crumbs, content, topbarRight }){
   // Auth
@@ -274,14 +336,18 @@ export async function initAdminShell({ activeId, crumbs, content, topbarRight })
     }
   }, 15000);
 
-  // Realtime badge для нових проблем
+  // Realtime: нові проблеми + сигнали (ліміти, помилки AI) → дзвіночок
   const { onValue, ref: dbRef } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
   onValue(dbRef(db, "bugReports"), snap => {
-    const newCount = snap.exists()
-      ? Object.values(snap.val()).filter(p => p.status === "new").length
-      : 0;
-    window.AdminNav?.setBadge(newCount);
+    _bell.bugs = snap.exists() ? Object.values(snap.val()).filter(p => p.status === "new").length : 0;
+    window.AdminNav?.setBadge(_bell.bugs);
+    renderBell();
   });
+  onValue(dbRef(db, "adminNotices"), snap => {
+    _bell.notices = Object.entries(snap.val() || {}).map(([id, n]) => ({ id, ...n })).filter(n => n && n.at).sort((a, b) => b.at - a.at);
+    renderBell();
+  }, () => {});
+  document.getElementById("tb-bell")?.addEventListener("click", e => { e.stopPropagation(); toggleBellPop(); });
 
   return { _user };
 }

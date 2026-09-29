@@ -8,7 +8,8 @@
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, set, push, update, remove, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { loadCaps, CAP_FLAGS, CAP_LIMITS, pluralUk } from "./caps.js?v=1";
+import { loadCaps, CAP_FLAGS, CAP_LIMITS, pluralUk } from "./caps.js?v=2";
+import { limitNotice } from "./notices.js?v=1";
 
 // ─── Firebase ──────────────────────────────────────────────────────────
 const FC = {
@@ -93,6 +94,7 @@ window.qfCan = (flag) => {
 // Чи можна додати ще один об'єкт при поточній кількості current
 window.qfLimit = (key, current) => {
   const lim = window.QF_CAPS?.limits?.[key] || 0;
+  if (lim) limitNotice(db, uid, key, current, lim, [_user.name, _user.surname].filter(Boolean).join(" "));   // 80% / 100% → сигнал адміністратору
   if (!lim || current < lim) return true;
   toast(`Досягнуто ліміту: ${lim} ${pluralUk(lim, CAP_LIMITS[key].unit)}. Зверніться до адміністратора.`, "err");
   return false;

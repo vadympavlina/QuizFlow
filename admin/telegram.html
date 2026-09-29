@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=7">
+<link rel="stylesheet" href="shared/admin-shell.css?v=8">
 <style>
 /* ─── Бот ─── */
 .bot{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;flex-wrap:wrap}
@@ -143,7 +143,7 @@
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=4"></script>
+<script src="shared/admin-nav.js?v=5"></script>
 <div id="admin-root"></div>
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -193,7 +193,7 @@
 </div>
 
 <script type="module">
-import { initAdminShell, dbGet, dbUpd, dbRemove, db, ref as fbR, update, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=8";
+import { logAction, initAdminShell, dbGet, dbUpd, dbRemove, db, ref as fbR, update, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=9";
 import { push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const TG = "https://api.telegram.org/bot";
@@ -330,7 +330,7 @@ function renderBot(){
 
 document.getElementById("tg-enabled").addEventListener("change", async e => {
   const v = e.target.checked;
-  try { await dbUpd("settings/telegramBot", { enabled: v, updatedAt: Date.now() }); cfg.enabled = v; toast(v ? "Сповіщення увімкнено" : "Сповіщення вимкнено"); }
+  try { await dbUpd("settings/telegramBot", { enabled: v, updatedAt: Date.now() }); cfg.enabled = v; logAction(v ? "tg.on" : "tg.off", { type: "service", label: "Telegram" }); toast(v ? "Сповіщення увімкнено" : "Сповіщення вимкнено"); }
   catch (err){ e.target.checked = !v; toast("Помилка: " + err.message, "err"); }
   renderBot();
 });
@@ -375,6 +375,7 @@ document.getElementById("tg-save-btn").addEventListener("click", async e => {
     if (!t) upd.enabled = false;
     await dbUpd("settings/telegramBot", upd);
     cfg = { ...cfg, ...upd };
+    logAction(t ? "tg.token" : "tg.token.remove", { type: "service", label: "Telegram" }, me?.username ? "@" + me.username : null);
     bot = me || null; botErr = "";
     renderBot();
     closeModal("m-bot");
