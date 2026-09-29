@@ -7,7 +7,9 @@
 <title>QuizFlow Admin — Викладачі</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="shared/admin-shell.css?v=8">
 <style>
 /* ─── Викладачі: список зліва + картка викладача справа ─── */
@@ -249,6 +251,10 @@
 .delete-warn .head .login{font-family:"Geist Mono",monospace; color:var(--ink-500); font-size:12px}
 .delete-warn .list{font-size:12px; color:#B91C1C; margin-top:10px; line-height:1.6}
 </style>
+<!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
+<link rel="modulepreload" href="shared/admin-shell.js?v=10">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
 </head>
 <body>
 
@@ -436,7 +442,7 @@
 
 <script type="module">
 import { resolveCaps, CAP_FLAGS, CAP_LIMITS, monthKey } from "../shared/caps.js?v=2";
-import { logAction, initAdminShell, loadAllTeachers, cachedTeachers, esc, formatTimeAgo, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast, genPass, hideLoader } from "./shared/admin-shell.js?v=9";
+import { logAction, initAdminShell, loadAllTeachers, cachedTeachers, esc, formatTimeAgo, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast, genPass, hideLoader } from "./shared/admin-shell.js?v=10";
 
 const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const IC = {
@@ -1137,7 +1143,9 @@ window.confirmDeleteTeacher = async () => {
   try {
     await Promise.all([
       dbRemove(`users/${_delUid}`),
-      dbRemove(`teachers/${_delUid}`)
+      dbRemove(`teachers/${_delUid}`),
+      // легкі дзеркала для статистики адмінки
+      ...["attemptLog", "gameLog", "teacherStats"].map(n => dbRemove(`${n}/${_delUid}`).catch(() => {})),
     ]);
     closeModal("m-delete");
     logAction("teacher.delete", { type: "teacher", id: _delUid, label: fullName(byId(_delUid) || { email: _delLogin }) }, _delLogin);

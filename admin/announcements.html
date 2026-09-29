@@ -7,7 +7,9 @@
 <title>QuizFlow Admin — Оголошення</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="shared/admin-shell.css?v=8">
 <style>
 /* Плашка оголошення (такий самий вигляд, як у панелі викладача) */
@@ -104,6 +106,11 @@ textarea.field-input{resize:vertical;min-height:96px;line-height:1.5}
 @media (max-width:1180px){ .mt-b{grid-template-columns:1fr} }
 @media (max-width:640px){ .f-grid{grid-template-columns:1fr} .mt-h{flex-wrap:wrap} .mt-st{margin-left:0} .an-foot{flex-wrap:wrap} .an-foot .tb-btn{flex:1;justify-content:center} .an-foot .sp{display:none} }
 </style>
+<!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
+<link rel="modulepreload" href="shared/admin-shell.js?v=10">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
 </head>
 <body>
 
@@ -127,7 +134,7 @@ textarea.field-input{resize:vertical;min-height:96px;line-height:1.5}
 </div>
 
 <script type="module">
-import { logAction, initAdminShell, db, ref, update, dbGet, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=9";
+import { logAction, initAdminShell, db, ref, update, dbGet, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=10";
 
 const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const sm = (svg, w = 14) => svg.replace("<svg", `<svg width="${w}" height="${w}"`);

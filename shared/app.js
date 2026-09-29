@@ -555,6 +555,22 @@ export async function initApp(pageName, options = {}) {
   if (!options.skipData) {
     await loadAllData();
     setTimeout(backfillIndexes, 3000);
+    // Легкі дзеркала для адмінки: після старту і (не частіше ніж раз на хвилину) після змін спроб
+    let _idxT = null, _idxLast = 0;
+    const syncIdx = () => {
+      if (_idxT) return;   // уже заплановано — нова подія ввійде в ту саму звірку
+      _idxT = setTimeout(() => {
+        _idxT = null; _idxLast = Date.now();
+        import("./admin-index.js?v=1").then(async m => {
+          const fb = { db, ref, get, update };
+          await m.syncAdminIndex(uid, fb);
+          const { qVersionKey } = await import("./qorder.js?v=1");
+          await m.compactAttempts(uid, fb, { qVersionKey });   // пачками: наступна — при наступній звірці
+        }).catch(e => console.warn("[app.js] admin index:", e.message));
+      }, Math.max(4000, 60e3 - (Date.now() - _idxLast)));
+    };
+    syncIdx();
+    document.addEventListener("qf:live", e => { if (e.detail?.name === "attempts" && !e.detail.first) syncIdx(); });
   }
   // ldr(false) НЕ викликаємо — це робить сторінка після того як все відрендерить
   // (див. initFeatures → renderAll → specific hook → appReady())

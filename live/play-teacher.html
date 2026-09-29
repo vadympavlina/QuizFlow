@@ -13,7 +13,9 @@
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600;700;800&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600;700;800&display=swap" rel="stylesheet"></noscript>
 <style>
   [hidden]{display:none !important}
   *,*::before,*::after{box-sizing:border-box}
@@ -751,11 +753,14 @@ function togglePause() {
 async function saveHistory() {
   const snap = await get(ref(db, `rooms/${code}/answers`));
   const list = standings(players, snap.val() || {});
+  const playedAt = Date.now();
   await set(ref(db, `teachers/${uid}/gameHistory/${code}`), {
     code, testId: room.testId || "", testTitle: room.testTitle || "",
-    playedAt: Date.now(), playerCount: list.length, questionCount: totalQ,
+    playedAt, playerCount: list.length, questionCount: totalQ,
     results: list.map(p => ({ nickname: p.nickname, score: p.score, correct: p.correct })),
   });
+  // Легкий запис для адмінки (без результатів гравців)
+  set(ref(db, `gameLog/${uid}/${code}`), { p: playedAt, n: list.length, t: String(room.testTitle || "").slice(0, 120), q: totalQ || 0, id: room.testId || null }).catch(() => {});
 }
 
 async function finish() {

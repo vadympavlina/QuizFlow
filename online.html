@@ -7,9 +7,11 @@
 <title>QuizFlow — Онлайн</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/styles.css?v=26">
-<link rel="modulepreload" href="shared/app.js?v=27">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+<link rel="stylesheet" href="shared/styles.css?v=27">
+<link rel="modulepreload" href="shared/app.js?v=28">
 <link rel="modulepreload" href="shared/features.js?v=37">
 <link rel="modulepreload" href="shared/online.js?v=1">
 <style>
@@ -149,7 +151,7 @@
 // Спочатку app.js (щоб вставити window._fb і іншу базу),
 // потім features.js (він читає з window._fb).
 // Preload у <head> вже починає завантаження обох паралельно — тут тільки execute order.
-const { initApp } = await import("./shared/app.js?v=27");
+const { initApp } = await import("./shared/app.js?v=28");
 const featuresP = import("./shared/features.js?v=37");
 
 // showSec: залишаємось на сторінці якщо це та сама; інакше — йдемо на відповідний html

@@ -1,5 +1,4 @@
-/* Manrope + Geist Mono — для нового sidebar дизайну (на випадок якщо HTML їх не лоадить) */
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap");
+/* Шрифти Manrope + Geist Mono підключає кожна сторінка неблокуючим <link> — тут @import не потрібен */
 
 :root{--bg:#f0f3fa;--sidebar:#0a0f2e;--primary:#2d5be3;--primary-light:#4d78ff;--glow:rgba(45,91,227,0.15);--teal:#14d4b4;--amber:#f59e0b;--rose:#f43f5e;--card:#fff;--border:rgba(45,91,227,0.08);--text:#0d1340;--muted:#6b7280;--light:#a0a8c0;--grad:linear-gradient(135deg,#2d5be3,#1a3ab8)}
 *{box-sizing:border-box;margin:0;padding:0}
