@@ -7,7 +7,7 @@ export async function deleteUser(u){ _log('delete',u.uid); localStorage.removeIt
 export async function updateProfile(u,p){ _log('profile',p.displayName); }
 export async function sendPasswordResetEmail(a,e,s){ _log("reset",[e,s&&s.url]); if(e==="limit@x.ua") throw Object.assign(new Error("x"),{code:"auth/too-many-requests"}); }
 export async function signInWithEmailAndPassword(a,email,pass){ const acc=JSON.parse(localStorage.getItem('mockAccounts')||'null'); if(!acc) return {user:{uid:localStorage.getItem('mockUid')}}; const u=acc[email]; if(email==='rate@x.ua') throw _err('auth/too-many-requests'); if(!u||u.pass!==pass) throw _err('auth/invalid-credential'); localStorage.setItem('mockUid',u.uid); _log('signin',[email,globalThis.__persist]); return {user:{uid:u.uid,email}}; }
-export const browserLocalPersistence='local', browserSessionPersistence='session';
+export const browserLocalPersistence='local', browserSessionPersistence='session', indexedDBLocalPersistence='idb';
 export async function setPersistence(a,p){ globalThis.__persist=p; }
 const _log=(k,v)=>{const a=JSON.parse(localStorage.getItem('authlog')||'[]');a.push([k,v]);localStorage.setItem('authlog',JSON.stringify(a))};
 const _err=c=>Object.assign(new Error(c),{code:c});

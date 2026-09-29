@@ -154,3 +154,18 @@ test("адмінка → «Скинути пароль» через воркер
   expect((await authlog(page)).filter(([k]) => k === "reset")).toEqual([]);
   expect(errors).toEqual([]);
 });
+
+test("вхід: без циклу, якщо панель щойно не побачила сесію", async ({ page, errors }) => {
+  await seed(page, admSeed(Date.now()), "t1");
+  await page.evaluate(() => sessionStorage.setItem("qf_auth_bounce", String(Date.now())));
+  await page.goto("/login");
+  await expect(page.locator("#loginMsg")).toContainText("Сесію не вдалося відновити");
+  await page.waitForTimeout(800);
+  expect(new URL(page.url()).pathname).toBe("/login");
+  expect((await authlog(page)).some(([k]) => k === "signOut")).toBe(true);
+  // Без позначки — звичайне автоповернення в панель
+  await seed(page, admSeed(Date.now()), "t1");
+  await page.goto("/login");
+  await page.waitForURL(u => new URL(u).pathname === "/");
+  expect(errors).toEqual([]);
+});

@@ -31,15 +31,18 @@ window._fb = { db, ref, get, set, push, update, remove, onValue, off };
 export { db, ref, get, set, push, update, remove, onValue, off };
 
 // ─── Auth через Firebase Auth ──────────────────────────────────────────
-// Чекаємо поки Firebase відновить сесію з IndexedDB
-const _fbUser = await new Promise((resolve) => {
-  const unsub = onAuthStateChanged(auth, (u) => { unsub(); resolve(u); });
-});
+// Чекаємо, поки Firebase повністю відновить сесію (authStateReady — після
+// перенесення між сховищами й оновлення токена), а не перший сигнал
+const _fbUser = await (typeof auth.authStateReady === "function"
+  ? auth.authStateReady().then(() => auth.currentUser)
+  : new Promise((resolve) => { const unsub = onAuthStateChanged(auth, (u) => { unsub(); resolve(u); }); }));
 
 // Після входу повертаємо на ту саму сторінку (login?next=…)
 const _here = () => (location.pathname.split("/").pop() || "") + location.search + location.hash;
 if (!_fbUser) {
-  location.href = "login" + (_here() ? "?next=" + encodeURIComponent(_here()) : "");
+  // Позначка для сторінки входу: сесії тут немає — не відправляти сюди ж автоматично (інакше цикл)
+  try { sessionStorage.setItem("qf_auth_bounce", String(Date.now())); } catch {}
+  location.replace("login" + (_here() ? "?next=" + encodeURIComponent(_here()) : ""));
   throw new Error("no auth");
 }
 

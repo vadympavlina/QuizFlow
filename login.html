@@ -127,7 +127,7 @@
 
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, sendPasswordResetEmail, setPersistence, browserLocalPersistence, browserSessionPersistence, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, sendPasswordResetEmail, setPersistence, indexedDBLocalPersistence, browserSessionPersistence, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const app = getApps().length ? getApps()[0] : initializeApp({
   apiKey:"AIzaSyDsA4IQkn5tV41LDK43vzgm0XnRnbdgvTc",
@@ -232,6 +232,16 @@ onAuthStateChanged(auth, async user => {
     document.documentElement.classList.remove("resume");
     return;
   }
+  // Панель щойно не побачила цю сесію й повернула сюди — не відправляємо назад (цикл).
+  // Прибираємо зламану сесію з усіх сховищ: наступний вхід буде чистим.
+  let bounced = 0;
+  try { bounced = Number(sessionStorage.getItem("qf_auth_bounce") || 0); sessionStorage.removeItem("qf_auth_bounce"); } catch {}
+  if (bounced && Date.now() - bounced < 20000){
+    await signOut(auth).catch(() => {}); ls.set("qf_signed_in", null);
+    document.documentElement.classList.remove("resume");
+    msg($("loginMsg"), "info", "Сесію не вдалося відновити. Увійдіть ще раз.");
+    return;
+  }
   document.documentElement.classList.add("resume");
   if (user.email) $("resumeWho").textContent = user.email;
   const bad = await checkBlocked(user);
@@ -265,7 +275,10 @@ $("loginF").addEventListener("submit", async e => {
   busy = true; btn.disabled = true; btn.innerHTML = `<span class="spin"></span><span>Входимо…</span>`;
   msg($("loginMsg"));
   try {
-    await setPersistence(auth, $("remember").checked ? browserLocalPersistence : browserSessionPersistence);
+    // «Запам'ятати мене» — IndexedDB: це типове сховище getAuth на всіх сторінках панелі,
+    // тож сесію не треба переносити між сховищами (localStorage раніше інколи губився)
+    await setPersistence(auth, $("remember").checked ? indexedDBLocalPersistence : browserSessionPersistence);
+    try { sessionStorage.removeItem("qf_auth_bounce"); } catch {}
     const cred = await signInWithEmailAndPassword(auth, email, pass);
     const bad = await checkBlocked(cred.user);
     if (bad){
