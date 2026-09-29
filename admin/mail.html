@@ -39,6 +39,28 @@ textarea.field-input{resize:vertical;min-height:220px;line-height:1.55}
 .ml-who{display:flex;flex-wrap:wrap;gap:6px;max-height:160px;overflow:auto}
 .ml-who span{font-size:12px;padding:4px 9px;border-radius:8px;background:#F1F4FA;color:var(--ink-700)}
 .ml-who span.off{background:#FEF2F2;color:#B91C1C;text-decoration:line-through}
+.pk{margin-top:8px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.pk-top{display:flex;align-items:center;gap:8px;padding:10px;border-bottom:1px solid var(--line);background:#FAFBFE;flex-wrap:wrap}
+.pk-top .search-input{flex:1;min-width:180px}
+.pk-top .search-input .input{width:100%;padding-top:9px;padding-bottom:9px}
+.pk-n{font-size:12.5px;color:var(--ink-500);white-space:nowrap}
+.pk-n b{font-family:"Geist Mono",monospace;color:var(--ink-900)}
+.pk-n button{border:0;background:none;font:700 12.5px "Manrope",sans-serif;color:#6D28D9;cursor:pointer;padding:0 0 0 6px}
+.pk-list{max-height:300px;overflow:auto}
+.pk-it{display:flex;align-items:center;gap:11px;width:100%;padding:10px 12px;border:0;border-bottom:1px solid var(--line);background:#fff;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.pk-it:last-child{border-bottom:0}
+.pk-it:hover{background:#F7F8FC}
+.pk-it[aria-checked="true"]{background:#F5F3FF}
+.pk-it:disabled{cursor:not-allowed;opacity:.6;background:#fff}
+.pk-it:focus-visible{outline:2px solid #7C3AED;outline-offset:-2px}
+.pk-cb{width:18px;height:18px;border-radius:6px;border:1.5px solid #C9D1E4;display:grid;place-items:center;flex:0 0 auto;background:#fff;color:#fff}
+.pk-it[aria-checked="true"] .pk-cb{background:#7C3AED;border-color:#7C3AED}
+.pk-i{flex:1;min-width:0}
+.pk-i b{display:block;font-size:13.5px;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pk-i span{display:block;font-size:12px;color:var(--ink-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pk-tag{font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap;flex:0 0 auto;background:#F1F4FA;color:var(--ink-500)}
+.pk-tag.warn{background:#FEF2F2;color:#B91C1C}
+.pk-empty{padding:22px;text-align:center;font-size:13px;color:var(--ink-500)}
 .ml-row{display:flex;align-items:center;gap:10px}
 .ml-btn{display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr);gap:10px}
 .toggle-sw{position:relative;display:inline-block;width:40px;height:23px;flex:0 0 auto}
@@ -146,18 +168,19 @@ const topbarRight = `<button class="tb-btn" type="button" id="btn-setup">${IC.ge
 const { _user } = await initAdminShell({ activeId: "mail", crumbs: ["Розсилки"], content, topbarRight });
 
 let users = {}, roles = {}, log = {}, unsub = new Set(), workerUrl = "", workerStatus = null;
-let draft = Object.assign({ audience: "all", roles: [], subject: "", body: "", aiPrompt: "", aiTone: "friendly", btnOn: false, btnLabel: "Відкрити QuizFlow", btnUrl: "https://quizflow.space/" }, lsGet(DRAFT_KEY) || {});
-let showWho = false, setupOpen = false;
+let draft = Object.assign({ audience: "all", roles: [], picks: [], subject: "", body: "", aiPrompt: "", aiTone: "friendly", btnOn: false, btnLabel: "Відкрити QuizFlow", btnUrl: "https://quizflow.space/" }, lsGet(DRAFT_KEY) || {});
+let showWho = false, setupOpen = false, pickQ = "";
 let aiCfg = null, aiBusy = false, aiUndo = null, aiMsg = null;   // aiMsg: { kind: ok|err|wait, text }
 const root = document.getElementById("ml-root");
 
 // ─── Отримувачі ──────────────────────────────────────────────────────────
 const nameOf = u => [u.surname, u.name].filter(Boolean).join(" ") || u.email || "Без імені";
-const AUD = [["all", "Усі викладачі"], ["active", "Активні за 30 днів"], ["roles", "За роллю"]];
+const AUD = [["all", "Усі викладачі"], ["active", "Активні за 30 днів"], ["roles", "За роллю"], ["pick", "Окремі викладачі"]];
 function audience(){
   const monthAgo = Date.now() - 30 * 864e5;
-  const pool = Object.entries(users).filter(([, u]) => u && u.role === "teacher").map(([id, u]) => ({ id, ...u }))
-    .filter(u => draft.audience === "all" ? true
+  // Окремо обраних шукаємо серед усіх акаунтів (зокрема адмінів), решту — серед викладачів
+  const pool = Object.entries(users).filter(([id, u]) => u && typeof u === "object" && (draft.audience === "pick" ? draft.picks.includes(id) : u.role === "teacher")).map(([id, u]) => ({ id, ...u }))
+    .filter(u => draft.audience === "all" || draft.audience === "pick" ? true
       : draft.audience === "active" ? (u.lastLogin || 0) >= monthAgo
       : draft.roles.some(r => u.customRoleIds?.[r]));
   const out = { send: [], unsub: [], noEmail: [], blocked: [] };
@@ -170,8 +193,49 @@ function audience(){
   return out;
 }
 function audLabel(){
+  if (draft.audience === "pick"){
+    const names = draft.picks.map(id => users[id]).filter(Boolean).map(nameOf);
+    return names.length <= 3 ? names.join(", ") : `${names.slice(0, 3).join(", ")} та ще ${names.length - 3}`;
+  }
   if (draft.audience !== "roles") return AUD.find(a => a[0] === draft.audience)[1];
   return "Ролі: " + draft.roles.map(r => roles[r]?.name).filter(Boolean).join(", ");
+}
+
+// Вибір окремих людей: пошук за ім'ям, прізвищем чи email
+const CHECK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+function pickable(){
+  return Object.entries(users).filter(([, u]) => u && typeof u === "object" && (u.role === "teacher" || u.role === "admin"))
+    .map(([id, u]) => ({ id, ...u })).sort((a, b) => nameOf(a).localeCompare(nameOf(b), "uk"));
+}
+function pickState(u){
+  if (u.blocked === true) return ["Заблоковано", "warn", true];
+  if (!EMAIL_RE.test(String(u.email || ""))) return ["Без email", "warn", true];
+  if (unsub.has(u.id)) return ["Відписався", "warn", true];
+  if (u.role === "admin") return ["Адмін", "", false];
+  return null;
+}
+function pickListHtml(){
+  const q = pickQ.trim().toLowerCase();
+  const list = pickable().filter(u => !q || [nameOf(u), u.email, u.login].some(x => String(x || "").toLowerCase().includes(q)));
+  if (!list.length) return `<div class="pk-empty">${q ? "Нікого не знайдено" : "Викладачів ще немає"}</div>`;
+  return list.map(u => {
+    const st = pickState(u), on = draft.picks.includes(u.id);
+    return `<button type="button" class="pk-it" role="checkbox" aria-checked="${on}" data-pick="${esc(u.id)}" ${st?.[2] && !on ? "disabled" : ""}>
+      <span class="pk-cb">${on ? CHECK : ""}</span>
+      <span class="pk-i"><b>${esc(nameOf(u))}</b><span>${esc(u.email || "email не вказано")}</span></span>
+      ${st ? `<span class="pk-tag ${st[1]}">${st[0]}</span>` : ""}
+    </button>`;
+  }).join("");
+}
+function pickerHtml(){
+  const n = draft.picks.length;
+  return `<div class="pk">
+    <div class="pk-top">
+      <div class="search-input"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input class="input" id="pk-q" type="search" placeholder="Пошук за ім'ям або email" autocomplete="off" aria-label="Пошук викладача" value="${esc(pickQ)}"></div>
+      <span class="pk-n">Обрано <b>${n}</b>${n ? `<button type="button" data-act="pick-clear">Зняти всі</button>` : ""}</span>
+    </div>
+    <div class="pk-list" id="pk-list" role="group" aria-label="Викладачі">${pickListHtml()}</div>
+  </div>`;
 }
 
 // ─── Налаштування воркера ───────────────────────────────────────────────
@@ -223,6 +287,7 @@ function composerHtml(){
           ${draft.audience === "roles" ? (roleList.length
             ? `<div class="chips sm" id="aud-roles" style="margin-top:6px">${roleList.map(([id, r]) => `<button type="button" aria-pressed="${draft.roles.includes(id)}" data-role="${esc(id)}" class="${draft.roles.includes(id) ? "on" : ""}"><i style="background:${esc(r.color || "#94A3B8")}"></i>${esc(r.name)}</button>`).join("")}</div>`
             : `<div class="field-h">Ролей ще немає — створіть їх на сторінці «Ролі».</div>`) : ""}
+          ${draft.audience === "pick" ? pickerHtml() : ""}
         </div>
         <div class="ml-sum" id="sum">
           <span class="big">Отримають <b>${n}</b></span>
@@ -421,6 +486,7 @@ root.addEventListener("input", e => {
   if (!e.target.closest(".ml-grid")) return;
   readForm();
   if (e.target.id === "ai-prompt") return;
+  if (e.target.id === "pk-q"){ pickQ = e.target.value; document.getElementById("pk-list").innerHTML = pickListHtml(); return; }
   if (e.target.id === "f-subj") document.getElementById("pv-subj").textContent = draft.subject || "—";
   schedulePreview();
 });
@@ -429,12 +495,24 @@ root.addEventListener("keydown", e => { if (e.target.id === "st-url" && e.key ==
 root.addEventListener("click", e => {
   const au = e.target.closest("[data-aud]"); if (au){ readForm(); draft.audience = au.dataset.aud; lsSet(DRAFT_KEY, draft); return render(); }
   const ro = e.target.closest("[data-role]"); if (ro){ readForm(); const id = ro.dataset.role; draft.roles = draft.roles.includes(id) ? draft.roles.filter(x => x !== id) : [...draft.roles, id]; lsSet(DRAFT_KEY, draft); return render(); }
+  const pk = e.target.closest("[data-pick]");
+  if (pk){
+    readForm(); const id = pk.dataset.pick;
+    draft.picks = draft.picks.includes(id) ? draft.picks.filter(x => x !== id) : [...draft.picks, id];
+    lsSet(DRAFT_KEY, draft);
+    const top = document.getElementById("pk-list")?.scrollTop || 0;
+    render();
+    const l = document.getElementById("pk-list"); if (l) l.scrollTop = top;
+    document.querySelector(`[data-pick="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
+    return;
+  }
   const tn = e.target.closest("[data-tone]"); if (tn){ readForm(); draft.aiTone = tn.dataset.tone; lsSet(DRAFT_KEY, draft); return render(); }
   const b = e.target.closest("[data-act]"); if (!b) return;
   const act = b.dataset.act;
   if (act === "ai-new") return aiWrite("new");
   if (act === "ai-edit") return aiWrite("edit");
   if (act === "ai-undo"){ if (aiUndo){ Object.assign(draft, aiUndo); aiUndo = null; aiMsg = null; lsSet(DRAFT_KEY, draft); render(); } return; }
+  if (act === "pick-clear"){ readForm(); draft.picks = []; lsSet(DRAFT_KEY, draft); return render(); }
   if (act === "who"){ readForm(); showWho = !showWho; return render(); }
   if (act === "test") return sendTest(b);
   if (act === "send") return askSend();
@@ -455,6 +533,12 @@ if (workerUrl){
   catch (e){ toast("Воркер пошти: " + e.message, "err"); }
 }
 if (draft.audience === "roles") draft.roles = draft.roles.filter(id => roles[id]);
+draft.picks = (draft.picks || []).filter(id => users[id]);
+// Перехід з картки викладача: mail?to=uid[,uid]
+{
+  const to = (new URLSearchParams(location.search).get("to") || "").split(",").map(s => s.trim()).filter(id => users[id]);
+  if (to.length){ draft.audience = "pick"; draft.picks = to; lsSet(DRAFT_KEY, draft); history.replaceState(null, "", location.pathname); }
+}
 render();
 hideLoader();
 </script>
