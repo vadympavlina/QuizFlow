@@ -652,6 +652,8 @@ window.QI = QI;
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, set, push, update, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { qVersionKey, makeOrder, buildQuestions, seededRandom, shuffledIdx, richHtml, plainText } from "./shared/qorder.js?v=1";
+import { trackAI, tokensOf } from "./shared/ai-usage.js?v=1";
+const AI_OWNER = new URLSearchParams(location.search).get("t") || "";   // облік AI — на викладача, чий тест
 
 // Глобальна tp — читає teacherUid з URL
 function tp(path){
@@ -864,8 +866,21 @@ const UA_SYSTEM = {
 // Студент не має чекати на AI вічно: після 20 с показуємо результат без коментаря
 const aiSignal = () => (typeof AbortSignal !== "undefined" && AbortSignal.timeout) ? AbortSignal.timeout(20000) : undefined;
 
+// Обгортка: рахуємо кожне звернення (успіх / помилка) для адмінки
 async function callGroq(messages, maxTokens = 800, temperature = 0.5, feature = "comments") {
-  if (aiProviderFor(feature) === "gemini") return callGemini(messages, maxTokens, temperature);
+  try {
+    const { text, data } = aiProviderFor(feature) === "gemini"
+      ? await callGemini(messages, maxTokens, temperature)
+      : await callGroqRaw(messages, maxTokens, temperature);
+    trackAI(db, AI_OWNER, feature, { tokens: tokensOf(data) });
+    return text;
+  } catch (e) {
+    trackAI(db, AI_OWNER, feature, { ok: false });
+    throw e;
+  }
+}
+
+async function callGroqRaw(messages, maxTokens, temperature) {
   if (!GROQ_API_KEY) throw new Error("AI не налаштовано: немає ключа Groq");
   // Завжди додаємо системний промпт українською
   const allMessages = [UA_SYSTEM, ...messages];
@@ -898,7 +913,7 @@ async function callGroq(messages, maxTokens = 800, temperature = 0.5, feature = 
     console.warn("AI returned non-UA text, content may be mixed");
   }
 
-  return result;
+  return { text: result, data };
 }
 
 async function callGemini(messages, maxTokens = 800, temperature = 0.5) {
@@ -915,7 +930,7 @@ async function callGemini(messages, maxTokens = 800, temperature = 0.5) {
   });
   if (!res.ok) throw new Error(`Gemini error ${res.status}: ${await res.text()}`);
   const data = await res.json();
-  return (data.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join("");
+  return { text: (data.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join(""), data };
 }
 
 // ─── AI для студента: оцінка + коментар ──────────────────────────────────────

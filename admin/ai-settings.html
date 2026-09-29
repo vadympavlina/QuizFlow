@@ -16,6 +16,25 @@
 
 /* Провайдери */
 .row-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+/* Використання AI */
+.us-months{display:flex;gap:6px;flex-wrap:wrap}
+.us-months button{padding:7px 12px;border-radius:9px;border:1px solid var(--line);background:#fff;font:700 12.5px "Manrope",sans-serif;color:var(--ink-500);cursor:pointer}
+.us-months button:hover{border-color:var(--line-strong);color:var(--ink-900)}
+.us-months button.on{background:var(--ink-900);border-color:var(--ink-900);color:#fff}
+.us-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.us-kpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+.us-kpi .l{font-size:12px;font-weight:700;color:var(--ink-500);display:flex;align-items:center;gap:7px}
+.us-kpi .l i{width:8px;height:8px;border-radius:2px}
+.us-kpi .v{font:800 26px "Geist Mono",monospace;letter-spacing:-.02em;margin-top:6px;color:var(--ink-900)}
+.us-kpi small{display:block;font-size:12px;font-weight:600;color:var(--ink-400);margin-top:3px}
+.us-kpi small.bad{color:#B91C1C}
+.us-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+.us-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px}
+.us-card h3{font-size:14.5px;font-weight:800;margin:0 0 2px}
+.us-card p.s{font-size:12px;color:var(--ink-500);margin:0 0 14px}
+.us-empty{background:#fff;border:1px dashed var(--line-strong);border-radius:16px;padding:28px 20px;text-align:center;color:var(--ink-500);font-size:13px;line-height:1.55}
+.us-empty b{display:block;font-size:14.5px;color:var(--ink-900);margin-bottom:4px}
+@media (max-width:1180px){.us-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.us-grid{grid-template-columns:1fr}}
 @media (max-width:1180px){.row-2{grid-template-columns:1fr}}
 .prov{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:16px}
 .prov-head{display:flex;align-items:center;gap:12px}
@@ -223,6 +242,9 @@ const content = `
       <p>Ключі, моделі та функції штучного інтелекту для всієї платформи</p>
     </div>
   </div>
+
+  <div class="ai-sec-h"><div><h2>Використання</h2><p>Скільки звернень до AI роблять викладачі та їхні студенти</p></div><div class="us-months" id="us-months" role="tablist" aria-label="Місяць"></div></div>
+  <div id="ai-usage"><div class="us-empty">Завантаження…</div></div>
 
   <div class="ai-sec-h"><div><h2>Провайдери</h2><p>Достатньо одного. Якщо ключ для обраного провайдера відсутній, функція використає інший.</p></div></div>
   <div class="row-2">${provCard("groq")}${provCard("gemini")}</div>
@@ -513,6 +535,61 @@ try {
   toast("Не вдалося завантажити налаштування: " + e.message, "err");
 }
 hideLoader();
+
+// ─── Використання AI (aiUsage/{yyyymm}/{uid}/{feature}) ─────────────────────
+{
+  const { bars, rank, C } = await import("./shared/admin-charts.js?v=1");
+  const FN = { comments: ["Коментарі студентам", "#7C3AED"], analysis: ["Розбір помилок", "#2563EB"], generation: ["Генерація питань", "#D97706"], textcheck: ["Перевірка відповідей", "#059669"] };
+  const MONTHS = ["січень","лютий","березень","квітень","травень","червень","липень","серпень","вересень","жовтень","листопад","грудень"];
+  const mKey = d => `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}`;
+  const mName = k => `${MONTHS[+k.slice(4) - 1]} ${k.slice(0, 4)}`;
+  const mShort = k => MONTHS[+k.slice(4) - 1].slice(0, 3);
+  const fmtN = n => Number(n || 0).toLocaleString("uk-UA");
+  let usage = {}, users = {}, sel = mKey(new Date());
+  try { [usage, users] = await Promise.all([dbGet("aiUsage").then(v => v || {}), dbGet("users").then(v => v || {})]); }
+  catch (e) { usage = null; }
+  const last6 = () => { const out = [], d = new Date(); d.setDate(1); for (let i = 5; i >= 0; i--){ const x = new Date(d.getFullYear(), d.getMonth() - i, 1); out.push(mKey(x)); } return out; };
+  const sumMonth = k => {
+    const t = { calls: 0, tokens: 0, errors: 0, teachers: 0, byF: {}, byU: [] };
+    Object.entries(usage?.[k] || {}).forEach(([uid, fs]) => {
+      const u = { uid, calls: 0, tokens: 0, errors: 0 };
+      Object.entries(fs || {}).forEach(([f, v]) => {
+        const b = t.byF[f] ||= { calls: 0, tokens: 0, errors: 0 };
+        ["calls", "tokens", "errors"].forEach(x => { const n = Number(v?.[x]) || 0; b[x] += n; u[x] += n; t[x] += n; });
+      });
+      if (u.calls || u.errors){ t.teachers++; t.byU.push(u); }
+    });
+    return t;
+  };
+  const nameOf = uid => { const u = users[uid] || {}; return [u.surname, u.name].filter(Boolean).join(" ") || u.email || "Видалений викладач"; };
+  function renderUsage(){
+    const host = document.getElementById("ai-usage");
+    const ms = last6();
+    document.getElementById("us-months").innerHTML = ms.slice(-4).reverse().map(k => `<button type="button" role="tab" aria-selected="${k === sel}" class="${k === sel ? "on" : ""}" data-m="${k}">${mName(k)[0].toUpperCase() + mName(k).slice(1, -5)}</button>`).join("");
+    if (usage === null){ host.innerHTML = `<div class="us-empty"><b>Не вдалося прочитати статистику</b>Опублікуйте оновлені правила бази (розділ aiUsage) у консолі Firebase.</div>`; return; }
+    const t = sumMonth(sel);
+    const anyData = ms.some(k => usage[k]);
+    if (!anyData){ host.innerHTML = `<div class="us-empty"><b>Даних поки немає</b>Облік почнеться з першого звернення до AI після оновлення: коментарі студентам, розбір помилок, генерація питань і перевірка відповідей.</div>`; return; }
+    const errPct = t.calls + t.errors ? Math.round(t.errors / (t.calls + t.errors) * 100) : 0;
+    host.innerHTML = `
+      <div class="us-kpis">
+        <div class="us-kpi"><div class="l"><i style="background:${C.violet}"></i>Запитів</div><div class="v">${fmtN(t.calls)}</div><small>${mName(sel)}</small></div>
+        <div class="us-kpi"><div class="l"><i style="background:#2563EB"></i>Токенів</div><div class="v">${fmtN(t.tokens)}</div><small>${t.calls ? "≈ " + fmtN(Math.round(t.tokens / t.calls)) + " на запит" : "—"}</small></div>
+        <div class="us-kpi"><div class="l"><i style="background:#DC2626"></i>Помилок</div><div class="v">${fmtN(t.errors)}</div><small class="${errPct >= 10 ? "bad" : ""}">${errPct}% звернень</small></div>
+        <div class="us-kpi"><div class="l"><i style="background:#059669"></i>Викладачів</div><div class="v">${fmtN(t.teachers)}</div><small>користувались AI</small></div>
+      </div>
+      <div class="us-grid" style="margin-top:14px">
+        <div class="us-card"><h3>За функціями</h3><p class="s">Кількість запитів · ${mName(sel)}</p><div id="us-fn"></div></div>
+        <div class="us-card"><h3>Хто використовує найбільше</h3><p class="s">Запити разом зі студентами викладача</p><div id="us-top"></div></div>
+      </div>
+      <div class="us-card" style="margin-top:14px"><h3>Динаміка</h3><p class="s">Запити за останні 6 місяців</p><div id="us-trend"></div></div>`;
+    rank(document.getElementById("us-fn"), Object.keys(FN).map(k => ({ label: FN[k][0], sub: t.byF[k] ? `${fmtN(t.byF[k].tokens)} токенів${t.byF[k].errors ? ` · ${t.byF[k].errors} помилок` : ""}` : "", value: t.byF[k]?.calls || 0, color: FN[k][1] })), { unit: "Запитів: ", empty: "Цього місяця AI не використовувався" });
+    rank(document.getElementById("us-top"), t.byU.sort((a, b) => b.calls - a.calls).slice(0, 8).map(u => ({ label: nameOf(u.uid), sub: `${fmtN(u.tokens)} токенів${u.errors ? ` · ${u.errors} помилок` : ""}`, value: u.calls })), { unit: "Запитів: ", color: C.violet, empty: "Цього місяця AI не використовувався" });
+    bars(document.getElementById("us-trend"), { labels: ms.map(mShort), full: ms.map(mName), series: [{ name: "Запити", color: C.violet, values: ms.map(k => sumMonth(k).calls) }], unit: n => "запитів", height: 170, highlightLast: true });
+  }
+  document.getElementById("us-months").addEventListener("click", e => { const b = e.target.closest("[data-m]"); if (b){ sel = b.dataset.m; renderUsage(); } });
+  renderUsage();
+}
 </script>
 </body>
 </html>

@@ -7,6 +7,7 @@
 
 import { NEWS_CATS, sanitizeNewsHtml, newsPlainText, newsExcerpt, readMinutes, catOf, isPublished } from "./news-utils.js?v=1";
 import { buildQuestions, qVersionKey } from "./qorder.js?v=1";
+import { trackAI, tokensOf } from "./ai-usage.js?v=1";
 
 const { db, ref, get, set, push, update, remove, onValue, off } = window._fb;
 
@@ -2326,7 +2327,15 @@ function _bindLinksPage(){
 // ─── GROQ для AI аналізу ──────────────────────────────────────────────────────
 // ─── AI виклик: підтримує Groq і Google AI Studio ──────────────────────────
 
+// Обгортка: рахуємо кожне звернення (успіх / помилка) для адмінки
 async function callGroq(messages, maxTokens=800, temp=0.5, feature="analysis"){
+  try{
+    const { text, data } = await callAIRaw(messages, maxTokens, temp, feature);
+    trackAI(db, _uid, feature, { tokens: tokensOf(data) });
+    return text;
+  }catch(e){ trackAI(db, _uid, feature, { ok: false }); throw e; }
+}
+async function callAIRaw(messages, maxTokens, temp, feature){
   const UA = "Ти — розумний асистент викладача. ОБОВ\'ЯЗКОВО відповідай ВИКЛЮЧНО українською мовою. Жодних інших мов. Якщо щось не знаєш українською — все одно пиши по-українськи.";
   try{
     const snap = await get(ref(db,"settings/ai"));
@@ -2361,7 +2370,7 @@ async function callGroq(messages, maxTokens=800, temp=0.5, feature="analysis"){
       try{ d = JSON.parse(raw); }
       catch(e){ throw new Error("Gemini: невалідна відповідь — " + raw.substring(0,200)); }
       if(d.error) throw new Error("Gemini: " + (d.error.message||JSON.stringify(d.error)));
-      return d.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      return { text: d.candidates?.[0]?.content?.parts?.[0]?.text || "", data: d };
     } else {
       const key   = groqKeyCfg;
       if(!key) throw new Error("AI не налаштовано: немає ключа Groq (адмінка → AI)");
@@ -2378,7 +2387,7 @@ async function callGroq(messages, maxTokens=800, temp=0.5, feature="analysis"){
       });
       const d = await res.json();
       if(d.error) throw new Error(d.error.message);
-      return d.choices?.[0]?.message?.content || "";
+      return { text: d.choices?.[0]?.message?.content || "", data: d };
     }
   }catch(e){throw e;}
 }

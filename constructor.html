@@ -619,6 +619,7 @@ textarea.in{height:auto;padding:10px 12px;line-height:1.5;resize:vertical}
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { trackAI, tokensOf } from "./shared/ai-usage.js?v=1";
 
 // ═══════════════════════════════════════════════════════════════════════
 // FIREBASE + AUTH
@@ -1246,7 +1247,15 @@ const aiReady = (async () => {
 const aiBlocked = () => !AI.enabled ? "AI вимкнено адміністратором." : !AI.gen ? "Генерацію питань вимкнено адміністратором." : "";
 
 const UA_SYSTEM = "Ти — розумний асистент викладача. ОБОВ'ЯЗКОВО відповідай ВИКЛЮЧНО українською мовою. Жодних інших мов, ієрогліфів або нерозпізнаного тексту.";
+// Обгортка: рахуємо кожне звернення (успіх / помилка) для адмінки
 async function callAI(prompt, maxTokens = 800, temperature = .5){
+  try {
+    const { text, data } = await callAIRaw(prompt, maxTokens, temperature);
+    trackAI(db, UID, "generation", { tokens: tokensOf(data) });
+    return text;
+  } catch (e) { trackAI(db, UID, "generation", { ok: false }); throw e; }
+}
+async function callAIRaw(prompt, maxTokens, temperature){
   if (AI.provider === "gemini"){
     if (!AI.geminiKey) throw new Error("Не налаштовано ключ Gemini");
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${AI.geminiModel}:generateContent?key=${AI.geminiKey}`, {
@@ -1259,7 +1268,7 @@ async function callAI(prompt, maxTokens = 800, temperature = .5){
     });
     const d = await res.json().catch(() => ({}));
     if (!res.ok || d.error) throw new Error("Gemini: " + (d.error?.message || res.status));
-    return (d.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join("");
+    return { text: (d.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join(""), data: d };
   }
   if (!AI.groqKey) throw new Error("AI не налаштовано: немає ключа Groq");
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -1268,7 +1277,7 @@ async function callAI(prompt, maxTokens = 800, temperature = .5){
   });
   if (!res.ok){ const t = await res.text().catch(() => ""); throw new Error(`Groq ${res.status}${res.status === 429 ? ": забагато запитів, спробуйте за хвилину" : t ? ": " + t.slice(0, 160) : ""}`); }
   const d = await res.json();
-  return d.choices?.[0]?.message?.content || "";
+  return { text: d.choices?.[0]?.message?.content || "", data: d };
 }
 function parseJSON(raw, open){
   const close = open === "[" ? "]" : "}";

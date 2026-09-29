@@ -31,6 +31,24 @@
         ".read": true
       }
     },
+    "aiUsage": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      "$month": {
+        ".validate": "$month.matches(/^[0-9]{6}$/)",
+        "$uid": {
+          ".validate": "root.child('users/' + $uid).exists()",
+          "$feature": {
+            ".validate": "$feature === 'comments' || $feature === 'analysis' || $feature === 'generation' || $feature === 'textcheck'",
+            "calls": { ".write": true, ".validate": "newData.isNumber() && newData.val() === (data.exists() ? data.val() : 0) + 1" },
+            "errors": { ".write": true, ".validate": "newData.isNumber() && newData.val() === (data.exists() ? data.val() : 0) + 1" },
+            "tokens": { ".write": true, ".validate": "newData.isNumber() && newData.val() > (data.exists() ? data.val() : 0) && newData.val() <= (data.exists() ? data.val() : 0) + 100000" },
+            "last": { ".write": true, ".validate": "newData.isNumber() && newData.val() <= now" },
+            "$other": { ".validate": false }
+          }
+        }
+      }
+    },
     "roles": {
       ".read": "auth != null && root.child('users/' + auth.uid + '/role').exists() && root.child('users/' + auth.uid + '/blocked').val() !== true",
       ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'"
