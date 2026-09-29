@@ -18,8 +18,20 @@ const EMAIL_RE = /^[^\s@<>()",;]+@[^\s@<>()",;]+\.[^\s@<>()",;]{2,}$/;
 const MAX_RECIPIENTS = 1000;
 const BATCH = 100;   // максимум Resend для /emails/batch
 
+// Значення за замовчуванням: на сайті Cloudflare вручну треба додати лише
+// сховище MAIL_KV і два секрети (RESEND_API_KEY, UNSUB_SECRET). Будь-яку з цих
+// змінних можна перевизначити в Settings → Variables and Secrets.
+const DEFAULTS = {
+  FIREBASE_PROJECT_ID: "quizflow-8a978",
+  FIREBASE_DB_URL: "https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",
+  SITE_URL: "https://quizflow.space",
+  MAIL_FROM: "QuizFlow <noreply@quizflow.space>",
+  ALLOWED_ORIGINS: "https://quizflow.space,https://www.quizflow.space",
+};
+
 export default {
-  async fetch(request, env) {
+  async fetch(request, rawEnv) {
+    const env = { ...DEFAULTS, ...Object.fromEntries(Object.entries(rawEnv || {}).filter(([, v]) => v !== undefined && v !== "")) };
     const url = new URL(request.url);
     const cors = corsHeaders(request, env);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });

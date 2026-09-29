@@ -180,8 +180,16 @@ ${button.label || "\u0412\u0456\u0434\u043A\u0440\u0438\u0442\u0438"}: ${button.
 var EMAIL_RE = /^[^\s@<>()",;]+@[^\s@<>()",;]+\.[^\s@<>()",;]{2,}$/;
 var MAX_RECIPIENTS = 1e3;
 var BATCH = 100;
+var DEFAULTS = {
+  FIREBASE_PROJECT_ID: "quizflow-8a978",
+  FIREBASE_DB_URL: "https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",
+  SITE_URL: "https://quizflow.space",
+  MAIL_FROM: "QuizFlow <noreply@quizflow.space>",
+  ALLOWED_ORIGINS: "https://quizflow.space,https://www.quizflow.space"
+};
 var index_default = {
-  async fetch(request, env) {
+  async fetch(request, rawEnv) {
+    const env = { ...DEFAULTS, ...Object.fromEntries(Object.entries(rawEnv || {}).filter(([, v]) => v !== void 0 && v !== "")) };
     const url = new URL(request.url);
     const cors = corsHeaders(request, env);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });

@@ -122,23 +122,29 @@ Firebase Console → **Authentication → Settings → Authorized domains** → 
 2. **Edit code** → видаліть увесь код у файлі й вставте вміст
    [`worker/dist/worker.js`](../worker/dist/worker.js) з репозиторію (увесь файл цілком) → **Deploy**.
 
-**в) Налаштування воркера** — вкладка **Settings**:
+**в) Налаштування воркера** — три речі, усе на сторінці воркера, вкладка **Settings**
 
-- **Bindings → Add binding → KV namespace**: *Variable name* `MAIL_KV`, простір — `quizflow-mail-unsub`.
-- **Variables and Secrets → Add** — такі змінні:
+Навіщо: код воркера однаковий для всіх, а «особисте» (ключ Resend, сховище відписок)
+задається окремо в налаштуваннях і в коді не видно.
 
-| Назва | Тип | Значення |
-|---|---|---|
-| `RESEND_API_KEY` | **Secret** | ключ `re_…` з Resend (можна той самий, що для SMTP) |
-| `UNSUB_SECRET` | **Secret** | будь-який довгий випадковий рядок (30+ символів) |
-| `MAIL_FROM` | Text | `QuizFlow <noreply@quizflow.space>` — домен має бути підтверджений у Resend |
-| `SITE_URL` | Text | `https://quizflow.space` |
-| `ALLOWED_ORIGINS` | Text | `https://quizflow.space,https://www.quizflow.space` |
-| `FIREBASE_PROJECT_ID` | Text | `quizflow-8a978` |
-| `FIREBASE_DB_URL` | Text | `https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app` |
+1. **Підключити сховище** — розділ **Bindings** → **Add binding** → **KV namespace**:
+   - *Variable name*: `MAIL_KV` (саме так, великими літерами)
+   - *KV namespace*: оберіть `quizflow-mail-unsub` зі списку → **Add binding** / **Deploy**.
+2. **Ключ Resend** — розділ **Variables and Secrets** → **Add**:
+   - *Type*: **Secret**
+   - *Variable name*: `RESEND_API_KEY`
+   - *Value*: ваш ключ `re_…` з Resend → **Deploy**.
+3. **Секрет для посилань «Відписатися»** — там само **Add**:
+   - *Type*: **Secret**
+   - *Variable name*: `UNSUB_SECRET`
+   - *Value*: будь-який довгий набір символів, який ніде більше не потрібен
+     (наприклад, настукайте 40 випадкових літер і цифр) → **Deploy**.
 
-Збережіть (**Deploy**). Адреса воркера — угорі сторінки воркера, вигляду
-`https://quizflow-mail.<акаунт>.workers.dev`.
+Більше нічого вводити не треба: адреса сайту, відправник `QuizFlow <noreply@quizflow.space>`
+і дані Firebase вже вписані в код. Якщо колись знадобиться інше — додайте змінну типу
+**Text** з назвою `MAIL_FROM`, `SITE_URL` або `ALLOWED_ORIGINS`, вона має пріоритет.
+
+Адреса воркера — угорі сторінки воркера, вигляду `https://quizflow-mail.<акаунт>.workers.dev`.
 
 > Секрет `UNSUB_SECRET` не змінюйте без потреби: після зміни посилання «Відписатися»
 > в уже надісланих листах перестануть працювати.
