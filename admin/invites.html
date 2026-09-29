@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><path d='M16 8l2.5 5 5.5.8-4 3.9.9 5.5L16 20.7l-4.9 2.5.9-5.5-4-3.9 5.5-.8z' fill='white'/></svg>">
+<title>QuizFlow Admin — Запрошення</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/admin-shell.css?v=8">
+<style>
+.field-input{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-family:"Manrope",sans-serif;font-size:14px;color:var(--ink-900);outline:none}
+.field-input:focus{border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+.iv-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.iv-bar .search-input{flex:1;min-width:220px;max-width:360px}
+.iv-bar .search-input .input{width:100%;padding-top:10px;padding-bottom:10px}
+.iv-chips{display:flex;gap:6px;flex-wrap:wrap}
+.iv-chips button{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:9px;border:1px solid var(--line);background:#fff;font:700 12.5px "Manrope",sans-serif;color:var(--ink-500);cursor:pointer}
+.iv-chips button i{width:7px;height:7px;border-radius:50%}
+.iv-chips button b{font-family:"Geist Mono",monospace;color:var(--ink-400)}
+.iv-chips button.on{background:var(--ink-900);border-color:var(--ink-900);color:#fff}
+.iv-chips button.on b{color:rgba(255,255,255,.7)}
+.iv-list{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.iv-row{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1.1fr) auto;gap:16px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line)}
+.iv-row:last-child{border-bottom:0}
+.iv-row.dim{background:#FCFCFE}
+.iv-row.dim .iv-n,.iv-row.dim .iv-c{opacity:.7}
+.iv-n{min-width:0}
+.iv-n b{display:block;font-size:14px;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iv-n code{font:500 11.5px "Geist Mono",monospace;color:var(--ink-400)}
+.iv-st{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:999px;margin-top:6px}
+.iv-st::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.iv-st.active{background:#DCFCE7;color:#15803D}
+.iv-st.used{background:#E0E7FF;color:#4338CA}
+.iv-st.expired{background:#F1F4FA;color:var(--ink-500)}
+.iv-c{font-size:12.5px;color:var(--ink-500);line-height:1.5;min-width:0}
+.iv-c b{color:var(--ink-900);font-weight:700}
+.iv-c a{color:#6D28D9;font-weight:700;text-decoration:none}
+.iv-c a:hover{text-decoration:underline}
+.iv-acts{display:flex;gap:6px;justify-content:flex-end}
+.iv-empty{padding:48px 20px;text-align:center;color:var(--ink-500);font-size:13px}
+.iv-empty b{display:block;font-size:15px;color:var(--ink-900);margin-bottom:4px}
+.exp{display:flex;gap:6px;flex-wrap:wrap}
+.exp button{padding:8px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font:700 13px "Manrope",sans-serif;color:var(--ink-700);cursor:pointer}
+.exp button.on{border-color:var(--ink-900);box-shadow:inset 0 0 0 1px var(--ink-900);color:var(--ink-900)}
+.iv-link{display:flex;gap:8px}
+.iv-link input{flex:1;font:500 12.5px "Geist Mono",monospace;background:#F4F6FB}
+.iv-ok{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:#F0FDF4;border:1px solid #BBF7D0;color:#15803D;font-size:13px;font-weight:700;margin-bottom:12px}
+@media (max-width:1023px){ .iv-row{grid-template-columns:1fr 1fr;gap:10px 16px} .iv-acts{grid-column:1/-1;justify-content:flex-start} }
+@media (max-width:640px){ .iv-row{grid-template-columns:1fr;padding:14px} }
+</style>
+</head>
+<body>
+
+<div id="admin-loader"><div class="spin"></div></div>
+<script src="shared/admin-nav.js?v=5"></script>
+<div id="admin-root"></div>
+<div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
+
+<div class="modal-bd" id="m-new">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-h"><span class="mh-ico blue" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>
+      <h3>Нове запрошення</h3>
+      <button class="close" type="button" onclick="closeModal('m-new')" aria-label="Закрити"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-b" id="nw-form">
+      <div style="font-size:13px;color:var(--ink-500);margin-top:-4px">Одноразове посилання: викладач переходить за ним і сам створює акаунт.</div>
+      <div class="field"><label class="field-l" for="nw-note">Для кого (необов'язково)</label><input class="field-input" id="nw-note" maxlength="80" placeholder="Наприклад: Іваненко О., кафедра математики"></div>
+      <div class="field"><span class="field-l">Діє</span><div class="exp" id="nw-exp" role="radiogroup">
+        <button type="button" role="radio" data-d="1">1 день</button><button type="button" role="radio" data-d="7" class="on">7 днів</button><button type="button" role="radio" data-d="30">30 днів</button><button type="button" role="radio" data-d="0">Без терміну</button></div></div>
+    </div>
+    <div class="modal-b" id="nw-done" hidden>
+      <div class="iv-ok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Посилання створено</div>
+      <div class="iv-link"><input class="field-input" id="nw-link" readonly aria-label="Посилання-запрошення"><button class="tb-btn primary" type="button" id="nw-copy">Скопіювати</button></div>
+      <div style="font-size:12px;color:var(--ink-500);margin-top:10px;line-height:1.5" id="nw-note-done"></div>
+    </div>
+    <div class="modal-f">
+      <button class="tb-btn" type="button" onclick="closeModal('m-new')" id="nw-close">Скасувати</button>
+      <button class="tb-btn primary" type="button" id="nw-create">Створити посилання</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bd" id="m-rev">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-h"><span class="mh-ico red" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg></span>
+      <h3 id="rev-h">Відкликати запрошення?</h3>
+      <button class="close" type="button" onclick="closeModal('m-rev')" aria-label="Закрити"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-b"><div style="font-size:13.5px;color:var(--ink-500);line-height:1.55" id="rev-t"></div></div>
+    <div class="modal-f"><button class="tb-btn" type="button" onclick="closeModal('m-rev')">Скасувати</button><button class="tb-btn danger" type="button" id="rev-ok">Відкликати</button></div>
+  </div>
+</div>
+
+<script type="module">
+import { logAction, initAdminShell, dbGet, dbSet, dbRemove, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=9";
+
+const SVG = p => `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const IC = { copy: SVG('<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>'), ban: SVG('<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>'), trash: SVG('<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>'), plus: SVG('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>') };
+const DAY = 864e5;
+const base = location.origin + location.pathname.replace(/\/admin\/.*/, "/");
+const linkOf = t => `${base}register?token=${t}`;
+const fmt = t => t ? new Date(t).toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—";
+const plural = (n, f) => { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? f[2] : b === 1 ? f[0] : b >= 2 && b <= 4 ? f[1] : f[2]; };
+
+const content = `
+  <div class="page-head"><div><h1>Запрошення</h1><p>Посилання для самостійної реєстрації викладачів: хто скористався, які ще діють</p></div></div>
+  <div class="iv-bar">
+    <div class="search-input"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input class="input" id="iv-q" type="search" placeholder="Пошук: для кого, хто зареєструвався…" autocomplete="off" aria-label="Пошук запрошень"></div>
+    <div class="iv-chips" id="iv-chips" role="tablist" aria-label="Статус"></div>
+  </div>
+  <div class="iv-list" id="iv-list"><div class="iv-empty">Завантаження…</div></div>
+`;
+const topbarRight = `<button class="tb-btn primary" type="button" id="btn-new">${IC.plus} Нове запрошення</button>`;
+const { _user } = await initAdminShell({ activeId: "invites", crumbs: ["Запрошення"], content, topbarRight });
+
+let items = {}, users = {}, filter = "all", days = 7, revId = null;
+const statusOf = t => t.used === true ? "used" : t.expiresAt && t.expiresAt < Date.now() ? "expired" : "active";
+const ST = { active: ["Діє", "#22C55E"], used: ["Використано", "#6366F1"], expired: ["Прострочено", "#94A3B8"] };
+const nameOf = uid => { const u = users[uid]; return u ? [u.surname, u.name].filter(Boolean).join(" ") || u.email : null; };
+
+function render(){
+  const q = (document.getElementById("iv-q").value || "").trim().toLowerCase();
+  const list = Object.entries(items).map(([id, t]) => ({ id, ...t, st: statusOf(t) })).sort((a, b) => ({ active: 0, used: 1, expired: 2 }[a.st] - { active: 0, used: 1, expired: 2 }[b.st]) || (b.createdAt || 0) - (a.createdAt || 0));
+  const counts = { all: list.length, active: 0, used: 0, expired: 0 }; list.forEach(t => counts[t.st]++);
+  document.getElementById("iv-chips").innerHTML = [["all", "Усі"], ...Object.entries(ST).map(([k, v]) => [k, v[0], v[1]])].map(([k, l, c]) =>
+    `<button type="button" role="tab" data-f="${k}" class="${filter === k ? "on" : ""}">${c ? `<i style="background:${c}"></i>` : ""}${l} <b>${counts[k]}</b></button>`).join("");
+  const rows = list.filter(t => (filter === "all" || t.st === filter) && (!q || [t.note, t.createdByName, nameOf(t.usedBy), users[t.usedBy]?.email].some(x => String(x || "").toLowerCase().includes(q))));
+  const host = document.getElementById("iv-list");
+  if (!list.length){ host.innerHTML = `<div class="iv-empty"><b>Запрошень ще немає</b>Створіть посилання — викладач зареєструється сам.<div style="margin-top:14px"><button class="tb-btn primary" type="button" data-new>${IC.plus} Нове запрошення</button></div></div>`; return; }
+  if (!rows.length){ host.innerHTML = `<div class="iv-empty"><b>Нічого не знайдено</b>Спробуйте інший фільтр або запит</div>`; return; }
+  host.innerHTML = rows.map(t => {
+    const left = t.expiresAt ? Math.ceil((t.expiresAt - Date.now()) / DAY) : null;
+    const who = t.usedBy ? nameOf(t.usedBy) : null;
+    return `<div class="iv-row${t.st === "active" ? "" : " dim"}" data-id="${esc(t.id)}">
+      <div class="iv-n"><b>${esc(t.note || "Без позначки")}</b><code>…${esc(t.id.slice(-8))}</code><br><span class="iv-st ${t.st}">${ST[t.st][0]}</span></div>
+      <div class="iv-c">Створено ${esc(fmt(t.createdAt))}${t.createdByName ? `<br>${esc(t.createdByName)}` : ""}</div>
+      <div class="iv-c">${t.st === "used" ? `Зареєструвався: ${who ? `<a href="teachers?id=${encodeURIComponent(t.usedBy)}">${esc(who)}</a>` : "<b>акаунт видалено</b>"}<br>${esc(fmt(t.usedAt))}`
+        : t.st === "expired" ? `Термін минув ${esc(fmt(t.expiresAt))}`
+        : t.expiresAt ? `Діє ще <b>${left} ${plural(left, ["день", "дні", "днів"])}</b><br>до ${esc(fmt(t.expiresAt))}` : "<b>Без терміну</b>"}</div>
+      <div class="iv-acts">${t.st === "active" ? `<button class="tb-btn" type="button" data-act="copy">${IC.copy} Посилання</button><button class="tb-btn danger" type="button" data-act="revoke" title="Відкликати" aria-label="Відкликати запрошення">${IC.ban}</button>`
+        : `<button class="tb-btn ghost" type="button" data-act="remove" title="Прибрати зі списку" aria-label="Прибрати зі списку">${IC.trash}</button>`}</div>
+    </div>`;
+  }).join("");
+}
+
+// ─── Нове запрошення ─────────────────────────────────────────────────────
+function openNew(){
+  days = 7;
+  document.getElementById("nw-note").value = "";
+  document.querySelectorAll("#nw-exp button").forEach(b => b.classList.toggle("on", b.dataset.d === "7"));
+  document.getElementById("nw-form").hidden = false; document.getElementById("nw-done").hidden = true;
+  document.getElementById("nw-create").hidden = false; document.getElementById("nw-close").textContent = "Скасувати";
+  openModal("m-new");
+}
+document.getElementById("btn-new").addEventListener("click", openNew);
+document.getElementById("nw-exp").addEventListener("click", e => { const b = e.target.closest("[data-d]"); if (!b) return; days = +b.dataset.d; document.querySelectorAll("#nw-exp button").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-checked", x === b); }); });
+document.getElementById("nw-create").addEventListener("click", async e => {
+  const btn = e.currentTarget; btn.disabled = true;
+  try {
+    const token = Array.from(crypto.getRandomValues(new Uint8Array(24))).map(b => b.toString(36)).join("").slice(0, 32);
+    const note = document.getElementById("nw-note").value.trim();
+    const me = [_user.name, _user.surname].filter(Boolean).join(" ") || _user.email || "";
+    const data = { createdAt: Date.now(), used: false, note: note || null, expiresAt: days ? Date.now() + days * DAY : null, createdBy: _user.id, createdByName: me || null };
+    await dbSet(`invite_tokens/${token}`, data);
+    items[token] = data;
+    logAction("invite.create", { type: "invite", id: token, label: note || "без позначки" }, days ? `діє ${days} ${plural(days, ["день", "дні", "днів"])}` : "без терміну");
+    document.getElementById("nw-link").value = linkOf(token);
+    document.getElementById("nw-note-done").textContent = (days ? `Діє до ${fmt(data.expiresAt)}. ` : "") + "Посилання одноразове: після реєстрації стане недійсним.";
+    document.getElementById("nw-form").hidden = true; document.getElementById("nw-done").hidden = false;
+    btn.hidden = true; document.getElementById("nw-close").textContent = "Готово";
+    render();
+  } catch (err){ toast("Помилка: " + err.message, "err"); }
+  finally { btn.disabled = false; }
+});
+document.getElementById("nw-copy").addEventListener("click", () => navigator.clipboard.writeText(document.getElementById("nw-link").value).then(() => toast("Посилання скопійовано")));
+
+// ─── Дії в списку ────────────────────────────────────────────────────────
+document.addEventListener("click", e => {
+  if (e.target.closest("[data-new]")) return openNew();
+  const f = e.target.closest("#iv-chips [data-f]"); if (f){ filter = f.dataset.f; return render(); }
+  const b = e.target.closest(".iv-row [data-act]"); if (!b) return;
+  const id = b.closest(".iv-row").dataset.id, t = items[id]; if (!t) return;
+  if (b.dataset.act === "copy") return navigator.clipboard.writeText(linkOf(id)).then(() => toast("Посилання скопійовано"));
+  revId = id;
+  const active = statusOf(t) === "active";
+  document.getElementById("rev-h").textContent = active ? "Відкликати запрошення?" : "Прибрати зі списку?";
+  document.getElementById("rev-t").innerHTML = active ? `Посилання «<b>${esc(t.note || "без позначки")}</b>» перестане працювати. Якщо його вже комусь надіслали, реєстрація не вдасться.` : "Запис про запрошення буде видалено. Акаунт викладача, якщо він зареєструвався, не зміниться.";
+  document.getElementById("rev-ok").textContent = active ? "Відкликати" : "Прибрати";
+  openModal("m-rev");
+});
+document.getElementById("rev-ok").addEventListener("click", async () => {
+  const id = revId, t = items[id]; if (!t) return;
+  try {
+    await dbRemove(`invite_tokens/${id}`);
+    if (statusOf(t) === "active") logAction("invite.revoke", { type: "invite", id, label: t.note || "без позначки" });
+    delete items[id]; closeModal("m-rev"); render();
+    toast(statusOf(t) === "active" ? "Запрошення відкликано" : "Прибрано");
+  } catch (e){ toast("Помилка: " + e.message, "err"); }
+});
+let _t; document.getElementById("iv-q").addEventListener("input", () => { clearTimeout(_t); _t = setTimeout(render, 120); });
+document.querySelectorAll(".modal-bd").forEach(m => m.addEventListener("click", e => { if (e.target === m) closeModal(m.id); }));
+document.addEventListener("keydown", e => { if (e.key === "Escape"){ const o = [...document.querySelectorAll(".modal-bd.on")]; if (o.length) closeModal(o[o.length - 1].id); } });
+
+try {
+  const [i, u] = await Promise.all([dbGet("invite_tokens"), dbGet("users").catch(() => null)]);
+  items = i || {}; users = u || {};
+} catch (e){ toast("Не вдалося завантажити: " + e.message, "err"); }
+render();
+hideLoader();
+if (new URLSearchParams(location.search).get("new") === "1") openNew();
+</script>
+</body>
+</html>

@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=7">
+<link rel="stylesheet" href="shared/admin-shell.css?v=8">
 <style>
 .row-2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
 .row-mix{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:16px}
@@ -57,13 +57,13 @@
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=4"></script>
+<script src="shared/admin-nav.js?v=5"></script>
 <div id="admin-root"></div>
 <div id="admin-modals"></div>
 <div id="admin-toast" class="toast"></div>
 
 <script type="module">
-import { initAdminShell, loadAllTeachers, cachedTeachers, esc, hideLoader, formatTimeAgo } from "./shared/admin-shell.js?v=8";
+import { initAdminShell, loadAllTeachers, cachedTeachers, esc, hideLoader, formatTimeAgo } from "./shared/admin-shell.js?v=9";
 import { bars, rank, bindTips, C } from "./shared/admin-charts.js?v=1";
 
 const DAY = 864e5;

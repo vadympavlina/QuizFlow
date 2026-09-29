@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjN0MzQUVEIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNEY0NkU1Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjkiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjQiIGZpbGw9IndoaXRlIi8+PC9zdmc+">
 <title>QuizFlow Admin · Проблеми</title>
-<link rel="stylesheet" href="shared/admin-shell.css?v=7">
+<link rel="stylesheet" href="shared/admin-shell.css?v=8">
 <style>
 /* ═══ Плитки-фільтри ═══ */
 .pb-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0 16px}
@@ -129,7 +129,7 @@ textarea.field-input{resize:vertical;min-height:72px;line-height:1.5}
 </style>
 </head>
 <body>
-<script src="shared/admin-nav.js?v=4"></script>
+<script src="shared/admin-nav.js?v=5"></script>
 <div id="admin-root"></div>
 
 <!-- Деталі / редагування -->
@@ -158,7 +158,7 @@ textarea.field-input{resize:vertical;min-height:72px;line-height:1.5}
 </div>
 
 <script type="module">
-import { initAdminShell, esc, formatTimeAgo, toast, hideLoader, openModal, closeModal, db, ref, update, remove, onValue, get } from "./shared/admin-shell.js?v=8";
+import { logAction, initAdminShell, esc, formatTimeAgo, toast, hideLoader, openModal, closeModal, db, ref, update, remove, onValue, get } from "./shared/admin-shell.js?v=9";
 import { push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // ─── Довідники ─────────────────────────────────────────────────────────
@@ -346,6 +346,7 @@ async function moveTo(id, col){
   it.col = col; renderSoon();                    // миттєво, база підтвердить
   try {
     await update(ref(db, pathOf(it)), upd);
+    logAction("problem.move", { type: it.src === "bug" ? "bug" : "task", id: it.id, label: it.title }, COLS.find(c => c.id === col).label);
     toast(`Переміщено в «${COLS.find(c => c.id === col).label}»`);
   } catch (e){ it.col = prev; renderSoon(); toast("Не вдалося перемістити: " + e.message, "err"); }
 }
@@ -360,7 +361,7 @@ function askDelete(id){
   document.getElementById("cf-text").innerHTML = `«${esc(it.title.slice(0, 140))}${it.title.length > 140 ? "…" : ""}» буде видалено назавжди.`;
   document.getElementById("cf-ok").onclick = async () => {
     closeModal("m-confirm");
-    try { await remove(ref(db, pathOf(it))); closeModal("m-item"); toast("Видалено"); } catch (e){ toast("Помилка: " + e.message, "err"); }
+    try { await remove(ref(db, pathOf(it))); logAction("problem.delete", { type: it.src === "bug" ? "bug" : "task", id: it.id, label: it.title }); closeModal("m-item"); toast("Видалено"); } catch (e){ toast("Помилка: " + e.message, "err"); }
   };
   openModal("m-confirm");
 }
@@ -494,6 +495,7 @@ async function saveItem(){
         if (it.col !== _edit.col) data.completedAt = _edit.col === "done" ? Date.now() : null;   // статус не скидається при редагуванні
         await update(ref(db, `adminTasks/${_edit.id}`), data);
       } else {
+        logAction("problem.create", { type: "task", label: title });
         await push(ref(db, "adminTasks"), { ...data, type: "task", createdAt: Date.now(), createdBy: ME.id || null, createdByName: ME.name, completedAt: _edit.col === "done" ? Date.now() : null });
       }
     }

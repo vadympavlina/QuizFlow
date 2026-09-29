@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=7">
+<link rel="stylesheet" href="shared/admin-shell.css?v=8">
 <style>
 /* Плашка оголошення (такий самий вигляд, як у панелі викладача) */
 .qf-ann{--c:#1D4ED8;--bg:#EFF6FF;--ln:#BFDBFE;display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:var(--bg);border:1px solid var(--ln);color:#0B1437;font-family:"Manrope",system-ui,sans-serif;text-align:left}
@@ -108,7 +108,7 @@ textarea.field-input{resize:vertical;min-height:96px;line-height:1.5}
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=4"></script>
+<script src="shared/admin-nav.js?v=5"></script>
 <div id="admin-root"></div>
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -127,7 +127,7 @@ textarea.field-input{resize:vertical;min-height:96px;line-height:1.5}
 </div>
 
 <script type="module">
-import { initAdminShell, db, ref, update, dbGet, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=8";
+import { logAction, initAdminShell, db, ref, update, dbGet, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=9";
 
 const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const sm = (svg, w = 14) => svg.replace("<svg", `<svg width="${w}" height="${w}"`);
@@ -224,7 +224,10 @@ document.getElementById("mt").addEventListener("click", async e => {
   if (mtOn(data) && !data.message) data.message = "Тривають технічні роботи. Спробуйте трохи пізніше.";
   try {
     await update(ref(db), { "settings/status": data });
+    const was = statusSaved;
     status = { ...data }; statusSaved = { ...data };
+    logAction(mtOn(data) ? "maint.on" : "maint.off", { type: "service", label: "Технічні роботи" },
+      mtOn(data) ? MT.filter(([k]) => data[k]).map(([, n]) => n).join(", ") + (data.message ? ` — «${data.message}»` : "") : (mtOn(was) ? "вимкнено" : null));
     renderMT();
     toast(mtOn(data) ? "Режим техробіт увімкнено" : "Сервіс знову працює повністю");
   } catch (err) { toast("Помилка: " + err.message, "err"); }
@@ -358,6 +361,7 @@ async function save(btn){
   try {
     await update(ref(db), { [`settings/announcements/${id}`]: data });
     items[id] = data;
+    logAction(_selId === "new" ? "ann.create" : "ann.update", { type: "announcement", id, label: data.title || data.text }, `${LV[data.level]?.label || ""}${data.audience === "roles" ? " · для ролей" : ""}${data.enabled ? "" : " · вимкнено"}`);
     toast(_selId === "new" ? "Оголошення опубліковано" : "Збережено");
     select(id);
   } catch (e) { err("Помилка: " + e.message); btn.disabled = false; }
@@ -366,6 +370,7 @@ document.getElementById("del-ok").addEventListener("click", async () => {
   const id = _selId; if (!items[id]) return;
   try {
     await update(ref(db), { [`settings/announcements/${id}`]: null });
+    logAction("ann.delete", { type: "announcement", id, label: items[id]?.title || items[id]?.text || id });
     delete items[id];
     closeModal("m-del");
     toast("Оголошення видалено");

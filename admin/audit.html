@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><path d='M16 8l2.5 5 5.5.8-4 3.9.9 5.5L16 20.7l-4.9 2.5.9-5.5-4-3.9 5.5-.8z' fill='white'/></svg>">
+<title>QuizFlow Admin — Журнал дій</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/admin-shell.css?v=8">
+<style>
+.lg-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.lg-bar .search-input{flex:1;min-width:220px;max-width:380px}
+.lg-bar .search-input .input{width:100%;padding-top:10px;padding-bottom:10px}
+.lg-bar select{min-width:200px}
+.lg-meta{margin-left:auto;font:600 12px "Geist Mono",monospace;color:var(--ink-400)}
+.lg-cats{display:flex;gap:6px;flex-wrap:wrap}
+.lg-cats button{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:9px;border:1px solid var(--line);background:#fff;font:700 12.5px "Manrope",sans-serif;color:var(--ink-500);cursor:pointer}
+.lg-cats button i{width:7px;height:7px;border-radius:50%}
+.lg-cats button b{font-family:"Geist Mono",monospace;color:var(--ink-400)}
+.lg-cats button.on{background:var(--ink-900);border-color:var(--ink-900);color:#fff}
+.lg-cats button.on b{color:rgba(255,255,255,.7)}
+.lg-list{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.lg-day{padding:10px 20px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-400);background:#FAFBFE;border-bottom:1px solid var(--line);border-top:1px solid var(--line)}
+.lg-day:first-child{border-top:0}
+.lg-row{display:flex;align-items:flex-start;gap:14px;padding:12px 20px;border-bottom:1px solid var(--line)}
+.lg-row:last-child{border-bottom:0}
+.lg-ic{--c:#6D28D9;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;background:color-mix(in srgb,var(--c) 12%,#fff);color:var(--c)}
+.lg-ic svg{width:16px;height:16px}
+.lg-i{flex:1;min-width:0}
+.lg-t{font-size:13.5px;color:var(--ink-700);line-height:1.5}
+.lg-t b{color:var(--ink-900);font-weight:800}
+.lg-t a{color:#6D28D9;font-weight:700;text-decoration:none}
+.lg-t a:hover{text-decoration:underline}
+.lg-d{font-size:12.5px;color:var(--ink-500);margin-top:2px;overflow-wrap:anywhere}
+.lg-time{font:600 12px "Geist Mono",monospace;color:var(--ink-400);white-space:nowrap;padding-top:2px}
+.lg-empty{padding:48px 20px;text-align:center;color:var(--ink-500);font-size:13px}
+.lg-empty b{display:block;font-size:15px;color:var(--ink-900);margin-bottom:4px}
+.lg-more{display:flex;justify-content:center;padding:14px}
+@media (max-width:640px){ .lg-row{padding:12px 14px;gap:10px} .lg-day{padding:10px 14px} .lg-bar select{min-width:0;flex:1} .lg-meta{margin-left:0} }
+</style>
+</head>
+<body>
+
+<div id="admin-loader"><div class="spin"></div></div>
+<script src="shared/admin-nav.js?v=5"></script>
+<div id="admin-root"></div>
+<div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
+
+<script type="module">
+import { initAdminShell, db, ref, esc, hideLoader, toast } from "./shared/admin-shell.js?v=9";
+import { get, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const CAT = {
+  teacher:  { label: "Викладачі",     c: "#2563EB", ico: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.6 2-4.8 4.5-5"/>' },
+  role:     { label: "Ролі",          c: "#7C3AED", ico: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>' },
+  invite:   { label: "Запрошення",    c: "#0891B2", ico: '<rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/>' },
+  ann:      { label: "Оголошення",    c: "#D97706", ico: '<path d="M3 11v2a1 1 0 001 1h2l5 4V6L6 10H4a1 1 0 00-1 1z"/><path d="M15.5 8.5a5 5 0 010 7"/>' },
+  service:  { label: "Налаштування",  c: "#475569", ico: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>' },
+  news:     { label: "Новини",        c: "#059669", ico: '<rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h6M7 17h4"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/>' },
+  problem:  { label: "Проблеми",      c: "#DC2626", ico: '<path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>' },
+  cleanup:  { label: "Обслуговування", c: "#0F766E", ico: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>' },
+};
+// action → [категорія, дієслово]; {t} — об'єкт дії
+const ACT = {
+  "teacher.create": ["teacher", "створив акаунт викладача {t}"], "teacher.delete": ["teacher", "видалив викладача {t}"],
+  "teacher.block": ["teacher", "заблокував {t}"], "teacher.unblock": ["teacher", "розблокував {t}"],
+  "teacher.reset": ["teacher", "надіслав скидання пароля для {t}"], "teacher.admin.grant": ["teacher", "зробив адміністратором {t}"],
+  "teacher.admin.revoke": ["teacher", "забрав права адміністратора в {t}"], "teacher.ai": ["teacher", "змінив AI-налаштування для {t}"],
+  "teacher.caps": ["teacher", "змінив можливості та ліміти для {t}"],
+  "role.create": ["role", "створив роль {t}"], "role.update": ["role", "відредагував роль {t}"], "role.delete": ["role", "видалив роль {t}"],
+  "role.member.add": ["role", "додав роль викладачу {t}"], "role.member.remove": ["role", "зняв роль з {t}"],
+  "role.page.restrict": ["role", "обмежив сторінку роллю {t}"], "role.page.open": ["role", "зняв обмеження сторінки з ролі {t}"],
+  "invite.create": ["invite", "створив запрошення {t}"], "invite.revoke": ["invite", "відкликав запрошення {t}"],
+  "ann.create": ["ann", "опублікував оголошення {t}"], "ann.update": ["ann", "змінив оголошення {t}"], "ann.delete": ["ann", "видалив оголошення {t}"],
+  "maint.on": ["ann", "увімкнув технічні роботи"], "maint.off": ["ann", "вимкнув технічні роботи"],
+  "features.update": ["service", "змінив можливості та ліміти для всіх"], "ai.settings": ["service", "змінив AI-налаштування"],
+  "nav.update": ["service", "зберіг навігацію панелі"], "tg.on": ["service", "увімкнув сповіщення Telegram"], "tg.off": ["service", "вимкнув сповіщення Telegram"],
+  "tg.token": ["service", "підключив Telegram-бота"], "tg.token.remove": ["service", "відключив Telegram-бота"],
+  "news.publish": ["news", "опублікував новину {t}"], "news.draft": ["news", "зберіг чернетку новини {t}"], "news.update": ["news", "відредагував новину {t}"],
+  "news.unpublish": ["news", "сховав новину {t}"], "news.delete": ["news", "видалив новину {t}"], "news.pin": ["news", "закріпив новину {t}"], "news.unpin": ["news", "відкріпив новину {t}"],
+  "problem.create": ["problem", "додав задачу {t}"], "problem.move": ["problem", "перемістив {t}"], "problem.delete": ["problem", "видалив {t}"],
+  "cleanup.run": ["cleanup", "почистив базу"],
+};
+const LINK = { teacher: id => `teachers?id=${encodeURIComponent(id)}`, role: id => `roles?id=${encodeURIComponent(id)}`, announcement: id => `announcements?id=${encodeURIComponent(id)}`, news: () => "news", bug: () => "problems", task: () => "problems", invite: () => "invites" };
+
+const content = `
+  <div class="page-head"><div><h1>Журнал дій</h1><p>Хто з адміністраторів і що змінював у сервісі</p></div></div>
+  <div class="lg-bar">
+    <div class="search-input"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input class="input" id="lg-q" type="search" placeholder="Пошук: ім'я, об'єкт, деталі…" autocomplete="off" aria-label="Пошук у журналі"></div>
+    <select id="lg-who" aria-label="Адміністратор"><option value="">Усі адміністратори</option></select>
+    <span class="lg-meta" id="lg-meta"></span>
+  </div>
+  <div class="lg-cats" id="lg-cats" role="tablist" aria-label="Тип дії"></div>
+  <div class="lg-list" id="lg-list"><div class="lg-empty">Завантаження…</div></div>
+  <div class="lg-more" id="lg-more" hidden><button class="tb-btn" type="button" id="lg-more-btn">Показати давніші</button></div>
+`;
+await initAdminShell({ activeId: "audit", crumbs: ["Журнал дій"], content });
+
+let all = [], cat = "", who = "", limit = 500;
+const dayName = t => { const d = new Date(t), n = new Date(); const k = x => x.toDateString();
+  if (k(d) === k(n)) return "Сьогодні"; const y = new Date(n); y.setDate(n.getDate() - 1); if (k(d) === k(y)) return "Вчора";
+  return d.toLocaleDateString("uk-UA", { day: "numeric", month: "long", year: d.getFullYear() === n.getFullYear() ? undefined : "numeric" }); };
+const catOf = e => (ACT[e.action] || ["service"])[0];
+
+function sentence(e){
+  const [, verb] = ACT[e.action] || ["service", esc(e.action)];
+  const label = e.targetLabel ? esc(e.targetLabel) : "";
+  const href = e.targetId && LINK[e.targetType] ? LINK[e.targetType](e.targetId) : (LINK[e.targetType] ? LINK[e.targetType]("") : "");
+  const t = label ? (href ? `<a href="${esc(href)}">${label}</a>` : `<b>${label}</b>`) : "";
+  return `<b>${esc(e.name || "Адміністратор")}</b> ${verb.replace("{t}", t).replace(/\s+$/, "")}`;
+}
+function render(){
+  const q = (document.getElementById("lg-q").value || "").trim().toLowerCase();
+  const counts = {}; all.forEach(e => { const c = catOf(e); counts[c] = (counts[c] || 0) + 1; });
+  document.getElementById("lg-cats").innerHTML = `<button type="button" role="tab" data-c="" class="${cat ? "" : "on"}">Усі <b>${all.length}</b></button>` +
+    Object.entries(CAT).filter(([k]) => counts[k]).map(([k, c]) => `<button type="button" role="tab" data-c="${k}" class="${cat === k ? "on" : ""}"><i style="background:${c.c}"></i>${c.label} <b>${counts[k]}</b></button>`).join("");
+  const list = all.filter(e => (!cat || catOf(e) === cat) && (!who || e.uid === who) &&
+    (!q || [e.name, e.targetLabel, e.details, (ACT[e.action] || [])[1]].some(x => String(x || "").toLowerCase().includes(q))));
+  document.getElementById("lg-meta").textContent = `${list.length} / ${all.length}`;
+  const host = document.getElementById("lg-list");
+  if (!all.length){ host.innerHTML = `<div class="lg-empty"><b>Журнал поки порожній</b>Тут з'являтимуться зміни: блокування, ролі, ліміти, оголошення, налаштування.</div>`; return; }
+  if (!list.length){ host.innerHTML = `<div class="lg-empty"><b>Нічого не знайдено</b>Спробуйте інший фільтр або запит</div>`; return; }
+  let day = "", html = "";
+  list.forEach(e => {
+    const d = dayName(e.at); if (d !== day){ day = d; html += `<div class="lg-day">${d}</div>`; }
+    const c = CAT[catOf(e)] || CAT.service;
+    html += `<div class="lg-row"><span class="lg-ic" style="--c:${c.c}">${SVG(c.ico)}</span>
+      <div class="lg-i"><div class="lg-t">${sentence(e)}</div>${e.details ? `<div class="lg-d">${esc(e.details)}</div>` : ""}</div>
+      <span class="lg-time" title="${esc(new Date(e.at).toLocaleString("uk-UA"))}">${new Date(e.at).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })}</span></div>`;
+  });
+  host.innerHTML = html;
+}
+async function load(){
+  const snap = await get(query(ref(db, "adminLog"), limitToLast(limit)));
+  const v = snap.val() || {};
+  all = Object.entries(v).map(([id, e]) => ({ id, ...e })).filter(e => e && e.at).sort((a, b) => b.at - a.at);
+  const admins = new Map(); all.forEach(e => { if (e.uid && !admins.has(e.uid)) admins.set(e.uid, e.name); });
+  const sel = document.getElementById("lg-who");
+  sel.innerHTML = `<option value="">Усі адміністратори</option>` + [...admins].map(([id, n]) => `<option value="${esc(id)}">${esc(n || id)}</option>`).join("");
+  sel.value = who;
+  document.getElementById("lg-more").hidden = Object.keys(v).length < limit;
+  render();
+}
+document.getElementById("lg-cats").addEventListener("click", e => { const b = e.target.closest("[data-c]"); if (b){ cat = b.dataset.c; render(); } });
+document.getElementById("lg-who").addEventListener("change", e => { who = e.target.value; render(); });
+let _t; document.getElementById("lg-q").addEventListener("input", () => { clearTimeout(_t); _t = setTimeout(render, 120); });
+document.getElementById("lg-more-btn").addEventListener("click", async () => { limit += 1000; await load(); });
+
+try { await load(); }
+catch (e){ document.getElementById("lg-list").innerHTML = `<div class="lg-empty"><b>Не вдалося прочитати журнал</b>${esc(e.message || "")}. Перевірте, чи опубліковано правила бази з розділом adminLog.</div>`; }
+hideLoader();
+</script>
+</body>
+</html>

@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=7">
+<link rel="stylesheet" href="shared/admin-shell.css?v=8">
 <style>
 .field-input{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-family:"Manrope",sans-serif;font-size:14px;color:var(--ink-900);outline:none;transition:border-color .15s,box-shadow .15s}
 .field-input:focus{border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
@@ -141,7 +141,7 @@
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=4"></script>
+<script src="shared/admin-nav.js?v=5"></script>
 <div id="admin-root"></div>
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -220,7 +220,7 @@
 </div>
 
 <script type="module">
-import { initAdminShell, esc, dbGet, db, ref, update, openModal, closeModal, toast, formatTimeAgo, hideLoader } from "./shared/admin-shell.js?v=8";
+import { logAction, initAdminShell, esc, dbGet, db, ref, update, openModal, closeModal, toast, formatTimeAgo, hideLoader } from "./shared/admin-shell.js?v=9";
 import { push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { NEWS_CATS, catOf, sanitizeNewsHtml, newsPlainText, newsExcerpt, readMinutes } from "../shared/news-utils.js?v=1";
 
@@ -342,7 +342,9 @@ document.getElementById("nt-list").addEventListener("click", async e => {
 });
 
 async function patch(id, data, msg){
+  const title = news.find(x => x.id === id)?.title || id;
   try {
+    logAction(data === null ? "news.delete" : data.draft === true ? "news.unpublish" : data.draft === false ? "news.publish" : data.pinned !== undefined ? (data.pinned ? "news.pin" : "news.unpin") : "news.update", { type: "news", id, label: title });
     if (data === null){ await update(ref(db), { ["news/" + id]: null }); news = news.filter(x => x.id !== id); render(); }
     else { const upd = {}; Object.entries(data).forEach(([k, v]) => { upd[`news/${id}/${k}`] = v; }); await update(ref(db), upd); Object.assign(news.find(x => x.id === id), data); render(id); }
     toast(msg);
@@ -501,6 +503,7 @@ async function saveNews(asDraft){
     const upd = {}; Object.entries(data).forEach(([k, v]) => { upd[`news/${id}/${k}`] = v; });
     await update(ref(db), upd);
     if (prev) Object.assign(prev, data); else news.push({ id, ...data });
+    logAction(!prev ? (asDraft ? "news.draft" : "news.publish") : (!asDraft && !wasPublished ? "news.publish" : "news.update"), { type: "news", id, label: title });
     startState = edState();
     closeModal("m-news");
     render(id);

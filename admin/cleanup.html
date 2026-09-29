@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><path d='M16 8l2.5 5 5.5.8-4 3.9.9 5.5L16 20.7l-4.9 2.5.9-5.5-4-3.9 5.5-.8z' fill='white'/></svg>">
+<title>QuizFlow Admin — Обслуговування</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/admin-shell.css?v=8">
+<style>
+.cl-sum{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 22px}
+.cl-sum .ic{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:#CCFBF1;color:#0F766E;flex:0 0 auto}
+.cl-sum .ic svg{width:22px;height:22px}
+.cl-sum h2{font-size:16px;font-weight:800;margin:0}
+.cl-sum p{font-size:13px;color:var(--ink-500);margin:3px 0 0}
+.cl-sum .v{margin-left:auto;text-align:right}
+.cl-sum .v b{display:block;font:800 24px "Geist Mono",monospace;color:var(--ink-900)}
+.cl-sum .v span{font-size:12px;color:var(--ink-400);font-weight:600}
+.cl-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.cl-card{background:#fff;border:1px solid var(--line);border-radius:18px;display:flex;flex-direction:column;overflow:hidden}
+.cl-h{display:flex;gap:12px;align-items:flex-start;padding:18px 20px 12px}
+.cl-h .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:0 0 auto;background:color-mix(in srgb,var(--c) 12%,#fff);color:var(--c)}
+.cl-h .ic svg{width:18px;height:18px}
+.cl-h h3{font-size:14.5px;font-weight:800;margin:0}
+.cl-h p{font-size:12.5px;color:var(--ink-500);margin:3px 0 0;line-height:1.45}
+.cl-n{margin-left:auto;text-align:right;flex:0 0 auto}
+.cl-n b{display:block;font:800 22px "Geist Mono",monospace;color:var(--ink-900)}
+.cl-n span{font-size:11.5px;color:var(--ink-400);font-weight:600;white-space:nowrap}
+.cl-card.zero .cl-n b{color:#15803D}
+.cl-prev{padding:0 20px;display:flex;flex-direction:column;gap:4px;flex:1}
+.cl-prev div{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--ink-700);padding:6px 10px;border-radius:9px;background:#FAFBFE;border:1px solid var(--line)}
+.cl-prev div span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cl-prev div em{font-style:normal;color:var(--ink-400);white-space:nowrap;font-size:12px}
+.cl-prev .more{justify-content:center;color:var(--ink-400);background:none;border:0}
+.cl-ok{display:flex;align-items:center;gap:8px;margin:0 20px;padding:10px 12px;border-radius:10px;background:#F0FDF4;color:#15803D;font-size:13px;font-weight:700}
+.cl-f{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;margin-top:12px;border-top:1px solid var(--line);background:#FCFCFE}
+.cl-sk{height:210px;border-radius:18px;border:1px solid var(--line);background:linear-gradient(90deg,#fff 0%,#F4F6FB 50%,#fff 100%);background-size:200% 100%;animation:clSk 1.2s linear infinite}
+@keyframes clSk{to{background-position:-200% 0}}
+@media (max-width:1180px){ .cl-grid{grid-template-columns:1fr} }
+@media (max-width:640px){ .cl-sum{flex-wrap:wrap} .cl-sum .v{margin-left:0;text-align:left} .cl-h{flex-wrap:wrap} .cl-n{margin-left:50px;text-align:left} }
+</style>
+</head>
+<body>
+
+<div id="admin-loader"><div class="spin"></div></div>
+<script src="shared/admin-nav.js?v=5"></script>
+<div id="admin-root"></div>
+<div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
+
+<div class="modal-bd" id="m-cl">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-h"><span class="mh-ico red" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></span>
+      <h3 id="cl-mh">Очистити?</h3>
+      <button class="close" type="button" onclick="closeModal('m-cl')" aria-label="Закрити"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-b"><div style="font-size:13.5px;color:var(--ink-500);line-height:1.55" id="cl-mt"></div></div>
+    <div class="modal-f"><button class="tb-btn" type="button" onclick="closeModal('m-cl')">Скасувати</button><button class="tb-btn danger" type="button" id="cl-ok">Видалити</button></div>
+  </div>
+</div>
+
+<script type="module">
+import { logAction, initAdminShell, dbGet, db, ref, update, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=9";
+
+const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const H = 3600e3, DAY = 24 * H;
+const plural = (n, f) => { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? f[2] : b === 1 ? f[0] : b >= 2 && b <= 4 ? f[1] : f[2]; };
+const kb = n => n < 1024 ? `${n} Б` : n < 1048576 ? `${(n / 1024).toFixed(n < 10240 ? 1 : 0)} КБ` : `${(n / 1048576).toFixed(1)} МБ`;
+const size = v => { try { return new Blob([JSON.stringify(v ?? null)]).size; } catch { return 0; } };
+const ago = t => { if (!t) return "дата невідома"; const d = Math.floor((Date.now() - t) / DAY); return d < 1 ? "сьогодні" : `${d} ${plural(d, ["день", "дні", "днів"])} тому`; };
+
+// Кожна перевірка повертає [{path, label, sub, bytes}] — що саме буде видалено
+const CHECKS = [
+  { id: "rooms", c: "#E11D8F", title: "Завершені й покинуті ігри", desc: "Кімнати ігор наживо: завершені понад годину тому або старші за добу. Історія ігор викладача не зміниться.", unit: ["кімната", "кімнати", "кімнат"],
+    ico: '<rect x="2" y="6" width="20" height="12" rx="4"/><path d="M6 12h4M8 10v4"/><circle cx="16" cy="11" r="1"/><circle cx="18" cy="13" r="1"/>' },
+  { id: "liveRefs", c: "#7C3AED", title: "Зайві посилання на ігри", desc: "Записи в «іграх, що йдуть зараз» у викладачів, для яких кімнати вже немає або вона застара.", unit: ["запис", "записи", "записів"],
+    ico: '<path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/><line x1="4" y1="4" x2="20" y2="20"/>' },
+  { id: "attempts", c: "#2563EB", title: "Покинуті спроби", desc: "Спроби тестів, які студент почав, але не завершив понад 7 днів тому. Завершені спроби й оцінки не зачіпаються.", unit: ["спроба", "спроби", "спроб"],
+    ico: '<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>' },
+  { id: "invites", c: "#0891B2", title: "Старі запрошення", desc: "Прострочені та використані понад 30 днів тому. Акаунти викладачів не зміняться.", unit: ["запрошення", "запрошення", "запрошень"],
+    ico: '<rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/>' },
+  { id: "bugs", c: "#DC2626", title: "Закриті звернення", desc: "Проблеми й задачі у стовпці «Готово», закриті понад 90 днів тому.", unit: ["звернення", "звернення", "звернень"],
+    ico: '<polyline points="20 6 9 17 4 12"/>' },
+];
+
+const content = `
+  <div class="page-head"><div><h1>Обслуговування бази</h1><p>Прибирання зайвих даних, щоб база лишалася швидкою і вміщалася в безкоштовний тариф</p></div></div>
+  <section class="cl-sum" id="cl-sum"><span class="ic">${SVG('<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>')}</span><div><h2>Перевіряємо базу…</h2><p>Це може зайняти кілька секунд</p></div></section>
+  <div class="cl-grid" id="cl-grid">${'<div class="cl-sk"></div>'.repeat(4)}</div>
+`;
+const topbarRight = `<button class="tb-btn" type="button" id="btn-scan"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.7L4 16"/><path d="M4 20v-4h4"/></svg> Перевірити знову</button>`;
+await initAdminShell({ activeId: "cleanup", crumbs: ["Обслуговування"], content, topbarRight });
+
+let found = {}, errs = {}, pending = null;
+
+async function scan(){
+  const now = Date.now();
+  found = {}; errs = {};
+  const [rooms, users, invites, bugs, tasks] = await Promise.all([
+    dbGet("rooms").catch(e => { errs.rooms = e; return null; }),
+    dbGet("users").catch(() => ({})),
+    dbGet("invite_tokens").catch(e => { errs.invites = e; return null; }),
+    dbGet("bugReports").catch(e => { errs.bugs = e; return null; }),
+    dbGet("adminTasks").catch(() => null),
+  ]);
+  // Ігрові кімнати
+  const roomIsStale = r => { const t = Number(r?.createdAt) || 0; const done = r?.status === "finished" || r?.status === "leaderboard";
+    return !t || now - t > DAY || (done && now - t > H); };
+  found.rooms = errs.rooms ? [] : Object.entries(rooms || {}).filter(([, r]) => roomIsStale(r)).map(([code, r]) => ({ path: `rooms/${code}`, label: r?.testTitle || `Гра ${code}`, sub: ago(Number(r?.createdAt)), bytes: size(r) }));
+  // Спроби та liveRooms по викладачах
+  const teacherIds = Object.keys(users || {}).filter(id => users[id]?.role);
+  found.attempts = []; found.liveRefs = [];
+  await Promise.all(teacherIds.map(async uid => {
+    const [lr, at] = await Promise.all([dbGet(`teachers/${uid}/liveRooms`).catch(() => null), dbGet(`teachers/${uid}/attempts`).catch(() => null)]);
+    const who = [users[uid].surname, users[uid].name].filter(Boolean).join(" ") || users[uid].email || uid;
+    Object.entries(lr || {}).forEach(([code, v]) => {
+      const t = typeof v === "number" ? v : Number(v?.createdAt) || 0;
+      if (!rooms?.[code] || now - t > DAY) found.liveRefs.push({ path: `teachers/${uid}/liveRooms/${code}`, label: `${who} · гра ${code}`, sub: ago(t), bytes: size(v) });
+    });
+    Object.entries(at || {}).forEach(([id, a]) => {
+      const t = Number(a?.lastSeen || a?.startedAt || a?.createdAt) || 0;
+      if (a?.status === "in_progress" && t && now - t > 7 * DAY)
+        found.attempts.push({ path: `teachers/${uid}/attempts/${id}`, label: `${[a.surname, a.name].filter(Boolean).join(" ") || "Студент"} · ${who}`, sub: ago(t), bytes: size(a) });
+    });
+  }));
+  // Запрошення
+  found.invites = errs.invites ? [] : Object.entries(invites || {}).filter(([, t]) => (t?.expiresAt && t.expiresAt < now) || (t?.used === true && now - (Number(t.usedAt) || 0) > 30 * DAY))
+    .map(([id, t]) => ({ path: `invite_tokens/${id}`, label: t?.note || "Без позначки", sub: t?.used ? "використано " + ago(t.usedAt) : "прострочено", bytes: size(t) }));
+  // Закриті звернення
+  found.bugs = [
+    ...Object.entries(bugs || {}).filter(([, b]) => (b?.status === "resolved" || b?.status === "done" || b?.status === "closed") && now - (Number(b.resolvedAt) || Number(b.createdAt) || now) > 90 * DAY)
+      .map(([id, b]) => ({ path: `bugReports/${id}`, label: String(b.message || "Звернення").slice(0, 80), sub: ago(b.resolvedAt || b.createdAt), bytes: size(b) })),
+    ...Object.entries(tasks || {}).filter(([, t]) => t?.col === "done" && now - (Number(t.completedAt) || now) > 90 * DAY)
+      .map(([id, t]) => ({ path: `adminTasks/${id}`, label: t.title || "Задача", sub: ago(t.completedAt), bytes: size(t) })),
+  ];
+  render();
+}
+
+function render(){
+  const total = CHECKS.reduce((n, c) => n + (found[c.id]?.length || 0), 0);
+  const bytes = CHECKS.reduce((n, c) => n + (found[c.id] || []).reduce((s, x) => s + x.bytes, 0), 0);
+  document.getElementById("cl-sum").innerHTML = `<span class="ic">${SVG('<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>')}</span>
+    <div><h2>${total ? "Є що прибрати" : "База в порядку"}</h2><p>${total ? "Перегляньте категорії нижче й очистіть потрібні" : "Зайвих даних не знайдено. Перевіряйте раз на кілька тижнів"}</p></div>
+    <div class="v"><b>${total}</b><span>${total ? `≈ ${kb(bytes)} можна звільнити` : "записів до видалення"}</span></div>`;
+  document.getElementById("cl-grid").innerHTML = CHECKS.map(c => {
+    const list = found[c.id] || [], n = list.length, b = list.reduce((s, x) => s + x.bytes, 0);
+    const err = errs[c.id];
+    return `<article class="cl-card${n ? "" : " zero"}" style="--c:${c.c}">
+      <div class="cl-h"><span class="ic">${SVG(c.ico)}</span><div><h3>${c.title}</h3><p>${c.desc}</p></div>
+        <div class="cl-n"><b>${err ? "—" : n}</b><span>${err ? "немає доступу" : n ? kb(b) : "чисто"}</span></div></div>
+      ${err ? `<div class="cl-ok" style="background:#FFF7ED;color:#B45309">Потрібні оновлені правила бази: ${esc(err.message || "")}</div>`
+        : n ? `<div class="cl-prev">${list.slice(0, 4).map(x => `<div><span>${esc(x.label)}</span><em>${esc(x.sub)}</em></div>`).join("")}${n > 4 ? `<div class="more">і ще ${n - 4}</div>` : ""}</div>`
+        : `<div class="cl-ok"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Нічого прибирати</div>`}
+      <div class="cl-f"><button class="tb-btn${n ? " danger" : ""}" type="button" data-clean="${c.id}"${n ? "" : " disabled"}>Очистити${n ? ` ${n}` : ""}</button></div>
+    </article>`;
+  }).join("");
+}
+
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-clean]"); if (!b) return;
+  const c = CHECKS.find(x => x.id === b.dataset.clean), list = found[c.id] || []; if (!list.length) return;
+  pending = c;
+  document.getElementById("cl-mh").textContent = `${c.title}: видалити?`;
+  document.getElementById("cl-mt").innerHTML = `Буде видалено <b>${list.length} ${plural(list.length, c.unit)}</b> (≈ ${kb(list.reduce((s, x) => s + x.bytes, 0))}). Цю дію не можна скасувати.`;
+  openModal("m-cl");
+});
+document.getElementById("cl-ok").addEventListener("click", async e => {
+  const c = pending, list = found[c?.id] || []; if (!list.length) return;
+  const btn = e.currentTarget; btn.disabled = true;
+  try {
+    for (let i = 0; i < list.length; i += 400){          // великими пачками, але не одним гігантським записом
+      const upd = {}; list.slice(i, i + 400).forEach(x => { upd[x.path] = null; });
+      await update(ref(db), upd);
+    }
+    logAction("cleanup.run", { type: "service", label: c.title }, `видалено ${list.length} ${plural(list.length, c.unit)}, ≈ ${kb(list.reduce((s, x) => s + x.bytes, 0))}`);
+    found[c.id] = [];
+    closeModal("m-cl"); render();
+    toast(`Видалено: ${list.length}`);
+  } catch (err){ toast("Помилка: " + err.message, "err"); }
+  finally { btn.disabled = false; }
+});
+document.getElementById("btn-scan").addEventListener("click", async e => { const b = e.currentTarget; b.disabled = true; try { await scan(); toast("Перевірено"); } finally { b.disabled = false; } });
+document.querySelectorAll(".modal-bd").forEach(m => m.addEventListener("click", e => { if (e.target === m) closeModal(m.id); }));
+
+hideLoader();
+try { await scan(); } catch (e){ toast("Не вдалося перевірити: " + e.message, "err"); }
+</script>
+</body>
+</html>

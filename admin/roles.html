@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=7">
+<link rel="stylesheet" href="shared/admin-shell.css?v=8">
 <style>
 .field-input{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-family:"Manrope",sans-serif;font-size:14px;color:var(--ink-900);outline:none;transition:border-color .15s,box-shadow .15s}
 .field-input:focus{border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
@@ -137,7 +137,7 @@ textarea.field-input{resize:vertical;min-height:70px;line-height:1.45}
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=4"></script>
+<script src="shared/admin-nav.js?v=5"></script>
 <div id="admin-root"></div>
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -192,7 +192,7 @@ textarea.field-input{resize:vertical;min-height:70px;line-height:1.45}
 </div>
 
 <script type="module">
-import { initAdminShell, db, ref, update, dbGet, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=8";
+import { logAction, initAdminShell, db, ref, update, dbGet, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=9";
 
 const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const IC = {
@@ -420,6 +420,7 @@ async function setMember(uid, on){
       v ? u.customRoleIds[r2] = true : delete u.customRoleIds[r2];
     });
     toast(on ? `${fullName(users[uid] || {})} — роль додано` : "Роль знято");
+    logAction(on ? "role.member.add" : "role.member.remove", { type: "teacher", id: uid, label: fullName(users[uid] || {}) }, roles[rid]?.name || rid);
     renderList(); renderDetail();
     if (on) document.getElementById("mb-add")?.focus();
   } catch (e) { toast("Помилка: " + e.message, "err"); }
@@ -479,6 +480,7 @@ document.addEventListener("change", async e => {
     // Уся навігація одним записом + мітка часу — так само, як на сторінці «Навігація»
     await update(ref(db), { "settings/navigation": newNav, "settings/navigation_ts": Date.now() });
     nav = newNav; navFromDb = true;
+    logAction(on ? "role.page.restrict" : "role.page.open", { type: "role", id: rid, label: roles[rid]?.name || rid }, asArr(nav[si]?.items)[ii]?.label || "");
     toast(on ? "Сторінку обмежено цією роллю" : "Обмеження знято");
     renderList(); renderDetail();
   } catch (err) { toast("Помилка: " + err.message, "err"); e.target.checked = !on; e.target.disabled = false; }
@@ -541,6 +543,7 @@ window.saveRole = async () => {
     const id = editingRoleId || ("role_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
     const data = { name, description, color: pickedColor, createdAt: roles[id]?.createdAt || Date.now(), updatedAt: Date.now() };
     await update(ref(db), { [`roles/${id}`]: data });
+    logAction(editingRoleId ? "role.update" : "role.create", { type: "role", id, label: name }, description || null);
     roles[id] = data;
     closeModal("m-role");
     toast(editingRoleId ? "Роль оновлено" : "Роль створено");
@@ -568,6 +571,7 @@ function openDeleteRole(id){
 }
 window.confirmDeleteRole = async () => {
   const id = _delRoleId; if (!id) return;
+  const _delName = roles[id]?.name || id;
   const btn = document.getElementById("del-role-confirm-btn");
   btn.disabled = true;
   try {
@@ -589,6 +593,7 @@ window.confirmDeleteRole = async () => {
     membersOf(id).forEach(u => { const x = users[u.uid]; if (x?.customRoleIds) delete x.customRoleIds[id]; else if (x) delete x.customRoleId; });
     if (navChanged) nav = newNav;
     closeModal("m-del-role");
+    logAction("role.delete", { type: "role", id, label: _delName }, null);
     toast("Роль видалено");
     if (_selId === id) _selId = ""; render();
   } catch(e) {

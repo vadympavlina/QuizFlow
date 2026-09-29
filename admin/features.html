@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=7">
+<link rel="stylesheet" href="shared/admin-shell.css?v=8">
 <style>
 .toggle-sw{position:relative;display:inline-block;width:40px;height:23px;flex:0 0 auto}
 .toggle-sw input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;z-index:1}
@@ -77,13 +77,13 @@
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=4"></script>
+<script src="shared/admin-nav.js?v=5"></script>
 <div id="admin-root"></div>
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
-import { initAdminShell, db, ref, update, dbGet, toast, esc, hideLoader } from "./shared/admin-shell.js?v=8";
-import { CAP_FLAGS, CAP_LIMITS } from "../shared/caps.js?v=1";
+import { logAction, initAdminShell, db, ref, update, dbGet, toast, esc, hideLoader } from "./shared/admin-shell.js?v=9";
+import { CAP_FLAGS, CAP_LIMITS } from "../shared/caps.js?v=2";
 
 const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const IC = {
@@ -174,6 +174,11 @@ async function save(){
   try {
     const data = clean(cfg);
     await update(ref(db), { "settings/features": data });
+    const prev = JSON.parse(saved), diff = [];
+    Object.keys(CAP_FLAGS).forEach(k => { if ((prev.flags?.[k] !== false) !== (data.flags?.[k] !== false)) diff.push(`${CAP_FLAGS[k].label}: ${data.flags?.[k] === false ? "ні" : "так"}`); });
+    Object.keys(CAP_LIMITS).forEach(k => { if ((prev.limits?.[k] || 0) !== (data.limits?.[k] || 0)) diff.push(`${CAP_LIMITS[k].label}: ${data.limits?.[k] || "без обмежень"}`); });
+    if (JSON.stringify(prev.roles || {}) !== JSON.stringify(data.roles || {})) diff.push("налаштування ролей");
+    logAction("features.update", { type: "service", label: "Можливості та ліміти" }, diff.join(", ") || null);
     saved = JSON.stringify(data); cfg = JSON.parse(saved);
     renderAll();
     toast("Збережено — викладачі отримають зміни при наступному відкритті сторінки");
