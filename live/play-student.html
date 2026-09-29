@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="modulepreload" href="live-core.js?v=3">
+<link rel="modulepreload" href="live-core.js?v=4">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -73,7 +73,16 @@
   .ans:active:not(:disabled){transform:scale(.98)}
   .ans .letter{width:40px;height:40px;border-radius:11px;background:rgba(0,0,0,.3);display:grid;place-items:center;font-family:"Geist Mono",monospace;font-size:17px;font-weight:800;flex:0 0 auto;border:1px solid rgba(255,255,255,.2)}
   .ans .txt{flex:1;min-width:0;overflow-wrap:break-word;hyphens:auto;line-height:1.25}
-  .ans .check{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.5);display:grid;place-items:center;font-size:15px;flex:0 0 auto;color:transparent}
+  .ans .check{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.5);display:grid;place-items:center;flex:0 0 auto;color:transparent}
+  /* Позначки — SVG-маски замість символів ✓ / ✗ */
+  .ans .check::before,.draft-note.saved::before,.lock-ico,.fb-ico,.timer.rev span::before{content:"";display:inline-block;background:currentColor;
+    -webkit-mask:var(--ico) center/contain no-repeat;mask:var(--ico) center/contain no-repeat;
+    --ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E")}
+  .ans .check::before{width:15px;height:15px}
+  .ans .check.x::before,.fb-ico.x{--ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.2' stroke-linecap='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E")}
+  .lock-ico{width:16px;height:16px;flex:0 0 auto}
+  .fb-ico{width:22px;height:22px;vertical-align:-3px;margin-right:8px}
+  .timer.rev span::before{width:34px;height:34px;vertical-align:middle}
   .ans.a{background:linear-gradient(135deg,#EF4444,#B91C1C)}
   .ans.b{background:linear-gradient(135deg,#F59E0B,#B45309)}
   .ans.c{background:linear-gradient(135deg,#10B981,#047857)}
@@ -100,7 +109,7 @@
   .text-input::placeholder{color:rgba(255,255,255,.4)}
   .text-input:disabled{opacity:.6}
   .draft-note{margin-top:10px;font-size:12.5px;font-weight:600;color:rgba(255,255,255,.6);text-align:center}
-  .draft-note.saved::before{content:"✓ ";color:#86EFAC}
+  .draft-note.saved::before{width:12px;height:12px;margin-right:6px;vertical-align:-1px;color:#86EFAC}
   .primary-btn{margin-top:12px;width:100%;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,#A78BFA,#7C3AED);color:#fff;font:800 16px Manrope,sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(124,58,237,.4);transition:transform .12s, opacity .15s}
   .primary-btn:active:not(:disabled){transform:scale(.98)}
   .primary-btn:disabled{opacity:.5;cursor:not-allowed}
@@ -217,7 +226,7 @@
 <main class="question-wrap">
   <div class="question-meta">
     <span id="q-meta-time">— с</span><span class="sep"></span>
-    <span class="type-badge single" id="q-type-badge">◉ Одна правильна</span>
+    <span class="type-badge single" id="q-type-badge">Одна правильна</span>
   </div>
   <div class="question-text qf-rich" id="q-text"></div>
 
@@ -234,7 +243,7 @@
 
 <div class="dock">
   <button class="confirm-btn" id="confirm-btn" type="button">Підтвердити <span class="cnt" id="confirm-cnt">0</span></button>
-  <div class="banner lock" id="lock-banner">✓ Відповідь прийнято — чекаємо інших</div>
+  <div class="banner lock" id="lock-banner"><span class="lock-ico" aria-hidden="true"></span>Відповідь прийнято — чекаємо інших</div>
   <div class="banner late" id="late-banner"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>Час вийшов</div>
 </div>
 
@@ -245,7 +254,7 @@ import {
   applyTheme, serverNow, watchFields, OPT_CLASSES, OPT_LETTERS, TYPE_LABELS, isFreeform,
   seededOrder, fmtNum, pageUrl, trackPresence, asIndexList, fitText, fitGroup, onRefit,
   richHtml, toast, plural,
-} from "./live-core.js?v=3";
+} from "./live-core.js?v=4";
 
 const $ = (id) => document.getElementById(id);
 let timerId = null, wasOpen = false;
@@ -349,7 +358,7 @@ function renderQuestion(qi) {
       `<button type="button" class="ans ${OPT_CLASSES[i] || "a"}${multi ? "" : " single-only"}" data-i="${i}" aria-pressed="false">
         <span class="letter">${OPT_LETTERS[i]}</span>
         <span class="txt">${esc(opts[i])}</span>
-        <span class="check" aria-hidden="true">✓</span>
+        <span class="check" aria-hidden="true"></span>
       </button>`).join("");
     $("q-hint").innerHTML = multi
       ? `Оберіть <b>усі</b> правильні варіанти й натисніть <b>Підтвердити</b><span class="kb"> · <kbd>Пробіл</kbd></span>`
@@ -388,7 +397,7 @@ function paint() {
       const missed = !!correct && correct.has(i) && !picked.has(i) && !!myAnswer && qq.type === "multi";
       b.classList.toggle("correct-ans", !!correct && correct.has(i));
       b.classList.toggle("missed", missed);
-      b.querySelector(".check").textContent = !!correct && !correct.has(i) && picked.has(i) ? "✗" : "✓";
+      b.querySelector(".check").classList.toggle("x", !!correct && !correct.has(i) && picked.has(i));
       b.querySelector(".tag")?.remove();
       if (missed) b.insertAdjacentHTML("beforeend", `<span class="tag">пропущено</span>`);
       b.classList.toggle("my-wrong", !!correct && !correct.has(i) && picked.has(i) && !!myAnswer);
@@ -398,7 +407,7 @@ function paint() {
     const inp = $("text-inp");
     if (myAnswer && document.activeElement !== inp) inp.value = String(myAnswer.value ?? "");
     inp.disabled = locked; $("text-submit").disabled = locked;
-    if (myAnswer) $("text-submit").textContent = "Відповідь надіслано ✓";
+    if (myAnswer) $("text-submit").textContent = "Відповідь надіслано";
     if (myAnswer || !canAnswer()) $("draft-note").hidden = true;
   }
 
@@ -425,7 +434,7 @@ function renderFeedback(qq) {
   } else if (!graded) {
     cls = "none"; html = `<div class="big">Перевіряємо…</div>${refLine}`;
   } else if (myAnswer.isCorrect) {
-    cls = "ok"; html = `<div class="big">✓ Правильно!</div><div class="pts">+${fmtNum(myAnswer.points || 0)}</div>${myAnswer.gradedByTeacher ? `<div class="sub">Зараховано викладачем</div>` : ""}${myAnswer.auto ? `<div class="sub">Ви не натиснули «Відповісти» — зараховано введене</div>` : ""}${refLine}`;
+    cls = "ok"; html = `<div class="big"><span class="fb-ico" aria-hidden="true"></span>Правильно!</div><div class="pts">+${fmtNum(myAnswer.points || 0)}</div>${myAnswer.gradedByTeacher ? `<div class="sub">Зараховано викладачем</div>` : ""}${myAnswer.auto ? `<div class="sub">Ви не натиснули «Відповісти» — зараховано введене</div>` : ""}${refLine}`;
   } else {
     let why = "";
     if (qq.type === "multi") {
@@ -434,7 +443,7 @@ function renderFeedback(qq) {
       why = `<div class="sub">${hit < want.length ? `Обрано ${hit} з ${want.length} правильних` : ""}${hit < want.length && extra ? " · " : ""}${extra ? `${extra} ${extra === 1 ? "зайвий варіант" : "зайві варіанти"}` : ""}</div>
         <div class="sub">Зараховується лише повністю правильна відповідь: ${want.map(i => OPT_LETTERS[i]).join(", ")}</div>`;
     }
-    cls = "bad"; html = `<div class="big">✗ Неправильно</div>${why}${myAnswer.auto ? `<div class="sub">Зараховано введене: «${esc(myAnswer.value)}»</div>` : ""}${myAnswer.gradedByTeacher ? `<div class="sub">Перевірено викладачем</div>` : ""}${refLine}`;
+    cls = "bad"; html = `<div class="big"><span class="fb-ico x" aria-hidden="true"></span>Неправильно</div>${why}${myAnswer.auto ? `<div class="sub">Зараховано введене: «${esc(myAnswer.value)}»</div>` : ""}${myAnswer.gradedByTeacher ? `<div class="sub">Перевірено викладачем</div>` : ""}${refLine}`;
   }
   if (myRank?.r && myRank.n > 1) {
     const gap = Number(myRank.g) || 0;
@@ -540,9 +549,9 @@ document.addEventListener("keydown", (e) => {
 function tick() {
   const left = timeLeft();
   const el = $("timer");
-  $("timer-num").textContent = st.status === "reveal" ? "✓" : Math.ceil(left);
+  $("timer-num").textContent = st.status === "reveal" ? "" : Math.ceil(left);
   el.style.setProperty("--p", st.status === "reveal" ? 0 : (left / timePerQ).toFixed(4));
-  el.className = "timer" + (st.status === "reveal" || (st.status === "question" && left <= 0) ? " done" : left <= 5 ? " danger" : left <= 10 ? " warn" : "");
+  el.className = "timer" + (st.status === "reveal" ? " done rev" : st.status === "question" && left <= 0 ? " done" : left <= 5 ? " danger" : left <= 10 ? " warn" : "");
   // За пів секунди до кінця — дописуємо чернетку негайно, без затримки
   if (st.status === "question" && left > 0 && left <= 0.6 && isFreeform(q()) && !myAnswer) saveDraft(true);
   const open = canAnswer();

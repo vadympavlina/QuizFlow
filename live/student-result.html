@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="modulepreload" href="live-core.js?v=3">
+<link rel="modulepreload" href="live-core.js?v=4">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -100,7 +100,7 @@ const MIC = {search:"<svg width=\"40\" height=\"40\" viewBox=\"0 0 24 24\" fill=
 import {
   db, ref, get, onValue, readParams, isValidCode, esc, initialsOf, avatarColor, standings,
   plural, fmtNum, pageUrl,
-} from "./live-core.js?v=3";
+} from "./live-core.js?v=4";
 
 const $ = (id) => document.getElementById(id);
 const { code, pid, nickname: nickParam } = readParams("code", "pid", "nickname");
@@ -198,7 +198,7 @@ async function render() {
     </div>
 
     <div class="actions">
-      <a class="btn" href="${esc(joinAgain)}">▶ Приєднатись до нової гри</a>
+      <a class="btn" href="${esc(joinAgain)}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4"/></svg>Приєднатись до нової гри</a>
       <div class="footer-msg">Дякуємо за гру! Код: <b>${esc(code)}</b></div>
     </div>`;
 }

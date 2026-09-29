@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="modulepreload" href="live-core.js?v=3">
+<link rel="modulepreload" href="live-core.js?v=4">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -214,7 +214,7 @@
     <span class="nums"><span id="answered-num">0</span> <span class="dim">/ <span id="answered-total">0</span></span></span>
   </div>
   <div class="answered-wait" id="answered-wait" hidden></div>
-  <div class="q-type-wrap"><span class="q-type-badge single" id="q-type-badge">◉ Одна правильна</span></div>
+  <div class="q-type-wrap"><span class="q-type-badge single" id="q-type-badge">Одна правильна</span></div>
   <div class="question-text qf-rich" id="q-text"></div>
   <div class="answers" id="answers-grid"></div>
   <div class="text-wait-hint" id="text-wait-hint" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>Учні вводять власну відповідь<br><b>Прогрес видно на смузі вище</b></div>
@@ -246,7 +246,7 @@ import {
   OPT_CLASSES, OPT_LETTERS, TYPE_LABELS, isFreeform, checkCorrect, calcPoints, LATE_GRACE_MS,
   standings, fmtNum, isActive, isOnline, asIndexList, fitText, fitGroup, onRefit,
   richHtml, confirmDlg, rankMap,
-} from "./live-core.js?v=3";
+} from "./live-core.js?v=4";
 
 const $ = (id) => document.getElementById(id);
 const user = await requireTeacher();

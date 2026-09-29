@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="modulepreload" href="live-core.js?v=3">
+<link rel="modulepreload" href="live-core.js?v=4">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -227,7 +227,7 @@
 import {
   db, ref, get, update, requireTeacher, readParams, fatal, toast, safeStore,
   THEMES, PATTERNS, DEFAULT_THEME, applyTheme, LIVE_TYPES, pageUrl, esc, plural, pickCount, confirmDlg,
-} from "./live-core.js?v=3";
+} from "./live-core.js?v=4";
 
 const $ = (id) => document.getElementById(id);
 const user = await requireTeacher();
