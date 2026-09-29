@@ -18,7 +18,7 @@ const FC = {
   databaseURL: "https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "quizflow-8a978",
   storageBucket: "quizflow-8a978.firebasestorage.app",
-  messagingSenderId: "206469794216",
+  messagingSenderId: "206469794166",
   appId: "1:206469794166:web:55cd7007b429607acd5257"
 };
 const app  = getApps().length ? getApps()[0] : initializeApp(FC);
