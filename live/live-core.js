@@ -176,10 +176,10 @@ export const OPT_LETTERS = ["A","B","C","D","E","F"];
 export const isFreeform = (q) => q?.type === "text" || q?.type === "number";
 
 export const TYPE_LABELS = {
-  single: { cls:"single", label:"◉ Одна правильна" },
+  single: { cls:"single", label:"Одна правильна" },
   multi:  { cls:"multi",  label:"Кілька правильних" },
   text:   { cls:"text",   label:"Текстова відповідь" },
-  number: { cls:"number", label:"# Числова відповідь" },
+  number: { cls:"number", label:"Числова відповідь" },
 };
 
 const normText = (s) => String(s ?? "").trim().toLowerCase().replace(/\s+/g, " ").replace(/[’ʼ`]/g, "'");
