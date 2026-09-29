@@ -8,69 +8,86 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=6">
+<link rel="stylesheet" href="shared/admin-shell.css?v=7">
 <style>
 .field-input{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-family:"Manrope",sans-serif;font-size:14px;color:var(--ink-900);outline:none;transition:border-color .15s,box-shadow .15s}
 .field-input:focus{border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
 textarea.field-input{resize:vertical;min-height:70px;line-height:1.45}
 .field-cnt{font-size:11px;color:var(--ink-400);text-align:right;margin-top:-2px;font-family:"Geist Mono",monospace}
 
-/* Як працюють ролі */
-.rl-how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;background:linear-gradient(135deg,#F5F3FF,#EEF2FF);border:1px solid #E0DAFE;border-radius:16px;padding:14px}
-.rl-step{display:flex;gap:11px;align-items:flex-start;padding:6px 8px}
+/* Список ролей */
+.rl-new-btn{width:100%;justify-content:center}
+.rl-it{--rc:#7C3AED;display:flex;align-items:center;gap:11px;width:100%;padding:10px;border-radius:12px;border:0;background:none;text-align:left;cursor:pointer;font:inherit;color:inherit;transition:background .12s}
+.rl-it:hover{background:#F7F8FC}
+.rl-it.on{background:color-mix(in srgb,var(--rc) 9%,#fff);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--rc) 35%,#fff)}
+.rl-it:focus-visible{outline:2px solid #7C3AED;outline-offset:-2px}
+.rl-ic{width:38px;height:38px;border-radius:11px;flex:0 0 auto;display:grid;place-items:center;color:#fff;background:var(--rc);box-shadow:0 6px 14px -8px var(--rc)}
+.rl-ic svg{width:18px;height:18px}
+.rl-it-i{flex:1;min-width:0}
+.rl-it-n{font-weight:800;font-size:13.5px;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rl-it-m{font-size:12px;color:var(--ink-400);font-weight:600;margin-top:2px}
+.rl-it-m b{color:var(--ink-500);font-family:"Geist Mono",monospace}
+
+/* Картка ролі */
+.rl-hero{--rc:#7C3AED;display:flex;gap:16px;align-items:center;padding:22px 24px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 9%,#fff),#fff)}
+.rl-hero .rl-ic{width:60px;height:60px;border-radius:18px}
+.rl-hero .rl-ic svg{width:28px;height:28px}
+.rl-hi{flex:1;min-width:0}
+.rl-hi h2{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0;overflow-wrap:anywhere}
+.rl-hi p{font-size:13px;color:var(--ink-500);margin:4px 0 0;line-height:1.5}
+.rl-hi p.empty{color:var(--ink-300);font-style:italic}
+.rl-acts{display:flex;gap:8px;flex:0 0 auto}
+
+/* Учасники */
+.rl-add{position:relative;margin-bottom:12px}
+.rl-add .search-input{display:flex;width:100%}
+.rl-add .search-input .input{width:100%;padding-top:10px;padding-bottom:10px}
+.rl-sug{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:30;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 22px 50px -18px rgba(15,30,71,.35);padding:6px;max-height:280px;overflow-y:auto}
+.rl-sug button{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border:0;background:none;border-radius:10px;cursor:pointer;text-align:left;font:inherit}
+.rl-sug button:hover,.rl-sug button.on{background:#F5F3FF}
+.rl-sug .none{padding:14px;text-align:center;font-size:13px;color:var(--ink-400)}
+.rl-sug .pl{margin-left:auto;font-size:12px;font-weight:700;color:#6D28D9;white-space:nowrap}
+.mb-ava{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:11.5px;font-weight:800;color:#fff;background:linear-gradient(135deg,#A78BFA,#7C3AED);flex:0 0 auto}
+.mb-i{flex:1;min-width:0}
+.mb-n{font-size:13.5px;font-weight:700;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mb-e{font-size:11.5px;color:var(--ink-400);font-family:"Geist Mono",monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mb-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mb-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.mb-row.blocked .mb-n::after{content:" · заблоковано";font-weight:600;color:#B91C1C;font-size:11px}
+.mb-row a{color:inherit;text-decoration:none;display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.mb-row a:hover .mb-n{color:#6D28D9}
+.mb-x{width:30px;height:30px;border-radius:9px;border:1px solid transparent;background:none;color:var(--ink-400);display:grid;place-items:center;cursor:pointer;flex:0 0 auto}
+.mb-x:hover{background:#FEF2F2;border-color:#FECACA;color:#B91C1C}
+.mb-x svg{width:14px;height:14px}
+.rl-none{font-size:13px;color:var(--ink-500);padding:14px;border:1.5px dashed var(--line);border-radius:12px;text-align:center}
+
+/* Доступ до сторінок */
+.pg-sec{margin-top:14px}
+.pg-sec:first-child{margin-top:0}
+.pg-sec-l{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-400);margin-bottom:6px}
+.pg-list{border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.pg-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border-top:1px solid var(--line)}
+.pg-row:first-child{border-top:0}
+.pg-row.on{background:color-mix(in srgb,var(--rc,#7C3AED) 6%,#fff)}
+.pg-row .pg-i{flex:1;min-width:0}
+.pg-row .pg-n{font-size:13.5px;font-weight:700;color:var(--ink-900)}
+.pg-row .pg-s{font-size:12px;color:var(--ink-400);margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pg-row .pg-s i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.pg-row.off .pg-n{color:var(--ink-400)}
+.pg-lock{font-size:11.5px;font-weight:700;color:var(--ink-400);white-space:nowrap}
+.rl-hint{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;color:var(--ink-500);line-height:1.5;background:#F7F8FC;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+.rl-hint svg{flex:0 0 auto;width:16px;height:16px;color:#6D28D9;margin-top:1px}
+
+/* Порожній стан сторінки */
+.rl-start{background:#fff;border:1px solid var(--line);border-radius:18px;padding:40px 28px;text-align:center}
+.rl-start .ei{width:60px;height:60px;margin:0 auto 14px;border-radius:18px;background:#EDE9FE;color:#6D28D9;display:grid;place-items:center}
+.rl-start h2{font-size:20px;font-weight:800;margin:0 0 6px}
+.rl-start > p{font-size:13.5px;color:var(--ink-500);margin:0 auto 22px;max-width:520px;line-height:1.55}
+.rl-how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;text-align:left;margin:0 auto 22px;max-width:860px}
+.rl-step{display:flex;gap:11px;align-items:flex-start;padding:12px;border-radius:14px;background:#FAF8FF;border:1px solid #EDE9FE}
 .rl-step .n{width:26px;height:26px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;font-weight:800;font-size:12.5px;color:#fff;background:linear-gradient(135deg,#8B5CF6,#6D28D9)}
 .rl-step b{display:block;font-size:13.5px;color:var(--ink-900)}
 .rl-step span{font-size:12px;color:var(--ink-500);line-height:1.45}
-.rl-step a{color:#6D28D9;font-weight:700;text-decoration:none}
-.rl-step a:hover{text-decoration:underline}
-
-.rl-toolbar{display:flex;align-items:center;gap:10px}
-.rl-toolbar .search-input{flex:1;max-width:340px}
-.rl-toolbar .search-input .input{width:100%;padding-top:10px;padding-bottom:10px}
-.rl-meta{margin-left:auto;font-size:12px;color:var(--ink-500);font-family:"Geist Mono",monospace}
-
-/* Картки ролей */
-.rl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
-.rl-card{background:#fff;border:1px solid var(--line);border-radius:16px;display:flex;flex-direction:column;overflow:hidden;transition:border-color .15s,box-shadow .15s,transform .15s}
-.rl-card:hover{border-color:var(--line-strong);box-shadow:var(--shadow);transform:translateY(-1px)}
-.rl-card.hl{animation:rlHl 1.6s ease}
-@keyframes rlHl{0%,40%{box-shadow:0 0 0 3px color-mix(in srgb,var(--rc) 35%,transparent)}100%{box-shadow:none}}
-.rl-top{padding:16px 16px 14px;display:flex;gap:12px;align-items:flex-start;background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 10%,#fff),#fff)}
-.rl-badge{width:42px;height:42px;border-radius:12px;flex:0 0 auto;display:grid;place-items:center;color:#fff;background:var(--rc);box-shadow:0 8px 18px -10px var(--rc)}
-.rl-badge svg{width:20px;height:20px}
-.rl-ti{flex:1;min-width:0}
-.rl-name{font-size:15.5px;font-weight:800;letter-spacing:-.01em;color:var(--ink-900);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rl-desc{font-size:12.5px;color:var(--ink-500);margin-top:3px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.rl-desc.empty{color:var(--ink-300);font-style:italic}
-.rl-body{padding:0 16px 14px;display:flex;flex-direction:column;gap:12px;flex:1}
-.rl-sec-l{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-400);margin-bottom:6px}
-.rl-members{display:flex;align-items:center;gap:10px}
-.rl-avas{display:flex}
-.rl-avas span{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:800;letter-spacing:-.02em;color:#fff;border:2px solid #fff;margin-left:-6px;background:var(--rc);box-shadow:0 1px 2px rgba(15,30,71,.12)}
-.rl-avas span:first-child{margin-left:0}
-.rl-avas span.more{background:#EEF2FB;color:var(--ink-700)}
-.rl-mtext{font-size:12.5px;color:var(--ink-500)}
-.rl-mtext b{color:var(--ink-900)}
-.rl-chips{display:flex;flex-wrap:wrap;gap:6px}
-.rl-chip{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;background:#F1F4FA;color:var(--ink-700);display:inline-flex;align-items:center;gap:5px}
-.rl-chip svg{width:11px;height:11px;color:var(--ink-400)}
-.rl-none{font-size:12px;color:var(--ink-400)}
-.rl-foot{display:flex;gap:6px;padding:10px 12px;border-top:1px solid var(--line);background:#FCFCFE}
-.rl-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:34px;border-radius:9px;border:1px solid var(--line);background:#fff;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink-700);cursor:pointer;transition:all .15s}
-.rl-btn:hover{border-color:var(--line-strong);color:var(--ink-900);background:#F7F8FC}
-.rl-btn svg{width:14px;height:14px}
-.rl-btn.ic{flex:0 0 34px}
-.rl-btn.danger:hover{background:#FEF2F2;border-color:#FCA5A5;color:#B91C1C}
-.rl-btn:focus-visible{outline:2px solid #7C3AED;outline-offset:1px}
-
-.rl-new{border:1.5px dashed var(--line-strong);background:transparent;border-radius:16px;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;font:inherit;color:var(--ink-500);transition:all .15s}
-.rl-new:hover{border-color:#A78BFA;color:#6D28D9;background:#FAF8FF}
-.rl-new .pl{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:#EDE9FE;color:#6D28D9}
-.rl-new b{font-size:14px;color:var(--ink-900)}
-.rl-sk{height:220px;border-radius:16px;border:1px solid var(--line);background:linear-gradient(90deg,#fff 0%,#F4F6FB 50%,#fff 100%);background-size:200% 100%;animation:rlSk 1.2s linear infinite}
-@keyframes rlSk{to{background-position:-200% 0}}
-.rl-empty{grid-column:1/-1;text-align:center;padding:48px 20px;color:var(--ink-500);background:#fff;border:1px solid var(--line);border-radius:16px}
-.rl-empty .et{font-size:15px;font-weight:700;color:var(--ink-900);margin-bottom:4px}
 
 /* Модалка ролі */
 .rl-swatches{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
@@ -84,28 +101,37 @@ textarea.field-input{resize:vertical;min-height:70px;line-height:1.45}
 .rl-preview .tc-tag{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:2px 7px;border-radius:6px;color:#fff}
 .rl-preview span.l{font-size:12px;color:var(--ink-500)}
 
-/* Модалка учасників */
-.mb-search{margin-bottom:8px}
-.mb-list{max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:12px}
-.mb-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line);cursor:pointer}
-.mb-row:last-child{border-bottom:0}
-.mb-row:hover{background:#FAFBFE}
-.mb-row input{width:16px;height:16px;accent-color:#7C3AED;flex:0 0 auto;cursor:pointer}
-.mb-ava{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:11px;font-weight:800;color:#fff;background:linear-gradient(135deg,#A78BFA,#7C3AED);flex:0 0 auto}
-.mb-i{flex:1;min-width:0}
-.mb-n{font-size:13px;font-weight:700;color:var(--ink-900)}
-.mb-e{font-size:11.5px;color:var(--ink-400);font-family:"Geist Mono",monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mb-row.blocked .mb-n::after{content:" · заблоковано";font-weight:600;color:#B91C1C;font-size:11px}
-.mb-sum{font-size:12px;color:var(--ink-500);margin-top:8px;display:flex;justify-content:space-between;gap:10px}
-.mb-sum b{color:var(--ink-900)}
-.mb-sum button{background:none;border:0;font:inherit;font-size:12px;font-weight:700;color:#6D28D9;cursor:pointer;padding:0}
-
 .rl-del-warn{background:#FFF7ED;border:1px solid #FDE4BC;color:#9A3412;border-radius:10px;padding:11px 13px;font-size:12.5px;line-height:1.55}
 .rl-del-warn ul{margin:6px 0 0;padding-left:18px}
 .mod-err{background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.18);border-radius:8px;padding:9px 12px;color:#B91C1C;font-size:12.5px;font-weight:600;display:none}
 .mod-err.show{display:block;animation:rlErrIn .2s ease}
 @keyframes rlErrIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
-@media (max-width:1180px){.rl-how{grid-template-columns:1fr}}
+
+@media (max-width:1280px){ .mb-list{grid-template-columns:1fr} }
+@media (max-width:1023px){
+  .rl-hero{padding:18px;flex-wrap:wrap}
+  .rl-acts{width:100%}
+  .rl-acts .tb-btn{flex:1;justify-content:center}
+  .rl-how{grid-template-columns:1fr}
+}
+
+/* Toggle switch */
+.toggle-sw{position:relative; display:inline-block; width:38px; height:22px; flex:0 0 auto}
+.toggle-sw input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;z-index:1}
+.toggle-sw input:focus-visible + .toggle-sl{box-shadow:0 0 0 3px rgba(124,58,237,.3)}
+.toggle-sw input:disabled + .toggle-sl{opacity:.6}
+.toggle-sl{
+  position:absolute; inset:0; cursor:pointer;
+  background:#E3E8F2; border-radius:99px; transition:background .2s;
+}
+.toggle-sl::before{
+  content:""; position:absolute; top:2px; left:2px;
+  width:18px; height:18px; border-radius:50%; background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.18); transition:transform .2s;
+}
+.toggle-sw input:checked + .toggle-sl{background:linear-gradient(135deg, #7C3AED, #4F46E5)}
+.toggle-sw input:checked + .toggle-sl::before{transform:translateX(16px)}
+
 </style>
 </head>
 <body>
@@ -147,29 +173,6 @@ textarea.field-input{resize:vertical;min-height:70px;line-height:1.45}
   </div>
 </div>
 
-<!-- Модалка учасників ролі -->
-<div class="modal-bd" id="m-members">
-  <div class="modal" style="max-width:480px">
-    <div class="modal-h"><span class="mh-ico blue" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.6 2-4.8 4.5-5"/></svg></span>
-      <h3>Учасники ролі «<span id="mb-role-name"></span>»</h3>
-      <button class="close" type="button" onclick="closeModal('m-members')" aria-label="Закрити"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <div class="modal-b">
-      <div class="search-input mb-search" style="display:flex">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input class="input" id="mb-search" type="search" placeholder="Пошук викладача…" style="width:100%" aria-label="Пошук викладача">
-      </div>
-      <div class="mb-list" id="mb-list"></div>
-      <div class="mb-sum"><span id="mb-sum"></span><span><button type="button" id="mb-only-sel">Лише обрані</button></span></div>
-      <div class="mod-err" id="mb-err"></div>
-    </div>
-    <div class="modal-f">
-      <button class="tb-btn" type="button" onclick="closeModal('m-members')">Скасувати</button>
-      <button class="tb-btn primary" type="button" id="mb-save-btn" onclick="saveMembers()">Зберегти</button>
-    </div>
-  </div>
-</div>
-
 <!-- Модалка видалення ролі -->
 <div class="modal-bd" id="m-del-role">
   <div class="modal" style="max-width:420px">
@@ -200,38 +203,50 @@ const IC = {
   lock: SVG('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>'),
   plus: SVG('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'),
   search: SVG('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'),
+  x: SVG('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'),
+  info: SVG('<circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/>'),
+  back: SVG('<polyline points="15 18 9 12 15 6"/>'),
 };
 const ROLE_COLORS = ["#7C3AED","#4F46E5","#2563EB","#0891B2","#059669","#65A30D","#D97706","#DC2626","#DB2777","#475569"];
 const plural = (n, f) => { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? f[2] : b === 1 ? f[0] : b >= 2 && b <= 4 ? f[1] : f[2]; };
 const fullName = u => [u.surname, u.name].filter(Boolean).join(" ") || u.email || "—";
 const initials = u => ((((u.surname || "")[0] || "") + ((u.name || "")[0] || "")) || (u.email || "?").slice(0, 2)).toUpperCase();
 const norm = s => String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
+const sm = (svg, w = 14) => svg.replace("<svg", `<svg width="${w}" height="${w}"`);
+
+// Стандартне меню панелі — поки адмін не зберіг власне на сторінці «Навігація»
+const DEFAULT_NAV = [
+  { id:"sec-main", type:"section", label:"Головне", order:0, items:[
+    { id:"dashboard", label:"Дашборд", file:"./", icon:"dashboard", enabled:true, protected:true },
+    { id:"tests", label:"Тести", file:"tests", icon:"files", enabled:true, badge:"nb-t" },
+    { id:"attempts", label:"Спроби", file:"attempts", icon:"clock", enabled:true, badge:"nb-a" },
+    { id:"links", label:"Посилання", file:"links", icon:"link", enabled:true, badge:"nb-l" },
+    { id:"history", label:"Історія ігор", file:"game-history", icon:"award", enabled:true },
+  ]},
+  { id:"sec-analysis", type:"section", label:"Аналіз", order:1, items:[
+    { id:"analytics", label:"Аналітика", file:"analytics", icon:"chart-bar", enabled:true },
+    { id:"gradebook", label:"Журнал", file:"gradebook", icon:"book", enabled:true },
+    { id:"students", label:"Студенти", file:"students", icon:"users", enabled:true },
+  ]},
+  { id:"sec-activity", type:"section", label:"Активність", order:2, items:[
+    { id:"notifications", label:"Сповіщення", file:"notifications", icon:"bell", enabled:true },
+    { id:"suspicious", label:"Підозрілі", file:"suspicious", icon:"shield", enabled:true },
+    { id:"online", label:"Онлайн", file:"online", icon:"live", enabled:true },
+    { id:"news", label:"Новини", file:"news", icon:"news", enabled:true },
+  ]},
+];
+const asArr = v => Array.isArray(v) ? v : Object.values(v || {});
 
 const content = `
   <div class="page-head">
     <div>
       <h1>Ролі</h1>
-      <p>Кастомні ролі викладачів і доступ до сторінок панелі</p>
+      <p>Групуйте викладачів і обмежуйте, які сторінки панелі їм видно</p>
     </div>
   </div>
-
-  <div class="rl-how">
-    <div class="rl-step"><span class="n">1</span><div><b>Створіть роль</b><span>Назва, опис і колір — наприклад «Куратор» чи «Методист»</span></div></div>
-    <div class="rl-step"><span class="n">2</span><div><b>Призначте викладачам</b><span>Кнопка «Учасники» тут або на сторінці <a href="teachers">Викладачі</a></span></div></div>
-    <div class="rl-step"><span class="n">3</span><div><b>Обмежте сторінки</b><span>У <a href="navigation">Навігації</a> оберіть, яким ролям видно пункт меню</span></div></div>
-  </div>
-
-  <div class="rl-toolbar">
-    <div class="search-input">
-      ${IC.search.replace("<svg", '<svg width="14" height="14"')}
-      <input class="input" id="rl-search" type="search" placeholder="Пошук ролі…" autocomplete="off" aria-label="Пошук ролі">
-    </div>
-    <span class="rl-meta" id="rl-meta"></span>
-  </div>
-
-  <div class="rl-grid" id="rl-grid">${'<div class="rl-sk"></div>'.repeat(3)}</div>
+  <div id="rl-root"><div class="tp"><aside class="tp-side"><div class="tp-items">${'<div class="tc-sk"></div>'.repeat(4)}</div></aside><section class="tp-main"><div class="tp-blank"></div></section></div></div>
 `;
-const topbarRight = `<button class="tb-btn primary" type="button" onclick="openRoleModal()">${IC.plus.replace("<svg", '<svg width="14" height="14"')} Нова роль</button>`;
+const topbarRight = `<button class="tb-btn primary" type="button" onclick="openRoleModal()">${sm(IC.plus)} Нова роль</button>`;
 
 await initAdminShell({ activeId: "roles", crumbs: ["Ролі"], content, topbarRight });
 
@@ -239,7 +254,10 @@ await initAdminShell({ activeId: "roles", crumbs: ["Ролі"], content, topbarR
 let roles = {};    // roleId -> {name, color, description, createdAt}
 let users = {};    // uid -> профіль
 let nav = [];      // settings/navigation (секції з items[].roleIds)
+let navFromDb = false;
 let editingRoleId = null, pickedColor = ROLE_COLORS[0];
+let _selId = new URLSearchParams(location.search).get("id") || "";
+const mobile = () => matchMedia("(max-width:1023px)").matches;
 
 // Той самий контракт, що й у teachers.html: customRoleIds — мапа {roleId:true},
 // зі старим одиничним customRoleId для сумісності при читанні.
@@ -248,77 +266,223 @@ function getUserRoleIds(u){
   if (u.customRoleId) return [u.customRoleId];
   return [];
 }
-const membersOf = id => Object.entries(users).filter(([, u]) => u && getUserRoleIds(u).includes(id)).map(([uid, u]) => ({ uid, ...u }));
+const membersOf = id => Object.entries(users).filter(([, u]) => u && typeof u === "object" && getUserRoleIds(u).includes(id)).map(([uid, u]) => ({ uid, ...u }))
+  .sort((a, b) => fullName(a).localeCompare(fullName(b), "uk"));
 const pagesOf = id => {
   const out = [];
-  (Array.isArray(nav) ? nav : []).forEach(sec => (sec?.items || []).forEach(it => { if (Array.isArray(it.roleIds) && it.roleIds.includes(id)) out.push(it.label || it.id); }));
+  nav.forEach(sec => asArr(sec?.items).forEach(it => { if (Array.isArray(it.roleIds) && it.roleIds.includes(id)) out.push(it.label || it.id); }));
   return out;
 };
+const sortedIds = () => Object.keys(roles).sort((a, b) => (roles[a].name || "").localeCompare(roles[b].name || "", "uk"));
 
 async function load(){
   const [r, u, n] = await Promise.all([dbGet("roles"), dbGet("users"), dbGet("settings/navigation").catch(() => null)]);
-  roles = r || {}; users = u || {}; nav = n || [];
-  renderRoles();
+  roles = r || {}; users = u || {};
+  navFromDb = !!(n && asArr(n).length);
+  nav = asArr(navFromDb ? n : JSON.parse(JSON.stringify(DEFAULT_NAV))).filter(Boolean).map(s => ({ ...s, items: asArr(s.items).filter(Boolean) }));
+  render();
 }
 
 // ─── Рендер ───────────────────────────────────────────────────────────────
-function renderRoles(hlId){
-  const grid = document.getElementById("rl-grid");
-  const q = norm(document.getElementById("rl-search").value);
-  const all = Object.keys(roles).sort((a, b) => (roles[a].name || "").localeCompare(roles[b].name || "", "uk"));
-  const ids = q ? all.filter(id => norm(roles[id].name).includes(q) || norm(roles[id].description).includes(q)) : all;
-  document.getElementById("rl-meta").textContent = all.length ? `${ids.length} / ${all.length}` : "";
-
-  if (!all.length){
-    grid.innerHTML = `<div class="rl-empty"><div class="ei" style="width:54px;height:54px;margin:0 auto 14px;border-radius:14px;background:#EDE9FE;color:#6D28D9;display:grid;place-items:center">${IC.shield}</div>
-      <div class="et">Ще немає жодної ролі</div><div>Створіть першу, щоб призначати її викладачам і обмежувати доступ до сторінок</div>
-      <button class="tb-btn primary" type="button" style="margin-top:14px" onclick="openRoleModal()">${IC.plus.replace("<svg", '<svg width="14" height="14"')} Створити роль</button></div>`;
-    return;
-  }
+function render(){
+  const root = document.getElementById("rl-root");
+  const ids = sortedIds();
   if (!ids.length){
-    grid.innerHTML = `<div class="rl-empty"><div class="et">Нічого не знайдено</div><div>Спробуйте інший запит</div></div>`;
+    root.innerHTML = `<div class="rl-start">
+      <div class="ei">${sm(IC.shield, 28)}</div>
+      <h2>Ще немає жодної ролі</h2>
+      <p>Роль — це мітка для групи викладачів, наприклад «Куратор» чи «Методист». Через неї зручно шукати викладачів і показувати окремі сторінки панелі лише потрібним людям.</p>
+      <div class="rl-how">
+        <div class="rl-step"><span class="n">1</span><div><b>Створіть роль</b><span>Назва, опис і колір</span></div></div>
+        <div class="rl-step"><span class="n">2</span><div><b>Додайте викладачів</b><span>Прямо в картці ролі або в картці викладача</span></div></div>
+        <div class="rl-step"><span class="n">3</span><div><b>Оберіть сторінки</b><span>Позначені сторінки бачитимуть лише викладачі з цією роллю</span></div></div>
+      </div>
+      <button class="tb-btn primary" type="button" onclick="openRoleModal()">${sm(IC.plus)} Створити роль</button>
+    </div>`;
     return;
   }
-  grid.innerHTML = ids.map(id => {
-    const r = roles[id], m = membersOf(id), pages = pagesOf(id);
-    const avas = m.slice(0, 5).map(u => `<span title="${esc(fullName(u))}">${esc(initials(u))}</span>`).join("") + (m.length > 5 ? `<span class="more">+${m.length - 5}</span>` : "");
-    return `<article class="rl-card${id === hlId ? " hl" : ""}" style="--rc:${esc(r.color || ROLE_COLORS[0])}" data-id="${esc(id)}">
-      <div class="rl-top">
-        <div class="rl-badge">${IC.shield}</div>
-        <div class="rl-ti">
-          <div class="rl-name" title="${esc(r.name || "")}">${esc(r.name || "—")}</div>
-          <div class="rl-desc${r.description ? "" : " empty"}">${esc(r.description || "Без опису")}</div>
+  if (!mobile() && (!_selId || !roles[_selId])) _selId = ids[0];
+  if (!root.querySelector(".tp-side .tp-sh")){
+    root.innerHTML = `<div class="tp">
+      <aside class="tp-side" aria-label="Список ролей">
+        <div class="tp-sh">
+          <div class="search-input">${sm(IC.search)}<input class="input" id="rl-search" type="search" placeholder="Пошук ролі…" autocomplete="off" aria-label="Пошук ролі"></div>
         </div>
-      </div>
-      <div class="rl-body">
-        <div>
-          <div class="rl-sec-l">Учасники</div>
-          <div class="rl-members">
-            ${m.length ? `<div class="rl-avas">${avas}</div>` : ""}
-            <span class="rl-mtext">${m.length ? `<b>${m.length}</b> ${plural(m.length, ["викладач", "викладачі", "викладачів"])}` : "Поки нікому не призначена"}</span>
-          </div>
-        </div>
-        <div>
-          <div class="rl-sec-l">Доступ до сторінок</div>
-          ${pages.length ? `<div class="rl-chips">${pages.map(p => `<span class="rl-chip">${IC.lock}${esc(p)}</span>`).join("")}</div>`
-            : `<div class="rl-none">Не обмежує жодної сторінки — налаштуйте в <a href="navigation" style="color:#6D28D9;font-weight:700">Навігації</a></div>`}
-        </div>
-      </div>
-      <div class="rl-foot">
-        <button class="rl-btn" type="button" data-act="members">${IC.users} Учасники</button>
-        <button class="rl-btn" type="button" data-act="edit">${IC.edit} Редагувати</button>
-        <button class="rl-btn ic danger" type="button" data-act="delete" title="Видалити роль" aria-label="Видалити роль ${esc(r.name || "")}">${IC.trash}</button>
-      </div>
-    </article>`;
-  }).join("") + (q ? "" : `<button class="rl-new" type="button" onclick="openRoleModal()"><span class="pl">${IC.plus.replace("<svg", '<svg width="20" height="20"')}</span><b>Нова роль</b><span>Додати ще одну роль</span></button>`);
+        <div class="tp-meta"><span>Ролі</span><b id="rl-meta"></b></div>
+        <div class="tp-items" id="rl-list"></div>
+        <div style="padding:10px 12px 12px;border-top:1px solid var(--line)"><button class="tb-btn rl-new-btn" type="button" onclick="openRoleModal()">${sm(IC.plus)} Нова роль</button></div>
+      </aside>
+      <section class="tp-main" id="rl-main" aria-live="polite"></section>
+    </div>`;
+    document.getElementById("rl-search").addEventListener("input", renderList);
+  }
+  renderList();
+  renderDetail();
 }
 
-document.getElementById("rl-grid").addEventListener("click", e => {
-  const b = e.target.closest("[data-act]"); if (!b) return;
-  const id = b.closest("[data-id]")?.dataset.id; if (!id || !roles[id]) return;
-  ({ members: openMembers, edit: openRoleModal, delete: openDeleteRole })[b.dataset.act]?.(id);
+function renderList(){
+  const q = norm(document.getElementById("rl-search")?.value);
+  const all = sortedIds();
+  const ids = q ? all.filter(id => norm(roles[id].name).includes(q) || norm(roles[id].description).includes(q)) : all;
+  document.getElementById("rl-meta").textContent = `${ids.length} / ${all.length}`;
+  document.getElementById("rl-list").innerHTML = ids.length ? ids.map(id => {
+    const r = roles[id], m = membersOf(id).length, p = pagesOf(id).length;
+    return `<button type="button" class="rl-it${id === _selId ? " on" : ""}" style="--rc:${esc(r.color || ROLE_COLORS[0])}" data-id="${esc(id)}"${id === _selId ? ' aria-current="true"' : ""}>
+      <span class="rl-ic">${IC.shield}</span>
+      <span class="rl-it-i"><div class="rl-it-n">${esc(r.name || "—")}</div>
+        <div class="rl-it-m"><b>${m}</b> ${plural(m, ["викладач", "викладачі", "викладачів"])}${p ? ` · <b>${p}</b> ${plural(p, ["сторінка", "сторінки", "сторінок"])}` : ""}</div></span>
+    </button>`;
+  }).join("") : `<div class="tc-empty"><div class="et">Нічого не знайдено</div><div>Спробуйте інший запит</div></div>`;
+}
+
+function renderDetail(){
+  const host = document.getElementById("rl-main"); if (!host) return;
+  const r = roles[_selId];
+  if (!r){ host.classList.remove("open"); host.innerHTML = `<div class="tp-blank"></div>`; return; }
+  const color = r.color || ROLE_COLORS[0];
+  const members = membersOf(_selId);
+  host.innerHTML = `
+    <button type="button" class="tb-btn tp-back" data-act="back">${sm(IC.back)} До списку</button>
+    <article class="tp-card" style="--rc:${esc(color)}">
+      <header class="rl-hero" style="--rc:${esc(color)}">
+        <span class="rl-ic">${IC.shield}</span>
+        <div class="rl-hi"><h2>${esc(r.name || "—")}</h2><p class="${r.description ? "" : "empty"}">${esc(r.description || "Без опису")}</p></div>
+        <div class="rl-acts">
+          <button type="button" class="tb-btn" data-act="edit">${sm(IC.edit)} Редагувати</button>
+          <button type="button" class="tb-btn danger" data-act="delete" title="Видалити роль" aria-label="Видалити роль">${sm(IC.trash)}</button>
+        </div>
+      </header>
+
+      <section class="tp-sec">
+        <div class="tp-sec-h"><div><h3>Викладачі з цією роллю · ${members.length}</h3><p>Знайдіть викладача, щоб додати. Зміни зберігаються одразу</p></div></div>
+        <div class="rl-add">
+          <div class="search-input">${sm(IC.plus)}<input class="input" id="mb-add" type="search" placeholder="Додати викладача: ім'я або email…" autocomplete="off" aria-label="Додати викладача" aria-autocomplete="list" aria-controls="mb-sug"></div>
+          <div class="rl-sug" id="mb-sug" role="listbox" hidden></div>
+        </div>
+        ${members.length ? `<div class="mb-list">${members.map(u => `<div class="mb-row${u.blocked ? " blocked" : ""}">
+            <a href="teachers?id=${encodeURIComponent(u.uid)}" title="Відкрити картку викладача"><span class="mb-ava">${esc(initials(u))}</span><span class="mb-i"><div class="mb-n">${esc(fullName(u))}</div><div class="mb-e">${esc(u.email || "")}</div></span></a>
+            <button type="button" class="mb-x" data-act="rm" data-uid="${esc(u.uid)}" title="Зняти роль" aria-label="Зняти роль з ${esc(fullName(u))}">${IC.x}</button>
+          </div>`).join("")}</div>`
+          : `<div class="rl-none">Поки нікому не призначена</div>`}
+      </section>
+
+      <section class="tp-sec">
+        <div class="tp-sec-h"><div><h3>Доступ до сторінок панелі</h3><p>Увімкніть, щоб сторінку бачили лише викладачі з цією роллю</p></div><a href="navigation">Уся навігація</a></div>
+        <div class="rl-hint">${IC.info}<span>Сторінку без жодної ролі бачать усі викладачі. Якщо на сторінці кілька ролей — її бачить кожен, у кого є хоча б одна з них. Головна сторінка доступна завжди.</span></div>
+        ${nav.map((sec, si) => { const items = asArr(sec.items); if (!items.length) return ""; return `<div class="pg-sec"><div class="pg-sec-l">${esc(sec.label || "Розділ")}</div><div class="pg-list">${items.map((it, ii) => {
+          const rids = (Array.isArray(it.roleIds) ? it.roleIds : []).filter(x => roles[x]);
+          const on = rids.includes(_selId);
+          const others = rids.filter(x => x !== _selId);
+          const sub = it.protected ? "Бачать усі — цю сторінку не можна обмежити"
+            : !rids.length ? "Бачать усі викладачі"
+            : `Бачать лише: ${rids.map(x => `<i style="background:${esc(roles[x].color || "#7C3AED")}"></i>${esc(roles[x].name)}`).join(", ")}`;
+          return `<div class="pg-row${on ? " on" : ""}${it.enabled === false ? " off" : ""}">
+            <div class="pg-i"><div class="pg-n">${esc(it.label || it.id)}${it.enabled === false ? " · вимкнено в меню" : ""}</div><div class="pg-s">${sub}${others.length && on ? "" : ""}</div></div>
+            ${it.protected ? `<span class="pg-lock">${sm(IC.lock, 12)} Завжди</span>` : `<label class="toggle-sw"><input type="checkbox" data-pg="${si}:${ii}" ${on ? "checked" : ""} aria-label="Лише для ролі: ${esc(it.label || it.id)}"><span class="toggle-sl"></span></label>`}
+          </div>`; }).join("")}</div></div>`; }).join("")}
+      </section>
+    </article>`;
+  if (mobile()) host.classList.add("open");
+}
+
+function select(id){
+  _selId = id;
+  const url = new URL(location.href); url.searchParams.set("id", id); history.replaceState(null, "", url);
+  renderList(); renderDetail();
+}
+function closeDetail(){
+  document.getElementById("rl-main")?.classList.remove("open");
+  _selId = "";
+  const url = new URL(location.href); url.searchParams.delete("id"); history.replaceState(null, "", url);
+  renderList();
+}
+
+// ─── Учасники: додати / зняти ─────────────────────────────────────────────
+function userUpd(uid, rid, on){
+  const upd = { [`users/${uid}/customRoleIds/${rid}`]: on ? true : null };
+  const u = users[uid];
+  // Старе одиничне поле переносимо в мапу, щоб не загубити роль
+  if (u?.customRoleId && !(u.customRoleIds && typeof u.customRoleIds === "object")){
+    if (u.customRoleId !== rid) upd[`users/${uid}/customRoleIds/${u.customRoleId}`] = true;
+    upd[`users/${uid}/customRoleId`] = null;
+  }
+  return upd;
+}
+async function setMember(uid, on){
+  const rid = _selId; if (!rid) return;
+  const upd = userUpd(uid, rid, on);
+  try {
+    await update(ref(db), upd);
+    Object.entries(upd).forEach(([p, v]) => {
+      const [, id, key, r2] = p.split("/"); const u = users[id]; if (!u) return;
+      if (key === "customRoleId"){ delete u.customRoleId; return; }
+      if (!u.customRoleIds || typeof u.customRoleIds !== "object") u.customRoleIds = {};
+      v ? u.customRoleIds[r2] = true : delete u.customRoleIds[r2];
+    });
+    toast(on ? `${fullName(users[uid] || {})} — роль додано` : "Роль знято");
+    renderList(); renderDetail();
+    if (on) document.getElementById("mb-add")?.focus();
+  } catch (e) { toast("Помилка: " + e.message, "err"); }
+}
+
+let _sugIdx = 0;
+function renderSug(){
+  const inp = document.getElementById("mb-add"), box = document.getElementById("mb-sug");
+  const q = norm(inp.value);
+  if (!q){ box.hidden = true; return; }
+  const words = q.split(" ");
+  const list = Object.entries(users).filter(([, u]) => u && typeof u === "object" && !getUserRoleIds(u).includes(_selId))
+    .map(([uid, u]) => ({ uid, ...u }))
+    .filter(u => { const hay = norm(fullName(u) + " " + (u.name || "") + " " + (u.email || "")); return words.every(w => hay.includes(w)); })
+    .sort((a, b) => fullName(a).localeCompare(fullName(b), "uk")).slice(0, 8);
+  _sugIdx = Math.min(_sugIdx, Math.max(0, list.length - 1));
+  box.innerHTML = list.length ? list.map((u, i) => `<button type="button" role="option" class="${i === _sugIdx ? "on" : ""}" data-add="${esc(u.uid)}"><span class="mb-ava">${esc(initials(u))}</span><span class="mb-i"><div class="mb-n">${esc(fullName(u))}</div><div class="mb-e">${esc(u.email || "")}</div></span><span class="pl">Додати</span></button>`).join("")
+    : `<div class="none">Нікого не знайдено або вже мають цю роль</div>`;
+  box.hidden = false;
+}
+
+document.addEventListener("click", e => {
+  const it = e.target.closest(".rl-it"); if (it) return select(it.dataset.id);
+  const add = e.target.closest("[data-add]"); if (add){ document.getElementById("mb-add").value = ""; document.getElementById("mb-sug").hidden = true; return setMember(add.dataset.add, true); }
+  const b = e.target.closest("#rl-main [data-act]");
+  if (!e.target.closest(".rl-add")) { const s = document.getElementById("mb-sug"); if (s) s.hidden = true; }
+  if (!b) return;
+  if (b.dataset.act === "back") return closeDetail();
+  if (b.dataset.act === "edit") return openRoleModal(_selId);
+  if (b.dataset.act === "delete") return openDeleteRole(_selId);
+  if (b.dataset.act === "rm") return setMember(b.dataset.uid, false);
 });
-document.getElementById("rl-search").addEventListener("input", () => renderRoles());
+document.addEventListener("input", e => { if (e.target.id === "mb-add"){ _sugIdx = 0; renderSug(); } });
+document.addEventListener("keydown", e => {
+  if (e.target.id === "mb-add"){
+    const opts = [...document.querySelectorAll("#mb-sug [data-add]")];
+    if (e.key === "ArrowDown" || e.key === "ArrowUp"){ if (!opts.length) return; e.preventDefault(); _sugIdx = (_sugIdx + (e.key === "ArrowDown" ? 1 : -1) + opts.length) % opts.length; renderSug(); return; }
+    if (e.key === "Enter"){ e.preventDefault(); opts[_sugIdx]?.click(); return; }
+    if (e.key === "Escape"){ e.stopPropagation(); document.getElementById("mb-sug").hidden = true; return; }
+  }
+  if (e.key === "Escape" && document.getElementById("rl-main")?.classList.contains("open") && !document.querySelector(".modal-bd.on")) closeDetail();
+});
+
+// ─── Доступ до сторінок ───────────────────────────────────────────────────
+document.addEventListener("change", async e => {
+  const k = e.target.dataset?.pg; if (!k) return;
+  const [si, ii] = k.split(":").map(Number);
+  const rid = _selId, on = e.target.checked;
+  const newNav = nav.map((sec, a) => ({ ...sec, items: asArr(sec.items).map((it, b) => {
+    if (a !== si || b !== ii) return it;
+    const set = new Set((Array.isArray(it.roleIds) ? it.roleIds : []).filter(x => roles[x]));
+    on ? set.add(rid) : set.delete(rid);
+    return { ...it, roleIds: [...set] };
+  }) }));
+  e.target.disabled = true;
+  try {
+    // Уся навігація одним записом + мітка часу — так само, як на сторінці «Навігація»
+    await update(ref(db), { "settings/navigation": newNav, "settings/navigation_ts": Date.now() });
+    nav = newNav; navFromDb = true;
+    toast(on ? "Сторінку обмежено цією роллю" : "Обмеження знято");
+    renderList(); renderDetail();
+  } catch (err) { toast("Помилка: " + err.message, "err"); e.target.checked = !on; e.target.disabled = false; }
+});
 
 // ─── Створення / редагування ─────────────────────────────────────────────
 function renderSwatches(){
@@ -380,7 +544,7 @@ window.saveRole = async () => {
     roles[id] = data;
     closeModal("m-role");
     toast(editingRoleId ? "Роль оновлено" : "Роль створено");
-    renderRoles(id);
+    _selId = id; render();
   } catch(e) {
     err("Помилка: " + e.message);
   } finally {
@@ -388,76 +552,6 @@ window.saveRole = async () => {
   }
 };
 
-// ─── Учасники ─────────────────────────────────────────────────────────────
-let _mbRole = null, _mbSel = new Set(), _mbOnlySel = false;
-function openMembers(id){
-  _mbRole = id; _mbOnlySel = false;
-  _mbSel = new Set(membersOf(id).map(u => u.uid));
-  document.getElementById("mb-role-name").textContent = roles[id].name;
-  document.getElementById("mb-search").value = "";
-  document.getElementById("mb-err").classList.remove("show");
-  renderMembers();
-  openModal("m-members");
-}
-function renderMembers(){
-  const q = norm(document.getElementById("mb-search").value);
-  const list = Object.entries(users).filter(([, u]) => u && typeof u === "object")
-    .map(([uid, u]) => ({ uid, ...u }))
-    .filter(u => !q || norm(fullName(u)).includes(q) || norm(u.email).includes(q))
-    .filter(u => !_mbOnlySel || _mbSel.has(u.uid))
-    .sort((a, b) => (_mbSel.has(b.uid) - _mbSel.has(a.uid)) || fullName(a).localeCompare(fullName(b), "uk"));
-  document.getElementById("mb-list").innerHTML = list.length ? list.map(u => `<label class="mb-row${u.blocked ? " blocked" : ""}">
-      <input type="checkbox" value="${esc(u.uid)}" ${_mbSel.has(u.uid) ? "checked" : ""}>
-      <span class="mb-ava">${esc(initials(u))}</span>
-      <span class="mb-i"><div class="mb-n">${esc(fullName(u))}</div><div class="mb-e">${esc(u.email || "")}</div></span>
-    </label>`).join("") : `<div style="padding:24px;text-align:center;color:var(--ink-400);font-size:13px">Нікого не знайдено</div>`;
-  const before = new Set(membersOf(_mbRole).map(u => u.uid));
-  const add = [..._mbSel].filter(x => !before.has(x)).length, rem = [...before].filter(x => !_mbSel.has(x)).length;
-  document.getElementById("mb-sum").innerHTML = `Обрано: <b>${_mbSel.size}</b>${add || rem ? ` · <span style="color:#15803D">+${add}</span> / <span style="color:#B91C1C">−${rem}</span>` : ""}`;
-  document.getElementById("mb-only-sel").textContent = _mbOnlySel ? "Показати всіх" : "Лише обрані";
-}
-document.getElementById("mb-list").addEventListener("change", e => {
-  if (e.target.type !== "checkbox") return;
-  e.target.checked ? _mbSel.add(e.target.value) : _mbSel.delete(e.target.value);
-  renderMembers();
-});
-document.getElementById("mb-search").addEventListener("input", renderMembers);
-document.getElementById("mb-only-sel").addEventListener("click", () => { _mbOnlySel = !_mbOnlySel; renderMembers(); });
-
-window.saveMembers = async () => {
-  const id = _mbRole; if (!id) return;
-  const before = new Set(membersOf(id).map(u => u.uid));
-  const upd = {};
-  _mbSel.forEach(uid => { if (!before.has(uid)) upd[`users/${uid}/customRoleIds/${id}`] = true; });
-  before.forEach(uid => { if (!_mbSel.has(uid)) upd[`users/${uid}/customRoleIds/${id}`] = null; });
-  // Переносимо старе одиничне поле в мапу, щоб не загубити ролі
-  Object.keys(upd).forEach(p => {
-    const uid = p.split("/")[1], u = users[uid];
-    if (u?.customRoleId && !(u.customRoleIds && typeof u.customRoleIds === "object")){
-      if (u.customRoleId !== id) upd[`users/${uid}/customRoleIds/${u.customRoleId}`] = true;
-      upd[`users/${uid}/customRoleId`] = null;
-    }
-  });
-  if (!Object.keys(upd).length){ closeModal("m-members"); return; }
-  const btn = document.getElementById("mb-save-btn");
-  btn.disabled = true;
-  try {
-    await update(ref(db), upd);   // одним атомарним записом
-    Object.entries(upd).forEach(([p, v]) => {
-      const [, uid, key, rid] = p.split("/"); const u = users[uid]; if (!u) return;
-      if (key === "customRoleId") { delete u.customRoleId; return; }
-      if (!u.customRoleIds || typeof u.customRoleIds !== "object") u.customRoleIds = {};
-      if (v) u.customRoleIds[rid] = true; else delete u.customRoleIds[rid];
-    });
-    closeModal("m-members");
-    toast("Учасників оновлено");
-    renderRoles(id);
-  } catch(e) {
-    const el = document.getElementById("mb-err"); el.textContent = "Помилка: " + e.message; el.classList.add("show");
-  } finally {
-    btn.disabled = false;
-  }
-};
 
 // ─── Видалення ────────────────────────────────────────────────────────────
 let _delRoleId = null;
@@ -496,13 +590,14 @@ window.confirmDeleteRole = async () => {
     if (navChanged) nav = newNav;
     closeModal("m-del-role");
     toast("Роль видалено");
-    renderRoles();
+    if (_selId === id) _selId = ""; render();
   } catch(e) {
     const el = document.getElementById("del-err"); el.textContent = "Помилка: " + e.message; el.classList.add("show");
   } finally {
     btn.disabled = false;
   }
 };
+
 
 // ─── Модалки: клік по фону та Esc (лише верхня) ──────────────────────────
 document.querySelectorAll(".modal-bd").forEach(m => m.addEventListener("click", e => { if (e.target === m) closeModal(m.id); }));
@@ -515,8 +610,8 @@ document.addEventListener("keydown", e => {
 try {
   await load();
 } catch(e) {
-  document.getElementById("rl-grid").innerHTML = `<div class="rl-empty"><div class="et">Не вдалося завантажити ролі</div><div>${esc(e.message || "Невідома помилка")}</div>
-    <button class="tb-btn primary" type="button" style="margin-top:14px" onclick="location.reload()">Спробувати знову</button></div>`;
+  document.getElementById("rl-root").innerHTML = `<div class="rl-start"><h2>Не вдалося завантажити ролі</h2><p>${esc(e.message || "Невідома помилка")}</p>
+    <button class="tb-btn primary" type="button" onclick="location.reload()">Спробувати знову</button></div>`;
 }
 hideLoader();
 </script>
