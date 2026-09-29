@@ -174,6 +174,44 @@ ${note}
 \u041A\u043E\u043C\u0430\u043D\u0434\u0430 QuizFlow`
   };
 }
+function welcomeEmail({ name, email, password, loginUrl, fromName, site, logoUrl: logoUrl2 }) {
+  const hello = name ? `\u0412\u0456\u0442\u0430\u0454\u043C\u043E, ${name}!` : "\u0412\u0456\u0442\u0430\u0454\u043C\u043E!";
+  const lead = `\u0414\u043B\u044F \u0432\u0430\u0441 \u0441\u0442\u0432\u043E\u0440\u0435\u043D\u043E \u0430\u043A\u0430\u0443\u043D\u0442 \u0432\u0438\u043A\u043B\u0430\u0434\u0430\u0447\u0430 \u0432 QuizFlow \u2014 \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u0456 \u0434\u043B\u044F \u0442\u0435\u0441\u0442\u0456\u0432, \u0436\u0443\u0440\u043D\u0430\u043B\u0443 \u043E\u0446\u0456\u043D\u043E\u043A \u0442\u0430 \u0456\u0433\u043E\u0440 \u043D\u0430\u0436\u0438\u0432\u043E \u0437\u0456 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0430\u043C\u0438.${fromName ? ` \u0410\u0434\u043C\u0456\u043D\u0456\u0441\u0442\u0440\u0430\u0442\u043E\u0440: ${fromName}.` : ""}`;
+  const row = (k, v) => `<tr><td style="padding:6px 16px 6px 0;color:${C.muted};font-size:14px;white-space:nowrap;vertical-align:top">${k}</td><td style="padding:6px 0;font:700 15px 'Geist Mono',ui-monospace,Menlo,Consolas,monospace;color:${C.ink};word-break:break-all">${esc(v)}</td></tr>`;
+  const bodyHtml = `
+    <p style="margin:0 0 18px">${esc(hello)}</p>
+    <p style="margin:0 0 18px">${esc(lead)}</p>
+    <p style="margin:0 0 8px">\u0414\u0430\u043D\u0456 \u0434\u043B\u044F \u0432\u0445\u043E\u0434\u0443:</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 22px;padding:10px 16px;background:#F4F6FB;border-radius:10px;width:100%">${row("Email", email)}${password ? row("\u041F\u0430\u0440\u043E\u043B\u044C", password) : ""}</table>`;
+  const after = `<p style="margin:18px 0 0;font-size:14px;line-height:1.6;color:${C.muted}">${password ? "\u0426\u0435 \u0442\u0438\u043C\u0447\u0430\u0441\u043E\u0432\u0438\u0439 \u043F\u0430\u0440\u043E\u043B\u044C. \u0429\u043E\u0431 \u0437\u0430\u0434\u0430\u0442\u0438 \u0432\u043B\u0430\u0441\u043D\u0438\u0439, \u043D\u0430 \u0441\u0442\u043E\u0440\u0456\u043D\u0446\u0456 \u0432\u0445\u043E\u0434\u0443 \u043D\u0430\u0442\u0438\u0441\u043D\u0456\u0442\u044C \xAB\u0417\u0430\u0431\u0443\u043B\u0438 \u043F\u0430\u0440\u043E\u043B\u044C?\xBB \u2014 \u043F\u0440\u0438\u0439\u0434\u0435 \u043B\u0438\u0441\u0442 \u0456\u0437 \u043F\u043E\u0441\u0438\u043B\u0430\u043D\u043D\u044F\u043C." : "\u041F\u0430\u0440\u043E\u043B\u044C \u0432\u0430\u043C \u043F\u043E\u0432\u0456\u0434\u043E\u043C\u0438\u0442\u044C \u0430\u0434\u043C\u0456\u043D\u0456\u0441\u0442\u0440\u0430\u0442\u043E\u0440. \u0410\u0431\u043E \u0437\u0430\u0434\u0430\u0439\u0442\u0435 \u0432\u043B\u0430\u0441\u043D\u0438\u0439: \u043D\u0430 \u0441\u0442\u043E\u0440\u0456\u043D\u0446\u0456 \u0432\u0445\u043E\u0434\u0443 \u043D\u0430\u0442\u0438\u0441\u043D\u0456\u0442\u044C \xAB\u0417\u0430\u0431\u0443\u043B\u0438 \u043F\u0430\u0440\u043E\u043B\u044C?\xBB."}</p>`;
+  return {
+    subject: "\u0412\u0430\u0448 \u0430\u043A\u0430\u0443\u043D\u0442 \u0443 QuizFlow",
+    html: layout({
+      site,
+      logoUrl: logoUrl2,
+      preheader: "\u0414\u0430\u043D\u0456 \u0434\u043B\u044F \u0432\u0445\u043E\u0434\u0443 \u0432 QuizFlow",
+      title: "\u0412\u0430\u0448 \u0430\u043A\u0430\u0443\u043D\u0442 \u0443 QuizFlow",
+      bodyHtml,
+      button: { label: "\u0423\u0432\u0456\u0439\u0442\u0438", url: loginUrl },
+      after,
+      footer: "\u0412\u0438 \u043E\u0442\u0440\u0438\u043C\u0430\u043B\u0438 \u0446\u0435\u0439 \u043B\u0438\u0441\u0442, \u0431\u043E \u0430\u0434\u043C\u0456\u043D\u0456\u0441\u0442\u0440\u0430\u0442\u043E\u0440 QuizFlow \u0441\u0442\u0432\u043E\u0440\u0438\u0432 \u0434\u043B\u044F \u0432\u0430\u0441 \u0430\u043A\u0430\u0443\u043D\u0442. \u042F\u043A\u0449\u043E \u0446\u0435 \u043F\u043E\u043C\u0438\u043B\u043A\u0430 \u2014 \u043F\u0440\u043E\u0441\u0442\u043E \u043F\u0440\u043E\u0456\u0433\u043D\u043E\u0440\u0443\u0439\u0442\u0435 \u043B\u0438\u0441\u0442."
+    }),
+    text: `${hello}
+
+${lead}
+
+\u0414\u0430\u043D\u0456 \u0434\u043B\u044F \u0432\u0445\u043E\u0434\u0443:
+Email: ${email}${password ? `
+\u041F\u0430\u0440\u043E\u043B\u044C: ${password}` : ""}
+
+\u0423\u0432\u0456\u0439\u0442\u0438: ${loginUrl}
+
+${password ? "\u0426\u0435 \u0442\u0438\u043C\u0447\u0430\u0441\u043E\u0432\u0438\u0439 \u043F\u0430\u0440\u043E\u043B\u044C. \u0429\u043E\u0431 \u0437\u0430\u0434\u0430\u0442\u0438 \u0432\u043B\u0430\u0441\u043D\u0438\u0439, \u043D\u0430 \u0441\u0442\u043E\u0440\u0456\u043D\u0446\u0456 \u0432\u0445\u043E\u0434\u0443 \u043D\u0430\u0442\u0438\u0441\u043D\u0456\u0442\u044C \xAB\u0417\u0430\u0431\u0443\u043B\u0438 \u043F\u0430\u0440\u043E\u043B\u044C?\xBB." : "\u041F\u0430\u0440\u043E\u043B\u044C \u0432\u0430\u043C \u043F\u043E\u0432\u0456\u0434\u043E\u043C\u0438\u0442\u044C \u0430\u0434\u043C\u0456\u043D\u0456\u0441\u0442\u0440\u0430\u0442\u043E\u0440 \u0430\u0431\u043E \u0437\u0430\u0434\u0430\u0439\u0442\u0435 \u0432\u043B\u0430\u0441\u043D\u0438\u0439 \u0447\u0435\u0440\u0435\u0437 \xAB\u0417\u0430\u0431\u0443\u043B\u0438 \u043F\u0430\u0440\u043E\u043B\u044C?\xBB \u043D\u0430 \u0441\u0442\u043E\u0440\u0456\u043D\u0446\u0456 \u0432\u0445\u043E\u0434\u0443."}
+
+\u0417 \u043F\u043E\u0432\u0430\u0433\u043E\u044E,
+\u041A\u043E\u043C\u0430\u043D\u0434\u0430 QuizFlow`
+  };
+}
 function broadcastEmail({ subject, body, button: btn, name, unsubUrl: unsubUrl2, site, logoUrl: logoUrl2 }) {
   const hello = name ? `\u0412\u0456\u0442\u0430\u0454\u043C\u043E, ${name}!` : "";
   return {
@@ -227,7 +265,7 @@ var index_default = {
         return new Response(request.method === "HEAD" ? null : LOGO_BYTES, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000, immutable", "Access-Control-Allow-Origin": "*" } });
       if (url.pathname === "/" && request.method === "GET") return json({ ok: true, service: "quizflow-mail" }, 200, cors);
       const route = `${request.method} ${url.pathname}`;
-      const handler = { "GET /status": status, "POST /preview": preview, "POST /invite": invite, "POST /broadcast": broadcast }[route];
+      const handler = { "GET /status": status, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast }[route];
       if (!handler) throw new HttpError(404, "\u041D\u0435\u0432\u0456\u0434\u043E\u043C\u0430 \u0430\u0434\u0440\u0435\u0441\u0430");
       const admin = await requireAdmin(request, env);
       const body = request.method === "POST" ? await readJson(request) : null;
@@ -337,6 +375,28 @@ async function invite({ env, admin, body, url }) {
   });
   const res = await resend(env, "/emails", { from: env.MAIL_FROM, to: [to], subject: mail.subject, html: mail.html, text: mail.text, ...admin.me.email ? { reply_to: admin.me.email } : {} });
   return { ok: true, id: res.id || null, to };
+}
+async function welcome({ env, admin, body, url }) {
+  const uid = String(body?.uid || "");
+  if (!/^[\w-]{6,128}$/.test(uid)) throw new HttpError(400, "\u041D\u0435\u043A\u043E\u0440\u0435\u043A\u0442\u043D\u0438\u0439 \u0430\u043A\u0430\u0443\u043D\u0442");
+  const password = body?.password == null ? "" : String(body.password);
+  if (password && (password.length < 6 || password.length > 64)) throw new HttpError(400, "\u041D\u0435\u043A\u043E\u0440\u0435\u043A\u0442\u043D\u0438\u0439 \u043F\u0430\u0440\u043E\u043B\u044C");
+  const u = await dbRead(env, `users/${uid}`, admin.token);
+  if (!u) throw new HttpError(404, "\u0410\u043A\u0430\u0443\u043D\u0442 \u043D\u0435 \u0437\u043D\u0430\u0439\u0434\u0435\u043D\u043E");
+  if (u.blocked === true) throw new HttpError(409, "\u0410\u043A\u0430\u0443\u043D\u0442 \u0437\u0430\u0431\u043B\u043E\u043A\u043E\u0432\u0430\u043D\u043E");
+  const email = String(u.email || "").trim();
+  if (!EMAIL_RE.test(email)) throw new HttpError(400, "\u0412 \u0430\u043A\u0430\u0443\u043D\u0442\u0430 \u043D\u0435\u043C\u0430\u0454 \u043A\u043E\u0440\u0435\u043A\u0442\u043D\u043E\u0433\u043E email");
+  const mail = welcomeEmail({
+    name: String(u.name || "").trim().slice(0, 80),
+    email,
+    password,
+    loginUrl: `${env.SITE_URL}/login?email=${encodeURIComponent(email)}`,
+    fromName: [admin.me.name, admin.me.surname].filter(Boolean).join(" "),
+    site: env.SITE_URL,
+    logoUrl: logoUrl(url.origin)
+  });
+  const res = await resend(env, "/emails", { from: env.MAIL_FROM, to: [email], subject: mail.subject, html: mail.html, text: mail.text, ...admin.me.email ? { reply_to: admin.me.email } : {} });
+  return { ok: true, id: res.id || null, to: email };
 }
 async function broadcast({ env, admin, body, url }) {
   const m = checkMessage(body);
