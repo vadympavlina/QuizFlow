@@ -1,5 +1,6 @@
-export function getAuth(){return {}}
-export function onAuthStateChanged(a,cb){const uid=localStorage.getItem('mockUid');setTimeout(()=>cb(uid?{uid}:null),0);return()=>{}}
+const _auth={currentUser:null};
+export function getAuth(){return _auth}
+export function onAuthStateChanged(a,cb){const uid=localStorage.getItem('mockUid');const u=uid?{uid,getIdToken:async()=>'mock-token-'+uid}:null;_auth.currentUser=u;setTimeout(()=>cb(u),0);return()=>{}}
 export async function signOut(){ localStorage.removeItem('mockUid'); _log('signOut',1); }
 export async function createUserWithEmailAndPassword(a,email,pass){ if(email==='taken@x.ua') throw _err('auth/email-already-in-use'); const uid='new'+Date.now()%1000; localStorage.setItem('mockUid',uid); _log('create',[email,globalThis.__persist,uid]); return {user:{uid,email}}; }
 export async function deleteUser(u){ _log('delete',u.uid); localStorage.removeItem('mockUid'); }

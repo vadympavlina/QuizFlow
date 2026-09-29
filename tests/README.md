@@ -7,6 +7,7 @@ cd tests
 npm ci
 npx playwright install chromium   # один раз
 npm run e2e     # інтерфейс: Playwright + мок Firebase (e2e/mock), справжня база не потрібна
+npm run worker  # воркер пошти (worker/src): токени, права, відписка
 npm run rules   # правила database.rules.json на емуляторі Firebase (потрібна Java 21)
 ```
 

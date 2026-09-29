@@ -74,7 +74,7 @@ export async function dbGet(path){
 export async function dbSet(path, value){ await set(ref(db, path), value); }
 export async function dbUpd(path, value){ await update(ref(db, path), value); }
 export async function dbRemove(path){ await remove(ref(db, path)); }
-export { db, ref, get, set, update, remove, onValue };
+export { db, ref, get, set, update, remove, onValue, push };
 
 // ─── Modal / Toast (DOM utilities) ──────────────────────────────────────────
 
@@ -158,6 +158,30 @@ function getCurrentUser(){
   return _currentAdminUser;
 }
 
+// ─── Воркер пошти (Cloudflare) ──────────────────────────────────────────
+// Адреса зберігається в settings/mail/workerUrl, запит підписується Firebase
+// ID-токеном — воркер сам перевіряє, що це адмін. Див. worker/ і docs/email-setup.md.
+let _mailUrl;
+export async function mailWorkerUrl(force = false){
+  if (_mailUrl !== undefined && !force) return _mailUrl;
+  _mailUrl = String((await dbGet("settings/mail/workerUrl").catch(() => null)) || "").replace(/\/+$/, "");
+  return _mailUrl;
+}
+export function setMailWorkerUrl(u){ _mailUrl = String(u || "").replace(/\/+$/, ""); }
+export async function mailApi(path, body, { url } = {}){
+  const base = url || await mailWorkerUrl();
+  if (!base) throw new Error("Воркер пошти не налаштовано — див. «Розсилки»");
+  const token = await _adminAuth.currentUser?.getIdToken();
+  if (!token) throw new Error("Сесія завершилась, увійдіть знову");
+  let r;
+  try {
+    r = await fetch(base + path, { method: body ? "POST" : "GET", headers: { Authorization: `Bearer ${token}`, ...(body ? { "Content-Type": "application/json" } : {}) }, body: body ? JSON.stringify(body) : undefined });
+  } catch { throw new Error("Воркер пошти недоступний. Перевірте адресу й ALLOWED_ORIGINS"); }
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || `Воркер відповів ${r.status}`);
+  return data;
+}
+
 export function doLogout(){
   try { localStorage.removeItem("qf_admin_user"); localStorage.removeItem("qf_signed_in"); } catch {}
   _signOut(_adminAuth);
@@ -188,7 +212,7 @@ function ensureAdminNav(){
   if (window.AdminNav) return Promise.resolve();
   return new Promise(res => {
     const s = document.createElement("script");
-    s.src = new URL("./admin-nav.js?v=5", import.meta.url).href;
+    s.src = new URL("./admin-nav.js?v=6", import.meta.url).href;
     s.onload = s.onerror = () => res();
     document.head.appendChild(s);
   });

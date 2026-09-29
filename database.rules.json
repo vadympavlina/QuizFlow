@@ -82,6 +82,10 @@
       ".read": "auth != null && root.child('users/' + auth.uid + '/role').exists() && root.child('users/' + auth.uid + '/blocked').val() !== true",
       ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'"
     },
+    "mailLog": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'"
+    },
     "adminTasks": {
       ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
       ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'"

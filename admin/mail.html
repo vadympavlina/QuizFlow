@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%237C3AED'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><path d='M16 8l2.5 5 5.5.8-4 3.9.9 5.5L16 20.7l-4.9 2.5.9-5.5-4-3.9 5.5-.8z' fill='white'/></svg>">
+<title>QuizFlow Admin — Розсилки</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
+<link rel="stylesheet" href="shared/admin-shell.css?v=8">
+<style>
+.field-input{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-family:"Manrope",sans-serif;font-size:14px;color:var(--ink-900);outline:none;transition:border-color .15s,box-shadow .15s}
+.field-input:focus{border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+textarea.field-input{resize:vertical;min-height:220px;line-height:1.55}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field-l{font-size:12.5px;font-weight:700;color:var(--ink-700)}
+.field-h{font-size:11.5px;color:var(--ink-400);line-height:1.5}
+.field-h code{font:500 11px "Geist Mono",monospace;background:#F1F4FA;padding:1px 5px;border-radius:5px;color:var(--ink-700)}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;min-width:0}
+.card-h{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.card-h h2{font-size:15px;font-weight:800;margin:0;color:var(--ink-900)}
+.card-h p{font-size:12.5px;color:var(--ink-500);margin:2px 0 0}
+.card-b{padding:18px 20px;display:flex;flex-direction:column;gap:16px}
+.card-f{display:flex;justify-content:flex-end;gap:8px;padding:0 20px 18px;flex-wrap:wrap}
+.ml-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font:700 13px "Manrope",sans-serif;color:var(--ink-700);cursor:pointer}
+.chips button i{width:8px;height:8px;border-radius:50%}
+.chips button.on{border-color:var(--ink-900);box-shadow:inset 0 0 0 1px var(--ink-900);color:var(--ink-900)}
+.chips.sm button{padding:6px 10px;font-size:12.5px}
+.ml-sum{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-radius:12px;background:#F7F8FC;border:1px solid var(--line);font-size:12.5px;color:var(--ink-500)}
+.ml-sum b{font:700 13px "Geist Mono",monospace;color:var(--ink-900)}
+.ml-sum .big{font-size:13.5px;color:var(--ink-900);font-weight:800}
+.ml-sum .sep{width:4px;height:4px;border-radius:50%;background:var(--ink-300,#CBD5E1)}
+.ml-sum button{margin-left:auto;border:0;background:none;font:700 12.5px "Manrope",sans-serif;color:#6D28D9;cursor:pointer;padding:2px 0}
+.ml-who{display:flex;flex-wrap:wrap;gap:6px;max-height:160px;overflow:auto}
+.ml-who span{font-size:12px;padding:4px 9px;border-radius:8px;background:#F1F4FA;color:var(--ink-700)}
+.ml-who span.off{background:#FEF2F2;color:#B91C1C;text-decoration:line-through}
+.ml-row{display:flex;align-items:center;gap:10px}
+.ml-btn{display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr);gap:10px}
+.toggle-sw{position:relative;display:inline-block;width:40px;height:23px;flex:0 0 auto}
+.toggle-sw input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;z-index:1}
+.toggle-sl{position:absolute;inset:0;background:#E3E8F2;border-radius:99px;transition:background .2s}
+.toggle-sl::before{content:"";position:absolute;top:2px;left:2px;width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:transform .2s}
+.toggle-sw input:checked + .toggle-sl{background:linear-gradient(135deg,#7C3AED,#4F46E5)}
+.toggle-sw input:checked + .toggle-sl::before{transform:translateX(17px)}
+.toggle-sw input:focus-visible + .toggle-sl{box-shadow:0 0 0 3px rgba(124,58,237,.3)}
+.pv{position:sticky;top:84px}
+.pv-meta{padding:12px 20px;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--ink-500);line-height:1.6}
+.pv-meta b{color:var(--ink-900)}
+.pv iframe{display:block;width:100%;height:620px;border:0;border-radius:0 0 18px 18px;background:#F1F4FA}
+.pv-empty{height:620px;display:grid;place-items:center;text-align:center;color:var(--ink-400);font-size:13px;padding:20px;background:#F7F8FC;border-radius:0 0 18px 18px}
+.pv-err{margin:12px 20px 0;padding:10px 12px;border-radius:12px;background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C;font-size:12.5px;font-weight:700}
+.note{display:flex;gap:10px;padding:10px 12px;border-radius:12px;background:#FFFBEB;border:1px solid #FDE68A;color:#92400E;font-size:12.5px;line-height:1.5}
+.note svg{flex:0 0 auto;margin-top:2px}
+.hist{margin-top:18px}
+.hi{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;padding:14px 20px;border-bottom:1px solid var(--line);align-items:center}
+.hi:last-child{border-bottom:0}
+.hi b{font-size:14px;color:var(--ink-900);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hi .m{font-size:12px;color:var(--ink-500);margin-top:3px}
+.hi .r{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.ok{background:#DCFCE7;color:#15803D}.pill.err{background:#FEE2E2;color:#B91C1C}.pill.mute{background:#F1F4FA;color:var(--ink-500)}
+.empty{padding:36px 20px;text-align:center;color:var(--ink-500);font-size:13px}
+.empty b{display:block;font-size:15px;color:var(--ink-900);margin-bottom:4px}
+.setup{max-width:720px}
+.setup ol{margin:0;padding-left:20px;font-size:13px;color:var(--ink-700);line-height:1.7}
+.setup code{font:500 12px "Geist Mono",monospace;background:#F1F4FA;padding:1px 6px;border-radius:6px}
+.checks{display:flex;gap:8px;flex-wrap:wrap}
+.res{padding:12px 14px;border-radius:12px;font-size:13px;line-height:1.55}
+.res.ok{background:#F0FDF4;border:1px solid #BBF7D0;color:#15803D}
+.res.err{background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C}
+.res b{font-family:"Geist Mono",monospace}
+@media (max-width:1023px){ .ml-grid{grid-template-columns:1fr} .pv{position:static} .pv iframe,.pv-empty{height:480px} }
+@media (max-width:640px){ .card-h,.card-b{padding-left:14px;padding-right:14px} .card-f{padding:0 14px 14px} .card-f .tb-btn{flex:1;justify-content:center} .ml-btn{grid-template-columns:1fr} .hi{grid-template-columns:1fr;padding:12px 14px} .hi .r{justify-content:flex-start} }
+</style>
+<!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
+<link rel="modulepreload" href="shared/admin-shell.js?v=11">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
+</head>
+<body>
+
+<div id="admin-loader"><div class="spin"></div></div>
+<script src="shared/admin-nav.js?v=6"></script>
+<div id="admin-root"></div>
+<div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
+
+<div class="modal-bd" id="m-send">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-h"><span class="mh-ico blue" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></span>
+      <h3>Надіслати розсилку?</h3>
+      <button class="close" type="button" onclick="closeModal('m-send')" aria-label="Закрити"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-b"><div style="font-size:13.5px;color:var(--ink-500);line-height:1.6" id="sd-t"></div><div class="res" id="sd-res" hidden></div></div>
+    <div class="modal-f"><button class="tb-btn" type="button" onclick="closeModal('m-send')" id="sd-cancel">Скасувати</button><button class="tb-btn primary" type="button" id="sd-ok">Надіслати</button></div>
+  </div>
+</div>
+
+<script type="module">
+import { logAction, initAdminShell, dbGet, dbSet, db, ref, push, set, openModal, closeModal, toast, esc, hideLoader, mailApi, mailWorkerUrl, setMailWorkerUrl } from "./shared/admin-shell.js?v=11";
+
+const SVG = (p, s = 14) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const IC = {
+  send: SVG('<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>'),
+  flask: SVG('<path d="M9 3h6"/><path d="M10 3v6L4.5 19a1.5 1.5 0 0 0 1.3 2h12.4a1.5 1.5 0 0 0 1.3-2L14 9V3"/><path d="M7 15h10"/>'),
+  gear: SVG('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'),
+  info: SVG('<circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16h.01"/>', 15),
+};
+const fmt = t => t ? new Date(t).toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—";
+const plural = (n, f) => { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? f[2] : b === 1 ? f[0] : b >= 2 && b <= 4 ? f[1] : f[2]; };
+const EMAIL_RE = /^[^\s@<>()",;]+@[^\s@<>()",;]+\.[^\s@<>()",;]{2,}$/;
+const DRAFT_KEY = "qf_mail_draft";
+const lsGet = k => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch { return null; } };
+const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+const content = `
+  <div class="page-head"><div><h1>Розсилки</h1><p>Листи викладачам з адреси сервісу. У кожному листі є посилання «Відписатися»</p></div></div>
+  <div id="ml-root"><div class="empty">Завантаження…</div></div>
+`;
+const topbarRight = `<button class="tb-btn" type="button" id="btn-setup">${IC.gear} Воркер пошти</button>`;
+const { _user } = await initAdminShell({ activeId: "mail", crumbs: ["Розсилки"], content, topbarRight });
+
+let users = {}, roles = {}, log = {}, unsub = new Set(), workerUrl = "", workerStatus = null;
+let draft = Object.assign({ audience: "all", roles: [], subject: "", body: "", btnOn: false, btnLabel: "Відкрити QuizFlow", btnUrl: "https://quizflow.space/" }, lsGet(DRAFT_KEY) || {});
+let showWho = false, setupOpen = false;
+const root = document.getElementById("ml-root");
+
+// ─── Отримувачі ──────────────────────────────────────────────────────────
+const nameOf = u => [u.surname, u.name].filter(Boolean).join(" ") || u.email || "Без імені";
+const AUD = [["all", "Усі викладачі"], ["active", "Активні за 30 днів"], ["roles", "За роллю"]];
+function audience(){
+  const monthAgo = Date.now() - 30 * 864e5;
+  const pool = Object.entries(users).filter(([, u]) => u && u.role === "teacher").map(([id, u]) => ({ id, ...u }))
+    .filter(u => draft.audience === "all" ? true
+      : draft.audience === "active" ? (u.lastLogin || 0) >= monthAgo
+      : draft.roles.some(r => u.customRoleIds?.[r]));
+  const out = { send: [], unsub: [], noEmail: [], blocked: [] };
+  pool.forEach(u => {
+    if (u.blocked === true) out.blocked.push(u);
+    else if (!EMAIL_RE.test(String(u.email || ""))) out.noEmail.push(u);
+    else if (unsub.has(u.id)) out.unsub.push(u);
+    else out.send.push(u);
+  });
+  return out;
+}
+function audLabel(){
+  if (draft.audience !== "roles") return AUD.find(a => a[0] === draft.audience)[1];
+  return "Ролі: " + draft.roles.map(r => roles[r]?.name).filter(Boolean).join(", ");
+}
+
+// ─── Налаштування воркера ───────────────────────────────────────────────
+function setupHtml(){
+  const st = workerStatus?.configured;
+  const chk = (ok, label) => `<span class="pill ${ok ? "ok" : "err"}">${label}</span>`;
+  return `<section class="card setup">
+    <div class="card-h"><div><h2>Воркер пошти</h2><p>Cloudflare Worker, який зберігає ключ Resend і надсилає листи від імені сервісу</p></div></div>
+    <div class="card-b">
+      <ol>
+        <li>Розгорніть воркер з папки <code>worker/</code> репозиторію (інструкція — <code>docs/email-setup.md</code>, розділ «Воркер пошти»).</li>
+        <li>Задайте секрети <code>RESEND_API_KEY</code> і <code>UNSUB_SECRET</code>, у <code>ALLOWED_ORIGINS</code> — адресу цього сайту.</li>
+        <li>Вставте адресу воркера нижче й натисніть «Перевірити».</li>
+      </ol>
+      <div class="field"><label class="field-l" for="st-url">Адреса воркера</label>
+        <input class="field-input" id="st-url" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://quizflow-mail.<ваш-акаунт>.workers.dev" value="${esc(workerUrl)}"></div>
+      ${st ? `<div class="checks">${chk(st.resend, "Ключ Resend")}${chk(st.unsubscribe, "Секрет відписки")}${chk(st.kv, "Сховище KV")}${workerStatus.from ? `<span class="pill mute">Від: ${esc(workerStatus.from)}</span>` : ""}</div>` : ""}
+      <div class="res" id="st-res" hidden></div>
+    </div>
+    <div class="card-f">${workerUrl ? `<button class="tb-btn" type="button" data-act="setup-close">Скасувати</button>` : ""}<button class="tb-btn primary" type="button" data-act="setup-check">Перевірити й зберегти</button></div>
+  </section>`;
+}
+async function checkWorker(){
+  const url = document.getElementById("st-url").value.trim().replace(/\/+$/, ""), res = document.getElementById("st-res");
+  if (!/^https:\/\/[^\s/]+/.test(url)){ res.hidden = false; res.className = "res err"; res.textContent = "Адреса має починатися з https://"; return; }
+  res.hidden = false; res.className = "res"; res.textContent = "Перевіряємо…";
+  try {
+    const st = await mailApi("/status", null, { url });
+    const c = st.configured || {};
+    if (!c.resend || !c.unsubscribe || !c.kv) throw new Error("Воркер відповідає, але налаштований не повністю: " + [!c.resend && "RESEND_API_KEY", !c.unsubscribe && "UNSUB_SECRET", !c.kv && "MAIL_KV"].filter(Boolean).join(", "));
+    await dbSet("settings/mail/workerUrl", url);
+    setMailWorkerUrl(url); workerUrl = url; workerStatus = st; unsub = new Set(st.unsubscribed || []);
+    logAction("mail.settings", { type: "settings", id: "mail", label: "Воркер пошти" }, url);
+    setupOpen = false; toast("Воркер пошти підключено"); render();
+  } catch (e){ res.className = "res err"; res.textContent = e.message; }
+}
+
+// ─── Редактор ────────────────────────────────────────────────────────────
+function composerHtml(){
+  const a = audience(), n = a.send.length;
+  const roleList = Object.entries(roles).filter(([, r]) => r && r.name);
+  return `<div class="ml-grid">
+    <section class="card">
+      <div class="card-h"><div><h2>Новий лист</h2><p>Лист отримає кожен обраний викладач окремо, зі зверненням на ім'я</p></div></div>
+      <div class="card-b">
+        <div class="field"><span class="field-l">Кому</span>
+          <div class="chips" id="aud" role="radiogroup" aria-label="Кому">${AUD.map(([k, l]) => `<button type="button" role="radio" aria-checked="${draft.audience === k}" data-aud="${k}" class="${draft.audience === k ? "on" : ""}">${l}</button>`).join("")}</div>
+          ${draft.audience === "roles" ? (roleList.length
+            ? `<div class="chips sm" id="aud-roles" style="margin-top:6px">${roleList.map(([id, r]) => `<button type="button" aria-pressed="${draft.roles.includes(id)}" data-role="${esc(id)}" class="${draft.roles.includes(id) ? "on" : ""}"><i style="background:${esc(r.color || "#94A3B8")}"></i>${esc(r.name)}</button>`).join("")}</div>`
+            : `<div class="field-h">Ролей ще немає — створіть їх на сторінці «Ролі».</div>`) : ""}
+        </div>
+        <div class="ml-sum" id="sum">
+          <span class="big">Отримають <b>${n}</b></span>
+          ${a.unsub.length ? `<span class="sep"></span><span>відписались <b>${a.unsub.length}</b></span>` : ""}
+          ${a.noEmail.length ? `<span class="sep"></span><span>без email <b>${a.noEmail.length}</b></span>` : ""}
+          ${a.blocked.length ? `<span class="sep"></span><span>заблоковані <b>${a.blocked.length}</b></span>` : ""}
+          ${n + a.unsub.length ? `<button type="button" data-act="who" aria-expanded="${showWho}">${showWho ? "Сховати" : "Хто саме"}</button>` : ""}
+        </div>
+        ${showWho ? `<div class="ml-who">${a.send.map(u => `<span>${esc(nameOf(u))}</span>`).join("")}${a.unsub.map(u => `<span class="off" title="Відписався від розсилок">${esc(nameOf(u))}</span>`).join("")}</div>` : ""}
+        <div class="field"><label class="field-l" for="f-subj">Тема</label><input class="field-input" id="f-subj" maxlength="150" placeholder="Наприклад: Що нового в QuizFlow у жовтні" value="${esc(draft.subject)}"></div>
+        <div class="field"><label class="field-l" for="f-body">Текст</label><textarea class="field-input" id="f-body" maxlength="20000" placeholder="Напишіть лист. Звертання «Вітаємо, Ім'я!» додасться саме.">${esc(draft.body)}</textarea>
+          <div class="field-h">Порожній рядок — новий абзац. <code>## </code> на початку — підзаголовок, <code>- </code> — пункт списку, <code>**текст**</code> — жирний. Посилання стають клікабельними.</div></div>
+        <div class="field">
+          <div class="ml-row"><label class="toggle-sw"><input type="checkbox" id="f-btn" ${draft.btnOn ? "checked" : ""} aria-label="Кнопка в листі"><span class="toggle-sl"></span></label><label class="field-l" for="f-btn" style="cursor:pointer">Кнопка в листі</label></div>
+          ${draft.btnOn ? `<div class="ml-btn"><input class="field-input" id="f-btn-l" maxlength="40" placeholder="Напис" value="${esc(draft.btnLabel)}" aria-label="Напис на кнопці"><input class="field-input" id="f-btn-u" type="url" inputmode="url" placeholder="https://quizflow.space/news" value="${esc(draft.btnUrl)}" aria-label="Посилання кнопки"></div>` : ""}
+        </div>
+        <div class="note">${IC.info}<span>Безкоштовний план Resend має денний і місячний ліміт листів (див. resend.com/pricing). Спершу надішліть тест собі — лист прийде на ${esc(_user.email || "вашу адресу")}.</span></div>
+      </div>
+      <div class="card-f">
+        <button class="tb-btn" type="button" data-act="test">${IC.flask} Тест собі</button>
+        <button class="tb-btn primary" type="button" data-act="send" ${n ? "" : "disabled"}>${IC.send} Надіслати ${n ? `${n} ${plural(n, ["викладачу", "викладачам", "викладачам"])}` : ""}</button>
+      </div>
+    </section>
+    <section class="card pv" aria-label="Попередній перегляд">
+      <div class="card-h"><div><h2>Попередній перегляд</h2><p>Так лист виглядатиме в поштовій скриньці</p></div></div>
+      <div class="pv-meta"><b>Від:</b> ${esc(workerStatus?.from || "QuizFlow")}<br><b>Тема:</b> <span id="pv-subj">${esc(draft.subject || "—")}</span></div>
+      <div id="pv-err" class="pv-err" hidden></div>
+      <div id="pv-box"><div class="pv-empty">Напишіть тему й текст — тут з'явиться лист</div></div>
+    </section>
+  </div>
+  <section class="card hist"><div class="card-h"><div><h2>Надіслані розсилки</h2><p>Останні 30</p></div></div><div id="hist"></div></section>`;
+}
+function renderHist(){
+  const list = Object.entries(log).map(([id, x]) => ({ id, ...x })).sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 30);
+  const host = document.getElementById("hist"); if (!host) return;
+  host.innerHTML = list.length ? list.map(x => `<div class="hi"><div style="min-width:0"><b>${esc(x.subject)}</b><div class="m">${esc(fmt(x.at))} · ${esc(x.byName || "")} · ${esc(x.audience || "")}</div></div>
+    <div class="r"><span class="pill ok">${x.sent || 0} надіслано</span>${x.failed ? `<span class="pill err">${x.failed} помилок</span>` : ""}${x.skipped ? `<span class="pill mute">${x.skipped} пропущено</span>` : ""}</div></div>`).join("")
+    : `<div class="empty"><b>Розсилок ще не було</b>Тут з'явиться історія надісланих листів</div>`;
+}
+function readForm(){
+  const v = id => document.getElementById(id)?.value;
+  if (document.getElementById("f-subj")) draft.subject = v("f-subj");
+  if (document.getElementById("f-body")) draft.body = v("f-body");
+  if (document.getElementById("f-btn-l")) draft.btnLabel = v("f-btn-l");
+  if (document.getElementById("f-btn-u")) draft.btnUrl = v("f-btn-u");
+  lsSet(DRAFT_KEY, draft);
+}
+const message = () => ({ subject: draft.subject.trim(), body: draft.body.trim(), button: draft.btnOn && draft.btnUrl.trim() ? { label: draft.btnLabel.trim() || "Відкрити", url: draft.btnUrl.trim() } : null });
+
+// Попередній перегляд — HTML малює сам воркер, тож він точно такий, як у листі
+let _pvT = null, _pvSeq = 0;
+function schedulePreview(){
+  clearTimeout(_pvT);
+  _pvT = setTimeout(async () => {
+    const m = message(), box = document.getElementById("pv-box"), err = document.getElementById("pv-err");
+    if (!box) return;
+    document.getElementById("pv-subj").textContent = m.subject || "—";
+    if (!m.subject || !m.body){ box.innerHTML = `<div class="pv-empty">Напишіть тему й текст — тут з'явиться лист</div>`; err.hidden = true; return; }
+    const seq = ++_pvSeq;
+    try {
+      const r = await mailApi("/preview", m);
+      if (seq !== _pvSeq) return;
+      err.hidden = true;
+      let fr = box.querySelector("iframe");
+      if (!fr){ box.innerHTML = `<iframe title="Попередній перегляд листа" sandbox="allow-popups allow-popups-to-escape-sandbox"></iframe>`; fr = box.querySelector("iframe"); }
+      fr.srcdoc = r.html.replace("<head>", '<head><base target="_blank">');
+    } catch (e){ if (seq === _pvSeq){ err.hidden = false; err.textContent = e.message; } }
+  }, 500);
+}
+
+function render(){
+  if (!workerUrl || setupOpen){ root.innerHTML = setupHtml(); return; }
+  root.innerHTML = composerHtml();
+  renderHist();
+  schedulePreview();
+}
+
+// ─── Надсилання ──────────────────────────────────────────────────────────
+function validate(){
+  const m = message();
+  if (!m.subject){ toast("Вкажіть тему листа", "err"); document.getElementById("f-subj").focus(); return null; }
+  if (!m.body){ toast("Напишіть текст листа", "err"); document.getElementById("f-body").focus(); return null; }
+  if (draft.btnOn && m.button && !/^https:\/\/\S+$/.test(m.button.url)){ toast("Посилання кнопки має починатися з https://", "err"); document.getElementById("f-btn-u").focus(); return null; }
+  return m;
+}
+async function sendTest(btn){
+  readForm(); const m = validate(); if (!m) return;
+  btn.disabled = true;
+  try {
+    const r = await mailApi("/broadcast", { ...m, test: true });
+    r.sent ? toast(`Тестовий лист надіслано на ${_user.email || "вашу адресу"}`) : toast(r.errors?.[0] || "Не вдалося надіслати", "err");
+  } catch (e){ toast(e.message, "err"); }
+  finally { btn.disabled = false; }
+}
+let _sending = false;
+function askSend(){
+  readForm(); const m = validate(); if (!m) return;
+  const a = audience(), n = a.send.length; if (!n) return;
+  document.getElementById("sd-t").innerHTML = `Лист «<b>${esc(m.subject)}</b>» отримають <b>${n}</b> ${plural(n, ["викладач", "викладачі", "викладачів"])} (${esc(audLabel())}). Скасувати надсилання після запуску не можна.`;
+  document.getElementById("sd-res").hidden = true;
+  const ok = document.getElementById("sd-ok"); ok.hidden = false; ok.disabled = false; ok.textContent = "Надіслати";
+  document.getElementById("sd-cancel").textContent = "Скасувати";
+  openModal("m-send");
+}
+document.getElementById("sd-ok").addEventListener("click", async e => {
+  if (_sending) return;
+  const m = message(), a = audience(), btn = e.currentTarget, res = document.getElementById("sd-res");
+  _sending = true; btn.disabled = true; btn.textContent = "Надсилаємо…";
+  try {
+    const r = await mailApi("/broadcast", { ...m, uids: a.send.map(u => u.id) });
+    const skipped = Object.values(r.skipped || {}).reduce((s, x) => s + x, 0);
+    const entry = { at: Date.now(), by: _user.id, byName: [_user.name, _user.surname].filter(Boolean).join(" ") || _user.email || "", subject: m.subject, audience: audLabel(), sent: r.sent || 0, failed: r.failed || 0, skipped };
+    const key = push(ref(db, "mailLog")).key;
+    await set(ref(db, `mailLog/${key}`), entry).catch(() => {});
+    log[key] = entry;
+    logAction("mail.broadcast", { type: "mail", id: key, label: m.subject }, `${entry.sent} надіслано${entry.failed ? `, ${entry.failed} помилок` : ""}`);
+    res.hidden = false;
+    res.className = "res " + (r.failed ? "err" : "ok");
+    res.innerHTML = `Надіслано: <b>${r.sent}</b>${r.failed ? ` · не вдалося: <b>${r.failed}</b>` : ""}${skipped ? ` · пропущено: <b>${skipped}</b>` : ""}${r.errors?.length ? `<br>${r.errors.map(esc).join("<br>")}` : ""}`;
+    btn.hidden = true; document.getElementById("sd-cancel").textContent = "Готово";
+    if (!r.failed){ draft.subject = ""; draft.body = ""; lsSet(DRAFT_KEY, draft); }
+    render();
+  } catch (err){
+    res.hidden = false; res.className = "res err"; res.textContent = err.message;
+    btn.disabled = false; btn.textContent = "Спробувати ще";
+  } finally { _sending = false; }
+});
+
+// ─── Події ───────────────────────────────────────────────────────────────
+root.addEventListener("input", e => {
+  if (!e.target.closest(".ml-grid")) return;
+  readForm();
+  if (e.target.id === "f-subj") document.getElementById("pv-subj").textContent = draft.subject || "—";
+  schedulePreview();
+});
+root.addEventListener("change", e => { if (e.target.id === "f-btn"){ readForm(); draft.btnOn = e.target.checked; lsSet(DRAFT_KEY, draft); render(); } });
+root.addEventListener("keydown", e => { if (e.target.id === "st-url" && e.key === "Enter") checkWorker(); });
+root.addEventListener("click", e => {
+  const au = e.target.closest("[data-aud]"); if (au){ readForm(); draft.audience = au.dataset.aud; lsSet(DRAFT_KEY, draft); return render(); }
+  const ro = e.target.closest("[data-role]"); if (ro){ readForm(); const id = ro.dataset.role; draft.roles = draft.roles.includes(id) ? draft.roles.filter(x => x !== id) : [...draft.roles, id]; lsSet(DRAFT_KEY, draft); return render(); }
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const act = b.dataset.act;
+  if (act === "who"){ readForm(); showWho = !showWho; return render(); }
+  if (act === "test") return sendTest(b);
+  if (act === "send") return askSend();
+  if (act === "setup-check") return checkWorker();
+  if (act === "setup-close"){ setupOpen = false; return render(); }
+});
+document.getElementById("btn-setup").addEventListener("click", () => { readForm(); setupOpen = true; render(); });
+document.querySelectorAll(".modal-bd").forEach(m => m.addEventListener("click", e => { if (e.target === m && !_sending) closeModal(m.id); }));
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !_sending){ const o = [...document.querySelectorAll(".modal-bd.on")]; if (o.length) closeModal(o[o.length - 1].id); } });
+
+// ─── Завантаження ────────────────────────────────────────────────────────
+try {
+  const [u, r, l, url] = await Promise.all([dbGet("users"), dbGet("roles").catch(() => null), dbGet("mailLog").catch(() => null), mailWorkerUrl(true)]);
+  users = u || {}; roles = r || {}; log = l || {}; workerUrl = url || "";
+} catch (e){ toast("Не вдалося завантажити: " + e.message, "err"); }
+if (workerUrl){
+  try { workerStatus = await mailApi("/status"); unsub = new Set(workerStatus.unsubscribed || []); }
+  catch (e){ toast("Воркер пошти: " + e.message, "err"); }
+}
+if (draft.audience === "roles") draft.roles = draft.roles.filter(id => roles[id]);
+render();
+hideLoader();
+</script>
+</body>
+</html>

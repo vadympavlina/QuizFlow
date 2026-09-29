@@ -208,6 +208,15 @@ await t("blocked teacherStats", false, () => set(ref(bl, "teacherStats/bl"), { t
 await t("admin read teacherStats", true, () => get(ref(adm, "teacherStats")));
 await t("teacher read all teacherStats", false, () => get(ref(t1, "teacherStats")));
 
+// ── Розсилки ──
+await t("admin write mailLog", true, () => set(ref(adm, "mailLog/m1"), { subject: "x", sent: 3, at: now }));
+await t("admin read mailLog", true, () => get(ref(adm, "mailLog")));
+await t("teacher read mailLog", false, () => get(ref(t1, "mailLog")));
+await t("teacher write mailLog", false, () => set(ref(t1, "mailLog/m2"), { subject: "x" }));
+await t("admin set mail worker url", true, () => set(ref(adm, "settings/mail/workerUrl"), "https://mail.example.workers.dev"));
+await t("teacher set mail worker url", false, () => set(ref(t1, "settings/mail/workerUrl"), "https://evil.example"));
+await t("admin write invite sentTo", true, () => update(ref(adm, "invite_tokens/tok1"), { sentTo: "a@b.co", sentAt: now }));
+
 console.log(`\n${pass} passed, ${fail} failed`);
 await env.cleanup();
 process.exit(fail ? 1 : 0);

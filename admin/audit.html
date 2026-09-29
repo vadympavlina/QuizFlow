@@ -43,18 +43,18 @@
 @media (max-width:640px){ .lg-row{padding:12px 14px;gap:10px} .lg-day{padding:10px 14px} .lg-bar select{min-width:0;flex:1} .lg-meta{margin-left:0} }
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=10">
+<link rel="modulepreload" href="shared/admin-shell.js?v=11">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 </head>
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=5"></script>
+<script src="shared/admin-nav.js?v=6"></script>
 <div id="admin-root"></div>
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
-import { initAdminShell, db, ref, esc, hideLoader, toast } from "./shared/admin-shell.js?v=10";
+import { initAdminShell, db, ref, esc, hideLoader, toast } from "./shared/admin-shell.js?v=11";
 import { get, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
@@ -79,6 +79,7 @@ const ACT = {
   "role.member.add": ["role", "додав роль викладачу {t}"], "role.member.remove": ["role", "зняв роль з {t}"],
   "role.page.restrict": ["role", "обмежив сторінку роллю {t}"], "role.page.open": ["role", "зняв обмеження сторінки з ролі {t}"],
   "invite.create": ["invite", "створив запрошення {t}"], "invite.revoke": ["invite", "відкликав запрошення {t}"],
+  "invite.email": ["invite", "надіслав листом запрошення {t}"], "mail.broadcast": ["ann", "надіслав розсилку {t}"], "mail.settings": ["service", "підключив воркер пошти"],
   "ann.create": ["ann", "опублікував оголошення {t}"], "ann.update": ["ann", "змінив оголошення {t}"], "ann.delete": ["ann", "видалив оголошення {t}"],
   "maint.on": ["ann", "увімкнув технічні роботи"], "maint.off": ["ann", "вимкнув технічні роботи"],
   "features.update": ["service", "змінив можливості та ліміти для всіх"], "ai.settings": ["service", "змінив AI-налаштування"],
@@ -89,7 +90,7 @@ const ACT = {
   "problem.create": ["problem", "додав задачу {t}"], "problem.move": ["problem", "перемістив {t}"], "problem.delete": ["problem", "видалив {t}"],
   "cleanup.run": ["cleanup", "почистив базу"],
 };
-const LINK = { teacher: id => `teachers?id=${encodeURIComponent(id)}`, role: id => `roles?id=${encodeURIComponent(id)}`, announcement: id => `announcements?id=${encodeURIComponent(id)}`, news: () => "news", bug: () => "problems", task: () => "problems", invite: () => "invites" };
+const LINK = { teacher: id => `teachers?id=${encodeURIComponent(id)}`, role: id => `roles?id=${encodeURIComponent(id)}`, announcement: id => `announcements?id=${encodeURIComponent(id)}`, news: () => "news", mail: () => "mail", bug: () => "problems", task: () => "problems", invite: () => "invites" };
 
 const content = `
   <div class="page-head"><div><h1>Журнал дій</h1><p>Хто з адміністраторів і що змінював у сервісі</p></div></div>
