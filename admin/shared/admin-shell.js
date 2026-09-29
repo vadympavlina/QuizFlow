@@ -176,9 +176,9 @@ export async function mailApi(path, body, { url } = {}){
   let r;
   try {
     r = await fetch(base + path, { method: body ? "POST" : "GET", headers: { Authorization: `Bearer ${token}`, ...(body ? { "Content-Type": "application/json" } : {}) }, body: body ? JSON.stringify(body) : undefined });
-  } catch { throw new Error(`Не вдалося з'єднатися з воркером. Відкрийте ${base}/ у новій вкладці: має показати {"ok":true,"service":"quizflow-mail"}. Якщо бачите «Hello World» — у воркер ще не вставлено код з worker/dist/worker.js`); }
+  } catch { throw Object.assign(new Error(`Не вдалося з'єднатися з воркером. Відкрийте ${base}/ у новій вкладці: має показати {"ok":true,"service":"quizflow-mail"}. Якщо бачите «Hello World» — у воркер ще не вставлено код з worker/dist/worker.js`), { code: "network" }); }
   const data = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(data.error || `Воркер відповів ${r.status}`);
+  if (!r.ok) throw Object.assign(new Error(data.error || `Воркер відповів ${r.status}`), { status: r.status, code: data.code || "" });
   return data;
 }
 

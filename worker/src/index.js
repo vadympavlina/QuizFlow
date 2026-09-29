@@ -8,12 +8,15 @@
 //   GET  /status        — стан налаштувань і список відписаних (адмін)
 //   POST /preview       — HTML розсилки для попереднього перегляду (адмін)
 //   POST /invite        — лист із запрошенням викладачу (адмін)
+//   POST /reset         — лист для зміни пароля в дизайні QuizFlow (сторінка входу — з
+//                         обмеженням частоти, адмін — без); потрібен FIREBASE_SERVICE_ACCOUNT
 //   POST /welcome       — дані для входу новому акаунту, створеному адміном (адмін)
 //   POST /broadcast     — розсилка викладачам або тестовий лист собі (адмін)
 //   GET|POST /unsubscribe?u=&s= — відписка за підписаним посиланням з листа
 // ═══════════════════════════════════════════════════════════════════════
 import { HttpError, requireAdmin, dbRead } from "./auth.js";
-import { inviteEmail, broadcastEmail, welcomeEmail, esc, LOGO_V } from "./mail.js";
+import { inviteEmail, broadcastEmail, welcomeEmail, resetEmail, esc, LOGO_V } from "./mail.js";
+import { serviceAccount, passwordResetCode } from "./google.js";
 import { LOGO_PNG_B64 } from "./logo.js";
 
 const logoUrl = origin => `${origin}/logo.png?v=${LOGO_V}`;
@@ -46,6 +49,7 @@ export default {
       if (url.pathname === "/logo.png" && (request.method === "GET" || request.method === "HEAD"))
         return new Response(request.method === "HEAD" ? null : LOGO_BYTES, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000, immutable", "Access-Control-Allow-Origin": "*" } });
       if (url.pathname === "/" && request.method === "GET") return json({ ok: true, service: "quizflow-mail" }, 200, cors);
+      if (url.pathname === "/reset" && request.method === "POST") return json(await reset(request, env, url), 200, cors);
       const route = `${request.method} ${url.pathname}`;
       const handler = { "GET /status": status, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast }[route];
       if (!handler) throw new HttpError(404, "Невідома адреса");
@@ -55,7 +59,7 @@ export default {
     } catch (e) {
       const status = e instanceof HttpError ? e.status : 500;
       if (status === 500) console.error(e);
-      return json({ ok: false, error: status === 500 ? "Внутрішня помилка воркера" : e.message }, status, cors);
+      return json({ ok: false, error: status === 500 ? "Внутрішня помилка воркера" : e.message, ...(e.code ? { code: e.code } : {}) }, status, cors);
     }
   },
 };
@@ -115,7 +119,7 @@ async function status({ env }) {
       cursor = page.list_complete ? null : page.cursor;
     } while (cursor);
   }
-  return { ok: true, from: env.MAIL_FROM || "", configured: { resend: !!env.RESEND_API_KEY, unsubscribe: !!env.UNSUB_SECRET, kv: !!env.MAIL_KV }, unsubscribed };
+  return { ok: true, from: env.MAIL_FROM || "", configured: { resend: !!env.RESEND_API_KEY, unsubscribe: !!env.UNSUB_SECRET, kv: !!env.MAIL_KV, serviceAccount: !!serviceAccount(env) }, unsubscribed };
 }
 
 function checkMessage(b) {
@@ -157,6 +161,42 @@ async function invite({ env, admin, body, url }) {
   });
   const res = await resend(env, "/emails", { from: env.MAIL_FROM, to: [to], subject: mail.subject, html: mail.html, text: mail.text, ...(admin.me.email ? { reply_to: admin.me.email } : {}) });
   return { ok: true, id: res.id || null, to };
+}
+
+// ─── Зміна пароля ───────────────────────────────────────────────────────
+// Сторінка входу («Забули пароль?») звертається без входу, тож: лише з
+// дозволених сайтів, не частіше разу на хвилину для адреси й 10 разів на
+// годину з однієї IP, і відповідь однакова — є такий акаунт чи ні.
+async function sha256hex(s) {
+  const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 32);
+}
+async function reset(request, env, url) {
+  const byAdmin = !!request.headers.get("Authorization");
+  if (byAdmin) await requireAdmin(request, env);
+  else {
+    const origin = request.headers.get("Origin") || "";
+    const allowed = String(env.ALLOWED_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
+    if (!allowed.includes(origin)) throw new HttpError(403, "Запит не з сайту QuizFlow");
+  }
+  if (!serviceAccount(env)) throw Object.assign(new HttpError(503, "На воркері не задано FIREBASE_SERVICE_ACCOUNT"), { code: "not_configured" });
+  const body = await readJson(request);
+  const email = String(body?.email || "").trim().toLowerCase();
+  if (!EMAIL_RE.test(email) || email.length > 200) throw new HttpError(400, "Вкажіть коректний email");
+  if (!byAdmin && env.MAIL_KV) {
+    const eKey = `rl:e:${await sha256hex(email)}`;
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    const iKey = `rl:ip:${await sha256hex(ip)}`;
+    const [eHit, iHits] = await Promise.all([env.MAIL_KV.get(eKey), env.MAIL_KV.get(iKey)]);
+    if (eHit || Number(iHits || 0) >= 10) throw new HttpError(429, "Забагато запитів. Спробуйте за кілька хвилин.");
+    await Promise.all([env.MAIL_KV.put(eKey, "1", { expirationTtl: 60 }), env.MAIL_KV.put(iKey, String(Number(iHits || 0) + 1), { expirationTtl: 3600 })]);
+  }
+  const code = await passwordResetCode(env, email);
+  if (!code) return { ok: true };   // акаунта немає — не розкриваємо
+  const link = `${env.SITE_URL}/auth-action?mode=resetPassword&oobCode=${encodeURIComponent(code)}&lang=uk`;
+  const mail = resetEmail({ email, link, byAdmin, site: env.SITE_URL, logoUrl: logoUrl(url.origin) });
+  await resend(env, "/emails", { from: env.MAIL_FROM, to: [email], subject: mail.subject, html: mail.html, text: mail.text });
+  return { ok: true };
 }
 
 // Лист новому викладачу: адресу беремо з бази (users/{uid}), а не з запиту

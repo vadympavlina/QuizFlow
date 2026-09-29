@@ -112,6 +112,27 @@ export function inviteEmail({ link, name, fromName, expiresAt, message, site, lo
   };
 }
 
+// ─── Зміна пароля (замість стандартного листа Firebase) ────────────────
+export function resetEmail({ email, link, byAdmin, site, logoUrl }) {
+  const lead = byAdmin
+    ? `Адміністратор QuizFlow надіслав вам посилання, щоб задати новий пароль для акаунта ${email}.`
+    : `Ми отримали запит на зміну пароля для акаунта ${email} у QuizFlow.`;
+  const note = "Посилання діє 1 годину і спрацює лише один раз.";
+  return {
+    subject: "Зміна пароля QuizFlow",
+    html: layout({
+      site, logoUrl,
+      preheader: "Посилання, щоб задати новий пароль",
+      title: "Зміна пароля",
+      bodyHtml: `<p style="margin:0 0 18px">Вітаємо!</p><p style="margin:0 0 24px">${esc(lead)}</p>`,
+      button: { label: "Задати новий пароль", url: link },
+      after: `<p style="margin:18px 0 0;font-size:14px;line-height:1.6;color:${C.muted}">${note} Якщо ви не надсилали запит — просто проігноруйте лист, пароль не зміниться.<br><br>Якщо кнопка не працює, скопіюйте адресу в браузер:<br><a href="${esc(link)}" style="color:${C.brand};word-break:break-all">${esc(link)}</a></p>`,
+      footer: "Ви отримали цей лист, бо для вашого акаунта QuizFlow запросили зміну пароля.",
+    }),
+    text: `Вітаємо!\n\n${lead}\n\nЗадати новий пароль: ${link}\n\n${note} Якщо ви не надсилали запит — просто проігноруйте лист.\n\nЗ повагою,\nКоманда QuizFlow`,
+  };
+}
+
 // ─── Новий акаунт, створений адміністратором ───────────────────────────
 export function welcomeEmail({ name, email, password, loginUrl, fromName, site, logoUrl }) {
   const hello = name ? `Вітаємо, ${name}!` : "Вітаємо!";
