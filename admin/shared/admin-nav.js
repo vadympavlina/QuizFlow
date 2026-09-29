@@ -37,7 +37,6 @@
     invite: '<rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/>',
     db: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>',
     mail: '<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>',
-    gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
     ann: '<path d="M3 11v2a1 1 0 001 1h2l5 4V6L6 10H4a1 1 0 00-1 1z"/><path d="M15.5 8.5a5 5 0 010 7"/><path d="M18.5 5.5a9 9 0 010 13"/>',
     menu: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/><path d="M13 9h4M13 13h4"/>',
     ai: '<path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/>',
@@ -51,38 +50,31 @@
       '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[id] || "") + "</svg>";
   }
 
-  // П'ять розділів у меню; сторінки розділу — вкладки під верхньою панеллю (admin-shell)
   var NAV = [
-    { id: "overview", label: "Огляд", icon: "overview", pages: [
-      { id: "overview", label: "Огляд", href: "overview" },
-      { id: "stats", label: "Статистика", href: "stats" },
+    { label: "Панель", items: [
+      { id: "overview", label: "Огляд", href: "overview", icon: "overview" },
+      { id: "stats", label: "Статистика", href: "stats", icon: "stats" },
+      { id: "problems", label: "Проблеми", href: "problems", icon: "problems", badge: "admin-problems-badge" },
+      { id: "audit", label: "Журнал дій", href: "audit", icon: "audit" },
     ] },
-    { id: "problems", label: "Проблеми", icon: "problems", badge: "admin-problems-badge", pages: [
-      { id: "problems", label: "Проблеми", href: "problems" },
-      { id: "audit", label: "Журнал дій", href: "audit" },
+    { label: "Користувачі", items: [
+      { id: "teachers", label: "Викладачі", href: "teachers", icon: "teachers" },
+      { id: "roles", label: "Ролі", href: "roles", icon: "roles" },
+      { id: "features", label: "Можливості", href: "features", icon: "sliders" },
+      { id: "invites", label: "Запрошення", href: "invites", icon: "invite" },
     ] },
-    { id: "people", label: "Викладачі", icon: "teachers", pages: [
-      { id: "teachers", label: "Список", title: "Викладачі", href: "teachers" },
-      { id: "roles", label: "Ролі", href: "roles" },
-      { id: "features", label: "Можливості", href: "features" },
-      { id: "invites", label: "Запрошення", href: "invites" },
+    { label: "Контент", items: [
+      { id: "announcements", label: "Оголошення", href: "announcements", icon: "ann" },
+      { id: "mail", label: "Розсилки", href: "mail", icon: "mail" },
+      { id: "news", label: "Новини", href: "news", icon: "news" },
+      { id: "navigation", label: "Навігація", href: "navigation", icon: "menu" },
     ] },
-    { id: "comms", label: "Комунікації", icon: "mail", pages: [
-      { id: "announcements", label: "Оголошення", href: "announcements" },
-      { id: "mail", label: "Розсилки", href: "mail" },
-      { id: "news", label: "Новини", href: "news" },
-    ] },
-    { id: "settings", label: "Налаштування", icon: "gear", pages: [
-      { id: "ai", label: "AI", title: "AI налаштування", href: "ai-settings" },
-      { id: "telegram", label: "Telegram", href: "telegram" },
-      { id: "navigation", label: "Навігація панелі", href: "navigation" },
-      { id: "cleanup", label: "Обслуговування", href: "cleanup" },
+    { label: "Інтеграції", items: [
+      { id: "ai", label: "AI налаштування", href: "ai-settings", icon: "ai" },
+      { id: "telegram", label: "Telegram", href: "telegram", icon: "telegram" },
+      { id: "cleanup", label: "Обслуговування", href: "cleanup", icon: "db" },
     ] },
   ];
-  function sectionOf(id) {
-    for (var i = 0; i < NAV.length; i++) for (var j = 0; j < NAV[i].pages.length; j++) if (NAV[i].pages[j].id === id) return NAV[i];
-    return null;
-  }
 
   function readUser() { try { return JSON.parse(lsGet(USER_KEY) || "null") || {}; } catch (e) { return {}; } }
   var user = readUser();
@@ -98,15 +90,18 @@
   }
 
   function buildHtml() {
-    var cur = sectionOf(pageKey());
-    var sections = '<div class="asb-section">' + NAV.map(function (sec) {
-      var on = cur && cur.id === sec.id;
-      return '<a class="asb-item' + (on ? " on" : "") + '" data-id="' + sec.id + '" data-tip="' + esc(sec.label) + '" href="' + sec.pages[0].href + '"' + (on ? ' aria-current="page"' : "") + ">" +
-        '<span class="asb-ico">' + icon(sec.icon) + "</span>" +
-        '<span class="asb-lbl">' + esc(sec.label) + "</span>" +
-        (sec.badge ? '<span class="asb-badge" id="' + sec.badge + '" hidden></span>' : "") +
-        "</a>";
-    }).join("") + "</div>";
+    var active = pageKey();
+    var sections = NAV.map(function (sec) {
+      return '<div class="asb-section"><div class="asb-sec"><span>' + esc(sec.label) + "</span></div>" +
+        sec.items.map(function (it) {
+          var on = it.id === active;
+          return '<a class="asb-item' + (on ? " on" : "") + '" data-id="' + it.id + '" data-tip="' + esc(it.label) + '" href="' + it.href + '"' + (on ? ' aria-current="page"' : "") + ">" +
+            '<span class="asb-ico">' + icon(it.icon) + "</span>" +
+            '<span class="asb-lbl">' + esc(it.label) + "</span>" +
+            (it.badge ? '<span class="asb-badge" id="' + it.badge + '" hidden></span>' : "") +
+            "</a>";
+        }).join("") + "</div>";
+    }).join("");
 
     return '<aside class="asb' + (collapsed ? " collapsed" : "") + '" id="admin-sidebar" aria-label="Навігація адмінки">' +
       '<div class="asb-head">' +
@@ -147,9 +142,9 @@
   }
 
   function setActive(id) {
-    var sb = document.getElementById("admin-sidebar"), sec = sectionOf(id);
-    if (!sb || !sec) return;
-    var el = sb.querySelector('.asb-scroll .asb-item[data-id="' + sec.id + '"]');
+    var sb = document.getElementById("admin-sidebar");
+    if (!sb || !id) return;
+    var el = sb.querySelector('.asb-scroll .asb-item[data-id="' + id.replace(/"/g, "") + '"]');
     if (!el) return;
     sb.querySelectorAll(".asb-scroll .asb-item.on").forEach(function (a) { a.classList.remove("on"); a.removeAttribute("aria-current"); });
     el.classList.add("on"); el.setAttribute("aria-current", "page");
@@ -171,13 +166,13 @@
     if (tb) tb.setAttribute("aria-label", count ? "Нові проблеми: " + count : "Проблеми");
   }
 
-  // Розділ, назва сторінки, іконка й вкладки розділу — для верхньої панелі (admin-shell)
+  // Назва секції, пункту та іконка — для верхньої панелі
   function info(id) {
-    var sec = sectionOf(id);
-    if (!sec) return null;
-    var pg = sec.pages.filter(function (p) { return p.id === id; })[0];
-    return { section: sec.label, label: pg.title || pg.label, icon: icon(sec.icon, 2),
-      tabs: sec.pages.map(function (p) { return { id: p.id, label: p.label, href: p.href, on: p.id === id }; }) };
+    for (var i = 0; i < NAV.length; i++) for (var j = 0; j < NAV[i].items.length; j++) {
+      var it = NAV[i].items[j];
+      if (it.id === id) return { section: NAV[i].label, label: it.label, icon: icon(it.icon, 2) };
+    }
+    return null;
   }
 
   // ─── Телефон / планшет: меню висувається збоку ───
