@@ -8,6 +8,9 @@ export const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&l
 const FONT = "Manrope,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 const C = { ink: "#0D1340", text: "#2B3552", muted: "#6B7593", faint: "#8A94B0", line: "#E6EAF3", brand: "#2D5BE3" };
 const DEFAULT_SITE = "https://quizflow.space";
+// Версія логотипа в адресі: Gmail кешує картинки через свій проксі (разом з помилками),
+// тож після зміни файлу в assets/email треба підняти номер
+const LOGO_V = 2;
 
 // Інлайн-розмітка тексту, який пише адмін: **жирний**, посилання http(s)
 function inline(s) {
@@ -47,7 +50,10 @@ function button({ label, url }) {
 }
 
 export function layout({ site = DEFAULT_SITE, preheader = "", title = "", bodyHtml = "", button: btn = null, after = "", footer = "" }) {
-  const logo = `${String(site || DEFAULT_SITE).replace(/\/+$/, "")}/assets/email/logo-light.png`;
+  const logo = `${String(site || DEFAULT_SITE).replace(/\/+$/, "")}/assets/email/logo-light.png?v=${LOGO_V}`;
+  // Gmail ховає під «•••» блоки, однакові з попередніми листами ланки (підпис, футер).
+  // Невидимий унікальний маркер робить кожен лист відмінним
+  const uniq = `<span style="display:none!important;font-size:0;line-height:0;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all">${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}</span>`;
   return `<!doctype html>
 <html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light">
@@ -65,9 +71,9 @@ export function layout({ site = DEFAULT_SITE, preheader = "", title = "", bodyHt
     ${bodyHtml}
     ${btn?.url ? button(btn) : ""}
     ${after}
-    <p style="margin:32px 0 0">З повагою,<br><strong style="color:${C.ink}">Команда QuizFlow</strong></p>
+    <p style="margin:32px 0 0">${uniq}З повагою,<br><strong style="color:${C.ink}">Команда QuizFlow</strong></p>
     <div style="height:1px;line-height:1px;font-size:0;background:${C.line};margin:36px 0 18px">&nbsp;</div>
-    <p style="margin:0;font-size:12.5px;line-height:1.6;color:${C.faint}">${footer}</p>
+    <p style="margin:0;font-size:12.5px;line-height:1.6;color:${C.faint}">${uniq}${footer}</p>
   </td></tr></table>
 </td></tr></table>
 </body></html>`;
