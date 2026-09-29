@@ -162,8 +162,8 @@ function setupHtml(){
     <div class="card-h"><div><h2>Воркер пошти</h2><p>Cloudflare Worker, який зберігає ключ Resend і надсилає листи від імені сервісу</p></div></div>
     <div class="card-b">
       <ol>
-        <li>Розгорніть воркер з папки <code>worker/</code> репозиторію (інструкція — <code>docs/email-setup.md</code>, розділ «Воркер пошти»).</li>
-        <li>Задайте секрети <code>RESEND_API_KEY</code> і <code>UNSUB_SECRET</code>, у <code>ALLOWED_ORIGINS</code> — адресу цього сайту.</li>
+        <li>На dash.cloudflare.com створіть Worker і вставте в редактор файл <code>worker/dist/worker.js</code> з репозиторію (покроково — <code>docs/email-setup.md</code>, розділ «Воркер пошти»).</li>
+        <li>У налаштуваннях воркера додайте сховище KV <code>MAIL_KV</code>, секрети <code>RESEND_API_KEY</code> і <code>UNSUB_SECRET</code> та змінні з інструкції.</li>
         <li>Вставте адресу воркера нижче й натисніть «Перевірити».</li>
       </ol>
       <div class="field"><label class="field-l" for="st-url">Адреса воркера</label>

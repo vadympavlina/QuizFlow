@@ -107,31 +107,60 @@ Firebase Console → **Authentication → Settings → Authorized domains** → 
 - у кожній розсилці є посилання «Відписатися» і заголовок `List-Unsubscribe` (кнопка
   «Відписатися» в Gmail); відписки зберігаються в Cloudflare KV.
 
-### 1. Розгортання (≈10 хвилин)
+### 1. Розгортання через сайт Cloudflare (≈10 хвилин, без термінала)
 
-Потрібні Node.js і акаунт Cloudflare.
+Увійдіть на <https://dash.cloudflare.com> (той самий акаунт, де домен). Назви кнопок
+у панелі Cloudflare час від часу змінюються — шукайте найближчі за змістом.
 
-```bash
-cd worker
-npx wrangler login                          # відкриє браузер для входу в Cloudflare
-npx wrangler kv namespace create MAIL_KV    # покаже id — вставте його в wrangler.toml замість REPLACE_WITH_KV_ID
-npx wrangler secret put RESEND_API_KEY      # ключ re_… з Resend (можна той самий, що для SMTP)
-npx wrangler secret put UNSUB_SECRET        # будь-який довгий випадковий рядок, наприклад з openssl rand -hex 32
-npx wrangler deploy                         # покаже адресу: https://quizflow-mail.<акаунт>.workers.dev
-```
+**а) Сховище для відписок (KV)**
 
-Перевірте змінні у `worker/wrangler.toml`:
+**Storage & Databases → KV → Create** (іноді «Create namespace») → назва `quizflow-mail-unsub` → створити.
 
-| Змінна | Що це |
-|---|---|
-| `MAIL_FROM` | Відправник. Домен має бути підтверджений у Resend (крок 1 вище) |
-| `SITE_URL` | Адреса сайту — з неї будуються посилання на реєстрацію |
-| `ALLOWED_ORIGINS` | З яких сайтів адмінка може звертатися до воркера (через кому) |
+**б) Сам воркер**
 
-Після зміни `wrangler.toml` — знову `npx wrangler deploy`.
+1. **Workers & Pages → Create → Worker** («Start with Hello World») → назва `quizflow-mail` → **Deploy**.
+2. **Edit code** → видаліть увесь код у файлі й вставте вміст
+   [`worker/dist/worker.js`](../worker/dist/worker.js) з репозиторію (увесь файл цілком) → **Deploy**.
+
+**в) Налаштування воркера** — вкладка **Settings**:
+
+- **Bindings → Add binding → KV namespace**: *Variable name* `MAIL_KV`, простір — `quizflow-mail-unsub`.
+- **Variables and Secrets → Add** — такі змінні:
+
+| Назва | Тип | Значення |
+|---|---|---|
+| `RESEND_API_KEY` | **Secret** | ключ `re_…` з Resend (можна той самий, що для SMTP) |
+| `UNSUB_SECRET` | **Secret** | будь-який довгий випадковий рядок (30+ символів) |
+| `MAIL_FROM` | Text | `QuizFlow <noreply@quizflow.space>` — домен має бути підтверджений у Resend |
+| `SITE_URL` | Text | `https://quizflow.space` |
+| `ALLOWED_ORIGINS` | Text | `https://quizflow.space,https://www.quizflow.space` |
+| `FIREBASE_PROJECT_ID` | Text | `quizflow-8a978` |
+| `FIREBASE_DB_URL` | Text | `https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app` |
+
+Збережіть (**Deploy**). Адреса воркера — угорі сторінки воркера, вигляду
+`https://quizflow-mail.<акаунт>.workers.dev`.
 
 > Секрет `UNSUB_SECRET` не змінюйте без потреби: після зміни посилання «Відписатися»
 > в уже надісланих листах перестануть працювати.
+
+**Оновлення воркера.** Коли код у `worker/src` зміниться, у PR буде оновлено й
+`worker/dist/worker.js` — достатньо знову вставити його в **Edit code → Deploy**.
+Змінні й секрети при цьому зберігаються.
+
+<details><summary>Те саме через термінал (wrangler)</summary>
+
+```bash
+cd worker
+npx wrangler login
+npx wrangler kv namespace create MAIL_KV    # id — у wrangler.toml замість REPLACE_WITH_KV_ID
+npx wrangler secret put RESEND_API_KEY
+npx wrangler secret put UNSUB_SECRET
+npx wrangler deploy
+```
+
+Змінні тоді беруться з `worker/wrangler.toml`. Оберіть один спосіб: `wrangler deploy`
+перезаписує змінні, задані на сайті.
+</details>
 
 ### 2. Підключення в адмінці
 
