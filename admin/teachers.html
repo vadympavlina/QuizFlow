@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=5">
+<link rel="stylesheet" href="shared/admin-shell.css?v=6">
 <style>
 /* ─── Page-specific styles for teachers ─── */
 
@@ -259,7 +259,7 @@
   <!-- CREATE TEACHER MODAL -->
   <div class="modal-bd" id="m-create">
     <div class="modal" style="max-width:460px">
-      <div class="modal-h">
+      <div class="modal-h"><span class="mh-ico violet" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg></span>
         <h3>Новий викладач</h3>
         <button class="close" onclick="closeModal('m-create')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
@@ -325,7 +325,7 @@
   <!-- RESET PASSWORD MODAL -->
   <div class="modal-bd" id="m-reset">
     <div class="modal" style="max-width:420px">
-      <div class="modal-h">
+      <div class="modal-h"><span class="mh-ico amber" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3L21 2M17 6l3 3M15 8l2 2"/></svg></span>
         <h3>Скинути пароль</h3>
         <button class="close" onclick="closeModal('m-reset')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
@@ -356,7 +356,7 @@
   <!-- ASSIGN CUSTOM ROLE MODAL -->
   <div class="modal-bd" id="m-assign-role">
     <div class="modal" style="max-width:400px">
-      <div class="modal-h">
+      <div class="modal-h"><span class="mh-ico violet" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></span>
         <h3>Кастомна роль</h3>
         <button class="close" onclick="closeModal('m-assign-role')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
@@ -377,7 +377,7 @@
   <!-- INVITE LINK MODAL -->
   <div class="modal-bd" id="m-invite">
     <div class="modal" style="max-width:480px">
-      <div class="modal-h">
+      <div class="modal-h"><span class="mh-ico blue" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>
         <h3>Запросити викладача</h3>
         <button class="close" onclick="closeModal('m-invite')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
@@ -416,7 +416,7 @@
   <!-- BLOCK / UNBLOCK MODAL -->
   <div class="modal-bd" id="m-block">
     <div class="modal" style="max-width:400px">
-      <div class="modal-h">
+      <div class="modal-h"><span class="mh-ico red" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg></span>
         <h3 id="block-title">Заблокувати?</h3>
         <button class="close" onclick="closeModal('m-block')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
@@ -477,7 +477,7 @@
   <!-- AI SETTINGS MODAL -->
   <div class="modal-bd" id="m-ai">
     <div class="modal" style="max-width:500px">
-      <div class="modal-h">
+      <div class="modal-h"><span class="mh-ico violet" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z"/></svg></span>
         <h3>AI налаштування</h3>
         <button class="close" onclick="closeModal('m-ai')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
@@ -562,7 +562,7 @@
 <div id="admin-toast" class="toast"></div>
 
 <script type="module">
-import { initAdminShell, loadAllTeachers, esc, formatTimeAgo, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast, genPass, hideLoader } from "./shared/admin-shell.js?v=6";
+import { initAdminShell, loadAllTeachers, cachedTeachers, esc, formatTimeAgo, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast, genPass, hideLoader } from "./shared/admin-shell.js?v=7";
 
 const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const IC = {
@@ -657,6 +657,9 @@ function saveCache(){
   try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ users: window._users || [], stats: window._stats || {} })); } catch {}
 }
 function readCache(){
+  // Спільний кеш адмінки (оновлюють огляд і статистика), інакше — кеш цієї вкладки
+  const c = cachedTeachers(6 * 3600e3);
+  if (c) return { users: c._users, stats: c._stats };
   try { return JSON.parse(sessionStorage.getItem(CACHE_KEY) || "null"); } catch { return null; }
 }
 async function refreshData(){

@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=5">
+<link rel="stylesheet" href="shared/admin-shell.css?v=6">
 <style>
 .nav-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
 @media (max-width:1240px){.nav-layout{grid-template-columns:1fr}.pv-card{position:static!important}}
@@ -200,7 +200,7 @@
 
 <div class="modal-bd" id="m-icon">
   <div class="modal" style="max-width:520px">
-    <div class="modal-h"><h3>Іконка пункту</h3>
+    <div class="modal-h"><span class="mh-ico violet" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><h3>Іконка пункту</h3>
       <button class="close" type="button" onclick="closeModal('m-icon')" aria-label="Закрити"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-b"><div class="icon-cats" id="icon-cats"></div><div class="icon-grid" id="icon-grid" role="listbox" aria-label="Іконки"></div></div>
   </div>
@@ -208,7 +208,7 @@
 
 <div class="modal-bd" id="m-roles">
   <div class="modal" style="max-width:380px">
-    <div class="modal-h"><h3>Хто бачить «<span id="rp-name"></span>»?</h3>
+    <div class="modal-h"><span class="mh-ico blue" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.6 2-4.8 4.5-5"/></svg></span><h3>Хто бачить «<span id="rp-name"></span>»?</h3>
       <button class="close" type="button" onclick="closeModal('m-roles')" aria-label="Закрити"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-b">
       <div id="rp-list"></div>
@@ -220,7 +220,7 @@
 
 <div class="modal-bd" id="m-confirm">
   <div class="modal" style="max-width:400px">
-    <div class="modal-h"><h3 id="cf-title">Підтвердіть</h3>
+    <div class="modal-h"><span class="mh-ico amber" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg></span><h3 id="cf-title">Підтвердіть</h3>
       <button class="close" type="button" onclick="closeModal('m-confirm')" aria-label="Закрити"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-b"><div id="cf-text" style="font-size:13.5px;color:var(--ink-700);line-height:1.55"></div></div>
     <div class="modal-f"><button class="tb-btn" type="button" onclick="closeModal('m-confirm')">Скасувати</button><button class="tb-btn danger" type="button" id="cf-ok">Так</button></div>
@@ -228,7 +228,7 @@
 </div>
 
 <script type="module">
-import { initAdminShell, dbGet, db, ref, update, esc, toast, openModal, closeModal, hideLoader } from "./shared/admin-shell.js?v=6";
+import { initAdminShell, dbGet, db, ref, update, esc, toast, openModal, closeModal, hideLoader } from "./shared/admin-shell.js?v=7";
 
 // ─── ІКОНКИ (40 штук, 5 категорій) ────────────────────────────────────────
 const ICON_CATS = {

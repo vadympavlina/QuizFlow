@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=5">
+<link rel="stylesheet" href="shared/admin-shell.css?v=6">
 <style>
 .field-input{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-family:"Manrope",sans-serif;font-size:14px;color:var(--ink-900);outline:none;transition:border-color .15s,box-shadow .15s}
 .field-input:focus{border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
@@ -148,7 +148,7 @@
 <!-- Редактор новини -->
 <div class="modal-bd" id="m-news">
   <div class="modal">
-    <div class="modal-h">
+    <div class="modal-h"><span class="mh-ico violet" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h6M7 17h4"/><path d="M17 8h3v9a2 2 0 01-2 2"/></svg></span>
       <h3 id="news-modal-title">Нова новина</h3>
       <button class="close" type="button" onclick="tryCloseEditor()" aria-label="Закрити"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
@@ -197,7 +197,7 @@
 <!-- Посилання -->
 <div class="modal-bd" id="m-link" style="z-index:160">
   <div class="modal" style="max-width:420px">
-    <div class="modal-h"><h3>Посилання</h3>
+    <div class="modal-h"><span class="mh-ico blue" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg></span><h3>Посилання</h3>
       <button class="close" type="button" onclick="closeModal('m-link')" aria-label="Закрити"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <form class="modal-b" id="link-form">
       <div class="field"><label class="field-l" for="link-text-inp">Текст</label><input class="field-input" id="link-text-inp" placeholder="Детальніше тут"></div>
@@ -212,7 +212,7 @@
 <!-- Підтвердження -->
 <div class="modal-bd" id="m-confirm" style="z-index:170">
   <div class="modal" style="max-width:400px">
-    <div class="modal-h"><h3 id="cf-title">Підтвердіть</h3>
+    <div class="modal-h"><span class="mh-ico red" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg></span><h3 id="cf-title">Підтвердіть</h3>
       <button class="close" type="button" onclick="closeModal('m-confirm')" aria-label="Закрити"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-b"><div id="cf-text" style="font-size:13.5px;color:var(--ink-700);line-height:1.55"></div></div>
     <div class="modal-f"><button class="tb-btn" type="button" onclick="closeModal('m-confirm')">Скасувати</button><button class="tb-btn danger" type="button" id="cf-ok">Так</button></div>
@@ -220,7 +220,7 @@
 </div>
 
 <script type="module">
-import { initAdminShell, esc, dbGet, db, ref, update, openModal, closeModal, toast, formatTimeAgo, hideLoader } from "./shared/admin-shell.js?v=6";
+import { initAdminShell, esc, dbGet, db, ref, update, openModal, closeModal, toast, formatTimeAgo, hideLoader } from "./shared/admin-shell.js?v=7";
 import { push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { NEWS_CATS, catOf, sanitizeNewsHtml, newsPlainText, newsExcerpt, readMinutes } from "../shared/news-utils.js?v=1";
 

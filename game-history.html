@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/styles.css?v=24">
-<link rel="modulepreload" href="shared/app.js?v=24">
+<link rel="stylesheet" href="shared/styles.css?v=25">
+<link rel="modulepreload" href="shared/app.js?v=25">
 <style>
 #sec-history{
   --ink-900:#0B1437;--ink-700:#24335A;--ink-500:#5B6A8F;--ink-400:#8691AC;--ink-300:#CDD6E8;
@@ -121,7 +121,9 @@
 
 /* ── Модалка результатів ── */
 #m-res .mb{max-width:780px;padding:0;display:flex;flex-direction:column;max-height:90vh;overflow:hidden}
-.res-head{padding:22px 24px 14px;border-bottom:1px solid #E3E8F2;padding-right:60px}
+.res-head{padding:20px 24px 16px;border-bottom:1px solid #E3E8F2;padding-right:64px;display:flex;align-items:center;gap:14px}
+.res-tt{min-width:0}
+.res-ico{flex:0 0 auto}
 .res-head h3{margin:0;font:800 18px 'Manrope',sans-serif;letter-spacing:-.01em;color:#0B1437;overflow-wrap:anywhere}
 .res-head p{margin:4px 0 0;font-size:12.5px;color:#5B6A8F}
 .res-head .mcl{position:absolute;top:18px;right:18px;float:none;margin:0}
@@ -257,8 +259,9 @@ mark.hl{background:#FEF08A;color:inherit;border-radius:2px;padding:0 1px}
 <div class="mo" id="m-res" aria-labelledby="res-title"><div class="mb">
   <div class="res-head">
     <button class="mcl" onclick="closeM('m-res')" aria-label="Закрити">×</button>
-    <h3 id="res-title">Результати гри</h3>
-    <p id="res-sub"></p>
+    <span class="mx-ico t-violet res-ico" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0z"/><path d="M17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3"/></svg></span>
+    <div class="res-tt"><h3 id="res-title">Результати гри</h3>
+    <p id="res-sub"></p></div>
   </div>
   <div class="res-sum" id="res-sum"></div>
   <div class="res-tools">
@@ -288,8 +291,9 @@ mark.hl{background:#FEF08A;color:inherit;border-radius:2px;padding:0 1px}
 <div class="mo" id="m-ql" aria-labelledby="ql-title"><div class="mb">
   <div class="res-head">
     <button class="mcl" onclick="closeM('m-ql')" aria-label="Закрити">×</button>
-    <h3 id="ql-title">Створити гру</h3>
-    <p>Оберіть тест — і одразу перейдете до налаштувань гри</p>
+    <span class="mx-ico t-blue res-ico" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4"/></svg></span>
+    <div class="res-tt"><h3 id="ql-title">Створити гру</h3>
+    <p>Оберіть тест — і одразу перейдете до налаштувань гри</p></div>
   </div>
   <div class="ql-back" id="ql-back" hidden>
     <button type="button" data-ql="back" aria-label="Назад до папок"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="15 18 9 12 15 6"/></svg></button>
@@ -306,7 +310,7 @@ mark.hl{background:#FEF08A;color:inherit;border-radius:2px;padding:0 1px}
 
 <script type="module">
 import { getDatabase, ref, get, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-const { initApp, appReady } = await import("./shared/app.js?v=24");
+const { initApp, appReady } = await import("./shared/app.js?v=25");
 await initApp("history", { skipData: true });
 
 const db = getDatabase();

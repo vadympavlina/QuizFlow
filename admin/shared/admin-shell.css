@@ -503,6 +503,39 @@ html.asb-boot .asb, html.asb-boot .asb *, html.asb-boot .app{ transition:none !i
 .modal-f{padding:14px 22px; border-top:1px solid var(--line); display:flex; gap:10px; justify-content:flex-end}
 .modal-f.between{justify-content:space-between}
 
+/* ─── Модалки v2: один стиль для всіх сторінок адмінки ─── */
+.modal-bd{background:rgba(11,20,55,.5);animation:mdFade .18s ease}
+@keyframes mdFade{from{opacity:0}to{opacity:1}}
+.modal-bd.on .modal{animation:mdIn .22s cubic-bezier(.32,.72,0,1)}
+@keyframes mdIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+.modal{border-radius:20px;box-shadow:0 30px 80px -24px rgba(11,20,55,.55),0 0 0 1px rgba(11,20,55,.04);font-family:"Manrope",system-ui,sans-serif}
+.modal-h{gap:12px;padding:18px 18px 16px 22px;justify-content:flex-start}
+.modal-h h3{flex:1;min-width:0;font-size:17px;line-height:1.3}
+.modal-h .close{flex:0 0 auto;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);transition:background .15s,color .15s,border-color .15s}
+.modal-h .close:hover{border-color:var(--line-strong)}
+.mh-ico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:0 0 auto}
+.mh-ico.violet{background:#F1EBFF;color:#6D28D9}.mh-ico.blue{background:#E0EBFF;color:#1D4ED8}
+.mh-ico.amber{background:#FEF3C7;color:#B45309}.mh-ico.red{background:#FEE2E2;color:#B91C1C}
+.modal-b{padding:20px 22px;gap:16px}
+.modal-f{padding:14px 22px;background:#FAFBFE;border-radius:0 0 20px 20px;align-items:center;flex-wrap:wrap}
+.modal-bd .modal .tb-btn{height:40px;padding:0 16px;border-radius:11px;font-size:13.5px;font-weight:700}
+.modal-bd .modal .field-l{font-size:12.5px;font-weight:700;color:var(--ink-700)}
+.modal-bd .modal input.field-input,.modal-bd .modal .modal-b > .field input:not([type=checkbox]):not([type=radio]):not([type=hidden]),
+.modal-bd .modal .input,.modal-bd .modal select.field-input{min-height:44px;border-radius:11px;border:1.5px solid var(--line);font-size:14px;padding:10px 12px;background:#fff;transition:border-color .15s,box-shadow .15s}
+.modal-bd .modal textarea.field-input,.modal-bd .modal .field textarea{border-radius:11px;border:1.5px solid var(--line);font-size:14px;padding:11px 12px;line-height:1.5}
+.modal-bd .modal .field-input:focus,.modal-bd .modal .field input:focus,.modal-bd .modal .field textarea:focus,.modal-bd .modal .input:focus{border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.12);outline:none}
+@media (max-width:640px){
+  .modal-bd .modal{border-radius:22px 22px 0 0;max-height:calc(100dvh - 24px)}
+  .modal-bd{padding:0!important;align-items:flex-end}
+  .modal-bd.on .modal{animation:mdUp .26s cubic-bezier(.32,.72,0,1)}
+  @keyframes mdUp{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+  .modal-h{position:relative;padding-top:24px}
+  .modal-h::before{content:"";position:absolute;top:8px;left:50%;width:40px;height:4px;margin-left:-20px;border-radius:4px;background:#DCE1EC}
+  .modal-f{border-radius:0;padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+  .modal-f .tb-btn{flex:1 1 auto;justify-content:center}
+  .modal-b{padding:16px}
+}
+
 /* Field */
 .field{display:flex; flex-direction:column; gap:6px}
 .field-l{font-size:12px; font-weight:700; color:var(--ink-700)}
