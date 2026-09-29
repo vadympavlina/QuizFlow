@@ -623,8 +623,8 @@ document.addEventListener("click", e => {
   switch (el.dataset.act){
     case "open":   closeMenu(); if (g) openResults(g); break;
     case "menu":   if (menuFor === el) closeMenu(); else if (g) openMenu(el, g); break;
-    case "csv":    closeMenu(); if (g) exportCsv(g); break;
-    case "replay": closeMenu(); if (g?.testId) location.href = `live/setup?testId=${encodeURIComponent(g.testId)}`; break;
+    case "csv":    closeMenu(); if (g && (!window.qfCan || window.qfCan("export"))) exportCsv(g); break;
+    case "replay": closeMenu(); if (g?.testId && (!window.qfCan || window.qfCan("games"))) location.href = `live/setup?testId=${encodeURIComponent(g.testId)}`; break;
     case "del":    closeMenu(); if (g) askDelete(g); break;
     case "more":   ui.limit += 20; render(); break;
     case "res-more": resLimit += 200; renderResults(); break;
@@ -685,7 +685,7 @@ function qlAction(el){
   const a = el.dataset.ql;
   if (a === "back"){ qlFolder = null; $("ql-search").value = ""; renderQl(); $("ql-search").focus(); }
   else if (a === "folder"){ qlFolder = el.dataset.id; $("ql-search").value = ""; renderQl(); $("ql-search").focus(); }
-  else if (a === "test") location.href = `live/setup?testId=${encodeURIComponent(el.dataset.id)}`;
+  else if (a === "test" && (!window.qfCan || window.qfCan("games"))) location.href = `live/setup?testId=${encodeURIComponent(el.dataset.id)}`;
 }
 $("ql-search").addEventListener("input", () => qlTests && renderQl());
 </script>

@@ -620,6 +620,7 @@ import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { trackAI, tokensOf } from "./shared/ai-usage.js?v=1";
+import { loadCaps, assertAiQuota, CAP_FLAGS } from "./shared/caps.js?v=1";
 
 // ═══════════════════════════════════════════════════════════════════════
 // FIREBASE + AUTH
@@ -639,6 +640,9 @@ const user = await new Promise(res => { const un = onAuthStateChanged(auth, u =>
 if (!user) { location.href = "login?next=" + encodeURIComponent("constructor" + location.search); throw new Error("no auth"); }
 const UID = user.uid;
 const tp  = p => `teachers/${UID}/${p}`;
+// Можливості й ліміти з адмінки (імпорт, AI на місяць) — у фоні
+let CAPS = null;
+get(ref(db, `users/${UID}`)).then(s => loadCaps(db, s.val() || {})).then(c => { CAPS = c; }).catch(() => {});
 
 // ═══════════════════════════════════════════════════════════════════════
 // ДОВІДНИКИ
@@ -1249,6 +1253,7 @@ const aiBlocked = () => !AI.enabled ? "AI вимкнено адміністра�
 const UA_SYSTEM = "Ти — розумний асистент викладача. ОБОВ'ЯЗКОВО відповідай ВИКЛЮЧНО українською мовою. Жодних інших мов, ієрогліфів або нерозпізнаного тексту.";
 // Обгортка: рахуємо кожне звернення (успіх / помилка) для адмінки
 async function callAI(prompt, maxTokens = 800, temperature = .5){
+  await assertAiQuota(db, UID, CAPS?.limits?.aiPerMonth);   // ліміт з адмінки → «Можливості»
   try {
     const { text, data } = await callAIRaw(prompt, maxTokens, temperature);
     trackAI(db, UID, "generation", { tokens: tokensOf(data) });
@@ -1705,7 +1710,7 @@ document.addEventListener("click", async e => {
     case "ai": return openAi();
     case "ai-run": return aiGenerate();
     case "ai-inc": case "ai-dec": { const n = $("ai-count"); n.value = clamp((+n.value || 10) + (a === "ai-inc" ? 1 : -1), 1, 30); return; }
-    case "import": return openImport();
+    case "import": if (CAPS?.flags.import === false) return toast(`«${CAP_FLAGS.import.label}» вимкнено адміністратором`, "err"); return openImport();
     case "import-run": return runImport();
     case "template": return downloadTemplate();
     case "close-modal": return closeModal();

@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="shared/styles.css?v=26">
 <link rel="modulepreload" href="shared/app.js?v=26">
 <link rel="modulepreload" href="shared/features.js?v=36">
-<link rel="modulepreload" href="shared/dash.js?v=3">
+<link rel="modulepreload" href="shared/dash.js?v=4">
 <style>
 /* ═══ Дашборд: ігри наживо + тести (shared/dash.js) ═══ */
 #sec-dashboard{
@@ -367,7 +367,7 @@ await featuresP;
 await window.initFeatures();
 
 if (window.renderAll) window.renderAll();
-await import("./shared/dash.js?v=3");
+await import("./shared/dash.js?v=4");
 
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {

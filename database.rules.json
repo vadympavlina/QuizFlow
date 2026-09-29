@@ -10,6 +10,12 @@
         ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.child('role').val() === 'teacher' && newData.child('blocked').val() !== true && newData.child('inviteToken').isString() && root.child('invite_tokens/' + newData.child('inviteToken').val()).exists() && root.child('invite_tokens/' + newData.child('inviteToken').val()).child('used').val() !== true",
         "aiSettings": {
           ".read": true
+        },
+        "features": {
+          ".read": true
+        },
+        "customRoleIds": {
+          ".read": true
         }
       }
     },
@@ -29,6 +35,9 @@
       },
       "status": {
         ".read": true
+      },
+      "features": {
+        ".read": true
       }
     },
     "aiUsage": {
@@ -37,6 +46,7 @@
       "$month": {
         ".validate": "$month.matches(/^[0-9]{6}$/)",
         "$uid": {
+          ".read": true,
           ".validate": "root.child('users/' + $uid).exists()",
           "$feature": {
             ".validate": "$feature === 'comments' || $feature === 'analysis' || $feature === 'generation' || $feature === 'textcheck'",

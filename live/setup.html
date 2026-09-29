@@ -236,8 +236,12 @@ $("join-hint").textContent = pageUrl("../play").replace(/^https?:\/\//, "");
 
 // Режим техробіт: нові ігри не створюємо (адміністраторів не обмежуємо)
 {
-  const [svc, role] = await Promise.all([get(ref(db, "settings/status")).then(s => s.val()).catch(() => null), get(ref(db, `users/${uid}/role`)).then(s => s.val()).catch(() => null)]);
-  if (svc?.gamesOff === true && role !== "admin") fatal(svc.message || "Ігри тимчасово недоступні: тривають технічні роботи.");
+  const [svc, prof] = await Promise.all([get(ref(db, "settings/status")).then(s => s.val()).catch(() => null), get(ref(db, `users/${uid}`)).then(s => s.val() || {}).catch(() => ({}))]);
+  if (svc?.gamesOff === true && prof.role !== "admin") fatal(svc.message || "Ігри тимчасово недоступні: тривають технічні роботи.");
+  // Можливості з адмінки: ігри можуть бути вимкнені для цього викладача
+  const { loadCaps } = await import("../shared/caps.js?v=1");
+  const caps = await loadCaps(db, prof);
+  if (caps.flags.games === false) fatal("Ігри наживо вимкнено для вашого акаунта. Зверніться до адміністратора.");
 }
 
 const { testId } = readParams("testId");

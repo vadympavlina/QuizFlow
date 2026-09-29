@@ -90,6 +90,27 @@
 .tp-none{font-size:13px;color:var(--ink-500);padding:12px 14px;border:1.5px dashed var(--line);border-radius:12px}
 .tp-none a{color:#6D28D9;font-weight:700}
 
+/* Можливості та ліміти */
+.cp-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.cp-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:#FAFBFE;min-width:0}
+.cp-i{flex:1;min-width:0}
+.cp-i b{display:block;font-size:13.5px;color:var(--ink-900)}
+.cp-s{display:block;font-size:12px;color:var(--ink-500);margin-top:2px}
+.cp-s.on{color:#15803D}.cp-s.off{color:#B91C1C}
+.cp-bar{display:block;height:5px;border-radius:3px;background:#E8ECF5;margin-top:7px;overflow:hidden}
+.cp-bar i{display:block;height:100%;background:#7C3AED;border-radius:3px}
+.cp-bar i.warn{background:#D97706}.cp-bar i.full{background:#DC2626}
+.cp-num{width:120px;flex:0 0 auto;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font:600 13.5px "Geist Mono",monospace;color:var(--ink-900);outline:none}
+.cp-num::placeholder{font:600 12px "Manrope",sans-serif;color:var(--ink-400)}
+.cp-num:focus{border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+.tri{display:inline-flex;padding:3px;border-radius:10px;background:#F1F4FA;gap:2px;flex:0 0 auto}
+.tri button{border:0;background:transparent;padding:6px 9px;border-radius:8px;font:700 12px "Manrope",sans-serif;color:var(--ink-500);cursor:pointer;white-space:nowrap}
+.tri button.on{background:#fff;color:var(--ink-900);box-shadow:0 1px 3px rgba(15,30,71,.12)}
+.tri button.on[data-v="1"]{color:#15803D}.tri button.on[data-v="0"]{color:#B91C1C}
+.tri button:disabled,.cp-num:disabled{opacity:.55;cursor:not-allowed}
+@media (max-width:1280px){ .cp-grid{grid-template-columns:1fr} }
+@media (max-width:520px){ .cp-row{flex-wrap:wrap} .cp-num{width:100%} }
+
 /* AI: рядки з перемикачами */
 .tp-ai{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .tp-src{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;background:#F1F4FA;color:var(--ink-500);margin-left:8px;vertical-align:2px}
@@ -232,7 +253,7 @@
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=3"></script>
+<script src="shared/admin-nav.js?v=4"></script>
 <div id="admin-root"></div>
 <div id="admin-modals">
 
@@ -453,7 +474,8 @@
 <div id="admin-toast" class="toast"></div>
 
 <script type="module">
-import { initAdminShell, loadAllTeachers, cachedTeachers, esc, formatTimeAgo, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast, genPass, hideLoader } from "./shared/admin-shell.js?v=7";
+import { resolveCaps, CAP_FLAGS, CAP_LIMITS, monthKey } from "../shared/caps.js?v=1";
+import { initAdminShell, loadAllTeachers, cachedTeachers, esc, formatTimeAgo, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast, genPass, hideLoader } from "./shared/admin-shell.js?v=8";
 
 const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const IC = {
@@ -568,8 +590,10 @@ async function refreshData(){
 // У викладача може бути КІЛЬКА ролей одночасно: мапа { roleId: true, ... }.
 // Старе одиничне поле customRoleId продовжуємо розуміти при читанні.
 async function loadRoles(){
-  window._roles = await dbGet("roles") || {};
+  const [r, f, ai] = await Promise.all([dbGet("roles"), dbGet("settings/features").catch(() => null), dbGet(`aiUsage/${monthKey()}`).catch(() => null)]);
+  window._roles = r || {}; _featCfg = f || {}; _aiMonth = ai || {};
 }
+let _featCfg = {}, _aiMonth = {};
 const sortedRoleIds = () => { const r = window._roles || {}; return Object.keys(r).sort((a, b) => (r[a].name || "").localeCompare(r[b].name || "", "uk")); };
 
 function getUserRoleIds(u){
@@ -691,6 +715,43 @@ const AI_FEATS = [
 const aiValue = (u, k) => u.aiSettings && u.aiSettings[k] !== undefined ? u.aiSettings[k] !== false : (_globalAI ? _globalAI[k] !== false : true);
 const fmtDate = t => t ? new Date(t).toLocaleDateString("uk-UA", { day: "numeric", month: "short", year: "numeric" }) : "—";
 
+// ─── Можливості та ліміти (settings/features + users/{uid}/features) ──────
+const SRC = { user: "індивідуально", role: "за роллю", all: "як для всіх" };
+function capsSection(u, s){
+  const own = u.features || {};
+  const eff = resolveCaps(_featCfg, u);                                 // що діє зараз
+  const inh = resolveCaps(_featCfg, { ...u, features: {} });            // що було б без індивідуальних
+  const aiUsed = Object.values(_aiMonth[u.id] || {}).reduce((n, f) => n + (Number(f?.calls) || 0), 0);
+  const used = { maxTests: s.testsLive ?? s.tests ?? 0, maxActiveLinks: s.activeLinks ?? null, aiPerMonth: aiUsed };
+  const limTxt = n => n ? String(n) : "без обмежень";
+  const isAdm = u.role === "admin";
+  return `<section class="tp-sec">
+    <div class="tp-sec-h"><div><h3>Можливості та ліміти</h3><p>${isAdm ? "Адміністратора ці обмеження не стосуються" : "Індивідуальні значення мають перевагу над роллю і загальними"}</p></div><a href="features">Для всіх і ролей</a></div>
+    <div class="cp-grid">
+      ${Object.entries(CAP_FLAGS).map(([k, f]) => { const v = own.flags?.[k];
+        return `<div class="cp-row"><div class="cp-i"><b>${f.label}</b><span class="cp-s ${eff.flags[k] ? "on" : "off"}">${eff.flags[k] ? "Доступно" : "Вимкнено"} · ${SRC[eff.src[k]]}</span></div>
+          <div class="tri" role="radiogroup" aria-label="${f.label}">${[["", `Авто: ${inh.flags[k] ? "так" : "ні"}`], ["1", "Так"], ["0", "Ні"]].map(([val, t]) =>
+            `<button type="button" role="radio" data-act="cap-flag" data-k="${k}" data-v="${val}" class="${(val === "" && typeof v !== "boolean") || (val === "1" && v === true) || (val === "0" && v === false) ? "on" : ""}"${isAdm ? " disabled" : ""}>${t}</button>`).join("")}</div></div>`; }).join("")}
+      ${Object.entries(CAP_LIMITS).map(([k, f]) => { const v = own.limits?.[k], lim = eff.limits[k], u2 = used[k];
+        const pct = lim && u2 !== null ? Math.min(100, Math.round(u2 / lim * 100)) : 0;
+        return `<div class="cp-row"><div class="cp-i"><b>${f.label}</b><span class="cp-s">${u2 !== null ? `Використано ${u2}${lim ? ` з ${lim}` : ""}` : `Ліміт: ${limTxt(lim)}`} · ${SRC[eff.src[k]]}</span>
+            ${lim && u2 !== null ? `<span class="cp-bar"><i style="width:${pct}%" class="${pct >= 100 ? "full" : pct >= 80 ? "warn" : ""}"></i></span>` : ""}</div>
+          <input class="cp-num" type="number" min="0" step="1" inputmode="numeric" data-cap-lim="${k}" value="${v === undefined || v === null ? "" : Number(v)}" placeholder="Авто: ${inh.limits[k] || "немає"}" aria-label="${f.label}: індивідуальний ліміт"${isAdm ? " disabled" : ""}></div>`; }).join("")}
+    </div>
+  </section>`;
+}
+async function saveCaps(u, patch){
+  const f = JSON.parse(JSON.stringify(u.features || {}));
+  patch(f);
+  ["flags", "limits"].forEach(g => { if (f[g] && !Object.keys(f[g]).length) delete f[g]; });
+  try {
+    await dbUpd(`users/${u.id}`, { features: Object.keys(f).length ? f : null });
+    if (Object.keys(f).length) u.features = f; else delete u.features;
+    toast("Можливості оновлено");
+    afterChange();
+  } catch (e) { toast("Помилка: " + e.message, "err"); renderDetail(); }
+}
+
 function renderDetail(){
   const host = document.getElementById("tp-main");
   const u = byId(_selId);
@@ -741,6 +802,8 @@ function renderDetail(){
         ${rids.length ? `<div class="tp-roles">${rids.map(id => `<button type="button" class="tp-role${mine.has(id) ? " on" : ""}" style="--rc:${esc(roles[id].color || "#7C3AED")}" data-act="role" data-rid="${esc(id)}" aria-pressed="${mine.has(id)}"${roles[id].description ? ` title="${esc(roles[id].description)}"` : ""}><i></i>${esc(roles[id].name || "—")}</button>`).join("")}</div>`
           : `<div class="tp-none">Ролей ще немає. <a href="roles">Створіть першу</a>, щоб групувати викладачів і обмежувати доступ до сторінок.</div>`}
       </section>
+
+      ${capsSection(u, s)}
 
       <section class="tp-sec">
         <div class="tp-sec-h"><div><h3>AI можливості <span class="tp-src${u.aiSettings ? " custom" : ""}">${u.aiSettings ? "Індивідуальні" : "Як у глобальних"}</span></h3><p>${u.aiSettings ? "Для цього викладача діють власні налаштування" : "Змініть перемикач, щоб задати власні налаштування для цього викладача"}</p></div>
@@ -837,9 +900,16 @@ document.getElementById("tp-main").addEventListener("click", e => {
     case "role":    return toggleRole(u, b.dataset.rid, b);
     case "sysrole": return setSysRole(u, b.dataset.v);
     case "ai-reset": return resetAI(u);
+    case "cap-flag": return saveCaps(u, f => { f.flags ||= {}; if (b.dataset.v === "") delete f.flags[b.dataset.k]; else f.flags[b.dataset.k] = b.dataset.v === "1"; });
   }
 });
 document.getElementById("tp-main").addEventListener("change", e => {
+  const lk = e.target.dataset?.capLim, cu = byId(_selId);
+  if (lk && cu){
+    const raw = e.target.value.trim(), n = Math.floor(Number(raw));
+    if (raw !== "" && !(n >= 0)) return toast("Ліміт — ціле число від 0", "err");
+    return saveCaps(cu, f => { f.limits ||= {}; if (raw === "") delete f.limits[lk]; else f.limits[lk] = n; });
+  }
   const k = e.target.dataset?.ai; const u = byId(_selId);
   if (k && u) setAI(u, k, e.target.checked);
 });

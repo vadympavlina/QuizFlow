@@ -8,6 +8,7 @@
 import { NEWS_CATS, sanitizeNewsHtml, newsPlainText, newsExcerpt, readMinutes, catOf, isPublished } from "./news-utils.js?v=1";
 import { buildQuestions, qVersionKey } from "./qorder.js?v=1";
 import { trackAI, tokensOf } from "./ai-usage.js?v=1";
+import { assertAiQuota } from "./caps.js?v=1";
 
 const { db, ref, get, set, push, update, remove, onValue, off } = window._fb;
 
@@ -1443,6 +1444,7 @@ function _rpUrl(params){
   if (u.search !== location.search) history.replaceState(null, "", u.pathname + u.search);
 }
 function _rpDownload(name, blob){
+  if (window.qfCan && !window.qfCan("export")) return;
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob); a.download = name.replace(/[\\/:*?"<>|]+/g, " ").trim();
   document.body.appendChild(a); a.click(); a.remove();
@@ -1959,6 +1961,7 @@ function _atSyncBulk(){
 
 // CSV (Excel відкриває з кирилицею завдяки BOM і «;»)
 function _atExportCSV(rowsToExport){
+  if (window.qfCan && !window.qfCan("export")) return;
   const cell = v => { const s = String(v ?? ""); return /[;"\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
   const head = ["Прізвище", "Ім'я", "Група", "Тест", "Оцінка (1–12)", "Відсоток", "Правильних", "Питань", "Тривалість", "Дата", "Статус", "Порушення"];
   const lines = rowsToExport.map(r => {
@@ -2329,6 +2332,7 @@ function _bindLinksPage(){
 
 // Обгортка: рахуємо кожне звернення (успіх / помилка) для адмінки
 async function callGroq(messages, maxTokens=800, temp=0.5, feature="analysis"){
+  await assertAiQuota(db, _uid, window.QF_CAPS?.limits?.aiPerMonth);   // ліміт з адмінки → «Можливості»
   try{
     const { text, data } = await callAIRaw(messages, maxTokens, temp, feature);
     trackAI(db, _uid, feature, { tokens: tokensOf(data) });
@@ -2738,6 +2742,7 @@ window.G = {
   // Копія тесту (чернетка в тій самій папці)
   async duplicateTest(testId){
     const t = tests.find(x => x.id === testId); if (!t) return;
+    if (window.qfLimit && !window.qfLimit("maxTests", tests.filter(x => x.status !== "archived").length)) return;
     try{
       const { id: _i, ...rest } = t;
       const copy = { ...rest, title: `${t.title} (копія)`, status: "draft", createdAt: ts(), updatedAt: ts(), archivedAt: null, sharedFrom: null, sharedAt: null };
@@ -2761,6 +2766,7 @@ window.G = {
   },
   // Tests
   openTestInFolder(fid){
+    if (window.qfLimit && !window.qfLimit("maxTests", tests.filter(x => x.status !== "archived").length)) return;
     _fid = fid && folders.some(f => f.id === fid) ? fid : null;
     ["nt-n", "nt-d", "nt-tg"].forEach(k => { const el = $(k); if (el){ el.value = ""; el.classList.remove("er"); } });
     const tm = $("nt-tm"); if (tm){ tm.value = "10"; tm.classList.remove("er"); }
@@ -2814,6 +2820,7 @@ window.G = {
   },
   startLiveGame(testId){
     document.querySelectorAll("[id^='tmenu-']").forEach(m=>m.style.display="none");
+    if (window.qfCan && !window.qfCan("games")) return;
     window.open(`live/setup?testId=${testId}`,"_blank","noopener");
   },
   async doDelTest(mode="archive"){
@@ -2888,6 +2895,7 @@ window.G = {
   // ─── Посилання: модалка створення / редагування ─────────────────────
   _lnkForm(mode, l = null, testId = null){
     const edit = mode === "edit";
+    if (!edit && window.qfLimit && !window.qfLimit("maxActiveLinks", links.filter(x => _isOpenState(linkState(x))).length)) return;
     window._editLinkId = edit ? l.id : null;
     $("m-link-title").textContent = edit ? "Налаштування посилання" : mode === "dup" ? "Копія для іншої групи" : "Нове посилання";
     $("m-link-sub").textContent = edit ? "Зміни діють одразу" : "Студенти проходять тест за цим посиланням або QR-кодом";
@@ -3047,6 +3055,7 @@ window.G = {
     const st = linkState(l);
     if (!_isOpenState(st) && l.closeAt && l.closeAt <= Date.now()) return G.editLink(id);  // спершу новий термін
     const open = _isOpenState(st);
+    if (!open && window.qfLimit && !window.qfLimit("maxActiveLinks", links.filter(x => _isOpenState(linkState(x))).length)) return;
     const upd = open ? { status: "closed", closedReason: "manual" } : { status: "active", closedReason: null };
     try {
       await dbUpd(`links/${id}`, upd);

@@ -8,6 +8,7 @@
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, set, push, update, remove, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { loadCaps, CAP_FLAGS, CAP_LIMITS, pluralUk } from "./caps.js?v=1";
 
 // ─── Firebase ──────────────────────────────────────────────────────────
 const FC = {
@@ -78,6 +79,24 @@ export const uid  = _fbUser.uid;
 
 window._user = _user;
 window._uid  = uid;
+
+// ─── Можливості й ліміти (адмінка → «Можливості») ─────────────────────────
+// Завантажуються у фоні; поки не завантажились — нічого не блокуємо.
+export const capsReady = loadCaps(db, { ..._user, features: _userDb.features }).then(c => (window.QF_CAPS = c)).catch(() => null);
+// Чи дозволена функція. Якщо ні — пояснює викладачу чому.
+window.qfCan = (flag) => {
+  const c = window.QF_CAPS;
+  if (!c || c.flags[flag] !== false) return true;
+  toast(`«${CAP_FLAGS[flag]?.label || flag}» вимкнено адміністратором`, "err");
+  return false;
+};
+// Чи можна додати ще один об'єкт при поточній кількості current
+window.qfLimit = (key, current) => {
+  const lim = window.QF_CAPS?.limits?.[key] || 0;
+  if (!lim || current < lim) return true;
+  toast(`Досягнуто ліміту: ${lim} ${pluralUk(lim, CAP_LIMITS[key].unit)}. Зверніться до адміністратора.`, "err");
+  return false;
+};
 
 // ─── Path / DB helpers ─────────────────────────────────────────────────
 export function tp(path) {

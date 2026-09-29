@@ -653,6 +653,7 @@ import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12
 import { getDatabase, ref, get, set, push, update, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { qVersionKey, makeOrder, buildQuestions, seededRandom, shuffledIdx, richHtml, plainText } from "./shared/qorder.js?v=1";
 import { trackAI, tokensOf } from "./shared/ai-usage.js?v=1";
+import { resolveCaps, assertAiQuota } from "./shared/caps.js?v=1";
 const AI_OWNER = new URLSearchParams(location.search).get("t") || "";   // облік AI — на викладача, чий тест
 
 // Глобальна tp — читає teacherUid з URL
@@ -866,8 +867,19 @@ const UA_SYSTEM = {
 // Студент не має чекати на AI вічно: після 20 с показуємо результат без коментаря
 const aiSignal = () => (typeof AbortSignal !== "undefined" && AbortSignal.timeout) ? AbortSignal.timeout(20000) : undefined;
 
+// Місячний ліміт AI викладача (адмінка → «Можливості»). Вичерпано — тест працює без AI,
+// так само як при помилці AI: коментаря немає, текстові відповіді звіряються без нього.
+let _aiLimitP = null;
+const teacherAiLimit = () => _aiLimitP ||= (async () => {
+  if (!AI_OWNER) return 0;
+  const [cfg, feat, rids] = await Promise.all(["settings/features", `users/${AI_OWNER}/features`, `users/${AI_OWNER}/customRoleIds`]
+    .map(p => get(ref(db, p)).then(s => s.val()).catch(() => null)));
+  return resolveCaps(cfg || {}, { features: feat || {}, customRoleIds: rids || {} }).limits.aiPerMonth;
+})();
+
 // Обгортка: рахуємо кожне звернення (успіх / помилка) для адмінки
 async function callGroq(messages, maxTokens = 800, temperature = 0.5, feature = "comments") {
+  await assertAiQuota(db, AI_OWNER, await teacherAiLimit());
   try {
     const { text, data } = aiProviderFor(feature) === "gemini"
       ? await callGemini(messages, maxTokens, temperature)
