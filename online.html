@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="shared/styles.css?v=27">
-<link rel="modulepreload" href="shared/app.js?v=30">
+<link rel="modulepreload" href="shared/app.js?v=31">
 <link rel="modulepreload" href="shared/features.js?v=38">
 <link rel="modulepreload" href="shared/online.js?v=1">
 <style>
@@ -151,7 +151,7 @@
 // Спочатку app.js (щоб вставити window._fb і іншу базу),
 // потім features.js (він читає з window._fb).
 // Preload у <head> вже починає завантаження обох паралельно — тут тільки execute order.
-const { initApp } = await import("./shared/app.js?v=30");
+const { initApp } = await import("./shared/app.js?v=31");
 const featuresP = import("./shared/features.js?v=38");
 
 // showSec: залишаємось на сторінці якщо це та сама; інакше — йдемо на відповідний html
