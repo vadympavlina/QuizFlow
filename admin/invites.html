@@ -48,12 +48,20 @@
 .exp button.on{border-color:var(--ink-900);box-shadow:inset 0 0 0 1px var(--ink-900);color:var(--ink-900)}
 .iv-link{display:flex;gap:8px}
 .iv-link input{flex:1;font:500 12.5px "Geist Mono",monospace;background:#F4F6FB}
+.iv-sent{display:inline-flex;align-items:center;gap:5px;margin-top:4px;font-size:12px;color:#15803D;font-weight:700}
+.iv-mail{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;font-size:13px;font-weight:700;margin-top:12px}
+.iv-mail.ok{background:#F0FDF4;border:1px solid #BBF7D0;color:#15803D}
+.iv-mail.err{background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C}
+.iv-mail.wait{background:#F4F6FB;border:1px solid var(--line);color:var(--ink-500)}
+.iv-mail span{flex:1;min-width:0;overflow-wrap:anywhere}
+.field-hint{font-size:12px;color:var(--ink-500);margin-top:6px;line-height:1.5}
+.field-hint a{color:#6D28D9;font-weight:700}
 .iv-ok{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:#F0FDF4;border:1px solid #BBF7D0;color:#15803D;font-size:13px;font-weight:700;margin-bottom:12px}
 @media (max-width:1023px){ .iv-row{grid-template-columns:1fr 1fr;gap:10px 16px} .iv-acts{grid-column:1/-1;justify-content:flex-start} }
 @media (max-width:640px){ .iv-row{grid-template-columns:1fr;padding:14px} }
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=10">
+<link rel="modulepreload" href="shared/admin-shell.js?v=11">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -61,7 +69,7 @@
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=5"></script>
+<script src="shared/admin-nav.js?v=6"></script>
 <div id="admin-root"></div>
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -74,6 +82,8 @@
     <div class="modal-b" id="nw-form">
       <div style="font-size:13px;color:var(--ink-500);margin-top:-4px">Одноразове посилання: викладач переходить за ним і сам створює акаунт.</div>
       <div class="field"><label class="field-l" for="nw-note">Для кого (необов'язково)</label><input class="field-input" id="nw-note" maxlength="80" placeholder="Наприклад: Іваненко О., кафедра математики"></div>
+      <div class="field"><label class="field-l" for="nw-email">Email викладача (необов'язково)</label><input class="field-input" id="nw-email" type="email" inputmode="email" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="200" placeholder="name@example.com">
+        <div class="field-hint" id="nw-email-hint">Надішлемо лист із посиланням на реєстрацію.</div></div>
       <div class="field"><span class="field-l">Діє</span><div class="exp" id="nw-exp" role="radiogroup">
         <button type="button" role="radio" data-d="1">1 день</button><button type="button" role="radio" data-d="7" class="on">7 днів</button><button type="button" role="radio" data-d="30">30 днів</button><button type="button" role="radio" data-d="0">Без терміну</button></div></div>
     </div>
@@ -81,11 +91,27 @@
       <div class="iv-ok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Посилання створено</div>
       <div class="iv-link"><input class="field-input" id="nw-link" readonly aria-label="Посилання-запрошення"><button class="tb-btn primary" type="button" id="nw-copy">Скопіювати</button></div>
       <div style="font-size:12px;color:var(--ink-500);margin-top:10px;line-height:1.5" id="nw-note-done"></div>
+      <div class="iv-mail" id="nw-mail" hidden></div>
     </div>
     <div class="modal-f">
       <button class="tb-btn" type="button" onclick="closeModal('m-new')" id="nw-close">Скасувати</button>
       <button class="tb-btn primary" type="button" id="nw-create">Створити посилання</button>
     </div>
+  </div>
+</div>
+
+<div class="modal-bd" id="m-send">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-h"><span class="mh-ico blue" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></span>
+      <h3>Надіслати запрошення листом</h3>
+      <button class="close" type="button" onclick="closeModal('m-send')" aria-label="Закрити"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-b">
+      <div style="font-size:13px;color:var(--ink-500);margin-top:-4px" id="sd-for"></div>
+      <div class="field"><label class="field-l" for="sd-email">Email викладача</label><input class="field-input" id="sd-email" type="email" inputmode="email" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="200" placeholder="name@example.com"></div>
+      <div class="iv-mail" id="sd-st" hidden></div>
+    </div>
+    <div class="modal-f"><button class="tb-btn" type="button" onclick="closeModal('m-send')">Скасувати</button><button class="tb-btn primary" type="button" id="sd-ok">Надіслати</button></div>
   </div>
 </div>
 
@@ -101,10 +127,10 @@
 </div>
 
 <script type="module">
-import { logAction, initAdminShell, dbGet, dbSet, dbRemove, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=10";
+import { logAction, initAdminShell, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast, esc, hideLoader, mailApi, mailWorkerUrl } from "./shared/admin-shell.js?v=11";
 
 const SVG = p => `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
-const IC = { copy: SVG('<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>'), ban: SVG('<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>'), trash: SVG('<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>'), plus: SVG('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>') };
+const IC = { copy: SVG('<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>'), ban: SVG('<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>'), trash: SVG('<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>'), send: SVG('<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>'), plus: SVG('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>') };
 const DAY = 864e5;
 const base = location.origin + location.pathname.replace(/\/admin\/.*/, "/");
 const linkOf = t => `${base}register?token=${t}`;
@@ -122,7 +148,9 @@ const content = `
 const topbarRight = `<button class="tb-btn primary" type="button" id="btn-new">${IC.plus} Нове запрошення</button>`;
 const { _user } = await initAdminShell({ activeId: "invites", crumbs: ["Запрошення"], content, topbarRight });
 
-let items = {}, users = {}, filter = "all", days = 7, revId = null;
+let items = {}, users = {}, filter = "all", days = 7, revId = null, sendId = null, lastNew = null;
+const mailOn = !!(await mailWorkerUrl());
+const EMAIL_RE = /^[^\s@<>()",;]+@[^\s@<>()",;]+\.[^\s@<>()",;]{2,}$/;
 const statusOf = t => t.used === true ? "used" : t.expiresAt && t.expiresAt < Date.now() ? "expired" : "active";
 const ST = { active: ["Діє", "#22C55E"], used: ["Використано", "#6366F1"], expired: ["Прострочено", "#94A3B8"] };
 const nameOf = uid => { const u = users[uid]; return u ? [u.surname, u.name].filter(Boolean).join(" ") || u.email : null; };
@@ -133,7 +161,7 @@ function render(){
   const counts = { all: list.length, active: 0, used: 0, expired: 0 }; list.forEach(t => counts[t.st]++);
   document.getElementById("iv-chips").innerHTML = [["all", "Усі"], ...Object.entries(ST).map(([k, v]) => [k, v[0], v[1]])].map(([k, l, c]) =>
     `<button type="button" role="tab" data-f="${k}" class="${filter === k ? "on" : ""}">${c ? `<i style="background:${c}"></i>` : ""}${l} <b>${counts[k]}</b></button>`).join("");
-  const rows = list.filter(t => (filter === "all" || t.st === filter) && (!q || [t.note, t.createdByName, nameOf(t.usedBy), users[t.usedBy]?.email].some(x => String(x || "").toLowerCase().includes(q))));
+  const rows = list.filter(t => (filter === "all" || t.st === filter) && (!q || [t.note, t.createdByName, nameOf(t.usedBy), users[t.usedBy]?.email, t.sentTo].some(x => String(x || "").toLowerCase().includes(q))));
   const host = document.getElementById("iv-list");
   if (!list.length){ host.innerHTML = `<div class="iv-empty"><b>Запрошень ще немає</b>Створіть посилання — викладач зареєструється сам.<div style="margin-top:14px"><button class="tb-btn primary" type="button" data-new>${IC.plus} Нове запрошення</button></div></div>`; return; }
   if (!rows.length){ host.innerHTML = `<div class="iv-empty"><b>Нічого не знайдено</b>Спробуйте інший фільтр або запит</div>`; return; }
@@ -141,12 +169,12 @@ function render(){
     const left = t.expiresAt ? Math.ceil((t.expiresAt - Date.now()) / DAY) : null;
     const who = t.usedBy ? nameOf(t.usedBy) : null;
     return `<div class="iv-row${t.st === "active" ? "" : " dim"}" data-id="${esc(t.id)}">
-      <div class="iv-n"><b>${esc(t.note || "Без позначки")}</b><code>…${esc(t.id.slice(-8))}</code><br><span class="iv-st ${t.st}">${ST[t.st][0]}</span></div>
+      <div class="iv-n"><b>${esc(t.note || "Без позначки")}</b><code>…${esc(t.id.slice(-8))}</code><br><span class="iv-st ${t.st}">${ST[t.st][0]}</span>${t.sentTo ? `<br><span class="iv-sent" title="${esc(fmt(t.sentAt))}">${IC.send} ${esc(t.sentTo)}</span>` : ""}</div>
       <div class="iv-c">Створено ${esc(fmt(t.createdAt))}${t.createdByName ? `<br>${esc(t.createdByName)}` : ""}</div>
       <div class="iv-c">${t.st === "used" ? `Зареєструвався: ${who ? `<a href="teachers?id=${encodeURIComponent(t.usedBy)}">${esc(who)}</a>` : "<b>акаунт видалено</b>"}<br>${esc(fmt(t.usedAt))}`
         : t.st === "expired" ? `Термін минув ${esc(fmt(t.expiresAt))}`
         : t.expiresAt ? `Діє ще <b>${left} ${plural(left, ["день", "дні", "днів"])}</b><br>до ${esc(fmt(t.expiresAt))}` : "<b>Без терміну</b>"}</div>
-      <div class="iv-acts">${t.st === "active" ? `<button class="tb-btn" type="button" data-act="copy">${IC.copy} Посилання</button><button class="tb-btn danger" type="button" data-act="revoke" title="Відкликати" aria-label="Відкликати запрошення">${IC.ban}</button>`
+      <div class="iv-acts">${t.st === "active" ? `${mailOn ? `<button class="tb-btn" type="button" data-act="send">${IC.send} Листом</button>` : ""}<button class="tb-btn" type="button" data-act="copy">${IC.copy} Посилання</button><button class="tb-btn danger" type="button" data-act="revoke" title="Відкликати" aria-label="Відкликати запрошення">${IC.ban}</button>`
         : `<button class="tb-btn ghost" type="button" data-act="remove" title="Прибрати зі списку" aria-label="Прибрати зі списку">${IC.trash}</button>`}</div>
     </div>`;
   }).join("");
@@ -156,6 +184,8 @@ function render(){
 function openNew(){
   days = 7;
   document.getElementById("nw-note").value = "";
+  document.getElementById("nw-email").value = "";
+  document.getElementById("nw-mail").hidden = true;
   document.querySelectorAll("#nw-exp button").forEach(b => b.classList.toggle("on", b.dataset.d === "7"));
   document.getElementById("nw-form").hidden = false; document.getElementById("nw-done").hidden = true;
   document.getElementById("nw-create").hidden = false; document.getElementById("nw-close").textContent = "Скасувати";
@@ -168,6 +198,8 @@ document.getElementById("nw-create").addEventListener("click", async e => {
   try {
     const token = Array.from(crypto.getRandomValues(new Uint8Array(24))).map(b => b.toString(36)).join("").slice(0, 32);
     const note = document.getElementById("nw-note").value.trim();
+    const email = mailOn ? document.getElementById("nw-email").value.trim().toLowerCase() : "";
+    if (email && !EMAIL_RE.test(email)){ toast("Перевірте адресу email", "err"); document.getElementById("nw-email").focus(); return; }
     const me = [_user.name, _user.surname].filter(Boolean).join(" ") || _user.email || "";
     const data = { createdAt: Date.now(), used: false, note: note || null, expiresAt: days ? Date.now() + days * DAY : null, createdBy: _user.id, createdByName: me || null };
     await dbSet(`invite_tokens/${token}`, data);
@@ -178,10 +210,52 @@ document.getElementById("nw-create").addEventListener("click", async e => {
     document.getElementById("nw-form").hidden = true; document.getElementById("nw-done").hidden = false;
     btn.hidden = true; document.getElementById("nw-close").textContent = "Готово";
     render();
+    lastNew = token;
+    if (email) sendInvite(token, email, document.getElementById("nw-mail"));
   } catch (err){ toast("Помилка: " + err.message, "err"); }
   finally { btn.disabled = false; }
 });
 document.getElementById("nw-copy").addEventListener("click", () => navigator.clipboard.writeText(document.getElementById("nw-link").value).then(() => toast("Посилання скопійовано")));
+
+// ─── Лист із запрошенням (через воркер пошти) ──────────────────────────────
+async function sendInvite(token, email, box){
+  const t = items[token]; if (!t) return false;
+  if (box){ box.hidden = false; box.className = "iv-mail wait"; box.innerHTML = `${IC.send}<span>Надсилаємо лист на ${esc(email)}…</span>`; }
+  try {
+    await mailApi("/invite", { to: email, token, name: "" });
+    const upd = { sentTo: email, sentAt: Date.now() };
+    await dbUpd(`invite_tokens/${token}`, upd).catch(() => {});
+    Object.assign(t, upd);
+    logAction("invite.email", { type: "invite", id: token, label: t.note || "без позначки" }, email);
+    if (box){ box.className = "iv-mail ok"; box.innerHTML = `${IC.send}<span>Лист надіслано на ${esc(email)}</span>`; }
+    render();
+    return true;
+  } catch (e){
+    if (box){ box.className = "iv-mail err"; box.innerHTML = `<span>${esc(e.message)}</span><button class="tb-btn" type="button" data-retry>Ще раз</button>`;
+      box.querySelector("[data-retry]").onclick = () => sendInvite(token, email, box); }
+    else toast(e.message, "err");
+    return false;
+  }
+}
+function openSend(id){
+  const t = items[id]; if (!t) return;
+  sendId = id;
+  document.getElementById("sd-for").textContent = `Запрошення «${t.note || "без позначки"}». Лист містить одноразове посилання на реєстрацію.`;
+  document.getElementById("sd-email").value = t.sentTo || "";
+  document.getElementById("sd-st").hidden = true;
+  openModal("m-send");
+  setTimeout(() => document.getElementById("sd-email").focus(), 50);
+}
+document.getElementById("sd-ok").addEventListener("click", async e => {
+  const email = document.getElementById("sd-email").value.trim().toLowerCase(), st = document.getElementById("sd-st");
+  if (!EMAIL_RE.test(email)){ st.hidden = false; st.className = "iv-mail err"; st.innerHTML = "<span>Перевірте адресу email</span>"; return; }
+  const btn = e.currentTarget; btn.disabled = true;
+  try {
+    if (await sendInvite(sendId, email, st)){ closeModal("m-send"); toast(`Лист надіслано на ${email}`); }
+  } finally { btn.disabled = false; }
+});
+document.getElementById("sd-email").addEventListener("keydown", e => { if (e.key === "Enter") document.getElementById("sd-ok").click(); });
+if (!mailOn) document.getElementById("nw-email").closest(".field").hidden = true;
 
 // ─── Дії в списку ────────────────────────────────────────────────────────
 document.addEventListener("click", e => {
@@ -189,6 +263,7 @@ document.addEventListener("click", e => {
   const f = e.target.closest("#iv-chips [data-f]"); if (f){ filter = f.dataset.f; return render(); }
   const b = e.target.closest(".iv-row [data-act]"); if (!b) return;
   const id = b.closest(".iv-row").dataset.id, t = items[id]; if (!t) return;
+  if (b.dataset.act === "send") return openSend(id);
   if (b.dataset.act === "copy") return navigator.clipboard.writeText(linkOf(id)).then(() => toast("Посилання скопійовано"));
   revId = id;
   const active = statusOf(t) === "active";

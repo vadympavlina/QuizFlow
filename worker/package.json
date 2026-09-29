@@ -1,0 +1,9 @@
+{
+  "name": "quizflow-mail",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx wrangler dev",
+    "deploy": "npx wrangler deploy"
+  }
+}

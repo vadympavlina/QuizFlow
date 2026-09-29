@@ -30,6 +30,8 @@ jobs:
           cache: npm
           cache-dependency-path: tests/package-lock.json
       - run: npm ci
+      - name: Воркер пошти (юніт-тести)
+        run: npm run worker
       - run: npx playwright install --with-deps chromium
       - run: npm run e2e
       - name: Знімки впалих тестів

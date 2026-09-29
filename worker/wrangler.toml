@@ -1,0 +1,23 @@
+# Cloudflare Worker для пошти QuizFlow: запрошення й розсилки через Resend.
+# Інструкція з розгортання — docs/email-setup.md, розділ «Воркер пошти».
+name = "quizflow-mail"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+[vars]
+FIREBASE_PROJECT_ID = "quizflow-8a978"
+FIREBASE_DB_URL = "https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app"
+SITE_URL = "https://quizflow.space"
+MAIL_FROM = "QuizFlow <noreply@quizflow.space>"
+# Звідки дозволено запити (через кому). Локальна розробка — додайте http://127.0.0.1:8765
+ALLOWED_ORIGINS = "https://quizflow.space,https://www.quizflow.space"
+
+# Відписки від розсилок. id створюється командою:
+#   npx wrangler kv namespace create MAIL_KV
+[[kv_namespaces]]
+binding = "MAIL_KV"
+id = "REPLACE_WITH_KV_ID"
+
+# Секрети (не в коді!):
+#   npx wrangler secret put RESEND_API_KEY   — ключ re_… з Resend
+#   npx wrangler secret put UNSUB_SECRET     — будь-який довгий випадковий рядок

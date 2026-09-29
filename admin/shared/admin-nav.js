@@ -36,6 +36,7 @@
     audit: '<path d="M12 8v4l3 2"/><path d="M3.05 11a9 9 0 1 1 .5 4"/><polyline points="3 20 3 15 8 15"/>',
     invite: '<rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/>',
     db: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>',
+    mail: '<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>',
     ann: '<path d="M3 11v2a1 1 0 001 1h2l5 4V6L6 10H4a1 1 0 00-1 1z"/><path d="M15.5 8.5a5 5 0 010 7"/><path d="M18.5 5.5a9 9 0 010 13"/>',
     menu: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/><path d="M13 9h4M13 13h4"/>',
     ai: '<path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/>',
@@ -64,6 +65,7 @@
     ] },
     { label: "Контент", items: [
       { id: "announcements", label: "Оголошення", href: "announcements", icon: "ann" },
+      { id: "mail", label: "Розсилки", href: "mail", icon: "mail" },
       { id: "news", label: "Новини", href: "news", icon: "news" },
       { id: "navigation", label: "Навігація", href: "navigation", icon: "menu" },
     ] },
