@@ -313,7 +313,38 @@ window.showLoader = showLoader;
 
 // ─── loadAll: спільний завантажувач даних викладачів (overview/teachers/stats) ──
 
-export async function loadAllTeachers(){
+// ─── Швидкість: кеш між сторінками + один запит замість кількох однакових ───
+// Огляд, статистика й викладачі показують збережені дані одразу (якщо їм
+// < 30 хв), а свіжі підтягують у фоні. У кеш і в пам'ять ідуть лише ті поля
+// спроб, які потрібні графікам — без відповідей і питань.
+const CACHE_KEY = "qf_adm_teachers_v1";
+const slimAttempt = (a, teacherId, teacherName) => ({
+  createdAt: a.createdAt || 0, finishedAt: a.finishedAt || 0, startedAt: a.startedAt || 0, lastSeen: a.lastSeen || 0,
+  status: a.status || "", grade12: a.grade12 ?? null, testId: a.testId || "", teacherId, teacherName,
+});
+function publish(d){
+  window._users = d._users; window._stats = d._stats; window._allAttempts = d._allAttempts; window._allGames = d._allGames;
+  return d;
+}
+export function cachedTeachers(maxAgeMs = 30 * 60e3){
+  try {
+    const c = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+    if (!c || !Array.isArray(c._users) || Date.now() - c.at > maxAgeMs) return null;
+    return publish({ ...c, _liveNow: [], cached: true });
+  } catch { return null; }
+}
+let _inflight = null;
+export function loadAllTeachers(){
+  if (_inflight) return _inflight;
+  _inflight = _loadAllFresh().then(d => {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), _users: d._users, _stats: d._stats, _allAttempts: d._allAttempts, _allGames: d._allGames })); }
+    catch { try { localStorage.removeItem(CACHE_KEY); } catch {} }   // переповнено — просто без кешу
+    return publish(d);
+  }).finally(() => { _inflight = null; });
+  return _inflight;
+}
+
+async function _loadAllFresh(){
   const snap = await get(ref(db, "users"));
   if (!snap.exists()) return { _users: [], _stats: {}, _allAttempts: [], _allGames: [], _liveNow: [] };
 
@@ -338,7 +369,7 @@ export async function loadAllTeachers(){
     ]);
     const tName = (u.surname ? u.surname + " " + u.name : u.name) || u.email || "";
     const atArr = as.exists() ? Object.values(as.val()) : [];
-    atArr.forEach(a => _allAttempts.push({ ...a, teacherId: u.id, teacherName: tName }));
+    atArr.forEach(a => { if (a && typeof a === "object") _allAttempts.push(slimAttempt(a, u.id, tName)); });
     const games = gh?.exists() ? Object.entries(gh.val()).filter(([, g]) => g && typeof g === "object").map(([code, g]) => ({
       code, teacherId: u.id, teacherName: tName, title: g.testTitle || "Без назви", testId: g.testId || "",
       playedAt: Number(g.playedAt) || 0, players: Number(g.playerCount) || (Array.isArray(g.results) ? g.results.length : Object.keys(g.results || {}).length),
@@ -347,7 +378,7 @@ export async function loadAllTeachers(){
     _allGames.push(...games);
     if (lr?.exists()) Object.keys(lr.val()).forEach(code => _liveRooms.push({ code, teacherId: u.id, teacherName: tName }));
     const activeTests = ts.exists() ? Object.values(ts.val()).filter(t => t.status === "active").length : 0;
-    const lastAct = atArr.length ? Math.max(...atArr.map(a => a.createdAt || 0)) : 0;
+    const lastAct = atArr.reduce((m, a) => Math.max(m, a?.createdAt || 0), 0);
     const weekAgo = Date.now() - 7*24*60*60*1000;
     const weekAttempts = atArr.filter(a => (a.createdAt || 0) >= weekAgo).length;
     _stats[u.id] = {
@@ -360,25 +391,19 @@ export async function loadAllTeachers(){
       games: games.length,
       gamePlayers: games.reduce((s, g) => s + g.players, 0),
       weekGames: games.filter(g => g.playedAt >= weekAgo).length,
-      lastAct: Math.max(lastAct, ...games.map(g => g.playedAt), 0)
+      lastAct: games.reduce((m, g) => Math.max(m, g.playedAt), lastAct)
     };
   }));
 
   // Які з відкритих кімнат справді йдуть зараз (статус і кількість гравців)
+  // Лише статус, назва й гравці — без відповідей усієї кімнати
   await Promise.all(_liveRooms.map(async r => {
-    const s = await opt(`rooms/${r.code}`);
-    const v = s?.exists() ? s.val() : null;
-    r.status = v?.status || null;
-    r.title = v?.testTitle || "";
-    r.players = v?.players ? Object.keys(v.players).length : 0;
+    const [st, tt, pl] = await Promise.all([opt(`rooms/${r.code}/status`), opt(`rooms/${r.code}/testTitle`), opt(`rooms/${r.code}/players`)]);
+    r.status = st?.val() || null;
+    r.title = tt?.val() || "";
+    r.players = pl?.exists() ? Object.keys(pl.val()).length : 0;
   }));
   const liveNow = _liveRooms.filter(r => ["lobby", "question", "paused", "reveal"].includes(r.status));
-
-  // Зберігаємо в window для зручності
-  window._users = _users;
-  window._stats = _stats;
-  window._allAttempts = _allAttempts;
-  window._allGames = _allGames;
 
   return { _users, _stats, _allAttempts, _allGames, _liveNow: liveNow };
 }

@@ -968,3 +968,5 @@ textarea.fi{height:auto;padding:11px 14px;line-height:1.5}
 .lk-chips:empty{display:none}
 .lk-chips button{height:24px;padding:0 9px;border-radius:999px;border:1px solid #DCE6FC;background:#F5F8FF;color:#1E3A8A;font:700 11.5px 'Manrope',system-ui,sans-serif;cursor:pointer}
 .lk-chips button:hover{background:#2D5BE3;border-color:#2D5BE3;color:#fff}
+/* QR: кнопки з іконками в один рядок */
+#m-qr .lk-qr-acts .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}

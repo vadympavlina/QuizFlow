@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=5">
+<link rel="stylesheet" href="shared/admin-shell.css?v=6">
 <style>
 .row-2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
 .row-mix{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:16px}
@@ -63,7 +63,7 @@
 <div id="admin-toast" class="toast"></div>
 
 <script type="module">
-import { initAdminShell, loadAllTeachers, esc, hideLoader, formatTimeAgo } from "./shared/admin-shell.js?v=6";
+import { initAdminShell, loadAllTeachers, cachedTeachers, esc, hideLoader, formatTimeAgo } from "./shared/admin-shell.js?v=7";
 import { bars, rank, bindTips, C } from "./shared/admin-charts.js?v=1";
 
 const DAY = 864e5;
@@ -149,11 +149,8 @@ let D = { users: [], stats: {}, attempts: [], games: [] };
 try { const v = +localStorage.getItem("qf_adm_stats_p"); if ([7, 30, 90].includes(v)) P = v; } catch {}
 document.querySelectorAll("#period-seg button").forEach(b => b.classList.toggle("on", +b.dataset.p === P));
 
-async function load(){
-  const r = await loadAllTeachers();
-  D = { users: r._users, stats: r._stats, attempts: r._allAttempts, games: r._allGames || [] };
-  renderAll();
-}
+function apply(r){ D = { users: r._users, stats: r._stats, attempts: r._allAttempts, games: r._allGames || [] }; renderAll(); }
+async function load(){ apply(await loadAllTeachers()); }
 
 // ─── Періоди ───
 const inRange = (t, from, to) => t && t >= from && t < to;
@@ -311,6 +308,8 @@ document.getElementById("btn-refresh").addEventListener("click", async () => {
   btn.disabled = false; btn.style.opacity = "";
 });
 
+const _cached = cachedTeachers();
+if (_cached){ apply(_cached); hideLoader(); }
 try {
   await load();
 } catch (e) {

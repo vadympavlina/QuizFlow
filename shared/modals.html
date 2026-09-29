@@ -226,11 +226,6 @@
     <div id="att-det"></div>
   </div>
 </div>
-<!-- Студенти по посиланню -->
-<div class="mo" id="m-students"><div class="mb wd">
-  <button class="mcl" aria-label="Закрити" onclick="closeM('m-students')">×</button>
-  <div id="stud-det"></div>
-</div></div>
 
 <!-- Видалення / архівування тесту -->
 <div class="mo" id="m-del-test" aria-labelledby="del-test-title"><div class="mb" style="max-width:460px">
@@ -256,11 +251,6 @@
   <div class="ma"><button type="button" class="btn bs" onclick="closeM('m-del-test')">Скасувати</button></div>
 </div></div>
 
-<!-- Статистика тесту -->
-<div class="mo" id="m-stats"><div class="mb wd" style="max-width:680px">
-  <button class="mcl" aria-label="Закрити" onclick="closeM('m-stats')">×</button>
-  <div id="stats-content"></div>
-</div></div>
 
 <!-- QR-код посилання -->
 <div class="mo" id="m-qr">
@@ -271,9 +261,9 @@
     <div class="lk-qr-code"><div id="qr-canvas"></div></div>
     <div class="lk-qr-url" id="qr-url-text"></div>
     <div class="lk-qr-acts">
-      <button class="btn bs" type="button" onclick="G.copyQrUrl()">Копіювати посилання</button>
-      <button class="btn bs" type="button" onclick="G.downloadQR()">Зберегти PNG</button>
-      <button class="btn bp" type="button" onclick="G.qrFullscreen()">На весь екран</button>
+      <button class="btn bs" type="button" onclick="G.copyQrUrl()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Копіювати</button>
+      <button class="btn bs" type="button" onclick="G.downloadQR()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PNG</button>
+      <button class="btn bp" type="button" onclick="G.qrFullscreen()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 00-2 2v3M21 8V5a2 2 0 00-2-2h-3M3 16v3a2 2 0 002 2h3M16 21h3a2 2 0 002-2v-3"/></svg>На весь екран</button>
     </div>
   </div>
 </div>

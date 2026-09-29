@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=5">
+<link rel="stylesheet" href="shared/admin-shell.css?v=6">
 <style>
 /* ─── Page-specific styles for overview ─── */
 .page-head .date{font-size:13.5px;color:var(--ink-500);margin-top:4px}
@@ -129,7 +129,7 @@ a.kpi:hover{transform:translateY(-2px);border-color:var(--line-strong);box-shado
 <div id="admin-toast" class="toast"></div>
 
 <script type="module">
-import { initAdminShell, loadAllTeachers, esc, formatTimeAgo, dbGet, toast, hideLoader } from "./shared/admin-shell.js?v=6";
+import { initAdminShell, loadAllTeachers, cachedTeachers, esc, formatTimeAgo, dbGet, toast, hideLoader } from "./shared/admin-shell.js?v=7";
 import { bars, C } from "./shared/admin-charts.js?v=1";
 
 const DAY = 864e5;
@@ -279,11 +279,7 @@ const { _user } = await initAdminShell({ activeId: "overview", crumbs: ["Огл�
 let D = { users: [], stats: {}, attempts: [], games: [], live: [], problems: [] };
 let _range = 14, _ovSortBy = "attempts", _ovSortDir = "desc";
 
-async function reload(){
-  const [{ _users, _stats, _allAttempts, _allGames, _liveNow }, bugs] = await Promise.all([
-    loadAllTeachers(),
-    dbGet("bugReports").catch(() => null),
-  ]);
+function apply({ _users, _stats, _allAttempts, _allGames, _liveNow }, bugs){
   // Середня оцінка по викладачу — з уже завантажених спроб
   const g = {};
   _allAttempts.forEach(a => { if (a.grade12 == null || a.status === "in_progress") return; (g[a.teacherId] ||= []).push(+a.grade12); });
@@ -291,9 +287,15 @@ async function reload(){
   _users.forEach(u => { const s = _stats[u.id]; if (s) s.week = (s.weekAttempts || 0) + (s.weekGames || 0); });
   D = {
     users: _users, stats: _stats, attempts: _allAttempts, games: _allGames || [], live: _liveNow || [],
-    problems: bugs ? Object.entries(bugs).map(([id, v]) => ({ id, ...v })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)) : [],
+    problems: bugs === null ? null : bugs ? Object.entries(bugs).map(([id, v]) => ({ id, ...v })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)) : [],
   };
   renderAll();
+}
+let _bugs = null;
+async function reload(){
+  const [d, bugs] = await Promise.all([loadAllTeachers(), dbGet("bugReports").catch(() => null)]);
+  _bugs = bugs;
+  apply(d, bugs || {});
 }
 
 // Сума по днях за останні n днів: list — масив, when(x) — час, w(x) — вага (1 або к-сть гравців)
@@ -320,7 +322,7 @@ function renderPulse(){
   const nowT = Date.now();
   const testing = D.attempts.filter(a => a.status === "in_progress" && nowT - (a.lastSeen || a.startedAt || a.createdAt || 0) < 10 * 60e3).length;
   const games = D.live.length, players = D.live.reduce((s, r) => s + (r.players || 0), 0);
-  const newProb = D.problems.filter(p => p.status === "new").length;
+  const newProb = (D.problems || []).filter(p => p.status === "new").length;
   const first = D.users.filter(u => u.isFirstLogin && !u.blocked).length;
   const parts = [];
   if (games) parts.push(`${games} ${plural(games, ["гра", "гри", "ігор"])} наживо${players ? ` · ${players} ${plural(players, ["гравець", "гравці", "гравців"])}` : ""}`);
@@ -330,7 +332,7 @@ function renderPulse(){
   const chips = [];
   if (newProb) chips.push(`<a class="pulse-chip bad" href="problems">${newProb} ${plural(newProb, ["нова проблема", "нові проблеми", "нових проблем"])}</a>`);
   if (first) chips.push(`<a class="pulse-chip warn" href="teachers">${first} ${plural(first, ["викладач ще не увійшов", "викладачі ще не увійшли", "викладачів ще не увійшли"])}</a>`);
-  if (!chips.length) chips.push(`<span class="pulse-chip ok">Проблем і незавершених запрошень немає</span>`);
+  if (!chips.length && D.problems) chips.push(`<span class="pulse-chip ok">Проблем і незавершених запрошень немає</span>`);
   document.getElementById("pulse-chips").innerHTML = chips.join("");
 }
 
@@ -418,6 +420,7 @@ function renderChart(){
 }
 
 function renderProblems(){
+  if (!D.problems){ document.getElementById("prob-sub").textContent = "Завантаження…"; document.getElementById("prob-list").innerHTML = ""; return; }
   const fresh = D.problems.filter(p => p.status === "new");
   document.getElementById("prob-sub").textContent = fresh.length
     ? `${fresh.length} ${plural(fresh.length, ["очікує", "очікують", "очікують"])} на розгляд`
@@ -535,6 +538,9 @@ document.getElementById("btn-refresh").addEventListener("click", async () => {
 });
 
 // First load — тримаємо loader доки дані не завантажаться
+// Збережені дані — одразу, свіжі — у фоні (без повторного лоадера)
+const _cached = cachedTeachers();
+if (_cached){ apply(_cached, null); hideLoader(); }
 try {
   await reload();
 } catch (e) {
