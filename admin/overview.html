@@ -122,7 +122,7 @@ a.kpi:hover{transform:translateY(-2px);border-color:var(--line-strong);box-shado
 .last.stale{color:var(--ink-300)}
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=13">
+<link rel="modulepreload" href="shared/admin-shell.js?v=14">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -136,7 +136,7 @@ a.kpi:hover{transform:translateY(-2px);border-color:var(--line-strong);box-shado
 <div id="admin-toast" class="toast"></div>
 
 <script type="module">
-import { initAdminShell, loadAllTeachers, cachedTeachers, esc, formatTimeAgo, dbGet, toast, hideLoader } from "./shared/admin-shell.js?v=13";
+import { initAdminShell, loadAllTeachers, cachedTeachers, esc, formatTimeAgo, dbGet, toast, hideLoader } from "./shared/admin-shell.js?v=14";
 import { bars, C } from "./shared/admin-charts.js?v=1";
 
 const DAY = 864e5;

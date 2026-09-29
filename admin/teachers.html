@@ -260,7 +260,7 @@
 .delete-warn .list{font-size:12px; color:#B91C1C; margin-top:10px; line-height:1.6}
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=13">
+<link rel="modulepreload" href="shared/admin-shell.js?v=14">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
 </head>
@@ -456,7 +456,7 @@
 
 <script type="module">
 import { resolveCaps, CAP_FLAGS, CAP_LIMITS, monthKey } from "../shared/caps.js?v=3";
-import { logAction, initAdminShell, loadAllTeachers, cachedTeachers, esc, formatTimeAgo, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast, genPass, hideLoader, mailApi, mailWorkerUrl } from "./shared/admin-shell.js?v=13";
+import { logAction, initAdminShell, loadAllTeachers, cachedTeachers, esc, formatTimeAgo, dbGet, dbSet, dbUpd, dbRemove, openModal, closeModal, toast, genPass, hideLoader, mailApi, mailWorkerUrl } from "./shared/admin-shell.js?v=14";
 
 const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const IC = {
@@ -1100,10 +1100,19 @@ window.doResetPassword = async () => {
   const email = window._resetEmail;
   if (!email) { toast("Email не знайдено", "err"); return; }
   try {
-    const mainAuth = getAuth(getApp());
-    mainAuth.languageCode = "uk";
-    // Після зміни пароля — назад на сторінку входу з підставленим email
-    await sendPasswordResetEmail(mainAuth, email, { url: location.origin + "/login?email=" + encodeURIComponent(email) });
+    // Лист у дизайні QuizFlow — через воркер пошти; якщо на ньому немає службового
+    // ключа Firebase або воркер не підключено — стандартний лист Firebase Auth
+    let viaWorker = false;
+    if (await mailWorkerUrl().catch(() => "")) {
+      try { await mailApi("/reset", { email }); viaWorker = true; }
+      catch (e) { if (e.code !== "not_configured" && e.code !== "network") throw e; }
+    }
+    if (!viaWorker) {
+      const mainAuth = getAuth(getApp());
+      mainAuth.languageCode = "uk";
+      // Після зміни пароля — назад на сторінку входу з підставленим email
+      await sendPasswordResetEmail(mainAuth, email, { url: location.origin + "/login?email=" + encodeURIComponent(email) });
+    }
     document.getElementById("reset-box").style.display = "";
     document.getElementById("reset-actions").style.display = "none";
     logAction("teacher.reset", { type: "teacher", id: _resetUid, label: fullName(byId(_resetUid) || { email }) }, email);

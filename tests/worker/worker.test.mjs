@@ -17,15 +17,21 @@ async function idToken(uid, over = {}) {
   return `${h}.${p}.${b64u(sig)}`;
 }
 
+// Службовий ключ для /reset: окрема пара ключів, публічна — щоб перевірити підпис JWT
+const saKeys = await crypto.subtle.generateKey({ name: "RSASSA-PKCS1-v1_5", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" }, true, ["sign", "verify"]);
+const saPem = `-----BEGIN PRIVATE KEY-----\n${Buffer.from(await crypto.subtle.exportKey("pkcs8", saKeys.privateKey)).toString("base64").replace(/(.{64})/g, "$1\n")}\n-----END PRIVATE KEY-----\n`;
+const SA = JSON.stringify({ type: "service_account", project_id: PROJECT, client_email: "mail@quizflow-test.iam.gserviceaccount.com", private_key: saPem });
+let google;   // { tokenCalls, oob: [], jwtOk }
+
 let db, sent, kv, resendStatus;
 const env = () => ({
   FIREBASE_PROJECT_ID: PROJECT, FIREBASE_DB_URL: DB, SITE_URL: "https://quizflow.space", MAIL_FROM: "QuizFlow <noreply@quizflow.space>",
-  ALLOWED_ORIGINS: "https://quizflow.space", RESEND_API_KEY: "re_test", UNSUB_SECRET: "s3cret",
-  MAIL_KV: { get: async k => kv.get(k) ?? null, put: async (k, v) => void kv.set(k, v), delete: async k => void kv.delete(k),
+  ALLOWED_ORIGINS: "https://quizflow.space", RESEND_API_KEY: "re_test", UNSUB_SECRET: "s3cret", FIREBASE_SERVICE_ACCOUNT: SA,
+  MAIL_KV: { get: async k => kv.get(k) ?? null, put: async (k, v, opts) => void kv.set(k, v), delete: async k => void kv.delete(k),
     list: async ({ prefix }) => ({ keys: [...kv.keys()].filter(k => k.startsWith(prefix)).map(name => ({ name })), list_complete: true }) },
 });
 beforeEach(() => {
-  kv = new Map(); sent = []; resendStatus = 200;
+  kv = new Map(); sent = []; resendStatus = 200; google = { tokenCalls: 0, oob: [], jwtOk: null };
   db = {
     users: {
       adm: { role: "admin", name: "Адмін", email: "admin@quizflow.space" },
@@ -39,6 +45,18 @@ beforeEach(() => {
   globalThis.fetch = async (url, init = {}) => {
     const u = new URL(url);
     if (u.hostname === "www.googleapis.com") return Response.json({ keys: [jwk] });
+    if (u.hostname === "oauth2.googleapis.com") {
+      google.tokenCalls++;
+      const jwt = new URLSearchParams(init.body).get("assertion").split(".");
+      google.jwtOk = await crypto.subtle.verify("RSASSA-PKCS1-v1_5", saKeys.publicKey, Buffer.from(jwt[2], "base64url"), new TextEncoder().encode(jwt[0] + "." + jwt[1]))
+        && JSON.parse(Buffer.from(jwt[1], "base64url")).iss === "mail@quizflow-test.iam.gserviceaccount.com";
+      return Response.json({ access_token: "ya29.test", expires_in: 3600 });
+    }
+    if (u.hostname === "identitytoolkit.googleapis.com") {
+      const b = JSON.parse(init.body); google.oob.push({ ...b, auth: init.headers.Authorization });
+      if (b.email === "ghost@example.com") return Response.json({ error: { message: "EMAIL_NOT_FOUND" } }, { status: 400 });
+      return Response.json({ email: b.email, oobLink: `https://${PROJECT}.firebaseapp.com/__/auth/action?mode=resetPassword&oobCode=CODE-${b.email.split("@")[0]}&apiKey=x&lang=uk` });
+    }
     if (u.origin === DB) {
       // Мінімальні «правила»: читати може лише власник свого профілю або адмін
       const path = u.pathname.replace(/^\/|\.json$/g, ""), token = u.searchParams.get("auth");
@@ -83,7 +101,7 @@ test("доступ: без токена, з підробленим токено�
   assert.equal((await call("GET", "/status", { uid: "t1" })).status, 403);
   const r = await call("GET", "/status");
   assert.equal(r.status, 200);
-  assert.deepEqual(r.data.configured, { resend: true, unsubscribe: true, kv: true });
+  assert.deepEqual(r.data.configured, { resend: true, unsubscribe: true, kv: true, serviceAccount: true });
 });
 
 test("запрошення: надсилає лист з посиланням на реєстрацію", async () => {
@@ -155,6 +173,39 @@ test("новий акаунт: лист з даними для входу на �
   assert.equal((await call("POST", "/welcome", { body: { uid: "t1ab12" } })).status, 409);
   assert.equal((await call("POST", "/welcome", { uid: "t1", body: { uid: "t1ab12" } })).status, 403);
   assert.equal((await call("POST", "/welcome", { body: { uid: "../x" } })).status, 400);
+});
+
+test("зміна пароля: лист у нашому дизайні з посиланням на auth-action", async () => {
+  const r = await call("POST", "/reset", { uid: "", body: { email: "Olena@Example.com" } });
+  assert.equal(r.status, 200, JSON.stringify(r.data));
+  assert.equal(google.jwtOk, true, "JWT підписано службовим ключем");
+  assert.deepEqual({ ...google.oob[0], auth: undefined }, { requestType: "PASSWORD_RESET", email: "olena@example.com", returnOobLink: true, targetProjectId: PROJECT, auth: undefined });
+  assert.equal(google.oob[0].auth, "Bearer ya29.test");
+  assert.deepEqual(sent[0].to, ["olena@example.com"]);
+  assert.equal(sent[0].subject, "Зміна пароля QuizFlow");
+  assert.match(sent[0].html, /https:\/\/quizflow\.space\/auth-action\?mode=resetPassword&amp;oobCode=CODE-olena&amp;lang=uk/);
+  assert.match(sent[0].html, /Ми отримали запит/);
+  // Та сама адреса одразу — обмеження частоти; інша адреса — можна
+  assert.equal((await call("POST", "/reset", { uid: "", body: { email: "olena@example.com" } })).status, 429);
+  assert.equal((await call("POST", "/reset", { uid: "", body: { email: "ivan@example.com" } })).status, 200);
+  assert.equal(google.tokenCalls, 1, "токен Google кешується");
+});
+
+test("зміна пароля: невідомий акаунт — та сама відповідь, лист не йде; чужий сайт — відмова", async () => {
+  const r = await call("POST", "/reset", { uid: "", body: { email: "ghost@example.com" } });
+  assert.equal(r.status, 200); assert.deepEqual(r.data, { ok: true }); assert.equal(sent.length, 0);
+  assert.equal((await call("POST", "/reset", { uid: "", origin: "https://evil.example", body: { email: "olena@example.com" } })).status, 403);
+  assert.equal((await call("POST", "/reset", { uid: "", body: { email: "bad" } })).status, 400);
+});
+
+test("зміна пароля: адмін — без обмеження частоти, інший текст; без ключа — not_configured", async () => {
+  for (let i = 0; i < 3; i++) assert.equal((await call("POST", "/reset", { body: { email: "olena@example.com" } })).status, 200);
+  assert.equal(sent.length, 3);
+  assert.match(sent[0].html, /Адміністратор QuizFlow надіслав вам посилання/);
+  assert.equal((await call("POST", "/reset", { uid: "t1", body: { email: "olena@example.com" } })).status, 403);
+  const e = env(); delete e.FIREBASE_SERVICE_ACCOUNT;
+  const res = await worker.fetch(new Request("https://mail.test/reset", { method: "POST", headers: { Origin: "https://quizflow.space" }, body: JSON.stringify({ email: "olena@example.com" }) }), e);
+  assert.equal(res.status, 503); assert.equal((await res.json()).code, "not_configured");
 });
 
 test("логотип: воркер віддає PNG, лист посилається на нього", async () => {

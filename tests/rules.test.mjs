@@ -224,6 +224,11 @@ await t("aiUsage mail tokens", true, () => set(ref(adm, `aiUsage/${M}/adm/mail/t
 await t("aiUsage unknown feature", false, () => set(ref(t1, `aiUsage/${M}/t1/spam/calls`), 1));
 await t("aiUsage mail jump", false, () => set(ref(t1, `aiUsage/${M}/t1/mail/calls`), 50));
 
+// ── Адреса воркера пошти: читає сторінка входу без входу ──
+await t("anon read mail worker url", true, () => get(ref(anon, "settings/mail/workerUrl")));
+await t("anon write mail worker url", false, () => set(ref(anon, "settings/mail/workerUrl"), "https://evil.example"));
+await t("anon read settings root", false, () => get(ref(anon, "settings")));
+
 console.log(`\n${pass} passed, ${fail} failed`);
 await env.cleanup();
 process.exit(fail ? 1 : 0);

@@ -38,6 +38,9 @@
       },
       "features": {
         ".read": true
+      },
+      "mail": {
+        ".read": true
       }
     },
     "aiUsage": {

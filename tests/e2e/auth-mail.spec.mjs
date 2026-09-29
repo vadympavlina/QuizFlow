@@ -98,3 +98,59 @@ test("адмінка → новий викладач без воркера: пе
   await expect(page.locator("#new-welcome-row")).toBeHidden();
   expect(errors).toEqual([]);
 });
+
+// ─── Лист зміни пароля в дизайні QuizFlow (через воркер) ─────────────────
+async function workerReset(page, status = 200, body = { ok: true }) {
+  const calls = [];
+  await page.context().route(`${WORKER}/**`, route => {
+    const req = route.request();
+    calls.push({ path: new URL(req.url()).pathname, body: JSON.parse(req.postData() || "null"), auth: req.headers()["authorization"] || "" });
+    route.fulfill({ status, contentType: "application/json", headers: { "Access-Control-Allow-Origin": "*" }, body: JSON.stringify(body) });
+  });
+  return calls;
+}
+
+test("«Забули пароль?» через воркер: Firebase не надсилає свій лист", async ({ page, errors }) => {
+  const calls = await workerReset(page);
+  await seed(page, { settings: { mail: { workerUrl: WORKER } } });
+  await page.goto("/login#forgot");
+  await page.fill("#femail", "teacher@school.ua");
+  await page.click("#forgotBtn");
+  await expect(page.locator("#sentTo")).toHaveText("teacher@school.ua");
+  expect(calls).toEqual([{ path: "/reset", body: { email: "teacher@school.ua" }, auth: "" }]);
+  expect((await authlog(page)).filter(([k]) => k === "reset")).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+test("«Забули пароль?»: воркер без службового ключа — запасний лист Firebase; ліміт — повідомлення", async ({ page, errors }) => {
+  await workerReset(page, 503, { ok: false, error: "нема ключа", code: "not_configured" });
+  await seed(page, { settings: { mail: { workerUrl: WORKER } } });
+  await page.goto("/login#forgot");
+  await page.fill("#femail", "teacher@school.ua");
+  await page.click("#forgotBtn");
+  await expect(page.locator("#sentTo")).toHaveText("teacher@school.ua");
+  expect((await authlog(page)).find(([k]) => k === "reset")?.[1]?.[0]).toBe("teacher@school.ua");
+
+  await page.context().unroute(`${WORKER}/**`);
+  await workerReset(page, 429, { ok: false, error: "Забагато запитів. Спробуйте за кілька хвилин." });
+  await page.goto("/login?again=1#forgot");
+  await page.fill("#femail", "other@school.ua");
+  await page.click("#forgotBtn");
+  await expect(page.locator("#forgotMsg")).toContainText("Забагато запитів");
+  expect(errors).toEqual([]);
+});
+
+test("адмінка → «Скинути пароль» через воркер (від імені адміна)", async ({ page, errors }) => {
+  const calls = await workerReset(page);
+  const db = admSeed(Date.now());
+  db.settings = { mail: { workerUrl: WORKER } };
+  await seed(page, db, "t5");
+  await page.goto("/admin/teachers?id=t2");
+  await page.locator('.tp-acts [data-act="reset"]').first().click();
+  await page.evaluate(() => doResetPassword());
+  await expect.poll(() => calls.find(c => c.path === "/reset")?.body).toEqual({ email: "a.melnyk@itstep.org" });
+  expect(calls.find(c => c.path === "/reset").auth).toBe("Bearer mock-token-t5");
+  await expect(page.locator("#reset-box")).toBeVisible();
+  expect((await authlog(page)).filter(([k]) => k === "reset")).toEqual([]);
+  expect(errors).toEqual([]);
+});

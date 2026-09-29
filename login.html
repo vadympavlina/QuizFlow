@@ -287,7 +287,26 @@ $("loginF").addEventListener("submit", async e => {
   }
 });
 
-// ─── Відновлення пароля (лист надсилає Firebase Auth, див. docs/email-setup.md) ──
+// ─── Відновлення пароля ─────────────────────────────────────────────────
+// Лист у дизайні QuizFlow надсилає воркер пошти (адреса — settings/mail/workerUrl).
+// Якщо воркер не підключено або на ньому немає службового ключа Firebase —
+// стандартний лист Firebase Auth (див. docs/email-setup.md).
+async function resetViaWorker(email){
+  let url = "";
+  try {
+    const { getDatabase, ref, get } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+    url = String((await get(ref(getDatabase(app), "settings/mail/workerUrl"))).val() || "").replace(/\/+$/, "");
+  } catch { return false; }
+  if (!url) return false;
+  let r;
+  try { r = await fetch(url + "/reset", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) }); }
+  catch { return false; }
+  if (r.ok) return true;
+  const d = await r.json().catch(() => ({}));
+  if (r.status === 429) throw Object.assign(new Error(d.error || ""), { code: "auth/too-many-requests" });
+  if (r.status === 400) throw Object.assign(new Error(d.error || ""), { code: "auth/invalid-email" });
+  return false;
+}
 let resendT = 0;
 async function sendReset(again){
   const email = $("femail").value.trim();
@@ -295,7 +314,8 @@ async function sendReset(again){
   const btn = again ? $("resendBtn") : $("forgotBtn"), html = btn.innerHTML;
   btn.disabled = true; if (!again) btn.innerHTML = `<span class="spin"></span><span>Надсилаємо…</span>`;
   try {
-    await sendPasswordResetEmail(auth, email, { url: location.origin + location.pathname.replace(/[^/]*$/, "") + "login?email=" + encodeURIComponent(email) });
+    if (!(await resetViaWorker(email)))
+      await sendPasswordResetEmail(auth, email, { url: location.origin + location.pathname.replace(/[^/]*$/, "") + "login?email=" + encodeURIComponent(email) });
   } catch (e){
     // Не розкриваємо, чи існує акаунт: user-not-found показуємо як успіх
     if (e.code !== "auth/user-not-found"){
