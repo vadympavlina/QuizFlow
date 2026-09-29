@@ -26,6 +26,9 @@
       ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
       "ai": {
         ".read": true
+      },
+      "status": {
+        ".read": true
       }
     },
     "roles": {

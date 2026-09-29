@@ -970,3 +970,31 @@ textarea.fi{height:auto;padding:11px 14px;line-height:1.5}
 .lk-chips button:hover{background:#2D5BE3;border-color:#2D5BE3;color:#fff}
 /* QR: кнопки з іконками в один рядок */
 #m-qr .lk-qr-acts .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+
+/* ─── Оголошення й техроботи (admin/announcements) ─── */
+#qf-anns{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.qf-ann{--c:#1D4ED8;--bg:#EFF6FF;--ln:#BFDBFE;display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:var(--bg);border:1px solid var(--ln);color:#0B1437;font-family:"Manrope",system-ui,sans-serif;text-align:left}
+.qf-ann.success{--c:#15803D;--bg:#F0FDF4;--ln:#BBF7D0}
+.qf-ann.warning{--c:#B45309;--bg:#FFFBEB;--ln:#FDE68A}
+.qf-ann.critical{--c:#B91C1C;--bg:#FEF2F2;--ln:#FECACA}
+.qf-ann-ic{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;background:#fff;color:var(--c);box-shadow:inset 0 0 0 1px var(--ln)}
+.qf-ann-ic svg{width:17px;height:17px}
+.qf-ann-b{flex:1;min-width:0;padding-top:1px}
+.qf-ann-t{font-size:14px;font-weight:800;color:#0B1437;line-height:1.35}
+.qf-ann-x{font-size:13.5px;color:#34405E;line-height:1.5;margin-top:2px;white-space:pre-line;overflow-wrap:anywhere}
+.qf-ann-a{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:13px;font-weight:700;color:var(--c);text-decoration:none}
+.qf-ann-a:hover{text-decoration:underline}
+.qf-ann-close{width:28px;height:28px;border-radius:8px;border:0;background:transparent;color:#5B6A8F;display:grid;place-items:center;cursor:pointer;flex:0 0 auto}
+.qf-ann-close:hover{background:rgba(11,20,55,.06);color:#0B1437}
+.qf-ann-close svg{width:14px;height:14px}
+.qf-ann{animation:qfAnnIn .25s ease}
+.qf-ann.out{opacity:0;transform:translateY(-4px);transition:opacity .18s,transform .18s}
+@keyframes qfAnnIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.qf-ann-a svg{width:13px;height:13px}
+#qf-maint{position:fixed;inset:0;z-index:9990;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(900px 500px at 100% 0%,rgba(45,91,227,.12),transparent 60%),#F0F3FA;font-family:"Manrope",system-ui,sans-serif}
+.qf-maint-card{max-width:440px;width:100%;background:#fff;border:1px solid #E3E8F2;border-radius:24px;padding:36px 30px;text-align:center;box-shadow:0 24px 64px rgba(13,19,64,.12)}
+.qf-maint-ic{width:64px;height:64px;border-radius:18px;margin:0 auto 18px;display:grid;place-items:center;background:#FEF3C7;color:#B45309}
+.qf-maint-ic svg{width:30px;height:30px}
+.qf-maint-card h2{font-size:22px;font-weight:800;color:#0B1437;margin:0 0 8px}
+.qf-maint-card p{font-size:14.5px;color:#5B6A8F;line-height:1.6;margin:0 0 22px;white-space:pre-line}
+.qf-maint-card button{height:46px;padding:0 22px;border-radius:12px;border:0;background:linear-gradient(135deg,#2d5be3,#1a3ab8);color:#fff;font:700 14.5px "Manrope",sans-serif;cursor:pointer}

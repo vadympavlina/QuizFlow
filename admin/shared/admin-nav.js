@@ -32,6 +32,7 @@
     teachers: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.6 2-4.8 4.5-5"/>',
     roles: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>',
     news: '<rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 9h6M7 13h6M7 17h4"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/>',
+    ann: '<path d="M3 11v2a1 1 0 001 1h2l5 4V6L6 10H4a1 1 0 00-1 1z"/><path d="M15.5 8.5a5 5 0 010 7"/><path d="M18.5 5.5a9 9 0 010 13"/>',
     menu: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/><path d="M13 9h4M13 13h4"/>',
     ai: '<path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/>',
     telegram: '<path d="M21.5 4.5L2.5 11.8l6.2 2.1 2.3 6.6 3.5-4.3 5 3.7z"/><path d="M8.7 13.9l9.8-7.4"/>',
@@ -55,6 +56,7 @@
       { id: "roles", label: "Ролі", href: "roles", icon: "roles" },
     ] },
     { label: "Контент", items: [
+      { id: "announcements", label: "Оголошення", href: "announcements", icon: "ann" },
       { id: "news", label: "Новини", href: "news", icon: "news" },
       { id: "navigation", label: "Навігація", href: "navigation", icon: "menu" },
     ] },

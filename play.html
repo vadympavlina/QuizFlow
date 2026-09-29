@@ -124,8 +124,10 @@ async function checkCode(c) {
   if (!isValidCode(c)) return fail(codeInp, $("err-code"), "Код складається з 8 цифр");
   checking = true; busy($("btn-code"), true, "Шукаємо гру…");
   try {
-    const [st, title, qCount, players] = await Promise.all(
-      ["status", "testTitle", "qCount", "players"].map(p => get(ref(db, `rooms/${c}/${p}`)).then(s => s.val())));
+    const [st, title, qCount, players, svc] = await Promise.all([
+      ...["status", "testTitle", "qCount", "players"].map(p => get(ref(db, `rooms/${c}/${p}`)).then(s => s.val())),
+      get(ref(db, "settings/status")).then(s => s.val()).catch(() => null)]);   // режим техробіт
+    if (svc?.gamesOff === true) return fail(codeInp, $("err-code"), svc.message || "Ігри тимчасово недоступні: тривають технічні роботи.");
     if (!st) return fail(codeInp, $("err-code"), "Гру з таким кодом не знайдено. Перевірте цифри.");
     if (st === "finished" || st === "leaderboard") return fail(codeInp, $("err-code"), "Ця гра вже завершилась.");
     // Старі кімнати без qCount — рахуємо питання як раніше

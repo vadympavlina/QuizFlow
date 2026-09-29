@@ -1539,8 +1539,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   showScreen("loadingScreen");
 
   try {
-    // Посилання й тест — паралельно (раніше по черзі)
+    // Режим техробіт (admin/announcements). Якщо правила ще не дозволяють читати — просто пропускаємо
+    const statusP = get(ref(db, "settings/status")).then(s => s.val()).catch(() => null);
     linkData = await getLink(linkId);
+    const svc = await statusP;
+    if (svc?.testsOff === true) return showError(svc.message || "Тривають технічні роботи. Спробуйте трохи пізніше.", { icon: "clock", title: "Технічні роботи", retry: () => location.reload() });
     if (!linkData)                               return showError("Посилання не знайдено.");
     const _fmtWhen = t => new Date(t).toLocaleString("uk-UA", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
     const _max = Number(linkData.maxAttempts) > 0 ? Number(linkData.maxAttempts) : 0;   // 0 — без ліміту

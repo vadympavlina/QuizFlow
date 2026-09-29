@@ -234,6 +234,12 @@ const user = await requireTeacher();
 const uid = user.uid;
 $("join-hint").textContent = pageUrl("../play").replace(/^https?:\/\//, "");
 
+// Режим техробіт: нові ігри не створюємо (адміністраторів не обмежуємо)
+{
+  const [svc, role] = await Promise.all([get(ref(db, "settings/status")).then(s => s.val()).catch(() => null), get(ref(db, `users/${uid}/role`)).then(s => s.val()).catch(() => null)]);
+  if (svc?.gamesOff === true && role !== "admin") fatal(svc.message || "Ігри тимчасово недоступні: тривають технічні роботи.");
+}
+
 const { testId } = readParams("testId");
 if (!testId) fatal("Не вказано тест для гри");
 
