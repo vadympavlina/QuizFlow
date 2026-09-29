@@ -126,9 +126,9 @@ function checkMessage(b) {
   return { subject, body, button };
 }
 
-async function preview({ body }) {
+async function preview({ env, body }) {
   const m = checkMessage(body);
-  return { ok: true, html: broadcastEmail({ ...m, name: "Олена", unsubUrl: "#" }).html };
+  return { ok: true, html: broadcastEmail({ ...m, name: "Олена", unsubUrl: "#", site: env.SITE_URL }).html };
 }
 
 async function invite({ env, admin, body }) {
@@ -145,7 +145,7 @@ async function invite({ env, admin, body }) {
     link: `${env.SITE_URL}/register?token=${token}`,
     name: String(body?.name || "").trim().slice(0, 80),
     message: String(body?.message || "").trim().slice(0, 600),
-    fromName, expiresAt: inv.expiresAt,
+    fromName, expiresAt: inv.expiresAt, site: env.SITE_URL,
   });
   const res = await resend(env, "/emails", { from: env.MAIL_FROM, to: [to], subject: mail.subject, html: mail.html, text: mail.text, ...(admin.me.email ? { reply_to: admin.me.email } : {}) });
   return { ok: true, id: res.id || null, to };
@@ -179,7 +179,7 @@ async function broadcast({ env, admin, body, url }) {
     const chunk = list.slice(i, i + BATCH);
     const payload = await Promise.all(chunk.map(async r => {
       const un = await unsubUrl(url.origin, env, r.uid);
-      const mail = broadcastEmail({ ...m, name: r.name, unsubUrl: un });
+      const mail = broadcastEmail({ ...m, name: r.name, unsubUrl: un, site: env.SITE_URL });
       return {
         from: env.MAIL_FROM, to: [r.email], subject: mail.subject, html: mail.html, text: mail.text,
         headers: { "List-Unsubscribe": `<${un}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
@@ -195,39 +195,43 @@ async function broadcast({ env, admin, body, url }) {
 async function unsubscribe(request, env, url) {
   const uid = url.searchParams.get("u") || "", s = url.searchParams.get("s") || "";
   const valid = uid && s && env.UNSUB_SECRET && safeEq(await sign(env, uid), s);
-  if (!valid) return page("Посилання недійсне", "Можливо, його скопійовано не повністю. Відкрийте посилання з листа ще раз.", 400);
-  if (!env.MAIL_KV) return page("Сервіс недоступний", "Спробуйте пізніше.", 503);
+  if (!valid) return page(env, "Посилання недійсне", "Можливо, його скопійовано не повністю. Відкрийте посилання з листа ще раз.", 400);
+  if (!env.MAIL_KV) return page(env, "Сервіс недоступний", "Спробуйте пізніше.", 503);
   const key = `unsub:${uid}`;
   if (request.method === "POST") {
     const form = await request.text();
     // Поштові клієнти для кнопки «Відписатися» шлють «List-Unsubscribe=One-Click»
     if (/(^|&)action=resubscribe(&|$)/.test(form)) {
       await env.MAIL_KV.delete(key);
-      return page("Підписку повернуто", "Ви знову отримуватимете розсилки QuizFlow.", 200, url, false);
+      return page(env, "Підписку повернуто", "Ви знову отримуватимете розсилки QuizFlow.", 200, url, false);
     }
     await env.MAIL_KV.put(key, String(Date.now()));
-    return page("Ви відписалися", "Розсилки з новинами QuizFlow більше не надходитимуть. Службові листи (запрошення, відновлення пароля) приходитимуть як і раніше.", 200, url, true);
+    return page(env, "Ви відписалися", "Розсилки з новинами QuizFlow більше не надходитимуть. Службові листи (запрошення, відновлення пароля) приходитимуть як і раніше.", 200, url, true);
   }
   // GET нічого не змінює: посилання в листах відкривають антивіруси й поштові сканери
   const already = !!(await env.MAIL_KV.get(key));
   return already
-    ? page("Ви вже відписані", "Розсилки QuizFlow вам не надходять.", 200, url, true)
-    : page("Відписатися від розсилок?", "Ви більше не отримуватимете листів із новинами та оголошеннями QuizFlow. Службові листи (запрошення, відновлення пароля) залишаться.", 200, url, null);
+    ? page(env, "Ви вже відписані", "Розсилки QuizFlow вам не надходять.", 200, url, true)
+    : page(env, "Відписатися від розсилок?", "Ви більше не отримуватимете листів із новинами та оголошеннями QuizFlow. Службові листи (запрошення, відновлення пароля) залишаться.", 200, url, null);
 }
 
 // state: null — кнопка «Відписатися», true — відписаний (кнопка повернути), false — підписаний
-function page(title, text, status, url, state) {
+function page(env, title, text, status, url, state) {
   const action = url ? esc(url.pathname + url.search) : "";
   const btn = state === null ? `<form method="post" action="${action}"><button>Відписатися</button></form>`
     : state === true ? `<form method="post" action="${action}"><input type="hidden" name="action" value="resubscribe"><button class="ghost">Повернути підписку</button></form>` : "";
-  return new Response(`<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)} — QuizFlow</title>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
-<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#F1F4FA;font-family:Manrope,system-ui,sans-serif;color:#334155;padding:16px;box-sizing:border-box}
-.c{background:#fff;border:1px solid #E2E8F0;border-radius:18px;padding:32px;max-width:440px;width:100%;box-sizing:border-box}
-.l{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;color:#0F172A;margin-bottom:22px}.l i{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#4F46E5,#7C3AED)}
-h1{font-size:21px;color:#0F172A;margin:0 0 10px;letter-spacing:-.3px}p{margin:0 0 22px;line-height:1.6;font-size:14.5px}
-button{font:800 14px Manrope,system-ui,sans-serif;padding:12px 20px;border-radius:12px;border:0;background:#4F46E5;color:#fff;cursor:pointer}
-button.ghost{background:#fff;color:#0F172A;border:1.5px solid #E2E8F0}</style></head>
-<body><div class="c"><div class="l"><i></i>QuizFlow</div><h1>${esc(title)}</h1><p>${esc(text)}</p>${btn}</div></body></html>`,
+  const site = String(env.SITE_URL || "https://quizflow.space").replace(/\/+$/, "");
+  return new Response(`<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${esc(title)} — QuizFlow</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#fff;font-family:Manrope,system-ui,sans-serif;color:#2B3552}
+.c{max-width:560px;margin:0 auto;padding:56px 24px}
+.l{display:block;margin-bottom:40px}.l img{display:block;width:125px;height:36px}
+h1{font-size:30px;line-height:1.2;color:#0D1340;margin:0 0 18px;letter-spacing:-.6px}p{margin:0 0 28px;line-height:1.7;font-size:16px}
+button{font:800 15px Manrope,system-ui,sans-serif;padding:14px 26px;border-radius:10px;border:0;background:#2D5BE3;color:#fff;cursor:pointer}
+button:hover{background:#2447C9}button.ghost{background:#fff;color:#0D1340;box-shadow:inset 0 0 0 1.5px #E6EAF3}button.ghost:hover{box-shadow:inset 0 0 0 1.5px #C9D1E4}
+button:focus-visible{outline:3px solid rgba(45,91,227,.35);outline-offset:2px}
+.s{margin-top:40px;padding-top:18px;border-top:1px solid #E6EAF3;font-size:12.5px;color:#8A94B0}.s a{color:#8A94B0}
+@media (max-width:600px){.c{padding:40px 20px}h1{font-size:25px}button{width:100%}}</style></head>
+<body><main class="c"><a class="l" href="${esc(site)}"><img src="${esc(site)}/assets/email/logo-light.png" alt="QuizFlow"></a><h1>${esc(title)}</h1><p>${esc(text)}</p>${btn}<div class="s">QuizFlow · <a href="${esc(site)}">${esc(site.replace(/^https?:\/\//, ""))}</a></div></main></body></html>`,
     { status, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
 }

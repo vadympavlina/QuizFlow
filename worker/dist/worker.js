@@ -59,9 +59,10 @@ async function requireAdmin(request, env) {
 // ../worker/src/mail.js
 var esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 var FONT = "Manrope,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
-var C = { ink: "#0F172A", text: "#334155", muted: "#64748B", line: "#E2E8F0", bg: "#F1F4FA", brand: "#4F46E5", brand2: "#7C3AED" };
+var C = { ink: "#0D1340", text: "#2B3552", muted: "#6B7593", faint: "#8A94B0", line: "#E6EAF3", brand: "#2D5BE3" };
+var DEFAULT_SITE = "https://quizflow.space";
 function inline(s) {
-  return esc(s).replace(/\*\*(.+?)\*\*/g, `<strong style="color:${C.ink}">$1</strong>`).replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)"'])/g, `<a href="$1" style="color:${C.brand};font-weight:700;text-decoration:none">$1</a>`);
+  return esc(s).replace(/\*\*(.+?)\*\*/g, `<strong style="color:${C.ink}">$1</strong>`).replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)"'])/g, `<a href="$1" style="color:${C.brand};text-decoration:underline">$1</a>`);
 }
 function renderBody(text) {
   const blocks = String(text || "").replace(/\r/g, "").split(/\n{2,}/).map((b) => b.trim()).filter(Boolean);
@@ -69,18 +70,18 @@ function renderBody(text) {
   for (const b of blocks) {
     let para = [], list = [];
     const flushP = () => {
-      if (para.length) out.push(`<p style="margin:0 0 16px">${para.map(inline).join("<br>")}</p>`);
+      if (para.length) out.push(`<p style="margin:0 0 18px">${para.map(inline).join("<br>")}</p>`);
       para = [];
     };
     const flushL = () => {
-      if (list.length) out.push(`<ul style="margin:0 0 16px;padding-left:20px">${list.map((l) => `<li style="margin:0 0 6px">${inline(l)}</li>`).join("")}</ul>`);
+      if (list.length) out.push(`<ul style="margin:0 0 18px;padding-left:22px">${list.map((l) => `<li style="margin:0 0 8px">${inline(l)}</li>`).join("")}</ul>`);
       list = [];
     };
     for (const l of b.split("\n")) {
       if (/^##\s+/.test(l)) {
         flushP();
         flushL();
-        out.push(`<h2 style="margin:24px 0 10px;font-size:17px;line-height:1.35;color:${C.ink};font-weight:800">${inline(l.replace(/^##\s+/, ""))}</h2>`);
+        out.push(`<h2 style="margin:28px 0 10px;font:800 19px/1.35 ${FONT};color:${C.ink};letter-spacing:-.2px">${inline(l.replace(/^##\s+/, ""))}</h2>`);
       } else if (/^\s*[-•]\s+/.test(l)) {
         flushP();
         list.push(l.replace(/^\s*[-•]\s+/, ""));
@@ -97,79 +98,97 @@ function renderBody(text) {
 function plainBody(text) {
   return String(text || "").replace(/\r/g, "").replace(/\*\*(.+?)\*\*/g, "$1").replace(/^##\s+/gm, "").trim();
 }
-function layout({ preheader = "", title = "", bodyHtml = "", button = null, footer = "" }) {
-  const btn = button?.url ? `
-    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 24px"><tr><td style="border-radius:12px;background:${C.brand}">
-      <a href="${esc(button.url)}" style="display:inline-block;padding:13px 24px;font:800 15px ${FONT};color:#ffffff;text-decoration:none;border-radius:12px">${esc(button.label || "\u0412\u0456\u0434\u043A\u0440\u0438\u0442\u0438")}</a>
-    </td></tr></table>` : "";
+function button({ label, url }) {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" class="qf-btn" style="margin:8px 0 6px"><tr><td style="border-radius:10px;background:${C.brand}">
+      <a href="${esc(url)}" style="display:inline-block;padding:14px 28px;font:800 15px ${FONT};color:#ffffff;text-decoration:none;border-radius:10px">${esc(label || "\u0412\u0456\u0434\u043A\u0440\u0438\u0442\u0438")}</a>
+    </td></tr></table>`;
+}
+function layout({ site = DEFAULT_SITE, preheader = "", title = "", bodyHtml = "", button: btn = null, after = "", footer = "" }) {
+  const logo = `${String(site || DEFAULT_SITE).replace(/\/+$/, "")}/assets/email/logo-light.png`;
   return `<!doctype html>
 <html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="light"><title>${esc(title || "QuizFlow")}</title></head>
-<body style="margin:0;padding:0;background:${C.bg}">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(preheader)}</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.bg}"><tr><td align="center" style="padding:32px 16px">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px">
-    <tr><td style="padding:0 4px 18px">
-      <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-        <td style="width:30px;height:30px;border-radius:9px;background:${C.brand};background-image:linear-gradient(135deg,${C.brand},${C.brand2})"></td>
-        <td style="padding-left:10px;font:800 18px ${FONT};color:${C.ink};letter-spacing:-.2px">QuizFlow</td>
-      </tr></table>
-    </td></tr>
-    <tr><td style="background:#ffffff;border:1px solid ${C.line};border-radius:18px;padding:32px 32px 12px;font:400 15px/1.65 ${FONT};color:${C.text}">
-      ${title ? `<h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;color:${C.ink};font-weight:800;letter-spacing:-.3px">${esc(title)}</h1>` : ""}
-      ${bodyHtml}
-      ${btn}
-    </td></tr>
-    <tr><td style="padding:18px 8px 0;font:400 12px/1.6 ${FONT};color:${C.muted};text-align:center">
-      ${footer}
-    </td></tr>
-  </table>
+<meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light">
+<title>${esc(title || "QuizFlow")}</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  @media (max-width:600px){ .qf-pad{padding-left:20px!important;padding-right:20px!important} .qf-h1{font-size:25px!important} .qf-btn, .qf-btn a{display:block!important;width:100%!important;text-align:center!important;box-sizing:border-box} }
+</style></head>
+<body style="margin:0;padding:0;background:#ffffff">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all">${esc(preheader)}&#8199;&#65279;&#847;&#8199;&#65279;&#847;&#8199;&#65279;&#847;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff"><tr><td align="center" style="padding:40px 12px 36px">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px"><tr><td class="qf-pad" style="padding:0 24px;font:400 16px/1.7 ${FONT};color:${C.text}">
+    <a href="${esc(site)}" style="text-decoration:none"><img src="${esc(logo)}" width="125" height="36" alt="QuizFlow" style="display:block;border:0;margin:0 0 36px;font:800 20px ${FONT};color:${C.ink}"></a>
+    ${title ? `<h1 class="qf-h1" style="margin:0 0 22px;font:800 30px/1.2 ${FONT};color:${C.ink};letter-spacing:-.6px">${esc(title)}</h1>` : ""}
+    ${bodyHtml}
+    ${btn?.url ? button(btn) : ""}
+    ${after}
+    <p style="margin:32px 0 0">\u0417 \u043F\u043E\u0432\u0430\u0433\u043E\u044E,<br><strong style="color:${C.ink}">\u041A\u043E\u043C\u0430\u043D\u0434\u0430 QuizFlow</strong></p>
+    <div style="height:1px;line-height:1px;font-size:0;background:${C.line};margin:36px 0 18px">&nbsp;</div>
+    <p style="margin:0;font-size:12.5px;line-height:1.6;color:${C.faint}">${footer}</p>
+  </td></tr></table>
 </td></tr></table>
 </body></html>`;
 }
-function inviteEmail({ link, name, fromName, expiresAt, message }) {
+var FEATURES = [
+  ["\u0422\u0435\u0441\u0442\u0438 \u0439 \u043E\u043F\u0438\u0442\u0443\u0432\u0430\u043D\u043D\u044F", "\u043A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440 \u0456\u0437 7 \u0442\u0438\u043F\u0430\u043C\u0438 \u043F\u0438\u0442\u0430\u043D\u044C, AI-\u043F\u0435\u0440\u0435\u0432\u0456\u0440\u043A\u0430 \u0440\u043E\u0437\u0433\u043E\u0440\u043D\u0443\u0442\u0438\u0445 \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u0435\u0439"],
+  ["\u0416\u0443\u0440\u043D\u0430\u043B \u0456 \u0430\u043D\u0430\u043B\u0456\u0442\u0438\u043A\u0430", "\u043E\u0446\u0456\u043D\u043A\u0438 \u0437\u0430 12-\u0431\u0430\u043B\u044C\u043D\u043E\u044E \u0448\u043A\u0430\u043B\u043E\u044E, \u0437\u0432\u0456\u0442\u0438 \u043F\u043E \u0433\u0440\u0443\u043F\u0430\u0445 \u0456 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0430\u0445"],
+  ["\u0406\u0433\u0440\u0438 \u043D\u0430\u0436\u0438\u0432\u043E", "\u0432\u0456\u043A\u0442\u043E\u0440\u0438\u043D\u0438 \u043D\u0430 \u0443\u0440\u043E\u0446\u0456 \u0437 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0456\u0432 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0456\u0432"]
+];
+function inviteEmail({ link, name, fromName, expiresAt, message, site }) {
   const until = expiresAt ? new Date(expiresAt).toLocaleDateString("uk-UA", { day: "numeric", month: "long", timeZone: "Europe/Kyiv" }) : "";
   const hello = name ? `\u0412\u0456\u0442\u0430\u0454\u043C\u043E, ${name}!` : "\u0412\u0456\u0442\u0430\u0454\u043C\u043E!";
   const lead = `${fromName ? `${fromName} \u0437\u0430\u043F\u0440\u043E\u0448\u0443\u0454 \u0432\u0430\u0441` : "\u0412\u0430\u0441 \u0437\u0430\u043F\u0440\u043E\u0448\u0435\u043D\u043E"} \u043F\u0440\u0438\u0454\u0434\u043D\u0430\u0442\u0438\u0441\u044F \u0434\u043E QuizFlow \u2014 \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u0438 \u0434\u043B\u044F \u0442\u0435\u0441\u0442\u0456\u0432, \u0436\u0443\u0440\u043D\u0430\u043B\u0443 \u043E\u0446\u0456\u043D\u043E\u043A \u0442\u0430 \u0456\u0433\u043E\u0440 \u043D\u0430\u0436\u0438\u0432\u043E \u0437\u0456 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0430\u043C\u0438.`;
+  const note = `\u041F\u043E\u0441\u0438\u043B\u0430\u043D\u043D\u044F \u043E\u0434\u043D\u043E\u0440\u0430\u0437\u043E\u0432\u0435${until ? ` \u0456 \u0434\u0456\u0454 \u0434\u043E ${until}` : ""}.`;
   const bodyHtml = `
-    <p style="margin:0 0 16px">${esc(lead)}</p>
-    ${message ? `<p style="margin:0 0 16px;padding:12px 14px;border-left:3px solid ${C.brand};background:#F5F3FF;border-radius:0 10px 10px 0;color:${C.ink}">${esc(message).replace(/\n/g, "<br>")}</p>` : ""}
-    <p style="margin:0 0 20px">\u0429\u043E\u0431 \u0441\u0442\u0432\u043E\u0440\u0438\u0442\u0438 \u0430\u043A\u0430\u0443\u043D\u0442, \u043F\u0435\u0440\u0435\u0439\u0434\u0456\u0442\u044C \u0437\u0430 \u043F\u043E\u0441\u0438\u043B\u0430\u043D\u043D\u044F\u043C \u0456 \u0437\u0430\u043F\u043E\u0432\u043D\u0456\u0442\u044C \u043A\u043E\u0440\u043E\u0442\u043A\u0443 \u0444\u043E\u0440\u043C\u0443.</p>`;
-  const tail = `\u041F\u043E\u0441\u0438\u043B\u0430\u043D\u043D\u044F \u043E\u0434\u043D\u043E\u0440\u0430\u0437\u043E\u0432\u0435${until ? ` \u0456 \u0434\u0456\u0454 \u0434\u043E ${esc(until)}` : ""}. \u042F\u043A\u0449\u043E \u043A\u043D\u043E\u043F\u043A\u0430 \u043D\u0435 \u043F\u0440\u0430\u0446\u044E\u0454, \u0441\u043A\u043E\u043F\u0456\u044E\u0439\u0442\u0435 \u0430\u0434\u0440\u0435\u0441\u0443 \u0432 \u0431\u0440\u0430\u0443\u0437\u0435\u0440:<br><a href="${esc(link)}" style="color:${C.brand};word-break:break-all">${esc(link)}</a>`;
+    <p style="margin:0 0 18px">${esc(hello)}</p>
+    <p style="margin:0 0 18px">${esc(lead)}</p>
+    ${message ? `<p style="margin:0 0 18px;padding:2px 0 2px 16px;border-left:3px solid ${C.brand};color:${C.ink}">${esc(message).replace(/\n/g, "<br>")}</p>` : ""}
+    <p style="margin:0 0 10px">\u0429\u043E \u0432\u0430\u0441 \u0447\u0435\u043A\u0430\u0454:</p>
+    <ul style="margin:0 0 26px;padding-left:22px">${FEATURES.map(([t, d]) => `<li style="margin:0 0 8px"><strong style="color:${C.ink}">${t}</strong> \u2014 ${d}</li>`).join("")}</ul>`;
   return {
-    subject: "\u0417\u0430\u043F\u0440\u043E\u0448\u0435\u043D\u043D\u044F \u0434\u043E QuizFlow",
+    subject: "\u0412\u0430\u0441 \u0437\u0430\u043F\u0440\u043E\u0448\u0435\u043D\u043E \u0434\u043E QuizFlow",
     html: layout({
-      preheader: "\u0421\u0442\u0432\u043E\u0440\u0456\u0442\u044C \u0430\u043A\u0430\u0443\u043D\u0442 \u0432\u0438\u043A\u043B\u0430\u0434\u0430\u0447\u0430 \u0432 QuizFlow",
-      title: hello,
+      site,
+      preheader: "\u0421\u0442\u0432\u043E\u0440\u0456\u0442\u044C \u0430\u043A\u0430\u0443\u043D\u0442 \u0432\u0438\u043A\u043B\u0430\u0434\u0430\u0447\u0430 \u2014 \u0446\u0435 \u0437\u0430\u0439\u043C\u0435 \u0445\u0432\u0438\u043B\u0438\u043D\u0443",
+      title: "\u0412\u0430\u0441 \u0437\u0430\u043F\u0440\u043E\u0448\u0435\u043D\u043E \u0434\u043E QuizFlow",
       bodyHtml,
       button: { label: "\u0421\u0442\u0432\u043E\u0440\u0438\u0442\u0438 \u0430\u043A\u0430\u0443\u043D\u0442", url: link },
-      footer: `${tail}<br><br>\u0412\u0438 \u043E\u0442\u0440\u0438\u043C\u0430\u043B\u0438 \u0446\u0435\u0439 \u043B\u0438\u0441\u0442, \u0431\u043E \u0430\u0434\u043C\u0456\u043D\u0456\u0441\u0442\u0440\u0430\u0442\u043E\u0440 QuizFlow \u043D\u0430\u0434\u0456\u0441\u043B\u0430\u0432 \u0432\u0430\u043C \u0437\u0430\u043F\u0440\u043E\u0448\u0435\u043D\u043D\u044F. \u042F\u043A\u0449\u043E \u0432\u0438 \u0439\u043E\u0433\u043E \u043D\u0435 \u0447\u0435\u043A\u0430\u043B\u0438 \u2014 \u043F\u0440\u043E\u0441\u0442\u043E \u043F\u0440\u043E\u0456\u0433\u043D\u043E\u0440\u0443\u0439\u0442\u0435.`
+      after: `<p style="margin:18px 0 0;font-size:14px;line-height:1.6;color:${C.muted}">${esc(note)} \u042F\u043A\u0449\u043E \u043A\u043D\u043E\u043F\u043A\u0430 \u043D\u0435 \u043F\u0440\u0430\u0446\u044E\u0454, \u0441\u043A\u043E\u043F\u0456\u044E\u0439\u0442\u0435 \u0430\u0434\u0440\u0435\u0441\u0443 \u0432 \u0431\u0440\u0430\u0443\u0437\u0435\u0440:<br><a href="${esc(link)}" style="color:${C.brand};word-break:break-all">${esc(link)}</a></p>`,
+      footer: "\u0412\u0438 \u043E\u0442\u0440\u0438\u043C\u0430\u043B\u0438 \u0446\u0435\u0439 \u043B\u0438\u0441\u0442, \u0431\u043E \u0430\u0434\u043C\u0456\u043D\u0456\u0441\u0442\u0440\u0430\u0442\u043E\u0440 QuizFlow \u043D\u0430\u0434\u0456\u0441\u043B\u0430\u0432 \u0432\u0430\u043C \u0437\u0430\u043F\u0440\u043E\u0448\u0435\u043D\u043D\u044F. \u042F\u043A\u0449\u043E \u0432\u0438 \u0439\u043E\u0433\u043E \u043D\u0435 \u0447\u0435\u043A\u0430\u043B\u0438 \u2014 \u043F\u0440\u043E\u0441\u0442\u043E \u043F\u0440\u043E\u0456\u0433\u043D\u043E\u0440\u0443\u0439\u0442\u0435."
     }),
     text: `${hello}
 
 ${lead}
 
-${message ? message + "\n\n" : ""}\u0421\u0442\u0432\u043E\u0440\u0438\u0442\u0438 \u0430\u043A\u0430\u0443\u043D\u0442: ${link}
+${message ? message + "\n\n" : ""}\u0429\u043E \u0432\u0430\u0441 \u0447\u0435\u043A\u0430\u0454:
+${FEATURES.map(([t, d]) => `- ${t} \u2014 ${d}`).join("\n")}
 
-\u041F\u043E\u0441\u0438\u043B\u0430\u043D\u043D\u044F \u043E\u0434\u043D\u043E\u0440\u0430\u0437\u043E\u0432\u0435${until ? ` \u0456 \u0434\u0456\u0454 \u0434\u043E ${until}` : ""}.
+\u0421\u0442\u0432\u043E\u0440\u0438\u0442\u0438 \u0430\u043A\u0430\u0443\u043D\u0442: ${link}
 
-QuizFlow`
+${note}
+
+\u0417 \u043F\u043E\u0432\u0430\u0433\u043E\u044E,
+\u041A\u043E\u043C\u0430\u043D\u0434\u0430 QuizFlow`
   };
 }
-function broadcastEmail({ subject, body, button, name, unsubUrl: unsubUrl2 }) {
+function broadcastEmail({ subject, body, button: btn, name, unsubUrl: unsubUrl2, site }) {
   const hello = name ? `\u0412\u0456\u0442\u0430\u0454\u043C\u043E, ${name}!` : "";
   return {
     subject,
     html: layout({
+      site,
       preheader: plainBody(body).slice(0, 120),
       title: subject,
-      bodyHtml: (hello ? `<p style="margin:0 0 16px">${esc(hello)}</p>` : "") + renderBody(body),
-      button,
-      footer: `\u0412\u0438 \u043E\u0442\u0440\u0438\u043C\u0430\u043B\u0438 \u0446\u0435\u0439 \u043B\u0438\u0441\u0442 \u044F\u043A \u043A\u043E\u0440\u0438\u0441\u0442\u0443\u0432\u0430\u0447 QuizFlow.${unsubUrl2 ? `<br><a href="${esc(unsubUrl2)}" style="color:${C.muted};text-decoration:underline">\u0412\u0456\u0434\u043F\u0438\u0441\u0430\u0442\u0438\u0441\u044F \u0432\u0456\u0434 \u0440\u043E\u0437\u0441\u0438\u043B\u043E\u043A</a>` : ""}`
+      bodyHtml: (hello ? `<p style="margin:0 0 18px">${esc(hello)}</p>` : "") + renderBody(body),
+      button: btn,
+      footer: `\u0412\u0438 \u043E\u0442\u0440\u0438\u043C\u0430\u043B\u0438 \u0446\u0435\u0439 \u043B\u0438\u0441\u0442 \u044F\u043A \u043A\u043E\u0440\u0438\u0441\u0442\u0443\u0432\u0430\u0447 QuizFlow.${unsubUrl2 ? ` <a href="${esc(unsubUrl2)}" style="color:${C.faint};text-decoration:underline">\u0412\u0456\u0434\u043F\u0438\u0441\u0430\u0442\u0438\u0441\u044F \u0432\u0456\u0434 \u0440\u043E\u0437\u0441\u0438\u043B\u043E\u043A</a>` : ""}`
     }),
-    text: `${hello ? hello + "\n\n" : ""}${plainBody(body)}${button?.url ? `
+    text: `${hello ? hello + "\n\n" : ""}${plainBody(body)}${btn?.url ? `
 
-${button.label || "\u0412\u0456\u0434\u043A\u0440\u0438\u0442\u0438"}: ${button.url}` : ""}${unsubUrl2 ? `
+${btn.label || "\u0412\u0456\u0434\u043A\u0440\u0438\u0442\u0438"}: ${btn.url}` : ""}
+
+\u0417 \u043F\u043E\u0432\u0430\u0433\u043E\u044E,
+\u041A\u043E\u043C\u0430\u043D\u0434\u0430 QuizFlow${unsubUrl2 ? `
 
 \u2014
 \u0412\u0456\u0434\u043F\u0438\u0441\u0430\u0442\u0438\u0441\u044F \u0432\u0456\u0434 \u0440\u043E\u0437\u0441\u0438\u043B\u043E\u043A: ${unsubUrl2}` : ""}`
@@ -274,17 +293,17 @@ function checkMessage(b) {
   if (subject.length > 150) throw new HttpError(400, "\u0422\u0435\u043C\u0430 \u0437\u0430\u0434\u043E\u0432\u0433\u0430 (\u0434\u043E 150 \u0441\u0438\u043C\u0432\u043E\u043B\u0456\u0432)");
   if (!body) throw new HttpError(400, "\u041B\u0438\u0441\u0442 \u043F\u043E\u0440\u043E\u0436\u043D\u0456\u0439");
   if (body.length > 2e4) throw new HttpError(400, "\u0422\u0435\u043A\u0441\u0442 \u0437\u0430\u0434\u043E\u0432\u0433\u0438\u0439 (\u0434\u043E 20 000 \u0441\u0438\u043C\u0432\u043E\u043B\u0456\u0432)");
-  let button = null;
+  let button2 = null;
   if (b?.button?.url) {
     const u = String(b.button.url).trim();
     if (!/^https:\/\/[^\s]+$/.test(u)) throw new HttpError(400, "\u041F\u043E\u0441\u0438\u043B\u0430\u043D\u043D\u044F \u043A\u043D\u043E\u043F\u043A\u0438 \u043C\u0430\u0454 \u043F\u043E\u0447\u0438\u043D\u0430\u0442\u0438\u0441\u044F \u0437 https://");
-    button = { url: u, label: String(b.button.label || "\u0412\u0456\u0434\u043A\u0440\u0438\u0442\u0438").trim().slice(0, 40) || "\u0412\u0456\u0434\u043A\u0440\u0438\u0442\u0438" };
+    button2 = { url: u, label: String(b.button.label || "\u0412\u0456\u0434\u043A\u0440\u0438\u0442\u0438").trim().slice(0, 40) || "\u0412\u0456\u0434\u043A\u0440\u0438\u0442\u0438" };
   }
-  return { subject, body, button };
+  return { subject, body, button: button2 };
 }
-async function preview({ body }) {
+async function preview({ env, body }) {
   const m = checkMessage(body);
-  return { ok: true, html: broadcastEmail({ ...m, name: "\u041E\u043B\u0435\u043D\u0430", unsubUrl: "#" }).html };
+  return { ok: true, html: broadcastEmail({ ...m, name: "\u041E\u043B\u0435\u043D\u0430", unsubUrl: "#", site: env.SITE_URL }).html };
 }
 async function invite({ env, admin, body }) {
   const to = String(body?.to || "").trim().toLowerCase();
@@ -301,7 +320,8 @@ async function invite({ env, admin, body }) {
     name: String(body?.name || "").trim().slice(0, 80),
     message: String(body?.message || "").trim().slice(0, 600),
     fromName,
-    expiresAt: inv.expiresAt
+    expiresAt: inv.expiresAt,
+    site: env.SITE_URL
   });
   const res = await resend(env, "/emails", { from: env.MAIL_FROM, to: [to], subject: mail.subject, html: mail.html, text: mail.text, ...admin.me.email ? { reply_to: admin.me.email } : {} });
   return { ok: true, id: res.id || null, to };
@@ -347,7 +367,7 @@ async function broadcast({ env, admin, body, url }) {
     const chunk = list.slice(i, i + BATCH);
     const payload = await Promise.all(chunk.map(async (r) => {
       const un = await unsubUrl(url.origin, env, r.uid);
-      const mail = broadcastEmail({ ...m, name: r.name, unsubUrl: un });
+      const mail = broadcastEmail({ ...m, name: r.name, unsubUrl: un, site: env.SITE_URL });
       return {
         from: env.MAIL_FROM,
         to: [r.email],
@@ -374,34 +394,38 @@ async function broadcast({ env, admin, body, url }) {
 async function unsubscribe(request, env, url) {
   const uid = url.searchParams.get("u") || "", s = url.searchParams.get("s") || "";
   const valid = uid && s && env.UNSUB_SECRET && safeEq(await sign(env, uid), s);
-  if (!valid) return page("\u041F\u043E\u0441\u0438\u043B\u0430\u043D\u043D\u044F \u043D\u0435\u0434\u0456\u0439\u0441\u043D\u0435", "\u041C\u043E\u0436\u043B\u0438\u0432\u043E, \u0439\u043E\u0433\u043E \u0441\u043A\u043E\u043F\u0456\u0439\u043E\u0432\u0430\u043D\u043E \u043D\u0435 \u043F\u043E\u0432\u043D\u0456\u0441\u0442\u044E. \u0412\u0456\u0434\u043A\u0440\u0438\u0439\u0442\u0435 \u043F\u043E\u0441\u0438\u043B\u0430\u043D\u043D\u044F \u0437 \u043B\u0438\u0441\u0442\u0430 \u0449\u0435 \u0440\u0430\u0437.", 400);
-  if (!env.MAIL_KV) return page("\u0421\u0435\u0440\u0432\u0456\u0441 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0438\u0439", "\u0421\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u043F\u0456\u0437\u043D\u0456\u0448\u0435.", 503);
+  if (!valid) return page(env, "\u041F\u043E\u0441\u0438\u043B\u0430\u043D\u043D\u044F \u043D\u0435\u0434\u0456\u0439\u0441\u043D\u0435", "\u041C\u043E\u0436\u043B\u0438\u0432\u043E, \u0439\u043E\u0433\u043E \u0441\u043A\u043E\u043F\u0456\u0439\u043E\u0432\u0430\u043D\u043E \u043D\u0435 \u043F\u043E\u0432\u043D\u0456\u0441\u0442\u044E. \u0412\u0456\u0434\u043A\u0440\u0438\u0439\u0442\u0435 \u043F\u043E\u0441\u0438\u043B\u0430\u043D\u043D\u044F \u0437 \u043B\u0438\u0441\u0442\u0430 \u0449\u0435 \u0440\u0430\u0437.", 400);
+  if (!env.MAIL_KV) return page(env, "\u0421\u0435\u0440\u0432\u0456\u0441 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0438\u0439", "\u0421\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u043F\u0456\u0437\u043D\u0456\u0448\u0435.", 503);
   const key = `unsub:${uid}`;
   if (request.method === "POST") {
     const form = await request.text();
     if (/(^|&)action=resubscribe(&|$)/.test(form)) {
       await env.MAIL_KV.delete(key);
-      return page("\u041F\u0456\u0434\u043F\u0438\u0441\u043A\u0443 \u043F\u043E\u0432\u0435\u0440\u043D\u0443\u0442\u043E", "\u0412\u0438 \u0437\u043D\u043E\u0432\u0443 \u043E\u0442\u0440\u0438\u043C\u0443\u0432\u0430\u0442\u0438\u043C\u0435\u0442\u0435 \u0440\u043E\u0437\u0441\u0438\u043B\u043A\u0438 QuizFlow.", 200, url, false);
+      return page(env, "\u041F\u0456\u0434\u043F\u0438\u0441\u043A\u0443 \u043F\u043E\u0432\u0435\u0440\u043D\u0443\u0442\u043E", "\u0412\u0438 \u0437\u043D\u043E\u0432\u0443 \u043E\u0442\u0440\u0438\u043C\u0443\u0432\u0430\u0442\u0438\u043C\u0435\u0442\u0435 \u0440\u043E\u0437\u0441\u0438\u043B\u043A\u0438 QuizFlow.", 200, url, false);
     }
     await env.MAIL_KV.put(key, String(Date.now()));
-    return page("\u0412\u0438 \u0432\u0456\u0434\u043F\u0438\u0441\u0430\u043B\u0438\u0441\u044F", "\u0420\u043E\u0437\u0441\u0438\u043B\u043A\u0438 \u0437 \u043D\u043E\u0432\u0438\u043D\u0430\u043C\u0438 QuizFlow \u0431\u0456\u043B\u044C\u0448\u0435 \u043D\u0435 \u043D\u0430\u0434\u0445\u043E\u0434\u0438\u0442\u0438\u043C\u0443\u0442\u044C. \u0421\u043B\u0443\u0436\u0431\u043E\u0432\u0456 \u043B\u0438\u0441\u0442\u0438 (\u0437\u0430\u043F\u0440\u043E\u0448\u0435\u043D\u043D\u044F, \u0432\u0456\u0434\u043D\u043E\u0432\u043B\u0435\u043D\u043D\u044F \u043F\u0430\u0440\u043E\u043B\u044F) \u043F\u0440\u0438\u0445\u043E\u0434\u0438\u0442\u0438\u043C\u0443\u0442\u044C \u044F\u043A \u0456 \u0440\u0430\u043D\u0456\u0448\u0435.", 200, url, true);
+    return page(env, "\u0412\u0438 \u0432\u0456\u0434\u043F\u0438\u0441\u0430\u043B\u0438\u0441\u044F", "\u0420\u043E\u0437\u0441\u0438\u043B\u043A\u0438 \u0437 \u043D\u043E\u0432\u0438\u043D\u0430\u043C\u0438 QuizFlow \u0431\u0456\u043B\u044C\u0448\u0435 \u043D\u0435 \u043D\u0430\u0434\u0445\u043E\u0434\u0438\u0442\u0438\u043C\u0443\u0442\u044C. \u0421\u043B\u0443\u0436\u0431\u043E\u0432\u0456 \u043B\u0438\u0441\u0442\u0438 (\u0437\u0430\u043F\u0440\u043E\u0448\u0435\u043D\u043D\u044F, \u0432\u0456\u0434\u043D\u043E\u0432\u043B\u0435\u043D\u043D\u044F \u043F\u0430\u0440\u043E\u043B\u044F) \u043F\u0440\u0438\u0445\u043E\u0434\u0438\u0442\u0438\u043C\u0443\u0442\u044C \u044F\u043A \u0456 \u0440\u0430\u043D\u0456\u0448\u0435.", 200, url, true);
   }
   const already = !!await env.MAIL_KV.get(key);
-  return already ? page("\u0412\u0438 \u0432\u0436\u0435 \u0432\u0456\u0434\u043F\u0438\u0441\u0430\u043D\u0456", "\u0420\u043E\u0437\u0441\u0438\u043B\u043A\u0438 QuizFlow \u0432\u0430\u043C \u043D\u0435 \u043D\u0430\u0434\u0445\u043E\u0434\u044F\u0442\u044C.", 200, url, true) : page("\u0412\u0456\u0434\u043F\u0438\u0441\u0430\u0442\u0438\u0441\u044F \u0432\u0456\u0434 \u0440\u043E\u0437\u0441\u0438\u043B\u043E\u043A?", "\u0412\u0438 \u0431\u0456\u043B\u044C\u0448\u0435 \u043D\u0435 \u043E\u0442\u0440\u0438\u043C\u0443\u0432\u0430\u0442\u0438\u043C\u0435\u0442\u0435 \u043B\u0438\u0441\u0442\u0456\u0432 \u0456\u0437 \u043D\u043E\u0432\u0438\u043D\u0430\u043C\u0438 \u0442\u0430 \u043E\u0433\u043E\u043B\u043E\u0448\u0435\u043D\u043D\u044F\u043C\u0438 QuizFlow. \u0421\u043B\u0443\u0436\u0431\u043E\u0432\u0456 \u043B\u0438\u0441\u0442\u0438 (\u0437\u0430\u043F\u0440\u043E\u0448\u0435\u043D\u043D\u044F, \u0432\u0456\u0434\u043D\u043E\u0432\u043B\u0435\u043D\u043D\u044F \u043F\u0430\u0440\u043E\u043B\u044F) \u0437\u0430\u043B\u0438\u0448\u0430\u0442\u044C\u0441\u044F.", 200, url, null);
+  return already ? page(env, "\u0412\u0438 \u0432\u0436\u0435 \u0432\u0456\u0434\u043F\u0438\u0441\u0430\u043D\u0456", "\u0420\u043E\u0437\u0441\u0438\u043B\u043A\u0438 QuizFlow \u0432\u0430\u043C \u043D\u0435 \u043D\u0430\u0434\u0445\u043E\u0434\u044F\u0442\u044C.", 200, url, true) : page(env, "\u0412\u0456\u0434\u043F\u0438\u0441\u0430\u0442\u0438\u0441\u044F \u0432\u0456\u0434 \u0440\u043E\u0437\u0441\u0438\u043B\u043E\u043A?", "\u0412\u0438 \u0431\u0456\u043B\u044C\u0448\u0435 \u043D\u0435 \u043E\u0442\u0440\u0438\u043C\u0443\u0432\u0430\u0442\u0438\u043C\u0435\u0442\u0435 \u043B\u0438\u0441\u0442\u0456\u0432 \u0456\u0437 \u043D\u043E\u0432\u0438\u043D\u0430\u043C\u0438 \u0442\u0430 \u043E\u0433\u043E\u043B\u043E\u0448\u0435\u043D\u043D\u044F\u043C\u0438 QuizFlow. \u0421\u043B\u0443\u0436\u0431\u043E\u0432\u0456 \u043B\u0438\u0441\u0442\u0438 (\u0437\u0430\u043F\u0440\u043E\u0448\u0435\u043D\u043D\u044F, \u0432\u0456\u0434\u043D\u043E\u0432\u043B\u0435\u043D\u043D\u044F \u043F\u0430\u0440\u043E\u043B\u044F) \u0437\u0430\u043B\u0438\u0448\u0430\u0442\u044C\u0441\u044F.", 200, url, null);
 }
-function page(title, text, status2, url, state) {
+function page(env, title, text, status2, url, state) {
   const action = url ? esc(url.pathname + url.search) : "";
   const btn = state === null ? `<form method="post" action="${action}"><button>\u0412\u0456\u0434\u043F\u0438\u0441\u0430\u0442\u0438\u0441\u044F</button></form>` : state === true ? `<form method="post" action="${action}"><input type="hidden" name="action" value="resubscribe"><button class="ghost">\u041F\u043E\u0432\u0435\u0440\u043D\u0443\u0442\u0438 \u043F\u0456\u0434\u043F\u0438\u0441\u043A\u0443</button></form>` : "";
+  const site = String(env.SITE_URL || "https://quizflow.space").replace(/\/+$/, "");
   return new Response(
-    `<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)} \u2014 QuizFlow</title>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
-<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#F1F4FA;font-family:Manrope,system-ui,sans-serif;color:#334155;padding:16px;box-sizing:border-box}
-.c{background:#fff;border:1px solid #E2E8F0;border-radius:18px;padding:32px;max-width:440px;width:100%;box-sizing:border-box}
-.l{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;color:#0F172A;margin-bottom:22px}.l i{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#4F46E5,#7C3AED)}
-h1{font-size:21px;color:#0F172A;margin:0 0 10px;letter-spacing:-.3px}p{margin:0 0 22px;line-height:1.6;font-size:14.5px}
-button{font:800 14px Manrope,system-ui,sans-serif;padding:12px 20px;border-radius:12px;border:0;background:#4F46E5;color:#fff;cursor:pointer}
-button.ghost{background:#fff;color:#0F172A;border:1.5px solid #E2E8F0}</style></head>
-<body><div class="c"><div class="l"><i></i>QuizFlow</div><h1>${esc(title)}</h1><p>${esc(text)}</p>${btn}</div></body></html>`,
+    `<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${esc(title)} \u2014 QuizFlow</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#fff;font-family:Manrope,system-ui,sans-serif;color:#2B3552}
+.c{max-width:560px;margin:0 auto;padding:56px 24px}
+.l{display:block;margin-bottom:40px}.l img{display:block;width:125px;height:36px}
+h1{font-size:30px;line-height:1.2;color:#0D1340;margin:0 0 18px;letter-spacing:-.6px}p{margin:0 0 28px;line-height:1.7;font-size:16px}
+button{font:800 15px Manrope,system-ui,sans-serif;padding:14px 26px;border-radius:10px;border:0;background:#2D5BE3;color:#fff;cursor:pointer}
+button:hover{background:#2447C9}button.ghost{background:#fff;color:#0D1340;box-shadow:inset 0 0 0 1.5px #E6EAF3}button.ghost:hover{box-shadow:inset 0 0 0 1.5px #C9D1E4}
+button:focus-visible{outline:3px solid rgba(45,91,227,.35);outline-offset:2px}
+.s{margin-top:40px;padding-top:18px;border-top:1px solid #E6EAF3;font-size:12.5px;color:#8A94B0}.s a{color:#8A94B0}
+@media (max-width:600px){.c{padding:40px 20px}h1{font-size:25px}button{width:100%}}</style></head>
+<body><main class="c"><a class="l" href="${esc(site)}"><img src="${esc(site)}/assets/email/logo-light.png" alt="QuizFlow"></a><h1>${esc(title)}</h1><p>${esc(text)}</p>${btn}<div class="s">QuizFlow \xB7 <a href="${esc(site)}">${esc(site.replace(/^https?:\/\//, ""))}</a></div></main></body></html>`,
     { status: status2, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } }
   );
 }
