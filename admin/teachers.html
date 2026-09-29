@@ -8,128 +8,106 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared/admin-shell.css?v=6">
+<link rel="stylesheet" href="shared/admin-shell.css?v=7">
 <style>
-/* ─── Page-specific styles for teachers ─── */
+/* ─── Викладачі: список зліва + картка викладача справа ─── */
 
-/* Плитки-фільтри (замість окремих плиток і сегментів) */
-.tc-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.tc-tile{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;background:#fff;border:1px solid var(--line);cursor:pointer;text-align:left;font:inherit;color:inherit;transition:border-color .15s,box-shadow .15s,transform .15s}
-.tc-tile:hover{border-color:var(--line-strong);transform:translateY(-1px)}
-.tc-tile.on{border-color:#A78BFA;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
-.tc-tile:focus-visible{outline:2px solid #7C3AED;outline-offset:2px}
-.tc-tile .ico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:0 0 auto}
-.tc-tile.violet .ico{background:#EDE9FE;color:#6D28D9}
-.tc-tile.green .ico{background:#DCFCE7;color:#15803D}
-.tc-tile.amber .ico{background:#FEF3C7;color:#B45309}
-.tc-tile.red .ico{background:#FEE2E2;color:#B91C1C}
-.tc-tile .ico svg{width:20px;height:20px}
-.tc-tile .v{font-family:"Geist Mono",monospace;font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1}
-.tc-tile .l{font-size:12px;color:var(--ink-500);font-weight:600;margin-top:4px}
+/* Ліва колонка: пошук, фільтри, список */
+.tp-it{display:flex;align-items:center;gap:11px;width:100%;padding:9px 10px;border-radius:12px;border:0;background:none;text-align:left;cursor:pointer;font:inherit;color:inherit;transition:background .12s}
+.tp-it:hover{background:#F7F8FC}
+.tp-it.on{background:#F5F3FF;box-shadow:inset 0 0 0 1px #DDD6FE}
+.tp-it:focus-visible{outline:2px solid #7C3AED;outline-offset:-2px}
+.tp-it.is-blocked .tp-it-i{opacity:.55}
+.tp-it-i{flex:1;min-width:0}
+.tp-it-n{display:flex;align-items:center;gap:6px;font-weight:800;font-size:13.5px;color:var(--ink-900);white-space:nowrap;overflow:hidden}
+.tp-it-n span{overflow:hidden;text-overflow:ellipsis}
+.tp-it-n .me,.tp-it-n .tp-adm{font-style:normal}
+.tp-it-n .me{font-size:11px;font-weight:600;color:var(--ink-400);flex:0 0 auto}
+.tp-it-e{font-size:11.5px;color:var(--ink-400);font-family:"Geist Mono",monospace;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp-it-t{font-size:11.5px;color:var(--ink-400);font-weight:600;white-space:nowrap;flex:0 0 auto;text-align:right}
+.tp-it-t.recent{color:#15803D}
+.tp-dots{display:inline-flex;gap:3px;flex:0 0 auto}
+.tp-dots i{width:7px;height:7px;border-radius:50%}
+.tp-adm{font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:5px;background:linear-gradient(135deg,#7C3AED,#4F46E5);color:#fff;flex:0 0 auto}
 
-/* Панель інструментів */
-.tc-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.tc-toolbar .search-input{flex:1;max-width:380px}
-.tc-toolbar .search-input .input{width:100%;padding-top:10px;padding-bottom:10px}
-.tc-sort{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-500);font-weight:600}
-.tc-sort select{border:1px solid var(--line);border-radius:9px;background:#fff;font:inherit;font-size:13px;font-weight:600;color:var(--ink-900);padding:8px 30px 8px 12px;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235B6A8F' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
-.tc-sort select:focus{outline:none;border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
-.tc-meta{font-size:12px;color:var(--ink-500);font-family:"Geist Mono",monospace;margin-left:auto}
-
-/* Список викладачів */
-.tc-list{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.tc-row,.tc-head{display:grid;grid-template-columns:minmax(260px,2.2fr) 110px 90px 90px 110px 130px 116px;align-items:center;gap:12px;padding:12px 16px}
-.tc-head{background:#FAFBFE;border-bottom:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-400);padding-top:10px;padding-bottom:10px}
-.tc-head .num,.tc-row .num{text-align:right}
-.tc-row{border-bottom:1px solid var(--line);transition:background .12s}
-.tc-row:last-child{border-bottom:0}
-.tc-row:hover{background:#FAFBFE}
-.tc-row.is-blocked{background:#FCFCFE}
-.tc-row.is-blocked .tc-who,.tc-row.is-blocked .num{opacity:.55}
-.tc-row.is-me{box-shadow:inset 3px 0 0 #7C3AED}
-.tc-row.hl{animation:tcHl 1.6s ease}
-@keyframes tcHl{0%,40%{background:#F5F3FF}100%{background:transparent}}
-
-.tc-who{display:flex;align-items:center;gap:12px;min-width:0}
-.tc-ava{width:40px;height:40px;border-radius:12px;flex:0 0 auto;display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px;background:linear-gradient(135deg,#A78BFA,#7C3AED)}
+/* Аватар із крапкою статусу */
+.tc-ava{position:relative;width:40px;height:40px;border-radius:12px;flex:0 0 auto;display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px;background:linear-gradient(135deg,#A78BFA,#7C3AED)}
 .tc-ava.b{background:linear-gradient(135deg,#60A5FA,#1D4ED8)}
 .tc-ava.g{background:linear-gradient(135deg,#6EE7B7,#047857)}
 .tc-ava.o{background:linear-gradient(135deg,#FDBA74,#C2410C)}
 .tc-ava.r{background:linear-gradient(135deg,#F9A8D4,#BE185D)}
-.tc-info{min-width:0}
-.tc-name{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-weight:800;font-size:14px;letter-spacing:-.01em;color:var(--ink-900)}
-.tc-name .me{font-size:11px;font-weight:600;color:var(--ink-400)}
-.tc-mail{font-size:12px;color:var(--ink-400);font-family:"Geist Mono",monospace;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tc-tag{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:2px 7px;border-radius:6px;background:#EDE9FE;color:#6D28D9;white-space:nowrap}
-.tc-tag.admin{background:linear-gradient(135deg,#7C3AED,#4F46E5);color:#fff}
-.tc-tag.custom{color:#fff}
+.tc-ava > i{position:absolute;right:-3px;bottom:-3px;width:12px;height:12px;border-radius:50%;border:2.5px solid #fff;background:#22C55E}
+.tc-ava > i.first{background:#F59E0B}
+.tc-ava > i.blocked{background:#EF4444}
 
-.tc-status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+/* Права колонка: картка викладача */
+.tp-hero{display:flex;gap:18px;align-items:center;padding:24px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#FAF8FF,#fff)}
+.tp-hero .tc-ava{width:68px;height:68px;border-radius:20px;font-size:22px}
+.tp-hero .tc-ava > i{width:16px;height:16px;border-width:3px}
+.tp-hi{flex:1;min-width:0}
+.tp-hi h2{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1.2;overflow-wrap:anywhere;margin:0}
+.tp-hi h2 .me{font-size:13px;font-weight:600;color:var(--ink-400);margin-left:6px}
+.tp-mail{display:inline-flex;align-items:center;gap:6px;margin-top:4px;font:600 13px "Geist Mono",monospace;color:var(--ink-500);background:none;border:0;padding:2px 0;cursor:pointer;max-width:100%}
+.tp-mail span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tp-mail svg{width:13px;height:13px;flex:0 0 auto;opacity:.6}
+.tp-mail:hover{color:#6D28D9}
+.tp-badges{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.tc-status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
 .tc-status::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
 .tc-status.ok{background:#DCFCE7;color:#15803D}
 .tc-status.first{background:#FEF3C7;color:#B45309}
 .tc-status.blocked{background:#FEE2E2;color:#B91C1C}
+.tc-status.adm{background:#EDE9FE;color:#6D28D9}
+.tc-status.adm::before{display:none}
+.tp-acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;flex:0 0 auto}
 
-.num{font-family:"Geist Mono",monospace;font-weight:700;font-size:14px;color:var(--ink-900)}
-.num small{display:block;font-size:11px;font-weight:600;color:var(--ink-400);margin-top:1px}
-.num small.up{color:#15803D}
-.tc-last,.tc-head .c-last{padding-left:10px}
-.tc-last{font-size:12.5px;color:var(--ink-500);white-space:nowrap}
-.tc-last.recent{color:#15803D;font-weight:700}
-.tc-last.stale{color:var(--ink-300)}
+.tp-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.tp-stat{background:#fff;padding:16px 22px;min-width:0}
+.tp-stat .l{font-size:12px;font-weight:700;color:var(--ink-500);display:flex;align-items:center;gap:7px}
+.tp-stat .l svg{width:14px;height:14px;color:var(--ink-400)}
+.tp-stat .v{font:800 22px "Geist Mono",monospace;letter-spacing:-.02em;margin-top:6px;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp-stat .v.sm{font:700 15px "Manrope",sans-serif;letter-spacing:0;margin-top:9px}
+.tp-stat small{display:block;font-size:12px;font-weight:600;color:var(--ink-400);margin-top:3px}
+.tp-stat small.up{color:#15803D}
 
-.tc-acts{display:flex;align-items:center;justify-content:flex-end;gap:6px}
-.ic-btn{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink-500);display:grid;place-items:center;cursor:pointer;transition:all .15s;flex:0 0 auto}
-.ic-btn:hover{border-color:var(--line-strong);color:var(--ink-900);background:#F7F8FC}
-.ic-btn:focus-visible{outline:2px solid #7C3AED;outline-offset:1px}
-.ic-btn.ai{color:#6D28D9;background:#F5F3FF;border-color:#DDD6FE}
-.ic-btn.ai:hover{background:#EDE9FE}
-.ic-btn.ai.custom{box-shadow:inset 0 0 0 1px #A78BFA}
-.ic-btn svg{width:16px;height:16px}
-.ic-btn[aria-expanded="true"]{background:#EDE9FE;border-color:#C4B5FD;color:#6D28D9}
 
-/* Меню дій (портал у body) */
-.tc-menu{position:fixed;z-index:160;min-width:220px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 40px -12px rgba(15,30,71,.28);padding:6px;display:flex;flex-direction:column;animation:tcMenu .14s ease}
-@keyframes tcMenu{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
-.tc-menu button{display:flex;align-items:center;gap:10px;padding:9px 10px;border:0;background:transparent;border-radius:8px;font:inherit;font-size:13px;font-weight:600;color:var(--ink-700);cursor:pointer;text-align:left}
-.tc-menu button:hover,.tc-menu button:focus-visible{background:#F4F6FB;color:var(--ink-900);outline:none}
-.tc-menu button svg{width:15px;height:15px;flex:0 0 auto;color:var(--ink-400)}
-.tc-menu button.ok svg{color:#15803D}
-.tc-menu button.danger{color:#B91C1C}
-.tc-menu button.danger svg{color:#DC2626}
-.tc-menu button.danger:hover{background:#FEF2F2}
-.tc-menu hr{border:0;border-top:1px solid var(--line);margin:5px 4px}
+/* Системна роль: сегменти */
+.tp-seg{display:inline-flex;padding:3px;border-radius:11px;background:#F1F4FA;gap:3px}
+.tp-seg button{border:0;background:transparent;padding:8px 14px;border-radius:9px;font:700 13px "Manrope",sans-serif;color:var(--ink-500);cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.tp-seg button.on{background:#fff;color:var(--ink-900);box-shadow:0 1px 3px rgba(15,30,71,.12)}
+.tp-seg button:disabled{cursor:not-allowed;opacity:.6}
+.tp-seg svg{width:14px;height:14px}
 
-/* Порожній стан */
-.tc-empty{padding:56px 20px;text-align:center;color:var(--ink-500)}
-.tc-empty .ei{width:54px;height:54px;margin:0 auto 14px;border-radius:14px;background:#EEF2FB;color:#6D28D9;display:grid;place-items:center}
-.tc-empty .et{font-size:15px;font-weight:700;color:var(--ink-900);margin-bottom:4px}
-.tc-empty .tb-btn{margin-top:14px}
+/* Кастомні ролі: чипи-перемикачі */
+.tp-roles{display:flex;flex-wrap:wrap;gap:8px}
+.tp-role{--rc:#7C3AED;display:inline-flex;align-items:center;gap:8px;padding:8px 12px 8px 10px;border-radius:11px;border:1.5px solid var(--line);background:#fff;font:700 13px "Manrope",sans-serif;color:var(--ink-700);cursor:pointer;transition:all .12s}
+.tp-role > i{width:10px;height:10px;border-radius:50%;background:var(--rc)}
+.tp-role:hover{border-color:var(--rc)}
+.tp-role.on{background:color-mix(in srgb,var(--rc) 11%,#fff);border-color:var(--rc);color:var(--ink-900)}
+.tp-role.on::after{content:"";width:14px;height:14px;background:var(--rc);-webkit-mask:var(--ck) center/contain no-repeat;mask:var(--ck) center/contain no-repeat;
+  --ck:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E")}
+.tp-role:disabled{opacity:.6;cursor:wait}
+.tp-none{font-size:13px;color:var(--ink-500);padding:12px 14px;border:1.5px dashed var(--line);border-radius:12px}
+.tp-none a{color:#6D28D9;font-weight:700}
 
-/* Скелетон, поки йде перше завантаження */
-.tc-sk{height:64px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,#fff 0%,#F4F6FB 50%,#fff 100%);background-size:200% 100%;animation:tcSk 1.2s linear infinite}
-@keyframes tcSk{to{background-position:-200% 0}}
+/* AI: рядки з перемикачами */
+.tp-ai{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.tp-src{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;background:#F1F4FA;color:var(--ink-500);margin-left:8px;vertical-align:2px}
+.tp-src.custom{background:#FEF3C7;color:#B45309}
 
-@media (max-width:1320px){
-  .tc-row,.tc-head{grid-template-columns:minmax(220px,2fr) 104px 80px 80px 96px 116px}
-  .tc-head .c-last,.tc-row .tc-last{display:none}
+/* Порожні стани і скелетон */
+
+@media (max-width:1280px){ .tp-ai{grid-template-columns:1fr} .tp-hero{flex-wrap:wrap} .tp-acts{width:100%;justify-content:flex-start} }
+/* Планшет і телефон: список на весь екран, картка — поверх нього */
+@media (max-width:1023px){
+  .tp-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tp-hero{padding:18px}
+  .tp-stat{padding:14px 16px}
 }
-@media (max-width:1180px){
-  .tc-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .tc-row,.tc-head{grid-template-columns:minmax(200px,2fr) 104px 80px 96px 116px}
-  .tc-head .c-students,.tc-row .c-students{display:none}
-}
-/* Телефон: кожен викладач — картка */
-@media (max-width:760px){
-  .tc-toolbar .search-input{max-width:none;flex:1 1 100%}
-  .tc-head{display:none}
-  .tc-row{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:12px;padding:14px!important;align-items:start}
-  .tc-row > .tc-who{grid-column:1 / -1}
-  .tc-row > .num{text-align:left}
-  .tc-row > .num::before{content:attr(data-l);display:block;font:700 10px "Manrope",sans-serif;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-400);margin-bottom:3px}
-  .tc-row > .tc-last{display:none}
-  .tc-row > .tc-acts{grid-column:1 / -1;justify-content:flex-start}
-  .tc-tile{padding:12px}
+@media (max-width:520px){
+  .tp-hero .tc-ava{width:56px;height:56px;font-size:18px;border-radius:16px}
+  .tp-hi h2{font-size:19px}
+  .tp-acts .tb-btn{flex:1;justify-content:center}
 }
 
 /* ─── Modal — fields & password box ─── */
@@ -201,7 +179,9 @@
 
 /* Toggle switch */
 .toggle-sw{position:relative; display:inline-block; width:38px; height:22px; flex:0 0 auto}
-.toggle-sw input{display:none}
+.toggle-sw input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;z-index:1}
+.toggle-sw input:focus-visible + .toggle-sl{box-shadow:0 0 0 3px rgba(124,58,237,.3)}
+.toggle-sw input:disabled + .toggle-sl{opacity:.6}
 .toggle-sl{
   position:absolute; inset:0; cursor:pointer;
   background:#E3E8F2; border-radius:99px; transition:background .2s;
@@ -353,23 +333,17 @@
     </div>
   </div>
 
-  <!-- ASSIGN CUSTOM ROLE MODAL -->
-  <div class="modal-bd" id="m-assign-role">
-    <div class="modal" style="max-width:400px">
+  <!-- CONFIRM (зміна системної ролі) -->
+  <div class="modal-bd" id="m-confirm">
+    <div class="modal" style="max-width:420px">
       <div class="modal-h"><span class="mh-ico violet" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></span>
-        <h3>Кастомна роль</h3>
-        <button class="close" onclick="closeModal('m-assign-role')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <h3 id="cf-title">Підтвердіть дію</h3>
+        <button class="close" onclick="closeModal('m-confirm')" aria-label="Закрити"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
-      <div class="modal-b">
-        <div style="font-size:13px;color:var(--ink-500);margin-top:-4px">Для <strong id="assign-role-name"></strong></div>
-        <div class="field">
-          <div class="field-l">Ролі</div>
-          <div class="role-check-list" id="assign-role-list"></div>
-        </div>
-      </div>
+      <div class="modal-b"><div class="confirm-desc" id="cf-desc" style="margin:0"></div></div>
       <div class="modal-f">
-        <button class="tb-btn" onclick="closeModal('m-assign-role')">Скасувати</button>
-        <button class="tb-btn primary" id="assign-role-btn" onclick="saveAssignedRole()">Зберегти</button>
+        <button class="tb-btn" type="button" onclick="closeModal('m-confirm')">Скасувати</button>
+        <button class="tb-btn primary" type="button" id="cf-ok">Підтвердити</button>
       </div>
     </div>
   </div>
@@ -474,89 +448,6 @@
     </div>
   </div>
 
-  <!-- AI SETTINGS MODAL -->
-  <div class="modal-bd" id="m-ai">
-    <div class="modal" style="max-width:500px">
-      <div class="modal-h"><span class="mh-ico violet" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z"/></svg></span>
-        <h3>AI налаштування</h3>
-        <button class="close" onclick="closeModal('m-ai')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-      </div>
-      <div class="modal-b">
-        <div style="display:flex; align-items:center; gap:12px; margin-top:-4px">
-          <div style="width:40px; height:40px; border-radius:11px; background:linear-gradient(135deg, #EDE9FE, #DDD6FE); color:#6D28D9; display:grid; place-items:center; flex:0 0 auto">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.5 6 6 1.5-6 1.5L12 17l-1.5-6-6-1.5 6-1.5z"/></svg>
-          </div>
-          <div>
-            <div style="font-size:14px; font-weight:700">Індивідуальні налаштування</div>
-            <div style="font-size:12px; color:var(--ink-500); margin-top:2px" id="ai-modal-sub">Викладач</div>
-          </div>
-        </div>
-
-        <div class="ai-source-info" id="ai-modal-source">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r=".8" fill="currentColor"/></svg>
-          Встановлені індивідуальні налаштування (перекривають глобальні)
-        </div>
-
-        <div style="display:flex; flex-direction:column; gap:8px">
-          <div class="feat-row">
-            <div class="feat-row-l">
-              <div class="feat-icon" style="background:rgba(124,58,237,.1); color:#6D28D9">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-              </div>
-              <div>
-                <div class="feat-name">AI коментарі студентам</div>
-                <div class="feat-desc">Коментар після проходження тесту</div>
-              </div>
-            </div>
-            <label class="toggle-sw"><input type="checkbox" id="t-ai-comments"><span class="toggle-sl"></span></label>
-          </div>
-          <div class="feat-row">
-            <div class="feat-row-l">
-              <div class="feat-icon" style="background:rgba(59,130,246,.1); color:#1D4ED8">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              </div>
-              <div>
-                <div class="feat-name">Персональний розбір помилок</div>
-                <div class="feat-desc">Детальний аналіз помилок студента</div>
-              </div>
-            </div>
-            <label class="toggle-sw"><input type="checkbox" id="t-ai-analysis"><span class="toggle-sl"></span></label>
-          </div>
-          <div class="feat-row">
-            <div class="feat-row-l">
-              <div class="feat-icon" style="background:rgba(245,158,11,.1); color:#B45309">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              </div>
-              <div>
-                <div class="feat-name">Генерація питань</div>
-                <div class="feat-desc">AI генерація в конструкторі тестів</div>
-              </div>
-            </div>
-            <label class="toggle-sw"><input type="checkbox" id="t-ai-generation"><span class="toggle-sl"></span></label>
-          </div>
-          <div class="feat-row">
-            <div class="feat-row-l">
-              <div class="feat-icon" style="background:rgba(22,163,74,.1); color:#15803D">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              </div>
-              <div>
-                <div class="feat-name">Перевірка текстових відповідей</div>
-                <div class="feat-desc">AI оцінка текстових і числових відповідей</div>
-              </div>
-            </div>
-            <label class="toggle-sw"><input type="checkbox" id="t-ai-textcheck"><span class="toggle-sl"></span></label>
-          </div>
-        </div>
-      </div>
-      <div class="modal-f between">
-        <button class="tb-btn ghost" onclick="resetTeacherAI()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>
-          До глобальних
-        </button>
-        <button class="tb-btn primary" onclick="saveTeacherAI()">Зберегти</button>
-      </div>
-    </div>
-  </div>
 
 </div>
 <div id="admin-toast" class="toast"></div>
@@ -580,6 +471,9 @@ const IC = {
   copy: SVG('<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>'),
   search: SVG('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'),
   plus: SVG('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'),
+  doc: SVG('<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/>'),
+  game: SVG('<rect x="2" y="6" width="20" height="12" rx="4"/><path d="M6 12h4M8 10v4"/><circle cx="16" cy="11" r="1"/><circle cx="18" cy="13" r="1"/>'),
+  cal: SVG('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),
 };
 const DAY = 864e5;
 const plural = (n, f) => { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? f[2] : b === 1 ? f[0] : b >= 2 && b <= 4 ? f[1] : f[2]; };
@@ -589,44 +483,43 @@ const content = `
   <div class="page-head">
     <div>
       <h1>Викладачі</h1>
-      <p>Акаунти, ролі, доступ і AI-налаштування викладачів</p>
+      <p>Оберіть викладача зі списку — ролі, доступ і AI налаштовуються прямо в його картці</p>
     </div>
   </div>
 
-  <div class="tc-tiles" id="tc-tiles" role="tablist" aria-label="Фільтр за статусом">
-    <button type="button" class="tc-tile violet on" data-filter="all" role="tab" aria-selected="true"><span class="ico">${IC.users}</span><span><div class="v" id="cnt-all">—</div><div class="l">Усі викладачі</div></span></button>
-    <button type="button" class="tc-tile green" data-filter="active" role="tab" aria-selected="false"><span class="ico">${IC.check}</span><span><div class="v" id="cnt-active">—</div><div class="l">Активні</div></span></button>
-    <button type="button" class="tc-tile amber" data-filter="first" role="tab" aria-selected="false"><span class="ico">${IC.clock}</span><span><div class="v" id="cnt-first">—</div><div class="l">Ще не увійшли</div></span></button>
-    <button type="button" class="tc-tile red" data-filter="blocked" role="tab" aria-selected="false"><span class="ico">${IC.ban}</span><span><div class="v" id="cnt-blocked">—</div><div class="l">Заблоковані</div></span></button>
-  </div>
-
-  <div class="tc-toolbar">
-    <div class="search-input">
-      ${IC.search.replace("<svg", '<svg width="14" height="14"')}
-      <input class="input" id="tc-search" type="search" placeholder="Пошук за прізвищем, ім'ям або email…" autocomplete="off" aria-label="Пошук викладача">
-    </div>
-    <label class="tc-sort">Сортувати
-      <select id="tc-sort">
-        <option value="activity">за активністю</option>
-        <option value="name">за прізвищем</option>
-        <option value="attempts">за кількістю спроб</option>
-        <option value="tests">за кількістю тестів</option>
-        <option value="created">нові спочатку</option>
-      </select>
-    </label>
-    <span class="tc-meta" id="tc-meta">—</span>
-  </div>
-
-  <div class="tc-list" id="tc-list">
-    <div class="tc-head">
-      <span>Викладач</span><span>Статус</span><span class="num">Тести</span><span class="num c-students">Студенти</span><span class="num">Спроби</span><span class="c-last">Активність</span><span></span>
-    </div>
-    <div id="teacher-grid">${'<div class="tc-sk"></div>'.repeat(5)}</div>
+  <div class="tp">
+    <aside class="tp-side" aria-label="Список викладачів">
+      <div class="tp-sh">
+        <div class="search-input">
+          ${IC.search.replace("<svg", '<svg width="14" height="14"')}
+          <input class="input" id="tc-search" type="search" placeholder="Пошук за ім'ям або email…" autocomplete="off" aria-label="Пошук викладача">
+        </div>
+        <div class="tp-chips" id="tc-tiles" role="tablist" aria-label="Фільтр за статусом">
+          <button type="button" class="tp-chip on" data-filter="all" role="tab" aria-selected="true">Усі <b id="cnt-all">—</b></button>
+          <button type="button" class="tp-chip" data-filter="active" role="tab" aria-selected="false"><i style="background:#22C55E"></i>Активні <b id="cnt-active">—</b></button>
+          <button type="button" class="tp-chip" data-filter="first" role="tab" aria-selected="false"><i style="background:#F59E0B"></i>Не увійшли <b id="cnt-first">—</b></button>
+          <button type="button" class="tp-chip" data-filter="blocked" role="tab" aria-selected="false"><i style="background:#EF4444"></i>Заблоковані <b id="cnt-blocked">—</b></button>
+        </div>
+        <div class="tp-sel">
+          <select id="tc-role" aria-label="Фільтр за роллю"><option value="">Усі ролі</option></select>
+          <select id="tc-sort" aria-label="Сортування">
+            <option value="activity">За активністю</option>
+            <option value="name">За прізвищем</option>
+            <option value="attempts">За спробами</option>
+            <option value="tests">За тестами</option>
+            <option value="created">Нові спочатку</option>
+          </select>
+        </div>
+      </div>
+      <div class="tp-meta"><span>Викладачі</span><b id="tc-meta">—</b></div>
+      <div class="tp-items" id="teacher-grid">${'<div class="tc-sk"></div>'.repeat(6)}</div>
+    </aside>
+    <section class="tp-main" id="tp-main" aria-live="polite"><div class="tp-blank"></div></section>
   </div>
 `;
 
 const topbarRight = `
-  <button class="tb-btn" id="btn-refresh" type="button">
+  <button class="tb-btn" id="btn-refresh" type="button" title="Оновити дані">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.7L4 16"/><path d="M4 20v-4h4"/></svg>
     Оновити
   </button>
@@ -644,12 +537,15 @@ const { _user } = await initAdminShell({ activeId: "teachers", crumbs: ["Вик�
 
 // ─── State ────────────────────────────────────────────────────────────────
 let _teacherFilter = "all";
+let _roleFilter = "";
 let _sortBy = "activity";
+let _selId = new URLSearchParams(location.search).get("id") || "";
 let _resetUid = "";
 let _blockUid = "", _blockCurrent = false;
 let _delUid = "", _delLogin = "";
-let _aiTeacherId = "";
+let _globalAI = null;          // settings/ai — дефолти для перемикачів у картці
 const byId = id => (window._users || []).find(u => u.id === id);
+const mobile = () => matchMedia("(max-width:1023px)").matches;
 
 // Кеш списку (без спроб) — сторінка малюється миттєво, свіжі дані підтягуються у фоні
 const CACHE_KEY = "qf_admin_tc_cache";
@@ -674,6 +570,7 @@ async function refreshData(){
 async function loadRoles(){
   window._roles = await dbGet("roles") || {};
 }
+const sortedRoleIds = () => { const r = window._roles || {}; return Object.keys(r).sort((a, b) => (r[a].name || "").localeCompare(r[b].name || "", "uk")); };
 
 function getUserRoleIds(u){
   if (u.customRoleIds && typeof u.customRoleIds === "object") return Object.keys(u.customRoleIds).filter(k => u.customRoleIds[k]);
@@ -685,7 +582,7 @@ function renderRoleCheckboxes(containerId, selectedIds){
   const el = document.getElementById(containerId);
   if (!el) return;
   const roles = window._roles || {};
-  const ids = Object.keys(roles).sort((a,b) => (roles[a].name||"").localeCompare(roles[b].name||"", "uk"));
+  const ids = sortedRoleIds();
   if (!ids.length){
     el.innerHTML = `<div class="role-check-empty">Ще немає жодної створеної ролі — <a href="roles" style="color:#7C3AED;font-weight:700">створити на сторінці «Ролі»</a></div>`;
     return;
@@ -705,50 +602,26 @@ function getCheckedRoleIds(containerId){
   return [...document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`)].map(cb => cb.value);
 }
 
-function customRoleBadges(u){
+// Фільтр за роллю: список ролей у випадайці
+function fillRoleFilter(){
+  const sel = document.getElementById("tc-role");
   const roles = window._roles || {};
-  return getUserRoleIds(u).map(id => roles[id]
-    ? `<span class="tc-tag custom" style="background:${esc(roles[id].color||'#7C3AED')}">${esc(roles[id].name)}</span>` : "").join("");
+  if (_roleFilter && !roles[_roleFilter]) _roleFilter = "";
+  sel.innerHTML = `<option value="">Усі ролі</option>` + sortedRoleIds().map(id => `<option value="${esc(id)}">${esc(roles[id].name || "—")}</option>`).join("");
+  sel.value = _roleFilter;
 }
 
-let _assignRoleUid = null;
-window.openAssignRoleModal = (uid, name, currentRoleIds) => {
-  _assignRoleUid = uid;
-  document.getElementById("assign-role-name").textContent = name;
-  renderRoleCheckboxes("assign-role-list", currentRoleIds);
-  openModal("m-assign-role");
-};
-
-window.saveAssignedRole = async () => {
-  if (!_assignRoleUid) return;
-  const customRoleIds = {};
-  getCheckedRoleIds("assign-role-list").forEach(id => { customRoleIds[id] = true; });
-  const btn = document.getElementById("assign-role-btn");
-  btn.disabled = true;
-  try {
-    // customRoleId (старе одиничне поле) прибираємо — джерело істини одне
-    await dbUpd(`users/${_assignRoleUid}`, { customRoleIds, customRoleId: null });
-    const u = byId(_assignRoleUid);
-    if (u){ u.customRoleIds = customRoleIds; delete u.customRoleId; }
-    closeModal("m-assign-role");
-    toast("Ролі оновлено");
-    afterChange(_assignRoleUid);
-  } catch(e) {
-    toast("Помилка: " + e.message, "err");
-  } finally {
-    btn.disabled = false;
-  }
-};
-
 // Після локальної зміни: перемальовуємо без повторного завантаження всієї бази
-function afterChange(uid){
+function afterChange(){
   saveCache();
   renderAll();
-  if (uid) requestAnimationFrame(() => document.querySelector(`.tc-row[data-id="${CSS.escape(uid)}"]`)?.classList.add("hl"));
 }
 
 // ─── Render ───────────────────────────────────────────────────────────────
 const statusOf = u => u.blocked === true ? "blocked" : u.isFirstLogin === true ? "first" : "active";
+const PAL = ["", "b", "g", "o", "r"];
+const initialsOf = u => { const n = fullName(u); return ((((u.surname || "")[0] || "") + ((u.name || "")[0] || "")) || n.slice(0, 2)).toUpperCase(); };
+const avaHtml = u => { const n = fullName(u); return `<div class="tc-ava ${PAL[(n.charCodeAt(0) || 0) % PAL.length]}">${esc(initialsOf(u))}<i class="${statusOf(u)}"></i></div>`; };
 
 function renderAll(){
   const _users = window._users || [];
@@ -756,18 +629,16 @@ function renderAll(){
   _users.forEach(u => c[statusOf(u)]++);
   Object.entries(c).forEach(([k, v]) => { const el = document.getElementById("cnt-" + k); if (el) el.textContent = v; });
   renderGrid();
+  renderDetail();
 }
 
-function renderGrid(){
-  closeMenu();
+function filteredList(){
   const _users = window._users || [];
-  const _stats = window._stats || {};
+  const st = u => (window._stats || {})[u.id] || {};
   const q = (document.getElementById("tc-search")?.value || "").trim().toLowerCase();
-
   let list = _users.filter(u => _teacherFilter === "all" || statusOf(u) === _teacherFilter);
+  if (_roleFilter) list = list.filter(u => getUserRoleIds(u).includes(_roleFilter));
   if (q) list = list.filter(u => [u.name, u.surname, u.email, fullName(u)].some(x => (x || "").toLowerCase().includes(q)));
-
-  const st = u => _stats[u.id] || {};
   const cmp = {
     activity: (a, b) => (st(b).lastAct || 0) - (st(a).lastAct || 0),
     name: (a, b) => fullName(a).localeCompare(fullName(b), "uk"),
@@ -776,10 +647,13 @@ function renderGrid(){
     created: (a, b) => (b.createdAt || 0) - (a.createdAt || 0),
   }[_sortBy];
   // Заблоковані — завжди внизу
-  list.sort((a, b) => (a.blocked === true) - (b.blocked === true) || cmp(a, b));
+  return list.sort((a, b) => (a.blocked === true) - (b.blocked === true) || cmp(a, b));
+}
 
+function renderGrid(){
+  const _users = window._users || [];
+  const list = filteredList();
   document.getElementById("tc-meta").textContent = `${list.length} / ${_users.length}`;
-
   const grid = document.getElementById("teacher-grid");
   if (!list.length){
     grid.innerHTML = _users.length
@@ -788,114 +662,210 @@ function renderGrid(){
           <button class="tb-btn primary" type="button" onclick="openCreateModal()">${IC.plus.replace("<svg", '<svg width="14" height="14"')} Новий викладач</button></div>`;
     return;
   }
-
-  const PAL = ["", "b", "g", "o", "r"];
+  // На комп'ютері завжди відкрита картка: якщо нічого не обрано — перший у списку
+  if (!mobile() && (!_selId || !byId(_selId))) _selId = list[0].id;
+  const roles = window._roles || {};
   const now = Date.now();
   grid.innerHTML = list.map(u => {
-    const s = st(u);
-    const isMe = u.id === _user.id;
-    const status = statusOf(u);
-    const name = fullName(u);
-    const ini = (((u.surname || "")[0] || "") + ((u.name || "")[0] || "") || name.slice(0, 2)).toUpperCase();
-    const age = s.lastAct ? now - s.lastAct : Infinity;
-    return `<div class="tc-row${status === "blocked" ? " is-blocked" : ""}${isMe ? " is-me" : ""}" data-id="${esc(u.id)}">
-      <div class="tc-who">
-        <div class="tc-ava ${PAL[(name.charCodeAt(0) || 0) % PAL.length]}">${esc(ini)}</div>
-        <div class="tc-info">
-          <div class="tc-name">${esc(name)}${isMe ? '<span class="me">(ви)</span>' : ""}${u.role === "admin" ? '<span class="tc-tag admin">Адмін</span>' : ""}${customRoleBadges(u)}</div>
-          <div class="tc-mail" title="${esc(u.email || "")}">${esc(u.email || "—")}</div>
-        </div>
-      </div>
-      <div>${status === "blocked" ? '<span class="tc-status blocked">Заблоковано</span>' : status === "first" ? '<span class="tc-status first">Не увійшов</span>' : '<span class="tc-status ok">Активний</span>'}</div>
-      <div class="num" data-l="Тести">${s.tests || 0}<small>${s.activeTests || 0} акт.</small></div>
-      <div class="num c-students" data-l="Студенти">${s.students || 0}</div>
-      <div class="num" data-l="Спроби">${s.attempts || 0}<small class="${s.weekAttempts ? "up" : ""}">${s.weekAttempts ? "+" + s.weekAttempts + " за тиж." : "—"}</small></div>
-      <div class="tc-last ${age < DAY ? "recent" : age > 30 * DAY ? "stale" : ""}" title="${s.lastAct ? esc(new Date(s.lastAct).toLocaleString("uk-UA")) : "Спроб ще не було"}">${s.lastAct ? esc(formatTimeAgo(s.lastAct)) : "—"}</div>
-      <div class="tc-acts">
-        <button type="button" class="ic-btn ai${u.aiSettings ? " custom" : ""}" data-act="ai" title="AI-налаштування${u.aiSettings ? " (індивідуальні)" : ""}" aria-label="AI-налаштування для ${esc(name)}">${IC.ai}</button>
-        <button type="button" class="ic-btn" data-act="roles" title="Кастомні ролі" aria-label="Ролі для ${esc(name)}">${IC.roles}</button>
-        <button type="button" class="ic-btn" data-act="menu" title="Інші дії" aria-label="Інші дії для ${esc(name)}" aria-haspopup="menu" aria-expanded="false">${IC.more}</button>
-      </div>
-    </div>`;
+    const s = (window._stats || {})[u.id] || {};
+    const dots = getUserRoleIds(u).filter(id => roles[id]).slice(0, 4).map(id => `<i style="background:${esc(roles[id].color || "#7C3AED")}" title="${esc(roles[id].name)}"></i>`).join("");
+    const recent = s.lastAct && now - s.lastAct < DAY;
+    return `<button type="button" class="tp-it${u.id === _selId ? " on" : ""}${statusOf(u) === "blocked" ? " is-blocked" : ""}" data-id="${esc(u.id)}"${u.id === _selId ? ' aria-current="true"' : ""}>
+      ${avaHtml(u)}
+      <span class="tp-it-i">
+        <span class="tp-it-n"><span>${esc(fullName(u))}</span>${u.id === _user.id ? '<em class="me">ви</em>' : ""}${u.role === "admin" ? '<em class="tp-adm">Адмін</em>' : ""}${dots ? `<span class="tp-dots">${dots}</span>` : ""}</span>
+        <span class="tp-it-e">${esc(u.email || "—")}</span>
+      </span>
+      <span class="tp-it-t${recent ? " recent" : ""}">${s.lastAct ? esc(formatTimeAgo(s.lastAct)) : "—"}</span>
+    </button>`;
   }).join("");
 }
 
-// ─── Меню дій «⋯» (портал у body, щоб не обрізалось) ─────────────────────
-let _menu = null, _menuBtn = null;
-function closeMenu(){
-  if (_menu){ _menu.remove(); _menu = null; }
-  if (_menuBtn){ _menuBtn.setAttribute("aria-expanded", "false"); _menuBtn = null; }
-}
-function openMenu(btn, u){
-  closeMenu();
-  const isMe = u.id === _user.id, blocked = u.blocked === true;
-  const items = [
-    ["copy", IC.copy, "Скопіювати email", ""],
-    ...(isMe ? [] : [
-      ["reset", IC.mail, "Скинути пароль", ""],
-      "hr",
-      ["block", blocked ? IC.unlock : IC.ban, blocked ? "Розблокувати" : "Заблокувати", blocked ? "ok" : ""],
-      ["delete", IC.trash, "Видалити назавжди", "danger"],
-    ]),
-  ];
-  _menu = document.createElement("div");
-  _menu.className = "tc-menu";
-  _menu.setAttribute("role", "menu");
-  _menu.dataset.id = u.id;
-  _menu.innerHTML = items.map(it => it === "hr" ? "<hr>" :
-    `<button type="button" role="menuitem" data-act="${it[0]}" class="${it[3]}">${it[1]}${it[2]}</button>`).join("");
-  document.body.appendChild(_menu);
-  const r = btn.getBoundingClientRect(), mh = _menu.offsetHeight, mw = _menu.offsetWidth;
-  const top = r.bottom + 6 + mh > innerHeight ? r.top - mh - 6 : r.bottom + 6;
-  _menu.style.top = Math.max(8, top) + "px";
-  _menu.style.left = Math.max(8, Math.min(innerWidth - mw - 8, r.right - mw)) + "px";
-  _menuBtn = btn;
-  btn.setAttribute("aria-expanded", "true");
-  _menu.querySelector("button")?.focus();
+// ─── Картка викладача ─────────────────────────────────────────────────────
+const AI_FEATS = [
+  ["aiComments",   "AI коментарі студентам",        "Коментар після проходження тесту", "#6D28D9", "rgba(124,58,237,.1)", '<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>'],
+  ["aiAnalysis",   "Персональний розбір помилок",   "Детальний аналіз помилок студента", "#1D4ED8", "rgba(59,130,246,.1)", '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>'],
+  ["aiGeneration", "Генерація питань",              "AI генерація в конструкторі тестів", "#B45309", "rgba(245,158,11,.1)", '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>'],
+  ["aiTextCheck",  "Перевірка текстових відповідей", "AI оцінка текстових і числових відповідей", "#15803D", "rgba(22,163,74,.1)", '<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>'],
+];
+const aiValue = (u, k) => u.aiSettings && u.aiSettings[k] !== undefined ? u.aiSettings[k] !== false : (_globalAI ? _globalAI[k] !== false : true);
+const fmtDate = t => t ? new Date(t).toLocaleDateString("uk-UA", { day: "numeric", month: "short", year: "numeric" }) : "—";
+
+function renderDetail(){
+  const host = document.getElementById("tp-main");
+  const u = byId(_selId);
+  if (!u){ host.classList.remove("open"); host.innerHTML = `<div class="tp-blank"></div>`; return; }
+  const s = (window._stats || {})[u.id] || {};
+  const isMe = u.id === _user.id, status = statusOf(u), blocked = status === "blocked";
+  const roles = window._roles || {}, mine = new Set(getUserRoleIds(u)), rids = sortedRoleIds();
+  const stat = (ico, l, v, sub, cls = "") => `<div class="tp-stat"><div class="l">${ico}${l}</div><div class="v ${cls}">${v}</div>${sub ? `<small class="${sub.cls || ""}">${sub.t}</small>` : ""}</div>`;
+  host.innerHTML = `
+    <button type="button" class="tb-btn tp-back" data-act="back">${SVG('<polyline points="15 18 9 12 15 6"/>').replace("<svg", '<svg width="14" height="14"')} До списку</button>
+    <article class="tp-card" data-id="${esc(u.id)}">
+      <header class="tp-hero">
+        ${avaHtml(u)}
+        <div class="tp-hi">
+          <h2>${esc(fullName(u))}${isMe ? '<span class="me">(ви)</span>' : ""}</h2>
+          ${u.email ? `<button type="button" class="tp-mail" data-act="copy" title="Скопіювати email"><span>${esc(u.email)}</span>${IC.copy}</button>` : ""}
+          <div class="tp-badges">
+            ${blocked ? '<span class="tc-status blocked">Заблоковано</span>' : status === "first" ? '<span class="tc-status first">Ще не увійшов</span>' : '<span class="tc-status ok">Активний</span>'}
+            ${u.role === "admin" ? '<span class="tc-status adm">Адміністратор</span>' : ""}
+          </div>
+        </div>
+        ${isMe ? "" : `<div class="tp-acts">
+          <button type="button" class="tb-btn" data-act="reset">${IC.key.replace("<svg", '<svg width="14" height="14"')} Скинути пароль</button>
+          <button type="button" class="tb-btn${blocked ? "" : " danger"}" data-act="block">${(blocked ? IC.unlock : IC.ban).replace("<svg", '<svg width="14" height="14"')} ${blocked ? "Розблокувати" : "Заблокувати"}</button>
+          <button type="button" class="tb-btn danger" data-act="delete" title="Видалити назавжди" aria-label="Видалити назавжди">${IC.trash.replace("<svg", '<svg width="14" height="14"')}</button>
+        </div>`}
+      </header>
+
+      <div class="tp-stats">
+        ${stat(IC.doc, "Тести", s.tests || 0, { t: `${s.activeTests || 0} активних` })}
+        ${stat(IC.users, "Студенти", s.students || 0)}
+        ${stat(IC.check, "Спроби", s.attempts || 0, s.weekAttempts ? { t: `+${s.weekAttempts} за тиждень`, cls: "up" } : { t: "за тиждень — 0" })}
+        ${stat(IC.game, "Ігри", s.games || 0, s.gamePlayers ? { t: `${s.gamePlayers} ${plural(s.gamePlayers, ["учасник", "учасники", "учасників"])}` } : null)}
+        ${stat(IC.clock, "Остання активність", s.lastAct ? esc(formatTimeAgo(s.lastAct)) : "—", s.lastAct ? { t: esc(new Date(s.lastAct).toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })) } : null, "sm")}
+        ${stat(IC.cal, "У системі з", esc(fmtDate(u.createdAt)), null, "sm")}
+      </div>
+
+      <section class="tp-sec">
+        <div class="tp-sec-h"><div><h3>Доступ</h3><p>Адміністратор бачить цю адмінку й керує всіма викладачами</p></div></div>
+        <div class="tp-seg" role="radiogroup" aria-label="Системна роль">
+          <button type="button" role="radio" data-act="sysrole" data-v="teacher" class="${u.role !== "admin" ? "on" : ""}" aria-checked="${u.role !== "admin"}"${isMe ? " disabled" : ""}>${IC.users}Викладач</button>
+          <button type="button" role="radio" data-act="sysrole" data-v="admin" class="${u.role === "admin" ? "on" : ""}" aria-checked="${u.role === "admin"}"${isMe ? " disabled" : ""}>${IC.roles}Адміністратор</button>
+        </div>
+      </section>
+
+      <section class="tp-sec">
+        <div class="tp-sec-h"><div><h3>Ролі</h3><p>Натисніть на роль, щоб додати або зняти її. Зміни зберігаються одразу</p></div><a href="roles">Керувати ролями</a></div>
+        ${rids.length ? `<div class="tp-roles">${rids.map(id => `<button type="button" class="tp-role${mine.has(id) ? " on" : ""}" style="--rc:${esc(roles[id].color || "#7C3AED")}" data-act="role" data-rid="${esc(id)}" aria-pressed="${mine.has(id)}"${roles[id].description ? ` title="${esc(roles[id].description)}"` : ""}><i></i>${esc(roles[id].name || "—")}</button>`).join("")}</div>`
+          : `<div class="tp-none">Ролей ще немає. <a href="roles">Створіть першу</a>, щоб групувати викладачів і обмежувати доступ до сторінок.</div>`}
+      </section>
+
+      <section class="tp-sec">
+        <div class="tp-sec-h"><div><h3>AI можливості <span class="tp-src${u.aiSettings ? " custom" : ""}">${u.aiSettings ? "Індивідуальні" : "Як у глобальних"}</span></h3><p>${u.aiSettings ? "Для цього викладача діють власні налаштування" : "Змініть перемикач, щоб задати власні налаштування для цього викладача"}</p></div>
+          ${u.aiSettings ? `<button type="button" class="tb-btn ghost" data-act="ai-reset">${SVG('<polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/>').replace("<svg", '<svg width="13" height="13"')} До глобальних</button>` : ""}</div>
+        <div class="tp-ai">${AI_FEATS.map(([k, n, d, c, bg, p]) => `<div class="feat-row">
+            <div class="feat-row-l"><div class="feat-icon" style="background:${bg};color:${c}">${SVG(p).replace("<svg", '<svg width="16" height="16"')}</div><div><div class="feat-name">${n}</div><div class="feat-desc">${d}</div></div></div>
+            <label class="toggle-sw"><input type="checkbox" data-ai="${k}" ${aiValue(u, k) ? "checked" : ""} aria-label="${n}"><span class="toggle-sl"></span></label>
+          </div>`).join("")}</div>
+      </section>
+    </article>`;
+  if (mobile()) host.classList.add("open");
 }
 
-function runAction(act, u, btn){
-  const name = fullName(u);
-  switch (act){
-    case "ai":     return openAIModal(u.id, name);
-    case "roles":  return openAssignRoleModal(u.id, name, getUserRoleIds(u));
-    case "menu":   return _menuBtn === btn ? closeMenu() : openMenu(btn, u);
-    case "copy":   closeMenu(); if (u.email) navigator.clipboard.writeText(u.email).then(() => toast("Email скопійовано")); return;
-    case "reset":  closeMenu(); return openResetModal(u.id, name, u.email || "");
-    case "block":  closeMenu(); return openBlockModal(u.id, name, u.blocked === true);
-    case "delete": closeMenu(); return openDeleteTeacher(u.id, name, u.email || "");
-  }
+function select(id){
+  _selId = id;
+  const url = new URL(location.href); url.searchParams.set("id", id); history.replaceState(null, "", url);
+  document.querySelectorAll(".tp-it").forEach(b => { const on = b.dataset.id === id; b.classList.toggle("on", on); on ? b.setAttribute("aria-current", "true") : b.removeAttribute("aria-current"); });
+  renderDetail();
+  if (!mobile()) document.getElementById("tp-main").scrollIntoView?.({ block: "nearest" });
 }
-document.addEventListener("click", e => {
-  const btn = e.target.closest("[data-act]");
-  const holder = btn && (btn.closest(".tc-row") || btn.closest(".tc-menu"));
-  if (!holder){ if (_menu && !e.target.closest(".tc-menu")) closeMenu(); return; }
-  const u = byId(holder.dataset.id);
-  if (u) runAction(btn.dataset.act, u, btn);
+function closeDetail(){
+  const host = document.getElementById("tp-main");
+  host.classList.remove("open");
+  _selId = "";
+  const url = new URL(location.href); url.searchParams.delete("id"); history.replaceState(null, "", url);
+  document.querySelectorAll(".tp-it.on").forEach(b => b.classList.remove("on"));
+}
+
+// ─── Дії в картці ─────────────────────────────────────────────────────────
+async function toggleRole(u, rid, btn){
+  const on = !getUserRoleIds(u).includes(rid);
+  btn.disabled = true;
+  const upd = { [`customRoleIds/${rid}`]: on ? true : null };
+  // Старе одиничне поле переносимо в мапу, щоб не загубити роль
+  if (u.customRoleId && !(u.customRoleIds && typeof u.customRoleIds === "object")){
+    if (u.customRoleId !== rid) upd[`customRoleIds/${u.customRoleId}`] = true;
+    upd.customRoleId = null;
+  }
+  try {
+    await dbUpd(`users/${u.id}`, upd);
+    if (!u.customRoleIds || typeof u.customRoleIds !== "object") u.customRoleIds = {};
+    Object.entries(upd).forEach(([k, v]) => { if (k === "customRoleId") delete u.customRoleId; else { const id = k.split("/")[1]; v ? u.customRoleIds[id] = true : delete u.customRoleIds[id]; } });
+    toast(on ? `Роль «${(window._roles[rid] || {}).name}» додано` : "Роль знято");
+    afterChange();
+  } catch (e) { toast("Помилка: " + e.message, "err"); btn.disabled = false; }
+}
+
+async function setSysRole(u, role){
+  if (u.role === role || (role === "teacher" && u.role !== "admin")) return;
+  const ok = await askConfirm(role === "admin"
+    ? { title: "Зробити адміністратором?", html: `<strong>${esc(fullName(u))}</strong> отримає повний доступ до адмінки: викладачі, ролі, налаштування.`, ok: "Зробити адміністратором" }
+    : { title: "Забрати права адміністратора?", html: `<strong>${esc(fullName(u))}</strong> більше не зможе заходити в адмінку.`, ok: "Забрати права", danger: true });
+  if (!ok) return;
+  try {
+    await dbUpd(`users/${u.id}`, { role });
+    u.role = role;
+    toast(role === "admin" ? "Тепер це адміністратор" : "Права адміністратора знято");
+    afterChange();
+  } catch (e) { toast("Помилка: " + e.message, "err"); }
+}
+
+async function setAI(u, key, val){
+  const base = {}; AI_FEATS.forEach(([k]) => { base[k] = aiValue(u, k); });
+  const settings = { ...base, [key]: val, updatedAt: Date.now() };
+  try {
+    await dbUpd(`users/${u.id}/aiSettings`, settings);
+    u.aiSettings = settings;
+    toast("Налаштування AI збережено");
+    afterChange();
+  } catch (e) { toast("Помилка: " + e.message, "err"); renderDetail(); }
+}
+async function resetAI(u){
+  try {
+    await dbUpd(`users/${u.id}`, { aiSettings: null });
+    delete u.aiSettings;
+    toast("Скинуто до глобальних налаштувань");
+    afterChange();
+  } catch (e) { toast("Помилка: " + e.message, "err"); }
+}
+
+document.getElementById("teacher-grid").addEventListener("click", e => {
+  const b = e.target.closest(".tp-it"); if (b) select(b.dataset.id);
+});
+document.getElementById("tp-main").addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  if (b.dataset.act === "back") return closeDetail();
+  const u = byId(_selId); if (!u) return;
+  const name = fullName(u);
+  switch (b.dataset.act){
+    case "copy":    if (u.email) navigator.clipboard.writeText(u.email).then(() => toast("Email скопійовано")); return;
+    case "reset":   return openResetModal(u.id, name, u.email || "");
+    case "block":   return openBlockModal(u.id, name, u.blocked === true);
+    case "delete":  return openDeleteTeacher(u.id, name, u.email || "");
+    case "role":    return toggleRole(u, b.dataset.rid, b);
+    case "sysrole": return setSysRole(u, b.dataset.v);
+    case "ai-reset": return resetAI(u);
+  }
+});
+document.getElementById("tp-main").addEventListener("change", e => {
+  const k = e.target.dataset?.ai; const u = byId(_selId);
+  if (k && u) setAI(u, k, e.target.checked);
 });
 document.addEventListener("keydown", e => {
-  if (!_menu) return;
-  if (e.key === "Escape"){ e.stopPropagation(); const b = _menuBtn; closeMenu(); b?.focus(); return; }
-  if (e.key === "ArrowDown" || e.key === "ArrowUp"){
-    const items = [..._menu.querySelectorAll("button")];
-    const i = items.indexOf(document.activeElement);
-    items[(i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length]?.focus();
-    e.preventDefault();
-  }
-}, true);
-addEventListener("resize", closeMenu);
-addEventListener("scroll", closeMenu, true);
+  if (e.key === "Escape" && document.getElementById("tp-main").classList.contains("open") && !document.querySelector(".modal-bd.on")) closeDetail();
+});
+// Стрілки ↑/↓ у списку — перехід між викладачами
+document.getElementById("teacher-grid").addEventListener("keydown", e => {
+  if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+  const items = [...document.querySelectorAll(".tp-it")];
+  const i = items.indexOf(document.activeElement);
+  const n = items[i + (e.key === "ArrowDown" ? 1 : -1)];
+  if (n){ e.preventDefault(); n.focus(); if (!mobile()) select(n.dataset.id); }
+});
 
 // ─── Фільтри / пошук / сортування ─────────────────────────────────────────
 document.getElementById("tc-tiles").addEventListener("click", e => {
   const b = e.target.closest("[data-filter]"); if (!b) return;
   _teacherFilter = b.dataset.filter;
-  document.querySelectorAll("#tc-tiles .tc-tile").forEach(t => { const on = t === b; t.classList.toggle("on", on); t.setAttribute("aria-selected", on); });
+  document.querySelectorAll("#tc-tiles .tp-chip").forEach(t => { const on = t === b; t.classList.toggle("on", on); t.setAttribute("aria-selected", on); });
   renderGrid();
 });
 let _qT;
 document.getElementById("tc-search").addEventListener("input", () => { clearTimeout(_qT); _qT = setTimeout(renderGrid, 120); });
 document.getElementById("tc-sort").addEventListener("change", e => { _sortBy = e.target.value; renderGrid(); });
+document.getElementById("tc-role").addEventListener("change", e => { _roleFilter = e.target.value; renderGrid(); });
 // ?q=… з огляду — одразу фільтруємо список
 {
   const q = new URLSearchParams(location.search).get("q");
@@ -905,10 +875,27 @@ document.getElementById("tc-sort").addEventListener("change", e => { _sortBy = e
 document.getElementById("btn-refresh").addEventListener("click", async () => {
   const btn = document.getElementById("btn-refresh");
   btn.disabled = true; btn.style.opacity = "0.5";
-  try { await Promise.all([loadRoles(), refreshData()]); renderAll(); toast("Дані оновлено"); }
+  try { await Promise.all([loadRoles(), refreshData()]); fillRoleFilter(); renderAll(); toast("Дані оновлено"); }
   catch (e) { toast("Не вдалося оновити: " + e.message, "err"); }
   btn.disabled = false; btn.style.opacity = "";
 });
+
+// Підтвердження дії у власній модалці (замість системного confirm)
+function askConfirm({ title, html, ok = "Підтвердити", danger = false }){
+  document.getElementById("cf-title").textContent = title;
+  document.getElementById("cf-desc").innerHTML = html;
+  const btn = document.getElementById("cf-ok");
+  btn.textContent = ok; btn.className = "tb-btn " + (danger ? "danger" : "primary");
+  openModal("m-confirm");
+  return new Promise(resolve => {
+    const bd = document.getElementById("m-confirm");
+    const done = v => { btn.onclick = null; obs.disconnect(); if (v) closeModal("m-confirm"); resolve(v); };
+    btn.onclick = () => done(true);
+    // Закрили хрестиком, фоном чи Esc — вважаємо, що скасовано
+    const obs = new MutationObserver(() => { if (!bd.classList.contains("on")) done(false); });
+    obs.observe(bd, { attributes: true, attributeFilter: ["class"] });
+  });
+}
 
 // ─── CREATE TEACHER ───────────────────────────────────────────────────────
 
@@ -994,7 +981,8 @@ window.createTeacher = async () => {
 
     (window._users ||= []).push({ id: uid, ...profile });
     (window._stats ||= {})[uid] = { tests: 0, activeTests: 0, attempts: 0, weekAttempts: 0, students: 0, links: 0, lastAct: 0 };
-    afterChange(uid);
+    _selId = uid;
+    afterChange();
     toast("Викладача створено");
   } catch(e) {
     const msg = e.code === "auth/email-already-in-use"
@@ -1156,84 +1144,6 @@ window.confirmDeleteTeacher = async () => {
   }
 };
 
-// ─── AI SETTINGS ──────────────────────────────────────────────────────────
-window.openAIModal = async (uid, name) => {
-  _aiTeacherId = uid;
-  document.getElementById("ai-modal-sub").textContent = name;
-
-  // Глобальні дефолти
-  let globalSettings = { aiComments:true, aiAnalysis:true, aiGeneration:true, aiTextCheck:true };
-  try {
-    const g = await dbGet("settings/ai");
-    if (g){
-      globalSettings = {
-        aiComments:   g.aiComments   !== false,
-        aiAnalysis:   g.aiAnalysis   !== false,
-        aiGeneration: g.aiGeneration !== false,
-        aiTextCheck:  g.aiTextCheck  !== false
-      };
-    }
-  } catch {}
-
-  // Індивідуальні
-  let hasCustom = false;
-  let settings = { ...globalSettings };
-  try {
-    const t = await dbGet(`users/${uid}/aiSettings`);
-    if (t){
-      hasCustom = true;
-      settings = {
-        aiComments:   t.aiComments   !== undefined ? t.aiComments   : globalSettings.aiComments,
-        aiAnalysis:   t.aiAnalysis   !== undefined ? t.aiAnalysis   : globalSettings.aiAnalysis,
-        aiGeneration: t.aiGeneration !== undefined ? t.aiGeneration : globalSettings.aiGeneration,
-        aiTextCheck:  t.aiTextCheck  !== undefined ? t.aiTextCheck  : globalSettings.aiTextCheck
-      };
-    }
-  } catch {}
-
-  document.getElementById("t-ai-comments").checked   = settings.aiComments;
-  document.getElementById("t-ai-analysis").checked   = settings.aiAnalysis;
-  document.getElementById("t-ai-generation").checked = settings.aiGeneration;
-  document.getElementById("t-ai-textcheck").checked  = settings.aiTextCheck;
-
-  document.getElementById("ai-modal-source").classList.toggle("show", hasCustom);
-
-  openModal("m-ai");
-};
-
-window.saveTeacherAI = async () => {
-  const settings = {
-    aiComments:   document.getElementById("t-ai-comments").checked,
-    aiAnalysis:   document.getElementById("t-ai-analysis").checked,
-    aiGeneration: document.getElementById("t-ai-generation").checked,
-    aiTextCheck:  document.getElementById("t-ai-textcheck").checked,
-    updatedAt:    Date.now()
-  };
-  try {
-    await dbUpd(`users/${_aiTeacherId}/aiSettings`, settings);
-    const u = byId(_aiTeacherId); if (u) u.aiSettings = settings;
-    document.getElementById("ai-modal-source").classList.add("show");
-    closeModal("m-ai");
-    afterChange(_aiTeacherId);
-    toast("Налаштування AI збережено");
-  } catch (e) {
-    toast("Помилка: " + e.message, "err");
-  }
-};
-
-window.resetTeacherAI = async () => {
-  try {
-    await dbUpd(`users/${_aiTeacherId}`, { aiSettings: null });
-    const u = byId(_aiTeacherId); if (u) delete u.aiSettings;
-    document.getElementById("ai-modal-source").classList.remove("show");
-    closeModal("m-ai");
-    afterChange(_aiTeacherId);
-    toast("Скинуто до глобальних налаштувань");
-  } catch (e) {
-    toast("Помилка: " + e.message, "err");
-  }
-};
-
 // Close modal on backdrop click
 document.querySelectorAll(".modal-bd").forEach(m => {
   m.addEventListener("click", e => {
@@ -1257,11 +1167,14 @@ const rolesP = loadRoles().catch(() => { window._roles = {}; });
 if (cached?.users?.length){
   window._users = cached.users; window._stats = cached.stats || {};
   await rolesP;
+  fillRoleFilter();
   renderAll();
   hideLoader();
 }
 try {
   await Promise.all([rolesP, refreshData()]);
+  fillRoleFilter();
+  renderAll();
 } catch (e) {
   console.error("[teachers] Initial load failed:", e);
   const root = document.getElementById("admin-content");
