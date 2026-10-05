@@ -13,7 +13,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/styles.css?v=29">
+<link rel="stylesheet" href="shared/styles.css?v=30">
 <link rel="modulepreload" href="shared/app.js?v=32">
 <link rel="modulepreload" href="shared/features.js?v=38">
 
@@ -247,7 +247,7 @@
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
-<script src="shared/nav.js?v=20"></script>
+<script src="shared/nav.js?v=21"></script>
 <main class="main">
 
   <div class="sec on" id="sec-notifications">
@@ -260,15 +260,15 @@
       </div>
       <div class="nf-actions">
         <span class="nf-rt">Наживо</span>
-        <button class="nf-btn icon" id="notif-sound-btn" type="button" onclick="G.toggleNotifSound()" title="Звук сповіщень" aria-label="Звук сповіщень">
+        <button class="nf-btn icon" id="notif-sound-btn" data-qtb="icon" type="button" onclick="G.toggleNotifSound()" title="Звук сповіщень" aria-label="Звук сповіщень">
           <svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14"/></svg>
           <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
         </button>
-        <button class="nf-btn" type="button" onclick="G.markAllNotifsAsRead()" title="Зняти позначку «нове» з усіх">
+        <button class="nf-btn" type="button" data-qtb onclick="G.markAllNotifsAsRead()" title="Зняти позначку «нове» з усіх">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           Прочитати всі
         </button>
-        <button class="nf-btn danger" id="nf-clear" type="button" onclick="G.clearAllNotifs()">
+        <button class="nf-btn danger" id="nf-clear" data-qtb="danger" type="button" onclick="G.clearAllNotifs()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
           Очистити
         </button>

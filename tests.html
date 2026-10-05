@@ -14,7 +14,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/styles.css?v=29">
+<link rel="stylesheet" href="shared/styles.css?v=30">
 <link rel="modulepreload" href="shared/app.js?v=32">
 <link rel="modulepreload" href="shared/features.js?v=38">
 <style>
@@ -358,7 +358,7 @@
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
-<script src="shared/nav.js?v=20"></script>
+<script src="shared/nav.js?v=21"></script>
 <main class="main">
 
   <!-- TESTS (новий дизайн) -->
@@ -371,15 +371,15 @@
         <p id="t-subtitle">Папки та тести · організуйте свої матеріали</p>
       </div>
       <div class="t-actions">
-        <button class="t-btn ghost" onclick="showSec('archive')" title="Архівовані тести">
+        <button class="t-btn ghost" data-qtb="ghost" onclick="showSec('archive')" title="Архівовані тести">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="5" rx="2"/><path d="M4 9v9a2 2 0 002 2h12a2 2 0 002-2V9"/><line x1="10" y1="13" x2="14" y2="13"/></svg>
           Архів <span class="t-mini-badge" id="nb-archive">0</span>
         </button>
-        <button class="t-btn" data-act="new-folder">
+        <button class="t-btn" data-act="new-folder" data-qtb>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/><path d="M12 11v6M9 14h6"/></svg>
           Нова папка
         </button>
-        <button class="t-btn primary" data-act="add-test" data-id="" id="t-new-test">
+        <button class="t-btn primary" data-act="add-test" data-id="" id="t-new-test" data-qtb="primary">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Новий тест
         </button>

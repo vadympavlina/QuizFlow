@@ -1033,6 +1033,35 @@ textarea.fi{height:auto;padding:11px 14px;line-height:1.5}
   border:2px solid #fff; font-family:'Geist Mono',monospace;
 }
 .qtb-icon .badge[hidden]{ display:none; }
+/* Дії сторінки в топбарі (двійники кнопок з data-qtb, nav.js) */
+html.qtb-ready .main [data-qtb]{ display:none !important; }
+.qtb-extras{ display:flex; align-items:center; gap:8px; min-width:0; }
+.qtb-extras[hidden], .qtb-btn[hidden]{ display:none; }
+.qtb-btn{
+  flex:0 0 auto; height:40px; padding:0 15px; border-radius:11px; border:1px solid #E3E8F2; background:#fff;
+  display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; white-space:nowrap; text-decoration:none;
+  font:700 13.5px 'Manrope',system-ui,sans-serif; color:#24335A; transition:border-color .15s, background .15s, filter .15s;
+}
+.qtb-btn:hover{ border-color:#CDD6E8; background:#FAFBFE; color:#0B1437; }
+.qtb-btn:focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
+.qtb-btn:disabled{ opacity:.45; cursor:not-allowed; }
+.qtb-btn svg{ width:15px; height:15px; flex:0 0 auto; }
+.qtb-btn.primary{
+  background:linear-gradient(135deg,#3B6BF6,#1E40AF); border-color:transparent; color:#fff;
+  box-shadow:0 8px 20px -10px rgba(45,91,227,.75);
+}
+.qtb-btn.primary:hover:not(:disabled){ filter:brightness(1.06); background:linear-gradient(135deg,#3B6BF6,#1E40AF); color:#fff; }
+.qtb-btn.danger{ color:#B91C1C; border-color:#FECACA; background:#FEF7F7; }
+.qtb-btn.danger:hover:not(:disabled){ background:#FEE2E2; border-color:#FCA5A5; color:#B91C1C; }
+.qtb-btn.ghost{ background:transparent; border-color:transparent; color:#5B6A8F; }
+.qtb-btn.ghost:hover{ background:#F1F5FB; color:#0B1437; }
+.qtb-btn > span{ font:600 11px 'Geist Mono',monospace; padding:1px 7px; border-radius:999px; background:#EEF1F7; color:#5B6A8F; }
+.qtb-btn > span:empty{ display:none; }
+.qtb-btn.icon{ width:40px; padding:0; }
+.qtb-btn.icon svg{ width:17px; height:17px; }
+.qtb-btn.icon .off, .qtb-btn.icon.snd-off .on{ display:none; }
+.qtb-btn.icon.snd-off .off{ display:block; }
+.qtb-btn.icon.snd-off{ color:#8691AC; }
 @media print{ .qtb{ display:none; } }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -1113,6 +1142,11 @@ textarea.fi{height:auto;padding:11px 14px;line-height:1.5}
   .qtb-tt small{ font-size:9.5px; }
   .qtb-tt b{ font-size:15px; }
   .qtb-icon{ width:40px; height:40px; border-radius:12px; }
+  /* Дії — іконками (підпис лишається в aria-label/title) */
+  .qtb-extras{ gap:6px; }
+  .qtb-btn{ width:40px; padding:0; gap:0; border-radius:12px; font-size:0; }
+  .qtb-btn > :not(svg){ display:none; }
+  .qtb-btn svg{ width:17px; height:17px; }
 }
 @media (max-width:1023px) and (prefers-reduced-motion:reduce){
   .sb, .sb-ov{ transition:none !important; }

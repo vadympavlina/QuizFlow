@@ -13,7 +13,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/styles.css?v=29">
+<link rel="stylesheet" href="shared/styles.css?v=30">
 <link rel="modulepreload" href="shared/app.js?v=32">
 <link rel="modulepreload" href="shared/features.js?v=38">
 
@@ -110,7 +110,7 @@
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
-<script src="shared/nav.js?v=20"></script>
+<script src="shared/nav.js?v=21"></script>
 <main class="main">
 
   <div class="sec on" id="sec-news">
@@ -119,7 +119,7 @@
         <h1>Що нового в QuizFlow</h1>
         <p id="nw-sub">Оновлення платформи, нові функції та поради</p>
       </div>
-      <button type="button" class="nw-btn" id="nw-mark-all" onclick="markAllNewsRead()" hidden>
+      <button type="button" class="nw-btn" id="nw-mark-all" data-qtb onclick="markAllNewsRead()" hidden>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         Прочитати всі
       </button>

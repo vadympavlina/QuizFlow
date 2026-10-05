@@ -13,7 +13,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/styles.css?v=29">
+<link rel="stylesheet" href="shared/styles.css?v=30">
 <link rel="modulepreload" href="shared/app.js?v=32">
 <link rel="modulepreload" href="shared/features.js?v=38">
 <link rel="modulepreload" href="shared/dash.js?v=4">
@@ -230,7 +230,7 @@
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
-<script src="shared/nav.js?v=20"></script>
+<script src="shared/nav.js?v=21"></script>
 <main class="main">
   <div class="sec on" id="sec-dashboard">
 
@@ -240,11 +240,11 @@
         <p id="dx-sub"></p>
       </div>
       <div class="dx-head-r">
-        <a class="dx-btn" href="live" target="_blank" rel="noopener" title="Хто зараз проходить тести — у новій вкладці">
+        <a class="dx-btn" data-qtb href="live" target="_blank" rel="noopener" title="Хто зараз проходить тести — у новій вкладці">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
           Моніторинг
         </a>
-        <button type="button" class="dx-btn" data-dx="new">
+        <button type="button" class="dx-btn" data-dx="new" data-qtb="primary">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Новий тест
         </button>

@@ -13,7 +13,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/styles.css?v=29">
+<link rel="stylesheet" href="shared/styles.css?v=30">
 <link rel="stylesheet" href="shared/reports.css?v=4">
 <link rel="modulepreload" href="shared/app.js?v=32">
 <link rel="modulepreload" href="shared/features.js?v=38">
@@ -28,7 +28,7 @@
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
-<script src="shared/nav.js?v=20"></script>
+<script src="shared/nav.js?v=21"></script>
 <main class="main">
 
   <div class="sec on rp-page" id="sec-gradebook">
@@ -50,11 +50,11 @@
         <input id="gb-q" type="search" placeholder="Пошук студента…" autocomplete="off" aria-label="Пошук студента">
       </label>
       <div class="rp-spacer"></div>
-      <button class="rp-btn" id="gb-export-csv" type="button" onclick="G.exportGradebook('csv')" title="Таблиця для Excel">
+      <button class="rp-btn" id="gb-export-csv" data-qtb type="button" onclick="G.exportGradebook('csv')" title="Таблиця для Excel">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         CSV
       </button>
-      <button class="rp-btn primary" id="gb-export-html" type="button" onclick="G.exportGradebook('html')" title="Звіт для друку">
+      <button class="rp-btn primary" id="gb-export-html" data-qtb="primary" type="button" onclick="G.exportGradebook('html')" title="Звіт для друку">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         HTML-звіт
       </button>
