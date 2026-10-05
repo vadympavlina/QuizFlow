@@ -13,8 +13,8 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/styles.css?v=28">
-<link rel="modulepreload" href="shared/app.js?v=31">
+<link rel="stylesheet" href="shared/styles.css?v=29">
+<link rel="modulepreload" href="shared/app.js?v=32">
 <link rel="modulepreload" href="shared/features.js?v=38">
 
 <style>
@@ -71,7 +71,7 @@
 #sec-news .nw-link{background:none;border:0;padding:0;font:inherit;color:var(--nav-accent);font-weight:700;cursor:pointer;text-decoration:underline}
 
 /* Бокова панель */
-#sec-news .nwa-side{position:sticky;top:16px;display:flex;flex-direction:column;gap:12px}
+#sec-news .nwa-side{position:sticky;top:96px;display:flex;flex-direction:column;gap:12px}
 #sec-news .nw-search{position:relative;display:flex;align-items:center}
 #sec-news .nw-search svg{position:absolute;left:12px;color:var(--ink-400)}
 #sec-news .nw-search input{width:100%;height:40px;box-sizing:border-box;padding:0 12px 0 34px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:13.5px;background:#fff;outline:none;color:var(--ink-900)}
@@ -110,7 +110,7 @@
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
-<script src="shared/nav.js?v=19"></script>
+<script src="shared/nav.js?v=20"></script>
 <main class="main">
 
   <div class="sec on" id="sec-news">
@@ -147,7 +147,7 @@
 <div id="modals-root"></div>
 
 <script type="module">
-const { initApp } = await import("./shared/app.js?v=31");
+const { initApp } = await import("./shared/app.js?v=32");
 const featuresP = import("./shared/features.js?v=38");
 
 window.showSec = function(name){

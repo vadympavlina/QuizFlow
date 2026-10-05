@@ -1,5 +1,5 @@
 // Панель викладача на телефоні: меню висувається, сторінки не ширші за екран,
-// а на комп'ютері мобільна шапка не з'являється.
+// а на комп'ютері топбар без кнопки меню.
 import { test, expect, seed } from "./fixtures.mjs";
 import { rich } from "./seeds/rich.mjs";
 
@@ -18,7 +18,7 @@ test.describe("телефон", () => {
       const width = await page.evaluate(() => document.documentElement.scrollWidth);
       expect(width, `ширина сторінки ${pg}`).toBeLessThanOrEqual(PHONE.width);
       await expect(page.getByText("Мобільна версія недоступна")).toHaveCount(0);
-      if (PANEL.includes(pg)) await expect(page.locator("#mtb"), `шапка на ${pg}`).toBeVisible();
+      if (PANEL.includes(pg)) await expect(page.locator("#qtb"), `топбар на ${pg}`).toBeVisible();
     }
     expect(errors).toEqual([]);
   });
@@ -28,17 +28,17 @@ test.describe("телефон", () => {
     await page.goto("/attempts");
     const sb = page.locator("#sidebar");
     await expect(sb).toBeHidden();
-    await page.locator("#mtb-menu").click();
+    await page.locator("#qtb-menu").click();
     await expect(sb).toBeInViewport();
-    await expect(page.locator("#mtb-menu")).toHaveAttribute("aria-expanded", "true");
+    await expect(page.locator("#qtb-menu")).toHaveAttribute("aria-expanded", "true");
     await page.mouse.click(PHONE.width - 10, PHONE.height / 2);   // підкладка праворуч від меню
     await expect(sb).toBeHidden();
-    await page.locator("#mtb-menu").click();
+    await page.locator("#qtb-menu").click();
     await expect(sb).toBeInViewport();
     await page.keyboard.press("Escape");
     await expect(sb).toBeHidden();
     // Перехід за пунктом меню
-    await page.locator("#mtb-menu").click();
+    await page.locator("#qtb-menu").click();
     await sb.locator('a[href="students"]').click();
     await expect(page).toHaveURL(/\/students$/);
     expect(errors).toEqual([]);
@@ -57,11 +57,13 @@ test.describe("телефон", () => {
   });
 });
 
-test("комп'ютер: мобільної шапки й кнопки «Усі студенти» не видно", async ({ page, errors }) => {
+test("комп'ютер: топбар без кнопки меню, «Усі студенти» не видно", async ({ page, errors }) => {
   await seed(page, rich(Date.now()), "t1");
   await page.goto("/students");
   await page.waitForTimeout(1200);
-  await expect(page.locator("#mtb")).toBeHidden();
+  await expect(page.locator("#qtb")).toBeVisible();
+  await expect(page.locator("#qtb-menu")).toBeHidden();
+  await expect(page.locator("#qtb-t")).toHaveText("Студенти");
   await expect(page.locator("#sidebar")).toBeInViewport();
   await expect(page.locator(".st-back")).toBeHidden();
   expect(errors).toEqual([]);

@@ -13,8 +13,8 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/styles.css?v=28">
-<link rel="modulepreload" href="shared/app.js?v=31">
+<link rel="stylesheet" href="shared/styles.css?v=29">
+<link rel="modulepreload" href="shared/app.js?v=32">
 <link rel="modulepreload" href="shared/features.js?v=38">
 <link rel="modulepreload" href="shared/online.js?v=1">
 <style>
@@ -133,7 +133,7 @@
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
-<script src="shared/nav.js?v=19"></script>
+<script src="shared/nav.js?v=20"></script>
 <main class="main">
 
   <div class="sec on" id="sec-online">
@@ -158,7 +158,7 @@
 // Спочатку app.js (щоб вставити window._fb і іншу базу),
 // потім features.js (він читає з window._fb).
 // Preload у <head> вже починає завантаження обох паралельно — тут тільки execute order.
-const { initApp } = await import("./shared/app.js?v=31");
+const { initApp } = await import("./shared/app.js?v=32");
 const featuresP = import("./shared/features.js?v=38");
 
 // showSec: залишаємось на сторінці якщо це та сама; інакше — йдемо на відповідний html
