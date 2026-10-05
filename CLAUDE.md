@@ -10,6 +10,7 @@
 - Пошта: листи Firebase Auth — через SMTP Resend; запрошення й розсилки — Cloudflare Worker з `worker/` (ключ Resend лише в його секретах; деплой — вставити `worker/dist/worker.js` у редактор Cloudflare, після змін у `worker/src` перезібрати: `cd tests && npm run worker:bundle`; логотип у листах віддає сам воркер — після зміни `assets/email/logo-light.png` виконати `npm run worker:logo` і підняти `LOGO_V`). Див. `docs/email-setup.md`.
 - Правила бази — `database.rules.json`; після змін їх треба вручну опублікувати в консолі Firebase.
 - Після змін у `shared/*.js|css` піднімати `?v=` у всіх HTML, де файл підключено.
+- Іконки сайту — `assets/icons/<teacher|admin|game|test>/` (свій набір для кожної частини) і `/favicon.ico`. Не малювати вручну: змінити `tests/scripts/icons.mjs`, виконати `cd tests && npm run icons` і підняти `?v=` у посиланнях на іконки в усіх HTML.
 
 ## Процес
 - Кожну завершену зміну — одразу комітити, пушити і відкривати PR у `main`.
