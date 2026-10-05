@@ -430,11 +430,50 @@
       '<div class="qtb-title"><span class="qtb-ico" id="qtb-ico" aria-hidden="true"></span>' +
         '<div class="qtb-tt"><small id="qtb-sec"></small><b id="qtb-t"></b></div></div>' +
       '<div class="qtb-spacer"></div>' +
+      '<div class="qtb-extras" id="qtb-extras" hidden></div>' +
       '<a class="qtb-icon" id="qtb-bell" href="notifications" title="Сповіщення" aria-label="Сповіщення">' +
         '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15V11a6 6 0 1 1 12 0v4l1.5 3h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>' +
         '<span class="badge" id="qtb-bell-n" hidden></span></a>';
     main.insertBefore(bar, main.firstChild);
-    syncTopbar(); syncBell();
+    syncTopbar(); syncBell(); mountActions();
+  }
+
+  // Дії сторінки в топбарі (як в адмінці). Сторінка позначає свої кнопки атрибутом
+  // data-qtb (значення — вигляд: primary, danger, ghost, icon). Оригінали лишаються
+  // на місці прихованими — з усіма своїми обробниками; у топбарі — їхні двійники:
+  // натискання передається оригіналу, а напис, disabled і hidden копіюються з нього.
+  function mountActions() {
+    var ex = document.getElementById("qtb-extras");
+    if (!ex) return;
+    var list = [].slice.call(document.querySelectorAll(".main [data-qtb]")).filter(function (o) { return !o.closest(".qtb"); });
+    list.forEach(function (o) {
+      var isLink = o.tagName === "A";
+      var p = document.createElement(isLink ? "a" : "button");
+      if (isLink) {
+        ["href", "target", "rel"].forEach(function (k) { if (o.hasAttribute(k)) p.setAttribute(k, o.getAttribute(k)); });
+      } else {
+        p.type = "button";
+        p.addEventListener("click", function (e) { e.preventDefault(); o.click(); });
+      }
+      var variant = o.getAttribute("data-qtb");
+      var sync = function () {
+        p.className = "qtb-btn" + (variant ? " " + variant : "") + (o.classList.contains("snd-off") ? " snd-off" : "");
+        p.innerHTML = o.innerHTML;
+        // id лишаються лише в оригіналі — сторінка шукає елементи за id
+        p.querySelectorAll("[id]").forEach(function (e) { e.removeAttribute("id"); });
+        p.hidden = o.hidden;
+        if (!isLink) p.disabled = !!o.disabled;
+        var lbl = (o.getAttribute("aria-label") || o.textContent || "").replace(/\s+/g, " ").trim();
+        p.setAttribute("aria-label", lbl);
+        p.title = o.title || lbl;
+        if (o.hasAttribute("aria-pressed")) p.setAttribute("aria-pressed", o.getAttribute("aria-pressed"));
+      };
+      sync();
+      if (window.MutationObserver) new MutationObserver(sync).observe(o, { attributes: true, childList: true, subtree: true, characterData: true });
+      ex.appendChild(p);
+    });
+    ex.hidden = !list.length;
+    root.classList.add("qtb-ready");
   }
   // Перехід за пунктом меню, Esc або розширення вікна — меню закривається
   document.addEventListener("click", function (e) {
