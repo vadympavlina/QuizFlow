@@ -269,6 +269,7 @@
     if (sc2 && scroll) sc2.scrollTop = scroll;
     setActive(state.active);
     watchBadges(sb);
+    mountMobile();
     return sb;
   }
 
@@ -321,6 +322,7 @@
   var tipEl = null, tipFor = null;
   function tipNeeded(el) {
     if (!el || !el.getAttribute("data-tip")) return false;
+    if (isNarrow()) return false;   // висувне меню завжди з підписами
     if (collapsed) return true;
     // У розгорнутому меню підписи й так видно — підказки лише для іконок-кнопок
     return !!el.closest(".sb-icon-strip, .sb-logout");
@@ -366,6 +368,54 @@
   function endBoot() {
     requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.remove("sb-boot"); }); });
   }
+
+  // ─── Телефон і планшет (<1024px): меню висувається зліва ───
+  // Шапку з кнопкою меню й підкладку видно лише на вузькому екрані (styles.css),
+  // на комп'ютері вони display:none і нічого не змінюють.
+  var mq = window.matchMedia ? window.matchMedia("(max-width:1023px)") : null;
+  function isNarrow() { return !!(mq && mq.matches); }
+  function pageTitle() {
+    var t = String(document.title || "").split(/\s+[—–-]\s+/);
+    return t.length > 1 ? t.slice(1).join(" — ") : "";
+  }
+  function setOpen(open) {
+    open = !!open && isNarrow();
+    root.classList.toggle("sb-open", open);
+    var b = document.getElementById("mtb-menu");
+    if (b) b.setAttribute("aria-expanded", String(open));
+    hideTip();
+  }
+  window.toggleMobileNav = function () { setOpen(!root.classList.contains("sb-open")); };
+  function mountMobile() {
+    if (document.getElementById("mtb")) return;
+    var sb = document.getElementById("sidebar");
+    if (!sb) return;
+    var bar = document.createElement("header");
+    bar.className = "mtb"; bar.id = "mtb";
+    bar.innerHTML =
+      '<button type="button" class="mtb-menu" id="mtb-menu" onclick="toggleMobileNav()" aria-controls="sidebar" aria-expanded="false" aria-label="Меню">' + icon("menu", 2) + "</button>" +
+      '<a class="mtb-logo" href="./" aria-label="QuizFlow — на головну"><span class="logo-i"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h11a4 4 0 0 1 4 4v1"/><path d="M20 17H9a4 4 0 0 1-4-4v-1"/><circle cx="5" cy="7" r="1.3" fill="#fff"/><circle cx="19" cy="17" r="1.3" fill="#fff"/></svg></span></a>' +
+      '<span class="mtb-t">' + esc(pageTitle()) + "</span>";
+    var ov = document.createElement("div");
+    ov.className = "sb-ov"; ov.id = "sb-ov";
+    ov.addEventListener("click", function () { setOpen(false); });
+    sb.parentNode.insertBefore(bar, sb);
+    sb.parentNode.insertBefore(ov, sb.nextSibling);
+  }
+  // Перехід за пунктом меню, Esc або розширення вікна — меню закривається
+  document.addEventListener("click", function (e) {
+    if (!root.classList.contains("sb-open")) return;
+    var a = e.target.closest && e.target.closest("#sidebar a[href], #sidebar .ni-report");
+    if (a) setOpen(false);
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && root.classList.contains("sb-open")) setOpen(false);
+  });
+  if (mq) {
+    var onMq = function () { if (!isNarrow()) setOpen(false); };
+    if (mq.addEventListener) mq.addEventListener("change", onMq); else if (mq.addListener) mq.addListener(onMq);
+  }
+  window.addEventListener("pageshow", function () { setOpen(false); });
 
   window.QFNav = {
     render: render, setUser: setUser, setNav: setNav, setActive: setActive,

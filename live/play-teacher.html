@@ -183,10 +183,28 @@
     .stage,.topbar{padding-left:16px;padding-right:16px}
     .vol-wrap,.footer .hint{display:none}
   }
+  /* Телефон: гру можна вести з телефона — компактніше, панель внизу не перекриває варіанти */
+  @media (max-width: 640px){
+    .topbar{gap:10px;padding-top:10px;padding-bottom:10px}
+    .progress-wrap{min-width:0}
+    .timer{width:52px;height:52px}
+    .timer span{font-size:18px}
+    .actions{width:100%;margin-left:0}
+    .actions .btn{flex:1 1 auto;justify-content:center;padding:10px 12px}
+    .stage{padding-top:16px}
+    .answered-bar{padding:10px 14px;gap:12px;margin-bottom:18px}
+    .answered-bar .nums{font-size:16px}
+    .stage .question-text{margin-bottom:22px}
+    .answers{gap:10px}
+    .ans,.answers.many .ans{padding:14px 16px;min-height:64px;gap:14px;font-size:17px;border-radius:16px}
+    .ans .letter{width:38px;height:38px;border-radius:11px;font-size:17px}
+    .ans .count{font-size:18px;padding:2px 10px}
+    .footer{position:static;background:none;padding:6px 16px calc(16px + env(safe-area-inset-bottom))}
+    .footer .stat{padding:7px 11px;font-size:12px}
+  }
 </style>
 </head>
 <body>
-<script src="../shared/mobile-gate.js?v=1"></script>
 <div id="theme-overlay"></div>
 <div id="pattern-overlay"></div>
 <div class="loading" id="loading"><div class="spinner"></div></div>
@@ -493,7 +511,7 @@ function refit() {
   const nOpts = (questions[shownQ].options || []).length;
   // Чим більше варіантів, тим менше місця лишається для питання
   const qShare = isFreeform(questions[shownQ]) ? 0.34 : nOpts >= 5 ? 0.2 : 0.25;
-  fitText(qt, { max: 64, min: 20, maxHeight: innerHeight * qShare + imgH });
+  fitText(qt, { max: innerWidth < 640 ? 32 : 64, min: 20, maxHeight: innerHeight * qShare + imgH });
   fitGroup(document.querySelectorAll("#answers-grid .ans .txt"), {
     max: innerWidth < 760 ? 22 : 32, min: 14, maxHeight: Math.max(60, innerHeight * (nOpts >= 5 ? 0.075 : 0.1)),
   });

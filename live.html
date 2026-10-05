@@ -170,11 +170,25 @@ svg{flex:0 0 auto}
 .spin{width:40px;height:40px;border:3.5px solid rgba(45,91,227,.15);border-top-color:#2d5be3;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (max-width:1180px){.wrap{grid-template-columns:1fr}.side{position:static}.stats .stat:nth-child(n+3){display:none}}
+/* Телефон: шапка в кілька рядків, менші відступи */
+@media (max-width:640px){
+  .bar{gap:12px 14px;padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top))}
+  .brand-mark{width:38px;height:38px;border-radius:11px}
+  .brand b{font-size:18px}
+  .bar-test{flex:1 1 100%;order:1}
+  .stats{flex:1 1 100%;order:2}
+  .stat{flex:1;min-width:0}
+  .clock{order:3;text-align:left}
+  .clock b{font-size:20px}
+  .tools{order:4;margin-left:auto}
+  .admin{padding:10px 14px}
+  .srch{width:100%}
+  .wrap{padding:14px 14px calc(28px + env(safe-area-inset-bottom));gap:14px}
+}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<script src="shared/mobile-gate.js?v=1"></script>
 
 <div id="loader"><div class="spin"></div>Завантаження…</div>
 
