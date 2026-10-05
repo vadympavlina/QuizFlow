@@ -208,6 +208,7 @@
   function syncBadge(el) {
     var t = (el.textContent || "").trim();
     el.hidden = !t || t === "0";
+    if (el.id === "nb-notif") syncBell();
   }
   var badgeObserver = null;
   function watchBadges(sb) {
@@ -235,6 +236,7 @@
     sb.querySelectorAll(".ni.active").forEach(function (a) { a.classList.remove("active"); a.removeAttribute("aria-current"); });
     if (el) { el.classList.add("active"); el.setAttribute("aria-current", "page"); }
     if (page) state.active = page;
+    syncTopbar();
   }
 
   // Малює (або перемальовує) меню. Лічильники й скрол переносяться зі старого.
@@ -269,7 +271,7 @@
     if (sc2 && scroll) sc2.scrollTop = scroll;
     setActive(state.active);
     watchBadges(sb);
-    mountMobile();
+    mountTopbar(); syncTopbar(); syncBell();
     return sb;
   }
 
@@ -369,9 +371,9 @@
     requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.remove("sb-boot"); }); });
   }
 
-  // ─── Телефон і планшет (<1024px): меню висувається зліва ───
-  // Шапку з кнопкою меню й підкладку видно лише на вузькому екрані (styles.css),
-  // на комп'ютері вони display:none і нічого не змінюють.
+  // ─── Верхня панель (як в адмінці): розділ і назва сторінки, дзвіночок ───
+  // Плаваюча картка першим елементом <main>; на телефоні й планшеті (<1024px)
+  // у ній кнопка меню, а саме меню висувається зліва над підкладкою.
   var mq = window.matchMedia ? window.matchMedia("(max-width:1023px)") : null;
   function isNarrow() { return !!(mq && mq.matches); }
   function pageTitle() {
@@ -381,26 +383,58 @@
   function setOpen(open) {
     open = !!open && isNarrow();
     root.classList.toggle("sb-open", open);
-    var b = document.getElementById("mtb-menu");
+    var b = document.getElementById("qtb-menu");
     if (b) b.setAttribute("aria-expanded", String(open));
     hideTip();
   }
   window.toggleMobileNav = function () { setOpen(!root.classList.contains("sb-open")); };
-  function mountMobile() {
-    if (document.getElementById("mtb")) return;
+
+  // Іконка, розділ і назва — з активного пункту меню (або з <title>)
+  function syncTopbar() {
+    var ico = document.getElementById("qtb-ico");
+    if (!ico) return;
+    var a = document.querySelector("#sidebar .sb-scroll .ni.active");
+    var lbl = a && a.querySelector(".ni-label"), sec = a && a.closest(".sb-section");
+    var secLbl = sec && sec.querySelector(".nav-sec span");
+    var svg = a && a.querySelector(".sb-ico svg");
+    ico.innerHTML = svg ? svg.outerHTML : icon("dashboard");
+    document.getElementById("qtb-sec").textContent = (secLbl && secLbl.textContent) || "Панель викладача";
+    document.getElementById("qtb-t").textContent = (lbl && lbl.textContent) || pageTitle() || "QuizFlow";
+  }
+  // Дзвіночок — кількість нових сповіщень (той самий лічильник, що й у меню)
+  function syncBell() {
+    var n = document.getElementById("qtb-bell-n");
+    if (!n) return;
+    var src = document.getElementById("nb-notif");
+    var v = src && !src.hidden ? (src.textContent || "").trim() : "";
+    n.textContent = v; n.hidden = !v || v === "0";
+    var b = document.getElementById("qtb-bell");
+    if (b) b.setAttribute("aria-label", n.hidden ? "Сповіщення" : "Сповіщення: " + v);
+  }
+  function mountTopbar() {
     var sb = document.getElementById("sidebar");
     if (!sb) return;
+    if (!document.getElementById("sb-ov")) {
+      var ov = document.createElement("div");
+      ov.className = "sb-ov"; ov.id = "sb-ov";
+      ov.addEventListener("click", function () { setOpen(false); });
+      sb.parentNode.insertBefore(ov, sb.nextSibling);
+    }
+    var main = document.querySelector(".main");
+    if (!main || document.getElementById("qtb")) return;
     var bar = document.createElement("header");
-    bar.className = "mtb"; bar.id = "mtb";
+    bar.className = "qtb"; bar.id = "qtb";
     bar.innerHTML =
-      '<button type="button" class="mtb-menu" id="mtb-menu" onclick="toggleMobileNav()" aria-controls="sidebar" aria-expanded="false" aria-label="Меню">' + icon("menu", 2) + "</button>" +
-      '<a class="mtb-logo" href="./" aria-label="QuizFlow — на головну"><span class="logo-i"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h11a4 4 0 0 1 4 4v1"/><path d="M20 17H9a4 4 0 0 1-4-4v-1"/><circle cx="5" cy="7" r="1.3" fill="#fff"/><circle cx="19" cy="17" r="1.3" fill="#fff"/></svg></span></a>' +
-      '<span class="mtb-t">' + esc(pageTitle()) + "</span>";
-    var ov = document.createElement("div");
-    ov.className = "sb-ov"; ov.id = "sb-ov";
-    ov.addEventListener("click", function () { setOpen(false); });
-    sb.parentNode.insertBefore(bar, sb);
-    sb.parentNode.insertBefore(ov, sb.nextSibling);
+      '<button type="button" class="qtb-menu" id="qtb-menu" onclick="toggleMobileNav()" aria-controls="sidebar" aria-expanded="false" aria-label="Меню">' +
+        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>' +
+      '<div class="qtb-title"><span class="qtb-ico" id="qtb-ico" aria-hidden="true"></span>' +
+        '<div class="qtb-tt"><small id="qtb-sec"></small><b id="qtb-t"></b></div></div>' +
+      '<div class="qtb-spacer"></div>' +
+      '<a class="qtb-icon" id="qtb-bell" href="notifications" title="Сповіщення" aria-label="Сповіщення">' +
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15V11a6 6 0 1 1 12 0v4l1.5 3h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>' +
+        '<span class="badge" id="qtb-bell-n" hidden></span></a>';
+    main.insertBefore(bar, main.firstChild);
+    syncTopbar(); syncBell();
   }
   // Перехід за пунктом меню, Esc або розширення вікна — меню закривається
   document.addEventListener("click", function (e) {
@@ -427,6 +461,7 @@
   if (document.body) {
     render(readJson(NAV_CACHE_KEY));
     endBoot();
+    if (!document.getElementById("qtb")) document.addEventListener("DOMContentLoaded", mountTopbar);
   } else {
     document.addEventListener("DOMContentLoaded", function () { if (!document.getElementById("sidebar")) render(readJson(NAV_CACHE_KEY)); endBoot(); });
   }

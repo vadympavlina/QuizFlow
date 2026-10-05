@@ -374,7 +374,9 @@ function renderAnnouncements(all) {
     try { localStorage.setItem(ANN_DISMISS_KEY, JSON.stringify(d)); } catch {}
     el.classList.add("out"); setTimeout(() => { el.remove(); if (!box.children.length) box.remove(); }, 180);
   });
-  main.prepend(box);
+  // Під верхньою панеллю (nav.js), якщо вона є
+  const tb = main.querySelector(":scope > .qtb");
+  if (tb) tb.after(box); else main.prepend(box);
 }
 
 function showPanelMaintenance(msg) {

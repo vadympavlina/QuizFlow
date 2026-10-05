@@ -993,39 +993,59 @@ textarea.fi{height:auto;padding:11px 14px;line-height:1.5}
 .qf-maint-card button{height:46px;padding:0 22px;border-radius:12px;border:0;background:linear-gradient(135deg,#2d5be3,#1a3ab8);color:#fff;font:700 14.5px "Manrope",sans-serif;cursor:pointer}
 
 /* ═══════════════════════════════════════════════════════════════════════
-   ТЕЛЕФОН І ПЛАНШЕТ (<1024px): панель працює повністю, як адмінка.
-   Меню висувається зліва (кнопка в шапці .mtb з nav.js), контент — на всю
-   ширину, широкі таблиці гортаються всередині своїх карток. Усе — лише
-   в цьому медіазапиті, тож на комп'ютері нічого не змінюється.
+   ВЕРХНЯ ПАНЕЛЬ (shared/nav.js) — як в адмінці: плаваюча картка першим
+   елементом .main, прилипає при прокрутці. Іконка, розділ і назва — з
+   активного пункту меню; дзвіночок — лічильник нових сповіщень.
    ═══════════════════════════════════════════════════════════════════════ */
-.mtb, .sb-ov{ display:none; }
+.qtb{
+  position:sticky; top:var(--sb-gap); z-index:20;
+  margin:-14px 0 22px; min-height:62px; padding:10px 12px 10px 14px;
+  display:flex; align-items:center; gap:12px;
+  background:rgba(255,255,255,.92); border:1px solid #E3E8F2; border-radius:18px;
+  box-shadow:0 10px 30px -18px rgba(15,30,71,.28), 0 1px 2px rgba(15,30,71,.04);
+  font-family:'Manrope',system-ui,sans-serif;
+}
+.qtb-menu{
+  display:none; width:40px; height:40px; flex:0 0 auto; border-radius:12px; border:1px solid #E3E8F2;
+  background:#fff; color:#24335A; cursor:pointer; place-items:center;
+}
+.qtb-menu:hover{ background:#F4F6FB; }
+.qtb-menu:focus-visible, .qtb-icon:focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
+.qtb-title{ display:flex; align-items:center; gap:12px; min-width:0; }
+.qtb-ico{
+  width:38px; height:38px; flex:0 0 auto; border-radius:12px; display:grid; place-items:center;
+  background:linear-gradient(140deg,#EEF3FF,#E2EAFF); color:#2D5BE3; box-shadow:inset 0 0 0 1px rgba(45,91,227,.12);
+}
+.qtb-ico svg{ width:19px; height:19px; }
+.qtb-tt{ display:flex; flex-direction:column; min-width:0; line-height:1.2; }
+.qtb-tt small{ font-size:10.5px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:#8691AC; }
+.qtb-tt b{ font-size:16px; font-weight:800; letter-spacing:-.015em; color:#0B1437; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.qtb-spacer{ flex:1; }
+.qtb-icon{
+  position:relative; flex:0 0 auto; width:36px; height:36px; border-radius:9px; background:#fff; border:1px solid #E3E8F2;
+  display:grid; place-items:center; color:#5B6A8F; cursor:pointer; text-decoration:none;
+  transition:border-color .15s, background .15s, color .15s;
+}
+.qtb-icon:hover{ border-color:#CDD6E8; background:#F4F6FB; color:#0B1437; }
+.qtb-icon .badge{
+  position:absolute; top:-3px; right:-3px; min-width:16px; height:16px; border-radius:8px; padding:0 4px;
+  background:#DC2626; color:#fff; font-size:10px; font-weight:700; display:grid; place-items:center;
+  border:2px solid #fff; font-family:'Geist Mono',monospace;
+}
+.qtb-icon .badge[hidden]{ display:none; }
+@media print{ .qtb{ display:none; } }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ТЕЛЕФОН І ПЛАНШЕТ (<1024px): панель працює повністю, як адмінка.
+   Меню висувається зліва (кнопка в топбарі), контент — на всю ширину,
+   широкі таблиці гортаються всередині своїх карток.
+   ═══════════════════════════════════════════════════════════════════════ */
+.sb-ov{ display:none; }
 @media (max-width:1023px){
-  body{ flex-direction:column; }
   html.has-sb #app-loader{ left:0 !important; }
 
-  /* Шапка з кнопкою меню */
-  .mtb{
-    display:flex; align-items:center; gap:10px;
-    position:sticky; top:0; z-index:90;
-    min-height:56px; padding:8px 12px; padding-top:calc(8px + env(safe-area-inset-top));
-    background:rgba(240,243,250,.88); -webkit-backdrop-filter:saturate(1.4) blur(12px); backdrop-filter:saturate(1.4) blur(12px);
-    border-bottom:1px solid rgba(45,91,227,.08);
-    font-family:'Manrope',system-ui,sans-serif;
-  }
-  .mtb-menu{
-    flex:0 0 auto; width:40px; height:40px; border-radius:12px;
-    display:grid; place-items:center; cursor:pointer;
-    border:1.5px solid var(--border); background:#fff; color:var(--text);
-  }
-  .mtb-menu svg{ width:19px; height:19px; }
-  .mtb-menu:focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
-  .mtb-logo{ flex:0 0 auto; display:flex; text-decoration:none; }
-  .mtb-logo .logo-i{
-    width:34px; height:34px; border-radius:11px; display:grid; place-items:center;
-    background:linear-gradient(140deg,#6E9BFF 0%,#3B6BF6 45%,#2447C9 100%);
-    box-shadow:0 8px 18px -10px rgba(91,140,255,.9), inset 0 1px 0 rgba(255,255,255,.35);
-  }
-  .mtb-t{ flex:1; min-width:0; font-weight:800; font-size:16px; letter-spacing:-.01em; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .qtb{ top:8px; margin:-8px 0 16px; }
+  .qtb-menu{ display:grid; }
 
   /* Висувне меню — завжди повне, з підписами */
   .sb, .sb.collapsed, html.sb-c .sb{
@@ -1086,6 +1106,13 @@ textarea.fi{height:auto;padding:11px 14px;line-height:1.5}
   /* Кнопки дій у рядках таблиць видно завжди (немає наведення) */
   .ra{ opacity:1; }
   .sg{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+}
+@media (max-width:640px){
+  .qtb{ padding:8px; gap:8px; min-height:56px; border-radius:16px; }
+  .qtb-ico{ display:none; }
+  .qtb-tt small{ font-size:9.5px; }
+  .qtb-tt b{ font-size:15px; }
+  .qtb-icon{ width:40px; height:40px; border-radius:12px; }
 }
 @media (max-width:1023px) and (prefers-reduced-motion:reduce){
   .sb, .sb-ov{ transition:none !important; }

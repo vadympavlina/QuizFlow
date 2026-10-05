@@ -14,8 +14,8 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/styles.css?v=28">
-<link rel="modulepreload" href="shared/app.js?v=31">
+<link rel="stylesheet" href="shared/styles.css?v=29">
+<link rel="modulepreload" href="shared/app.js?v=32">
 <link rel="modulepreload" href="shared/features.js?v=38">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
@@ -358,7 +358,7 @@
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
-<script src="shared/nav.js?v=19"></script>
+<script src="shared/nav.js?v=20"></script>
 <main class="main">
 
   <!-- TESTS (новий дизайн) -->
@@ -456,7 +456,7 @@
 
 <script type="module">
 // ─── Ініціалізація (паралельне завантаження — як в оригіналі) ───
-const { initApp } = await import("./shared/app.js?v=31");
+const { initApp } = await import("./shared/app.js?v=32");
 const featuresP = import("./shared/features.js?v=38");
 
 window.showSec = function(name){
