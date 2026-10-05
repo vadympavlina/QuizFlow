@@ -150,3 +150,24 @@
 .a-grade-pill{display:inline-flex;justify-content:center;min-width:50px;padding:3px 9px;border-radius:999px;font:700 12px 'Geist Mono',monospace}
 .a-grade-pill.t-best{background:var(--t-best-bg)} .a-grade-pill.t-good{background:var(--t-good-bg)} .a-grade-pill.t-mid{background:var(--t-mid-bg)} .a-grade-pill.t-bad{background:var(--t-bad-bg)}
 @media (prefers-reduced-motion:reduce){.a-dist-bar,.gb-cell{transition:none}}
+
+/* ═══ Телефон і планшет ═══ */
+@media (max-width:1023px){
+  .rp-page.on,#analytics-body,#gradebook-body{gap:16px}
+  .rp-title h1{font-size:24px}
+  .rp-search{flex:1 1 220px;min-width:0}
+  .rp-kpis{gap:10px}
+  .rp-kpi{padding:14px}
+  .rp-kpi b{font-size:24px}
+  .a-row{grid-template-columns:minmax(0,1fr);gap:16px}
+  .gb-scroll{max-height:calc(100dvh - 140px)}
+  .gb-stud{min-width:0;max-width:150px;white-space:normal;line-height:1.3;font-size:13px;padding-left:14px!important}
+  .gb-tbl th.gb-sticky,.gb-tbl tfoot td.gb-sticky{padding-left:14px;font-size:11px}
+  .gb-tbl th,.gb-tbl td,.gb-tbl tfoot td{padding-left:10px;padding-right:10px}
+  .gb-th-test{min-width:104px;max-width:140px}
+  .gb-legend-hint{margin-left:0}
+}
+@media (max-width:560px){
+  .a-q{grid-template-columns:24px minmax(0,1fr) 42px;gap:10px}
+  .a-q > :nth-child(3){grid-column:2 / 4;grid-row:2}
+}

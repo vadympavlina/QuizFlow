@@ -480,12 +480,6 @@ textarea.fi{resize:vertical;min-height:72px}
 .sort-arrow.desc::after{content:"▼"}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:rgba(45,91,227,.2);border-radius:3px}
 
-/* Mobile overlay */
-@media(max-width:1023px){
-  #mobile-overlay{display:flex!important}
-  body > *:not(#mobile-overlay):not(#toast):not(#app-loader):not(script){display:none!important}
-}
-
 /* Toast (з app.js) */
 #toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#0d1340;color:#fff;padding:13px 22px;border-radius:14px;font-size:14px;font-weight:500;z-index:9999;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;box-shadow:0 8px 28px rgba(0,0,0,.2)}
 #toast.show{opacity:1}
@@ -997,3 +991,102 @@ textarea.fi{height:auto;padding:11px 14px;line-height:1.5}
 .qf-maint-card h2{font-size:22px;font-weight:800;color:#0B1437;margin:0 0 8px}
 .qf-maint-card p{font-size:14.5px;color:#5B6A8F;line-height:1.6;margin:0 0 22px;white-space:pre-line}
 .qf-maint-card button{height:46px;padding:0 22px;border-radius:12px;border:0;background:linear-gradient(135deg,#2d5be3,#1a3ab8);color:#fff;font:700 14.5px "Manrope",sans-serif;cursor:pointer}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ТЕЛЕФОН І ПЛАНШЕТ (<1024px): панель працює повністю, як адмінка.
+   Меню висувається зліва (кнопка в шапці .mtb з nav.js), контент — на всю
+   ширину, широкі таблиці гортаються всередині своїх карток. Усе — лише
+   в цьому медіазапиті, тож на комп'ютері нічого не змінюється.
+   ═══════════════════════════════════════════════════════════════════════ */
+.mtb, .sb-ov{ display:none; }
+@media (max-width:1023px){
+  body{ flex-direction:column; }
+  html.has-sb #app-loader{ left:0 !important; }
+
+  /* Шапка з кнопкою меню */
+  .mtb{
+    display:flex; align-items:center; gap:10px;
+    position:sticky; top:0; z-index:90;
+    min-height:56px; padding:8px 12px; padding-top:calc(8px + env(safe-area-inset-top));
+    background:rgba(240,243,250,.88); -webkit-backdrop-filter:saturate(1.4) blur(12px); backdrop-filter:saturate(1.4) blur(12px);
+    border-bottom:1px solid rgba(45,91,227,.08);
+    font-family:'Manrope',system-ui,sans-serif;
+  }
+  .mtb-menu{
+    flex:0 0 auto; width:40px; height:40px; border-radius:12px;
+    display:grid; place-items:center; cursor:pointer;
+    border:1.5px solid var(--border); background:#fff; color:var(--text);
+  }
+  .mtb-menu svg{ width:19px; height:19px; }
+  .mtb-menu:focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
+  .mtb-logo{ flex:0 0 auto; display:flex; text-decoration:none; }
+  .mtb-logo .logo-i{
+    width:34px; height:34px; border-radius:11px; display:grid; place-items:center;
+    background:linear-gradient(140deg,#6E9BFF 0%,#3B6BF6 45%,#2447C9 100%);
+    box-shadow:0 8px 18px -10px rgba(91,140,255,.9), inset 0 1px 0 rgba(255,255,255,.35);
+  }
+  .mtb-t{ flex:1; min-width:0; font-weight:800; font-size:16px; letter-spacing:-.01em; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  /* Висувне меню — завжди повне, з підписами */
+  .sb, .sb.collapsed, html.sb-c .sb{
+    width:min(288px, 86vw); padding:14px 12px 12px; z-index:300;
+    transform:translateX(calc(-100% - 24px)); visibility:hidden;
+    transition:transform .3s var(--sb-ease), visibility 0s .3s;
+    view-transition-name:none;
+  }
+  html.sb-open .sb{ transform:none; visibility:visible; transition:transform .3s var(--sb-ease); }
+  .sb-toggle{ display:none; }
+  .sb.collapsed .ni-label, .sb.collapsed .sb-texts{ display:revert; }
+  .sb.collapsed .logo-t{ display:inline; }
+  .sb.collapsed .ni-ext{ display:flex; }
+  .sb.collapsed .sb-head{ justify-content:flex-start; padding:0 4px; }
+  .sb.collapsed .ni{ justify-content:flex-start; padding:0 10px 0 12px; gap:12px; }
+  .sb.collapsed .nav-sec{ justify-content:flex-start; padding:0 12px; height:28px; }
+  .sb.collapsed .nav-sec span{ display:inline; }
+  .sb.collapsed .nav-sec::after{ flex:1; background:linear-gradient(90deg,var(--sb-line),transparent); }
+  .sb.collapsed .sb-section:first-child .nav-sec{ display:flex; }
+  .sb.collapsed .nb, .sb.collapsed #nb-t, .sb.collapsed #nb-a, .sb.collapsed #nb-l, .sb.collapsed #nb-students{
+    position:static; margin-left:auto; min-width:22px; width:auto; height:20px; padding:0 7px; font-size:10.5px; box-shadow:none;
+    background:rgba(255,255,255,.08); color:rgba(255,255,255,.8);
+  }
+  .sb.collapsed #nb-suspicious{ background:rgba(244,63,94,.2); color:#FDA4AF; }
+  .sb.collapsed #nb-notif, .sb.collapsed #nb-news{ background:rgba(245,158,11,.18); color:#FCD34D; }
+  .sb.collapsed #nb-online{ background:rgba(34,197,94,.18); color:#86EFAC; }
+  .sb.collapsed .sb-icon-strip{ flex-direction:row; }
+  .sb.collapsed .sb-icon-strip .ni{ flex:1; justify-content:center; padding:0; gap:0; height:38px; }
+  .sb.collapsed .sb-icon-strip .ni-label{ display:none; }
+  .sb.collapsed .sb-foot-inner{ flex-direction:row; gap:10px; padding:8px; }
+  .ni{ height:44px; }
+  .sb-icon-strip .ni{ height:42px; }
+  .sb-tip{ display:none; }
+  .sb-ov{
+    display:block; position:fixed; inset:0; z-index:290;
+    background:rgba(11,20,55,.46); opacity:0; pointer-events:none; transition:opacity .25s;
+  }
+  html.sb-open .sb-ov{ opacity:1; pointer-events:auto; }
+  html.sb-open, html.sb-open body{ overflow:hidden; }
+
+  /* Контент на всю ширину */
+  .main, .sb-collapsed-main{
+    margin-left:0 !important; max-width:100% !important; width:100%;
+    padding:16px 14px calc(32px + env(safe-area-inset-bottom));
+  }
+  .ph{ margin-bottom:16px; }
+  .pt{ font-size:21px; }
+
+  /* Модалки — знизу, на всю ширину */
+  .mo{ padding:0; align-items:flex-end; }
+  .mb, .mb.wd{ max-width:100%; max-height:calc(100dvh - 16px); border-radius:22px 22px 0 0; padding:20px 16px calc(20px + env(safe-area-inset-bottom)); }
+  .ma{ flex-wrap:wrap; }
+
+  /* Тости не виходять за екран */
+  #toast{ white-space:normal; max-width:calc(100vw - 24px); text-align:center; bottom:calc(16px + env(safe-area-inset-bottom)); }
+  #tst{ left:12px; right:12px; bottom:calc(16px + env(safe-area-inset-bottom)); }
+
+  /* Кнопки дій у рядках таблиць видно завжди (немає наведення) */
+  .ra{ opacity:1; }
+  .sg{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+}
+@media (max-width:1023px) and (prefers-reduced-motion:reduce){
+  .sb, .sb-ov{ transition:none !important; }
+}

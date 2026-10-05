@@ -11,7 +11,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/styles.css?v=27">
+<link rel="stylesheet" href="shared/styles.css?v=28">
 <link rel="modulepreload" href="shared/app.js?v=31">
 <link rel="modulepreload" href="shared/features.js?v=38">
 <style>
@@ -299,22 +299,62 @@
 .st-cf-modal.danger .st-cf-btn.ok:hover{background:#B91C1C}
 .st-cf-modal.info .st-cf-btn.ok{background:var(--nav-600)}
 .st-cf-modal.info .st-cf-btn.ok:hover{background:#1E40AF}
+
+/* ─── Телефон і планшет: профіль студента — висувна панель ─── */
+#sec-students .st-back{display:none}
+@media (max-width:1023px){
+  #sec-students .st-page-title h1{font-size:24px}
+  #sec-students .st-card-h{padding:12px 14px}
+  #sec-students .st-search{flex:1 1 100%;max-width:none}
+  #sec-students .st-side{
+    position:fixed;inset:0;z-index:150;max-height:none;border:0;border-radius:0;background:var(--bg,#f0f3fa);
+    padding:12px 12px calc(24px + env(safe-area-inset-bottom));overflow-y:auto;
+    transform:translateX(100%);visibility:hidden;
+    transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s;
+  }
+  #sec-students .st-side.open{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+  #sec-students .st-side > #pf-content{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  #sec-students .st-side > #pf-none{display:none!important}
+  #sec-students .st-back{
+    display:inline-flex;align-items:center;gap:6px;align-self:flex-start;height:40px;padding:0 14px 0 10px;margin-bottom:10px;
+    border-radius:12px;border:1px solid var(--line);background:#fff;font:700 13.5px 'Manrope',sans-serif;color:var(--ink-900);cursor:pointer;flex:0 0 auto;
+  }
+  html.st-side-on, html.st-side-on body{overflow:hidden}
+  #sec-students table.st-tbl th, #sec-students table.st-tbl td{padding-left:14px;padding-right:14px}
+}
+@media (max-width:560px){
+  /* Лишаємо «Студент», «Група», «Сер. бал» — решта є в профілі */
+  #sec-students table.st-tbl th:nth-child(3), #sec-students table.st-tbl td:nth-child(3),
+  #sec-students table.st-tbl th:nth-child(5), #sec-students table.st-tbl td:nth-child(5),
+  #sec-students table.st-tbl th:nth-child(6), #sec-students table.st-tbl td:nth-child(6){display:none}
+  #sec-students table.st-tbl th, #sec-students table.st-tbl td{padding-left:12px;padding-right:12px}
+  #sec-students table.st-tbl{table-layout:fixed}
+  #sec-students table.st-tbl th:nth-child(2){width:78px}
+  #sec-students table.st-tbl th:nth-child(4){width:80px}
+  #sec-students .pf-head{padding:18px 16px 14px}
+  #sec-students .pf-stat{padding:0 16px}
+  #sec-students .pf-notes{padding:14px 16px 0}
+  #sec-students .pf-block{padding:18px 16px 0}
+  #sec-students .pf-foot{padding:18px 16px 18px}
+  #sec-students .pf-name{white-space:normal}
+  /* Картка студента (модалка) */
+  #m-student .sc-head{gap:12px;padding:24px 60px 16px 16px}
+  #m-student .sc-ava{width:52px;height:52px;border-radius:15px;font-size:18px}
+  #m-student .sc-name span{white-space:normal}
+  #m-student .sc-kpis{grid-template-columns:1fr 1fr;gap:8px;padding:0 16px}
+  #m-student .sc-kpis>div{padding:12px 14px}
+  #m-student .sc-kpis b{font-size:22px}
+  #m-student .sc-sec{padding:20px 16px 0}
+  #m-student .sc-tbl th:nth-child(3),#m-student .sc-tbl td:nth-child(3),
+  #m-student .sc-tbl th:nth-child(4),#m-student .sc-tbl td:nth-child(4){display:none}
+  #m-student .sc-tbl th,#m-student .sc-tbl td{padding-left:12px;padding-right:12px}
+  #m-student .sc-foot{flex-direction:column;padding:18px 16px calc(20px + env(safe-area-inset-bottom))}
+  #m-student .sc-foot .btn{justify-content:center}
+}
 </style>
 </head>
 <body>
 
-<!-- MOBILE OVERLAY -->
-<div id="mobile-overlay" style="display:none;position:fixed;inset:0;background:linear-gradient(160deg,#1a2b5e 0%,#0d1340 100%);z-index:9999;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:40px 24px">
-  <div style="width:80px;height:80px;background:linear-gradient(135deg,#2d5be3,#4d78ff);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-bottom:28px;box-shadow:0 20px 50px rgba(45,91,227,.4)">
-    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="3"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
-  </div>
-  <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:22px;margin-bottom:12px;max-width:320px;line-height:1.3">Мобільна версія недоступна</div>
-  <div style="font-size:15px;opacity:.75;max-width:340px;line-height:1.5;margin-bottom:28px">Панель викладача оптимізована для планшетів та комп'ютерів. Відкрийте з ширшого екрану</div>
-  <div style="display:inline-flex;gap:8px;background:rgba(255,255,255,.08);padding:10px 18px;border-radius:14px;backdrop-filter:blur(10px);font-size:13px;opacity:.65">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-    Мінімальна ширина: 1024px
-  </div>
-</div>
 
 <!-- Initial loader -->
 <div id="app-loader" style="position:fixed;inset:0;background:#f0f3fa;z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .25s ease">
@@ -323,7 +363,7 @@
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
-<script src="shared/nav.js?v=18"></script>
+<script src="shared/nav.js?v=19"></script>
 <main class="main">
 
   <div class="sec on" id="sec-students">
@@ -368,6 +408,7 @@
 
       <!-- Pravoruch: profile -->
       <div class="st-card st-side" id="st-side-card">
+        <button type="button" class="st-back" onclick="stSideClose()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Усі студенти</button>
         <div class="pf-none" id="pf-none">
           <div class="pf-none-ico">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="4"/><path d="M3 21c0-4 4-7 9-7s9 3 9 7"/></svg>
@@ -477,5 +518,29 @@ window.stConfirm = (opts) => {
     </div>
   </div>
 </div>
+<script>
+// Телефон і планшет: тап по студенту відкриває профіль висувною панеллю
+(function () {
+  var mq = window.matchMedia("(max-width:1023px)");
+  var card = document.getElementById("st-side-card"), list = document.getElementById("students-body");
+  if (!card || !list) return;
+  function setOpen(on) {
+    card.classList.toggle("open", !!on);
+    document.documentElement.classList.toggle("st-side-on", !!on);
+  }
+  window.stSideClose = function () { setOpen(false); };
+  list.addEventListener("click", function (e) {
+    if (!mq.matches || !e.target.closest("tr[data-st-id]")) return;
+    setOpen(true); card.scrollTop = 0;
+  });
+  // Архівування/видалення змінюють список — повертаємось до нього
+  card.addEventListener("click", function (e) { if (e.target.closest(".pf-foot-row .pf-btn")) setOpen(false); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && card.classList.contains("open") && !document.querySelector(".mo.on")) setOpen(false);
+  });
+  var off = function () { if (!mq.matches) setOpen(false); };
+  if (mq.addEventListener) mq.addEventListener("change", off); else if (mq.addListener) mq.addListener(off);
+})();
+</script>
 </body>
 </html>
