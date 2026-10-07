@@ -2,7 +2,7 @@
 import { test, expect, seed } from "./fixtures.mjs";
 
 const db = { users: { t1: { role: "admin", name: "A" } }, teachers: { t1: { tests: { T1: { title: "x", questions: [] } } } } };
-const PANEL = ["/", "tests", "attempts", "links", "analytics", "notifications", "students", "gradebook", "suspicious", "online", "news", "live", "game-history", "constructor?id=T1", "play", "onboarding"];
+const PANEL = ["/", "tests", "attempts", "links", "analytics", "notifications", "students", "gradebook", "suspicious", "online", "news", "live", "game-history", "constructor?id=T1", "play", "onboarding", "profile"];
 const PUBLIC = ["login", "register"];
 const ADMIN = ["overview", "teachers", "stats", "problems", "roles", "news", "navigation", "ai-settings", "telegram", "announcements", "mail", "features", "audit", "invites", "cleanup"].map(p => "admin/" + p);
 // live/setup без ?test= навмисно кидає «Не вказано тест для гри»

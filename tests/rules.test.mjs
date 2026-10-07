@@ -229,6 +229,28 @@ await t("anon read mail worker url", true, () => get(ref(anon, "settings/mail/wo
 await t("anon write mail worker url", false, () => set(ref(anon, "settings/mail/workerUrl"), "https://evil.example"));
 await t("anon read settings root", false, () => get(ref(anon, "settings")));
 
+// ── Профіль викладача: ім'я змінює сам, історія — лише дописується, читає адмін ──
+const hist = (o = {}) => ({ prevName: "T1", prevSurname: "", name: "Тарас", surname: "Шевчук", at: serverTimestamp(), ...o });
+await t("teacher rename self", true, () => update(ref(t1, "/"), { "users/t1/name": "Тарас", "users/t1/surname": "Шевчук", "nameHistory/t1/h1": hist() }));
+await t("teacher empty name", false, () => set(ref(t1, "users/t1/name"), ""));
+await t("teacher too long name", false, () => set(ref(t1, "users/t1/surname"), "x".repeat(61)));
+await t("teacher name not string", false, () => set(ref(t1, "users/t1/name"), 5));
+await t("teacher rename other", false, () => set(ref(t1, "users/t2/name"), "X"));
+await t("blocked rename self", false, () => set(ref(bl, "users/bl/name"), "X"));
+await t("teacher read own history", false, () => get(ref(t1, "nameHistory/t1")));
+await t("teacher read history root", false, () => get(ref(t1, "nameHistory")));
+await t("teacher rewrite history", false, () => set(ref(t1, "nameHistory/t1/h1"), hist({ name: "Інше" })));
+await t("teacher delete history", false, () => remove(ref(t1, "nameHistory/t1/h1")));
+await t("teacher wipe history", false, () => remove(ref(t1, "nameHistory/t1")));
+await t("teacher history fake time", false, () => set(ref(t1, "nameHistory/t1/h2"), hist({ at: 1 })));
+await t("teacher history no fields", false, () => set(ref(t1, "nameHistory/t1/h3"), { at: serverTimestamp() }));
+await t("teacher history for other", false, () => set(ref(t1, "nameHistory/t2/h1"), hist()));
+await t("blocked history", false, () => set(ref(bl, "nameHistory/bl/h1"), hist()));
+await t("anon history", false, () => get(ref(anon, "nameHistory/t1")));
+await t("admin read history", true, () => get(ref(adm, "nameHistory/t1")));
+await t("admin read all history", true, () => get(ref(adm, "nameHistory")));
+await t("teacher role still locked", false, () => update(ref(t1, "users/t1"), { name: "OK", role: "admin" }));
+
 console.log(`\n${pass} passed, ${fail} failed`);
 await env.cleanup();
 process.exit(fail ? 1 : 0);

@@ -15,3 +15,7 @@ export async function verifyPasswordResetCode(a,c){ if(c==='good')return 'teache
 export async function confirmPasswordReset(a,c,p){ _log('confirm',[c,p]); if(c!=='good')throw _err('auth/invalid-action-code'); }
 export async function applyActionCode(a,c){ _log('apply',c); if(c!=='good')throw _err('auth/invalid-action-code'); }
 export async function checkActionCode(a,c){ if(c!=='good')throw _err('auth/invalid-action-code'); return {data:{email:'old@school.ua'}}; }
+// Зміна пароля в профілі: поточний пароль — localStorage.mockPass (типово secret1)
+export const EmailAuthProvider = { credential: (email, password) => ({ email, password }) };
+export async function reauthenticateWithCredential(u, cred){ _log('reauth', cred.email); if ((localStorage.getItem('mockPass') || 'secret1') !== cred.password) throw _err('auth/invalid-credential'); return { user: u }; }
+export async function updatePassword(u, p){ _log('password', p); localStorage.setItem('mockPass', p); }
