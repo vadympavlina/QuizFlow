@@ -193,11 +193,12 @@
             '<span class="sb-ico">' + icon("alert") + '</span><span class="ni-label">Помилка</span></button>' +
         "</div>" +
         '<div class="sb-foot-inner">' +
+          '<a class="sb-me' + (pathKey(location.pathname) === "profile" ? " on" : "") + '" href="profile" data-tip="Профіль" aria-label="Профіль">' +
           '<div class="ava" id="sb-ava" aria-hidden="true">' + esc(initials(user)) + "</div>" +
           '<div class="sb-texts">' +
             '<div class="sb-name" id="sb-teacher-name">' + esc(name) + "</div>" +
             '<div class="sb-role" id="sb-role">' + (isAdmin ? "Адміністратор" : "Викладач") + "</div>" +
-          "</div>" +
+          "</div></a>" +
           '<button type="button" onclick="doLogout()" data-tip="Вийти" aria-label="Вийти" class="sb-logout">' + icon("logout", 2) + "</button>" +
         "</div>" +
       "</div>" +
@@ -397,8 +398,9 @@
     var lbl = a && a.querySelector(".ni-label"), sec = a && a.closest(".sb-section");
     var secLbl = sec && sec.querySelector(".nav-sec span");
     var svg = a && a.querySelector(".sb-ico svg");
-    ico.innerHTML = svg ? svg.outerHTML : icon("dashboard");
-    document.getElementById("qtb-sec").textContent = (secLbl && secLbl.textContent) || "Панель викладача";
+    var bd = document.body ? document.body.dataset : {};
+    ico.innerHTML = svg ? svg.outerHTML : icon(bd.qtbIcon || "dashboard");
+    document.getElementById("qtb-sec").textContent = (secLbl && secLbl.textContent) || bd.qtbSection || "Панель викладача";
     document.getElementById("qtb-t").textContent = (lbl && lbl.textContent) || pageTitle() || "QuizFlow";
   }
   // Дзвіночок — кількість нових сповіщень (той самий лічильник, що й у меню)

@@ -94,6 +94,15 @@
 .tp-role:disabled{opacity:.6;cursor:wait}
 .tp-none{font-size:13px;color:var(--ink-500);padding:12px 14px;border:1.5px dashed var(--line);border-radius:12px}
 .tp-none a{color:#6D28D9;font-weight:700}
+.tp-names{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.tp-names li{display:flex;align-items:center;gap:14px;padding:11px 14px;font-size:13px;flex-wrap:wrap}
+.tp-names li + li{border-top:1px solid var(--line)}
+.tn-when{flex:0 0 190px;white-space:nowrap;font-family:"Geist Mono",monospace;font-size:12px;color:var(--ink-500)}
+.tn-ch{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.tn-ch s{color:var(--ink-500);text-decoration-color:#CDD6E8}
+.tn-ch svg{color:var(--ink-400);flex:0 0 auto}
+.tn-ch b{font-weight:700;color:var(--ink-900)}
+@media (max-width:640px){ .tn-when{flex-basis:100%} }
 
 /* Можливості та ліміти */
 .cp-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
@@ -804,8 +813,32 @@ function renderDetail(){
             <label class="toggle-sw"><input type="checkbox" data-ai="${k}" ${aiValue(u, k) ? "checked" : ""} aria-label="${n}"><span class="toggle-sl"></span></label>
           </div>`).join("")}</div>
       </section>
+
+      <section class="tp-sec" id="tp-names">
+        <div class="tp-sec-h"><div><h3>Історія імен</h3><p>Зміни імені й прізвища, які викладач зробив у своєму профілі. Самому викладачу ця історія не показується</p></div></div>
+        <div id="tp-names-list"><div class="tc-sk"></div></div>
+      </section>
     </article>`;
   if (mobile()) host.classList.add("open");
+  loadNameHistory(u);
+}
+
+// Історія імен (nameHistory/<uid>) — пише сторінка профілю викладача, читає лише адмін
+async function loadNameHistory(u){
+  const box = document.getElementById("tp-names-list");
+  if (!box) return;
+  let list = [];
+  try { list = Object.values(await dbGet(`nameHistory/${u.id}`) || {}).filter(h => h && typeof h === "object"); }
+  catch (e){ if (_selId === u.id) box.innerHTML = `<div class="tp-none">Не вдалося завантажити історію: ${esc(e.message)}</div>`; return; }
+  if (_selId !== u.id || !document.body.contains(box)) return;   // поки вантажилось, відкрили іншого викладача
+  list.sort((a, b) => (Number(b.at) || 0) - (Number(a.at) || 0));
+  const who = (n, s) => esc([s, n].filter(Boolean).join(" ") || "—");
+  box.innerHTML = list.length
+    ? `<ol class="tp-names">${list.map(h => `<li>
+        <span class="tn-when">${h.at ? esc(new Date(Number(h.at)).toLocaleString("uk-UA", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })) : "—"}</span>
+        <span class="tn-ch"><s>${who(h.prevName, h.prevSurname)}</s>${SVG('<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>').replace("<svg", '<svg width="13" height="13" aria-label="на"')}<b>${who(h.name, h.surname)}</b></span>
+      </li>`).join("")}</ol>`
+    : `<div class="tp-none">Викладач ще не змінював ім'я. Поточне — <b>${who(u.name, u.surname)}</b>${u.createdAt ? `, з ${esc(fmtDate(u.createdAt))}` : ""}.</div>`;
 }
 
 function select(id){

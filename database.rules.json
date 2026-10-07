@@ -16,6 +16,22 @@
         },
         "customRoleIds": {
           ".read": true
+        },
+        "name": {
+          ".write": "auth != null && auth.uid === $uid && root.child('users/' + $uid + '/role').exists() && root.child('users/' + $uid + '/blocked').val() !== true && newData.isString() && newData.val().length >= 1 && newData.val().length <= 60"
+        },
+        "surname": {
+          ".write": "auth != null && auth.uid === $uid && root.child('users/' + $uid + '/role').exists() && root.child('users/' + $uid + '/blocked').val() !== true && newData.isString() && newData.val().length >= 1 && newData.val().length <= 60"
+        }
+      }
+    },
+    "nameHistory": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      "$uid": {
+        ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+        "$id": {
+          ".write": "auth != null && auth.uid === $uid && root.child('users/' + $uid + '/role').exists() && root.child('users/' + $uid + '/blocked').val() !== true && !data.exists() && newData.exists()",
+          ".validate": "newData.child('at').val() === now && newData.child('name').isString() && newData.child('surname').isString() && newData.child('prevName').isString() && newData.child('prevSurname').isString() && newData.child('name').val().length <= 60 && newData.child('surname').val().length <= 60 && newData.child('prevName').val().length <= 200 && newData.child('prevSurname').val().length <= 200"
         }
       }
     },

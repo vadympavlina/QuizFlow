@@ -3,7 +3,7 @@
 import { test, expect, seed } from "./fixtures.mjs";
 import { rich } from "./seeds/rich.mjs";
 
-const PANEL = ["/", "tests", "attempts", "links", "analytics", "notifications", "students", "gradebook", "suspicious", "online", "news", "game-history"];
+const PANEL = ["/", "tests", "attempts", "links", "analytics", "notifications", "students", "gradebook", "suspicious", "online", "news", "game-history", "profile"];
 const OTHER = ["constructor?id=T1", "live", "onboarding"];
 const PHONE = { width: 390, height: 844 };
 

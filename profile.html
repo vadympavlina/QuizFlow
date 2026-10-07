@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="/assets/icons/teacher/favicon.ico?v=1" sizes="32x32">
+<link rel="icon" href="/assets/icons/teacher/icon.svg?v=1" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/teacher/apple-touch-icon.png?v=1">
+<link rel="manifest" href="/assets/icons/teacher/site.webmanifest?v=1">
+<title>QuizFlow — Профіль</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+<link rel="stylesheet" href="shared/styles.css?v=31">
+<link rel="modulepreload" href="shared/app.js?v=32">
+<link rel="modulepreload" href="shared/features.js?v=38">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   ПРОФІЛЬ ВИКЛАДАЧА — scoped під #sec-profile
+   Ім'я змінює сам викладач (історію змін бачить лише адмін), пароль — через
+   повторний вхід зі старим паролем або листом для скидання.
+   ═══════════════════════════════════════════════════════════════════════ */
+#sec-profile{
+  --ink-900:#0B1437; --ink-700:#24335A; --ink-500:#5B6A8F; --ink-400:#8691AC;
+  --line:#E3E8F2; --line-strong:#CDD6E8; --pri:#2D5BE3;
+  font-family:'Manrope',system-ui,sans-serif; color:var(--ink-900);
+}
+#sec-profile.on{display:flex;flex-direction:column;gap:18px}
+#sec-profile [hidden]{display:none!important}
+#sec-profile .pr-title h1{margin:0;font-size:28px;font-weight:800;letter-spacing:-.02em}
+#sec-profile .pr-title p{margin:6px 0 0;color:var(--ink-500);font-size:14px}
+#sec-profile .pr-grid{display:grid;grid-template-columns:320px minmax(0,1fr);gap:18px;align-items:start}
+#sec-profile .pr-col{display:flex;flex-direction:column;gap:18px;min-width:0}
+#sec-profile .pr-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px 24px}
+#sec-profile .pr-card h2{margin:0;font-size:16px;font-weight:800;letter-spacing:-.01em}
+#sec-profile .pr-card .pr-sub{margin:4px 0 18px;font-size:13px;color:var(--ink-500);line-height:1.5}
+
+/* Картка акаунта */
+#sec-profile .pr-me{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:28px 22px 18px}
+#sec-profile .pr-ava{width:84px;height:84px;border-radius:26px;display:grid;place-items:center;margin-bottom:8px;
+  background:linear-gradient(140deg,#6EE7D8 0%,#5B8CFF 55%,#7C5CFF 100%);color:#fff;font-size:28px;font-weight:800;letter-spacing:-.01em;
+  box-shadow:0 14px 30px -14px rgba(91,140,255,.8), inset 0 1px 0 rgba(255,255,255,.3)}
+#sec-profile .pr-name{font-size:19px;font-weight:800;letter-spacing:-.015em;line-height:1.25;word-break:break-word}
+#sec-profile .pr-mail{font-size:13px;color:var(--ink-500);word-break:break-all}
+#sec-profile .pr-role{margin-top:6px;display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;background:#EEF3FF;color:#1E3A8A;font-size:12px;font-weight:700}
+#sec-profile .pr-role::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+#sec-profile .pr-role.adm{background:#F1EBFF;color:#6D28D9}
+#sec-profile .pr-facts{align-self:stretch;margin:16px 0 0;padding:14px 0 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:10px;text-align:left}
+#sec-profile .pr-fact{display:flex;justify-content:space-between;gap:12px;font-size:13px}
+#sec-profile .pr-fact dt{color:var(--ink-500)}
+#sec-profile .pr-fact dd{margin:0;font-weight:700;text-align:right;min-width:0;overflow-wrap:anywhere}
+#sec-profile .pr-fact dd.mono{font-family:'Geist Mono',monospace;font-weight:600}
+#sec-profile .pr-out{align-self:stretch;margin-top:16px}
+
+/* Поля і кнопки */
+#sec-profile .pr-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+#sec-profile .pr-f{display:flex;flex-direction:column;gap:6px;min-width:0}
+#sec-profile .pr-f label{font-size:12.5px;font-weight:700;color:var(--ink-700)}
+#sec-profile .pr-in{position:relative}
+#sec-profile .pr-f input{width:100%;height:44px;border-radius:11px;border:1.5px solid var(--line);background:#fff;padding:0 12px;
+  font:500 14px 'Manrope',system-ui,sans-serif;color:var(--ink-900);outline:none;transition:border-color .15s,box-shadow .15s}
+#sec-profile .pr-in input{padding-right:44px}
+#sec-profile .pr-f input:focus{border-color:#93B0F5;box-shadow:0 0 0 3px rgba(45,91,227,.1)}
+#sec-profile .pr-f input.bad{border-color:#F87171;box-shadow:0 0 0 3px rgba(220,38,38,.08)}
+#sec-profile .pr-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;border:0;border-radius:8px;background:transparent;color:var(--ink-400);cursor:pointer;display:grid;place-items:center}
+#sec-profile .pr-eye:hover{background:#F1F5FB;color:var(--ink-900)}
+#sec-profile .pr-eye .off,#sec-profile .pr-eye.on .on{display:none}
+#sec-profile .pr-eye.on .off{display:block}
+#sec-profile .pr-hint{font-size:12px;color:var(--ink-400);line-height:1.45}
+#sec-profile .pr-rules{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:2px;font-size:12px;color:var(--ink-400)}
+#sec-profile .pr-rules span{display:inline-flex;align-items:center;gap:6px}
+#sec-profile .pr-rules span::before{content:"";width:6px;height:6px;border-radius:50%;background:#CDD6E8;transition:background .15s}
+#sec-profile .pr-rules span.ok{color:#15803D}
+#sec-profile .pr-rules span.ok::before{background:#22C55E}
+#sec-profile .pr-stack{display:flex;flex-direction:column;gap:14px}
+#sec-profile .pr-foot{display:flex;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap}
+#sec-profile .pr-msg{font-size:13px;font-weight:600;min-height:18px}
+#sec-profile .pr-msg.err{color:#B91C1C}
+#sec-profile .pr-msg.ok{color:#15803D}
+#sec-profile .pr-btn{height:42px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 18px;border-radius:11px;border:1px solid var(--line);background:#fff;
+  font:700 13.5px 'Manrope',system-ui,sans-serif;color:var(--ink-700);cursor:pointer;transition:border-color .15s,background .15s,filter .15s}
+#sec-profile .pr-btn:hover:not(:disabled){border-color:var(--line-strong);color:var(--ink-900)}
+#sec-profile .pr-btn:disabled{opacity:.5;cursor:not-allowed}
+#sec-profile .pr-btn.primary{background:linear-gradient(135deg,#3B6BF6,#1E40AF);border-color:transparent;color:#fff;box-shadow:0 8px 20px -10px rgba(45,91,227,.75)}
+#sec-profile .pr-btn.primary:hover:not(:disabled){filter:brightness(1.06);color:#fff}
+#sec-profile .pr-btn.danger{color:#B91C1C;border-color:#FECACA;background:#FEF7F7}
+#sec-profile .pr-btn.danger:hover{background:#FEE2E2;color:#B91C1C}
+#sec-profile .pr-btn svg{width:15px;height:15px;flex:0 0 auto}
+#sec-profile .pr-spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:prSpin .7s linear infinite}
+#sec-profile .pr-btn:not(.primary) .pr-spin{border-color:rgba(45,91,227,.2);border-top-color:var(--pri)}
+@keyframes prSpin{to{transform:rotate(360deg)}}
+#sec-profile .pr-sep{height:1px;background:var(--line);margin:22px 0 18px}
+#sec-profile .pr-reset{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+#sec-profile .pr-reset b{display:block;font-size:14px;font-weight:800}
+#sec-profile .pr-reset p{margin:3px 0 0;font-size:13px;color:var(--ink-500);line-height:1.5}
+#sec-profile .pr-sent{display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:12px;background:#F0FDF4;border:1px solid #BBF7D0;color:#15803D;font-size:13px;line-height:1.5}
+#sec-profile .pr-sent svg{flex:0 0 auto;margin-top:2px}
+#sec-profile .pr-note{padding:12px 14px;border-radius:12px;background:#F4F6FB;color:var(--ink-500);font-size:13px;line-height:1.5}
+
+@media (max-width:1180px){ #sec-profile .pr-grid{grid-template-columns:minmax(0,1fr)} }
+@media (max-width:1023px){
+  #sec-profile .pr-title h1{font-size:24px}
+  #sec-profile .pr-card{padding:18px 16px}
+}
+@media (max-width:560px){
+  #sec-profile .pr-row{grid-template-columns:1fr}
+  #sec-profile .pr-foot .pr-btn, #sec-profile .pr-reset .pr-btn{flex:1 1 100%}
+}
+</style>
+</head>
+<body data-qtb-section="Акаунт" data-qtb-icon="user">
+
+<!-- Initial loader -->
+<div id="app-loader" style="position:fixed;inset:0;background:#f0f3fa;z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .25s ease">
+  <div style="width:44px;height:44px;border:3.5px solid rgba(45,91,227,.15);border-top-color:#2d5be3;border-radius:50%;animation:appSpin .8s linear infinite"></div>
+  <div style="font-size:13px;color:#6b7280;margin-top:12px;font-family:'Manrope',sans-serif">Завантаження...</div>
+</div>
+<style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
+
+<script src="shared/nav.js?v=22"></script>
+<main class="main">
+
+  <div class="sec on" id="sec-profile">
+
+    <div class="pr-title">
+      <h1>Профіль</h1>
+      <p>Ваше ім'я, пароль і дані акаунта</p>
+    </div>
+
+    <div class="pr-grid">
+
+      <!-- Акаунт -->
+      <div class="pr-col">
+        <section class="pr-card pr-me" aria-label="Акаунт">
+          <div class="pr-ava" id="pr-ava" aria-hidden="true">—</div>
+          <div class="pr-name" id="pr-name">—</div>
+          <div class="pr-mail" id="pr-mail"></div>
+          <span class="pr-role" id="pr-role">Викладач</span>
+          <dl class="pr-facts">
+            <div class="pr-fact"><dt>Email</dt><dd id="pr-f-email">—</dd></div>
+            <div class="pr-fact" id="pr-f-login-row" hidden><dt>Логін</dt><dd class="mono" id="pr-f-login">—</dd></div>
+            <div class="pr-fact"><dt>У QuizFlow з</dt><dd id="pr-f-since">—</dd></div>
+          </dl>
+          <button type="button" class="pr-btn danger pr-out" onclick="doLogout()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Вийти з акаунта
+          </button>
+        </section>
+      </div>
+
+      <div class="pr-col">
+
+        <!-- Ім'я -->
+        <section class="pr-card" aria-labelledby="pr-h-name">
+          <h2 id="pr-h-name">Ім'я та прізвище</h2>
+          <p class="pr-sub">Так вас бачать адміністратор і колеги, з якими ви ділитеся тестами.</p>
+          <form id="pr-name-f" novalidate>
+            <div class="pr-row">
+              <div class="pr-f"><label for="pr-surname">Прізвище</label><input id="pr-surname" maxlength="60" autocomplete="family-name" required></div>
+              <div class="pr-f"><label for="pr-first">Ім'я</label><input id="pr-first" maxlength="60" autocomplete="given-name" required></div>
+            </div>
+            <div class="pr-foot">
+              <button type="submit" class="pr-btn primary" id="pr-name-btn" disabled>Зберегти</button>
+              <span class="pr-msg" id="pr-name-msg" role="status"></span>
+            </div>
+          </form>
+        </section>
+
+        <!-- Пароль -->
+        <section class="pr-card" aria-labelledby="pr-h-pass">
+          <h2 id="pr-h-pass">Пароль</h2>
+          <p class="pr-sub">Щоб змінити пароль, введіть поточний і двічі новий.</p>
+          <div class="pr-note" id="pr-pass-none" hidden>До акаунта не прив'язано email, тож пароль змінює адміністратор. Зверніться до нього.</div>
+          <form id="pr-pass-f" novalidate>
+            <div class="pr-stack">
+              <div class="pr-f"><label for="pr-old">Поточний пароль</label>
+                <div class="pr-in"><input id="pr-old" type="password" autocomplete="current-password" required>
+                  <button type="button" class="pr-eye" data-eye="pr-old" aria-label="Показати пароль"><svg class="on" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><svg class="off" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button></div>
+              </div>
+              <div class="pr-row">
+                <div class="pr-f"><label for="pr-new">Новий пароль</label>
+                  <div class="pr-in"><input id="pr-new" type="password" autocomplete="new-password" required>
+                    <button type="button" class="pr-eye" data-eye="pr-new" aria-label="Показати пароль"><svg class="on" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><svg class="off" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button></div>
+                </div>
+                <div class="pr-f"><label for="pr-new2">Повторіть новий пароль</label>
+                  <div class="pr-in"><input id="pr-new2" type="password" autocomplete="new-password" required>
+                    <button type="button" class="pr-eye" data-eye="pr-new2" aria-label="Показати пароль"><svg class="on" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><svg class="off" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button></div>
+                </div>
+              </div>
+              <div class="pr-rules" id="pr-rules" aria-live="polite"><span data-r="len">Щонайменше 8 символів</span><span data-r="mix">Літери й цифри</span><span data-r="same">Паролі збігаються</span></div>
+            </div>
+            <div class="pr-foot">
+              <button type="submit" class="pr-btn primary" id="pr-pass-btn">Змінити пароль</button>
+              <span class="pr-msg" id="pr-pass-msg" role="status"></span>
+            </div>
+          </form>
+
+          <div class="pr-sep" id="pr-reset-sep"></div>
+          <div class="pr-reset" id="pr-reset">
+            <div><b>Не пам'ятаєте поточний пароль?</b><p>Надішлемо на <span id="pr-reset-mail">ваш email</span> лист з посиланням для нового пароля.</p></div>
+            <button type="button" class="pr-btn" id="pr-reset-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>
+              Надіслати лист
+            </button>
+          </div>
+          <div class="pr-sent" id="pr-sent" role="status" hidden>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Лист надіслано на <b id="pr-sent-mail"></b>. Відкрийте посилання з нього, щоб задати новий пароль. Якщо листа немає — перевірте «Спам».</span>
+          </div>
+          <div class="pr-msg err" id="pr-reset-msg" role="status"></div>
+        </section>
+
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<div id="modals-root"></div>
+
+<script type="module">
+const { initApp, db, ref, get, update, push, user, uid, toast } = await import("./shared/app.js?v=32");
+const featuresP = import("./shared/features.js?v=38");
+const { serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+const AUTH = "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+await initApp("profile");
+await featuresP;
+await window.initFeatures();
+if (window.renderAll) window.renderAll();
+
+const $ = id => document.getElementById(id);
+const cap = s => s.replace(/\s+/g, " ").trim().replace(/(^|[\s'’-])(\p{Ll})/gu, (m, a, b) => a + b.toUpperCase());
+const initials = (n, s) => ((n || "")[0] || "") + ((s || "")[0] || "") || "?";
+const msg = (el, kind, text) => { el.className = "pr-msg" + (kind ? " " + kind : ""); el.textContent = text || ""; };
+const busy = (btn, on, label) => {
+  btn.disabled = on;
+  if (on){ btn.dataset.html = btn.innerHTML; btn.innerHTML = `<span class="pr-spin"></span><span>${label}</span>`; }
+  else if (btn.dataset.html){ btn.innerHTML = btn.dataset.html; delete btn.dataset.html; }
+};
+
+// ─── Дані акаунта ───────────────────────────────────────────────────────
+const me = (await get(ref(db, `users/${uid}`))).val() || {};
+const email = user.email || me.email || "";
+let cur = { name: me.name || user.name || "", surname: me.surname || user.surname || "" };
+
+function renderMe(){
+  const full = [cur.name, cur.surname].filter(Boolean).join(" ") || "Викладач";
+  $("pr-ava").textContent = initials(cur.name, cur.surname).toUpperCase();
+  $("pr-name").textContent = full;
+  $("pr-mail").textContent = email;
+}
+renderMe();
+$("pr-role").textContent = user.role === "admin" ? "Адміністратор" : "Викладач";
+$("pr-role").classList.toggle("adm", user.role === "admin");
+$("pr-f-email").textContent = email || "—";
+if (me.login){ $("pr-f-login").textContent = me.login; $("pr-f-login-row").hidden = false; }
+$("pr-f-since").textContent = me.createdAt ? new Date(me.createdAt).toLocaleDateString("uk-UA", { day: "numeric", month: "long", year: "numeric" }) : "—";
+
+// ─── Ім'я та прізвище: кожна зміна йде в nameHistory (її бачить лише адмін) ──
+const fSur = $("pr-surname"), fName = $("pr-first"), nameBtn = $("pr-name-btn");
+fSur.value = cur.surname; fName.value = cur.name;
+const nameChanged = () => cap(fSur.value) !== cur.surname || cap(fName.value) !== cur.name;
+[fSur, fName].forEach(i => i.addEventListener("input", () => { i.classList.remove("bad"); nameBtn.disabled = !nameChanged(); msg($("pr-name-msg")); }));
+$("pr-name-f").addEventListener("submit", async e => {
+  e.preventDefault();
+  const surname = cap(fSur.value), name = cap(fName.value), m = $("pr-name-msg");
+  if (!surname){ fSur.classList.add("bad"); fSur.focus(); return msg(m, "err", "Вкажіть прізвище"); }
+  if (!name){ fName.classList.add("bad"); fName.focus(); return msg(m, "err", "Вкажіть ім'я"); }
+  if (surname.length > 60 || name.length > 60) return msg(m, "err", "Задовге значення — до 60 символів");
+  if (!nameChanged()) return;
+  busy(nameBtn, true, "Зберігаємо…");
+  try {
+    const key = push(ref(db, `nameHistory/${uid}`)).key;
+    // Одним записом: нове ім'я і рядок історії — або обидва, або нічого
+    await update(ref(db), {
+      [`users/${uid}/name`]: name,
+      [`users/${uid}/surname`]: surname,
+      [`nameHistory/${uid}/${key}`]: { prevName: cur.name, prevSurname: cur.surname, name, surname, at: serverTimestamp() },
+    });
+    cur = { name, surname };
+    user.name = name; user.surname = surname;
+    fSur.value = surname; fName.value = name;
+    renderMe();
+    window.QFNav?.setUser({ ...user });
+    busy(nameBtn, false); nameBtn.disabled = true;
+    msg(m, "ok", "Збережено");
+    toast("Ім'я оновлено");
+  } catch (err){
+    busy(nameBtn, false); nameBtn.disabled = !nameChanged();
+    msg(m, "err", /permission/i.test(err.code || err.message || "")
+      ? "Зміна імені поки недоступна. Зверніться до адміністратора."
+      : "Не вдалося зберегти. Перевірте з'єднання й спробуйте ще раз.");
+  }
+});
+
+// ─── Пароль: повторний вхід зі старим паролем → новий ──────────────────────
+const fOld = $("pr-old"), fNew = $("pr-new"), fNew2 = $("pr-new2"), passBtn = $("pr-pass-btn");
+document.querySelectorAll("#sec-profile [data-eye]").forEach(b => b.addEventListener("click", () => {
+  const i = $(b.dataset.eye), show = i.type === "password";
+  i.type = show ? "text" : "password";
+  b.classList.toggle("on", show);
+  b.setAttribute("aria-label", show ? "Сховати пароль" : "Показати пароль");
+}));
+const rules = p => ({ len: p.length >= 8, mix: /\p{L}/u.test(p) && /\d/.test(p), same: !!p && p === fNew2.value });
+function syncRules(){
+  const r = rules(fNew.value);
+  document.querySelectorAll("#pr-rules [data-r]").forEach(s => s.classList.toggle("ok", r[s.dataset.r]));
+}
+[fOld, fNew, fNew2].forEach(i => i.addEventListener("input", () => { i.classList.remove("bad"); syncRules(); msg($("pr-pass-msg")); }));
+const AUTH_ERR = {
+  "auth/wrong-password": "Поточний пароль неправильний",
+  "auth/invalid-credential": "Поточний пароль неправильний",
+  "auth/invalid-login-credentials": "Поточний пароль неправильний",
+  "auth/too-many-requests": "Забагато спроб. Зачекайте кілька хвилин і спробуйте знову.",
+  "auth/weak-password": "Пароль занадто простий — додайте цифри й літери",
+  "auth/network-request-failed": "Немає з'єднання з інтернетом",
+  "auth/requires-recent-login": "Увійдіть у QuizFlow ще раз і повторіть зміну пароля",
+};
+if (!email){
+  $("pr-pass-f").hidden = true; $("pr-pass-none").hidden = false;
+  $("pr-reset").hidden = true; $("pr-reset-sep").hidden = true;
+}
+$("pr-pass-f").addEventListener("submit", async e => {
+  e.preventDefault();
+  const m = $("pr-pass-msg"), old = fOld.value, np = fNew.value, r = rules(np);
+  const bad = (el, text) => { el.classList.add("bad"); el.focus(); msg(m, "err", text); };
+  if (!old) return bad(fOld, "Введіть поточний пароль");
+  if (!r.len) return bad(fNew, "Новий пароль має містити щонайменше 8 символів");
+  if (!r.mix) return bad(fNew, "Додайте в новий пароль і літери, і цифри");
+  if (np !== fNew2.value) return bad(fNew2, "Нові паролі не збігаються");
+  if (np === old) return bad(fNew, "Новий пароль має відрізнятися від поточного");
+  busy(passBtn, true, "Змінюємо…");
+  try {
+    const { getAuth, EmailAuthProvider, reauthenticateWithCredential, updatePassword } = await import(AUTH);
+    const fbUser = getAuth().currentUser;
+    await reauthenticateWithCredential(fbUser, EmailAuthProvider.credential(email, old));
+    await updatePassword(fbUser, np);
+    [fOld, fNew, fNew2].forEach(i => { i.value = ""; i.type = "password"; });
+    document.querySelectorAll("#sec-profile [data-eye]").forEach(b => b.classList.remove("on"));
+    syncRules();
+    msg(m, "ok", "Пароль змінено");
+    toast("Пароль змінено");
+  } catch (err){
+    const text = AUTH_ERR[err.code] || "Не вдалося змінити пароль. Спробуйте ще раз.";
+    if (/credential|wrong-password/.test(err.code || "")){ fOld.classList.add("bad"); fOld.select(); }
+    msg(m, "err", text);
+  } finally { busy(passBtn, false); }
+});
+
+// ─── Скидання листом: воркер пошти (лист QuizFlow) або стандартний лист Firebase ──
+$("pr-reset-mail").textContent = email || "ваш email";
+async function resetViaWorker(){
+  let url = "";
+  try { url = String((await get(ref(db, "settings/mail/workerUrl"))).val() || "").replace(/\/+$/, ""); } catch { return false; }
+  if (!url) return false;
+  let r;
+  try { r = await fetch(url + "/reset", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) }); }
+  catch { return false; }
+  if (r.ok) return true;
+  if (r.status === 429) throw Object.assign(new Error("limit"), { code: "auth/too-many-requests" });
+  return false;
+}
+$("pr-reset-btn").addEventListener("click", async () => {
+  const btn = $("pr-reset-btn"), m = $("pr-reset-msg");
+  msg(m, "err", "");
+  busy(btn, true, "Надсилаємо…");
+  try {
+    if (!(await resetViaWorker())){
+      const { getAuth, sendPasswordResetEmail } = await import(AUTH);
+      await sendPasswordResetEmail(getAuth(), email, { url: location.origin + location.pathname.replace(/[^/]*$/, "") + "login?email=" + encodeURIComponent(email) });
+    }
+    $("pr-sent-mail").textContent = email;
+    $("pr-sent").hidden = false;
+    busy(btn, false);
+    btn.lastChild.textContent = " Надіслати ще раз";
+  } catch (err){
+    busy(btn, false);
+    msg(m, "err", err.code === "auth/too-many-requests" ? "Забагато запитів. Спробуйте за кілька хвилин." : "Не вдалося надіслати лист. Спробуйте ще раз.");
+  }
+});
+
+requestAnimationFrame(() => requestAnimationFrame(() => { if (window.appReady) window.appReady(); }));
+</script>
+</body>
+</html>

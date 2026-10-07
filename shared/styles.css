@@ -231,6 +231,13 @@ html.sb-boot .sb, html.sb-boot .sb *, html.sb-boot .main{ transition:none !impor
 .sb-logout svg{ width:16px; height:16px; }
 .sb-logout:hover{ color:#FDA4AF; background:rgba(244,63,94,.14); }
 .sb-logout:focus-visible{ outline:2px solid var(--sb-accent); outline-offset:1px; }
+/* Аватар з ім'ям — посилання на профіль */
+.sb-me{ display:flex; align-items:center; gap:10px; flex:1; min-width:0; margin:-4px; padding:4px; border-radius:11px; color:inherit; text-decoration:none; transition:background .15s; }
+.sb-me:hover{ background:rgba(255,255,255,.06); }
+.sb-me:focus-visible{ outline:2px solid var(--sb-accent); outline-offset:1px; }
+.sb-me.on{ background:rgba(91,140,255,.16); }
+.sb-me.on .sb-role{ color:var(--sb-accent-soft); }
+.sb.collapsed .sb-me{ flex:0 0 auto; justify-content:center; }
 
 /* ─── Згорнутий режим ─── */
 .sb.collapsed .ni-label,
