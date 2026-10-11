@@ -11,6 +11,7 @@
 - Правила бази — `database.rules.json`; після змін їх треба вручну опублікувати в консолі Firebase.
 - Після змін у `shared/*.js|css` піднімати `?v=` у всіх HTML, де файл підключено.
 - Іконки сайту — `assets/icons/<teacher|admin|game|test>/` (свій набір для кожної частини) і `/favicon.ico`. Не малювати вручну: змінити `tests/scripts/icons.mjs`, виконати `cd tests && npm run icons` і підняти `?v=` у посиланнях на іконки в усіх HTML.
+- Прев'ю посилань (Open Graph) — метатеги в `<head>` і картинки `assets/og/<teacher|game|test>.jpg`; в адмінці прев'ю немає. Картинки не малювати вручну: змінити `tests/scripts/og.mjs`, виконати `cd tests && npm run og` і підняти `?v=` в `og:image`/`twitter:image` усіх HTML.
 
 ## Процес
 - Кожну завершену зміну — одразу комітити, пушити, відкривати PR у `main` і, щойно перевірки на GitHub зелені, зливати його в `main` без окремого підтвердження.
