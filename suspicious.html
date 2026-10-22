@@ -28,7 +28,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/styles.css?v=31">
+<link rel="stylesheet" href="shared/styles.css?v=32">
 <link rel="modulepreload" href="shared/app.js?v=32">
 <link rel="modulepreload" href="shared/features.js?v=38">
 
@@ -348,6 +348,14 @@
   #sec-suspicious .case-right{padding-left:0}
   #sec-suspicious .meters{grid-template-columns:1fr}
 }
+/* ── Телефон: читабельність і зручні для пальця цілі (аудит WCAG 2.1 AA) ── */
+@media (max-width:1023px){
+  #sec-suspicious .sp-tab{padding:10px 13px;font-size:13px}
+  #sec-suspicious .case-sub{white-space:normal}
+  #sec-suspicious .case-new{font-size:11px;background:#2563EB}
+  #sec-suspicious .risk-l,#sec-suspicious .case-score .l{font-size:11.5px}
+  #sec-suspicious .case-pill{font-size:12px}
+}
 </style>
 </head>
 <body>
@@ -360,7 +368,7 @@
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
-<script src="shared/nav.js?v=22"></script>
+<script src="shared/nav.js?v=23"></script>
 <main class="main">
 
   <div class="sec on" id="sec-suspicious">

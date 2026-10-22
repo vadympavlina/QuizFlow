@@ -28,7 +28,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/styles.css?v=31">
+<link rel="stylesheet" href="shared/styles.css?v=32">
 <link rel="modulepreload" href="shared/app.js?v=32">
 <link rel="modulepreload" href="shared/features.js?v=38">
 <style>
@@ -202,6 +202,17 @@
   #sec-attempts .cor i{width:40px}
   #sec-attempts .pg-per span{display:none}
 }
+/* ── Телефон: читабельність і зручні для пальця цілі (аудит WCAG 2.1 AA) ── */
+@media (max-width:1023px){
+  #sec-attempts .ic-btn{width:38px;height:38px}
+  #sec-attempts .review-btn{height:34px;padding:0 14px;font-size:13px}
+  #sec-attempts input[type=checkbox]{width:20px;height:20px}
+  #sec-attempts .tab{height:36px}
+  #sec-attempts .tab-n{font-size:12px;opacity:.8}
+  #sec-attempts .pill{font-size:12px}
+  #sec-attempts .pct,#sec-attempts .live-cell small{font-size:12px}
+  #sec-attempts .stu-n b{white-space:normal;overflow:visible}
+}
 </style>
 </head>
 <body>
@@ -214,7 +225,7 @@
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
-<script src="shared/nav.js?v=22"></script>
+<script src="shared/nav.js?v=23"></script>
 <main class="main">
 
   <div class="sec on" id="sec-attempts">

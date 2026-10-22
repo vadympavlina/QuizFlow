@@ -28,7 +28,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/styles.css?v=31">
+<link rel="stylesheet" href="shared/styles.css?v=32">
 <link rel="modulepreload" href="shared/app.js?v=32">
 <link rel="modulepreload" href="shared/features.js?v=38">
 <link rel="modulepreload" href="shared/dash.js?v=4">
@@ -233,6 +233,17 @@
   .dx-kpi-l{padding-right:30px}
   .dx-now-list{grid-template-columns:1fr}
 }
+/* ── Телефон: читабельність і зручні для пальця цілі (аудит WCAG 2.1 AA) ── */
+@media (max-width:1023px){
+  .dx-card-h .go{min-height:36px;padding:0 4px;font-size:13px}
+  .dx-row-b small,.dx-now-b small{font-size:12.5px}
+  .dx-kpi-l,.dx-kpi-s{font-size:12.5px}
+  .dx-mode-k,.dx-sec-l{font-size:11.5px}
+  .dx-win small,.dx-acc small{font-size:12px}
+  #sec-dashboard .dn-date{font-size:12px}
+  a.go,.dx-sub-h a{min-height:36px;padding:0 4px;font-size:13px}
+  .dx-sub-h{font-size:11.5px}
+}
 </style>
 </head>
 <body>
@@ -245,7 +256,7 @@
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
-<script src="shared/nav.js?v=22"></script>
+<script src="shared/nav.js?v=23"></script>
 <main class="main">
   <div class="sec on" id="sec-dashboard">
 
