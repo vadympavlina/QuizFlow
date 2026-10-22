@@ -28,7 +28,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/styles.css?v=31">
+<link rel="stylesheet" href="shared/styles.css?v=32">
 <link rel="modulepreload" href="shared/app.js?v=32">
 <style>
 #sec-history{
@@ -211,11 +211,18 @@ mark.hl{background:#FEF08A;color:inherit;border-radius:2px;padding:0 1px}
   .gh-game{grid-template-columns:46px minmax(0,1fr) auto;grid-template-areas:"tile main main" "tile stats act" "tile top top";column-gap:12px}
   .gh-actions{align-self:center}
 }
+/* ── Телефон: читабельність і зручні для пальця цілі (аудит WCAG 2.1 AA) ── */
+@media (max-width:1023px){
+  .gh-seg button{padding:10px 13px;font-size:13px}
+  .gh-btn.sm{height:36px;padding:0 12px;font-size:13px}
+  .gh-icon{width:40px;height:40px}
+  .gh-stat .l{font-size:11px}
+}
 </style>
 </head>
 <body>
 
-<script src="shared/nav.js?v=22"></script>
+<script src="shared/nav.js?v=23"></script>
 <main class="main">
 <div class="sec" id="sec-history">
   <div class="gh-title">

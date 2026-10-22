@@ -437,6 +437,8 @@
         '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15V11a6 6 0 1 1 12 0v4l1.5 3h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>' +
         '<span class="badge" id="qtb-bell-n" hidden></span></a>';
     main.insertBefore(bar, main.firstChild);
+    // На самій сторінці сповіщень дзвіночок веде сюди ж — на телефоні ховаємо, місце потрібне назві
+    if (pathKey(location.pathname) === "notifications") document.getElementById("qtb-bell").classList.add("is-here");
     syncTopbar(); syncBell(); mountActions();
   }
 

@@ -44,6 +44,20 @@ test.describe("телефон", () => {
     expect(errors).toEqual([]);
   });
 
+  test("читабельність: поля без зуму iOS, контрастний сірий, зручні кнопки", async ({ page, errors }) => {
+    await seed(page, rich(Date.now()), "t1");
+    await page.goto("/attempts");
+    await page.waitForTimeout(1200);
+    // iOS Safari збільшує сторінку, якщо в полі шрифт менший за 16px
+    expect(await page.locator("#att-srch").evaluate(e => getComputedStyle(e).fontSize)).toBe("16px");
+    // Другорядний сірий — контрастний (#636E8B), а не #8691AC
+    expect(await page.locator("#att-count-right").evaluate(e => getComputedStyle(e).color)).toBe("rgb(99, 110, 139)");
+    // Кнопки дій у рядку — не менші за 38px
+    const box = await page.locator("#att-tbl .ic-btn").first().boundingBox();
+    expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(38);
+    expect(errors).toEqual([]);
+  });
+
   test("студенти: тап по рядку відкриває профіль, «Усі студенти» — закриває", async ({ page, errors }) => {
     await seed(page, rich(Date.now()), "t1");
     await page.goto("/students");

@@ -29,7 +29,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/styles.css?v=31">
+<link rel="stylesheet" href="shared/styles.css?v=32">
 <link rel="modulepreload" href="shared/app.js?v=32">
 <link rel="modulepreload" href="shared/features.js?v=38">
 <style>
@@ -147,6 +147,15 @@
   #sec-links .l-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
   #sec-links .l-stats>div{min-width:0}
 }
+/* ── Телефон: читабельність і зручні для пальця цілі (аудит WCAG 2.1 AA) ── */
+@media (max-width:1023px){
+  #sec-links .l-url-btn{height:36px;padding:0 12px;font-size:13px}
+  #sec-links .l-url-btn.icon-only{width:36px;padding:0;justify-content:center}
+  #sec-links .l-res{min-height:36px}
+  #sec-links .l-pill{font-size:12px;padding:4px 9px}
+  #sec-links .l-stat-l{font-size:12px;white-space:normal}
+  #sec-links .l-tab{height:36px}
+}
 </style>
 </head>
 <body>
@@ -159,7 +168,7 @@
 </div>
 <style>@keyframes appSpin{to{transform:rotate(360deg)}}</style>
 
-<script src="shared/nav.js?v=22"></script>
+<script src="shared/nav.js?v=23"></script>
 <main class="main">
 
   <div class="sec on" id="sec-links">

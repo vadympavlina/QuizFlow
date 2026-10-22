@@ -19,7 +19,9 @@ export const test = base.extend({
       const u = new URL(r.request().url());
       if (/\.[a-z0-9]+$/i.test(u.pathname)) return r.continue();
       const p = u.pathname.endsWith("/") ? u.pathname + "index.html" : u.pathname + ".html";
-      r.fulfill({ response: await r.fetch({ url: u.origin + p + u.search }) });
+      // Тест міг уже закінчитися, поки відповідь у дорозі, — тоді сторінки немає і нічого віддавати
+      try { await r.fulfill({ response: await r.fetch({ url: u.origin + p + u.search }) }); }
+      catch (e) { if (!/closed|already handled/i.test(e.message)) throw e; }
     });
     await use(context);
   },

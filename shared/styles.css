@@ -1149,6 +1149,7 @@ html.qtb-ready .main [data-qtb]{ display:none !important; }
   .qtb-tt small{ font-size:9.5px; }
   .qtb-tt b{ font-size:15px; }
   .qtb-icon{ width:40px; height:40px; border-radius:12px; }
+  .qtb-icon.is-here{ display:none; }
   /* Дії — іконками (підпис лишається в aria-label/title) */
   .qtb-extras{ gap:6px; }
   .qtb-btn{ width:40px; padding:0; gap:0; border-radius:12px; font-size:0; }
@@ -1157,4 +1158,16 @@ html.qtb-ready .main [data-qtb]{ display:none !important; }
 }
 @media (max-width:1023px) and (prefers-reduced-motion:reduce){
   .sb, .sb-ov{ transition:none !important; }
+}
+
+/* ═══ Телефон і планшет: читабельність (аудит WCAG 2.1 AA) ═══
+   Другорядний сірий #8691AC мав контраст ~3:1 — на телефоні беремо #636E8B
+   (≥4.5:1 на білому й світлих фонах). Змінну задаємо кожному елементу:
+   власне значення сильніше за успадковане зі сторінки (#sec-… { --ink-400 }). */
+@media (max-width:1023px){
+  .main *, .mo *, .qtb *{ --ink-400:#636E8B; --light:#636E8B; }
+  .qtb-tt small{ color:#636E8B; font-size:10.5px; }
+  /* iOS Safari збільшує сторінку, якщо в полі шрифт менший за 16px */
+  .main input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),
+  .main textarea, .mo input:not([type=checkbox]):not([type=radio]), .mo textarea, .qd-pop input{ font-size:16px !important; }
 }
