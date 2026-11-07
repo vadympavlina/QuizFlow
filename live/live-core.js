@@ -183,6 +183,9 @@ export const TYPE_LABELS = {
 };
 
 const normText = (s) => String(s ?? "").trim().toLowerCase().replace(/\s+/g, " ").replace(/[’ʼ`]/g, "'");
+// Правильних відповідей у текстовому питанні може бути кілька: «Київ / м. Київ», «HTML, або HyperText…».
+// Роздільники ті самі, що в конструкторі й у тесті: «/», «|», кома, «або», «or».
+export const textVariants = (correct) => String(correct ?? "").split(/\s*(?:або|or|\||\/|,)\s*/i).map(normText).filter(Boolean);
 const toNum = (s) => parseFloat(String(s ?? "").trim().replace(",", "."));
 // Набір індексів варіантів: без дублікатів і сміття. Firebase інколи віддає
 // масив як об'єкт {0:1,1:2} — теж приймаємо.
@@ -206,7 +209,10 @@ export function checkCorrect(q, correct, value) {
       return want.length > 0 && got.length === want.length && got.every((v, i) => v === want[i]);
     }
     case "number": { const c = toNum(correct), u = toNum(value); return !isNaN(c) && !isNaN(u) && Math.abs(c - u) < 1e-9; }
-    case "text":   return normText(value) !== "" && normText(value) === normText(correct);
+    case "text": {
+      const v = normText(value);
+      return v !== "" && (v === normText(correct) || textVariants(correct).includes(v));
+    }
     default: {
       // single: рівно один вибраний варіант і він правильний
       const want = asIndexList(correct), got = asIndexList(value);
