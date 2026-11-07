@@ -27,7 +27,9 @@ export const test = base.extend({
   },
   errors: async ({ page }, use) => {
     const errs = [];
-    page.on("pageerror", e => errs.push(`${new URL(page.url()).pathname}: ${e.message}`));
+    // Chromium іноді скасовує анімацію переходу між сторінками (@view-transition), якщо навігація
+    // збіглася з показом сторінки. Це не помилка сайту й не впливає на роботу, тож не рахуємо її.
+    page.on("pageerror", e => { if (!/Transition was aborted because of invalid state/.test(e.message)) errs.push(`${new URL(page.url()).pathname}: ${e.message}`); });
     page.on("dialog", d => d.dismiss().catch(() => {}));
     await use(errs);
   },
