@@ -65,5 +65,10 @@ test("меню: активний пункт білий, розділи без в
   expect(st.w).toBe(272);
   await page.locator("#sb-toggle").click(); await page.waitForTimeout(600);
   expect(await page.evaluate(() => Math.round(document.getElementById("sidebar").getBoundingClientRect().width))).toBe(68);
+  // у згорнутому меню швидкі кнопки (Live, Адмін, Гайд, Помилка) сховані, «Новий тест» лишається
+  expect(await page.locator("#sidebar .sb-icon-strip").isVisible()).toBe(false);
+  expect(await page.locator("#sb-new").isVisible()).toBe(true);
+  await page.locator("#sb-toggle").click(); await page.waitForTimeout(600);
+  expect(await page.locator("#sidebar .sb-icon-strip").isVisible()).toBe(true);
   expect(errors).toEqual([]);
 });
