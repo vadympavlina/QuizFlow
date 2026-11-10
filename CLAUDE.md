@@ -6,6 +6,7 @@
 - Шрифти: Manrope (текст) і Geist Mono (цифри). Мова інтерфейсу — українська.
 
 ## Інфраструктура
+- **Сайт розділюється на чотири репозиторії-піддомени** (app, admin, play, test) — див. `docs/subdomains.md`. Цей репозиторій поки що містить повний старий сайт і всю інфраструктуру (правила, воркер, генератори).
 - Сайт — статичний, хоститься на GitHub Pages (quizflow.space). Firebase — лише Realtime Database і Auth; платних Cloud Functions не використовуємо.
 - Пошта: листи Firebase Auth — через SMTP Resend; запрошення й розсилки — Cloudflare Worker з `worker/` (ключ Resend лише в його секретах; деплой — вставити `worker/dist/worker.js` у редактор Cloudflare, після змін у `worker/src` перезібрати: `cd tests && npm run worker:bundle`; логотип у листах віддає сам воркер — після зміни `assets/email/logo-light.png` виконати `npm run worker:logo` і підняти `LOGO_V`). Див. `docs/email-setup.md`.
 - Правила бази — `database.rules.json`; після змін їх треба вручну опублікувати в консолі Firebase.
