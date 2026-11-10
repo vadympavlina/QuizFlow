@@ -81,6 +81,17 @@ kbd{font-family:'Geist Mono',monospace;font-size:10.5px;padding:1px 5px;border-r
 .tb.primary:disabled{opacity:.7;cursor:progress}
 .tb .ic-only{display:none}
 .tb-side{display:none}
+.ugrp{display:inline-flex;border:1px solid var(--line);border-radius:11px;overflow:hidden;background:#fff}
+.ub{width:38px;height:38px;display:grid;place-items:center;color:var(--ink-2);transition:background .12s,color .12s}
+.ub+.ub{border-left:1px solid var(--line)}
+.ub:hover:not(:disabled){background:var(--pri-soft);color:var(--pri)}
+.ub:disabled{color:#B7C0D3;cursor:default}
+.imtabs{display:flex;background:var(--line-2);border-radius:11px;padding:3px;gap:2px;margin-bottom:12px}
+.imtabs button{flex:1;height:34px;border-radius:8px;font-size:13px;font-weight:700;color:var(--muted);transition:all .15s}
+.imtabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(11,20,55,.1)}
+.im-text{min-height:170px;max-height:260px;font-family:'Geist Mono',monospace;font-size:12.5px}
+.fmt.one{grid-template-columns:1fr}
+.fmt pre{margin:0;font-family:'Geist Mono',monospace;font-size:12px;line-height:1.5;color:var(--ink-2);white-space:pre-wrap}
 .spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite}
 .spin.dark{border-color:rgba(45,91,227,.2);border-top-color:var(--pri)}
 @keyframes rot{to{transform:rotate(360deg)}}
@@ -447,6 +458,10 @@ textarea.in{height:auto;padding:10px 12px;line-height:1.5;resize:vertical}
     </div>
   </div>
   <div class="t-actions">
+    <div class="ugrp" role="group" aria-label="Скасувати і повторити">
+      <button class="ub" id="undo-btn" data-act="undo" title="Скасувати (Ctrl+Z)" aria-label="Скасувати" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg></button>
+      <button class="ub" id="redo-btn" data-act="redo" title="Повторити (Ctrl+Shift+Z)" aria-label="Повторити" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 000 11H13"/></svg></button>
+    </div>
     <button class="tb ai" data-act="ai" title="AI-генерація питань"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9zM19 14l.9 2.6 2.6.9-2.6.9L19 21l-.9-2.6-2.6-.9 2.6-.9z"/></svg><span class="lbl">AI</span></button>
     <button class="tb import-btn" data-act="import" title="Імпорт з Excel / CSV"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg><span class="lbl">Імпорт</span></button>
     <button class="tb preview-btn" data-act="preview" title="Переглянути як студент"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="lbl">Перегляд</span></button>
@@ -610,8 +625,13 @@ textarea.in{height:auto;padding:10px 12px;line-height:1.5;resize:vertical}
     <button class="ib mb-x" data-act="close-modal" aria-label="Закрити"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
     <div class="mb-h">
       <div class="mb-ic" style="background:#E3F8EF;color:#0E9F6E"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M8 9h2"/></svg></div>
-      <div><h3 id="im-t">Імпорт з Excel або CSV</h3><p>Перший рядок — заголовки, він пропускається.</p></div>
+      <div><h3 id="im-t">Імпорт питань</h3><p id="im-sub">Перший рядок — заголовки, він пропускається.</p></div>
     </div>
+    <div class="imtabs" role="tablist">
+      <button class="on" role="tab" data-act="im-tab" data-tab="file">З файлу</button>
+      <button role="tab" data-act="im-tab" data-tab="text">Вставити текст</button>
+    </div>
+    <div id="im-pane-file">
     <div class="fmt">
       <code>A</code><span>Текст питання</span>
       <code>B–E</code><span>Варіанти відповідей (до 4)</span>
@@ -623,6 +643,17 @@ textarea.in{height:auto;padding:10px 12px;line-height:1.5;resize:vertical}
       <span>.xlsx, .xls або .csv</span>
     </div>
     <input type="file" id="file" accept=".xlsx,.xls,.csv" hidden>
+    </div>
+    <div id="im-pane-text" hidden>
+      <div class="fmt one"><pre>Яка столиця Франції?
+*Париж
+Лондон
+Берлін
+
+Скільки буде 2+2?
+Відповідь: 4</pre><span>Питання розділяйте порожнім рядком. Правильний варіант — із <b>*</b> на початку (кілька — кілька зірочок). Без варіантів — рядок <b>Відповідь: …</b>.</span></div>
+      <textarea class="ta im-text" id="im-text" placeholder="Вставте питання тут…" spellcheck="false" aria-label="Текст з питаннями"></textarea>
+    </div>
     <div class="pv" id="im-pv" hidden>
       <div class="pv-h"><div id="im-sum"></div><span id="im-skip"></span></div>
       <div class="pv-list" id="im-list"></div>
@@ -803,6 +834,37 @@ const S = {
 };
 const cq = () => S.qs[S.cur];
 
+// ── Історія змін: Ctrl+Z / Ctrl+Shift+Z для питань (текст, варіанти, порядок, видалення) ──
+const H = { st: [], pos: -1, t: 0, busy: false };
+const snapQ = () => JSON.stringify(S.qs);
+function histBtns(){
+  const u = $("undo-btn"), r = $("redo-btn"); if (!u || !r) return;
+  u.disabled = H.pos <= 0; r.disabled = H.pos >= H.st.length - 1;
+}
+function histReset(){ clearTimeout(H.t); H.st = [{ q: snapQ(), cur: S.cur }]; H.pos = 0; histBtns(); }
+function histCommit(){
+  clearTimeout(H.t);
+  if (H.busy || H.pos < 0) return;
+  const q = snapQ();
+  if (q === H.st[H.pos].q){ H.st[H.pos].cur = S.cur; return; }
+  H.st.splice(H.pos + 1); H.st.push({ q, cur: S.cur });
+  if (H.st.length > 100) H.st.shift();
+  H.pos = H.st.length - 1; histBtns();
+}
+// Набір тексту збираємо в один крок: фіксуємо після паузи
+function histSoon(){ if (H.busy || H.pos < 0) return; clearTimeout(H.t); $("undo-btn").disabled = false; H.t = setTimeout(histCommit, 600); }
+function histApply(){
+  const inEd = $("ed").contains(document.activeElement);
+  const step = H.st[H.pos];
+  S.qs = JSON.parse(step.q); S.cur = clamp(step.cur, 0, Math.max(0, S.qs.length - 1));
+  H.busy = true;
+  markDirty(); clearTimeout(H.t);
+  renderList(); renderEditor(inEd ? true : undefined); renderSummary();
+  H.busy = false; histBtns();
+}
+function undo(){ histCommit(); if (H.pos <= 0) return; H.pos--; histApply(); }
+function redo(){ histCommit(); if (H.pos >= H.st.length - 1) return; H.pos++; histApply(); }
+
 // ═══════════════════════════════════════════════════════════════════════
 // НОРМАЛІЗАЦІЯ ПИТАНЬ (з бази / AI / імпорту)
 // ═══════════════════════════════════════════════════════════════════════
@@ -871,6 +933,7 @@ function issuesOf(q){
     const corr = toArr(q.correct).filter(i => (q.options[i] || "").trim());
     if (!corr.length) r.push("Не позначено правильну відповідь");
     else if (q.type === "multi" && filled.length > 1 && corr.length === filled.length) r.push("Усі варіанти позначено правильними");
+    if (new Set(filled.map(o => o.trim().toLowerCase())).size < filled.length) r.push("Є однакові варіанти");
   } else if (q.type === "text"){
     if (!String(q.correct).trim()) r.push("Не вказано правильну відповідь");
   } else if (q.type === "number"){
@@ -882,7 +945,9 @@ function issuesOf(q){
     if (!ps.length) r.push("Додайте хоча б одну пару");
     if (q.pairs.some(p => p.left.trim() && !(p.options[p.correct] || "").trim())) r.push("У парі не вказано правильний варіант");
   } else if (q.type === "ordering"){
-    if (q.items.filter(i => i.trim()).length < 2) r.push("Потрібно щонайменше 2 елементи");
+    const its = q.items.filter(i => i.trim());
+    if (its.length < 2) r.push("Потрібно щонайменше 2 елементи");
+    else if (new Set(its.map(o => o.trim().toLowerCase())).size < its.length) r.push("Є однакові елементи");
   }
   return r;
 }
@@ -890,8 +955,17 @@ function issuesOf(q){
 // ═══════════════════════════════════════════════════════════════════════
 // СПИСОК ПИТАНЬ
 // ═══════════════════════════════════════════════════════════════════════
+// Однакові питання: індекс → номер першого такого питання
+function dupMap(){
+  const seen = new Map(), dup = new Map();
+  S.qs.forEach((q, i) => {
+    const k = plain(q.text).toLowerCase().replace(/\s+/g, " ").trim(); if (!k) return;
+    if (seen.has(k)) dup.set(i, seen.get(k)); else seen.set(k, i);
+  });
+  return dup;
+}
 function qiHtml(q, i){
-  const t = typeOf(q), txt = plain(q.text), warn = issuesOf(q).length;
+  const t = typeOf(q), txt = plain(q.text), warn = issuesOf(q).length || S._dup?.has(i);
   return `<div class="qi${i === S.cur ? " on" : ""}" data-i="${i}" draggable="true" role="option" aria-selected="${i === S.cur}">
     <span class="qi-grip">${ic("grip", 14)}</span>
     <span class="qi-num">${i + 1}</span>
@@ -899,7 +973,7 @@ function qiHtml(q, i){
       <div class="qi-text${txt ? "" : " empty"}">${txt ? esc(txt.slice(0, 140)) : "Без тексту"}</div>
       <div class="qi-type" style="--c:${t.c}"><i></i>${t.label}</div>
     </div>
-    ${warn ? `<span class="qi-warn" title="${esc(issuesOf(q).join("; "))}"></span>` : ""}
+    ${warn ? `<span class="qi-warn" title="${esc([...issuesOf(q), ...(S._dup?.has(i) ? [`Таке саме питання, як №${S._dup.get(i) + 1}`] : [])].join("; "))}"></span>` : ""}
   </div>`;
 }
 function renderList(){
@@ -978,6 +1052,7 @@ function placeCaretEnd(el){
 function renderHint(){
   const h = $("q-hint"); if (!h) return;
   const q = cq(), iss = q ? issuesOf(q).filter(x => x !== "Немає тексту питання") : [];
+  if (q && S._dup?.has(S.cur)) iss.push(`Таке саме питання, як №${S._dup.get(S.cur) + 1}`);
   h.innerHTML = iss.length ? `<div class="hint">${ic("alert", 15)}<span>${iss.map(esc).join(" · ")}</span></div>` : "";
 }
 
@@ -1104,7 +1179,10 @@ function renderSummary(){
   $("tbars").innerHTML = TYPE_ORDER.filter(k => cnt[k]).map(k => `<div class="tbar" style="--c:${TYPES[k].c}"><span>${TYPES[k].label}</span><em>${cnt[k]}</em><div><i style="width:${Math.round(cnt[k] / n * 100)}%"></i></div></div>`).join("")
     || `<div class="sp-note" style="margin:0">Питань поки немає</div>`;
   const all = [];
-  S.qs.forEach((q, i) => issuesOf(q).forEach(m => all.push([i, m])));
+  const dup = dupMap(), changed = JSON.stringify([...dup]) !== JSON.stringify([...(S._dup || [])]);
+  S._dup = dup;
+  S.qs.forEach((q, i) => { issuesOf(q).forEach(m => all.push([i, m])); if (dup.has(i)) all.push([i, `Таке саме питання, як №${dup.get(i) + 1}`]); });
+  if (changed){ renderList(); renderHint(); }
   $("iss-cnt").textContent = all.length ? `${all.length}` : "";
   $("issues").innerHTML = !n ? `<div class="sp-note" style="margin:0">Додайте питання — тут з'являться підказки.</div>`
     : all.length ? all.slice(0, 30).map(([i, m]) => `<button class="iss" data-act="goto" data-i="${i}"><b>${i + 1}</b><span>${esc(m)}</span></button>`).join("") + (all.length > 30 ? `<div class="sp-note">…і ще ${all.length - 30}</div>` : "")
@@ -1124,10 +1202,10 @@ function setSaveState(kind, text){
 function markDirty(){
   S.dirty = true; S.ver++;
   setSaveState("dirty", "Незбережені зміни");
-  draftSoon();
+  draftSoon(); histSoon();
 }
 function afterStructChange(focus){
-  markDirty(); renderList(); renderEditor(focus); renderSummary();
+  markDirty(); histCommit(); renderList(); renderEditor(focus); renderSummary();
 }
 
 function payload(){
@@ -1213,6 +1291,7 @@ function applyData(d){
   S.cur = clamp(S.cur, 0, Math.max(0, S.qs.length - 1));
   $("title").value = S.title; $("desc").value = S.desc; updDescCnt();
   renderStatus(); renderFolder(); renderTags(); renderTime(); renderList(); renderEditor(); renderSummary();
+  histReset();
 }
 const updDescCnt = () => { $("desc-cnt").textContent = S.desc.length > 350 ? `${S.desc.length}/500` : ""; };
 
@@ -1464,6 +1543,62 @@ function rowToQ(r){
   const ans = f || opts[0] || "";
   return { id: genId(), type: /^-?\d+([.,]\d+)?$/.test(ans) ? "number" : "text", text: esc(text), correct: ans.replace(",", "."), _bad: !ans };
 }
+// Питання з вставленого тексту: блоки через порожній рядок; «*» — правильний варіант; «Відповідь: …»
+function parseText(raw){
+  const out = []; let skipped = 0;
+  const blocks = String(raw).replace(/\r/g, "").split(/\n\s*\n/).map(b => b.split("\n").map(l => l.trim()).filter(Boolean)).filter(b => b.length);
+  for (const lines of blocks){
+    const text = lines[0].replace(/^\s*\d{1,3}\s*[.)]\s+/, "").replace(/^[*+]\s*/, "");
+    if (!text){ skipped++; continue; }
+    const opts = [], corr = []; let ans = "";
+    for (const l of lines.slice(1)){
+      const m = l.match(/^(?:відповідь|answer)\s*[:：]\s*(.+)$/i);
+      if (m){ ans = m[1].trim(); continue; }
+      // «*Варіант», «a) *Варіант» і «*a) Варіант» — усі ставлять позначку правильного
+      let v = l, mark = false;
+      const eat = () => { if (/^[*+]/.test(v)){ mark = true; v = v.replace(/^[*+]\s*/, ""); } };
+      eat(); v = v.replace(/^[A-Za-zА-Яа-яІіЇїЄє0-9]{1,2}[.)]\s+/, ""); eat(); v = v.trim();
+      if (!v) continue;
+      if (mark) corr.push(opts.length);
+      opts.push(v);
+    }
+    if (opts.length >= 2) out.push({ id: genId(), type: corr.length > 1 ? "multi" : "single", text: esc(text), options: opts, correct: corr, _bad: !corr.length });
+    else if (ans || opts.length === 1){
+      const a = (ans || opts[0]).trim();
+      out.push({ id: genId(), type: /^-?\d+([.,]\d+)?$/.test(a) ? "number" : "text", text: esc(text), correct: a.replace(",", "."), _bad: false });
+    } else out.push({ id: genId(), type: "long", text: esc(text), _bad: false });
+  }
+  return { out, skipped };
+}
+function renderImportPreview(skipped){
+  const bad = _imp.filter(q => q._bad).length;
+  $("im-sum").textContent = `${_imp.length} ${plural(_imp.length, ["питання", "питання", "питань"])}`;
+  $("im-skip").textContent = [bad ? `${bad} без правильної відповіді` : "", skipped ? `${skipped} пропущено` : ""].filter(Boolean).join(" · ");
+  $("im-list").innerHTML = _imp.slice(0, 50).map((q, i) => {
+    const ans = q.options ? q.options.map((o, k) => q.correct.includes(k) ? `<b style="color:var(--ok);display:inline;font-weight:700">${esc(o)}</b>` : esc(o)).join(" · ") : esc(q.correct || "—");
+    return `<div class="pv-row${q._bad ? " bad" : ""}"><span class="n">${i + 1}</span><div class="t"><b>${q.text}</b><span>${ans}</span></div><span class="k">${q._bad ? "немає відповіді" : TYPES[q.type].short}</span></div>`;
+  }).join("") + (_imp.length > 50 ? `<div class="pv-row"><span class="n"></span><div class="t"><span>…і ще ${_imp.length - 50}</span></div></div>` : "");
+  $("im-pv").hidden = false;
+  $("im-go").disabled = false;
+  $("im-go").textContent = `Імпортувати ${_imp.length}`;
+}
+function imTab(tab){
+  document.querySelectorAll(".imtabs button").forEach(b => { const on = b.dataset.tab === tab; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+  $("im-pane-file").hidden = tab !== "file"; $("im-pane-text").hidden = tab !== "text";
+  $("im-sub").textContent = tab === "file" ? "Перший рядок — заголовки, він пропускається." : "Вставте питання з Word, чату чи нотаток.";
+  _imp = []; $("im-pv").hidden = true; $("im-go").disabled = true; $("im-go").textContent = "Імпортувати";
+  if (tab === "text"){ setTimeout(() => $("im-text").focus(), 30); if ($("im-text").value.trim()) onImText(); }
+}
+let _imT = 0;
+function onImText(){
+  clearTimeout(_imT);
+  _imT = setTimeout(() => {
+    const { out, skipped } = parseText($("im-text").value);
+    _imp = out;
+    if (!out.length){ $("im-pv").hidden = true; $("im-go").disabled = true; $("im-go").textContent = "Імпортувати"; return; }
+    renderImportPreview(skipped);
+  }, 250);
+}
 async function handleFile(file){
   if (!file) return;
   try {
@@ -1473,19 +1608,11 @@ async function handleFile(file){
     const skipped = body.length - _imp.length;
     $("drop-t").textContent = file.name;
     if (!_imp.length){ $("im-pv").hidden = true; $("im-go").disabled = true; toast("У файлі не знайдено питань — перевірте формат", "err"); return; }
-    const bad = _imp.filter(q => q._bad).length;
-    $("im-sum").textContent = `${_imp.length} ${plural(_imp.length, ["питання", "питання", "питань"])}`;
-    $("im-skip").textContent = [bad ? `${bad} без правильної відповіді` : "", skipped ? `${skipped} пропущено` : ""].filter(Boolean).join(" · ");
-    $("im-list").innerHTML = _imp.slice(0, 50).map((q, i) => {
-      const ans = q.options ? q.options.map((o, k) => q.correct.includes(k) ? `<b style="color:var(--ok);display:inline;font-weight:700">${esc(o)}</b>` : esc(o)).join(" · ") : esc(q.correct || "—");
-      return `<div class="pv-row${q._bad ? " bad" : ""}"><span class="n">${i + 1}</span><div class="t"><b>${q.text}</b><span>${ans}</span></div><span class="k">${q._bad ? "немає відповіді" : TYPES[q.type].short}</span></div>`;
-    }).join("") + (_imp.length > 50 ? `<div class="pv-row"><span class="n"></span><div class="t"><span>…і ще ${_imp.length - 50}</span></div></div>` : "");
-    $("im-pv").hidden = false;
-    $("im-go").disabled = false;
-    $("im-go").textContent = `Імпортувати ${_imp.length}`;
+    renderImportPreview(skipped);
   } catch (e){ toast("Не вдалося прочитати файл: " + e.message, "err"); $("drop-t").textContent = "Перетягніть файл або натисніть"; }
 }
 function openImport(){
+  $("im-text").value = ""; imTab("file");
   _imp = []; $("file").value = ""; $("im-pv").hidden = true; $("im-go").disabled = true; $("im-go").textContent = "Імпортувати";
   $("drop-t").textContent = "Перетягніть файл або натисніть";
   openModal("m-import", "drop");
@@ -1720,12 +1847,15 @@ document.addEventListener("click", async e => {
   switch (a){
     case "back": return goBack();
     case "save": return save();
+    case "undo": return undo();
+    case "redo": return redo();
     case "preview": return preview();
     case "ai": return openAi();
     case "ai-run": return aiGenerate();
     case "ai-inc": case "ai-dec": { const n = $("ai-count"); n.value = clamp((+n.value || 10) + (a === "ai-inc" ? 1 : -1), 1, 30); return; }
     case "import": if (CAPS?.flags.import === false) return toast(`«${CAP_FLAGS.import.label}» вимкнено адміністратором`, "err"); return openImport();
     case "import-run": return runImport();
+    case "im-tab": return imTab(b.dataset.tab);
     case "template": return downloadTemplate();
     case "close-modal": return closeModal();
     case "toggle-side": document.body.classList.remove("list-open"); document.body.classList.toggle("side-open"); return;
@@ -1848,6 +1978,7 @@ drop.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " "){
 drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
 drop.addEventListener("dragleave", () => drop.classList.remove("over"));
 drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("over"); handleFile(e.dataTransfer.files[0]); });
+$("im-text").addEventListener("input", onImText);
 $("file").addEventListener("change", e => handleFile(e.target.files[0]));
 
 // ── Перетягування питань у списку ──
@@ -1896,6 +2027,12 @@ document.addEventListener("keydown", e => {
   }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s"){ e.preventDefault(); save(); return; }
   if (_modals.length) return;
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && ["z", "y"].includes(e.key.toLowerCase())){
+    // у назві, описі й тегах лишається звичайне скасування браузера
+    const typing = e.target.matches?.("input, textarea, [contenteditable]") && !e.target.closest?.("#ed, #ql");
+    if (!typing){ e.preventDefault(); (e.key.toLowerCase() === "y" || e.shiftKey) ? redo() : undo(); }
+    return;
+  }
   if (e.altKey && !e.ctrlKey && !e.metaKey){
     if (e.key === "ArrowUp" || e.key === "ArrowDown"){
       e.preventDefault();
