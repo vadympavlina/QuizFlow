@@ -1613,8 +1613,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     testData = await getTest(linkData.testId);
     if (!testData || !testData.questions?.length) return showError("Тест не знайдено або він порожній.");
-    if (testData.status === "draft")  return showError("Тест ще не опублікований. Зверніться до викладача.");
-    if (testData.status === "closed") return showError("Тест закрито. Зверніться до викладача.");
     if (testData.status === "archived") return showError("Тест більше не доступний. Зверніться до викладача.");
     baseQuestions = testData.questions;
 

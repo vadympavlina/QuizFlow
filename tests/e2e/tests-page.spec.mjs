@@ -42,6 +42,10 @@ test("список за замовчуванням: рядки з видимим
   await expect(row.getByRole("button", { name: "Редагувати" })).toBeVisible();
   expect((await row.boundingBox()).height).toBeLessThan(80);                      // один тест — один компактний рядок
 
+  // Статусів і лічильників спроб у списку більше немає
+  await expect(page.locator(".t-tab, .t-pill, .t-tabs")).toHaveCount(0);
+  await expect(row).not.toContainText(/спроб|сер\./);
+
   await page.locator('[data-view="grid"]').click();
   await expect(page.locator(".t-quiz-card")).toHaveCount(4);
   await page.reload();

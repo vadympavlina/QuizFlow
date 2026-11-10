@@ -494,14 +494,8 @@ textarea.in{height:auto;padding:10px 12px;line-height:1.5;resize:vertical}
       <button class="tb" data-act="import"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>Імпорт</button>
     </div>
 
-    <div class="sp-sec">
-      <div class="sp-l">Статус</div>
-      <div class="seg" id="st-seg">
-        <button data-st="active" style="--c:#0E9F6E"><i></i>Активний</button>
-        <button data-st="draft" style="--c:#8F9AB5"><i></i>Чернетка</button>
-        <button data-st="closed" style="--c:#E11D48"><i></i>Закритий</button>
-      </div>
-      <div class="sp-note" id="st-note"></div>
+    <div class="sp-sec" id="st-sec" hidden>
+      <div class="sp-note warn">Тест в архіві. Щоб повернути його до списку, натисніть «Відновити» в архіві на сторінці «Тести».</div>
     </div>
 
     <div class="sp-sec">
@@ -727,12 +721,6 @@ const TYPES = {
 const TYPE_ORDER = ["single", "multi", "text", "number", "long", "matching", "ordering"];
 const typeOf = q => TYPES[q?.type] || TYPES.single;
 
-const STATUS = {
-  active: "Тест доступний студентам за посиланнями.",
-  draft:  "Чернетка — тест у роботі, його видно лише вам.",
-  closed: "Тест закрито — нові спроби не приймаються.",
-};
-const STATUS_LBL = { active: "Активний", draft: "Чернетка", closed: "Закритий", archived: "В архіві" };
 const TIME_PRESETS = [5, 10, 15, 20, 30, 45, 60, 90];
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -808,7 +796,7 @@ const S = {
   test: null,          // оригінал з бази
   qs: [],              // питання (редагуються на місці)
   cur: 0,              // індекс активного питання
-  title: "", desc: "", folderId: null, tags: [], timeMin: 10, noTime: false, status: "draft",
+  title: "", desc: "", folderId: null, tags: [], timeMin: 10, noTime: false, status: "active",
   folders: [],
   dirty: false, ver: 0, saving: false,
   filter: "",
@@ -1083,13 +1071,10 @@ function emptyHtml(){
 // ПАНЕЛЬ НАЛАШТУВАНЬ
 // ═══════════════════════════════════════════════════════════════════════
 function renderStatus(){
-  const st = S.status;
-  document.querySelectorAll("#st-seg button").forEach(b => b.classList.toggle("on", b.dataset.st === st));
-  const note = $("st-note");
-  note.className = "sp-note" + (st === "archived" ? " warn" : "");
-  note.textContent = st === "archived" ? "Тест в архіві. Оберіть статус, щоб повернути його до списку." : STATUS[st] || "";
+  const archived = S.status === "archived";
+  $("st-sec").hidden = !archived;
   const chip = $("meta-status");
-  chip.hidden = false; chip.className = `st-chip hide-sm ${st === "active" ? "" : st}`; chip.textContent = STATUS_LBL[st] || st;
+  chip.hidden = !archived; chip.className = "st-chip hide-sm archived"; chip.textContent = "В архіві";
 }
 function renderFolder(){
   const f = S.folders.find(x => x.id === S.folderId);
@@ -1223,7 +1208,7 @@ function applyData(d){
   S.tags = toArr(d.tags).map(String).filter(Boolean);
   const tl = d.timeLimit ?? 600;
   S.noTime = Number(tl) === 0; S.timeMin = S.noTime ? 10 : Math.max(1, Math.round((Number(tl) || 600) / 60));
-  S.status = d.status || "draft";
+  S.status = d.status === "archived" ? "archived" : "active";
   S.qs = toArr(d.questions).map(normQ);
   S.cur = clamp(S.cur, 0, Math.max(0, S.qs.length - 1));
   $("title").value = S.title; $("desc").value = S.desc; updDescCnt();
@@ -1728,7 +1713,6 @@ document.addEventListener("click", async e => {
   if (qi && !e.target.closest("[data-act]")){ select(+qi.dataset.i); return; }
   const seg = e.target.closest(".seg button");
   if (seg){
-    if (seg.dataset.st){ if (S.status !== seg.dataset.st){ S.status = seg.dataset.st; renderStatus(); markDirty(); } return; }
     seg.parentElement.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === seg)); return;
   }
   const b = e.target.closest("[data-act]"); if (!b || b.disabled) return;

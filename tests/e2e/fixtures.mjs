@@ -21,7 +21,7 @@ export const test = base.extend({
       const p = u.pathname.endsWith("/") ? u.pathname + "index.html" : u.pathname + ".html";
       // Тест міг уже закінчитися, поки відповідь у дорозі, — тоді сторінки немає і нічого віддавати
       try { await r.fulfill({ response: await r.fetch({ url: u.origin + p + u.search }) }); }
-      catch (e) { if (!/closed|already handled/i.test(e.message)) throw e; }
+      catch (e) { if (!/closed|already handled|disposed|Test ended/i.test(e.message)) throw e; }
     });
     await use(context);
   },

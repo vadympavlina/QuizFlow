@@ -29,9 +29,9 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/styles.css?v=37">
+<link rel="stylesheet" href="shared/styles.css?v=38">
 <link rel="modulepreload" href="shared/app.js?v=32">
-<link rel="modulepreload" href="shared/features.js?v=44">
+<link rel="modulepreload" href="shared/features.js?v=45">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
    СТОРІНКА «ТЕСТИ» — стилі під #sec-tests
@@ -76,11 +76,6 @@
 #sec-tests .t-input:focus,#sec-tests .t-select:focus{border-color:var(--nav-accent)}
 
 /* Tabs (status filter) */
-#sec-tests .t-tabs{display:inline-flex;background:#F1F5FB;border-radius:8px;padding:3px;gap:2px}
-#sec-tests .t-tab{font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;padding:6px 11px;border-radius:6px;background:transparent;border:0;color:var(--ink-500);cursor:pointer;white-space:nowrap;transition:color .12s;display:inline-flex;align-items:center;gap:5px}
-#sec-tests .t-tab:hover:not(.active){color:var(--ink-700)}
-#sec-tests .t-tab.active{background:#fff;color:var(--ink-900);box-shadow:0 1px 2px rgba(0,0,0,.06)}
-#sec-tests .t-tab .t-tab-n{font-family:'Geist Mono',monospace;font-size:11px;opacity:.7;font-weight:500}
 
 /* View toggle (grid/list) */
 #sec-tests .t-view{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:10px;padding:2px}
@@ -89,13 +84,6 @@
 #sec-tests .t-view button.on{background:var(--t-bg-2);color:var(--ink-900)}
 
 /* Pills */
-#sec-tests .t-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;font-size:11.5px;font-weight:600;border-radius:999px;white-space:nowrap;font-family:'Manrope',sans-serif}
-#sec-tests .t-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.9}
-#sec-tests .t-pill.on{background:#DCFCE7;color:#15803D}
-#sec-tests .t-pill.draft{background:#FEF3C7;color:#92400E}
-#sec-tests .t-pill.closed{background:#FEE2E2;color:#B91C1C}
-#sec-tests .t-pill.info{background:#DBEAFE;color:#1E40AF}
-#sec-tests .t-pill.off{background:#E5EAF5;color:var(--ink-500)}
 
 /* Section labels inside card */
 #sec-tests .t-section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-400);padding:16px 18px 8px;display:flex;justify-content:space-between;align-items:baseline;font-family:'Manrope',sans-serif}
@@ -123,15 +111,10 @@
 #sec-tests .t-qc-cover::before{content:"";position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.2)}
 #sec-tests .t-qc-cover::after{content:"";position:absolute;bottom:-14px;left:30%;width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.1)}
 #sec-tests .t-qc-code{font-family:'Geist Mono',monospace;font-weight:700;font-size:22px;color:rgba(255,255,255,.92);letter-spacing:-.02em;position:relative;text-shadow:0 1px 2px rgba(0,0,0,.1)}
-#sec-tests .t-qc-status{position:absolute;top:10px;right:10px;z-index:1}
-#sec-tests .t-qc-status .t-pill{background:rgba(255,255,255,.96)}   /* без backdrop-filter: десятки карток = десятки шарів розмиття */
 #sec-tests .t-qc-title{font-weight:700;font-size:15px;letter-spacing:-.005em;line-height:1.35;color:var(--ink-900);cursor:pointer;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:41px}
 #sec-tests .t-qc-meta{display:flex;gap:12px;font-size:12px;color:var(--ink-500);margin-top:4px;flex-wrap:wrap}
 #sec-tests .t-qc-meta span{display:inline-flex;align-items:center;gap:4px}
 #sec-tests .t-qc-meta svg{width:12px;height:12px}
-#sec-tests .t-qc-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-#sec-tests .t-qc-stat-val{font-family:'Geist Mono',monospace;font-weight:700;font-size:16px;letter-spacing:-.02em;color:var(--ink-900)}
-#sec-tests .t-qc-stat-lbl{font-size:10.5px;color:var(--ink-400);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-top:2px;font-family:'Manrope',sans-serif}
 #sec-tests .t-qc-foot{display:flex;justify-content:space-between;align-items:center;gap:8px}
 #sec-tests .t-qc-date{font-size:12px;color:var(--ink-400)}
 #sec-tests .t-qc-foot-actions{display:flex;gap:6px}
@@ -179,12 +162,11 @@
 #sec-tests .t-card.flat .t-quizzes-grid{padding:0}
 #tc{display:flex;flex-direction:column;gap:16px}
 /* Кнопки, що виглядають як частина картки */
-#sec-tests .t-qc-cover,#sec-tests .t-qc-title,#sec-tests .t-row-title,#sec-tests .t-pill-btn{font:inherit;border:0;text-align:left;width:100%;cursor:pointer}
+#sec-tests .t-qc-cover,#sec-tests .t-qc-title,#sec-tests .t-row-title{font:inherit;border:0;text-align:left;width:100%;cursor:pointer}
 #sec-tests .t-qc-title{background:none;padding:0;font-weight:700;font-size:15px;color:var(--ink-900)}
 #sec-tests .t-qc-title:hover,#sec-tests .t-row-title:hover{color:var(--nav-600)}
 #sec-tests .t-row-title{background:none;padding:0;font-weight:600;font-size:14px;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px;display:block}
 #sec-tests .t-row-sub{font-size:12px;color:var(--ink-400);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:320px}
-#sec-tests .t-pill-btn{background:none;padding:0;width:auto}
 #sec-tests .t-qc-folder{display:inline-flex;align-items:center;gap:5px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #sec-tests .t-qc-folder::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--fc);flex:0 0 auto}
 #sec-tests .t-menu-btn svg{width:15px;height:15px}
@@ -219,7 +201,7 @@
 
 /* ── Компактний список тестів: один тест — один рядок ── */
 #sec-tests .t-list{display:flex;flex-direction:column}
-#sec-tests .t-lrow{display:grid;grid-template-columns:40px minmax(0,1fr) auto auto;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid #EEF1F7;transition:background .12s}
+#sec-tests .t-lrow{display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid #EEF1F7;transition:background .12s}
 #sec-tests .t-lrow:last-child{border-bottom:0}
 #sec-tests .t-lrow:hover{background:#FAFBFE}
 #sec-tests .t-lrow .t-tile{width:40px;height:40px;border-radius:11px;font-size:11px}
@@ -227,9 +209,6 @@
 #sec-tests .t-lm .t-row-title{max-width:100%;font-size:14.5px;font-weight:700}
 #sec-tests .t-lm .t-row-sub{display:flex;align-items:center;gap:7px;max-width:100%;font-size:12px}
 #sec-tests .t-lr-dot{width:9px;height:9px;border-radius:3px;flex:0 0 auto}
-#sec-tests .t-lx{display:flex;align-items:center;gap:16px}
-#sec-tests .t-lst{display:flex;gap:12px;font:600 12.5px 'Geist Mono',monospace;color:var(--ink-500);white-space:nowrap}
-#sec-tests .t-lst b{color:var(--ink-900);font-weight:700}
 #sec-tests .t-la{display:flex;gap:6px;justify-content:flex-end}
 #sec-tests .t-lb{height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink-700);font:600 12.5px 'Manrope',sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;transition:border-color .15s,background .15s,color .15s}
 #sec-tests .t-lb:hover{border-color:var(--nav-accent);color:var(--nav-600)}
@@ -240,17 +219,10 @@
 #sec-tests .t-lb.icon svg,#sec-tests .t-lb.edit svg{width:15px;height:15px}
 #sec-tests .t-lb .t-lb-t{display:none}
 #sec-tests .t-lb[aria-expanded="true"]{background:#EEF2FB}
-/* Середні ширини (права колонка вужча): цифри йдуть під назву, кнопки лишаються праворуч */
-@media (max-width:1299px){
-  #sec-tests .t-lrow{grid-template-columns:40px minmax(0,1fr) auto;gap:2px 12px}
-  #sec-tests .t-lrow .t-tile{grid-row:1 / span 2}
-  #sec-tests .t-lx{grid-column:2;grid-row:2;gap:12px;flex-wrap:wrap}
-  #sec-tests .t-la{grid-column:3;grid-row:1 / span 2}
-}
 /* Телефон: кнопки на всю ширину під рядком */
 @media (max-width:560px){
-  #sec-tests .t-lrow{grid-template-columns:40px minmax(0,1fr);padding:12px 14px;row-gap:6px}
-  #sec-tests .t-la{grid-column:1 / -1;grid-row:auto;margin-top:4px}
+  #sec-tests .t-lrow{grid-template-columns:40px minmax(0,1fr);padding:12px 14px;row-gap:8px}
+  #sec-tests .t-la{grid-column:1 / -1}
   #sec-tests .t-lb{flex:1;height:40px}
   #sec-tests .t-lb.edit{width:auto}
   #sec-tests .t-lb.edit .t-lb-t{display:inline}
@@ -261,7 +233,7 @@
 #sec-tests .t-split{display:grid;grid-template-columns:236px minmax(0,1fr);gap:22px;align-items:start}
 #sec-tests .t-split.no-rail{grid-template-columns:minmax(0,1fr)}
 #sec-tests .t-right{min-width:0;display:flex;flex-direction:column;gap:16px}
-#sec-tests .t-rail{position:sticky;top:88px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:10px;max-height:calc(100vh - 112px);overflow-y:auto}
+#sec-tests .t-rail{position:sticky;top:88px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:10px;max-height:calc(100vh - 190px);overflow-y:auto}
 #sec-tests .t-rail[hidden]{display:none}
 #sec-tests .t-rail-h{display:flex;align-items:center;justify-content:space-between;padding:6px 8px 8px 10px;font:700 11px 'Manrope',sans-serif;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-400)}
 #sec-tests .t-rail-add{width:28px;height:28px;border:0;border-radius:50%;background:#EEF2FB;color:var(--nav-600);cursor:pointer;display:grid;place-items:center;padding:0;transition:background .15s,color .15s}
@@ -310,14 +282,6 @@
 .t-fm-item.d,.t-fm-item.d svg{color:#B91C1C}
 .t-fm-item.d:hover,.t-fm-item.d:focus-visible{background:#FEE2E2}
 .t-fm-sep{height:1px;background:#E3E8F2;margin:5px 4px}
-.t-fm-label{padding:4px 10px 2px;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8691AC}
-.t-fm-statuses{display:flex;gap:4px;padding:4px 6px 6px;flex-wrap:wrap}
-.t-fm-status{border:1.5px solid transparent;background:none;border-radius:999px;padding:1px;cursor:pointer}
-.t-fm-status .t-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;font-size:11.5px;font-weight:600;border-radius:999px}
-.t-fm-status .t-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
-.t-fm-status .t-pill.on{background:#DCFCE7;color:#15803D}.t-fm-status .t-pill.draft{background:#FEF3C7;color:#92400E}.t-fm-status .t-pill.closed{background:#FEE2E2;color:#B91C1C}
-.t-fm-status.cur{border-color:currentColor;cursor:default}
-.t-fm-status:hover:not(.cur),.t-fm-status:focus-visible{border-color:#CDD6E8;outline:none}
 
 /* Responsive */
 .t-hl{outline:2px solid #3B82F6;outline-offset:3px;border-radius:14px;transition:outline-color .6s}
@@ -326,7 +290,6 @@
 }
 /* ── Телефон: читабельність і зручні для пальця цілі (аудит WCAG 2.1 AA) ── */
 @media (max-width:1023px){
-  #sec-tests .t-tab{padding:9px 12px;font-size:13px}
 }
 </style>
 </head>
@@ -380,12 +343,6 @@
           <input class="t-input" id="srch" type="search" placeholder="Пошук тестів…" autocomplete="off" aria-label="Пошук тестів">
           <button class="t-search-clear" id="srch-clear" type="button" aria-label="Очистити пошук" hidden>×</button>
         </div>
-        <div class="t-tabs" role="group" aria-label="Статус" data-tests-only hidden>
-          <button class="t-tab" data-status="">Всі <span class="t-tab-n">0</span></button>
-          <button class="t-tab" data-status="active">Активні <span class="t-tab-n">0</span></button>
-          <button class="t-tab" data-status="draft">Чернетки <span class="t-tab-n">0</span></button>
-          <button class="t-tab" data-status="closed">Закриті <span class="t-tab-n">0</span></button>
-        </div>
         <span class="t-spacer"></span>
         <!-- Сортування: кастомний дропдаун, як на інших сторінках (.cd-*) -->
         <div class="cd-wrap" id="cd-tsort" data-tests-only hidden>
@@ -398,7 +355,6 @@
             <div class="cd-item" role="option" data-sort="new">Спершу нові</div>
             <div class="cd-item" role="option" data-sort="act">За активністю</div>
             <div class="cd-item" role="option" data-sort="name">За назвою (А–Я)</div>
-            <div class="cd-item" role="option" data-sort="att">За кількістю спроб</div>
             <div class="cd-item" role="option" data-sort="old">Спершу старі</div>
           </div>
         </div>
@@ -443,7 +399,7 @@
 <script type="module">
 // ─── Ініціалізація (паралельне завантаження — як в оригіналі) ───
 const { initApp } = await import("./shared/app.js?v=32");
-const featuresP = import("./shared/features.js?v=44");
+const featuresP = import("./shared/features.js?v=45");
 
 window.showSec = function(name){
   if (name === "tests"){

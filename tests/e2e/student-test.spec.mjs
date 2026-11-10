@@ -40,3 +40,18 @@ for (const [label, vp] of [["комп'ютер", { width: 1440, height: 900 }], 
     expect(errors).toEqual([]);
   });
 }
+
+// Статусу тесту більше немає: тест, що в базі лишився «чернеткою» чи «закритим», студенти все одно відкривають
+for (const st of ["draft", "closed"]) {
+  test(`студент відкриває тест зі старим статусом «${st}»`, async ({ page, errors }) => {
+    const d = tseed();
+    Object.values(d.teachers.t1.tests).forEach(t => { t.status = st; });
+    await seed(page, d);
+    await page.goto("/test?link=LX&t=t1");
+    await page.waitForFunction(() => typeof window.obSkip === "function");
+    await page.evaluate(() => obSkip());
+    await expect(page.locator("#inputName")).toBeVisible();
+    await expect(page.getByText(/не опублікований|Тест закрито/)).toHaveCount(0);
+    expect(errors).toEqual([]);
+  });
+}

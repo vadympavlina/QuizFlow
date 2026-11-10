@@ -1278,3 +1278,26 @@ html.has-sb #app-loader::before{ content:""; position:absolute; z-index:-1; back
 .main #sec-students .st-card{ border-radius:22px; }
 .main .dx-now-it, .main .dx-kpi, .main #sec-attempts .stat, .main #sec-links .lk-kpi{ border-radius:18px; }
 .main .btn, .main .dx-btn{ border-radius:999px; }
+
+/* ─── Кути картки лишаються круглими під час прокрутки ───
+   Вміст їде під закріплену верхню панель і під нижню смугу рамки; «зворотні» кути
+   фарбою рамки перекривають його по контуру картки. */
+@media (min-width:1024px){
+  .qtb::before, .qtb::after{ content:""; position:absolute; top:100%; width:24px; height:24px; pointer-events:none; }
+  .qtb::before{ left:0; background:radial-gradient(circle at 100% 100%, transparent 23px, var(--frame) 24px); }
+  .qtb::after{ right:0; background:radial-gradient(circle at 0 100%, transparent 23px, var(--frame) 24px); }
+  html.has-sb body::after{
+    content:""; position:fixed; z-index:55; left:var(--sb-space); right:var(--card-gap); bottom:0;
+    height:calc(var(--card-gap) + 24px); pointer-events:none; transition:left .32s var(--sb-ease);
+    background:
+      radial-gradient(circle at 100% 0, transparent 23px, var(--frame) 24px) left top / 24px 24px no-repeat,
+      radial-gradient(circle at 0 0, transparent 23px, var(--frame) 24px) right top / 24px 24px no-repeat,
+      linear-gradient(var(--frame), var(--frame)) left bottom / 100% var(--card-gap) no-repeat;
+  }
+}
+@media (max-width:1023px){
+  .qtb::before, .qtb::after{ content:""; position:absolute; top:100%; width:26px; height:26px; pointer-events:none; }
+  .qtb::before{ left:0; background:radial-gradient(circle at 100% 100%, transparent 25px, var(--frame) 26px); }
+  .qtb::after{ right:0; background:radial-gradient(circle at 0 100%, transparent 25px, var(--frame) 26px); }
+}
+@media print{ html.has-sb body::after{ display:none; } }
