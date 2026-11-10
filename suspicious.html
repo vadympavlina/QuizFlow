@@ -28,9 +28,9 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/styles.css?v=32">
+<link rel="stylesheet" href="shared/styles.css?v=37">
 <link rel="modulepreload" href="shared/app.js?v=32">
-<link rel="modulepreload" href="shared/features.js?v=38">
+<link rel="modulepreload" href="shared/features.js?v=44">
 
 <style>
 /* ── Page tokens ── */
@@ -55,16 +55,6 @@
 
 #sec-suspicious .sp-actions{display:flex; align-items:center; gap:8px}
 
-#sec-suspicious .sp-chip{
-  display:inline-flex; align-items:center; gap:6px;
-  padding:5px 11px; border-radius:999px;
-  font-size:11.5px; font-weight:700; font-family:"Manrope",sans-serif;
-}
-#sec-suspicious .sp-chip.bad{background:#FEE2E2; color:#B91C1C}
-#sec-suspicious .sp-chip.bad::before{content:""; width:6px; height:6px; border-radius:50%; background:#DC2626; animation:spPulse 1.4s infinite}
-#sec-suspicious .sp-chip.ok{background:#DCFCE7; color:#15803D}
-#sec-suspicious .sp-chip.ok::before{content:""; width:6px; height:6px; border-radius:50%; background:#22C55E}
-@keyframes spPulse{0%,100%{opacity:1}50%{opacity:.35}}
 
 /* Buttons */
 #sec-suspicious .sp-btn{
@@ -283,8 +273,6 @@
 #sec-suspicious .case-tag.copies{background:rgba(220,38,38,.1); color:#B91C1C}
 #sec-suspicious .case-tag.shots{background:rgba(126,34,206,.1); color:#7E22CE}
 /* ── Оновлення ── */
-#sec-suspicious .sp-chip.warn{background:#FEF3C7;color:#92400E}
-#sec-suspicious .sp-chip.warn::before{content:"";width:6px;height:6px;border-radius:50%;background:#F59E0B}
 #sec-suspicious button.risk-card{font:inherit;text-align:left;cursor:pointer;transition:box-shadow .15s,transform .15s,border-color .15s}
 #sec-suspicious button.risk-card:hover{box-shadow:0 6px 18px rgba(11,20,55,.07);transform:translateY(-1px)}
 #sec-suspicious button.risk-card.on{box-shadow:0 0 0 2px var(--nav-accent)}
@@ -379,9 +367,6 @@
         <h1>Підозрілі спроби</h1>
         <p><span id="sp-cases-count">—</span> · виходи з тесту, копіювання, скріншоти</p>
       </div>
-      <div class="sp-actions">
-        <span class="sp-chip ok" id="sp-status-chip">Усе спокійно</span>
-      </div>
     </div>
 
     <!-- KPI: клік по картці ризику — фільтр за рівнем -->
@@ -423,7 +408,7 @@
 
 <script type="module">
 const { initApp } = await import("./shared/app.js?v=32");
-const featuresP = import("./shared/features.js?v=38");
+const featuresP = import("./shared/features.js?v=44");
 
 window.showSec = function(name){
   if (name === "suspicious") {

@@ -28,9 +28,9 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/styles.css?v=32">
+<link rel="stylesheet" href="shared/styles.css?v=37">
 <link rel="modulepreload" href="shared/app.js?v=32">
-<link rel="modulepreload" href="shared/features.js?v=38">
+<link rel="modulepreload" href="shared/features.js?v=44">
 <link rel="modulepreload" href="shared/online.js?v=1">
 <style>
 #sec-online{
@@ -42,8 +42,6 @@
 #sec-online a{text-decoration:none}
 .on-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:26px;flex-wrap:wrap}
 .on-head h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
-.on-live{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;color:#15803D;background:#DCFCE7;padding:4px 10px;border-radius:999px;letter-spacing:.02em}
-.on-live::before{content:"";width:7px;height:7px;border-radius:50%;background:#22C55E;animation:onPulse 1.4s infinite}
 @keyframes onPulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}50%{box-shadow:0 0 0 5px rgba(34,197,94,0)}}
 .on-head p{margin:5px 0 0;color:var(--ink-500);font-size:13.5px}
 .on-btn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;font-size:13px;font-weight:700;color:var(--ink-700);cursor:pointer;white-space:nowrap;transition:all .15s}
@@ -158,7 +156,7 @@
   <div class="sec on" id="sec-online">
     <header class="on-head">
       <div>
-        <h1>Онлайн зараз <span class="on-live">наживо</span></h1>
+        <h1>Онлайн зараз</h1>
         <p id="on-sub">&nbsp;</p>
       </div>
       <a class="on-btn" data-qtb href="live" target="_blank" rel="noopener" title="Великий екран для проєктора: хто проходить тести">
@@ -178,7 +176,7 @@
 // потім features.js (він читає з window._fb).
 // Preload у <head> вже починає завантаження обох паралельно — тут тільки execute order.
 const { initApp } = await import("./shared/app.js?v=32");
-const featuresP = import("./shared/features.js?v=38");
+const featuresP = import("./shared/features.js?v=44");
 
 // showSec: залишаємось на сторінці якщо це та сама; інакше — йдемо на відповідний html
 window.showSec = function(name){
