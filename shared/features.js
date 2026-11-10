@@ -859,12 +859,11 @@ const TS = (() => {
   let s = {};
   try { s = JSON.parse(localStorage.getItem(_TSTORE) || "{}"); } catch {}
   // Список — за замовчуванням; «сітку» зберігаємо, лише якщо її обрано вже в новій версії (v:2)
-  return { q: "", status: "", sort: s.sort || "new", view: s.v === 2 && s.view === "grid" ? "grid" : "list" };
+  return { q: "", sort: ["new", "old", "name", "act"].includes(s.sort) ? s.sort : "new", view: s.v === 2 && s.view === "grid" ? "grid" : "list" };
 })();
 const _saveTS = () => { try { localStorage.setItem(_TSTORE, JSON.stringify({ sort: TS.sort, view: TS.view, v: 2 })); } catch {} };
 // Сумісність зі старим кодом, що читає ці глобали
 window._testsView = TS.view;
-window._testsStatus = TS.status;
 
 const _plural = (n, one, few, many) => {
   const a = Math.abs(n) % 100, b = a % 10;
@@ -947,12 +946,6 @@ function _testStats(){
 const _EMPTY_STATS = { cnt: 0, passed: 0, avg: null, last: 0 };
 const _activity = (t, st) => Math.max(t.updatedAt || 0, t.createdAt || 0, st?.last || 0);
 const _avgColor = v => v == null ? "var(--ink-400)" : v >= 70 ? "#15803D" : v >= 40 ? "#1E40AF" : "#B91C1C";
-const STATUS = {
-  active: { cls: "on",     label: "Активний" },
-  draft:  { cls: "draft",  label: "Чернетка" },
-  closed: { cls: "closed", label: "Закритий" },
-};
-const _sc = t => STATUS[t.status] || STATUS.draft;
 
 function _matches(t, q){
   if (!q) return true;
@@ -964,7 +957,6 @@ function _sortTests(lst, stats){
     new:  (a, b) => (b.createdAt || 0) - (a.createdAt || 0),
     old:  (a, b) => (a.createdAt || 0) - (b.createdAt || 0),
     name: (a, b) => String(a.title || "").localeCompare(String(b.title || ""), "uk"),
-    att:  (a, b) => (stats.get(b.id)?.cnt || 0) - (stats.get(a.id)?.cnt || 0),
     act:  (a, b) => _activity(b, stats.get(b.id)) - _activity(a, stats.get(a.id)),
   }[TS.sort] || ((a, b) => 0);
   return [...lst].sort(by);
@@ -973,13 +965,11 @@ function _sortTests(lst, stats){
 // ─── Картка тесту (сітка) ──────────────────────────────────────────────
 function buildTestCard(t, idx, stats, showFolder){
   const st = stats?.get(t.id) || _EMPTY_STATS;
-  const sc = _sc(t);
   const qCnt = (t.questions || []).length;
   const folder = showFolder ? _folderOf(t) : null;
   return `<div class="t-quiz-card" data-id="${esc(t.id)}">
     <button class="t-qc-cover" style="background:${_quizCoverGradient(t, idx)}" data-act="edit" data-id="${esc(t.id)}" aria-label="Редагувати ${esc(t.title)}">
       <span class="t-qc-code">${esc(_testAbbr(t.title))}</span>
-      <span class="t-qc-status"><span class="t-pill ${sc.cls}">${sc.label}</span></span>
     </button>
     <div>
       <button class="t-qc-title" data-act="edit" data-id="${esc(t.id)}" title="${esc(t.title)}">${esc(t.title)}</button>
@@ -988,11 +978,6 @@ function buildTestCard(t, idx, stats, showFolder){
         ${t.timeLimit ? `<span>${I.clock}${Math.round(t.timeLimit / 60)} хв</span>` : ""}
         ${folder ? `<span class="t-qc-folder" style="--fc:${_folderColor(folder)}">${esc(folder.name)}</span>` : showFolder ? `<span class="t-qc-folder" style="--fc:#8691AC">Без папки</span>` : ""}
       </div>
-    </div>
-    <div class="t-qc-stats">
-      <div><div class="t-qc-stat-val">${st.cnt}</div><div class="t-qc-stat-lbl">Спроб</div></div>
-      <div><div class="t-qc-stat-val">${st.passed}</div><div class="t-qc-stat-lbl">Здали</div></div>
-      <div><div class="t-qc-stat-val" style="color:${_avgColor(st.avg)}">${st.avg != null ? st.avg + "%" : "—"}</div><div class="t-qc-stat-lbl">Середній</div></div>
     </div>
     <div class="t-qc-foot">
       <span class="t-qc-date"${t.createdAt ? ` title="Створено ${_fmtDate(t.createdAt)}"` : ""}>${t.createdAt ? _fmtDate(t.createdAt) : ""}</span>
@@ -1006,8 +991,6 @@ function buildTestCard(t, idx, stats, showFolder){
 
 // ─── Рядок тесту (список) ──────────────────────────────────────────────
 function buildTestRow(t, idx, stats, showFolder){
-  const st = stats?.get(t.id) || _EMPTY_STATS;
-  const sc = _sc(t);
   const folder = _folderOf(t);
   const qn = (t.questions || []).length;
   const sub = [showFolder ? (folder?.name || "Без папки") : "", `${qn} пит.`].filter(Boolean).map(esc).join(" · ");
@@ -1017,10 +1000,6 @@ function buildTestRow(t, idx, stats, showFolder){
     <div class="t-lm">
       <button class="t-row-title" data-act="edit" data-id="${esc(t.id)}" title="${esc(t.title)}">${esc(t.title)}</button>
       <div class="t-row-sub">${dot}${sub}</div>
-    </div>
-    <div class="t-lx">
-      <button class="t-pill-btn" data-act="menu" data-id="${esc(t.id)}" data-focus="status" title="Змінити статус"><span class="t-pill ${sc.cls}">${sc.label}</span></button>
-      <div class="t-lst"><span><b>${st.cnt}</b> ${_plural(st.cnt, "спроба", "спроби", "спроб")}</span><span title="Середній результат" style="color:${_avgColor(st.avg)}"><b>${st.avg != null ? st.avg + "%" : "—"}</b> сер.</span></div>
     </div>
     <div class="t-la">
       <button class="t-lb primary" data-act="link" data-id="${esc(t.id)}" title="Нове посилання для студентів">${I.link}Посилання</button>
@@ -1036,7 +1015,7 @@ function _renderTestsContent(lst, total, stats, showFolder, emptyTitle, emptyHin
       <div class="t-empty-ico">${I.cal}</div>
       <div class="t-empty-title">${esc(emptyTitle || (total === 0 ? "Тут ще немає тестів" : "Нічого не знайдено"))}</div>
       <div class="t-empty-hint">${esc(emptyHint || (total === 0 ? "Створіть перший тест" : "Спробуйте інший запит або скиньте фільтр"))}</div>
-      ${total !== 0 && (TS.q || TS.status) ? `<button class="t-btn" data-act="reset-filters" style="margin:0 auto">Скинути фільтри</button>` : ""}
+      ${total !== 0 && TS.q ? `<button class="t-btn" data-act="reset-filters" style="margin:0 auto">Скинути фільтри</button>` : ""}
     </div>`;
   }
   if (TS.view === "list"){
@@ -1056,23 +1035,11 @@ function _syncToolbar(ctx){
   if (clr) clr.hidden = !TS.q;
   // Фільтри статусу/сортування/вигляд потрібні лише коли показуємо тести
   bar.querySelectorAll("[data-tests-only]").forEach(el => { el.hidden = !ctx.showsTests; });
-  const counts = ctx.counts || {};
-  bar.querySelectorAll("[data-status]").forEach(b => {
-    const v = b.dataset.status;
-    b.classList.toggle("active", v === TS.status);
-    b.setAttribute("aria-pressed", v === TS.status);
-    const n = b.querySelector(".t-tab-n"); if (n) n.textContent = counts[v || "all"] ?? 0;
-  });
   const lbl = document.getElementById("cd-tsort-label");
   const cur = document.querySelector(`#cd-tsort-menu [data-sort="${TS.sort}"]`);
   if (lbl && cur) lbl.textContent = cur.textContent.trim();
   document.querySelectorAll("#cd-tsort-menu [data-sort]").forEach(el => el.classList.toggle("cd-active", el.dataset.sort === TS.sort));
   bar.querySelectorAll("[data-view]").forEach(b => { b.classList.toggle("on", b.dataset.view === TS.view); b.setAttribute("aria-pressed", b.dataset.view === TS.view); });
-}
-function _statusCounts(lst){
-  const c = { all: lst.length, active: 0, draft: 0, closed: 0 };
-  lst.forEach(t => { if (c[t.status] != null) c[t.status]++; });
-  return c;
 }
 
 // ─── Головний рендер ───────────────────────────────────────────────────
@@ -1135,11 +1102,9 @@ renderTests = function(q){
   // ─── Тести вибраної папки ────────────────────────────────────────────
   const name = folder ? folder.name : scope === "none" ? "Без папки" : "Усі тести";
   const all = folder ? live.filter(t => t.folderId === folder.id) : scope === "none" ? orphans : live;
-  const counts = _statusCounts(all.filter(t => _matches(t, TS.q)));
   let lst = all.filter(t => _matches(t, TS.q));
-  if (TS.status) lst = lst.filter(t => t.status === TS.status);
   lst = _sortTests(lst, stats);
-  _syncToolbar({ scope: scope === "all" ? "root" : "folder", name, showsTests: true, counts });
+  _syncToolbar({ scope: scope === "all" ? "root" : "folder", name, showsTests: true });
   const head = hasFolders ? `<div class="t-scope">
       <div class="t-scope-t"><h2>${esc(name)}</h2></div>
       ${folder ? `<div class="t-scope-a">
@@ -1178,15 +1143,10 @@ function _openTMenu(anchor, html){
 }
 function _testMenuHtml(t){
   const it = (act, icon, label, extra = "") => `<button class="t-fm-item${extra}" role="menuitem" data-act="${act}" data-id="${esc(t.id)}">${icon}<span>${label}</span></button>`;
-  const statusBtns = Object.entries(STATUS).map(([k, v]) =>
-    `<button class="t-fm-status${t.status === k ? " cur" : ""}" role="menuitemradio" aria-checked="${t.status === k}" data-act="status" data-id="${esc(t.id)}" data-val="${k}"><span class="t-pill ${v.cls}">${v.label}</span></button>`).join("");
   return `<div class="t-fm-head" title="${esc(t.title)}">${esc(t.title)}</div>
     ${it("edit", I.edit, "Редагувати")}
     ${it("link", I.link, "Нове посилання для студентів")}
     ${it("live", I.live, "Live гра")}
-    <div class="t-fm-sep"></div>
-    <div class="t-fm-label">Статус</div>
-    <div class="t-fm-statuses">${statusBtns}</div>
     <div class="t-fm-sep"></div>
     ${it("move", I.move, "Перемістити в папку")}
     ${it("dup", I.dup, "Дублювати")}
@@ -1203,7 +1163,6 @@ function _testsAction(act, id, el){
     case "menu":          if (t){ if (_tMenuFor === el) _closeTMenu(); else _openTMenu(el, _testMenuHtml(t)); } break;
     case "link":          _closeTMenu(); G.qLink(id); break;
     case "live":          _closeTMenu(); G.startLiveGame(id); break;
-    case "status":        _closeTMenu(); G.setTestStatus(id, el.dataset.val); break;
     case "move":          _closeTMenu(); G.openMoveModal(id); break;
     case "dup":           _closeTMenu(); G.duplicateTest(id); break;
     case "share":         _closeTMenu(); if (t) G.openShareModal(id, t.title); break;
@@ -1221,7 +1180,7 @@ function _testsAction(act, id, el){
     case "folder-delete": _closeTMenu(); G.confDelFolder(id); break;
     case "restore":       G.restoreTest(id); break;
     case "purge":         G.confDelTest(id); break;
-    case "reset-filters": { TS.q = ""; TS.status = ""; window._testsStatus = ""; const i = $("srch"); if (i) i.value = ""; renderTests(); break; }
+    case "reset-filters": { TS.q = ""; const i = $("srch"); if (i) i.value = ""; renderTests(); break; }
   }
 }
 document.addEventListener("click", e => {
@@ -1277,8 +1236,6 @@ document.addEventListener("keydown", e => {
   inp?.addEventListener("keydown", e => { if (e.key === "Escape" && inp.value){ e.stopPropagation(); inp.value = ""; TS.q = ""; renderTests(); } });
   document.getElementById("srch-clear")?.addEventListener("click", () => { inp.value = ""; TS.q = ""; renderTests(); inp.focus(); });
   bar.addEventListener("click", e => {
-    const s = e.target.closest("[data-status]");
-    if (s){ TS.status = s.dataset.status; window._testsStatus = TS.status; renderTests(); return; }
     const v = e.target.closest("[data-view]");
     if (v){ TS.view = v.dataset.view; window._testsView = TS.view; _saveTS(); renderTests(); }
   });
@@ -1987,8 +1944,6 @@ function _inWords(ms){
 function linkTestIssue(t){
   if (!t) return { kind: "deleted", text: "Тест видалено — посилання не працює" };
   if (t.status === "archived") return { kind: "archived", text: "Тест в архіві — студенти побачать помилку" };
-  if (t.status === "draft") return { kind: "draft", text: "Тест — чернетка, студенти не зможуть його відкрити" };
-  if (t.status === "closed") return { kind: "closed", text: "Тест закрито — студенти не зможуть його відкрити" };
   if (!(t.questions || []).length) return { kind: "empty", text: "У тесті немає питань" };
   return null;
 }
@@ -2261,7 +2216,7 @@ window.G = {
     v = v || "all";
     const changed = v !== _fFilter;
     _fFilter = v; window._fFilter = v;
-    if (changed){ TS.q = ""; TS.status = ""; window._testsStatus = ""; const i = $("srch"); if (i) i.value = ""; }
+    if (changed){ TS.q = ""; const i = $("srch"); if (i) i.value = ""; }
     // Папка в адресі — працює кнопка «Назад» і посилання на папку
     if (!opts.fromHistory && document.getElementById("tc")){
       const url = new URL(location.href);
@@ -2390,8 +2345,6 @@ window.G = {
       </div>
       <div style="max-height:300px;overflow-y:auto;padding:4px">
         ${list.length ? list.map(t => {
-          const tag = t.status === "draft" ? `<span style="font-size:10.5px;font-weight:700;color:#92400E;background:#FEF3C7;padding:2px 7px;border-radius:999px;flex:0 0 auto">Чернетка</span>`
-            : t.status === "closed" ? `<span style="font-size:10.5px;font-weight:700;color:#B91C1C;background:#FEE2E2;padding:2px 7px;border-radius:999px;flex:0 0 auto">Закритий</span>` : "";
           const nL = links.filter(l => l.testId === t.id && _isOpenState(linkState(l))).length;
           return `<div onclick="G.selectLinkTest('${t.id}')"
             style="display:flex;align-items:center;gap:9px;padding:8px 10px;margin:2px 0;border-radius:9px;cursor:pointer;transition:background .12s" onmouseover="this.style.background='#EFF3FE'" onmouseout="this.style.background='transparent'">
@@ -2402,7 +2355,6 @@ window.G = {
               <div style="font-size:13.5px;font-weight:700;color:#0B1437;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.title)}</div>
               <div style="font-size:10.5px;color:#8691AC">${(t.questions||[]).length} ${_plural((t.questions||[]).length, "питання", "питання", "питань")}${nL ? ` · ${nL} ${_plural(nL, "активне посилання", "активні посилання", "активних посилань")}` : ""}</div>
             </div>
-            ${tag}
           </div>`;
         }).join("") : `<div style="padding:28px 12px;text-align:center;color:#8691AC;font-size:12.5px">Нічого не знайдено</div>`}
       </div>`;
@@ -2469,8 +2421,8 @@ window.G = {
   },
   async restoreTest(id){
     try{
-      await dbUpd(`tests/${id}`,{status:"draft",archivedAt:null});
-      tests=tests.map(t=>t.id===id?{...t,status:"draft",archivedAt:null}:t); window.tests=tests;
+      await dbUpd(`tests/${id}`,{status:"active",archivedAt:null});
+      tests=tests.map(t=>t.id===id?{...t,status:"active",archivedAt:null}:t); window.tests=tests;
       renderAll(); G.renderArchive(); toast("Тест відновлено як чернетку");
     }catch(e){toast("Помилка: "+e.message,"err");}
   },
@@ -2602,7 +2554,7 @@ window.G = {
     if (window.qfLimit && !window.qfLimit("maxTests", tests.filter(x => x.status !== "archived").length)) return;
     try{
       const { id: _i, ...rest } = t;
-      const copy = { ...rest, title: `${t.title} (копія)`, status: "draft", createdAt: ts(), updatedAt: ts(), archivedAt: null, sharedFrom: null, sharedAt: null };
+      const copy = { ...rest, title: `${t.title} (копія)`, status: "active", createdAt: ts(), updatedAt: ts(), archivedAt: null, sharedFrom: null, sharedAt: null };
       Object.keys(copy).forEach(k => copy[k] === undefined && delete copy[k]);
       const id = await dbPush("tests", copy);
       tests.unshift({ id, ...copy }); window.tests = tests;
@@ -2611,16 +2563,6 @@ window.G = {
     }catch(e){ toast("Помилка: " + e.message, "err"); }
   },
 
-  async setTestStatus(id, status){
-    const t = tests.find(x => x.id === id);
-    if (!t || !STATUS[status] || t.status === status) return;
-    try{
-      await dbUpd(`tests/${id}`, { status, updatedAt: ts() });
-      tests = tests.map(x => x.id === id ? { ...x, status } : x); window.tests = tests;
-      renderTests(); updateBadges();
-      toast(`Статус: ${STATUS[status].label}`);
-    }catch(e){ toast("Помилка: " + e.message, "err"); }
-  },
   // Tests
   openTestInFolder(fid){
     if (window.qfLimit && !window.qfLimit("maxTests", tests.filter(x => x.status !== "archived").length)) return;
@@ -2645,7 +2587,7 @@ window.G = {
     const desc = $("nt-d").value.trim();
     const tags = [...new Set($("nt-tg").value.split(",").map(s => s.trim()).filter(Boolean))];
     try{
-      const id = await dbPush("tests", { title: n, description: desc, folderId: _fid || null, tags, timeLimit: mins * 60, status: "draft", questions: [], createdAt: ts() });
+      const id = await dbPush("tests", { title: n, description: desc, folderId: _fid || null, tags, timeLimit: mins * 60, status: "active", questions: [], createdAt: ts() });
       location.href = `constructor?id=${id}`;
     }catch(e){
       fail(null, "Не вдалося створити: " + e.message);
@@ -4439,7 +4381,7 @@ window.G = {
       await _s(newRef,{
         title:test.title, description:test.description||"",
         questions:test.questions||[], timeLimit:test.timeLimit||600,
-        status:"draft", folderId:null, tags:test.tags||[],
+        status:"active", folderId:null, tags:test.tags||[],
         sharedFrom:_user.name||_user.login, sharedAt:ts(), createdAt:ts()
       });
       try{ localStorage.setItem("qf_share_recent", JSON.stringify([G._shareSelectedUid,...G._shareRecent().filter(x=>x!==G._shareSelectedUid)].slice(0,5))); }catch{}
