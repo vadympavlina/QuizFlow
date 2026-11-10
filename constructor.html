@@ -2180,9 +2180,10 @@ function sortTick(){
   sortLayout();
   g.raf = requestAnimationFrame(sortTick);
 }
-list.addEventListener("pointermove", e => { if (_sort && e.pointerId === _sort.id){ _sort.cy = e.clientY; } });
+list.addEventListener("pointermove", e => { if (_sort && e.pointerId === _sort.id){ _sort.cy = e.clientY; sortLayout(); } });
 function sortEnd(e, cancelled){
   const g = _sort; if (!g || e.pointerId !== g.id) return;
+  if (!cancelled){ g.cy = e.clientY; sortLayout(); }               // остаточне місце рахуємо за точкою відпускання
   _sort = null; cancelAnimationFrame(g.raf);
   const stop = ev => { ev.stopPropagation(); ev.preventDefault(); };
   document.addEventListener("click", stop, { capture: true, once: true });

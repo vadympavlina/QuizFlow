@@ -137,7 +137,7 @@ test.describe("телефон", () => {
     const cdp = await page.context().newCDPSession(page);
     const x = g.x + g.width / 2, y = g.y + g.height / 2;
     await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: pt(x, y) });
-    for (let i = 1; i <= 10; i++) { await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: pt(x, y + i * 6.5) }); await page.waitForTimeout(20); }
+    for (let i = 1; i <= 10; i++) { await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: pt(x, y + i * 9) }); await page.waitForTimeout(20); }
     await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
     await expect.poll(ids).toEqual([before[1], before[0], before[2]]);
     // свайп ліворуч закриває список питань
