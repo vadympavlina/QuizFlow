@@ -13,7 +13,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/admin-shell.css?v=10">
+<link rel="stylesheet" href="shared/admin-shell.css?v=11">
 <style>
 .toggle-sw{position:relative;display:inline-block;width:40px;height:23px;flex:0 0 auto}
 .toggle-sw input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;z-index:1}
@@ -79,7 +79,7 @@
 @media (max-width:760px){ .fx-rc{grid-template-columns:1fr} .fx-row{flex-wrap:wrap} .fx-num{width:100%;text-align:left} .fx-num::placeholder{text-align:left} .fx-h{padding:16px} .fx-b{padding:16px} .fx-role{padding:16px} }
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=16">
+<link rel="modulepreload" href="shared/admin-shell.js?v=17">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -87,12 +87,12 @@
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=8"></script>
+<script src="shared/admin-nav.js?v=9"></script>
 <div id="admin-root"></div>
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
-import { logAction, initAdminShell, db, ref, update, dbGet, toast, esc, hideLoader } from "./shared/admin-shell.js?v=16";
+import { logAction, initAdminShell, db, ref, update, dbGet, toast, esc, hideLoader } from "./shared/admin-shell.js?v=17";
 import { CAP_FLAGS, CAP_LIMITS } from "../shared/caps.js?v=3";
 
 const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
@@ -104,7 +104,7 @@ const IC = {
 const plural = (n, f) => { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? f[2] : b === 1 ? f[0] : b >= 2 && b <= 4 ? f[1] : f[2]; };
 
 const content = `
-  <div class="page-head"><div><h1>Можливості та ліміти</h1><p>Що доступно викладачам: для всіх, для окремих ролей або індивідуально в картці викладача</p></div></div>
+  <div class="page-head"><div><h1>Функції й ліміти</h1><p>Що доступно викладачам: для всіх, для окремих ролей або індивідуально в картці викладача</p></div></div>
   <div class="fx-how">${IC.info}<span><b>Як це працює.</b> Спершу діють налаштування з картки викладача, потім — його ролей, і лише потім — для всіх. Якщо хоча б одна роль викладача дозволяє функцію, вона доступна. Серед лімітів ролей діє найбільший. Адміністраторів ці обмеження не стосуються.</span></div>
   <section class="fx-card" id="fx-all"></section>
   <section class="fx-card" id="fx-roles"></section>

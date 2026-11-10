@@ -13,7 +13,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/admin-shell.css?v=10">
+<link rel="stylesheet" href="shared/admin-shell.css?v=11">
 <style>
 .cl-sum{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 22px}
 .cl-sum .ic{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:#CCFBF1;color:#0F766E;flex:0 0 auto}
@@ -47,7 +47,7 @@
 @media (max-width:640px){ .cl-sum{flex-wrap:wrap} .cl-sum .v{margin-left:0;text-align:left} .cl-h{flex-wrap:wrap} .cl-n{margin-left:50px;text-align:left} }
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=16">
+<link rel="modulepreload" href="shared/admin-shell.js?v=17">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -55,7 +55,7 @@
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=8"></script>
+<script src="shared/admin-nav.js?v=9"></script>
 <div id="admin-root"></div>
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -71,7 +71,7 @@
 </div>
 
 <script type="module">
-import { logAction, initAdminShell, dbGet, db, ref, update, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=16";
+import { logAction, initAdminShell, dbGet, db, ref, update, openModal, closeModal, toast, esc, hideLoader } from "./shared/admin-shell.js?v=17";
 
 const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const H = 3600e3, DAY = 24 * H;
@@ -95,7 +95,7 @@ const CHECKS = [
 ];
 
 const content = `
-  <div class="page-head"><div><h1>Обслуговування бази</h1><p>Прибирання зайвих даних, щоб база лишалася швидкою і вміщалася в безкоштовний тариф</p></div></div>
+  <div class="page-head"><div><h1>Прибирання бази даних</h1><p>Прибирання зайвих даних, щоб база лишалася швидкою і вміщалася в безкоштовний тариф</p></div></div>
   <section class="cl-sum" id="cl-sum"><span class="ic">${SVG('<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>')}</span><div><h2>Перевіряємо базу…</h2><p>Це може зайняти кілька секунд</p></div></section>
   <div class="cl-grid" id="cl-grid">${'<div class="cl-sk"></div>'.repeat(4)}</div>
 `;

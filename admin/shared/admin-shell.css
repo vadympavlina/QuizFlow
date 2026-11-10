@@ -640,3 +640,118 @@ th.sortable.active .ord{opacity:1; color:#7C3AED}
 .tbp-f:hover{background:#F4F6FB}
 .tbp-f b{font-size:12px;padding:2px 8px;border-radius:999px;background:#FEE2E2;color:#B91C1C}
 .tbp-f em{font-style:normal;font-size:12px;color:var(--ink-400);font-weight:600}
+
+/* ========================================================================
+   Оновлена оболонка (як у панелі викладача): світла рамка, темне плаваюче меню з білим
+   активним пунктом, шлях «Розділ / Сторінка» зверху й біла картка з вмістом.
+   ======================================================================== */
+:root{ --frame:#EEF2FB; --qtb-h:64px; --card-gap:12px; }
+html, body{ background:var(--frame); }
+.asb-toggle{ box-shadow:0 4px 12px -2px rgba(20,11,58,.28), 0 0 0 4px var(--frame); }
+#admin-loader{ background:var(--frame); isolation:isolate; }
+
+/* Меню */
+.asb{ border-radius:26px; padding:16px 12px 12px; }
+.asb.collapsed, html.asb-c .asb{ padding:14px 8px 12px; }
+.asb-sec{ height:30px; padding:0 12px; font:700 12.5px "Manrope",system-ui,sans-serif; letter-spacing:0; text-transform:none; color:rgba(233,228,255,.45); }
+.asb-sec::after{ display:none; }
+.asb.collapsed .asb-sec{ height:14px; }
+.asb-item.on{ background:#fff; color:#0B1437; box-shadow:0 12px 26px -14px rgba(0,0,0,.7); }
+.asb-item.on:hover{ background:#fff; color:#0B1437; }
+.asb-item.on .asb-ico{ color:#6D28D9; }
+.asb-item.on .asb-badge{ background:#EDE9FE; color:#5B21B6; }
+.asb.collapsed .asb-item.on .asb-badge{ box-shadow:0 0 0 2px #fff; }
+.asb-bottom{ border-top:0; }
+
+/* Верхня смужка: шлях без плитки-іконки, на світлому тлі */
+.topbar{ background:var(--frame); border:0; border-radius:0; box-shadow:none; color:#0B1437; }
+.tb-ico{ display:none; }
+.tb-tt{ flex-direction:row; align-items:center; }
+.tb-tt small{ font:600 14px "Manrope",system-ui,sans-serif; letter-spacing:0; text-transform:none; color:#6B7A9E; }
+.tb-tt small:not(:empty)::after{ content:"/"; margin:0 9px; opacity:.45; }
+.tb-tt b{ font-size:14px; font-weight:800; letter-spacing:0; }
+.tb-icon{ width:40px; height:40px; border-radius:12px; }
+.tb-icon .badge{ border-color:var(--frame); }
+.tb-btn{ border-radius:12px; }
+.tb-h1-dup{ position:absolute !important; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+@media (min-width:1024px){
+  .topbar{
+    position:fixed; top:0; left:var(--asb-space); right:var(--card-gap); z-index:60;
+    height:var(--qtb-h); min-height:0; margin:0; padding:0 0 0 6px; gap:12px;
+    transition:left .32s var(--asb-ease);
+  }
+  .app{ min-height:0; }
+  .main{
+    margin:var(--qtb-h) var(--card-gap) var(--card-gap) 0;
+    background:#fff; border:1px solid var(--line); border-radius:24px;
+    min-height:calc(100vh - var(--qtb-h) - var(--card-gap));
+  }
+  .content{ padding:30px 34px 38px; }
+  html.has-asb #admin-loader::before{ content:""; position:absolute; z-index:-1; inset:var(--qtb-h) var(--card-gap) var(--card-gap) 0; background:#fff; border-radius:24px; box-shadow:inset 0 0 0 1px var(--line); }
+  /* Кути картки лишаються круглими під час прокрутки */
+  .topbar::before, .topbar::after{ content:""; position:absolute; top:100%; width:24px; height:24px; pointer-events:none; }
+  .topbar::before{ left:0; background:radial-gradient(circle at 100% 100%, transparent 23px, var(--frame) 24px); }
+  .topbar::after{ right:0; background:radial-gradient(circle at 0 100%, transparent 23px, var(--frame) 24px); }
+  html.has-asb body::after{
+    content:""; position:fixed; z-index:55; left:var(--asb-space); right:var(--card-gap); bottom:0;
+    height:calc(var(--card-gap) + 24px); pointer-events:none; transition:left .32s var(--asb-ease);
+    background:
+      radial-gradient(circle at 100% 0, transparent 23px, var(--frame) 24px) left top / 24px 24px no-repeat,
+      radial-gradient(circle at 0 0, transparent 23px, var(--frame) 24px) right top / 24px 24px no-repeat,
+      linear-gradient(var(--frame), var(--frame)) left bottom / 100% var(--card-gap) no-repeat;
+  }
+  /* Згорнуте меню: швидкі кнопки не показуємо */
+  .asb.collapsed .asb-strip, html.asb-c .asb .asb-strip{ display:none; }
+  .tp-side{ top:calc(var(--qtb-h) + 20px); max-height:calc(100vh - var(--qtb-h) - 44px); }
+}
+@media (max-width:1023px){
+  :root{ --qtb-h:calc(60px + env(safe-area-inset-top)); }
+  .topbar{
+    position:fixed; top:0; left:0; right:0; z-index:60; height:var(--qtb-h); min-height:0; margin:0;
+    padding:env(safe-area-inset-top) 12px 0; gap:10px; border-radius:0;
+  }
+  .tb-menu{ width:42px; height:42px; border-radius:50%; }
+  .tb-icon{ width:42px; height:42px; border-radius:50%; }
+  .tb-btn{ border-radius:999px; }
+  .tb-tt{ flex-direction:column; align-items:flex-start; }
+  .tb-tt small:not(:empty)::after{ content:none; }
+  .tb-tt small{ font-size:12px; }
+  .tb-tt b{ font-size:18px; }
+  .main{
+    margin:var(--qtb-h) 0 0; border-radius:26px 26px 0 0; background:#fff; border:solid var(--line); border-width:1px 0 0;
+    min-height:calc(100dvh - var(--qtb-h));
+  }
+  .content{ padding:20px 14px 32px; }
+  html.has-asb #admin-loader::before{ content:""; position:absolute; z-index:-1; inset:var(--qtb-h) 0 0 0; background:#fff; border-radius:26px 26px 0 0; }
+  .topbar::before, .topbar::after{ content:""; position:absolute; top:100%; width:26px; height:26px; pointer-events:none; }
+  .topbar::before{ left:0; background:radial-gradient(circle at 100% 100%, transparent 25px, var(--frame) 26px); }
+  .topbar::after{ right:0; background:radial-gradient(circle at 0 100%, transparent 25px, var(--frame) 26px); }
+  .asb, .asb.collapsed, html.asb-c .asb{ top:8px; left:8px; bottom:8px; width:min(300px,88vw); border-radius:26px; }
+}
+@media (max-width:640px){
+  .topbar{ top:0; padding:env(safe-area-inset-top) 12px 0; min-height:0; border-radius:0; gap:8px; }
+  .tb-tt small{ font-size:12px; }
+  .tb-tt b{ font-size:18px; }
+}
+@media print{ html.has-asb body::after{ display:none; } html,body{ background:#fff; } }
+
+/* Дотик: свайп меню, цілі від 44px, ефекти наведення лише для миші */
+@media (max-width:1023px){ .asb, .asb *{ touch-action:pan-y; } }
+a, button, [role="button"], [role="tab"], summary, label, input, select, textarea{ touch-action:manipulation; }
+@media (pointer:coarse), (max-width:1023px){
+  .tb-btn, .tb-menu, .tb-icon, .asb-logout, .asb-q{ min-height:44px; }
+  .tb-menu, .tb-icon, .asb-logout, .tb-extras .tb-btn{ min-width:44px; }
+  .tb-extras .tb-btn{ height:44px; }
+}
+
+/* Розміри — як у панелі викладача */
+:root{ --asb-w:284px; --asb-w-c:80px; }
+.asb-item{ height:38px; }
+.asb.collapsed .asb-item{ height:38px; }
+@media (max-width:1023px){ .asb-item, .asb.collapsed .asb-item{ height:44px; } }
+/* Кнопка згортання: у розгорнутому меню — тиха в шапці, у згорнутому — «язичок» на краю */
+@media (min-width:1024px){
+  html:not(.asb-c) .asb:not(.collapsed) .asb-toggle{ top:24px; right:14px; width:30px; height:30px; border-radius:9px; background:transparent; border:0; box-shadow:none; color:rgba(233,228,255,.5); }
+  html:not(.asb-c) .asb:not(.collapsed) .asb-toggle:hover{ background:rgba(255,255,255,.1); color:#fff; transform:none; }
+}

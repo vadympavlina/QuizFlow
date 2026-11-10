@@ -13,7 +13,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/admin-shell.css?v=10">
+<link rel="stylesheet" href="shared/admin-shell.css?v=11">
 <style>
 .nav-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
 @media (max-width:1240px){.nav-layout{grid-template-columns:1fr}.pv-card{position:static!important}}
@@ -135,15 +135,17 @@
 .pv-name em{font-style:normal;color:#A5C1FF}
 .pv-sb.c .pv-brand{justify-content:center;padding:2px 0 10px}
 .pv-sb.c .pv-name,.pv-sb.c .pv-lbl,.pv-sb.c .pv-sec span{display:none}
-.pv-sec{display:flex;align-items:center;gap:6px;height:22px;padding:0 10px;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(226,232,255,.26);margin-top:4px}
-.pv-sec::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.07)}
+.pv-sec{display:flex;align-items:center;gap:6px;height:22px;padding:0 10px;font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;color:rgba(226,232,255,.45);margin-top:4px}
+.pv-sec::after{display:none}
 .pv-sb.c .pv-sec{justify-content:center;padding:0}
 .pv-sb.c .pv-sec::after{flex:0 0 18px}
 .pv-it{display:flex;align-items:center;gap:10px;height:34px;padding:0 10px;border-radius:10px;font-size:12.5px;font-weight:600;cursor:pointer}
 .pv-it:hover{background:rgba(255,255,255,.06);color:#fff}
 .pv-it svg{width:16px;height:16px;flex:0 0 auto}
 .pv-it .pv-lbl{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pv-it.first{background:linear-gradient(135deg,rgba(91,140,255,.95),rgba(59,107,246,.95));color:#fff}
+.pv-it.first{background:#fff;color:#0B1437}
+.pv-it.first:hover{background:#fff;color:#0B1437}
+.pv-it.first svg{color:#2D5BE3}
 .pv-it.hid{opacity:.28;text-decoration:line-through}
 .pv-sb.c .pv-it{justify-content:center;padding:0}
 .pv-lock{width:12px!important;height:12px!important;opacity:.6}
@@ -196,7 +198,7 @@
 }
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=16">
+<link rel="modulepreload" href="shared/admin-shell.js?v=17">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -204,7 +206,7 @@
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=8"></script>
+<script src="shared/admin-nav.js?v=9"></script>
 <div id="admin-root"></div>
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -238,7 +240,7 @@
 </div>
 
 <script type="module">
-import { logAction, initAdminShell, dbGet, db, ref, update, esc, toast, openModal, closeModal, hideLoader } from "./shared/admin-shell.js?v=16";
+import { logAction, initAdminShell, dbGet, db, ref, update, esc, toast, openModal, closeModal, hideLoader } from "./shared/admin-shell.js?v=17";
 
 // ─── ІКОНКИ (40 штук, 5 категорій) ────────────────────────────────────────
 const ICON_CATS = {
@@ -742,7 +744,7 @@ async function save(){
 
 // ─── Каркас сторінки ──────────────────────────────────────────────────────
 const content = `
-  <div class="page-head"><div><h1>Навігація</h1><p>Меню панелі викладача: секції, пункти, іконки та доступ за ролями</p></div></div>
+  <div class="page-head"><div><h1>Редактор меню</h1><p>Меню панелі викладача: секції, пункти, іконки та доступ за ролями</p></div></div>
   <div class="nav-layout">
     <div>
       <div class="missing" id="nav-missing" hidden></div>
