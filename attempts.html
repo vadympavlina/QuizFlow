@@ -30,7 +30,7 @@
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="shared/styles.css?v=37">
 <link rel="modulepreload" href="shared/app.js?v=32">
-<link rel="modulepreload" href="shared/features.js?v=41">
+<link rel="modulepreload" href="shared/features.js?v=42">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
    СПРОБИ — scoped під #sec-attempts. Дропдауни — qfDrop (shared/styles.css)
@@ -46,8 +46,6 @@
 #sec-attempts .page-title h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:0}
 #sec-attempts .page-title p{margin:6px 0 0;color:var(--ink-500);font-size:14px}
 #sec-attempts .pt-r{display:flex;align-items:center;gap:10px}
-#sec-attempts .page-chip{background:#DCFCE7;color:#15803D;padding:5px 11px;border-radius:999px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:7px}
-#sec-attempts .page-chip::before{content:"";width:7px;height:7px;border-radius:50%;background:#22C55E;animation:attPulse 1.8s infinite}
 @keyframes attPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}70%{box-shadow:0 0 0 7px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
 #sec-attempts .l-btn{height:38px;display:inline-flex;align-items:center;gap:7px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;font-size:13px;font-weight:700;color:var(--ink-700);cursor:pointer;transition:all .15s}
 #sec-attempts .l-btn:hover{border-color:var(--line-strong);color:var(--ink-900)}
@@ -236,7 +234,6 @@
         <p id="att-count-label">Усі проходження тестів студентами · оновлюється в реальному часі</p>
       </div>
       <div class="pt-r">
-        <span class="page-chip" id="att-live-chip" hidden><span id="att-live-count">0</span> проходять зараз</span>
         <button class="l-btn" data-aact="export" data-qtb title="Завантажити спроби за поточним фільтром">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
           Експорт CSV
@@ -316,7 +313,7 @@
 
 <script type="module">
 const { initApp } = await import("./shared/app.js?v=32");
-const featuresP = import("./shared/features.js?v=41");
+const featuresP = import("./shared/features.js?v=42");
 
 window.showSec = function(name){
   const pageMap = { dashboard: "./", tests: "tests", attempts: "attempts", links: "links", analytics: "analytics", gradebook: "gradebook",

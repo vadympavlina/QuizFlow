@@ -31,7 +31,7 @@
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="shared/styles.css?v=37">
 <link rel="modulepreload" href="shared/app.js?v=32">
-<link rel="modulepreload" href="shared/features.js?v=41">
+<link rel="modulepreload" href="shared/features.js?v=42">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
    СТОРІНКА «ТЕСТИ» — стилі під #sec-tests
@@ -52,8 +52,6 @@
 #sec-tests .t-page-title{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:0;flex-wrap:wrap}
 #sec-tests .t-page-title h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:0;color:var(--ink-900);font-family:'Manrope',sans-serif}
 #sec-tests .t-page-title p{margin:4px 0 0;color:var(--ink-500);font-size:14px}
-#sec-tests .t-page-chip{background:#E7EEFC;color:var(--nav-600);padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace}
-#sec-tests .t-page-chip::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--nav-600)}
 #sec-tests .t-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
 /* Topbar buttons (override styles.css defaults only within sec-tests) */
@@ -422,7 +420,7 @@
 <script type="module">
 // ─── Ініціалізація (паралельне завантаження — як в оригіналі) ───
 const { initApp } = await import("./shared/app.js?v=32");
-const featuresP = import("./shared/features.js?v=41");
+const featuresP = import("./shared/features.js?v=42");
 
 window.showSec = function(name){
   if (name === "tests"){

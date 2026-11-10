@@ -1708,8 +1708,6 @@ renderAttempts = function(resetPage = false){
   setT("stat-inprog", live); setT("stat-pending", pending); setT("stat-flagged", flagged);
   $("att-kpi-live")?.classList.toggle("is-live", live > 0);
   $("att-kpi-pending")?.classList.toggle("is-hot", pending > 0);
-  const chip = $("att-live-chip");
-  if (chip){ chip.hidden = !live; setT("att-live-count", live); }
 
   // ── Випадаючі фільтри (варіанти рахуються з даних) ──
   _atSyncDrops(rows);
@@ -3286,11 +3284,6 @@ window.G = {
       const act = all.filter(s => !s.archived), gAll = new Set(act.flatMap(s => s._groups)).size;
       summary.innerHTML = `<b>${act.length}</b> ${_plural(act.length, "студент", "студенти", "студентів")} у <b>${gAll}</b> ${_plural(gAll, "групі", "групах", "групах")}`;
     }
-    const chip = $("st-page-chip");
-    if (chip){
-      const g = all.filter(s => !s.archived).flatMap(s => s._graded);
-      chip.textContent = g.length ? `Середній бал ${_stFmt1(g.reduce((a, b) => a + b, 0) / g.length)}` : "Ще немає оцінок";
-    }
     const badge = $("nb-students");
     if (badge){ const n = all.filter(s => !s.archived).length; badge.textContent = n; badge.style.display = n ? "" : "none"; }
   },
@@ -4140,16 +4133,10 @@ window.G = {
 
     // Шапка
     const openAll = all.filter(c => !c.reviewed);
-    const high = openAll.filter(c => c.score >= 10).length;
     const hc = $("sp-cases-count");
     if (hc) hc.textContent = openAll.length
       ? `${openAll.length} ${_plural(openAll.length, "потребує", "потребують", "потребують")} уваги${SP.fresh.size ? ` · ${SP.fresh.size} ${_plural(SP.fresh.size, "нова", "нові", "нових")}` : ""}`
       : "Усе переглянуто";
-    const chip = $("sp-status-chip");
-    if (chip) {
-      chip.className = "sp-chip " + (high ? "bad" : openAll.length ? "warn" : "ok");
-      chip.textContent = high ? `${high} з високим ризиком` : openAll.length ? "Є що перевірити" : "Усе спокійно";
-    }
 
     // KPI (у межах вкладки й фільтрів)
     const kpi = $("sp-kpi-grid");
@@ -4511,8 +4498,6 @@ window.G = {
     }
     _rpUrl({ group: AN.group, test: AN.test });
     const t = AN.test ? tests.find(x => x.id === AN.test) : null;
-    const chip = $("a-chip");
-    if (chip) chip.textContent = [t?.title || (AN.test ? "Тест видалено" : ""), AN.group].filter(Boolean).join(" · ") || "Усі групи й тести";
 
     const sel = inGroup.filter(r => !AN.test || r.a.testId === AN.test);
     if (!sel.length){

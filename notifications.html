@@ -30,7 +30,7 @@
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="shared/styles.css?v=37">
 <link rel="modulepreload" href="shared/app.js?v=32">
-<link rel="modulepreload" href="shared/features.js?v=41">
+<link rel="modulepreload" href="shared/features.js?v=42">
 
 <style>
 /* ── Page tokens (not present in shared styles.css) ── */
@@ -184,16 +184,6 @@
 #sec-notifications .nf-empty .es{font-size:13px}
 
 /* Real-time chip */
-#sec-notifications .nf-rt{
-  display:inline-flex; align-items:center; gap:6px;
-  padding:5px 11px; border-radius:999px;
-  background:#DCFCE7; color:#15803D;
-  font-size:11.5px; font-weight:700; font-family:"Manrope",sans-serif;
-}
-#sec-notifications .nf-rt::before{
-  content:""; width:6px; height:6px; border-radius:50%; background:#22C55E;
-  animation:nfPulse 1.4s infinite;
-}
 @keyframes nfPulse{0%,100%{opacity:1}50%{opacity:.35}}
 
 /* ── Оновлення: оцінка в іконці, чипи, «показати ще» ── */
@@ -283,7 +273,6 @@
         <p><span id="nf-unread-count">Нових немає</span> · оновлюється автоматично</p>
       </div>
       <div class="nf-actions">
-        <span class="nf-rt">Наживо</span>
         <button class="nf-btn icon" id="notif-sound-btn" data-qtb="icon" type="button" onclick="G.toggleNotifSound()" title="Звук сповіщень" aria-label="Звук сповіщень">
           <svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14"/></svg>
           <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
@@ -331,7 +320,7 @@
 
 <script type="module">
 const { initApp } = await import("./shared/app.js?v=32");
-const featuresP = import("./shared/features.js?v=41");
+const featuresP = import("./shared/features.js?v=42");
 
 window.showSec = function(name){
   if (name === "notifications") {

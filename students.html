@@ -31,7 +31,7 @@
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="shared/styles.css?v=37">
 <link rel="modulepreload" href="shared/app.js?v=32">
-<link rel="modulepreload" href="shared/features.js?v=41">
+<link rel="modulepreload" href="shared/features.js?v=42">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
    STUDENTS PAGE REDESIGN — scoped під #sec-students
@@ -51,8 +51,6 @@
 #sec-students .st-page-title h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:0;font-family:'Manrope',sans-serif}
 #sec-students .st-page-title p{margin:6px 0 0;color:var(--ink-500);font-size:14px}
 #sec-students .st-page-title b{color:var(--ink-900);font-weight:700}
-#sec-students .st-page-chip{background:#E7EEFC;color:var(--nav-600);padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace}
-#sec-students .st-page-chip::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--nav-600)}
 
 /* ─── Split layout ─── */
 #sec-students .st-split{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:20px;align-items:flex-start}
@@ -403,7 +401,6 @@
         <h1>Студенти</h1>
         <p id="st-summary">Картки студентів з усіма спробами</p>
       </div>
-      <span class="st-page-chip" id="st-page-chip">—</span>
     </div>
 
     <!-- Split: table + profile -->
@@ -458,7 +455,7 @@
 
 <script type="module">
 const { initApp } = await import("./shared/app.js?v=32");
-const featuresP = import("./shared/features.js?v=41");
+const featuresP = import("./shared/features.js?v=42");
 
 window.showSec = function(name){
   if (name === "students") {

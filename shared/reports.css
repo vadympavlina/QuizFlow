@@ -15,8 +15,6 @@
 .rp-title{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
 .rp-title h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:0}
 .rp-title p{margin:6px 0 0;color:var(--ink-500);font-size:14px}
-.rp-chip-meta{background:var(--acc-soft);color:#1E3A8A;padding:5px 11px;border-radius:999px;font:600 12px 'Geist Mono',monospace;display:inline-flex;align-items:center;gap:6px;max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rp-chip-meta::before{content:"";width:6px;height:6px;border-radius:50%;background:#1E3A8A;flex:0 0 auto}
 
 .rp-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .rp-spacer{flex:1}
