@@ -1171,3 +1171,110 @@ html.qtb-ready .main [data-qtb]{ display:none !important; }
   .main input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),
   .main textarea, .mo input:not([type=checkbox]):not([type=radio]), .mo textarea, .qd-pop input{ font-size:16px !important; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   РЕДИЗАЙН «рамка + картка» (за мотивами docs/DESIGN.md проєкту Plano)
+   Темна рамка (меню й верхня панель лежать прямо на ній) тримає світлу
+   велику картку з вмістом. Усе м'яке: пілюлі, великі радіуси, тихі
+   розділювачі. Кольори й акценти — наші (синій, бірюзовий, бурштиновий).
+   Лише викладацькі сторінки (цей файл підключають тільки вони).
+   ═══════════════════════════════════════════════════════════════════════ */
+:root{ --frame:#0A1030; --frame-ink:#E8EDFF; --frame-mute:rgba(226,232,255,.62); --frame-fill:rgba(255,255,255,.08); --frame-fill-hi:rgba(255,255,255,.14); --card-bg:#F7F9FD; --qtb-h:64px; --card-gap:12px; }
+html{ background:var(--frame); }
+body{ background:var(--frame); }
+/* Лоадер, як і раніше, закриває всю область справа від меню (разом з верхньою смугою), а «картку» малює псевдоелемент */
+html.has-sb #app-loader{ background:var(--frame) !important; isolation:isolate; }
+html.has-sb #app-loader::before{ content:""; position:absolute; z-index:-1; background:#F0F3FA; }
+
+/* ─── Верхня панель: прозора, на рамці; дії — пілюлі ─── */
+.qtb{
+  background:var(--frame); border:0; border-radius:0; box-shadow:none;
+  color:var(--frame-ink);
+}
+.qtb-ico{ border-radius:50%; background:var(--frame-fill); color:#A5C1FF; box-shadow:none; }
+.qtb-tt small{ color:var(--frame-mute); }
+.qtb-tt b{ color:#fff; font-size:17px; }
+.qtb-menu{ border:0; border-radius:50%; background:var(--frame-fill); color:#fff; }
+.qtb-menu:hover{ background:var(--frame-fill-hi); }
+.qtb-menu:focus-visible, .qtb-icon:focus-visible, .qtb-btn:focus-visible{ outline:2px solid #8FB1FF; outline-offset:2px; }
+.qtb-icon{ width:40px; height:40px; border:0; border-radius:50%; background:var(--frame-fill); color:var(--frame-ink); }
+.qtb-icon:hover{ background:var(--frame-fill-hi); color:#fff; }
+.qtb-icon .badge{ border-color:var(--frame); }
+.qtb-btn{ border:0; border-radius:999px; padding:0 18px; background:var(--frame-fill); color:var(--frame-ink); }
+.qtb-btn:hover{ background:var(--frame-fill-hi); color:#fff; border:0; }
+.qtb-btn.primary{ background:linear-gradient(135deg,#3B6BF6,#1E40AF); color:#fff; box-shadow:0 8px 20px -10px rgba(91,140,255,.8); }
+.qtb-btn.primary:hover:not(:disabled){ background:linear-gradient(135deg,#4F7BFA,#2447C9); filter:none; }
+.qtb-btn.danger{ background:rgba(244,63,94,.16); color:#FDA4AF; border:0; }
+.qtb-btn.danger:hover:not(:disabled){ background:rgba(244,63,94,.26); color:#FECDD3; border:0; }
+.qtb-btn.ghost{ background:transparent; color:var(--frame-mute); }
+.qtb-btn.ghost:hover{ background:var(--frame-fill); color:#fff; }
+.qtb-btn > span{ background:rgba(255,255,255,.16); color:#fff; }
+.qtb-btn.icon{ width:40px; padding:0; }
+.qtb-btn.icon.snd-off{ color:var(--frame-mute); }
+
+/* ─── Комп'ютер: меню й панель на рамці, вміст — у великій картці ─── */
+@media (min-width:1024px){
+  .sb{
+    background:transparent; box-shadow:none; border-radius:0;
+    top:0; left:0; bottom:0; width:calc(var(--sb-w) - var(--sb-gap) + var(--sb-gap)); padding:14px 12px 12px calc(var(--sb-gap) + 4px);
+  }
+  .sb.collapsed, html.sb-c .sb{ width:var(--sb-w-c); padding:14px 8px 12px calc(var(--sb-gap) - 2px); }
+  .sb-toggle{ box-shadow:0 4px 12px -2px rgba(8,12,38,.35), 0 0 0 4px var(--frame); border-color:transparent; right:-12px; }
+  .nav-sec::after{ display:none; }
+  .ni{ height:38px; border-radius:999px; }
+  .ni.active{ background:var(--frame-fill-hi); box-shadow:none; color:#fff; }
+  .ni.active:hover{ background:rgba(255,255,255,.18); }
+  .ni.active .sb-ico{ color:#8FB1FF; }
+  .sb-bottom{ border-top:0; }
+  .sb-icon-strip .ni{ border:0; border-radius:999px; background:var(--frame-fill); }
+  .sb-foot-inner{ border:0; border-radius:20px; background:var(--frame-fill); }
+  .sb .ava{ border-radius:50%; }
+  .sb .ava::after{ box-shadow:0 0 0 2.5px var(--frame); }
+  .sb.collapsed .ava::after{ box-shadow:0 0 0 2.5px var(--frame); }
+  .sb.collapsed .nb{ box-shadow:0 0 0 2px var(--frame); }
+  .sb.collapsed .ni.active .nb{ box-shadow:0 0 0 2px #2A3568; }
+
+  .qtb{
+    position:fixed; top:0; left:var(--sb-space); right:var(--card-gap); z-index:60;
+    height:var(--qtb-h); min-height:0; margin:0; padding:0 4px 0 6px; gap:12px;
+    transition:left .32s var(--sb-ease);
+  }
+  .main{
+    margin:var(--qtb-h) var(--card-gap) var(--card-gap) var(--sb-space);
+    max-width:calc(100vw - var(--sb-space) - var(--card-gap));
+    padding:30px 34px 34px; background:var(--card-bg); border-radius:24px;
+    min-height:calc(100vh - var(--qtb-h) - var(--card-gap));
+  }
+  .sb-collapsed-main{ max-width:calc(100vw - var(--sb-w-c) - var(--sb-gap) - var(--card-gap)) !important; }
+  html.has-sb #app-loader::before{ inset:var(--qtb-h) var(--card-gap) var(--card-gap) 0; border-radius:24px; }
+}
+
+/* ─── Телефон і планшет: рядок 60px на рамці, під ним картка з верхніми радіусами ─── */
+@media (max-width:1023px){
+  :root{ --qtb-h:calc(60px + env(safe-area-inset-top)); }
+  .qtb{
+    position:fixed; top:0; left:0; right:0; z-index:60;
+    height:var(--qtb-h); min-height:0; margin:0; padding:env(safe-area-inset-top) 12px 0; gap:10px; border-radius:0;
+  }
+  .qtb-menu{ display:grid; width:40px; height:40px; }
+  .qtb-icon{ width:40px; height:40px; border-radius:50%; }
+  .qtb-btn{ border-radius:999px; }
+  .main, .sb-collapsed-main{
+    margin:var(--qtb-h) 0 0 !important; border-radius:26px 26px 0 0; background:var(--card-bg);
+    min-height:calc(100dvh - var(--qtb-h)); padding-top:18px;
+  }
+  html.has-sb #app-loader::before{ inset:var(--qtb-h) 0 0 0; border-radius:26px 26px 0 0; }
+  /* Висувне меню лишається суцільною темною панеллю */
+  .sb{ top:0; left:0; bottom:0; border-radius:0 24px 24px 0; }
+}
+@media print{
+  html, body{ background:#fff; }
+  .main, .sb-collapsed-main{ margin:0 !important; max-width:none !important; border-radius:0; background:none; min-height:0; }
+}
+
+/* ─── Вміст картки: більші радіуси, пілюльні кнопки ─── */
+.main .card, .main .dx-card, .main .dx-start, .main #sec-dashboard .d-news, .main #sec-tests .t-card, .main #sec-attempts .card,
+.main #sec-links .lnk-card, .main #sec-news .nwa-card, .main #sec-news .nwa-box, .main #sec-profile .pr-card, .main .on-game, .main .on-test,
+.main #sec-students .st-card{ border-radius:22px; }
+.main .dx-now-it, .main .dx-kpi, .main #sec-attempts .stat, .main #sec-links .lk-kpi{ border-radius:18px; }
+.main .btn, .main .dx-btn{ border-radius:999px; }
