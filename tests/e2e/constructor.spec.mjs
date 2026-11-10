@@ -79,3 +79,73 @@ test("перевірка якості: однакові питання й одн
   await expect(page.locator("#q-hint")).toContainText("однакові варіанти");
   expect(errors).toEqual([]);
 });
+
+test.describe("телефон", () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+
+  async function openPhone(page) {
+    await seed(page, rich(Date.now()), "t1");
+    await page.goto("/constructor?id=T1");
+    await expect(page.locator("#q-text")).toBeVisible();
+  }
+  const pt = (x, y) => [{ x, y, id: 1 }];
+
+  test("нижня панель: «1 з N», далі, нове питання; сторінка не ширша за екран", async ({ page, errors }) => {
+    await openPhone(page);
+    const n0 = await page.evaluate(() => document.querySelectorAll("#ql-list .qi").length);
+    await expect(page.locator(".qn-cnt")).toContainText(`1 з ${n0}`);
+    const bar = await page.locator(".qnav").boundingBox();
+    expect(bar.y + bar.height).toBeGreaterThan(844 - 4);                 // прикріплена знизу
+    await page.locator(".qn-m[data-act=next]").click();
+    await expect(page.locator(".qn-cnt")).toContainText(`2 з ${n0}`);
+    await page.locator(".qn-add").click();
+    await expect(page.locator(".qn-cnt")).toContainText(`3 з ${n0 + 1}`);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+    expect(errors).toEqual([]);
+  });
+
+  test("тип питання — шторка знизу, свайп униз закриває", async ({ page, errors }) => {
+    await openPhone(page);
+    await page.locator('[data-act="type-menu"]').click();
+    const sheet = page.locator(".pop.sheet");
+    await expect(sheet).toBeVisible();
+    await page.waitForTimeout(450);
+    const box = await sheet.boundingBox();
+    expect(Math.round(box.y + box.height)).toBe(844);
+    expect(box.height).toBeGreaterThan(300);                             // шторка показує всі типи, а не тільки заголовок
+    const cdp = await page.context().newCDPSession(page);
+    const y0 = box.y + 20;
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: pt(200, y0) });
+    for (let i = 1; i <= 6; i++) { await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: pt(200, y0 + i * 30) }); await page.waitForTimeout(16); }
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await expect(page.locator(".pop.sheet")).toHaveCount(0);
+    // а вибір типу в шторці працює
+    await page.locator('[data-act="type-menu"]').click();
+    await page.waitForTimeout(450);
+    await page.locator('.pop.sheet [data-v="multi"]').click();
+    await expect(page.locator(".type-btn .ts")).toContainText("Кілька");
+    expect(errors).toEqual([]);
+  });
+
+  test("перетягування питання пальцем за ручку змінює порядок; панель закривається свайпом", async ({ page, errors }) => {
+    await openPhone(page);
+    await page.locator('[data-act="toggle-list"]').click();
+    await page.waitForTimeout(450);
+    const ids = () => page.evaluate(() => [...document.querySelectorAll("#ql-list .qi")].slice(0, 3).map(e => e.dataset.id));
+    const before = await ids();
+    const g = await page.locator("#ql-list .qi").nth(0).locator(".qi-grip").boundingBox();
+    const cdp = await page.context().newCDPSession(page);
+    const x = g.x + g.width / 2, y = g.y + g.height / 2;
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: pt(x, y) });
+    for (let i = 1; i <= 10; i++) { await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: pt(x, y + i * 6.5) }); await page.waitForTimeout(20); }
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await expect.poll(ids).toEqual([before[1], before[0], before[2]]);
+    // свайп ліворуч закриває список питань
+    await page.waitForTimeout(400);
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: pt(240, 600) });
+    for (let i = 1; i <= 6; i++) { await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: pt(240 - i * 30, 600) }); await page.waitForTimeout(16); }
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await expect.poll(() => page.evaluate(() => document.body.classList.contains("list-open"))).toBe(false);
+    expect(errors).toEqual([]);
+  });
+});
