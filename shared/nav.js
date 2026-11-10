@@ -417,7 +417,7 @@
     document.addEventListener("pointerdown", function (e) {
       if (e.pointerType === "mouse" || !root.classList.contains("sb-open") || !isNarrow()) return;
       if (!e.target.closest || !e.target.closest("#sidebar")) return;
-      st = { id: e.pointerId, x: e.clientX, y: e.clientY, lx: e.clientX, lt: e.timeStamp, v: 0, dx: 0, drag: false };
+      st = { id: e.pointerId, x: e.clientX, y: e.clientY, lx: e.clientX, lt: e.timeStamp, t0: e.timeStamp, v: 0, dx: 0, drag: false };
     });
     document.addEventListener("pointermove", function (e) {
       if (!st || e.pointerId !== st.id) return;
@@ -433,6 +433,7 @@
       var dt = e.timeStamp - st.lt;
       if (dt > 0) st.v = 0.7 * ((e.clientX - st.lx) / dt) + 0.3 * st.v;                // згладжена швидкість
       st.lx = e.clientX; st.lt = e.timeStamp; st.dx = dx;
+      st.va = e.timeStamp > st.t0 ? dx / (e.timeStamp - st.t0) : (dx < 0 ? -9 : 0);   // середня швидкість від дотику
       paint(dx, x.sb.offsetWidth || 300);
     });
     function finish(e, cancelled) {
@@ -441,7 +442,7 @@
       if (!g.drag) return;
       var x = el(); if (!x.sb || !x.ov) return;
       var w = x.sb.offsetWidth || 300;
-      var close = !cancelled && (-g.dx > w * 0.4 || g.v < -0.5);
+      var close = !cancelled && (-g.dx > w * 0.4 || Math.min(g.v, g.va || 0) < -0.5);
       // після жесту браузер може «натиснути» пункт під пальцем — гасимо цей клік
       var stop = function (ev) { ev.stopPropagation(); ev.preventDefault(); };
       document.addEventListener("click", stop, { capture: true, once: true });
