@@ -255,6 +255,18 @@
 #sec-tests .t-scope-t h2{margin:0;font:800 19px 'Manrope',sans-serif;letter-spacing:-.015em;color:var(--ink-900);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #sec-tests .t-scope-t .t-n{font:500 12px 'Geist Mono',monospace;color:var(--ink-400);white-space:nowrap}
 #sec-tests .t-scope-a{display:flex;gap:6px}
+/* Комп'ютер: картка на всю висоту вікна. Сторінка не прокручується, а список папок і список тестів
+   гортаються окремо; заголовок, пошук і фільтри лишаються на місці. */
+@media (min-width:1100px){
+  .main:has(#sec-tests.on){ height:calc(100vh - var(--qtb-h) - var(--card-gap)); min-height:0; overflow:hidden; display:flex; flex-direction:column; padding-bottom:24px }
+  #sec-tests.on{ flex:1; min-height:0 }
+  #sec-tests .t-split{ flex:1; min-height:0; align-items:stretch }
+  #sec-tests .t-rail{ position:static; top:auto; max-height:none; height:100%; scrollbar-width:thin }
+  #sec-tests .t-right{ min-height:0; height:100% }
+  #sec-tests #tc{ flex:1; min-height:0 }
+  #sec-tests #tc > .t-scope{ flex:0 0 auto }
+  #sec-tests #tc > .t-card:has(.t-list), #sec-tests #tc > .t-card.flat{ flex:1; min-height:0; overflow-y:auto; scrollbar-width:thin }
+}
 /* Вужчі екрани: папки — рядок чіпів над списком */
 @media (max-width:1100px){
   #sec-tests .t-split{grid-template-columns:minmax(0,1fr);gap:14px}
