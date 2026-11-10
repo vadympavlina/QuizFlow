@@ -858,9 +858,10 @@ const _TSTORE = "qf_tests_ui";
 const TS = (() => {
   let s = {};
   try { s = JSON.parse(localStorage.getItem(_TSTORE) || "{}"); } catch {}
-  return { q: "", status: "", sort: s.sort || "new", view: s.view === "list" ? "list" : "grid" };
+  // Список — за замовчуванням; «сітку» зберігаємо, лише якщо її обрано вже в новій версії (v:2)
+  return { q: "", status: "", sort: s.sort || "new", view: s.v === 2 && s.view === "grid" ? "grid" : "list" };
 })();
-const _saveTS = () => { try { localStorage.setItem(_TSTORE, JSON.stringify({ sort: TS.sort, view: TS.view })); } catch {} };
+const _saveTS = () => { try { localStorage.setItem(_TSTORE, JSON.stringify({ sort: TS.sort, view: TS.view, v: 2 })); } catch {} };
 // Сумісність зі старим кодом, що читає ці глобали
 window._testsView = TS.view;
 window._testsStatus = TS.status;
@@ -1007,31 +1008,26 @@ function buildTestCard(t, idx, stats, showFolder){
 function buildTestRow(t, idx, stats, showFolder){
   const st = stats?.get(t.id) || _EMPTY_STATS;
   const sc = _sc(t);
-  const folder = showFolder ? _folderOf(t) : null;
-  return `<tr data-id="${esc(t.id)}">
-    <td>
-      <div style="display:flex;align-items:center;gap:12px;min-width:0">
-        <div class="t-tile" style="background:${_quizCoverGradient(t, idx || 0)}">${esc(_testAbbr(t.title))}</div>
-        <div style="min-width:0">
-          <button class="t-row-title" data-act="edit" data-id="${esc(t.id)}" title="${esc(t.title)}">${esc(t.title)}</button>
-          ${showFolder ? `<div class="t-row-sub">${esc(folder?.name || "Без папки")}</div>`
-            : t.description ? `<div class="t-row-sub">${esc(t.description)}</div>` : ""}
-        </div>
-      </div>
-    </td>
-    <td style="white-space:nowrap"><button class="t-pill-btn" data-act="menu" data-id="${esc(t.id)}" data-focus="status" title="Змінити статус"><span class="t-pill ${sc.cls}">${sc.label}</span></button></td>
-    <td class="t-mono">${(t.questions || []).length}</td>
-    <td class="t-mono" style="color:${st.cnt ? "var(--ink-700)" : "var(--ink-400)"};font-weight:600">${st.cnt}</td>
-    <td class="t-mono" style="color:${_avgColor(st.avg)};font-weight:600">${st.avg != null ? st.avg + "%" : "—"}</td>
-    <td class="t-mono t-muted" style="white-space:nowrap">${_fmtDate(t.createdAt)}</td>
-    <td>
-      <div class="t-ra">
-        <button class="t-ib" title="Редагувати" data-act="edit" data-id="${esc(t.id)}">${I.edit}</button>
-        <button class="t-ib" title="Нове посилання" data-act="link" data-id="${esc(t.id)}">${I.link}</button>
-        <button class="t-ib" title="Більше дій" data-act="menu" data-id="${esc(t.id)}" aria-haspopup="menu">${I.more}</button>
-      </div>
-    </td>
-  </tr>`;
+  const folder = _folderOf(t);
+  const qn = (t.questions || []).length;
+  const sub = [showFolder ? (folder?.name || "Без папки") : "", `${qn} пит.`].filter(Boolean).map(esc).join(" · ");
+  const dot = showFolder ? `<i class="t-lr-dot" style="background:${folder ? _folderColor(folder) : "#B4BCD0"}"></i>` : "";
+  return `<div class="t-lrow" data-id="${esc(t.id)}"${t.createdAt ? ` title="Створено ${_fmtDate(t.createdAt)}"` : ""}>
+    <div class="t-tile" style="background:${_quizCoverGradient(t, idx || 0)}">${esc(_testAbbr(t.title))}</div>
+    <div class="t-lm">
+      <button class="t-row-title" data-act="edit" data-id="${esc(t.id)}" title="${esc(t.title)}">${esc(t.title)}</button>
+      <div class="t-row-sub">${dot}${sub}</div>
+    </div>
+    <div class="t-lx">
+      <button class="t-pill-btn" data-act="menu" data-id="${esc(t.id)}" data-focus="status" title="Змінити статус"><span class="t-pill ${sc.cls}">${sc.label}</span></button>
+      <div class="t-lst"><span><b>${st.cnt}</b> ${_plural(st.cnt, "спроба", "спроби", "спроб")}</span><span title="Середній результат" style="color:${_avgColor(st.avg)}"><b>${st.avg != null ? st.avg + "%" : "—"}</b> сер.</span></div>
+    </div>
+    <div class="t-la">
+      <button class="t-lb primary" data-act="link" data-id="${esc(t.id)}" title="Нове посилання для студентів">${I.link}Посилання</button>
+      <button class="t-lb edit" data-act="edit" data-id="${esc(t.id)}" title="Редагувати" aria-label="Редагувати">${I.edit}<span class="t-lb-t">Редагувати</span></button>
+      <button class="t-lb icon" data-act="menu" data-id="${esc(t.id)}" aria-haspopup="menu" aria-label="Більше дій" title="Більше дій">${I.more}</button>
+    </div>
+  </div>`;
 }
 
 function _renderTestsContent(lst, total, stats, showFolder, emptyTitle, emptyHint){
@@ -1044,10 +1040,7 @@ function _renderTestsContent(lst, total, stats, showFolder, emptyTitle, emptyHin
     </div>`;
   }
   if (TS.view === "list"){
-    return `<div style="overflow-x:auto"><table class="t-dtable">
-      <thead><tr><th>Назва</th><th>Статус</th><th>Питань</th><th>Спроб</th><th>Середній</th><th>Створено</th><th style="width:120px"></th></tr></thead>
-      <tbody>${lst.map((t, i) => buildTestRow(t, i, stats, showFolder)).join("")}</tbody>
-    </table></div>`;
+    return `<div class="t-list">${lst.map((t, i) => buildTestRow(t, i, stats, showFolder)).join("")}</div>`;
   }
   return `<div class="t-quizzes-grid">${lst.map((t, i) => buildTestCard(t, i, stats, showFolder)).join("")}</div>`;
 }

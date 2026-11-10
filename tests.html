@@ -31,7 +31,7 @@
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="shared/styles.css?v=37">
 <link rel="modulepreload" href="shared/app.js?v=32">
-<link rel="modulepreload" href="shared/features.js?v=42">
+<link rel="modulepreload" href="shared/features.js?v=44">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
    СТОРІНКА «ТЕСТИ» — стилі під #sec-tests
@@ -151,20 +151,8 @@
 #sec-tests .t-tmenu-sep{height:1px;background:var(--line);margin:2px 0}
 
 /* List view table */
-#sec-tests .t-dtable{width:100%;border-collapse:separate;border-spacing:0}
-#sec-tests .t-dtable th,#sec-tests .t-dtable td{padding:12px 18px;text-align:left;font-size:13px;border-bottom:1px solid var(--line);font-family:'Manrope',sans-serif}
-#sec-tests .t-dtable th{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-400);background:#FAFBFE;user-select:none}
-#sec-tests .t-dtable tbody tr{transition:background .12s}
-#sec-tests .t-dtable tbody tr:last-child td{border-bottom:0}
-#sec-tests .t-dtable tbody tr:hover{background:#FAFBFE}
 #sec-tests .t-tile{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;font-family:'Geist Mono',monospace;font-weight:800;font-size:11px;color:rgba(255,255,255,.95);letter-spacing:-.02em;position:relative;overflow:hidden;flex:0 0 auto}
 #sec-tests .t-tile::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at top right,rgba(255,255,255,.25),transparent 60%)}
-#sec-tests .t-ra{display:flex;gap:4px;opacity:0;transition:opacity .15s;justify-content:flex-end}
-#sec-tests .t-dtable tbody tr:hover .t-ra{opacity:1}
-#sec-tests .t-ib{width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:transparent;border:1px solid transparent;border-radius:6px;color:var(--ink-500);cursor:pointer;transition:all .12s;padding:0}
-#sec-tests .t-ib:hover{background:#F1F5FB;color:var(--ink-900);border-color:var(--line)}
-#sec-tests .t-ib.d:hover{background:#FEE2E2;color:#B91C1C;border-color:#FECACA}
-#sec-tests .t-ib svg{width:13px;height:13px}
 
 /* Empty states */
 #sec-tests .t-empty{padding:56px 24px;text-align:center;color:var(--ink-500)}
@@ -202,7 +190,6 @@
 #sec-tests .t-menu-btn svg{width:15px;height:15px}
 #sec-tests .t-menu-btn[aria-expanded="true"]{background:#EEF2FB;color:var(--ink-900)}
 #sec-tests .t-qc-folder{font-weight:500}
-#sec-tests .t-dtable tbody tr:focus-within .t-ra{opacity:1}
 #sec-tests .t-empty .t-empty-ico svg{width:26px;height:26px}
 #sec-archive .t-card{background:#fff;border:1px solid #E3E8F2;border-radius:16px;overflow:hidden}
 #sec-archive .t-btn{background:#fff;border:1px solid #E3E8F2;padding:0 12px;height:32px;border-radius:9px;font:500 12.5px 'Manrope',sans-serif;color:#24335A;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
@@ -229,6 +216,46 @@
 #sec-tests #cd-tsort .cd-menu{left:auto;right:0;min-width:210px;z-index:60}
 #sec-tests #cd-tsort .cd-item{font-family:'Manrope',sans-serif}
 /* Нещодавні — компактні «чіпи» зверху для швидкого вибору */
+
+/* ── Компактний список тестів: один тест — один рядок ── */
+#sec-tests .t-list{display:flex;flex-direction:column}
+#sec-tests .t-lrow{display:grid;grid-template-columns:40px minmax(0,1fr) auto auto;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid #EEF1F7;transition:background .12s}
+#sec-tests .t-lrow:last-child{border-bottom:0}
+#sec-tests .t-lrow:hover{background:#FAFBFE}
+#sec-tests .t-lrow .t-tile{width:40px;height:40px;border-radius:11px;font-size:11px}
+#sec-tests .t-lm{min-width:0}
+#sec-tests .t-lm .t-row-title{max-width:100%;font-size:14.5px;font-weight:700}
+#sec-tests .t-lm .t-row-sub{display:flex;align-items:center;gap:7px;max-width:100%;font-size:12px}
+#sec-tests .t-lr-dot{width:9px;height:9px;border-radius:3px;flex:0 0 auto}
+#sec-tests .t-lx{display:flex;align-items:center;gap:16px}
+#sec-tests .t-lst{display:flex;gap:12px;font:600 12.5px 'Geist Mono',monospace;color:var(--ink-500);white-space:nowrap}
+#sec-tests .t-lst b{color:var(--ink-900);font-weight:700}
+#sec-tests .t-la{display:flex;gap:6px;justify-content:flex-end}
+#sec-tests .t-lb{height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink-700);font:600 12.5px 'Manrope',sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;transition:border-color .15s,background .15s,color .15s}
+#sec-tests .t-lb:hover{border-color:var(--nav-accent);color:var(--nav-600)}
+#sec-tests .t-lb svg{width:13px;height:13px;flex:0 0 auto}
+#sec-tests .t-lb.primary{background:var(--nav-600);border-color:var(--nav-600);color:#fff}
+#sec-tests .t-lb.primary:hover{background:#1E40AF;border-color:#1E40AF;color:#fff}
+#sec-tests .t-lb.icon,#sec-tests .t-lb.edit{width:32px;padding:0}
+#sec-tests .t-lb.icon svg,#sec-tests .t-lb.edit svg{width:15px;height:15px}
+#sec-tests .t-lb .t-lb-t{display:none}
+#sec-tests .t-lb[aria-expanded="true"]{background:#EEF2FB}
+/* Середні ширини (права колонка вужча): цифри йдуть під назву, кнопки лишаються праворуч */
+@media (max-width:1299px){
+  #sec-tests .t-lrow{grid-template-columns:40px minmax(0,1fr) auto;gap:2px 12px}
+  #sec-tests .t-lrow .t-tile{grid-row:1 / span 2}
+  #sec-tests .t-lx{grid-column:2;grid-row:2;gap:12px;flex-wrap:wrap}
+  #sec-tests .t-la{grid-column:3;grid-row:1 / span 2}
+}
+/* Телефон: кнопки на всю ширину під рядком */
+@media (max-width:560px){
+  #sec-tests .t-lrow{grid-template-columns:40px minmax(0,1fr);padding:12px 14px;row-gap:6px}
+  #sec-tests .t-la{grid-column:1 / -1;grid-row:auto;margin-top:4px}
+  #sec-tests .t-lb{flex:1;height:40px}
+  #sec-tests .t-lb.edit{width:auto}
+  #sec-tests .t-lb.edit .t-lb-t{display:inline}
+  #sec-tests .t-lb.icon{flex:0 0 44px}
+}
 
 /* ── Рейка папок (ліворуч) + тести (праворуч) ── */
 #sec-tests .t-split{display:grid;grid-template-columns:236px minmax(0,1fr);gap:22px;align-items:start}
@@ -294,10 +321,6 @@
 
 /* Responsive */
 .t-hl{outline:2px solid #3B82F6;outline-offset:3px;border-radius:14px;transition:outline-color .6s}
-/* Телефон і планшет: дії видно без наведення */
-@media (max-width:1023px){
-  #sec-tests .t-ra{opacity:1}
-}
 @media (max-width:560px){
   #sec-tests .t-quizzes-grid{padding:4px 12px 12px;grid-template-columns:1fr}
 }
@@ -420,7 +443,7 @@
 <script type="module">
 // ─── Ініціалізація (паралельне завантаження — як в оригіналі) ───
 const { initApp } = await import("./shared/app.js?v=32");
-const featuresP = import("./shared/features.js?v=42");
+const featuresP = import("./shared/features.js?v=44");
 
 window.showSec = function(name){
   if (name === "tests"){
@@ -469,7 +492,7 @@ if (_hl) {
     if (!t) { window.toast?.("Тест не знайдено — можливо, його вже видалено", "err"); return; }
     window.G?.setFF?.(t.folderId || "none");
     requestAnimationFrame(() => {
-      const el = document.querySelector(`.t-quiz-card[data-id="${CSS.escape(_hl)}"], tr[data-id="${CSS.escape(_hl)}"]`);
+      const el = document.querySelector(`.t-quiz-card[data-id="${CSS.escape(_hl)}"], .t-lrow[data-id="${CSS.escape(_hl)}"]`);
       if (!el) return;
       el.scrollIntoView({ block: "center", behavior: "smooth" });
       el.classList.add("t-hl");
