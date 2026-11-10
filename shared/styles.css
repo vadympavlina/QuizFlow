@@ -1339,3 +1339,8 @@ a, button, [role="button"], [role="tab"], summary, label, input, select, textare
   .gb-cell:hover, .mx-color:hover, .notif-item:hover, .sc:hover, .swatch:hover, .sb-toggle:hover,
   .ni:hover .sb-ico, .sb .logo:hover .logo-i{ transform:none !important; }
 }
+
+/* Згорнуте меню на ПК: швидкі кнопки (Live, Адмін, Гайд, Помилка) не показуємо — лишається «Новий тест» і профіль */
+@media (min-width:1024px){
+  .sb.collapsed .sb-icon-strip, html.sb-c .sb .sb-icon-strip{ display:none; }
+}
