@@ -41,7 +41,7 @@ test("свайп ліворуч далеко — меню закриваєтьс
 test("швидкий короткий змах закриває меню (за швидкістю, а не відстанню)", async ({ page, errors }) => {
   await openDrawer(page);
   const cdp = await page.context().newCDPSession(page);
-  await touchDrag(page, cdp, { x: 200, y: 300 }, { x: 140, y: 300 }, { steps: 4, gap: 8 });   // 60px за ~30мс
+  await touchDrag(page, cdp, { x: 200, y: 300 }, { x: 140, y: 300 }, { steps: 4, gap: 0 });   // 60px без пауз — швидкість не залежить від повільності CI
   await expect.poll(() => isOpen(page)).toBe(false);
   expect(errors).toEqual([]);
 });
