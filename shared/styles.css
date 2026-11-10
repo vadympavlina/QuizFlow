@@ -1244,7 +1244,10 @@ html.has-sb #app-loader::before{ content:""; position:absolute; z-index:-1; back
     max-width:calc(100vw - var(--sb-space) - var(--card-gap));
     padding:30px 34px 34px; background:var(--card-bg); border-radius:24px;
     min-height:calc(100vh - var(--qtb-h) - var(--card-gap));
+    /* Картка їде разом з меню й панеллю (одна тривалість і крива) — без швів під час згортання */
+    transition:opacity .25s ease, margin-left .32s var(--sb-ease), max-width .32s var(--sb-ease);
   }
+  html.sb-boot .main{ transition:none; }
   .sb-collapsed-main{ max-width:calc(100vw - var(--sb-w-c) - var(--sb-gap) - var(--card-gap)) !important; }
   html.has-sb #app-loader::before{ inset:var(--qtb-h) var(--card-gap) var(--card-gap) 0; border-radius:24px; }
 }
