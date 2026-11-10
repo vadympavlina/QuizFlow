@@ -20,6 +20,13 @@ test("комп'ютер: панель закріплена на рамці, вм
     expect(g.frame, pg).toBe("rgb(10, 16, 48)");
     expect(g.scrollW, pg).toBeLessThanOrEqual(page.viewportSize().width);
   }
+  // Картка анімується разом з меню й панеллю (інакше під час згортання меню видно шви)
+  const tr = await page.evaluate(() => { const m = getComputedStyle(document.querySelector(".main")), q = getComputedStyle(document.getElementById("qtb")); return { m: m.transitionProperty + "|" + m.transitionDuration, q: q.transitionProperty + "|" + q.transitionDuration }; });
+  expect(tr.m).toContain("margin-left");
+  expect(tr.m).toContain("0.32s");
+  expect(tr.q).toContain("left");
+  expect(tr.q).toContain("0.32s");
+
   // Після прокрутки панель лишається на місці
   await page.evaluate(() => window.scrollTo(0, 400));
   expect((await page.locator("#qtb").boundingBox()).y).toBe(0);
