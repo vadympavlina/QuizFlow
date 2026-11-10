@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="/assets/icons/admin/apple-touch-icon.png?v=1">
 <link rel="manifest" href="/assets/icons/admin/site.webmanifest?v=1">
 <title>QuizFlow Admin · Проблеми</title>
-<link rel="stylesheet" href="shared/admin-shell.css?v=10">
+<link rel="stylesheet" href="shared/admin-shell.css?v=11">
 <style>
 /* ═══ Плитки-фільтри ═══ */
 .pb-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0 16px}
@@ -131,11 +131,11 @@ textarea.field-input{resize:vertical;min-height:72px;line-height:1.5}
 .dd-empty{padding:12px;text-align:center;font-size:12.5px;color:var(--ink-400)}
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=16">
+<link rel="modulepreload" href="shared/admin-shell.js?v=17">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 </head>
 <body>
-<script src="shared/admin-nav.js?v=8"></script>
+<script src="shared/admin-nav.js?v=9"></script>
 <div id="admin-root"></div>
 
 <!-- Деталі / редагування -->
@@ -164,7 +164,7 @@ textarea.field-input{resize:vertical;min-height:72px;line-height:1.5}
 </div>
 
 <script type="module">
-import { logAction, initAdminShell, esc, formatTimeAgo, toast, hideLoader, openModal, closeModal, db, ref, update, remove, onValue, get } from "./shared/admin-shell.js?v=16";
+import { logAction, initAdminShell, esc, formatTimeAgo, toast, hideLoader, openModal, closeModal, db, ref, update, remove, onValue, get } from "./shared/admin-shell.js?v=17";
 import { push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // ─── Довідники ─────────────────────────────────────────────────────────
@@ -202,7 +202,7 @@ const isLate = it => dlState(it) === "late";
 // ─── Сторінка ──────────────────────────────────────────────────────────
 const content = `
   <div class="page-head">
-    <div><h1>Проблеми й задачі</h1><p id="pb-sub">Завантаження…</p></div>
+    <div><h1>Звернення й задачі</h1><p id="pb-sub">Завантаження…</p></div>
   </div>
   <div class="pb-tiles">
     <button class="pb-tile red" data-focus="new" type="button"><span class="ico">${ic("bug", 19)}</span><span><span class="v" id="t-new">0</span><span class="l">Нові</span></span></button>

@@ -198,6 +198,68 @@
   }, true);
   if (mq.addEventListener) mq.addEventListener("change", function () { setOpen(false); });
 
+  // Жест: свайп ліворуч закриває висувне меню (воно виїжджає зліва — закривається в ту ж сторону).
+  // Поки палець на екрані, меню йде за ним 1:1 (без анімації), підкладка світлішає пропорційно зсуву.
+  // Відпустили: закриваємо за відстанню (понад 40% ширини) або швидкістю (понад 0,5 px/мс),
+  // інакше швидко повертаємо назад. Слухачі — на документі: прив'язка до елемента не губиться.
+  function bindDrawerSwipe() {
+    if (!window.PointerEvent || window._asbSwipe) return;
+    window._asbSwipe = true;
+    var st = null;
+    var el = function () { return { sb: document.getElementById("admin-sidebar"), ov: document.querySelector(".asb-ov") }; };
+    function paint(dx, w) {
+      var e = el(), x = dx < 0 ? dx : dx * 0.15;
+      e.sb.style.transform = "translateX(" + x + "px)";
+      e.ov.style.opacity = String(Math.max(0, 1 - Math.max(0, -dx) / (w + 16)));
+    }
+    function clear() {
+      var e = el(); if (!e.sb || !e.ov) return;
+      e.sb.style.transition = ""; e.sb.style.transform = ""; e.ov.style.transition = ""; e.ov.style.opacity = "";
+    }
+    document.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "mouse" || !root.classList.contains("asb-open") || !isDrawer()) return;
+      if (!e.target.closest || !e.target.closest("#admin-sidebar")) return;
+      st = { id: e.pointerId, x: e.clientX, y: e.clientY, lx: e.clientX, lt: e.timeStamp, t0: e.timeStamp, v: 0, dx: 0, drag: false };
+    });
+    document.addEventListener("pointermove", function (e) {
+      if (!st || e.pointerId !== st.id) return;
+      var x = el(), dx = e.clientX - st.x, dy = e.clientY - st.y;
+      if (!x.sb || !x.ov) { st = null; return; }
+      if (!st.drag) {
+        if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { st = null; return; }   // це прокрутка списку
+        if (Math.abs(dx) < 8) return;
+        st.drag = true;
+        try { x.sb.setPointerCapture(e.pointerId); } catch (_) {}
+        x.sb.style.transition = "none"; x.ov.style.transition = "none";
+      }
+      var dt = e.timeStamp - st.lt;
+      if (dt > 0) st.v = 0.7 * ((e.clientX - st.lx) / dt) + 0.3 * st.v;
+      st.lx = e.clientX; st.lt = e.timeStamp; st.dx = dx;
+      st.va = e.timeStamp > st.t0 ? dx / (e.timeStamp - st.t0) : (dx < 0 ? -9 : 0);
+      paint(dx, x.sb.offsetWidth || 300);
+    });
+    function finish(e, cancelled) {
+      if (!st || e.pointerId !== st.id) return;
+      var g = st; st = null;
+      if (!g.drag) return;
+      var x = el(); if (!x.sb || !x.ov) return;
+      var w = x.sb.offsetWidth || 300;
+      var close = !cancelled && (-g.dx > w * 0.4 || Math.min(g.v, g.va || 0) < -0.5);
+      // після жесту браузер може «натиснути» пункт під пальцем — гасимо цей клік
+      var stop = function (ev) { ev.stopPropagation(); ev.preventDefault(); };
+      document.addEventListener("click", stop, { capture: true, once: true });
+      setTimeout(function () { document.removeEventListener("click", stop, true); }, 150);
+      if (close) { clear(); setOpen(false); return; }
+      x.sb.style.transition = "transform .2s cubic-bezier(.32,.72,0,1)";
+      x.ov.style.transition = "opacity .2s";
+      x.sb.style.transform = ""; x.ov.style.opacity = "";
+      setTimeout(clear, 230);
+    }
+    document.addEventListener("pointerup", function (e) { finish(e, false); });
+    document.addEventListener("pointercancel", function (e) { finish(e, true); });
+  }
+  bindDrawerSwipe();
+
   function setCollapsed(c) {
     collapsed = !!c;
     root.classList.toggle("asb-c", collapsed);

@@ -212,7 +212,7 @@ function ensureAdminNav(){
   if (window.AdminNav) return Promise.resolve();
   return new Promise(res => {
     const s = document.createElement("script");
-    s.src = new URL("./admin-nav.js?v=8", import.meta.url).href;
+    s.src = new URL("./admin-nav.js?v=9", import.meta.url).href;
     s.onload = s.onerror = () => res();
     document.head.appendChild(s);
   });
@@ -236,6 +236,17 @@ function renderTopbar(activeId, crumbs){
     <div id="topbar-extras" class="tb-extras"></div>
     <button type="button" class="tb-icon tb-bell" id="tb-bell" aria-label="Сигнали" title="Сигнали" aria-haspopup="dialog" aria-expanded="false">${ICONS.bell}<span class="badge" id="tb-bell-n" hidden></span></button>
   </header>`;
+}
+
+// Заголовок сторінки, що повторює шлях зверху («Розділ / Сторінка»), лишаємо лише для читачів з екрана
+function plainTitle(t){ return String(t || "").toLowerCase().replace(/[^a-zа-яіїєґ0-9]+/gi, " ").replace(/\s+/g, " ").trim(); }
+function dedupeTitle(){
+  const cur = plainTitle(document.querySelector(".tb-tt b")?.textContent);
+  if (!cur) return;
+  document.querySelectorAll("#admin-content h1").forEach(h => {
+    const t = plainTitle(h.textContent);
+    h.classList.toggle("tb-h1-dup", !!t && (t === cur || t.startsWith(cur + " ") || cur.startsWith(t + " ")));
+  });
 }
 
 // ─── Шаблон сторінки ────────────────────────────────────────────────────────
@@ -345,6 +356,11 @@ export async function initAdminShell({ activeId, crumbs, content, topbarRight })
       if (t && !b.title) b.title = t;
     });
   }
+
+  // Дублі заголовків: стежимо й за пізнішими перемальовками вмісту
+  dedupeTitle();
+  const contentEl = document.getElementById("admin-content");
+  if (contentEl) new MutationObserver(dedupeTitle).observe(contentEl, { childList: true, subtree: true, characterData: true });
 
   // Expose user globally
   window._user = _user;

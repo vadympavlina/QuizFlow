@@ -13,7 +13,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="shared/admin-shell.css?v=10">
+<link rel="stylesheet" href="shared/admin-shell.css?v=11">
 <style>
 .field-input{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-family:"Manrope",sans-serif;font-size:14px;color:var(--ink-900);outline:none;transition:border-color .15s,box-shadow .15s}
 .field-input:focus{border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
@@ -120,7 +120,7 @@ textarea.field-input{resize:vertical;min-height:220px;line-height:1.55}
 @media (max-width:640px){ .card-h,.card-b{padding-left:14px;padding-right:14px} .card-f{padding:0 14px 14px} .card-f .tb-btn{flex:1;justify-content:center} .ml-btn{grid-template-columns:1fr} .hi{grid-template-columns:1fr;padding:12px 14px} .hi .r{justify-content:flex-start} }
 </style>
 <!-- Модулі вантажимо одразу, паралельно зі стилями й шрифтами, а не після розбору всієї сторінки -->
-<link rel="modulepreload" href="shared/admin-shell.js?v=16">
+<link rel="modulepreload" href="shared/admin-shell.js?v=17">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js">
@@ -128,7 +128,7 @@ textarea.field-input{resize:vertical;min-height:220px;line-height:1.55}
 <body>
 
 <div id="admin-loader"><div class="spin"></div></div>
-<script src="shared/admin-nav.js?v=8"></script>
+<script src="shared/admin-nav.js?v=9"></script>
 <div id="admin-root"></div>
 <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -144,7 +144,7 @@ textarea.field-input{resize:vertical;min-height:220px;line-height:1.55}
 </div>
 
 <script type="module">
-import { logAction, initAdminShell, dbGet, dbSet, db, ref, push, set, openModal, closeModal, toast, esc, hideLoader, mailApi, mailWorkerUrl, setMailWorkerUrl } from "./shared/admin-shell.js?v=16";
+import { logAction, initAdminShell, dbGet, dbSet, db, ref, push, set, openModal, closeModal, toast, esc, hideLoader, mailApi, mailWorkerUrl, setMailWorkerUrl } from "./shared/admin-shell.js?v=17";
 import { callAIRaw } from "../shared/ai-call.js?v=1";
 import { trackAI, tokensOf } from "../shared/ai-usage.js?v=3";
 
@@ -164,7 +164,7 @@ const lsGet = k => { try { return JSON.parse(localStorage.getItem(k) || "null");
 const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
 const content = `
-  <div class="page-head"><div><h1>Розсилки</h1><p>Листи викладачам з адреси сервісу. У кожному листі є посилання «Відписатися»</p></div></div>
+  <div class="page-head"><div><h1>Листування з викладачами</h1><p>Листи викладачам з адреси сервісу. У кожному листі є посилання «Відписатися»</p></div></div>
   <div id="ml-root"><div class="empty">Завантаження…</div></div>
 `;
 const topbarRight = `<button class="tb-btn" type="button" id="btn-setup">${IC.gear} Воркер пошти</button>`;
