@@ -46,6 +46,7 @@
     star:       '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
     activity:   '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
     settings:   '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>',
+    plus:       '<path d="M12 5v14M5 12h14"/>',
     file:       '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>',
     search:     '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
     zap:        '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
@@ -182,6 +183,8 @@
       "</button>" +
       '<nav class="sb-scroll">' + sections + "</nav>" +
       '<div class="sb-bottom">' +
+        '<button type="button" class="sb-new" id="sb-new" onclick="sbNewTest()" data-tip="Новий тест" aria-label="Новий тест">' +
+          icon("plus", 2.4) + '<span class="sb-new-t">Новий тест</span></button>' +
         '<div class="sb-icon-strip">' +
           '<a href="live" target="_blank" rel="noopener" data-tip="Live-моніторинг (нова вкладка)" aria-label="Live-моніторинг (нова вкладка)" class="ni ni-live">' +
             '<span class="sb-ico">' + icon("zap") + '</span><span class="ni-label">Live</span></a>' +
@@ -390,6 +393,103 @@
   }
   window.toggleMobileNav = function () { setOpen(!root.classList.contains("sb-open")); };
 
+  // Жест: свайп ліворуч закриває висувне меню (воно виїжджає зліва — закривається в ту ж сторону).
+  // Поки палець на екрані, меню йде за ним 1:1 (без easing і без анімації), а підкладка світлішає
+  // пропорційно зсуву. Відпустили: закриваємо за відстанню (понад 40% ширини) або за швидкістю
+  // (понад 0,5 px/мс), інакше швидко повертаємо назад. Далі працюють звичайні CSS-переходи,
+  // тож меню можна «зловити» посеред руху. Прокрутка списку пунктів (вертикальна) не заважає.
+  // Слухачі — на документі: меню перемальовується, коли приходять налаштування з бази,
+  // і прив'язка до першого елемента загубилась би.
+  function bindDrawerSwipe() {
+    if (!window.PointerEvent || window._sbSwipe) return;
+    window._sbSwipe = true;
+    var st = null;
+    var el = function () { return { sb: document.getElementById("sidebar"), ov: document.getElementById("sb-ov") }; };
+    function paint(dx, w) {
+      var e = el(), x = dx < 0 ? dx : dx * 0.15;                    // вправо — опір, а не жорсткий стоп
+      e.sb.style.transform = "translateX(" + x + "px)";
+      e.ov.style.opacity = String(Math.max(0, 1 - Math.max(0, -dx) / (w + 16)));
+    }
+    function clear() {
+      var e = el(); if (!e.sb || !e.ov) return;
+      e.sb.style.transition = ""; e.sb.style.transform = ""; e.ov.style.transition = ""; e.ov.style.opacity = "";
+    }
+    document.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "mouse" || !root.classList.contains("sb-open") || !isNarrow()) return;
+      if (!e.target.closest || !e.target.closest("#sidebar")) return;
+      st = { id: e.pointerId, x: e.clientX, y: e.clientY, lx: e.clientX, lt: e.timeStamp, t0: e.timeStamp, v: 0, dx: 0, drag: false };
+    });
+    document.addEventListener("pointermove", function (e) {
+      if (!st || e.pointerId !== st.id) return;
+      var x = el(), dx = e.clientX - st.x, dy = e.clientY - st.y;
+      if (!x.sb || !x.ov) { st = null; return; }
+      if (!st.drag) {
+        if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { st = null; return; }   // це прокрутка списку
+        if (Math.abs(dx) < 8) return;
+        st.drag = true;
+        try { x.sb.setPointerCapture(e.pointerId); } catch (_) {}
+        x.sb.style.transition = "none"; x.ov.style.transition = "none";
+      }
+      var dt = e.timeStamp - st.lt;
+      if (dt > 0) st.v = 0.7 * ((e.clientX - st.lx) / dt) + 0.3 * st.v;                // згладжена швидкість
+      st.lx = e.clientX; st.lt = e.timeStamp; st.dx = dx;
+      st.va = e.timeStamp > st.t0 ? dx / (e.timeStamp - st.t0) : (dx < 0 ? -9 : 0);   // середня швидкість від дотику
+      paint(dx, x.sb.offsetWidth || 300);
+    });
+    function finish(e, cancelled) {
+      if (!st || e.pointerId !== st.id) return;
+      var g = st; st = null;
+      if (!g.drag) return;
+      var x = el(); if (!x.sb || !x.ov) return;
+      var w = x.sb.offsetWidth || 300;
+      var close = !cancelled && (-g.dx > w * 0.4 || Math.min(g.v, g.va || 0) < -0.5);
+      // після жесту браузер може «натиснути» пункт під пальцем — гасимо цей клік
+      var stop = function (ev) { ev.stopPropagation(); ev.preventDefault(); };
+      document.addEventListener("click", stop, { capture: true, once: true });
+      setTimeout(function () { document.removeEventListener("click", stop, true); }, 150);
+      if (close) { clear(); setOpen(false); return; }
+      // Не дотягнули: швидко назад (повернення — швидке, а не повільне «незгода» інтерфейсу)
+      x.sb.style.transition = "transform .2s cubic-bezier(.32,.72,0,1)";
+      x.ov.style.transition = "opacity .2s";
+      x.sb.style.transform = ""; x.ov.style.opacity = "";
+      setTimeout(clear, 230);
+    }
+    document.addEventListener("pointerup", function (e) { finish(e, false); });
+    document.addEventListener("pointercancel", function (e) { finish(e, true); });
+  }
+
+  // «Новий тест» у меню: на сторінці «Тести» — її власна кнопка (тест створюється в поточній папці),
+  // на інших — перехід на форму нового тесту.
+  window.sbNewTest = function () {
+    setOpen(false);
+    var own = document.getElementById("t-new-test");
+    if (own) own.click(); else location.href = "tests?new=1";
+  };
+
+  // Заголовок сторінки, що повторює шлях зверху («Тести» / «Журнал оцінок» при «Журнал»),
+  // ховаємо візуально: він лишається в розмітці для читачів з екрана.
+  function plainTitle(s) {
+    return String(s || "").toLowerCase().replace(/[^a-zа-яіїєґ0-9]+/gi, " ").replace(/\s+/g, " ").trim();
+  }
+  var h1Watch = null;
+  function dedupeTitle() {
+    var cur = plainTitle((document.getElementById("qtb-t") || {}).textContent);
+    if (!cur) return;
+    [].slice.call(document.querySelectorAll(".main h1")).forEach(function (h) {
+      if (h.closest(".qtb")) return;
+      var t = plainTitle(h.textContent);
+      if (!t) return;
+      h.classList.toggle("qtb-h1-dup", t === cur || t.indexOf(cur + " ") === 0 || cur.indexOf(t + " ") === 0);
+    });
+    // Сторінки міняють заголовок, коли дані завантажились, — перевіряємо ще раз
+    if (!h1Watch && window.MutationObserver) {
+      h1Watch = new MutationObserver(function () { dedupeTitle(); });
+      [].slice.call(document.querySelectorAll(".main h1")).forEach(function (h) {
+        h1Watch.observe(h, { childList: true, characterData: true, subtree: true });
+      });
+    }
+  }
+
   // Іконка, розділ і назва — з активного пункту меню (або з <title>)
   function syncTopbar() {
     var ico = document.getElementById("qtb-ico");
@@ -402,6 +502,7 @@
     ico.innerHTML = svg ? svg.outerHTML : icon(bd.qtbIcon || "dashboard");
     document.getElementById("qtb-sec").textContent = (secLbl && secLbl.textContent) || bd.qtbSection || "Панель викладача";
     document.getElementById("qtb-t").textContent = (lbl && lbl.textContent) || pageTitle() || "QuizFlow";
+    dedupeTitle();
   }
   // Дзвіночок — кількість нових сповіщень (той самий лічильник, що й у меню)
   function syncBell() {
@@ -421,6 +522,7 @@
       ov.className = "sb-ov"; ov.id = "sb-ov";
       ov.addEventListener("click", function () { setOpen(false); });
       sb.parentNode.insertBefore(ov, sb.nextSibling);
+      bindDrawerSwipe();
     }
     var main = document.querySelector(".main");
     if (!main || document.getElementById("qtb")) return;

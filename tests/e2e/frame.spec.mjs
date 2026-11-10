@@ -8,7 +8,7 @@ const geo = page => page.evaluate(() => {
   return { qPos: getComputedStyle(document.getElementById("qtb")).position, qBottom: Math.round(q.bottom), mTop: Math.round(m.top), mRight: Math.round(innerWidth - m.right), radius: cs.borderTopLeftRadius, bg: cs.backgroundColor, frame: getComputedStyle(document.body).backgroundColor, scrollW: document.documentElement.scrollWidth };
 });
 
-test("комп'ютер: панель закріплена на рамці, вміст у картці з радіусом 24px", async ({ page, errors }) => {
+test("комп'ютер: панель закріплена, вміст у білій картці з радіусом 24px", async ({ page, errors }) => {
   await seed(page, rich(Date.now()), "t1");
   for (const pg of ["/", "attempts", "students"]) {
     await page.goto("/" + pg.replace(/^\//, "")); await page.waitForTimeout(1200);
@@ -17,7 +17,7 @@ test("комп'ютер: панель закріплена на рамці, вм
     expect(g.mTop, pg).toBeGreaterThanOrEqual(g.qBottom);           // картка починається під панеллю
     expect(g.mRight, pg).toBe(12);
     expect(g.radius, pg).toBe("24px");
-    expect(g.frame, pg).toBe("rgb(10, 16, 48)");
+    expect(g.frame, pg).toBe("rgb(238, 242, 251)");   // світле тло сторінки
     expect(g.scrollW, pg).toBeLessThanOrEqual(page.viewportSize().width);
   }
   // Картка анімується разом з меню й панеллю (інакше під час згортання меню видно шви)
