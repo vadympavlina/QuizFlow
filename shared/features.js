@@ -994,7 +994,7 @@ function buildTestCard(t, idx, stats, showFolder){
       <div><div class="t-qc-stat-val" style="color:${_avgColor(st.avg)}">${st.avg != null ? st.avg + "%" : "—"}</div><div class="t-qc-stat-lbl">Середній</div></div>
     </div>
     <div class="t-qc-foot">
-      <span class="t-qc-date">${t.createdAt ? "Створено " + _fmtDate(t.createdAt) : ""}</span>
+      <span class="t-qc-date"${t.createdAt ? ` title="Створено ${_fmtDate(t.createdAt)}"` : ""}>${t.createdAt ? _fmtDate(t.createdAt) : ""}</span>
       <div class="t-qc-foot-actions">
         <button class="t-edit-btn" data-act="edit" data-id="${esc(t.id)}">${I.edit}Редагувати</button>
         <button class="t-menu-btn" data-act="menu" data-id="${esc(t.id)}" aria-haspopup="menu" aria-label="Більше дій">${I.more}</button>
@@ -1052,50 +1052,13 @@ function _renderTestsContent(lst, total, stats, showFolder, emptyTitle, emptyHin
   return `<div class="t-quizzes-grid">${lst.map((t, i) => buildTestCard(t, i, stats, showFolder)).join("")}</div>`;
 }
 
-// ─── Картка папки ──────────────────────────────────────────────────────
-function _folderCard(f, fTests, stats){
-  const isNone = f === null;
-  const col = isNone ? "#8691AC" : _folderColor(f);
-  const colDark = _darkenHex(col, 0.15);
-  const id = isNone ? "none" : f.id;
-  const att = fTests.reduce((s, t) => s + (stats.get(t.id)?.cnt || 0), 0);
-  const last = fTests.reduce((m, t) => Math.max(m, _activity(t, stats.get(t.id))), 0);
-  const preview = fTests.slice(0, 4);
-  const more = fTests.length - preview.length;
-  const thumbs = preview.length
-    ? preview.map(t => `<div class="t-fc-thumb" style="background:linear-gradient(135deg,${_lightenHex(col, 0.6)},${_lightenHex(col, 0.3)});color:${colDark}" title="${esc(t.title)}">${esc(_testAbbr(t.title))}</div>`).join("")
-      + (more > 0 ? `<span class="t-fc-more">+${more}</span>` : "")
-    : `<span class="t-muted" style="font-size:11.5px;font-style:italic">Порожня — додайте тест</span>`;
-  return `<div class="t-folder-card" data-act="open-folder" data-id="${esc(id)}" role="button" tabindex="0" aria-label="Відкрити папку ${esc(isNone ? "Без папки" : f.name)}">
-    ${isNone ? "" : `<div class="t-fc-actions">
-      <button title="Додати тест у папку" data-act="add-test" data-id="${esc(id)}">${I.plus}</button>
-      <button title="Дії з папкою" data-act="folder-menu" data-id="${esc(id)}" aria-haspopup="menu">${I.more}</button>
-    </div>`}
-    <div class="t-fc-head">
-      <div class="t-fc-ico" style="background:linear-gradient(135deg,${_lightenHex(col, 0.35)},${col})">${isNone ? _ICON('<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>') : I.folder}</div>
-      <div style="flex:1;min-width:0">
-        <div class="t-fc-title" title="${esc(isNone ? "Без папки" : f.name)}">${esc(isNone ? "Без папки" : f.name)}</div>
-        <div class="t-fc-meta">${fTests.length ? _nTests(fTests.length) : "Порожня"}</div>
-      </div>
-    </div>
-    <div class="t-fc-meta-row">
-      <span title="Спроб у тестах папки">${I.users}${att} ${_plural(att, "спроба", "спроби", "спроб")}</span>
-      <span title="Остання активність">${I.clock}${last ? _fmtDate(last) : "—"}</span>
-    </div>
-    <div class="t-fc-foot">
-      <div class="t-fc-thumbs">${thumbs}</div>
-      <span class="t-fc-cta" style="color:${colDark}">Відкрити ${_ICON('<path d="M9 6l6 6-6 6"/>')}</span>
-    </div>
-  </div>`;
-}
-
 // ─── Панель інструментів (статична в tests.html — поле пошуку не перестворюється) ──
 function _syncToolbar(ctx){
   const bar = document.getElementById("t-toolbar");
   if (!bar) return;
   const inp = document.getElementById("srch");
   if (inp && inp.value !== TS.q && document.activeElement !== inp) inp.value = TS.q;
-  if (inp) inp.placeholder = ctx.scope === "folder" ? `Пошук у папці «${ctx.name}»…` : "Пошук тестів у всіх папках…  ( / )";
+  if (inp) inp.placeholder = ctx.scope === "folder" ? `Пошук у «${ctx.name}»…  ( / )` : "Пошук тестів…  ( / )";
   const clr = document.getElementById("srch-clear");
   if (clr) clr.hidden = !TS.q;
   // Фільтри статусу/сортування/вигляд потрібні лише коли показуємо тести
@@ -1120,6 +1083,20 @@ function _statusCounts(lst){
 }
 
 // ─── Головний рендер ───────────────────────────────────────────────────
+// Ліворуч — список папок («Усі тести», папки, «Без папки»), праворуч — одразу тести
+// вибраної папки. Папок немає — рейки теж немає, лише список.
+const _ALL_ICO = _ICON('<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/>');
+function _railHtml(scope, live, orphans){
+  const row = (id, ico, name, n) => `<button class="t-rr${scope === id ? " on" : ""}" data-act="open-folder" data-id="${esc(id)}" ${scope === id ? 'aria-current="true"' : ""}>
+      ${ico}<span class="t-rr-name">${esc(name)}</span><span class="t-rr-n">${n}</span></button>`;
+  const dot = col => `<i class="t-rr-dot" style="background:${col}"></i>`;
+  return `<div class="t-rail-h"><span>Папки</span><button class="t-rail-add" data-act="new-folder" title="Нова папка" aria-label="Нова папка">${I.plus}</button></div>
+    <div class="t-rail-list">
+      ${row("all", `<span class="t-rr-ico">${_ALL_ICO}</span>`, "Усі тести", live.length)}
+      ${folders.map(f => row(f.id, dot(_folderColor(f)), f.name, live.filter(t => t.folderId === f.id).length)).join("")}
+      ${orphans.length ? row("none", dot("#B4BCD0"), "Без папки", orphans.length) : ""}
+    </div>`;
+}
 renderTests = function(q){
   if (typeof q === "string") TS.q = q;
   const c = $("tc");
@@ -1127,54 +1104,33 @@ renderTests = function(q){
   _closeTMenu();
   const stats = _testStats();
   const live = tests.filter(t => t.status !== "archived");
-  const inFolder = _fFilter && _fFilter !== "all" && _fFilter !== "none";
-  const inOrphan = _fFilter === "none";
-  const folder = inFolder ? folders.find(f => f.id === _fFilter) : null;
-  if (inFolder && !folder){ _fFilter = "all"; window._fFilter = "all"; }   // папку видалили в іншій вкладці
   const orphans = live.filter(t => !_folderOf(t));
+  const hasFolders = folders.length > 0;
+  // Папку могли видалити в іншій вкладці; «Без папки» зникає, коли всі тести розкладено
+  let scope = _fFilter || "all";
+  if (scope !== "all" && scope !== "none" && !folders.some(f => f.id === scope)) scope = "all";
+  if (scope === "none" && (!orphans.length || !hasFolders)) scope = "all";
+  if (!hasFolders) scope = "all";
+  if (scope !== _fFilter){ _fFilter = scope; window._fFilter = scope; }
+  const folder = scope !== "all" && scope !== "none" ? folders.find(f => f.id === scope) : null;
 
   const nb = document.getElementById("nb-archive");
   if (nb) nb.textContent = tests.length - live.length;
-  const crumbs = document.getElementById("t-crumbs");
   const sub = document.getElementById("t-subtitle");
-
-  // ─── Всередині папки ─────────────────────────────────────────────────
-  if (folder || inOrphan){
-    const name = folder ? folder.name : "Без папки";
-    const col = folder ? _folderColor(folder) : "#8691AC";
-    const all = folder ? live.filter(t => t.folderId === folder.id) : orphans;
-    const counts = _statusCounts(all.filter(t => _matches(t, TS.q)));
-    let lst = all.filter(t => _matches(t, TS.q));
-    if (TS.status) lst = lst.filter(t => t.status === TS.status);
-    lst = _sortTests(lst, stats);
-    if (sub) sub.textContent = `${_nTests(all.length)} у папці`;
-    if (crumbs){
-      crumbs.hidden = false;
-      crumbs.innerHTML = `<button class="t-crumb" data-act="open-folder" data-id="all">${I.home}Усі папки</button>
-        <span class="t-sep">/</span>
-        <span class="t-crumb active"><span class="t-dot" style="background:linear-gradient(135deg,${_lightenHex(col, .4)},${col})"></span>${esc(name)}</span>
-        <div class="t-crumb-actions">
-          ${folder ? `<button class="t-btn" data-act="add-test" data-id="${esc(folder.id)}">${I.plus}Додати тест</button>
-          <button class="t-btn ghost" data-act="folder-edit" data-id="${esc(folder.id)}">${I.edit}Редагувати папку</button>
-          <button class="t-btn ghost danger" data-act="folder-delete" data-id="${esc(folder.id)}">${I.del}Видалити</button>` : ""}
-        </div>`;
-    }
-    _syncToolbar({ scope: "folder", name, showsTests: true, counts });
-    c.innerHTML = `<div class="t-card">${_renderTestsContent(lst, all.length, stats, false,
-      all.length ? null : "У папці ще немає тестів", all.length ? null : "Натисніть «Додати тест», щоб створити перший")}</div>`;
-    return;
-  }
-
-  if (crumbs){ crumbs.hidden = true; crumbs.innerHTML = ""; }
-  if (sub) sub.textContent = `${folders.length} ${_plural(folders.length, "папка", "папки", "папок")} · ${_nTests(live.length)}`;
+  if (sub) sub.textContent = hasFolders
+    ? `${_nTests(live.length)} · ${folders.length} ${_plural(folders.length, "папка", "папки", "папок")}`
+    : _nTests(live.length);
+  const rail = document.getElementById("t-rail"), split = document.getElementById("t-split");
+  if (rail){ rail.hidden = !hasFolders; rail.innerHTML = hasFolders ? _railHtml(scope, live, orphans) : ""; }
+  if (split) split.classList.toggle("no-rail", !hasFolders);
 
   // ─── Порожньо взагалі ────────────────────────────────────────────────
-  if (!live.length && !folders.length){
+  if (!live.length && !hasFolders){
     _syncToolbar({ scope: "root", showsTests: false });
     c.innerHTML = `<div class="t-card"><div class="t-empty">
       <div class="t-empty-ico">${I.folder}</div>
-      <div class="t-empty-title">Ще немає папок чи тестів</div>
-      <div class="t-empty-hint">Створіть папку для курсу або одразу перший тест</div>
+      <div class="t-empty-title">Ще немає тестів</div>
+      <div class="t-empty-hint">Створіть перший тест або папку для курсу</div>
       <div style="display:flex;gap:8px;justify-content:center">
         <button class="t-btn" data-act="new-folder">${I.folder}Нова папка</button>
         <button class="t-btn primary" data-act="add-test" data-id="">${I.plus}Новий тест</button>
@@ -1183,56 +1139,27 @@ renderTests = function(q){
     return;
   }
 
-  // ─── Пошук по всіх папках ────────────────────────────────────────────
-  if (TS.q){
-    const found = live.filter(t => _matches(t, TS.q));
-    const counts = _statusCounts(found);
-    let lst = TS.status ? found.filter(t => t.status === TS.status) : found;
-    lst = _sortTests(lst, stats);
-    _syncToolbar({ scope: "root", showsTests: true, counts });
-    c.innerHTML = `<div class="t-card">
-      <div class="t-section-label"><span>Результати пошуку</span><span class="t-n">${lst.length}</span></div>
-      ${_renderTestsContent(lst, found.length ? found.length : 1, stats, true, "Нічого не знайдено", `За запитом «${TS.q}» тестів немає`)}
-    </div>`;
-    return;
-  }
-
-  // ─── Головна: нещодавні (компактно, зверху) + папки ──────────────────
-  _syncToolbar({ scope: "root", showsTests: false });
-  const cards = folders.map(f => _folderCard(f, live.filter(t => t.folderId === f.id), stats));
-  if (orphans.length) cards.push(_folderCard(null, orphans, stats));
-  cards.push(`<button class="t-new-folder" data-act="new-folder">
-    <div class="t-nf-ico">${I.plus}</div>
-    <div class="t-nf-title">Нова папка</div>
-    <div class="t-nf-hint">Згрупувати тести в курс</div>
-  </button>`);
-  const recent = [...live].sort((a, b) => _activity(b, stats.get(b.id)) - _activity(a, stats.get(a.id))).slice(0, 8);
-  c.innerHTML = `${recent.length ? `<section class="t-recent" aria-label="Нещодавні тести">
-      <div class="t-recent-h"><span>Нещодавні</span><span class="t-n">швидкий доступ</span></div>
-      <div class="t-recent-list">${recent.map((t, i) => _recentChip(t, i, stats)).join("")}</div>
-    </section>` : ""}
-    <div class="t-card">
-      <div class="t-section-label"><span>Папки</span><span class="t-n">${folders.length + (orphans.length ? 1 : 0)}</span></div>
-      <div class="t-folders-grid">${cards.join("")}</div>
-    </div>`;
+  // ─── Тести вибраної папки ────────────────────────────────────────────
+  const name = folder ? folder.name : scope === "none" ? "Без папки" : "Усі тести";
+  const all = folder ? live.filter(t => t.folderId === folder.id) : scope === "none" ? orphans : live;
+  const counts = _statusCounts(all.filter(t => _matches(t, TS.q)));
+  let lst = all.filter(t => _matches(t, TS.q));
+  if (TS.status) lst = lst.filter(t => t.status === TS.status);
+  lst = _sortTests(lst, stats);
+  _syncToolbar({ scope: scope === "all" ? "root" : "folder", name, showsTests: true, counts });
+  const head = hasFolders ? `<div class="t-scope">
+      <div class="t-scope-t"><h2>${esc(name)}</h2></div>
+      ${folder ? `<div class="t-scope-a">
+        <button class="t-btn ghost" data-act="folder-edit" data-id="${esc(folder.id)}">${I.edit}Змінити</button>
+        <button class="t-btn ghost danger" data-act="folder-delete" data-id="${esc(folder.id)}">${I.del}Видалити</button>
+      </div>` : ""}
+    </div>` : "";
+  const emptyT = all.length ? null : folder ? "У папці ще немає тестів" : "Тут ще немає тестів";
+  const emptyH = all.length ? null : folder ? "Натисніть «Новий тест» — він створиться в цій папці" : "Створіть перший тест";
+  // Сітка тестів лежить прямо на сторінці (без рамки-обгортки); таблиця й порожній стан — у картці
+  const flat = TS.view !== "list" && lst.length;
+  c.innerHTML = `${head}<div class="t-card${flat ? " flat" : ""}">${_renderTestsContent(lst, all.length, stats, scope === "all" && hasFolders, emptyT, emptyH)}</div>`;
 };
-
-// Компактний рядок «нещодавнього» тесту: клік — одразу в конструктор, ⋯ — усі дії
-function _recentChip(t, idx, stats){
-  const st = stats.get(t.id) || _EMPTY_STATS;
-  const f = _folderOf(t);
-  const sc = _sc(t);
-  return `<div class="t-rc">
-    <button class="t-rc-main" data-act="edit" data-id="${esc(t.id)}" title="Відкрити «${esc(t.title)}» у конструкторі">
-      <span class="t-rc-tile" style="background:${_quizCoverGradient(t, idx)}">${esc(_testAbbr(t.title))}</span>
-      <span class="t-rc-txt">
-        <span class="t-rc-title">${esc(t.title)}</span>
-        <span class="t-rc-meta"><i class="t-rc-dot ${sc.cls}" title="${sc.label}"></i>${esc(f?.name || "Без папки")} · ${st.cnt} ${_plural(st.cnt, "спроба", "спроби", "спроб")}</span>
-      </span>
-    </button>
-    <button class="t-rc-more" data-act="menu" data-id="${esc(t.id)}" aria-haspopup="menu" aria-label="Дії з тестом">${I.more}</button>
-  </div>`;
-}
 
 // ─── Плаваюче меню дій (одне на сторінку, не обрізається карткою) ──────
 let _tMenuFor = null;
@@ -1274,15 +1201,6 @@ function _testMenuHtml(t){
     <div class="t-fm-sep"></div>
     ${it("delete", I.del, "Архівувати або видалити…", " d")}`;
 }
-function _folderMenuHtml(f){
-  const it = (act, icon, label, extra = "") => `<button class="t-fm-item${extra}" role="menuitem" data-act="${act}" data-id="${esc(f.id)}">${icon}<span>${label}</span></button>`;
-  return `<div class="t-fm-head">${esc(f.name)}</div>
-    ${it("open-folder", I.folder, "Відкрити")}
-    ${it("add-test", I.plus, "Додати тест")}
-    ${it("folder-edit", I.edit, "Перейменувати / колір")}
-    <div class="t-fm-sep"></div>
-    ${it("folder-delete", I.del, "Видалити папку", " d")}`;
-}
 
 // ─── Делегований обробник: усі кнопки сторінки «Тести» ─────────────────
 function _testsAction(act, id, el){
@@ -1290,7 +1208,6 @@ function _testsAction(act, id, el){
   switch (act){
     case "edit":          if (t) location.href = `constructor?id=${encodeURIComponent(id)}`; break;
     case "menu":          if (t){ if (_tMenuFor === el) _closeTMenu(); else _openTMenu(el, _testMenuHtml(t)); } break;
-    case "folder-menu":   { const f = folders.find(x => x.id === id); if (f){ if (_tMenuFor === el) _closeTMenu(); else _openTMenu(el, _folderMenuHtml(f)); } } break;
     case "link":          _closeTMenu(); G.qLink(id); break;
     case "live":          _closeTMenu(); G.startLiveGame(id); break;
     case "status":        _closeTMenu(); G.setTestStatus(id, el.dataset.val); break;
