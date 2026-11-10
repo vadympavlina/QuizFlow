@@ -22,12 +22,19 @@ test("кожна сторінка показує шлях «Розділ / Ст�
   expect(errors).toEqual([]);
 });
 
-test("заголовок, що відрізняється від назви сторінки, лишається видимим", async ({ page, errors }) => {
+test("заголовки: на кожній сторінці свій видимий заголовок; запасний механізм ховає дублікат", async ({ page, errors }) => {
   await seed(page, rich(Date.now()), "t1");
   await page.goto("/"); await page.waitForTimeout(1300);
   await expect(page.locator(".main h1").first()).toContainText("Добрий");          // привітання на дашборді
-  await page.goto("/attempts"); await page.waitForTimeout(1300);
-  await expect(page.locator(".main h1").first()).toHaveClass(/qtb-h1-dup/);        // «Спроби» вже є в шляху
+  for (const [pg, h] of [["attempts", "Усі проходження"], ["tests", "Бібліотека тестів"], ["gradebook", "Оцінки по групах"], ["online", "Хто проходить зараз"]]) {
+    await page.goto("/" + pg); await page.waitForTimeout(1300);
+    const h1 = page.locator(".main h1").first();
+    await expect(h1).toHaveText(h);
+    await expect(h1).not.toHaveClass(/qtb-h1-dup/);                                // сторінка не виглядає порожньою
+  }
+  // Якщо заголовок усе ж збігся зі шляхом (інша назва пункту в налаштуваннях меню) — він ховається сам
+  await page.evaluate(() => { document.querySelector(".main h1").textContent = document.getElementById("qtb-t").textContent; });
+  await expect(page.locator(".main h1").first()).toHaveClass(/qtb-h1-dup/);
   expect(errors).toEqual([]);
 });
 

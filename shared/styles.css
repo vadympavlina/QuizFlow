@@ -1317,3 +1317,25 @@ html:not(.sb-c) .sb:not(.collapsed) .sb-toggle:hover{ background:rgba(255,255,25
   .qtb::after{ right:0; background:radial-gradient(circle at 0 100%, transparent 25px, var(--frame) 26px); }
 }
 @media print{ html.has-sb body::after{ display:none; } }
+
+/* ─── Дотик (за навичкою «gestures») ─── */
+/* Меню на телефоні тягнеться вбік пальцем: браузер лишає собі тільки вертикальну прокрутку */
+@media (max-width:1023px){ .sb, .sb *{ touch-action:pan-y; } }
+/* Без затримки й збільшення від подвійного дотику на кнопках і посиланнях */
+a, button, [role="button"], [role="tab"], summary, label, input, select, textarea{ touch-action:manipulation; }
+
+/* Цілі натискання не менші за 44px (лише на дотиковому екрані й телефоні; на комп'ютері розміри ті самі) */
+@media (pointer:coarse), (max-width:1023px){
+  .qtb-btn, .qtb-menu, .qtb-icon, .sb-new, .t-rr, .t-lb, .t-view button, .cd-btn, .qd-btn, .tab, .l-tab, .nf-tab, .sp-tab, .st-chip, .rp-chip,
+  .a-more, .ic-btn, .ib, .review-btn, .l-url-btn, .l-res, .l-icon-btn, .st-pg-btn, .pr-eye, .gb-sort, .nwa-copy, .nwa-row, .gh-btn, .gh-icon,
+  .dx-mode-cta, a.go, .pr-btn, .st-seg button, .gh-seg button, .pg-nums button{ min-height:44px !important; }
+  .qtb-btn, .qtb-menu, .qtb-icon, .t-lb.icon, .t-lb.edit, .ic-btn, .ib, .l-icon-btn, .st-pg-btn, .pr-eye, .nwa-copy, .gh-icon, .t-view button, .l-url-btn.icon-only, a.go, .pg-nums button, .qd-btn{ min-width:44px !important; }
+  .main input[type=text], .main input[type=search], .main input:not([type]), .main input[type=email], .main input[type=password]{ min-height:44px !important; }
+}
+/* На дотику наведення «залипає» після натискання: прибираємо рухи (підйом карток, зсув іконок) */
+@media (hover:none), (pointer:coarse){
+  .btn-ok:hover, .btn-pri:hover, .bp:hover, .mo .bp:hover, .btn.pri:hover:not(:disabled), .submit:hover:not(:disabled),
+  #sec-suspicious button.risk-card:hover, #sec-tests .t-quiz-card:hover, .ad-gp-grid button:hover, .dx-kpi:hover, .dx-mode-cta:hover,
+  .gb-cell:hover, .mx-color:hover, .notif-item:hover, .sc:hover, .swatch:hover, .sb-toggle:hover,
+  .ni:hover .sb-ico, .sb .logo:hover .logo-i{ transform:none !important; }
+}

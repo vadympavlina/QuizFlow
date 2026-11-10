@@ -393,6 +393,70 @@
   }
   window.toggleMobileNav = function () { setOpen(!root.classList.contains("sb-open")); };
 
+  // Жест: свайп ліворуч закриває висувне меню (воно виїжджає зліва — закривається в ту ж сторону).
+  // Поки палець на екрані, меню йде за ним 1:1 (без easing і без анімації), а підкладка світлішає
+  // пропорційно зсуву. Відпустили: закриваємо за відстанню (понад 40% ширини) або за швидкістю
+  // (понад 0,5 px/мс), інакше швидко повертаємо назад. Далі працюють звичайні CSS-переходи,
+  // тож меню можна «зловити» посеред руху. Прокрутка списку пунктів (вертикальна) не заважає.
+  // Слухачі — на документі: меню перемальовується, коли приходять налаштування з бази,
+  // і прив'язка до першого елемента загубилась би.
+  function bindDrawerSwipe() {
+    if (!window.PointerEvent || window._sbSwipe) return;
+    window._sbSwipe = true;
+    var st = null;
+    var el = function () { return { sb: document.getElementById("sidebar"), ov: document.getElementById("sb-ov") }; };
+    function paint(dx, w) {
+      var e = el(), x = dx < 0 ? dx : dx * 0.15;                    // вправо — опір, а не жорсткий стоп
+      e.sb.style.transform = "translateX(" + x + "px)";
+      e.ov.style.opacity = String(Math.max(0, 1 - Math.max(0, -dx) / (w + 16)));
+    }
+    function clear() {
+      var e = el(); if (!e.sb || !e.ov) return;
+      e.sb.style.transition = ""; e.sb.style.transform = ""; e.ov.style.transition = ""; e.ov.style.opacity = "";
+    }
+    document.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "mouse" || !root.classList.contains("sb-open") || !isNarrow()) return;
+      if (!e.target.closest || !e.target.closest("#sidebar")) return;
+      st = { id: e.pointerId, x: e.clientX, y: e.clientY, lx: e.clientX, lt: e.timeStamp, v: 0, dx: 0, drag: false };
+    });
+    document.addEventListener("pointermove", function (e) {
+      if (!st || e.pointerId !== st.id) return;
+      var x = el(), dx = e.clientX - st.x, dy = e.clientY - st.y;
+      if (!x.sb || !x.ov) { st = null; return; }
+      if (!st.drag) {
+        if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { st = null; return; }   // це прокрутка списку
+        if (Math.abs(dx) < 8) return;
+        st.drag = true;
+        try { x.sb.setPointerCapture(e.pointerId); } catch (_) {}
+        x.sb.style.transition = "none"; x.ov.style.transition = "none";
+      }
+      var dt = e.timeStamp - st.lt;
+      if (dt > 0) st.v = 0.7 * ((e.clientX - st.lx) / dt) + 0.3 * st.v;                // згладжена швидкість
+      st.lx = e.clientX; st.lt = e.timeStamp; st.dx = dx;
+      paint(dx, x.sb.offsetWidth || 300);
+    });
+    function finish(e, cancelled) {
+      if (!st || e.pointerId !== st.id) return;
+      var g = st; st = null;
+      if (!g.drag) return;
+      var x = el(); if (!x.sb || !x.ov) return;
+      var w = x.sb.offsetWidth || 300;
+      var close = !cancelled && (-g.dx > w * 0.4 || g.v < -0.5);
+      // після жесту браузер може «натиснути» пункт під пальцем — гасимо цей клік
+      var stop = function (ev) { ev.stopPropagation(); ev.preventDefault(); };
+      document.addEventListener("click", stop, { capture: true, once: true });
+      setTimeout(function () { document.removeEventListener("click", stop, true); }, 150);
+      if (close) { clear(); setOpen(false); return; }
+      // Не дотягнули: швидко назад (повернення — швидке, а не повільне «незгода» інтерфейсу)
+      x.sb.style.transition = "transform .2s cubic-bezier(.32,.72,0,1)";
+      x.ov.style.transition = "opacity .2s";
+      x.sb.style.transform = ""; x.ov.style.opacity = "";
+      setTimeout(clear, 230);
+    }
+    document.addEventListener("pointerup", function (e) { finish(e, false); });
+    document.addEventListener("pointercancel", function (e) { finish(e, true); });
+  }
+
   // «Новий тест» у меню: на сторінці «Тести» — її власна кнопка (тест створюється в поточній папці),
   // на інших — перехід на форму нового тесту.
   window.sbNewTest = function () {
@@ -457,6 +521,7 @@
       ov.className = "sb-ov"; ov.id = "sb-ov";
       ov.addEventListener("click", function () { setOpen(false); });
       sb.parentNode.insertBefore(ov, sb.nextSibling);
+      bindDrawerSwipe();
     }
     var main = document.querySelector(".main");
     if (!main || document.getElementById("qtb")) return;
