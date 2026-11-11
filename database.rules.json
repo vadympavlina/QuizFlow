@@ -129,6 +129,9 @@
         "players": {
           "$pid": {
             ".write": "!data.exists() && newData.child('nickname').isString() && newData.child('nickname').val().length <= 40 && !newData.hasChild('score') && !newData.hasChild('points')",
+            "avatar": {
+              ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9-]{1,24}$/)"
+            },
             "online": {
               ".write": "root.child('rooms/' + $code + '/players/' + $pid).exists() && newData.isBoolean()"
             }
