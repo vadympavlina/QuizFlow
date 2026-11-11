@@ -132,6 +132,12 @@
             "avatar": {
               ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9-]{1,24}$/)"
             },
+            "hat": {
+              ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9-]{1,24}$/)"
+            },
+            "glasses": {
+              ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9-]{1,24}$/)"
+            },
             "online": {
               ".write": "root.child('rooms/' + $code + '/players/' + $pid).exists() && newData.isBoolean()"
             }
