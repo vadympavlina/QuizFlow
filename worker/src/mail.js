@@ -7,7 +7,7 @@ export const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&l
 
 const FONT = "Manrope,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 const C = { ink: "#0D1340", text: "#2B3552", muted: "#6B7593", faint: "#8A94B0", line: "#E6EAF3", brand: "#2D5BE3" };
-const DEFAULT_SITE = "https://quizflow.space";
+const DEFAULT_SITE = "https://app.quizflow.space";
 // Логотип віддає сам воркер (/logo.png, див. index.js): поштові проксі можуть не
 // отримати картинку з домену сайту. Версія в адресі — бо Gmail кешує картинки
 // (разом з помилками); після зміни логотипа підніміть номер.

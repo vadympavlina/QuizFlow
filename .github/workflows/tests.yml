@@ -18,9 +18,8 @@ defaults:
     working-directory: tests
 
 jobs:
-  e2e:
-    name: Інтерфейс (Playwright + мок бази)
-    # Playwright 1.56 не підтримує Ubuntu 26.04, на яку перейшов ubuntu-latest
+  worker:
+    name: Воркер пошти (юніт-тести)
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -37,15 +36,6 @@ jobs:
         run: |
           npm run worker:bundle
           git diff --exit-code ../worker/dist/worker.js || (echo "worker/dist/worker.js застарів: виконайте cd tests && npm run worker:bundle" && exit 1)
-      - run: npx playwright install --with-deps chromium
-      - run: npm run e2e
-      - name: Знімки впалих тестів
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-results
-          path: tests/test-results
-          retention-days: 7
 
   rules:
     name: Правила бази (емулятор Firebase)

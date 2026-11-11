@@ -32,9 +32,9 @@ const BATCH = 100;   // максимум Resend для /emails/batch
 const DEFAULTS = {
   FIREBASE_PROJECT_ID: "quizflow-8a978",
   FIREBASE_DB_URL: "https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",
-  SITE_URL: "https://quizflow.space",
+  SITE_URL: "https://app.quizflow.space",
   MAIL_FROM: "QuizFlow <noreply@quizflow.space>",
-  ALLOWED_ORIGINS: "https://quizflow.space,https://www.quizflow.space",
+  ALLOWED_ORIGINS: "https://app.quizflow.space,https://admin.quizflow.space",
 };
 
 export default {
@@ -289,7 +289,7 @@ function page(env, title, text, status, url, state) {
   const action = url ? esc(url.pathname + url.search) : "";
   const btn = state === null ? `<form method="post" action="${action}"><button>Відписатися</button></form>`
     : state === true ? `<form method="post" action="${action}"><input type="hidden" name="action" value="resubscribe"><button class="ghost">Повернути підписку</button></form>` : "";
-  const site = String(env.SITE_URL || "https://quizflow.space").replace(/\/+$/, "");
+  const site = String(env.SITE_URL || "https://app.quizflow.space").replace(/\/+$/, "");
   return new Response(`<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${esc(title)} — QuizFlow</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap" rel="stylesheet">
 <style>*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#fff;font-family:Manrope,system-ui,sans-serif;color:#2B3552}
