@@ -37,6 +37,18 @@ fs.writeFileSync(new URL("favicon.ico", OUT), fav);
 fs.writeFileSync(new URL("apple-touch-icon.png", OUT), await render(180, BLUE, 0.78));
 fs.writeFileSync(new URL("icon-192.png", OUT), await render(192, BLUE, 0.72));
 fs.writeFileSync(new URL("icon-512.png", OUT), await render(512, BLUE, 0.72));
+fs.writeFileSync(new URL("icon-maskable-512.png", OUT), await render(512, BLUE, 0.6));
+const svgPng = (await render(256, null, 1)).toString("base64");
+fs.writeFileSync(new URL("icon.svg", OUT), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><image width="256" height="256" href="data:image/png;base64,${svgPng}"/></svg>\n`);
+fs.writeFileSync(new URL("site.webmanifest", OUT), JSON.stringify({
+  name: "QuizFlow", short_name: "QuizFlow", lang: "uk", start_url: "/", scope: "/", display: "browser",
+  background_color: BLUE, theme_color: BLUE,
+  icons: [
+    { src: "icon-192.png?v=3", sizes: "192x192", type: "image/png", purpose: "any" },
+    { src: "icon-512.png?v=3", sizes: "512x512", type: "image/png", purpose: "any" },
+    { src: "icon-maskable-512.png?v=3", sizes: "512x512", type: "image/png", purpose: "maskable" },
+  ],
+}, null, 2) + "\n");
 fs.copyFileSync(new URL("favicon.ico", OUT), new URL("favicon.ico", ROOT));
 fs.copyFileSync(new URL("apple-touch-icon.png", OUT), new URL("apple-touch-icon.png", ROOT));
 await b.close();
