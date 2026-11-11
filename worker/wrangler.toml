@@ -8,10 +8,10 @@ compatibility_date = "2025-09-01"
 [vars]
 FIREBASE_PROJECT_ID = "quizflow-8a978"
 FIREBASE_DB_URL = "https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app"
-SITE_URL = "https://quizflow.space"
+SITE_URL = "https://app.quizflow.space"
 MAIL_FROM = "QuizFlow <noreply@quizflow.space>"
 # Звідки дозволено запити (через кому). Локальна розробка — додайте http://127.0.0.1:8765
-ALLOWED_ORIGINS = "https://quizflow.space,https://www.quizflow.space"
+ALLOWED_ORIGINS = "https://app.quizflow.space,https://admin.quizflow.space"
 
 # Відписки від розсилок. id створюється командою:
 #   npx wrangler kv namespace create MAIL_KV

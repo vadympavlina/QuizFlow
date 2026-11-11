@@ -60,7 +60,7 @@ async function requireAdmin(request, env) {
 var esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 var FONT = "Manrope,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 var C = { ink: "#0D1340", text: "#2B3552", muted: "#6B7593", faint: "#8A94B0", line: "#E6EAF3", brand: "#2D5BE3" };
-var DEFAULT_SITE = "https://quizflow.space";
+var DEFAULT_SITE = "https://app.quizflow.space";
 var LOGO_V = 3;
 function inline(s) {
   return esc(s).replace(/\*\*(.+?)\*\*/g, `<strong style="color:${C.ink}">$1</strong>`).replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)"'])/g, `<a href="$1" style="color:${C.brand};text-decoration:underline">$1</a>`);
@@ -334,9 +334,9 @@ var BATCH = 100;
 var DEFAULTS = {
   FIREBASE_PROJECT_ID: "quizflow-8a978",
   FIREBASE_DB_URL: "https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app",
-  SITE_URL: "https://quizflow.space",
+  SITE_URL: "https://app.quizflow.space",
   MAIL_FROM: "QuizFlow <noreply@quizflow.space>",
-  ALLOWED_ORIGINS: "https://quizflow.space,https://www.quizflow.space"
+  ALLOWED_ORIGINS: "https://app.quizflow.space,https://admin.quizflow.space"
 };
 var index_default = {
   async fetch(request, rawEnv) {
@@ -601,7 +601,7 @@ async function unsubscribe(request, env, url) {
 function page(env, title, text, status2, url, state) {
   const action = url ? esc(url.pathname + url.search) : "";
   const btn = state === null ? `<form method="post" action="${action}"><button>\u0412\u0456\u0434\u043F\u0438\u0441\u0430\u0442\u0438\u0441\u044F</button></form>` : state === true ? `<form method="post" action="${action}"><input type="hidden" name="action" value="resubscribe"><button class="ghost">\u041F\u043E\u0432\u0435\u0440\u043D\u0443\u0442\u0438 \u043F\u0456\u0434\u043F\u0438\u0441\u043A\u0443</button></form>` : "";
-  const site = String(env.SITE_URL || "https://quizflow.space").replace(/\/+$/, "");
+  const site = String(env.SITE_URL || "https://app.quizflow.space").replace(/\/+$/, "");
   return new Response(
     `<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${esc(title)} \u2014 QuizFlow</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap" rel="stylesheet">
