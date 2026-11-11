@@ -8,6 +8,7 @@
     "worker:bundle": "esbuild ../worker/src/index.js --bundle --format=esm --target=es2022 --legal-comments=none --banner:js=\"// QuizFlow Mail — один файл для редактора Cloudflare (Workers → Edit code). Не редагуйте вручну: збирається з worker/src командою  cd tests && npm run worker:bundle\" --outfile=../worker/dist/worker.js",
     "worker:logo": "node scripts/worker-logo.mjs",
     "icons": "node scripts/icons.mjs",
+    "icons:landing": "node scripts/icons-landing.mjs",
     "og": "node scripts/og.mjs"
   },
   "devDependencies": {
