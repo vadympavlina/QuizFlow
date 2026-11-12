@@ -73,13 +73,15 @@ img{-webkit-user-select:none;user-select:none}
 /* перехресні стрічки */
 .bands{position:relative;height:clamp(240px,25vw,340px);background:var(--blue);overflow:hidden}
 .band{position:absolute;left:-25%;width:150%;top:50%;padding:clamp(10px,1.1vw,16px) 0;white-space:nowrap;font-family:var(--display);font-weight:900;font-size:clamp(22px,3.2vw,44px);line-height:1.15;letter-spacing:.01em;text-transform:uppercase}
-.band .tr{display:inline-flex;gap:40px;animation:mq 30s linear infinite}
+.band .tr{display:inline-flex;gap:40px;animation:mq 30s linear infinite;will-change:transform}
 .band span{display:inline-flex;align-items:center;gap:40px}
 .band span::after{content:"";width:.5em;height:.5em;background:currentColor;border-radius:50%;opacity:.9}
 /* стрічки перехрещуються посередині; ширші за екран, тож їхніх країв не видно */
 .b1{background:var(--sun);color:var(--ink);transform:translateY(-50%) rotate(-3deg);z-index:1}
 .b2{background:var(--ink);color:#fff;transform:translateY(-50%) rotate(3deg);z-index:2;box-shadow:0 12px 24px rgba(0,0,0,.28)}
 .b2 .tr{animation-direction:reverse;animation-duration:36s}
+/* на вузькому екрані стрічки розведено по висоті й нахил більший: перехрещуються біля краю, а не лягають одна на одну, тож текст видно обох */
+@media(max-width:600px){.b1{top:44%;transform:translateY(-50%) rotate(-5deg)}.b2{top:56%;transform:translateY(-50%) rotate(5deg)}}
 @keyframes mq{to{transform:translateX(-50%)}}
 
 /* гра */
@@ -377,7 +379,7 @@ if("IntersectionObserver"in window){new IntersectionObserver(function(en,io){if(
 var wordsEl=document.getElementById("words");if(!wordsEl)return;
 if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
 var cv=document.createElement("canvas");cv.id="ptc";cv.setAttribute("aria-hidden","true");wordsEl.appendChild(cv);
-var TXT=[],still=0,ctx=cv.getContext("2d"),dpr=Math.min(2,devicePixelRatio||1),W=0,H=0,PAD=60,P=[],mouse={x:-999,y:-999,on:false},cycle=0,settled=false;
+var TXT=[],still=0,ctx=cv.getContext("2d"),dpr=Math.min(2,devicePixelRatio||1),W=0,H=0,PAD=60,P=[],mouse={x:-999,y:-999,on:false},settled=false;
 var WHITE=["#ffffff","#F3F6FF","#E4ECFF"],SUN=["#FFD84D","#FFE17A","#FFCB1F"];
 function sample(){
   var wr=wordsEl.getBoundingClientRect(),lns=[].slice.call(wordsEl.querySelectorAll(".ln")),rects=lns.map(function(ln){var rg=document.createRange();rg.selectNodeContents(ln);return rg.getBoundingClientRect()});
@@ -405,8 +407,9 @@ function build(){
   });
   activate();
 }
-function activate(){settled=false;still=0;cycle=0;wordsEl.classList.add("pt")}
+function activate(){settled=false;still=0;wordsEl.classList.add("pt")}
 function restDraw(){ctx.clearRect(0,0,W,H);TXT.forEach(function(l){ctx.font=l.f;if("letterSpacing"in ctx)ctx.letterSpacing=l.ls;ctx.textBaseline="alphabetic";ctx.fillStyle=l.c;ctx.fillText(l.t,l.x,l.y)})}
+/* розсипаються лише від кліку чи дотику по заголовку, самі не ворушаться */
 function scatter(){
   for(var i=0;i<P.length;i++){var p=P[i],a=Math.random()*6.283,f=4+Math.random()*13;p.vx+=Math.cos(a)*f;p.vy+=Math.sin(a)*f-3;p.w=Math.round(p.tx/W*24+Math.random()*10)}
   activate();
@@ -415,7 +418,7 @@ function nearWords(){var r=wordsEl.getBoundingClientRect();return mouse.on&&mous
 function frame(){
   var near=nearWords();
   if(settled){
-    if(near)activate();else if(++cycle>480)scatter();
+    if(near)activate();
     requestAnimationFrame(frame);return;
   }
   ctx.clearRect(0,0,W,H);
@@ -429,7 +432,7 @@ function frame(){
     if(Math.abs(p.vx)>.04||Math.abs(p.vy)>.04||Math.abs(p.tx-p.x)>.6||Math.abs(p.ty-p.y)>.6)moving=true;
     ctx.fillStyle=p.c;var s=p.s;ctx.fillRect(p.x-s/2,p.y-s/2,s,s);
   }
-  if(!moving&&!near){if(++still>25){settled=true;cycle=0;restDraw()}}else still=0;
+  if(!moving&&!near){if(++still>25){settled=true;restDraw()}}else still=0;
   requestAnimationFrame(frame);
 }
 function pos(e){var r=wordsEl.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top;mouse.on=true}
@@ -458,9 +461,18 @@ addEventListener("pointercancel", function(){ act = false; px = py = -9999; });
 addEventListener("pointermove", function(e){ px = e.clientX; py = e.clientY; act = true; if (fine) { var c0 = document.getElementById("cur"); if (c0) c0.classList.add("on"); } });
 
 /* стрічки */
-function band(id, arr){ var h = ""; for (var k = 0; k < 4; k++) arr.forEach(function(t){ h += "<span>" + esc(t) + "</span>"; }); $(id).innerHTML = h; }
-band("m1", ["Тест за посиланням","Гра наживо","12-бальна шкала","Автоперевірка"]);
-band("m2", ["Журнал","Аналітика","QR-код","Групи"]);
+/* стрічка: половина доріжки (одна або кілька копій слів) ширша за саму стрічку, друга половина така сама, тож зсув на -50% безшовний.
+   Доріжка не має бути довшою, ніж потрібно: у телефонах дуже широкі шари з анімацією перестають малюватись, і текст зникає. */
+var BANDS = [["m1", ["Тест за посиланням","Гра наживо","12-бальна шкала","Автоперевірка"]], ["m2", ["Журнал","Аналітика","QR-код","Групи"]]];
+function fillBand(id, arr){
+  var tr = $(id), one = arr.map(function(t){ return "<span>" + esc(t) + "</span>"; }).join("");
+  tr.innerHTML = one; var cw = tr.scrollWidth + 40, need = tr.parentNode.getBoundingClientRect().width + 80;
+  var n = Math.max(1, Math.ceil(need / cw)), h = ""; for (var k = 0; k < n * 2; k++) h += one; tr.innerHTML = h;
+}
+function fillBands(){ BANDS.forEach(function(b){ fillBand(b[0], b[1]); }); }
+fillBands();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fillBands);
+var brt; addEventListener("resize", function(){ clearTimeout(brt); brt = setTimeout(fillBands, 250); });
 
 var cur = $("cur");
 document.querySelectorAll("button,.opt").forEach(function(b){ b.addEventListener("pointerenter", function(){ cur.classList.add("big"); }); b.addEventListener("pointerleave", function(){ cur.classList.remove("big"); }); });
