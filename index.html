@@ -154,12 +154,14 @@ h2 mark{background:var(--sun);color:var(--ink);padding:0 .12em;border-radius:.12
 .pg i{display:block;height:100%;width:0;background:var(--sun)}
 .hh{position:absolute;left:max(20px,6vw);top:30px;font-family:var(--display);font-weight:900;font-size:16px;letter-spacing:0;color:#9FB0F0}
 
-.end{background:var(--blue);padding:clamp(100px,13vw,200px) 0 80px;text-align:center;overflow:hidden;position:relative}
-.end h2{font-size:clamp(36px,7.4vw,124px);max-width:11em;margin-inline:auto}
+.end{background:var(--blue);padding:clamp(76px,9svh,130px) 0 0;text-align:center;position:relative;z-index:2;min-height:100svh;display:flex;flex-direction:column;overflow-x:clip}
+.end h2{font-size:clamp(30px,min(7.4vw,9svh),124px);max-width:11em;margin-inline:auto}
 .end .ln2{color:var(--sun)}
-.end .pill{margin-top:clamp(30px,4vw,56px);background:var(--sun);color:var(--ink);box-shadow:5px 6px 0 var(--ink)}
+.end::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 108%,rgba(255,255,255,.1) 0,rgba(255,255,255,.1) min(44vw,560px),rgba(255,255,255,.07) min(44vw,560px),rgba(255,255,255,.07) min(66vw,840px),rgba(255,255,255,.045) min(66vw,840px),rgba(255,255,255,.045) min(88vw,1120px),transparent min(88vw,1120px))}
+.end>*{position:relative}
+.end .pill{margin-top:clamp(20px,3.2svh,56px);background:var(--sun);color:var(--ink);box-shadow:5px 6px 0 var(--ink)}
 .end .pill:hover{box-shadow:7px 8px 0 var(--ink)}
-footer{text-align:center;padding:44px 20px max(40px,env(safe-area-inset-bottom,0px));background:var(--ink);font-weight:600;font-size:14px;color:#9FB0F0;display:grid;gap:12px;justify-items:center}
+footer{position:relative;z-index:1;text-align:center;padding:44px 20px max(40px,env(safe-area-inset-bottom,0px));background:var(--ink);font-weight:600;font-size:14px;color:#9FB0F0;display:grid;gap:12px;justify-items:center}
 footer .brand{color:#fff}footer p{max-width:28em}
 
 @media (max-width:900px){
@@ -244,11 +246,11 @@ footer .brand{color:#fff}footer p{max-width:28em}
   .pa .tx{width:calc(100% - 44px);max-width:none;left:22px;top:22px}
   .pa .tx b{font-size:clamp(40px,12vw,56px)}
   }
-/* фінал: усі герої разом, статично; стоять на краю підвалу */
-.grp{position:relative;width:min(1400px,100%);margin:clamp(44px,6vw,96px) auto 0;padding:0 clamp(10px,3vw,40px)}
-.grp::before{content:"";position:absolute;left:50%;bottom:-62%;width:min(98vw,1180px);aspect-ratio:1;border-radius:50%;transform:translateX(-50%);background:rgba(255,255,255,.1);box-shadow:0 0 0 clamp(24px,4.4vw,72px) rgba(255,255,255,.07),0 0 0 clamp(48px,8.8vw,144px) rgba(255,255,255,.045);pointer-events:none}
+/* фінал: усі герої разом, статично; секція на весь екран, герої внизу, лапки курча виступають на підвал */
+.grp{position:relative;margin:auto auto 0;padding:clamp(24px,4svh,64px) clamp(10px,3vw,40px) 0;width:min(1400px,100%);flex:none}
+.grp .pic{position:relative;width:min(100%,calc(46svh * 2.75));margin:0 auto}
 .grp img{position:relative;display:block;width:100%;height:auto;margin-bottom:-3.6%;filter:drop-shadow(0 20px 24px rgba(11,20,55,.28));pointer-events:none}
-.end{padding-bottom:0}
+.grp img.ft{position:absolute;left:0;top:0;margin:0;z-index:3;filter:drop-shadow(0 6px 8px rgba(11,20,55,.3))}
 @media(prefers-reduced-motion:reduce){.pa.on .pch,.pa.on .sp{animation:none}.pa,.pa .pbg,.pa .tx,.pa .pch,.pa .bg::after{transition:none!important}.pa{opacity:1;transform:none}}
 </style>
 </head>
@@ -345,7 +347,7 @@ footer .brand{color:#fff}footer p{max-width:28em}
 
 <section class="end">
   <div class="w"><h2>Нехай тест<br><span class="ln2">перевіряє<br>себе сам.</span></h2><a class="pill" href="#play">Зіграти ще раз<svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg></a></div>
-<div class="grp"><img src="assets/team/group.webp" alt="Усі герої QuizFlow: качка, кролик, курча, паросток і сова" width="1600" height="582" loading="lazy" decoding="async"></div>
+<div class="grp"><div class="pic"><img src="assets/team/group.webp" alt="Усі герої QuizFlow: качка, кролик, курча, паросток і сова" width="1600" height="582" decoding="async"><img class="ft" src="assets/team/group-feet.webp" alt="" aria-hidden="true" width="1600" height="582" decoding="async"></div></div>
 </section>
 <script>
 (function(){
