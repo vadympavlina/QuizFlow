@@ -72,13 +72,14 @@ img{-webkit-user-select:none;user-select:none}
 .pill:hover{transform:translate(-2px,-2px);box-shadow:7px 8px 0 rgba(0,0,0,.28)}
 
 /* перехресні стрічки */
-.bands{position:relative;height:clamp(230px,24vw,330px);background:var(--blue);overflow:hidden;display:flex;flex-direction:column;justify-content:center;gap:clamp(8px,1vw,14px)}
-.band{position:relative;left:-15%;width:130%;flex:none;padding:clamp(10px,1.1vw,16px) 0;white-space:nowrap;font-family:var(--display);font-weight:900;font-size:clamp(22px,3.2vw,44px);line-height:1.15;letter-spacing:.01em;text-transform:uppercase;transform:rotate(-2.2deg);box-shadow:0 10px 0 rgba(0,0,0,.14)}
+.bands{position:relative;height:clamp(240px,25vw,340px);background:var(--blue);overflow:hidden}
+.band{position:absolute;left:-25%;width:150%;top:50%;padding:clamp(10px,1.1vw,16px) 0;white-space:nowrap;font-family:var(--display);font-weight:900;font-size:clamp(22px,3.2vw,44px);line-height:1.15;letter-spacing:.01em;text-transform:uppercase}
 .band .tr{display:inline-flex;gap:40px;animation:mq 30s linear infinite}
 .band span{display:inline-flex;align-items:center;gap:40px}
 .band span::after{content:"";width:.5em;height:.5em;background:currentColor;border-radius:50%;opacity:.9}
-.b1{background:var(--sun);color:var(--ink)}
-.b2{background:var(--ink);color:#fff}
+/* стрічки перехрещуються посередині; ширші за екран, тож їхніх країв не видно */
+.b1{background:var(--sun);color:var(--ink);transform:translateY(-50%) rotate(-3deg);z-index:1}
+.b2{background:var(--ink);color:#fff;transform:translateY(-50%) rotate(3deg);z-index:2;box-shadow:0 12px 24px rgba(0,0,0,.28)}
 .b2 .tr{animation-direction:reverse;animation-duration:36s}
 @keyframes mq{to{transform:translateX(-50%)}}
 
