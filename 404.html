@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/icons/landing/favicon.ico?v=4" sizes="32x32">
+<link rel="icon" href="/assets/icons/landing/icon.svg?v=4" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/landing/apple-touch-icon.png?v=4">
+<link rel="manifest" href="/assets/icons/landing/site.webmanifest?v=4">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Geist+Mono:wght@400;600&display=swap" rel="stylesheet">
+<title>Сторінку не знайдено · QuizFlow</title>
+<style>
+:root{
+  --bg:#F5F6FB;--ink:#0E1330;--mut:#5B6385;--card:rgba(255,255,255,.72);--line:rgba(14,19,48,.1);--btn:#0E1330;--btn-ink:#fff;
+  --c1:#3B6BF6;--c2:#8B5CF6;--c3:#EC4899;--c4:#10B981;--c5:#F5B700;
+  --blob:.42;--ring-in:#fff;--chip:rgba(255,255,255,.8);--shadow:0 24px 60px -24px rgba(30,40,110,.35);
+}
+:root[data-theme=dark]{--bg:#080C24;--ink:#F3F5FF;--mut:#9AA3CC;--card:rgba(20,26,66,.6);--line:rgba(255,255,255,.12);--btn:#fff;--btn-ink:#0E1330;--blob:.5;--ring-in:#121850;--chip:rgba(24,30,76,.7);--shadow:0 24px 60px -24px rgba(0,0,0,.7)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#080C24;--ink:#F3F5FF;--mut:#9AA3CC;--card:rgba(20,26,66,.6);--line:rgba(255,255,255,.12);--btn:#fff;--btn-ink:#0E1330;--blob:.5;--ring-in:#121850;--chip:rgba(24,30,76,.7);--shadow:0 24px 60px -24px rgba(0,0,0,.7)}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:Manrope,system-ui,sans-serif;background:var(--bg);color:var(--ink);overflow:hidden;position:relative;user-select:none;-webkit-user-select:none}
+img{-webkit-user-drag:none;user-drag:none;pointer-events:none}
+/* Фон: північне сяйво в кольорах усіх п'яти частин сайту */
+.aurora{position:fixed;inset:-10%;z-index:0;filter:blur(70px);pointer-events:none}
+.aurora i{position:absolute;border-radius:50%;opacity:var(--blob);will-change:transform;animation:drift 22s ease-in-out infinite alternate}
+.aurora i:nth-child(1){width:46vmax;height:46vmax;left:-8%;top:-14%;background:var(--c1)}
+.aurora i:nth-child(2){width:38vmax;height:38vmax;right:-6%;top:-10%;background:var(--c2);animation-duration:27s;animation-delay:-6s}
+.aurora i:nth-child(3){width:34vmax;height:34vmax;right:8%;bottom:-18%;background:var(--c3);animation-duration:24s;animation-delay:-11s}
+.aurora i:nth-child(4){width:32vmax;height:32vmax;left:6%;bottom:-16%;background:var(--c4);animation-duration:30s;animation-delay:-3s}
+.aurora i:nth-child(5){width:22vmax;height:22vmax;left:42%;top:30%;background:var(--c5);animation-duration:20s;animation-delay:-14s;opacity:calc(var(--blob) * .7)}
+@keyframes drift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(6vmax,-3vmax) scale(1.12)}100%{transform:translate(-4vmax,5vmax) scale(.94)}}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.5;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.spot{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(340px circle at var(--mx,50%) var(--my,40%),rgba(255,255,255,.55),transparent 70%);opacity:.0;transition:opacity .4s;mix-blend-mode:soft-light}
+:root[data-theme=dark] .spot{background:radial-gradient(340px circle at var(--mx,50%) var(--my,40%),rgba(255,255,255,.18),transparent 70%)}
+body.moved .spot{opacity:1}
+/* Плаваючі фігурки */
+.bits{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.bits svg{position:absolute;opacity:.55;color:var(--ink);animation:float 9s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-18px) rotate(14deg)}}
+
+.top{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:18px clamp(16px,4vw,40px)}
+.brand{display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none;font-weight:800;font-size:20px;letter-spacing:-.02em}
+.brand img{width:34px;height:34px;border-radius:10px;display:block}
+.brand em{font-style:normal;color:var(--c1)}
+.tgl{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--chip);backdrop-filter:blur(10px);color:var(--ink);display:grid;place-items:center;cursor:pointer;transition:transform .15s}
+.tgl:hover{transform:translateY(-1px)} .tgl:active{transform:scale(.94)}
+.tgl svg{width:18px;height:18px}
+.tgl .sun{display:none}:root[data-theme=dark] .tgl .sun{display:block}:root[data-theme=dark] .tgl .moon{display:none}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .tgl .sun{display:block}:root:not([data-theme=light]) .tgl .moon{display:none}}
+
+main{position:relative;z-index:3;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:72px 20px 120px}
+.code{display:flex;align-items:center;justify-content:center;gap:clamp(4px,1.4vw,18px);line-height:.8;margin-bottom:clamp(10px,2.4vh,26px)}
+.dg{font-weight:900;font-size:clamp(110px,24vmin,280px);letter-spacing:-.06em;line-height:.82;background:linear-gradient(100deg,var(--c1),var(--c2) 30%,var(--c3) 55%,var(--c5) 80%,var(--c4));background-size:260% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:flow 9s linear infinite alternate,rise .9s cubic-bezier(.2,.9,.2,1) both;filter:drop-shadow(0 18px 30px rgba(80,60,200,.22))}
+.dg:nth-child(3){animation-delay:0s,.14s}
+@keyframes flow{to{background-position:100% 0}}
+@keyframes rise{from{opacity:0;transform:translateY(40px) scale(.9)}}
+.orb{position:relative;width:clamp(110px,24vmin,280px);height:clamp(110px,24vmin,280px);border-radius:50%;flex:0 0 auto;animation:rise .9s .07s cubic-bezier(.2,.9,.2,1) both}
+.orb::before{content:"";position:absolute;inset:-6px;border-radius:50%;background:conic-gradient(from 0deg,var(--c1),var(--c2),var(--c3),var(--c5),var(--c4),var(--c1));animation:spin 8s linear infinite;-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px))}
+.orb::after{content:"";position:absolute;inset:-26px;border-radius:50%;background:conic-gradient(from 90deg,var(--c3),var(--c5),var(--c4),var(--c1),var(--c2),var(--c3));filter:blur(30px);opacity:.38;z-index:-1;animation:spin 12s linear infinite reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+.orb .in{position:absolute;inset:0;border-radius:50%;background:var(--ring-in);overflow:hidden;display:grid;place-items:end center;box-shadow:inset 0 -14px 30px rgba(80,60,200,.12)}
+.orb .in img{width:96%;height:auto;display:block;transform:translateY(6%);animation:bob 3.6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(6%) rotate(-2deg)}50%{transform:translateY(0) rotate(2deg)}}
+.orb .ico{position:absolute;inset:0;display:grid;place-items:center;color:var(--ink)}
+.orb .ico svg{width:46%;height:46%}
+.bubble{position:absolute;left:100%;top:-6%;margin-left:6px;background:var(--card);border:1px solid var(--line);backdrop-filter:blur(10px);color:var(--ink);font-weight:700;font-size:13px;padding:8px 12px;border-radius:14px 14px 14px 4px;white-space:nowrap;box-shadow:var(--shadow);animation:pop .6s 1.1s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes pop{from{opacity:0;transform:scale(.6) translateY(8px)}}
+h1{font-size:clamp(26px,4.4vmin,44px);font-weight:800;letter-spacing:-.025em;line-height:1.1;margin-bottom:12px;animation:fade .7s .25s both}
+.sub{max-width:520px;color:var(--mut);font-size:clamp(14.5px,2vmin,17px);line-height:1.55;font-weight:500;animation:fade .7s .35s both}
+@keyframes fade{from{opacity:0;transform:translateY(14px)}}
+.acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:24px;animation:fade .7s .45s both}
+.btn{display:inline-flex;align-items:center;gap:9px;height:48px;padding:0 22px;border-radius:14px;font:800 15px Manrope,sans-serif;text-decoration:none;cursor:pointer;border:1px solid var(--line);transition:transform .15s,box-shadow .2s}
+.btn svg{width:18px;height:18px}
+.btn.p{background:var(--btn);color:var(--btn-ink);border-color:transparent;box-shadow:0 14px 30px -12px rgba(14,19,48,.55)}
+.btn.g{background:var(--chip);color:var(--ink);backdrop-filter:blur(10px)}
+.btn:hover{transform:translateY(-2px)} .btn:active{transform:scale(.97)}
+.btn:focus-visible,.tgl:focus-visible,.site:focus-visible{outline:3px solid var(--c1);outline-offset:3px}
+.sites{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:30px;animation:fade .7s .55s both}
+.sites-t{width:100%;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-bottom:2px}
+.site{display:inline-flex;align-items:center;gap:9px;padding:6px 14px 6px 6px;border-radius:999px;background:var(--chip);border:1px solid var(--line);backdrop-filter:blur(10px);color:var(--ink);text-decoration:none;font-weight:700;font-size:13.5px;transition:transform .15s,border-color .2s}
+.site:hover{transform:translateY(-2px);border-color:var(--c)}
+.site span{width:26px;height:26px;border-radius:50%;background:color-mix(in srgb,var(--c) 18%,transparent);display:grid;place-items:end center;overflow:hidden}
+.site img{width:120%;transform:translateY(8%)}
+.where{margin-top:18px;font:600 12px "Geist Mono",monospace;color:var(--mut);max-width:90vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;animation:fade .7s .65s both}
+.where b{color:var(--ink);font-weight:600}
+/* Герої визирають знизу */
+.crew{position:fixed;left:0;right:0;bottom:0;height:clamp(90px,17vh,170px);z-index:2;display:flex;justify-content:center;align-items:flex-end;gap:clamp(8px,3vw,48px);pointer-events:none;overflow:hidden}
+.crew img{width:clamp(70px,11vh,130px);transform:translateY(46%);transition:transform .5s cubic-bezier(.2,1.2,.3,1);animation:peek 1s both}
+.crew img:nth-child(odd){margin-bottom:-6px}
+.crew img.up{transform:translateY(8%)}
+@keyframes peek{from{transform:translateY(120%)}}
+.crew img:nth-child(1){animation-delay:.9s}.crew img:nth-child(2){animation-delay:1s}.crew img:nth-child(3){animation-delay:1.1s}.crew img:nth-child(4){animation-delay:1.2s}.crew img:nth-child(5){animation-delay:1.3s}
+@media(max-width:640px){.crew img:nth-child(n+4){display:none}.bubble{display:none}main{padding-bottom:110px}}
+@media(max-height:620px){.crew{display:none}main{padding-bottom:40px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="aurora"><i></i><i></i><i></i><i></i><i></i></div>
+<div class="grain"></div><div class="spot"></div>
+<div class="bits" id="bits" aria-hidden="true"></div>
+
+<header class="top">
+  <a class="brand" href="https://quizflow.space/"><img src="/assets/err/m/chick.webp" alt="" style="background:#FFF1B8;padding:2px;object-fit:contain"><span>quiz<em>flow</em></span></a>
+  <button class="tgl" id="tgl" type="button" aria-label="Змінити тему">
+    <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+  </button>
+</header>
+
+<main>
+  <div class="code" id="code" aria-hidden="true"></div>
+  <h1 id="ttl"></h1>
+  <p class="sub" id="sub"></p>
+  <div class="acts" id="acts"></div>
+  <div class="where" id="where"></div>
+</main>
+
+<div class="crew" aria-hidden="true" id="crew">
+  <img src="/assets/err/m/duck.webp" alt=""><img src="/assets/err/m/rabbit.webp" alt=""><img src="/assets/err/m/chick.webp" alt=""><img src="/assets/err/m/sprout.webp" alt=""><img src="/assets/err/m/owl.webp" alt="">
+</div>
+
+<script>
+(function(){
+  var I={
+    home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>',
+    back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>',
+    redo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>',
+    key:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2L20 3M16 7l3 3"/></svg>',
+    lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+    wifi:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.8a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r=".8"/><path d="M3 3l18 18"/></svg>'
+  };
+  var C={
+    404:{t:"Сторінку не знайдено",s:"Схоже, посилання застаріло або в адресі помилка. Таке трапляється навіть із найкращими з нас.",say:"Хм… тут порожньо",k:"nf"},
+    401:{t:"Потрібен вхід",s:"Щоб побачити цю сторінку, увійдіть в обліковий запис.",say:"Хто там?",k:"auth",ico:"key"},
+    403:{t:"Доступ заборонено",s:"У вашого облікового запису немає прав на цю сторінку. Якщо вважаєте, що це помилка, зверніться до адміністратора.",say:"Сюди не можна",k:"nf",ico:"lock"},
+    410:{t:"Сторінки більше немає",s:"Її прибрали назавжди. Можливо, посилання було тимчасовим.",say:"Вона пішла…",k:"nf"},
+    429:{t:"Забагато запитів",s:"Зачекайте хвилинку й спробуйте ще раз. Ми нікуди не поспішаємо.",say:"Тихіше, тихіше",k:"retry"},
+    500:{t:"Щось пішло не так",s:"Помилка на нашому боці. Ми вже знаємо про неї. Спробуйте оновити сторінку через хвилину.",say:"Ой, зламалось",k:"retry"},
+    502:{t:"Сервер не відповідає",s:"Сервіс тимчасово недоступний. Спробуйте за хвилину.",say:"Алло?",k:"retry"},
+    503:{t:"Тривають технічні роботи",s:"Ми покращуємо QuizFlow й скоро повернемось. Дякуємо за терпіння.",say:"Ми скоро",k:"retry"},
+    offline:{t:"Немає з'єднання",s:"Перевірте інтернет і спробуйте ще раз. Щойно мережа з'явиться, все запрацює.",say:"Де інтернет?",k:"retry",ico:"wifi"}
+  };
+  var q=new URLSearchParams(location.search), code=(q.get("code")||"404"), c=C[code]||{t:"Не вдалося відкрити сторінку",s:"Сталася непередбачена помилка. Спробуйте ще раз або поверніться на головну.",say:"Ой",k:"retry"};
+  document.title=c.t+" · QuizFlow";
+  document.getElementById("ttl").textContent=c.t;
+  document.getElementById("sub").textContent=c.s;
+  var heroes=["duck","rabbit","chick","sprout","owl"], hero=heroes[Math.floor(Math.random()*heroes.length)];
+  var digits=/^\d{3}$/.test(code)?code.split(""):null;
+  var orb='<div class="orb"><div class="in">'+(c.ico&&!digits?'<div class="ico">'+I[c.ico]+'</div>':'<img src="/assets/err/m/'+hero+'.webp" alt="">')+'</div><div class="bubble">'+c.say+'</div></div>';
+  document.getElementById("code").innerHTML=digits?'<span class="dg">'+digits[0]+'</span>'+orb+'<span class="dg">'+digits[2]+'</span>':orb;
+  var a=document.getElementById("acts"), home='<a class="btn p" href="https://quizflow.space/">'+I.home+'Головна</a>', back='<button class="btn g" type="button" onclick="history.length>1?history.back():location.href=\'/\'">'+I.back+'Назад</button>', redo='<button class="btn p" type="button" onclick="location.reload()">'+I.redo+'Спробувати ще раз</button>';
+  a.innerHTML=c.k==="retry"?redo+home.replace("btn p","btn g"):c.k==="auth"?'<a class="btn p" href="https://app.quizflow.space/login">'+I.key+'Увійти</a>'+home.replace("btn p","btn g"):home+back;
+  document.getElementById("where").innerHTML=(code!=="offline"?'Код <b>'+code+'</b> · ':'')+'<b>'+(location.pathname+location.search).slice(0,80)+'</b>';
+  // тема
+  var R=document.documentElement,tg=document.getElementById("tgl");
+  try{var s=localStorage.getItem("qf-theme");if(s)R.setAttribute("data-theme",s)}catch(e){}
+  tg.onclick=function(){var d=R.getAttribute("data-theme")||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light");var n=d==="dark"?"light":"dark";R.setAttribute("data-theme",n);try{localStorage.setItem("qf-theme",n)}catch(e){}};
+  // фігурки
+  var b=document.getElementById("bits"),sh=[
+    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 4v16M4 12h16"/></svg>',
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="8"/></svg>',
+    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M12 4l9 16H3z"/></svg>',
+    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 8c3-4 5 4 8 0s5 4 8 0"/></svg>'];
+  var pos=[[8,18],[16,70],[26,38],[78,16],[88,60],[70,78],[92,30],[6,52],[60,10],[34,86]];
+  pos.forEach(function(p,i){var d=document.createElement("div");d.innerHTML=sh[i%4];var e=d.firstChild;e.style.left=p[0]+"%";e.style.top=p[1]+"%";e.style.animationDelay=(-i*1.3)+"s";e.style.animationDuration=(7+i%4*2)+"s";e.style.color=["var(--c1)","var(--c3)","var(--c5)","var(--c4)","var(--c2)"][i%5];e.style.opacity=".5";b.appendChild(e)});
+  // паралакс і підсвітка за курсором
+  var al=document.querySelector(".aurora"),cd=document.getElementById("code"),crew=[].slice.call(document.querySelectorAll("#crew img"));
+  addEventListener("pointermove",function(e){
+    var x=e.clientX/innerWidth-.5,y=e.clientY/innerHeight-.5;
+    document.body.classList.add("moved");
+    document.body.style.setProperty("--mx",e.clientX+"px");document.body.style.setProperty("--my",e.clientY+"px");
+    al.style.transform="translate("+(-x*40)+"px,"+(-y*30)+"px)";
+    cd.style.transform="translate("+(x*14)+"px,"+(y*10)+"px)";
+    crew.forEach(function(im){var r=im.getBoundingClientRect(),cx=r.left+r.width/2;im.classList.toggle("up",Math.abs(e.clientX-cx)<r.width*.9&&e.clientY>innerHeight-r.height*1.8)});
+  },{passive:true});
+})();
+</script>
+</body>
+</html>
