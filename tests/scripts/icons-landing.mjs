@@ -6,21 +6,23 @@ import fs from "node:fs";
 const OUT = new URL("../../assets/icons/landing/", import.meta.url);
 const ROOT = new URL("../../", import.meta.url);
 const src = "data:image/webp;base64," + fs.readFileSync(new URL("chick.webp", OUT)).toString("base64");
-const BLUE = "#2D5BE3";
+const BG = ["#FFF8DC", "#FFE9A0"];   // світло-жовтий градієнт, курча крупно в рамці
+const BLUE = "#2D5BE3";          // колір теми браузера
 
 const b = await chromium.launch(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {});
 const p = await b.newPage();
 await p.goto("about:blank");
-async function render(size, bg, scale) {
-  const url = await p.evaluate(async ({ src, size, bg, scale }) => {
+async function render(size, bg, scale, round = false) {
+  const url = await p.evaluate(async ({ src, size, bg, scale, round }) => {
     const img = new Image(); img.src = src; await img.decode();
     const c = document.createElement("canvas"); c.width = c.height = size;
     const x = c.getContext("2d"); x.imageSmoothingQuality = "high";
-    if (bg) { x.fillStyle = bg; x.fillRect(0, 0, size, size); }
+    if (round) { x.beginPath(); x.roundRect(0, 0, size, size, size * 0.22); x.clip(); } // закруглені краї; apple-touch і maskable лишаються квадратними: їх округлює система
+    if (bg) { const g = x.createLinearGradient(0, 0, 0, size); g.addColorStop(0, bg[0]); g.addColorStop(1, bg[1]); x.fillStyle = g; x.fillRect(0, 0, size, size); }
     const k = Math.min(size * scale / img.width, size * scale / img.height), w = img.width * k, h = img.height * k;
     x.drawImage(img, (size - w) / 2, (size - h) / 2 + (bg ? 0 : size * 0.01), w, h);
     return c.toDataURL("image/png");
-  }, { src, size, bg, scale });
+  }, { src, size, bg, scale, round });
   return Buffer.from(url.split(",")[1], "base64");
 }
 function ico(pngs) {
@@ -32,21 +34,21 @@ function ico(pngs) {
   }
   return Buffer.concat([head, ...dir, ...body]);
 }
-const fav = ico(await Promise.all([16, 32, 48].map(async s => ({ size: s, buf: await render(s, null, 1) }))));
+const fav = ico(await Promise.all([16, 32, 48].map(async s => ({ size: s, buf: await render(s, BG, 0.92, true) }))));
 fs.writeFileSync(new URL("favicon.ico", OUT), fav);
-fs.writeFileSync(new URL("apple-touch-icon.png", OUT), await render(180, BLUE, 0.78));
-fs.writeFileSync(new URL("icon-192.png", OUT), await render(192, BLUE, 0.72));
-fs.writeFileSync(new URL("icon-512.png", OUT), await render(512, BLUE, 0.72));
-fs.writeFileSync(new URL("icon-maskable-512.png", OUT), await render(512, BLUE, 0.6));
-const svgPng = (await render(256, null, 1)).toString("base64");
+fs.writeFileSync(new URL("apple-touch-icon.png", OUT), await render(180, BG, 0.92));
+fs.writeFileSync(new URL("icon-192.png", OUT), await render(192, BG, 0.92, true));
+fs.writeFileSync(new URL("icon-512.png", OUT), await render(512, BG, 0.92, true));
+fs.writeFileSync(new URL("icon-maskable-512.png", OUT), await render(512, BG, 0.64));
+const svgPng = (await render(256, BG, 0.92, true)).toString("base64");
 fs.writeFileSync(new URL("icon.svg", OUT), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><image width="256" height="256" href="data:image/png;base64,${svgPng}"/></svg>\n`);
 fs.writeFileSync(new URL("site.webmanifest", OUT), JSON.stringify({
   name: "QuizFlow", short_name: "QuizFlow", lang: "uk", start_url: "/", scope: "/", display: "browser",
   background_color: BLUE, theme_color: BLUE,
   icons: [
-    { src: "icon-192.png?v=3", sizes: "192x192", type: "image/png", purpose: "any" },
-    { src: "icon-512.png?v=3", sizes: "512x512", type: "image/png", purpose: "any" },
-    { src: "icon-maskable-512.png?v=3", sizes: "512x512", type: "image/png", purpose: "maskable" },
+    { src: "icon-192.png?v=4", sizes: "192x192", type: "image/png", purpose: "any" },
+    { src: "icon-512.png?v=4", sizes: "512x512", type: "image/png", purpose: "any" },
+    { src: "icon-maskable-512.png?v=4", sizes: "512x512", type: "image/png", purpose: "maskable" },
   ],
 }, null, 2) + "\n");
 fs.copyFileSync(new URL("favicon.ico", OUT), new URL("favicon.ico", ROOT));
