@@ -253,10 +253,6 @@ footer .brand{color:#fff}footer p{max-width:28em}
 .grp img{position:relative;display:block;width:100%;height:auto;margin-bottom:-1.2%;filter:drop-shadow(0 14px 14px rgba(11,20,55,.3));pointer-events:none}
 @media(prefers-reduced-motion:reduce){.pa.on .pch,.pa.on .sp{animation:none}.pa,.pa .pbg,.pa .tx,.pa .pch,.pa .bg::after{transition:none!important}.pa{opacity:1;transform:none}}
 
-/* слова складаються з частинок; у спокої показуємо справжній текст, щоб літери були ідеально чіткі */
-.words{position:relative}
-.words.pt .ln{color:transparent!important}
-#ptc{position:absolute;z-index:3;pointer-events:none}
 </style>
 </head>
 <body>
@@ -371,76 +367,6 @@ pa.forEach(function(p,i){
   p.addEventListener("pointerleave",function(){p.style.removeProperty("--px");p.style.removeProperty("--py");p.style.removeProperty("--pr")});
 });
 if("IntersectionObserver"in window){new IntersectionObserver(function(en,io){if(en[0].isIntersecting){tm.classList.add("rdy");io.disconnect()}},{threshold:.2}).observe(acc)}else tm.classList.add("rdy");
-})();
-</script>
-<script>
-(function(){
-"use strict";
-var wordsEl=document.getElementById("words");if(!wordsEl)return;
-if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
-var cv=document.createElement("canvas");cv.id="ptc";cv.setAttribute("aria-hidden","true");wordsEl.appendChild(cv);
-var TXT=[],still=0,ctx=cv.getContext("2d"),dpr=Math.min(2,devicePixelRatio||1),W=0,H=0,PAD=60,P=[],mouse={x:-999,y:-999,on:false},settled=false;
-var WHITE=["#ffffff","#F3F6FF","#E4ECFF"],SUN=["#FFD84D","#FFE17A","#FFCB1F"];
-function sample(){
-  var wr=wordsEl.getBoundingClientRect(),lns=[].slice.call(wordsEl.querySelectorAll(".ln")),rects=lns.map(function(ln){var rg=document.createRange();rg.selectNodeContents(ln);return rg.getBoundingClientRect()});
-  // полотно ширше за блок слів: літери можуть виходити за його краї (довгі рядки в вузькому вікні)
-  var minL=Math.min(0,Math.min.apply(null,rects.map(function(r){return r.left-wr.left}))),maxR=Math.max(wr.width,Math.max.apply(null,rects.map(function(r){return r.right-wr.left})));
-  var ox=PAD-minL,oy=PAD;W=Math.ceil(maxR-minL+PAD*2);H=Math.ceil(wr.height+PAD*2);
-  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+"px";cv.style.height=H+"px";cv.style.left=(minL-PAD)+"px";cv.style.top=-PAD+"px";ctx.setTransform(dpr,0,0,dpr,0,0);
-  var oc=document.createElement("canvas");oc.width=W;oc.height=H;var o=oc.getContext("2d");o.textBaseline="alphabetic";
-  var out=[];TXT=[];var g=Math.max(3,Math.ceil(Math.sqrt(wr.width*wr.height*.4/34000)));
-  lns.forEach(function(ln,li){
-    var cs=getComputedStyle(ln),txt=ln.textContent.trim(),up=cs.textTransform==="uppercase"?txt.toUpperCase():txt;
-    o.clearRect(0,0,W,H);o.font=cs.fontWeight+" "+cs.fontSize+" "+cs.fontFamily;if("letterSpacing"in o)o.letterSpacing=cs.letterSpacing==="normal"?"0px":cs.letterSpacing;
-    var rr=rects[li],m=o.measureText(up),fa=m.fontBoundingBoxAscent||parseFloat(cs.fontSize)*.95;
-    o.fillStyle="#fff";o.fillText(up,rr.left-wr.left+ox,rr.top-wr.top+oy+fa);
-    TXT.push({t:up,f:o.font,ls:"letterSpacing"in o?o.letterSpacing:"0px",x:rr.left-wr.left+ox,y:rr.top-wr.top+oy+fa,c:li===2?"#FFD84D":"#fff"});
-    var d=o.getImageData(0,0,W,H).data;
-    for(var y=0;y<H;y+=g)for(var x=0;x<W;x+=g)if(d[(y*W+x)*4+3]>150)out.push([x,y,li===2?1:0]);
-  });
-  return {pts:out,g:g};
-}
-function build(){
-  var r=sample();P=r.pts.map(function(t){
-    var pal=t[2]?SUN:WHITE;
-    return {x:Math.random()*W,y:H+30+Math.random()*H*.5,vx:0,vy:0,tx:t[0],ty:t[1],w:Math.round(t[0]/W*26+t[1]/H*16),c:pal[Math.random()*3|0],s:r.g*(1.1+Math.random()*.2)}
-  });
-  activate();
-}
-function activate(){settled=false;still=0;wordsEl.classList.add("pt")}
-function restDraw(){ctx.clearRect(0,0,W,H);TXT.forEach(function(l){ctx.font=l.f;if("letterSpacing"in ctx)ctx.letterSpacing=l.ls;ctx.textBaseline="alphabetic";ctx.fillStyle=l.c;ctx.fillText(l.t,l.x,l.y)})}
-/* розсипаються лише від кліку чи дотику по заголовку, самі не ворушаться */
-function scatter(){
-  for(var i=0;i<P.length;i++){var p=P[i],a=Math.random()*6.283,f=4+Math.random()*13;p.vx+=Math.cos(a)*f;p.vy+=Math.sin(a)*f-3;p.w=Math.round(p.tx/W*24+Math.random()*10)}
-  activate();
-}
-function nearWords(){var r=wordsEl.getBoundingClientRect();return mouse.on&&mouse.x>-60&&mouse.x<r.width+60&&mouse.y>-60&&mouse.y<r.height+60}
-function frame(){
-  var near=nearWords();
-  if(settled){
-    if(near)activate();
-    requestAnimationFrame(frame);return;
-  }
-  ctx.clearRect(0,0,W,H);
-  var R=Math.min(170,W*.22),mx=mouse.x+PAD+(parseFloat(cv.style.left)<0?-parseFloat(cv.style.left)-PAD:0),my=mouse.y+PAD,moving=false;
-  var cl=parseFloat(cv.style.left)||0;mx=mouse.x-cl;
-  for(var i=0;i<P.length;i++){
-    var p=P[i];
-    if(p.w>0){p.w--;moving=true}else{p.vx+=(p.tx-p.x)*.09;p.vy+=(p.ty-p.y)*.09}
-    if(mouse.on){var dx=p.x-mx,dy=p.y-my,d2=dx*dx+dy*dy;if(d2<R*R){var d=Math.sqrt(d2)||1,f=1-d/R;p.vx+=dx/d*f*6;p.vy+=dy/d*f*6}}
-    p.vx*=.8;p.vy*=.8;p.x+=p.vx;p.y+=p.vy;
-    if(Math.abs(p.vx)>.04||Math.abs(p.vy)>.04||Math.abs(p.tx-p.x)>.6||Math.abs(p.ty-p.y)>.6)moving=true;
-    ctx.fillStyle=p.c;var s=p.s;ctx.fillRect(p.x-s/2,p.y-s/2,s,s);
-  }
-  if(!moving&&!near){if(++still>25){settled=true;restDraw()}}else still=0;
-  requestAnimationFrame(frame);
-}
-function pos(e){var r=wordsEl.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top;mouse.on=true}
-addEventListener("pointermove",pos,{passive:true});
-addEventListener("pointerdown",function(e){pos(e);if(nearWords())scatter()},{passive:true});
-addEventListener("pointerup",function(e){if(e.pointerType!=="mouse")mouse.on=false});
-var rt;addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(build,200)});
-(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){build();requestAnimationFrame(frame)});
 })();
 </script>
 <footer><span class="brand"><i><svg viewBox="0 0 24 24"><path d="M4 7h11a4 4 0 0 1 4 4v1"/><path d="M20 17H9a4 4 0 0 1-4-4v-1"/></svg></i>quizflow</span><p>Платформа для викладачів: тести, ігри наживо, журнал і аналітика.</p><p>© 2026 QuizFlow</p></footer>
