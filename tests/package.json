@@ -9,7 +9,8 @@
     "worker:logo": "node scripts/worker-logo.mjs",
     "icons": "node scripts/icons.mjs",
     "icons:landing": "node scripts/icons-landing.mjs",
-    "og": "node scripts/og.mjs"
+    "og": "node scripts/og.mjs",
+    "og:check": "node --test og.test.mjs"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^4.0.1",
