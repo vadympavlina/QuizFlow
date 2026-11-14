@@ -76,6 +76,15 @@ export const PAGE_PERMS = {
   "live-setup": "games.run", "live-game": "games.run", "live-monitor": "online.view",
 };
 
+// Пункт меню має довільний id, тож дозвіл шукаємо ще й за файлом сторінки (game-history → history)
+const FILE_ALIASES = { "game-history": "history" };
+export const pagePerm = it => {
+  if (!it) return null;
+  if (PAGE_PERMS[it.id]) return PAGE_PERMS[it.id];
+  const f = String(it.file || "").split(/[?#]/)[0].replace(/^\.?\//, "").replace(/\.html$/, "");
+  return PAGE_PERMS[FILE_ALIASES[f] || f] || null;
+};
+
 // Старі прапорці з «Можливостей»
 export const LEGACY_FLAG_PERM = { games: "games.run", import: "tests.import", export: "export" };
 
@@ -108,7 +117,7 @@ export function normalizeCfg(cfg, nav) {
   sections.forEach(sec => {
     const items = Array.isArray(sec?.items) ? sec.items : isObj(sec?.items) ? Object.values(sec.items) : [];
     items.forEach(it => {
-      const key = it && !it.protected && PAGE_PERMS[it.id];
+      const key = it && !it.protected && pagePerm(it);
       const rids = Array.isArray(it?.roleIds) ? it.roleIds : isObj(it?.roleIds) ? Object.keys(it.roleIds) : [];
       if (!key || !rids.length || key === "tests.edit") return;
       out.perms[key] = false;
