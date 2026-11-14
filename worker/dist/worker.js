@@ -349,6 +349,9 @@ var PERMS = {
   "ai": { group: "other", label: "AI-\u0444\u0443\u043D\u043A\u0446\u0456\u0457", desc: "\u0413\u0435\u043D\u0435\u0440\u0430\u0446\u0456\u044F \u043F\u0438\u0442\u0430\u043D\u044C, \u043A\u043E\u043C\u0435\u043D\u0442\u0430\u0440\u0456, \u043F\u0435\u0440\u0435\u0432\u0456\u0440\u043A\u0430 \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u0435\u0439", write: true }
 };
 var PERM_KEYS = Object.keys(PERMS);
+var storeKey = (k) => String(k).replace(/\./g, "_");
+var FROM_STORE = Object.fromEntries(PERM_KEYS.map((k) => [storeKey(k), k]));
+var permFromStore = (k) => PERMS[k] ? k : FROM_STORE[k] || null;
 var WRITE_KEYS = PERM_KEYS.filter((k) => PERMS[k].write);
 var IMPLIES = {
   "tests.view": ["tests.use"],
@@ -393,7 +396,8 @@ function layerPerms(layer) {
     if (k && bool(v)) out[k] = v;
   });
   Object.entries(layer.perms || {}).forEach(([k, v]) => {
-    if (PERMS[k] && bool(v)) out[k] = v;
+    const key = permFromStore(k);
+    if (key && bool(v)) out[key] = v;
   });
   return out;
 }
