@@ -13,6 +13,8 @@ await env.withSecurityRulesDisabled(async c => {
     users: {
       adm: { role: "admin", name: "A" },
       adm2: { role: "admin", name: "A2" },
+      p1: { role: "teacher", name: "P1", perms: { tests_edit: false, tests_share: false, links_manage: false, attempts_review: false, games_run: false } },
+      p2: { role: "teacher", name: "P2", readOnly: true, perms: { tests_edit: false, links_manage: false, attempts_review: false, games_run: false, ai: false } },
       t1: { role: "teacher", name: "T1", aiSettings: { aiComments: true } },
       t2: { role: "teacher", name: "T2" },
       bl: { role: "teacher", name: "B", blocked: true },
@@ -31,6 +33,7 @@ await env.withSecurityRulesDisabled(async c => {
         folders: { f1: { name: "F" } },
       },
       bl: { tests: { B1: { title: "b" } } },
+      p1: { tests: { P1T: { title: "p" } }, links: { PL: { testId: "P1T", usedAttempts: 0 } }, attempts: { PA: { testId: "P1T", createdAt: now - 2 * 86400000 } }, folders: { f1: { name: "F" } }, students: { S: { name: "Іван", surname: "Петренко" } } },
     },
     rooms: { "11112222": { hostUid: "t1", status: "question", currentQ: 0, players: { p1: { nickname: "Ann", active: true, online: true }, off: { nickname: "Z", active: false }, p5: { nickname: "Kim", active: true } } } },
   });
@@ -43,6 +46,8 @@ const bl = env.authenticatedContext("bl").database();
 const adm = env.authenticatedContext("adm").database();
 const adm2 = env.authenticatedContext("adm2").database();
 const nu = env.authenticatedContext("newbie").database();
+const p1 = env.authenticatedContext("p1").database();
+const p2 = env.authenticatedContext("p2").database();
 const nu2 = env.authenticatedContext("newbie2").database();
 const rr1 = env.authenticatedContext("rr1").database();
 const rr2 = env.authenticatedContext("rr2").database();
@@ -303,6 +308,40 @@ await t("owner cannot hand ownership to teacher", false, () => set(ref(adm, "set
 await t("owner hands ownership to admin", true, () => set(ref(adm, "settings/ownerUid"), "adm2"));
 await t("old owner is now plain admin", false, () => set(ref(adm, "settings/ai/groqApiKey"), "again"));
 await t("new owner writes AI key", true, () => set(ref(adm2, "settings/ai/groqApiKey"), "k3"));
+
+// ── Дозволи на сервері (дзеркало users/{uid}/perms) ──
+const P = "teachers/p1";
+await t("perms: no mirror = allowed (create test)", true, () => set(ref(t1, `${T}/tests/NEW1`), { title: "N" }));
+await t("perms: denied tests_edit — create own test", false, () => set(ref(p1, `${P}/tests/X1`), { title: "x" }));
+await t("perms: denied tests_edit — edit own test", false, () => set(ref(p1, `${P}/tests/P1T/title`), "hack"));
+await t("perms: denied tests_edit — delete own test", false, () => remove(ref(p1, `${P}/tests/P1T`)));
+await t("perms: denied tests_edit — folders", false, () => set(ref(p1, `${P}/folders/f2`), { name: "G" }));
+await t("perms: denied tests_share — send copy to colleague", false, () => set(ref(p1, "teachers/t2/tests/SHARED1"), { title: "S" }));
+await t("perms: allowed tests_share for t1 — send copy to colleague", true, () => set(ref(t1, "teachers/t2/tests/SHARED2"), { title: "S" }));
+await t("perms: denied links_manage — create link", false, () => set(ref(p1, `${P}/links/L9`), { testId: "P1T" }));
+await t("perms: denied links_manage — close link", false, () => set(ref(p1, `${P}/links/PL/status`), "closed"));
+await t("perms: anon student still increments usedAttempts", true, () => set(ref(anon, `${P}/links/PL/usedAttempts`), 1));
+await t("perms: anon student still creates attempt", true, () => set(ref(anon, `${P}/attempts/NEWA`), { testId: "P1T", createdAt: now }));
+await t("perms: denied attempts_review — delete attempt", false, () => remove(ref(p1, `${P}/attempts/PA`)));
+await t("perms: allowed attempts_review for t1 — delete attempt", true, () => remove(ref(t1, `${T}/attempts/OLD`)));
+await t("perms: denied games_run — liveRooms", false, () => set(ref(p1, `${P}/liveRooms/R1`), { createdAt: now }));
+await t("perms: denied games_run — gameHistory", false, () => set(ref(p1, `${P}/gameHistory/G1`), { title: "x" }));
+await t("perms: denied games_run — create room", false, () => set(ref(p1, "rooms/99998888"), { hostUid: "p1", status: "lobby" }));
+await t("perms: readOnly teacher cannot create room", false, () => set(ref(p2, "rooms/99998877"), { hostUid: "p2", status: "lobby" }));
+await t("perms: allowed teacher creates room", true, () => set(ref(t2, "rooms/99998866"), { hostUid: "t2", status: "lobby" }));
+await t("perms: host still updates own room", true, () => set(ref(t2, "rooms/99998866/status"), "question"));
+await t("perms: other teacher cannot touch room", false, () => set(ref(p1, "rooms/99998866/status"), "finished"));
+await t("perms: denied teacher still writes students", true, () => set(ref(p1, `${P}/students/S2`), { name: "Олег", surname: "Коваль" }));
+await t("perms: denied teacher marks notifications", true, () => set(ref(p1, `${P}/notifications/n1`), { type: "x", title: "t" }));
+await t("perms: denied teacher writes misc node", true, () => set(ref(p1, `${P}/meta/lastSeen`), now));
+await t("perms: others cannot write p1 tree", false, () => set(ref(t1, `${P}/folders/f9`), { name: "no" }));
+await t("perms: teacher cannot edit own mirror", false, () => set(ref(p1, "users/p1/perms"), null));
+await t("perms: teacher cannot set own mirror", false, () => set(ref(t1, "users/t1/perms/tests_edit"), false));
+await t("perms: teacher cannot clear readOnly", false, () => set(ref(p2, "users/p2/readOnly"), null));
+await t("perms: admin writes mirror", true, () => set(ref(adm2, "users/t1/perms"), { games_run: false }));
+await t("perms: mirror only false", false, () => set(ref(adm2, "users/t1/perms/ai"), true));
+await t("perms: admin clears mirror", true, () => set(ref(adm2, "users/t1/perms"), null));
+await t("perms: registration cannot include mirror", false, () => set(ref(env.authenticatedContext("rr9").database(), "users/rr9"), { name: "N", role: "teacher", blocked: false, createdAt: now, inviteToken: "tok1", perms: { tests_edit: false } }));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 await env.cleanup();
