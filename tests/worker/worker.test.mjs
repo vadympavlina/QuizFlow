@@ -392,3 +392,12 @@ test("AI: /ai/status для адміністратора не віддає кл�
   const pre = await worker.fetch(new Request("https://mail.test/status", { method: "OPTIONS", headers: { Origin: "https://test.quizflow.space" } }), env());
   assert.equal(pre.headers.get("Access-Control-Allow-Origin"), null);
 });
+
+test("AI: дозволи в базі зберігаються без крапки (games_run, tests_view), воркер їх розуміє", async () => {
+  db.settings.features = { v: 2, perms: { ai: false }, roles: { r1: { perms: { ai: true } } } };
+  assert.equal((await ask()).status, 403);
+  db.users.t1.customRoleIds = { r1: true };
+  assert.equal((await ask()).status, 200);
+  db.users.t1.features = { perms: { ai: false } };
+  assert.equal((await ask()).status, 403);
+});

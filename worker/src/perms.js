@@ -5,6 +5,7 @@
 // Роль = набір дозволів. Кожна сторінка, кнопка й функція питає один модуль («чи можна?»).
 //
 // Де що зберігається
+//   (ключі дозволів у базі без крапки: tests.view → tests_view)
 //   settings/features = { v:2, perms:{ ключ:false }, limits:{…}, roles:{ roleId:{ perms:{…}, limits:{…} } } }
 //   users/{uid}       = { features:{ perms:{…}, limits:{…} }, readOnly:true, customRoleIds:{…} }
 //
@@ -46,6 +47,13 @@ export const PERMS = {
   "ai":                { group: "other", label: "AI-функції",              desc: "Генерація питань, коментарі, перевірка відповідей", write: true },
 };
 export const PERM_KEYS = Object.keys(PERMS);
+
+// У базі ключ не може містити крапку, тож «tests.view» зберігається як «tests_view».
+// Читання приймає обидва записи, запис завжди у вигляді без крапки.
+export const storeKey = k => String(k).replace(/\./g, "_");
+const FROM_STORE = Object.fromEntries(PERM_KEYS.map(k => [storeKey(k), k]));
+export const permFromStore = k => PERMS[k] ? k : FROM_STORE[k] || null;
+export const encodePerms = map => Object.fromEntries(Object.entries(map || {}).filter(([k]) => PERMS[k] || FROM_STORE[k]).map(([k, v]) => [storeKey(k), v]));
 export const WRITE_KEYS = PERM_KEYS.filter(k => PERMS[k].write);
 
 // Вмикаючи ключ, автоматично вмикаємо залежності («редагувати» без «бачити» не має сенсу)
@@ -85,7 +93,7 @@ export function layerPerms(layer) {
   const out = {};
   if (!isObj(layer)) return out;
   Object.entries(layer.flags || {}).forEach(([f, v]) => { const k = LEGACY_FLAG_PERM[f]; if (k && bool(v)) out[k] = v; });
-  Object.entries(layer.perms || {}).forEach(([k, v]) => { if (PERMS[k] && bool(v)) out[k] = v; });
+  Object.entries(layer.perms || {}).forEach(([k, v]) => { const key = permFromStore(k); if (key && bool(v)) out[key] = v; });
   return out;
 }
 
