@@ -16,7 +16,8 @@ await env.withSecurityRulesDisabled(async c => {
       t2: { role: "teacher", name: "T2" },
       bl: { role: "teacher", name: "B", blocked: true },
     },
-    invite_tokens: { tok1: { createdAt: 1 }, used1: { used: true } },
+    invite_tokens: { tok1: { createdAt: 1 }, tok2: { createdAt: 1, roleIds: { r1: true } }, used1: { used: true } },
+    roles: { r1: { name: "Ігри" }, r2: { name: "Автори" } },
     settings: { ai: { groqApiKey: "k" }, telegramBot: { token: "secret" }, navigation: [1] },
     news: { n1: { title: "x" } },
     teachers: {
@@ -41,6 +42,8 @@ const bl = env.authenticatedContext("bl").database();
 const adm = env.authenticatedContext("adm").database();
 const nu = env.authenticatedContext("newbie").database();
 const nu2 = env.authenticatedContext("newbie2").database();
+const rr1 = env.authenticatedContext("rr1").database();
+const rr2 = env.authenticatedContext("rr2").database();
 
 let pass = 0, fail = 0;
 async function t(name, expectOk, fn){
@@ -102,6 +105,16 @@ await t("register with own features", false, () => set(ref(nu, "users/newbie"), 
 await t("register with own roles", false, () => set(ref(nu, "users/newbie"), { name: "N", role: "teacher", blocked: false, createdAt: now, inviteToken: "tok1", customRoleIds: { r1: true } }));
 await t("register with own aiSettings", false, () => set(ref(nu, "users/newbie"), { name: "N", role: "teacher", blocked: false, createdAt: now, inviteToken: "tok1", aiSettings: { aiComments: true } }));
 await t("register with unknown field", false, () => set(ref(nu, "users/newbie"), { name: "N", role: "teacher", blocked: false, createdAt: now, inviteToken: "tok1", perms: { games: true } }));
+// ── Ролі із запрошення ──
+const reg = (extra, tok = "tok2") => ({ name: "N", role: "teacher", blocked: false, createdAt: now, inviteToken: tok, ...extra });
+await t("register with role not in invite", false, () => set(ref(rr1, "users/rr1"), reg({ customRoleIds: { r2: true } })));
+await t("register with role of other invite", false, () => set(ref(rr1, "users/rr1"), reg({ customRoleIds: { r1: true } }, "tok1")));
+await t("register with role false", false, () => set(ref(rr1, "users/rr1"), reg({ customRoleIds: { r1: false } })));
+await t("register with invite role and extra role", false, () => set(ref(rr1, "users/rr1"), reg({ customRoleIds: { r1: true, r2: true } })));
+await t("register with invite role", true, () => set(ref(rr2, "users/rr2"), reg({ customRoleIds: { r1: true } })));
+await t("teacher cannot add role to self later", false, () => set(ref(rr2, "users/rr2/customRoleIds/r2"), true));
+await t("admin adds role", true, () => set(ref(adm, "users/rr2/customRoleIds/r2"), true));
+await t("admin cannot add unknown role", false, () => set(ref(adm, "users/rr2/customRoleIds/zzz"), true));
 await t("register ok", true, () => set(ref(nu, "users/newbie"), { name: "N", role: "teacher", blocked: false, createdAt: now, inviteToken: "tok1" }));
 await t("mark token used", true, () => update(ref(nu, "invite_tokens/tok1"), { used: true, usedAt: now, usedBy: "newbie" }));
 await t("reuse token", false, () => set(ref(nu2, "users/newbie2"), { role: "teacher", blocked: false, inviteToken: "tok1" }));
