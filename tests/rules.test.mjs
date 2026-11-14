@@ -98,9 +98,14 @@ await t("register as admin", false, () => set(ref(nu, "users/newbie"), { role: "
 await t("register without token", false, () => set(ref(nu, "users/newbie"), { role: "teacher", blocked: false }));
 await t("register with used token", false, () => set(ref(nu, "users/newbie"), { role: "teacher", blocked: false, inviteToken: "used1" }));
 await t("register for someone else", false, () => set(ref(nu, "users/zzz"), { role: "teacher", blocked: false, inviteToken: "tok1" }));
+await t("register with own features", false, () => set(ref(nu, "users/newbie"), { name: "N", role: "teacher", blocked: false, createdAt: now, inviteToken: "tok1", features: { limits: { maxTests: 0 } } }));
+await t("register with own roles", false, () => set(ref(nu, "users/newbie"), { name: "N", role: "teacher", blocked: false, createdAt: now, inviteToken: "tok1", customRoleIds: { r1: true } }));
+await t("register with own aiSettings", false, () => set(ref(nu, "users/newbie"), { name: "N", role: "teacher", blocked: false, createdAt: now, inviteToken: "tok1", aiSettings: { aiComments: true } }));
+await t("register with unknown field", false, () => set(ref(nu, "users/newbie"), { name: "N", role: "teacher", blocked: false, createdAt: now, inviteToken: "tok1", perms: { games: true } }));
 await t("register ok", true, () => set(ref(nu, "users/newbie"), { name: "N", role: "teacher", blocked: false, createdAt: now, inviteToken: "tok1" }));
 await t("mark token used", true, () => update(ref(nu, "invite_tokens/tok1"), { used: true, usedAt: now, usedBy: "newbie" }));
 await t("reuse token", false, () => set(ref(nu2, "users/newbie2"), { role: "teacher", blocked: false, inviteToken: "tok1" }));
+await t("admin creates teacher with roles and features", true, () => set(ref(adm, "users/byadmin"), { name: "B", role: "teacher", blocked: false, createdAt: now, customRoleIds: { r1: true }, features: { flags: { games: false } } }));
 await t("new teacher promote self", false, () => update(ref(nu, "users/newbie"), { role: "admin" }));
 await t("new teacher unblock self", false, () => update(ref(nu, "users/newbie"), { blocked: false }));
 
