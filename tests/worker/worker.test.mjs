@@ -23,15 +23,15 @@ const saPem = `-----BEGIN PRIVATE KEY-----\n${Buffer.from(await crypto.subtle.ex
 const SA = JSON.stringify({ type: "service_account", project_id: PROJECT, client_email: "mail@quizflow-test.iam.gserviceaccount.com", private_key: saPem });
 let google;   // { tokenCalls, oob: [], jwtOk }
 
-let db, sent, kv, resendStatus;
+let db, sent, kv, resendStatus, aiCalls, aiWrites, aiFail;
 const env = () => ({
   FIREBASE_PROJECT_ID: PROJECT, FIREBASE_DB_URL: DB, SITE_URL: "https://quizflow.space", MAIL_FROM: "QuizFlow <noreply@quizflow.space>",
-  ALLOWED_ORIGINS: "https://quizflow.space", RESEND_API_KEY: "re_test", UNSUB_SECRET: "s3cret", FIREBASE_SERVICE_ACCOUNT: SA,
+  ALLOWED_ORIGINS: "https://quizflow.space", RESEND_API_KEY: "re_test", UNSUB_SECRET: "s3cret", FIREBASE_SERVICE_ACCOUNT: SA, GROQ_API_KEY: "gsk_env", GEMINI_API_KEY: "gem_env",
   MAIL_KV: { get: async k => kv.get(k) ?? null, put: async (k, v, opts) => void kv.set(k, v), delete: async k => void kv.delete(k),
     list: async ({ prefix }) => ({ keys: [...kv.keys()].filter(k => k.startsWith(prefix)).map(name => ({ name })), list_complete: true }) },
 });
 beforeEach(() => {
-  kv = new Map(); sent = []; resendStatus = 200; google = { tokenCalls: 0, oob: [], jwtOk: null };
+  kv = new Map(); sent = []; resendStatus = 200; aiCalls = []; aiWrites = []; aiFail = false; google = { tokenCalls: 0, oob: [], jwtOk: null };
   db = {
     users: {
       adm: { role: "admin", name: "Адмін", email: "admin@quizflow.space" },
@@ -40,6 +40,9 @@ beforeEach(() => {
       t3: { role: "teacher", name: "Блок", email: "b@example.com", blocked: true },
       t4: { role: "teacher", name: "Без пошти" },
     },
+    settings: { ai: { enabled: true, groqModel: "llama-test" }, features: { v: 2 } },
+    teachers: { t1: { links: { L1: { testId: "T1", status: "open" } } } },
+    aiUsage: {},
     invite_tokens: { tok12345: { used: false, expiresAt: Date.now() + 864e5 }, used1234: { used: true }, old12345: { expiresAt: Date.now() - 1 } },
   };
   globalThis.fetch = async (url, init = {}) => {
@@ -58,12 +61,31 @@ beforeEach(() => {
       return Response.json({ email: b.email, oobLink: `https://${PROJECT}.firebaseapp.com/__/auth/action?mode=resetPassword&oobCode=CODE-${b.email.split("@")[0]}&apiKey=x&lang=uk` });
     }
     if (u.origin === DB) {
-      // Мінімальні «правила»: читати може лише власник свого профілю або адмін
+      // Мінімальні «правила»: публічні шляхи читає будь-хто, решту (профілі, адмін) — лише з токеном
       const path = u.pathname.replace(/^\/|\.json$/g, ""), token = u.searchParams.get("auth");
-      const uid = JSON.parse(Buffer.from(token.split(".")[1], "base64url")).sub;
-      const isAdmin = db.users[uid]?.role === "admin";
-      if (!isAdmin && path !== `users/${uid}`) return new Response('{"error":"Permission denied"}', { status: 401 });
+      const PUBLIC = [/^settings\/(features|ai)(\/|$)/, /^aiUsage\//, /^teachers\/[^/]+\/links\/[^/]+/, /^users\/[^/]+\/(features|customRoleIds|aiSettings)(\/|$)/];
+      const isPublic = PUBLIC.some(r => r.test(path));
+      if (init.method === "PUT") {
+        // запис лічильників aiUsage дозволено всім (як у правилах бази)
+        if (!/^aiUsage\//.test(path)) return new Response('{"error":"Permission denied"}', { status: 401 });
+        const keys = path.split("/"); let n = db; keys.slice(0, -1).forEach(k => { n = n[k] ??= {}; });
+        n[keys.at(-1)] = JSON.parse(init.body); aiWrites.push([path, n[keys.at(-1)]]);
+        return Response.json(n[keys.at(-1)]);
+      }
+      if (!isPublic) {
+        if (!token) return new Response('{"error":"Permission denied"}', { status: 401 });
+        const uid = JSON.parse(Buffer.from(token.split(".")[1], "base64url")).sub;
+        const isAdmin = db.users[uid]?.role === "admin";
+        if (!isAdmin && path !== `users/${uid}` && !/^settings\//.test(path)) return new Response('{"error":"Permission denied"}', { status: 401 });
+      }
       return Response.json(path.split("/").reduce((n, k) => n?.[k], db) ?? null);
+    }
+    if (u.hostname === "api.groq.com" || u.hostname === "generativelanguage.googleapis.com") {
+      aiCalls.push({ host: u.hostname, headers: init.headers, body: JSON.parse(init.body), url: String(url) });
+      if (aiFail) return Response.json({ error: { message: "boom" } }, { status: 500 });
+      return u.hostname === "api.groq.com"
+        ? Response.json({ choices: [{ message: { content: "Відповідь Groq" } }], usage: { total_tokens: 42 } })
+        : Response.json({ candidates: [{ content: { parts: [{ text: "Відповідь Gemini" }] } }], usageMetadata: { totalTokenCount: 17 } });
     }
     if (u.hostname === "api.resend.com") {
       if (resendStatus !== 200) return Response.json({ message: "rate" }, { status: resendStatus });
@@ -231,4 +253,142 @@ test("відписка: GET нічого не змінює, POST відпису�
   assert.equal(kv.size, 0);
   const bad = await call("GET", "/unsubscribe?u=t2&s=" + link.split("s=")[1], { uid: "" });
   assert.equal(bad.status, 400);
+});
+
+// ─── AI через воркер ───────────────────────────────────────────────────
+const ask = (over = {}, opts = {}) => call("POST", "/ai", { uid: "t1", origin: "https://app.quizflow.space", ...opts, body: { feature: "analysis", messages: [{ role: "user", content: "Привіт" }], ...over } });
+const month = () => { const d = new Date(); return `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}`; };
+
+test("AI: викладач отримує відповідь, ключ береться з секретів, використання рахує воркер", async () => {
+  const r = await ask();
+  assert.equal(r.status, 200, JSON.stringify(r.data));
+  assert.equal(r.data.text, "Відповідь Groq");
+  assert.equal(r.data.provider, "groq");
+  assert.equal(aiCalls.length, 1);
+  assert.equal(aiCalls[0].headers.Authorization, "Bearer gsk_env");
+  assert.equal(aiCalls[0].body.model, "llama-test");
+  assert.equal(aiCalls[0].body.messages[0].role, "system");
+  const u = db.aiUsage[month()].t1.analysis;
+  assert.equal(u.calls, 1); assert.equal(u.tokens, 42);
+  await ask();
+  assert.equal(db.aiUsage[month()].t1.analysis.calls, 2);
+});
+
+test("AI: Gemini обирається для функції й ключ іде в заголовку, а не в адресі", async () => {
+  db.settings.ai.featProviders = { comments: "gemini" };
+  const r = await ask({ feature: "comments", json: true, maxTokens: 300 });
+  assert.equal(r.status, 200, JSON.stringify(r.data));
+  assert.equal(r.data.text, "Відповідь Gemini");
+  assert.equal(aiCalls[0].headers["x-goog-api-key"], "gem_env");
+  assert.ok(!aiCalls[0].url.includes("gem_env"));
+  assert.equal(aiCalls[0].body.generationConfig.responseMimeType, "application/json");
+});
+
+test("AI: без ключа на воркері береться старий ключ з бази, а без жодного — 503", async () => {
+  const e = { ...env(), GROQ_API_KEY: undefined, GEMINI_API_KEY: undefined };
+  const go = () => worker.fetch(new Request("https://mail.test/ai", { method: "POST", headers: { Origin: "https://app.quizflow.space", Authorization: `Bearer ${tk}` }, body: JSON.stringify({ feature: "analysis", messages: [{ role: "user", content: "x" }] }) }), e);
+  const tk = await idToken("t1");
+  assert.equal((await go()).status, 503);
+  db.settings.ai.groqApiKey = "gsk_db";
+  assert.equal((await go()).status, 200);
+  assert.equal(aiCalls[0].headers.Authorization, "Bearer gsk_db");
+});
+
+test("AI: дозвіл «AI»: вимкнено для всіх, роль і особисте налаштування його повертають, «лише перегляд» вимикає", async () => {
+  db.settings.features = { v: 2, perms: { ai: false }, roles: { r1: { perms: { ai: true } } } };
+  assert.equal((await ask()).status, 403);
+  db.users.t1.customRoleIds = { r1: true };
+  assert.equal((await ask()).status, 200);
+  db.users.t1.readOnly = true;
+  assert.equal((await ask()).status, 403);
+  db.users.t1.readOnly = false;
+  db.users.t1.features = { perms: { ai: false } };
+  assert.equal((await ask()).status, 403);
+  assert.equal((await ask({}, { uid: "adm" })).status, 200);          // адмін може завжди
+});
+
+test("AI: функцію вимкнено в адмінці або в налаштуваннях викладача", async () => {
+  db.settings.ai.aiAnalysis = false;
+  assert.equal((await ask()).status, 403);
+  assert.equal((await ask({ feature: "comments" })).status, 200);
+  db.settings.ai.aiAnalysis = true;
+  db.users.t1.aiSettings = { aiAnalysis: false };
+  assert.equal((await ask()).status, 403);
+  db.settings.ai.enabled = false;
+  assert.equal((await ask({ feature: "comments" })).status, 403);
+});
+
+test("AI: місячний ліміт викладача (особистий, ролі, для всіх), 0 = без обмежень", async () => {
+  db.settings.features = { v: 2, limits: { aiPerMonth: 2 } };
+  assert.equal((await ask()).status, 200);
+  assert.equal((await ask()).status, 200);
+  const r = await ask();
+  assert.equal(r.status, 429); assert.equal(r.data.code, "qf/ai-quota");
+  db.users.t1.features = { limits: { aiPerMonth: 0 } };               // особисто без обмежень
+  assert.equal((await ask()).status, 200);
+  db.users.t1.features = {};
+  db.users.t1.customRoleIds = { r1: true };
+  db.settings.features.roles = { r1: { limits: { aiPerMonth: 100 } } };
+  assert.equal((await ask()).status, 200);                             // ліміт ролі більший
+  assert.equal((await ask({}, { uid: "adm" })).status, 200);          // адміністратор без обмежень
+});
+
+test("AI: сторінка студента: лише comments і textcheck, лише з чинним посиланням, рахується викладачу", async () => {
+  const stud = (over = {}) => call("POST", "/ai", { uid: "", origin: "https://test.quizflow.space", body: { feature: "textcheck", messages: [{ role: "user", content: "Відповідь студента" }], as: { teacherUid: "t1", linkId: "L1" }, ...over } });
+  const r = await stud();
+  assert.equal(r.status, 200, JSON.stringify(r.data));
+  assert.equal(r.headers.get("Access-Control-Allow-Origin"), "https://test.quizflow.space");
+  assert.equal(db.aiUsage[month()].t1.textcheck.calls, 1);
+  assert.equal((await stud({ feature: "analysis" })).status, 401);
+  assert.equal((await stud({ feature: "mail" })).status, 401);
+  assert.equal((await stud({ as: { teacherUid: "t1", linkId: "NOPE" } })).status, 404);
+  assert.equal((await stud({ as: { teacherUid: "../x", linkId: "L1" } })).status, 400);
+  assert.equal((await stud({ as: undefined })).status, 400);
+  // для викладача, якому AI вимкнено, студенти теж не користуються
+  db.users.t1.features = { perms: { ai: false } };
+  assert.equal((await stud()).status, 403);
+});
+
+test("AI: студентів обмежено за IP, викладачів ні", async () => {
+  const e = { ...env(), AI_ANON_PER_HOUR: "2" };
+  const go = () => worker.fetch(new Request("https://mail.test/ai", { method: "POST", headers: { Origin: "https://test.quizflow.space", "CF-Connecting-IP": "1.2.3.4" }, body: JSON.stringify({ feature: "comments", messages: [{ role: "user", content: "x" }], as: { teacherUid: "t1", linkId: "L1" } }) }), e);
+  assert.equal((await go()).status, 200);
+  assert.equal((await go()).status, 200);
+  assert.equal((await go()).status, 429);
+});
+
+test("AI: «mail» лише для адміністратора, чужий токен і заблокований акаунт не проходять", async () => {
+  assert.equal((await ask({ feature: "mail" })).status, 403);
+  assert.equal((await ask({ feature: "mail" }, { uid: "adm" })).status, 200);
+  assert.equal((await ask({}, { uid: "t3" })).status, 403);            // заблокований
+  assert.equal((await ask({}, { token: (await idToken("t1")).replace(/\.[^.]+$/, ".AAAA") })).status, 401);
+  assert.equal((await ask({}, { uid: "ghost" })).status, 403);         // без профілю
+});
+
+test("AI: помилка провайдера повертає 502 і рахується як помилка, а не як виклик", async () => {
+  aiFail = true;
+  const r = await ask();
+  assert.equal(r.status, 502);
+  assert.equal(db.aiUsage[month()].t1.analysis.errors, 1);
+  assert.equal(db.aiUsage[month()].t1.analysis.calls, undefined);
+});
+
+test("AI: перевірка запиту: невідома функція, порожні й завеликі повідомлення", async () => {
+  assert.equal((await ask({ feature: "hack" })).status, 400);
+  assert.equal((await ask({ messages: [] })).status, 400);
+  assert.equal((await ask({ messages: Array.from({ length: 21 }, () => ({ role: "user", content: "x" })) })).status, 400);
+  assert.equal((await ask({ messages: [{ role: "user", content: "x".repeat(24000) }, { role: "user", content: "x".repeat(24000) }, { role: "user", content: "x".repeat(24000) }] })).status, 413);
+  const long = await ask({ maxTokens: 999999 });
+  assert.equal(aiCalls[0].body.max_tokens, 4000);
+  assert.equal(long.status, 200);
+});
+
+test("AI: /ai/status для адміністратора не віддає ключів; CORS для тесту лише на /ai", async () => {
+  const r = await call("GET", "/ai/status");
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.data.configured, { groq: true, gemini: true });
+  assert.ok(!JSON.stringify(r.data).includes("gsk_env"));
+  assert.equal((await call("GET", "/ai/status", { uid: "t1" })).status, 403);
+  const pre = await worker.fetch(new Request("https://mail.test/status", { method: "OPTIONS", headers: { Origin: "https://test.quizflow.space" } }), env());
+  assert.equal(pre.headers.get("Access-Control-Allow-Origin"), null);
 });

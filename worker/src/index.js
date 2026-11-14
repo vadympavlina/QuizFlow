@@ -18,6 +18,7 @@ import { HttpError, requireAdmin, dbRead } from "./auth.js";
 import { inviteEmail, broadcastEmail, welcomeEmail, resetEmail, esc, LOGO_V } from "./mail.js";
 import { serviceAccount, passwordResetCode } from "./google.js";
 import { LOGO_PNG_B64 } from "./logo.js";
+import { aiChat, aiStatus } from "./ai.js";
 
 const logoUrl = origin => `${origin}/logo.png?v=${LOGO_V}`;
 const LOGO_BYTES = Uint8Array.from(atob(LOGO_PNG_B64), c => c.charCodeAt(0));
@@ -35,13 +36,15 @@ const DEFAULTS = {
   SITE_URL: "https://app.quizflow.space",
   MAIL_FROM: "QuizFlow <noreply@quizflow.space>",
   ALLOWED_ORIGINS: "https://app.quizflow.space,https://admin.quizflow.space",
+  // AI викликають ще й студенти зі сторінки тесту
+  AI_ALLOWED_ORIGINS: "https://app.quizflow.space,https://admin.quizflow.space,https://test.quizflow.space",
 };
 
 export default {
   async fetch(request, rawEnv) {
     const env = { ...DEFAULTS, ...Object.fromEntries(Object.entries(rawEnv || {}).filter(([, v]) => v !== undefined && v !== "")) };
     const url = new URL(request.url);
-    const cors = corsHeaders(request, env);
+    const cors = corsHeaders(request, env, url.pathname.startsWith("/ai") ? env.AI_ALLOWED_ORIGINS : env.ALLOWED_ORIGINS);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     try {
       if (url.pathname === "/unsubscribe") return await unsubscribe(request, env, url);
@@ -49,9 +52,10 @@ export default {
       if (url.pathname === "/logo.png" && (request.method === "GET" || request.method === "HEAD"))
         return new Response(request.method === "HEAD" ? null : LOGO_BYTES, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000, immutable", "Access-Control-Allow-Origin": "*" } });
       if (url.pathname === "/" && request.method === "GET") return json({ ok: true, service: "quizflow-mail" }, 200, cors);
+      if (url.pathname === "/ai" && request.method === "POST") return json(await aiChat(request, env, await readJson(request)), 200, cors);
       if (url.pathname === "/reset" && request.method === "POST") return json(await reset(request, env, url), 200, cors);
       const route = `${request.method} ${url.pathname}`;
-      const handler = { "GET /status": status, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast }[route];
+      const handler = { "GET /status": status, "GET /ai/status": aiStatus, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast }[route];
       if (!handler) throw new HttpError(404, "Невідома адреса");
       const admin = await requireAdmin(request, env);
       const body = request.method === "POST" ? await readJson(request) : null;
@@ -65,9 +69,9 @@ export default {
 };
 
 // ─── Відповіді ──────────────────────────────────────────────────────────
-function corsHeaders(request, env) {
+function corsHeaders(request, env, list = env.ALLOWED_ORIGINS) {
   const origin = request.headers.get("Origin") || "";
-  const allowed = String(env.ALLOWED_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
+  const allowed = String(list || "").split(",").map(s => s.trim()).filter(Boolean);
   const h = { "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Authorization, Content-Type", "Access-Control-Max-Age": "86400", Vary: "Origin" };
   if (allowed.includes(origin)) h["Access-Control-Allow-Origin"] = origin;
   return h;
