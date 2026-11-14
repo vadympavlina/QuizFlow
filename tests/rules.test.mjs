@@ -12,13 +12,14 @@ await env.withSecurityRulesDisabled(async c => {
   await set(ref(c.database(), "/"), {
     users: {
       adm: { role: "admin", name: "A" },
+      adm2: { role: "admin", name: "A2" },
       t1: { role: "teacher", name: "T1", aiSettings: { aiComments: true } },
       t2: { role: "teacher", name: "T2" },
       bl: { role: "teacher", name: "B", blocked: true },
     },
     invite_tokens: { tok1: { createdAt: 1 }, tok2: { createdAt: 1, roleIds: { r1: true } }, used1: { used: true } },
     roles: { r1: { name: "Ігри" }, r2: { name: "Автори" } },
-    settings: { ai: { groqApiKey: "k" }, telegramBot: { token: "secret" }, navigation: [1] },
+    settings: { ownerUid: "adm", ai: { groqApiKey: "k", enabled: true }, telegramBot: { token: "secret" }, navigation: [1] },
     news: { n1: { title: "x" } },
     teachers: {
       t1: {
@@ -40,6 +41,7 @@ const t1 = env.authenticatedContext("t1").database();
 const t2 = env.authenticatedContext("t2").database();
 const bl = env.authenticatedContext("bl").database();
 const adm = env.authenticatedContext("adm").database();
+const adm2 = env.authenticatedContext("adm2").database();
 const nu = env.authenticatedContext("newbie").database();
 const nu2 = env.authenticatedContext("newbie2").database();
 const rr1 = env.authenticatedContext("rr1").database();
@@ -275,6 +277,34 @@ await t("admin read history", true, () => get(ref(adm, "nameHistory/t1")));
 await t("admin read all history", true, () => get(ref(adm, "nameHistory")));
 await t("teacher role still locked", false, () => update(ref(t1, "users/t1"), { name: "OK", role: "admin" }));
 
+// ── Власник і адміністратор ──
+await t("owner writes AI key", true, () => set(ref(adm, "settings/ai/groqApiKey"), "new"));
+await t("admin cannot write AI key", false, () => set(ref(adm2, "settings/ai/groqApiKey"), "evil"));
+await t("admin cannot write Gemini key", false, () => set(ref(adm2, "settings/ai/geminiApiKey"), "evil"));
+await t("admin edits AI settings", true, () => set(ref(adm2, "settings/ai/enabled"), false));
+await t("owner writes Telegram token", true, () => set(ref(adm, "settings/telegramBot/token"), "t2"));
+await t("admin cannot write Telegram token", false, () => set(ref(adm2, "settings/telegramBot/token"), "evil"));
+await t("admin edits Telegram recipients", true, () => set(ref(adm2, "settings/telegramBot/recipients/c1"), true));
+await t("admin writes features and status", true, () => update(ref(adm2), { "settings/features/v": 2, "settings/status/panelOff": false }));
+await t("admin writes navigation", true, () => set(ref(adm2, "settings/navigation_ts"), now));
+await t("teacher cannot write settings", false, () => set(ref(t1, "settings/status/panelOff"), true));
+await t("admin edits teacher features", true, () => set(ref(adm2, "users/t2/features"), { perms: { ai: false } }));
+await t("admin sets teacher read-only", true, () => set(ref(adm2, "users/t2/readOnly"), true));
+await t("admin blocks teacher", true, () => update(ref(adm2, "users/t2"), { blocked: true }));
+await t("admin cannot make admin", false, () => update(ref(adm2, "users/t2"), { role: "admin" }));
+await t("admin cannot create admin", false, () => set(ref(adm2, "users/zzadm"), { role: "admin", name: "Z" }));
+await t("admin cannot edit other admin", false, () => update(ref(adm2, "users/adm"), { name: "X" }));
+await t("admin cannot delete owner", false, () => remove(ref(adm2, "users/adm")));
+await t("owner makes admin", true, () => update(ref(adm, "users/t2"), { role: "admin" }));
+await t("owner edits admin", true, () => update(ref(adm, "users/adm2"), { blocked: false }));
+await t("admin cannot claim ownership", false, () => set(ref(adm2, "settings/ownerUid"), "adm2"));
+await t("teacher cannot claim ownership", false, () => set(ref(t1, "settings/ownerUid"), "t1"));
+await t("owner cannot hand ownership to teacher", false, () => set(ref(adm, "settings/ownerUid"), "t1"));
+await t("owner hands ownership to admin", true, () => set(ref(adm, "settings/ownerUid"), "adm2"));
+await t("old owner is now plain admin", false, () => set(ref(adm, "settings/ai/groqApiKey"), "again"));
+await t("new owner writes AI key", true, () => set(ref(adm2, "settings/ai/groqApiKey"), "k3"));
+
 console.log(`\n${pass} passed, ${fail} failed`);
 await env.cleanup();
 process.exit(fail ? 1 : 0);
+

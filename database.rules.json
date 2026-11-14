@@ -4,10 +4,9 @@
     ".write": false,
     "users": {
       ".read": "auth != null && root.child('users/' + auth.uid + '/role').exists() && root.child('users/' + auth.uid + '/blocked').val() !== true",
-      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
-        ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.child('role').val() === 'teacher' && newData.child('blocked').val() !== true && newData.child('inviteToken').isString() && root.child('invite_tokens/' + newData.child('inviteToken').val()).exists() && root.child('invite_tokens/' + newData.child('inviteToken').val()).child('used').val() !== true && (!root.child('invite_tokens/' + newData.child('inviteToken').val() + '/expiresAt').exists() || root.child('invite_tokens/' + newData.child('inviteToken').val() + '/expiresAt').val() > now)",
+        ".write": "(auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin' && (root.child('settings/ownerUid').val() === auth.uid || (data.child('role').val() !== 'admin' && newData.child('role').val() !== 'admin'))) || (auth != null && auth.uid === $uid && !data.exists() && newData.child('role').val() === 'teacher' && newData.child('blocked').val() !== true && newData.child('inviteToken').isString() && root.child('invite_tokens/' + newData.child('inviteToken').val()).exists() && root.child('invite_tokens/' + newData.child('inviteToken').val()).child('used').val() !== true && (!root.child('invite_tokens/' + newData.child('inviteToken').val() + '/expiresAt').exists() || root.child('invite_tokens/' + newData.child('inviteToken').val() + '/expiresAt').val() > now))",
         "aiSettings": {
           ".read": true,
           ".validate": "root.child('users/' + auth.uid + '/role').val() === 'admin'"
@@ -53,18 +52,35 @@
     },
     "settings": {
       ".read": "auth != null && root.child('users/' + auth.uid + '/role').exists() && root.child('users/' + auth.uid + '/blocked').val() !== true",
-      ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      "ownerUid": {
+        ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin' && (data.exists() ? data.val() === auth.uid && root.child('users/' + newData.val() + '/role').val() === 'admin' : newData.val() === auth.uid)",
+        ".validate": "newData.isString()"
+      },
       "ai": {
-        ".read": true
+        ".read": true,
+        "groqApiKey": { ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin' && root.child('settings/ownerUid').val() === auth.uid" },
+        "geminiApiKey": { ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin' && root.child('settings/ownerUid').val() === auth.uid" },
+        "apiKey": { ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin' && root.child('settings/ownerUid').val() === auth.uid" },
+        "$other": { ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'" }
+      },
+      "telegramBot": {
+        "token": { ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin' && root.child('settings/ownerUid').val() === auth.uid" },
+        "$other": { ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'" }
       },
       "status": {
-        ".read": true
+        ".read": true,
+        ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'"
       },
       "features": {
-        ".read": true
+        ".read": true,
+        ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'"
       },
       "mail": {
-        ".read": true
+        ".read": true,
+        ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'"
+      },
+      "$other": {
+        ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'"
       }
     },
     "aiUsage": {
