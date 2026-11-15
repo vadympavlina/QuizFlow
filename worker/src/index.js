@@ -8,6 +8,7 @@
 //   GET  /status        — стан налаштувань і список відписаних (адмін)
 //   POST /preview       — HTML розсилки для попереднього перегляду (адмін)
 //   POST /invite        — лист із запрошенням викладачу (адмін)
+//   POST /telegram/notice — сигнал адміну в Telegram (токен бота — секрет TELEGRAM_BOT_TOKEN)
 //   POST /reset         — лист для зміни пароля в дизайні QuizFlow (сторінка входу — з
 //                         обмеженням частоти, адмін — без); потрібен FIREBASE_SERVICE_ACCOUNT
 //   POST /welcome       — дані для входу новому акаунту, створеному адміном (адмін)
@@ -19,6 +20,7 @@ import { inviteEmail, broadcastEmail, welcomeEmail, resetEmail, esc, LOGO_V } fr
 import { serviceAccount, passwordResetCode } from "./google.js";
 import { LOGO_PNG_B64 } from "./logo.js";
 import { aiChat, aiStatus } from "./ai.js";
+import { telegramNotice } from "./telegram.js";
 
 const logoUrl = origin => `${origin}/logo.png?v=${LOGO_V}`;
 const LOGO_BYTES = Uint8Array.from(atob(LOGO_PNG_B64), c => c.charCodeAt(0));
@@ -44,7 +46,7 @@ export default {
   async fetch(request, rawEnv) {
     const env = { ...DEFAULTS, ...Object.fromEntries(Object.entries(rawEnv || {}).filter(([, v]) => v !== undefined && v !== "")) };
     const url = new URL(request.url);
-    const cors = corsHeaders(request, env, url.pathname.startsWith("/ai") ? env.AI_ALLOWED_ORIGINS : env.ALLOWED_ORIGINS);
+    const cors = corsHeaders(request, env, /^\/(ai|telegram)/.test(url.pathname) ? env.AI_ALLOWED_ORIGINS : env.ALLOWED_ORIGINS);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     try {
       if (url.pathname === "/unsubscribe") return await unsubscribe(request, env, url);
@@ -53,6 +55,7 @@ export default {
         return new Response(request.method === "HEAD" ? null : LOGO_BYTES, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000, immutable", "Access-Control-Allow-Origin": "*" } });
       if (url.pathname === "/" && request.method === "GET") return json({ ok: true, service: "quizflow-mail" }, 200, cors);
       if (url.pathname === "/ai" && request.method === "POST") return json(await aiChat(request, env, await readJson(request)), 200, cors);
+      if (url.pathname === "/telegram/notice" && request.method === "POST") return json(await telegramNotice(request, env, await readJson(request)), 200, cors);
       if (url.pathname === "/reset" && request.method === "POST") return json(await reset(request, env, url), 200, cors);
       const route = `${request.method} ${url.pathname}`;
       const handler = { "GET /status": status, "GET /ai/status": aiStatus, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast }[route];

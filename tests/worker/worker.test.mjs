@@ -23,15 +23,15 @@ const saPem = `-----BEGIN PRIVATE KEY-----\n${Buffer.from(await crypto.subtle.ex
 const SA = JSON.stringify({ type: "service_account", project_id: PROJECT, client_email: "mail@quizflow-test.iam.gserviceaccount.com", private_key: saPem });
 let google;   // { tokenCalls, oob: [], jwtOk }
 
-let db, sent, kv, resendStatus, aiCalls, aiWrites, aiFail;
+let tg, db, sent, kv, resendStatus, aiCalls, aiWrites, aiFail;
 const env = () => ({
   FIREBASE_PROJECT_ID: PROJECT, FIREBASE_DB_URL: DB, SITE_URL: "https://quizflow.space", MAIL_FROM: "QuizFlow <noreply@quizflow.space>",
-  ALLOWED_ORIGINS: "https://quizflow.space", RESEND_API_KEY: "re_test", UNSUB_SECRET: "s3cret", FIREBASE_SERVICE_ACCOUNT: SA, GROQ_API_KEY: "gsk_env", GEMINI_API_KEY: "gem_env",
+  ALLOWED_ORIGINS: "https://quizflow.space", RESEND_API_KEY: "re_test", TELEGRAM_BOT_TOKEN: "123:tgsecret", UNSUB_SECRET: "s3cret", FIREBASE_SERVICE_ACCOUNT: SA, GROQ_API_KEY: "gsk_env", GEMINI_API_KEY: "gem_env",
   MAIL_KV: { get: async k => kv.get(k) ?? null, put: async (k, v, opts) => void kv.set(k, v), delete: async k => void kv.delete(k),
     list: async ({ prefix }) => ({ keys: [...kv.keys()].filter(k => k.startsWith(prefix)).map(name => ({ name })), list_complete: true }) },
 });
 beforeEach(() => {
-  kv = new Map(); sent = []; resendStatus = 200; aiCalls = []; aiWrites = []; aiFail = false; google = { tokenCalls: 0, oob: [], jwtOk: null };
+  kv = new Map(); tg = []; sent = []; resendStatus = 200; aiCalls = []; aiWrites = []; aiFail = false; google = { tokenCalls: 0, oob: [], jwtOk: null };
   db = {
     users: {
       adm: { role: "admin", name: "Адмін", email: "admin@quizflow.space" },
@@ -40,7 +40,7 @@ beforeEach(() => {
       t3: { role: "teacher", name: "Блок", email: "b@example.com", blocked: true },
       t4: { role: "teacher", name: "Без пошти" },
     },
-    settings: { ai: { enabled: true, groqModel: "llama-test" }, features: { v: 2 } },
+    settings: { ai: { enabled: true, groqModel: "llama-test" }, features: { v: 2 }, telegramBot: { enabled: true, recipients: { "111": true, "222": false } } },
     teachers: { t1: { links: { L1: { testId: "T1", status: "open" } } } },
     aiUsage: {},
     invite_tokens: { tok12345: { used: false, expiresAt: Date.now() + 864e5 }, used1234: { used: true }, old12345: { expiresAt: Date.now() - 1 } },
@@ -63,7 +63,7 @@ beforeEach(() => {
     if (u.origin === DB) {
       // Мінімальні «правила»: публічні шляхи читає будь-хто, решту (профілі, адмін) — лише з токеном
       const path = u.pathname.replace(/^\/|\.json$/g, ""), token = u.searchParams.get("auth");
-      const PUBLIC = [/^settings\/(features|ai)(\/|$)/, /^aiUsage\//, /^teachers\/[^/]+\/links\/[^/]+/, /^users\/[^/]+\/(features|customRoleIds|aiSettings)(\/|$)/];
+      const PUBLIC = [/^settings\/(features|ai)(\/|$)/, /^settings\/telegramBot\/(enabled|recipients)(\/|$)/, /^aiUsage\//, /^teachers\/[^/]+\/links\/[^/]+/, /^users\/[^/]+\/(features|customRoleIds|aiSettings)(\/|$)/];
       const isPublic = PUBLIC.some(r => r.test(path));
       if (init.method === "PUT") {
         // запис лічильників aiUsage дозволено всім (як у правилах бази)
@@ -87,6 +87,7 @@ beforeEach(() => {
         ? Response.json({ choices: [{ message: { content: "Відповідь Groq" } }], usage: { total_tokens: 42 } })
         : Response.json({ candidates: [{ content: { parts: [{ text: "Відповідь Gemini" }] } }], usageMetadata: { totalTokenCount: 17 } });
     }
+    if (u.hostname === "api.telegram.org") { tg.push({ url: String(url), body: JSON.parse(init.body) }); return Response.json({ ok: true }); }
     if (u.hostname === "api.resend.com") {
       if (resendStatus !== 200) return Response.json({ message: "rate" }, { status: resendStatus });
       const body = JSON.parse(init.body);
@@ -400,4 +401,40 @@ test("AI: дозволи в базі зберігаються без крапк�
   assert.equal((await ask()).status, 200);
   db.users.t1.features = { perms: { ai: false } };
   assert.equal((await ask()).status, 403);
+});
+
+const AO = "https://app.quizflow.space";
+const lim = { key: "202611_t1_lim_aiPerMonth_50_100", type: "limit", uid: "t1", limitKey: "aiPerMonth", level: 100, used: 50, limit: 50 };
+test("Telegram: сигнал про ліміт іде лише активним отримувачам, токен — із секрету воркера", async () => {
+  const r = await call("POST", "/telegram/notice", { uid: "t1", body: lim, origin: AO });
+  assert.deepEqual(r.data, { ok: true, sent: true });
+  assert.equal(tg.length, 1);
+  assert.match(tg[0].url, /bot123:tgsecret\/sendMessage/);
+  assert.equal(tg[0].body.chat_id, "111");
+  assert.match(tg[0].body.text, /Олена досяг ліміту AI-запитів на місяць: 50/);
+});
+test("Telegram: повтор того ж сигналу ігнорується", async () => {
+  await call("POST", "/telegram/notice", { uid: "t1", body: lim, origin: AO });
+  const r = await call("POST", "/telegram/notice", { uid: "t1", body: lim, origin: AO });
+  assert.equal(r.data.sent, false); assert.equal(tg.length, 1);
+});
+test("Telegram: про іншого викладача й без входу (limit) — відмова; HTML екранується", async () => {
+  assert.equal((await call("POST", "/telegram/notice", { uid: "t2", body: lim, origin: AO })).status, 403);
+  assert.equal((await call("POST", "/telegram/notice", { uid: null, body: lim, origin: AO })).status, 403);
+  db.users.t1.name = "<b>Хакер</b>";
+  await call("POST", "/telegram/notice", { uid: "t1", body: lim, origin: AO });
+  assert.ok(!tg[0].body.text.includes("<b>Хакер"));
+});
+test("Telegram: помилки AI від студента без токена; сміттєві поля відхиляються", async () => {
+  const e = { key: "202611_t1_aierr_comments", type: "aierr", uid: "t1", feature: "comments", errors: 5 };
+  const r = await call("POST", "/telegram/notice", { uid: null, body: e, origin: "https://test.quizflow.space" });
+  assert.equal(r.data.sent, true);
+  assert.match(tg[0].body.text, /Часті помилки AI у Викладач: коментарі студентам, 5/);
+  assert.equal((await call("POST", "/telegram/notice", { uid: null, body: { ...e, key: "k2", feature: "<x>" }, origin: AO })).status, 400);
+  assert.equal((await call("POST", "/telegram/notice", { uid: "t1", body: { ...lim, key: "bad key!" }, origin: AO })).status, 400);
+});
+test("Telegram: вимкнено або без токена — нічого не надсилаємо", async () => {
+  db.settings.telegramBot.enabled = false;
+  assert.equal((await call("POST", "/telegram/notice", { uid: "t1", body: lim, origin: AO })).data.sent, false);
+  assert.equal(tg.length, 0);
 });

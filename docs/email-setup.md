@@ -146,6 +146,10 @@ Firebase Console → **Authentication → Settings → Authorized domains** → 
 
 Адреса воркера — угорі сторінки воркера, вигляду `https://quizflow-mail.<акаунт>.workers.dev`.
 
+> Сигнали адміну в Telegram: токен бота від @BotFather додайте як секрет воркера `TELEGRAM_BOT_TOKEN`
+> (так само, як `RESEND_API_KEY`). У базі токен лежить лише в `secrets/telegramToken` (читає тільки адмін,
+> потрібен для сторінки «Telegram» в адмінці); викладачі його більше не бачать.
+
 > Секрет `UNSUB_SECRET` не змінюйте без потреби: після зміни посилання «Відписатися»
 > в уже надісланих листах перестануть працювати.
 

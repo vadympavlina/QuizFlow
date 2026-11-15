@@ -636,6 +636,62 @@ async function aiStatus({ env }) {
   };
 }
 
+// ../worker/src/telegram.js
+var KEY_RE = /^[\w-]{1,160}$/;
+var ID_RE2 = /^[\w-]{1,128}$/;
+var LIMIT_LABEL = { maxTests: "\u0442\u0435\u0441\u0442\u0456\u0432", maxActiveLinks: "\u0430\u043A\u0442\u0438\u0432\u043D\u0438\u0445 \u043F\u043E\u0441\u0438\u043B\u0430\u043D\u044C", aiPerMonth: "AI-\u0437\u0430\u043F\u0438\u0442\u0456\u0432 \u043D\u0430 \u043C\u0456\u0441\u044F\u0446\u044C" };
+var FEAT_LABEL = { comments: "\u043A\u043E\u043C\u0435\u043D\u0442\u0430\u0440\u0456 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0430\u043C", analysis: "\u0440\u043E\u0437\u0431\u0456\u0440 \u043F\u043E\u043C\u0438\u043B\u043E\u043A", generation: "\u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0456\u044F \u043F\u0438\u0442\u0430\u043D\u044C", textcheck: "\u043F\u0435\u0440\u0435\u0432\u0456\u0440\u043A\u0430 \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u0435\u0439", mail: "\u043B\u0438\u0441\u0442\u0438 \u0439 \u0440\u043E\u0437\u0441\u0438\u043B\u043A\u0438" };
+var num2 = (v) => {
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 && n < 1e9 ? Math.floor(n) : null;
+};
+var esc2 = (s) => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function noticeText(b, who) {
+  if (b.type === "limit") {
+    const limit = num2(b.limit), used = num2(b.used);
+    const what2 = LIMIT_LABEL[b.key2];
+    if (!what2 || limit === null) throw new HttpError(400, "\u041D\u0435\u043A\u043E\u0440\u0435\u043A\u0442\u043D\u0438\u0439 \u0441\u0438\u0433\u043D\u0430\u043B");
+    return Number(b.level) >= 100 ? `${who} \u0434\u043E\u0441\u044F\u0433 \u043B\u0456\u043C\u0456\u0442\u0443 ${what2}: ${limit}` : `${who} \u0432\u0438\u043A\u043E\u0440\u0438\u0441\u0442\u0430\u0432 ${used ?? "?"} \u0437 ${limit} ${what2} (80%)`;
+  }
+  const errors = num2(b.errors), what = FEAT_LABEL[b.feature];
+  if (!what || errors === null) throw new HttpError(400, "\u041D\u0435\u043A\u043E\u0440\u0435\u043A\u0442\u043D\u0438\u0439 \u0441\u0438\u0433\u043D\u0430\u043B");
+  return `\u0427\u0430\u0441\u0442\u0456 \u043F\u043E\u043C\u0438\u043B\u043A\u0438 AI \u0443 ${who}: ${what}, ${errors} \u043F\u043E\u043C\u0438\u043B\u043E\u043A \u0446\u044C\u043E\u0433\u043E \u043C\u0456\u0441\u044F\u0446\u044F`;
+}
+async function telegramNotice(request, env, body) {
+  const key = String(body?.key || ""), type = String(body?.type || ""), uid = String(body?.uid || "");
+  if (!KEY_RE.test(key) || !ID_RE2.test(uid) || !["limit", "aierr"].includes(type)) throw new HttpError(400, "\u041D\u0435\u043A\u043E\u0440\u0435\u043A\u0442\u043D\u0438\u0439 \u0441\u0438\u0433\u043D\u0430\u043B");
+  const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
+  let claims = null;
+  if (token) claims = await verifyIdToken(token, env.FIREBASE_PROJECT_ID);
+  if (type === "limit" && (!claims || claims.sub !== uid)) throw new HttpError(403, "\u0421\u0438\u0433\u043D\u0430\u043B \u043C\u043E\u0436\u043D\u0430 \u043D\u0430\u0434\u0456\u0441\u043B\u0430\u0442\u0438 \u043B\u0438\u0448\u0435 \u043F\u0440\u043E \u0441\u0435\u0431\u0435");
+  if (claims && claims.sub !== uid && type === "aierr") throw new HttpError(403, "\u0421\u0438\u0433\u043D\u0430\u043B \u043C\u043E\u0436\u043D\u0430 \u043D\u0430\u0434\u0456\u0441\u043B\u0430\u0442\u0438 \u043B\u0438\u0448\u0435 \u043F\u0440\u043E \u0441\u0435\u0431\u0435");
+  if (!env.TELEGRAM_BOT_TOKEN) return { ok: true, sent: false, reason: "no_token" };
+  if (env.MAIL_KV) {
+    if (await env.MAIL_KV.get(`tg:${key}`)) return { ok: true, sent: false, reason: "duplicate" };
+    const hk = `tgrl:${Math.floor(Date.now() / 36e5)}`;
+    const n = Number(await env.MAIL_KV.get(hk) || 0);
+    if (n >= 60) throw new HttpError(429, "\u0417\u0430\u0431\u0430\u0433\u0430\u0442\u043E \u0441\u0438\u0433\u043D\u0430\u043B\u0456\u0432");
+    await Promise.all([env.MAIL_KV.put(hk, String(n + 1), { expirationTtl: 7200 }), env.MAIL_KV.put(`tg:${key}`, "1", { expirationTtl: 60 * 86400 })]);
+  }
+  const [enabled, rec] = await Promise.all([dbGet(env, "settings/telegramBot/enabled"), dbGet(env, "settings/telegramBot/recipients")]);
+  const to = Object.keys(rec || {}).filter((id) => rec[id] && /^-?\d{1,20}$/.test(id));
+  if (enabled !== true || !to.length) return { ok: true, sent: false, reason: "disabled" };
+  let who = "\u0412\u0438\u043A\u043B\u0430\u0434\u0430\u0447";
+  if (token) {
+    const u = await dbGet(env, `users/${uid}`, token).catch(() => null);
+    who = [u?.name, u?.surname].filter(Boolean).join(" ") || u?.email || who;
+  }
+  const text = `<b>QuizFlow \xB7 \u0441\u0438\u0433\u043D\u0430\u043B</b>
+${esc2(noticeText({ ...body, type, key2: String(body?.limitKey || "") }, esc2(who).slice(0, 120)))}`;
+  await Promise.all(to.map((chat_id) => fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id, text, parse_mode: "HTML" })
+  }).catch(() => {
+  })));
+  return { ok: true, sent: true };
+}
+
 // ../worker/src/index.js
 var logoUrl = (origin) => `${origin}/logo.png?v=${LOGO_V}`;
 var LOGO_BYTES = Uint8Array.from(atob(LOGO_PNG_B64), (c) => c.charCodeAt(0));
@@ -655,7 +711,7 @@ var index_default = {
   async fetch(request, rawEnv) {
     const env = { ...DEFAULTS, ...Object.fromEntries(Object.entries(rawEnv || {}).filter(([, v]) => v !== void 0 && v !== "")) };
     const url = new URL(request.url);
-    const cors = corsHeaders(request, env, url.pathname.startsWith("/ai") ? env.AI_ALLOWED_ORIGINS : env.ALLOWED_ORIGINS);
+    const cors = corsHeaders(request, env, /^\/(ai|telegram)/.test(url.pathname) ? env.AI_ALLOWED_ORIGINS : env.ALLOWED_ORIGINS);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     try {
       if (url.pathname === "/unsubscribe") return await unsubscribe(request, env, url);
@@ -663,6 +719,7 @@ var index_default = {
         return new Response(request.method === "HEAD" ? null : LOGO_BYTES, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000, immutable", "Access-Control-Allow-Origin": "*" } });
       if (url.pathname === "/" && request.method === "GET") return json({ ok: true, service: "quizflow-mail" }, 200, cors);
       if (url.pathname === "/ai" && request.method === "POST") return json(await aiChat(request, env, await readJson(request)), 200, cors);
+      if (url.pathname === "/telegram/notice" && request.method === "POST") return json(await telegramNotice(request, env, await readJson(request)), 200, cors);
       if (url.pathname === "/reset" && request.method === "POST") return json(await reset(request, env, url), 200, cors);
       const route = `${request.method} ${url.pathname}`;
       const handler = { "GET /status": status, "GET /ai/status": aiStatus, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast }[route];
