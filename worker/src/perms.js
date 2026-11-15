@@ -9,7 +9,7 @@
 //   settings/features = { v:2, perms:{ ключ:false }, limits:{…}, roles:{ roleId:{ perms:{…}, limits:{…} } } }
 //   users/{uid}       = { features:{ perms:{…}, limits:{…} }, readOnly:true, customRoleIds:{…} }
 //
-// Пріоритет: особисто → ролі викладача → для всіх. Усередині ролей «хоч одна дозволяє» — дозволено.
+// Пріоритет: особисто (так чи ні) → ролі викладача (лише додають: дозволено, якщо дає хоч одна) → для всіх («Усі викладачі»).
 // Якщо в базі ще старий формат (без v:2) — він читається «на льоту»: прапорці games/import/export
 // і обмеження пунктів меню за ролями (navigation.roleIds) перетворюються на ті самі дозволи.
 // Адміністратор (role === "admin") може все, режим «лише перегляд» його не стосується.
@@ -137,8 +137,8 @@ export function resolvePerms(cfg, profile = {}, nav) {
   const perms = {}, src = {};
   PERM_KEYS.forEach(k => {
     if (bool(own[k])) { perms[k] = own[k]; src[k] = "user"; return; }
-    const rv = roles.map(r => r.perms[k]).filter(bool);
-    if (rv.length) { perms[k] = rv.some(Boolean); src[k] = "role"; return; }
+    // Ролі лише додають: дозволено, якщо це дає хоч одна роль. Старе «Ні» в ролі більше нічого не забороняє.
+    if (roles.some(r => r.perms[k] === true)) { perms[k] = true; src[k] = "role"; return; }
     perms[k] = c.perms[k] !== false; src[k] = "all";
   });
   // Залежності вмикаємо лише від явно виданих дозволів (особистих чи від ролі), а не від «за замовчуванням»:

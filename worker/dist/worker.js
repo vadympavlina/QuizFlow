@@ -443,9 +443,8 @@ function resolvePerms(cfg, profile = {}, nav) {
       src[k] = "user";
       return;
     }
-    const rv = roles.map((r) => r.perms[k]).filter(bool);
-    if (rv.length) {
-      perms[k] = rv.some(Boolean);
+    if (roles.some((r) => r.perms[k] === true)) {
+      perms[k] = true;
       src[k] = "role";
       return;
     }
