@@ -21,7 +21,7 @@ await env.withSecurityRulesDisabled(async c => {
     },
     invite_tokens: { tok1: { createdAt: 1 }, tok2: { createdAt: 1, roleIds: { r1: true } }, used1: { used: true } },
     roles: { r1: { name: "Ігри" }, r2: { name: "Автори" } },
-    settings: { ownerUid: "adm", ai: { groqApiKey: "k", enabled: true }, telegramBot: { token: "secret" }, navigation: [1] },
+    settings: { ownerUid: "adm", ai: { groqApiKey: "k", enabled: true }, telegramBot: { enabled: true }, navigation: [1] },
     news: { n1: { title: "x" } },
     teachers: {
       t1: {
@@ -293,19 +293,10 @@ await t("admin read all history", true, () => get(ref(adm, "nameHistory")));
 await t("teacher role still locked", false, () => update(ref(t1, "users/t1"), { name: "OK", role: "admin" }));
 
 // ── Власник і адміністратор ──
-await t("owner writes telegram token to secrets", true, () => set(ref(adm, "secrets/telegramToken"), "123:abc"));
-await t("admin (not owner) cannot write telegram token", false, () => set(ref(adm2, "secrets/telegramToken"), "evil"));
-await t("teacher cannot write secrets", false, () => set(ref(t1, "secrets/telegramToken"), "x"));
-await t("teacher cannot read secrets", false, () => get(ref(t1, "secrets/telegramToken")));
-await t("admin reads secrets", true, () => get(ref(adm, "secrets/telegramToken")));
-await t("unauth reads telegram recipients/enabled", true, () => get(ref(anon, "settings/telegramBot/enabled")));
-await t("unauth cannot read telegram token", false, () => get(ref(anon, "settings/telegramBot/token")));
 await t("owner writes AI key", true, () => set(ref(adm, "settings/ai/groqApiKey"), "new"));
 await t("admin cannot write AI key", false, () => set(ref(adm2, "settings/ai/groqApiKey"), "evil"));
 await t("admin cannot write Gemini key", false, () => set(ref(adm2, "settings/ai/geminiApiKey"), "evil"));
 await t("admin edits AI settings", true, () => set(ref(adm2, "settings/ai/enabled"), false));
-await t("owner writes Telegram token", true, () => set(ref(adm, "settings/telegramBot/token"), "t2"));
-await t("admin cannot write Telegram token", false, () => set(ref(adm2, "settings/telegramBot/token"), "evil"));
 await t("admin edits Telegram recipients", true, () => set(ref(adm2, "settings/telegramBot/recipients/c1"), true));
 await t("admin writes features and status", true, () => update(ref(adm2), { "settings/features/v": 2, "settings/status/panelOff": false }));
 await t("admin writes navigation", true, () => set(ref(adm2, "settings/navigation_ts"), now));
