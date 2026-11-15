@@ -61,3 +61,19 @@ export async function telegramNotice(request, env, body) {
   }).catch(() => {})));
   return { ok: true, sent: true };
 }
+
+// ─── Telegram API для адмінки ───────────────────────────────────────────
+// Сторінка «Telegram» в адмінці звертається до бота лише через воркер: токен у браузер не потрапляє.
+const API_METHODS = new Set(["getMe", "sendMessage", "getUpdates", "deleteMessage"]);
+export async function telegramApi({ env, body }) {
+  if (!env.TELEGRAM_BOT_TOKEN) throw Object.assign(new HttpError(503, "На воркері не задано TELEGRAM_BOT_TOKEN"), { code: "no_token" });
+  const method = String(body?.method || "");
+  if (!API_METHODS.has(method)) throw new HttpError(400, "Невідомий метод Telegram");
+  const params = body?.params && typeof body.params === "object" && !Array.isArray(body.params) ? body.params : {};
+  const r = await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/${method}`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(params),
+  });
+  const d = await r.json().catch(() => ({ ok: false, description: `HTTP ${r.status}` }));
+  if (!d.ok) throw Object.assign(new HttpError(502, d.description || "Telegram API помилка"), { code: String(d.error_code || "tg") });
+  return { ok: true, result: d.result };
+}
