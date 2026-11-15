@@ -21,7 +21,7 @@ const monthKey = (d = new Date()) => `${d.getUTCFullYear()}${String(d.getUTCMont
 const num = v => { const n = Number(v); return Number.isFinite(n) && n >= 0 ? Math.floor(n) : null; };
 
 // Читання бази через REST: з токеном користувача або без нього (лише публічні шляхи)
-async function dbGet(env, path, token) {
+export async function dbGet(env, path, token) {
   const r = await fetch(`${env.FIREBASE_DB_URL}/${path}.json${token ? `?auth=${encodeURIComponent(token)}` : ""}`);
   if (r.status === 401 || r.status === 403) return null;
   if (!r.ok) throw new HttpError(502, "База недоступна");

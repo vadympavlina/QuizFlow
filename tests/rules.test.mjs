@@ -293,6 +293,13 @@ await t("admin read all history", true, () => get(ref(adm, "nameHistory")));
 await t("teacher role still locked", false, () => update(ref(t1, "users/t1"), { name: "OK", role: "admin" }));
 
 // ── Власник і адміністратор ──
+await t("owner writes telegram token to secrets", true, () => set(ref(adm, "secrets/telegramToken"), "123:abc"));
+await t("admin (not owner) cannot write telegram token", false, () => set(ref(adm2, "secrets/telegramToken"), "evil"));
+await t("teacher cannot write secrets", false, () => set(ref(t1, "secrets/telegramToken"), "x"));
+await t("teacher cannot read secrets", false, () => get(ref(t1, "secrets/telegramToken")));
+await t("admin reads secrets", true, () => get(ref(adm, "secrets/telegramToken")));
+await t("unauth reads telegram recipients/enabled", true, () => get(ref(anon, "settings/telegramBot/enabled")));
+await t("unauth cannot read telegram token", false, () => get(ref(anon, "settings/telegramBot/token")));
 await t("owner writes AI key", true, () => set(ref(adm, "settings/ai/groqApiKey"), "new"));
 await t("admin cannot write AI key", false, () => set(ref(adm2, "settings/ai/groqApiKey"), "evil"));
 await t("admin cannot write Gemini key", false, () => set(ref(adm2, "settings/ai/geminiApiKey"), "evil"));
