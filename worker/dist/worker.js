@@ -59,7 +59,7 @@ async function requireAdmin(request, env) {
 // ../worker/src/mail.js
 var esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 var FONT = "Manrope,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
-var C = { ink: "#0D1340", text: "#2B3552", muted: "#6B7593", faint: "#8A94B0", line: "#E6EAF3", brand: "#2D5BE3" };
+var C = { ink: "#0D1340", text: "#2B3552", muted: "#6B7593", faint: "#7A84A3", line: "#E2E7F3", brand: "#2D5BE3", bg: "#EEF1F9", tint: "#F4F6FC", amber: "#E5A100" };
 var DEFAULT_SITE = "https://app.quizflow.space";
 var LOGO_V = 3;
 function inline(s) {
@@ -113,21 +113,22 @@ function layout({ site = DEFAULT_SITE, logoUrl: logoUrl2 = "", preheader = "", t
 <title>${esc(title || "QuizFlow")}</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-  @media (max-width:600px){ .qf-pad{padding-left:20px!important;padding-right:20px!important} .qf-h1{font-size:25px!important} .qf-btn, .qf-btn a{display:block!important;width:100%!important;text-align:center!important;box-sizing:border-box} }
+  @media (max-width:600px){ .qf-out{padding:16px 10px 20px!important} .qf-pad{padding:26px 22px!important} .qf-h1{font-size:25px!important} .qf-btn, .qf-btn a{display:block!important;width:100%!important;text-align:center!important;box-sizing:border-box} }
 </style></head>
-<body style="margin:0;padding:0;background:#ffffff">
+<body style="margin:0;padding:0;background:${C.bg}">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all">${esc(preheader)}&#8199;&#65279;&#847;&#8199;&#65279;&#847;&#8199;&#65279;&#847;</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff"><tr><td align="center" style="padding:40px 12px 36px">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px"><tr><td class="qf-pad" style="padding:0 24px;font:400 16px/1.7 ${FONT};color:${C.text}">
-    <a href="${esc(site)}" style="text-decoration:none"><img src="${esc(logo)}" width="125" height="36" alt="QuizFlow" style="display:block;border:0;margin:0 0 36px;font:800 20px ${FONT};color:${C.ink}"></a>
-    ${title ? `<h1 class="qf-h1" style="margin:0 0 22px;font:800 30px/1.2 ${FONT};color:${C.ink};letter-spacing:-.6px">${esc(title)}</h1>` : ""}
-    ${bodyHtml}
-    ${btn?.url ? button(btn) : ""}
-    ${after}
-    <p style="margin:32px 0 0">${uniq}\u0417 \u043F\u043E\u0432\u0430\u0433\u043E\u044E,<br><strong style="color:${C.ink}">\u041A\u043E\u043C\u0430\u043D\u0434\u0430 QuizFlow</strong></p>
-    <div style="height:1px;line-height:1px;font-size:0;background:${C.line};margin:36px 0 18px">&nbsp;</div>
-    <p style="margin:0;font-size:12.5px;line-height:1.6;color:${C.faint}">${uniq}${footer}</p>
-  </td></tr></table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.bg}"><tr><td class="qf-out" align="center" style="padding:36px 12px 32px">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px">
+    <tr><td class="qf-pad" style="background:#ffffff;border:1px solid ${C.line};border-radius:16px;padding:38px 40px;font:400 16px/1.7 ${FONT};color:${C.text}">
+      <a href="${esc(site)}" style="text-decoration:none"><img src="${esc(logo)}" width="125" height="36" alt="QuizFlow" style="display:block;border:0;margin:0 0 30px;font:800 20px ${FONT};color:${C.ink}"></a>
+      ${title ? `<h1 class="qf-h1" style="margin:0 0 20px;font:800 28px/1.2 ${FONT};color:${C.ink};letter-spacing:-.5px">${esc(title)}</h1>` : ""}
+      ${bodyHtml}
+      ${btn?.url ? button(btn) : ""}
+      ${after}
+      <p style="margin:28px 0 0">${uniq}\u0417 \u043F\u043E\u0432\u0430\u0433\u043E\u044E,<br><strong style="color:${C.ink}">\u041A\u043E\u043C\u0430\u043D\u0434\u0430 QuizFlow</strong></p>
+    </td></tr>
+    <tr><td align="center" style="padding:18px 20px 0;font:400 12.5px/1.6 ${FONT};color:${C.faint};text-align:center">${uniq}${footer}</td></tr>
+  </table>
 </td></tr></table>
 </body></html>`;
 }
@@ -145,8 +146,8 @@ function inviteEmail({ link, name, fromName, expiresAt, message, site, logoUrl: 
     <p style="margin:0 0 18px">${esc(hello)}</p>
     <p style="margin:0 0 18px">${esc(lead)}</p>
     ${message ? `<p style="margin:0 0 18px;padding:2px 0 2px 16px;border-left:3px solid ${C.brand};color:${C.ink}">${esc(message).replace(/\n/g, "<br>")}</p>` : ""}
-    <p style="margin:0 0 10px">\u0429\u043E \u0432\u0430\u0441 \u0447\u0435\u043A\u0430\u0454:</p>
-    <ul style="margin:0 0 26px;padding-left:22px">${FEATURES.map(([t, d]) => `<li style="margin:0 0 8px"><strong style="color:${C.ink}">${t}</strong> \u2014 ${d}</li>`).join("")}</ul>`;
+    <p style="margin:0 0 12px">\u0429\u043E \u0432\u0430\u0441 \u0447\u0435\u043A\u0430\u0454:</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;width:100%">${FEATURES.map(([t, d], i) => `<tr><td valign="top" style="width:30px;padding:0 12px 12px 0"><div style="width:30px;height:30px;line-height:30px;border-radius:9px;background:#E8EEFF;color:${C.brand};font:800 13px/30px ${FONT};text-align:center">${i + 1}</div></td><td valign="top" style="padding:0 0 12px;font-size:15px;line-height:1.55"><strong style="color:${C.ink}">${t}</strong><br><span style="color:${C.muted};font-size:14px">${d}</span></td></tr>`).join("")}</table>`;
   return {
     subject: "\u0412\u0430\u0441 \u0437\u0430\u043F\u0440\u043E\u0448\u0435\u043D\u043E \u0434\u043E QuizFlow",
     html: layout({
@@ -186,7 +187,8 @@ function resetEmail({ email, link, byAdmin, site, logoUrl: logoUrl2 }) {
       title: "\u0417\u043C\u0456\u043D\u0430 \u043F\u0430\u0440\u043E\u043B\u044F",
       bodyHtml: `<p style="margin:0 0 18px">\u0412\u0456\u0442\u0430\u0454\u043C\u043E!</p><p style="margin:0 0 24px">${esc(lead)}</p>`,
       button: { label: "\u0417\u0430\u0434\u0430\u0442\u0438 \u043D\u043E\u0432\u0438\u0439 \u043F\u0430\u0440\u043E\u043B\u044C", url: link },
-      after: `<p style="margin:18px 0 0;font-size:14px;line-height:1.6;color:${C.muted}">${note} \u042F\u043A\u0449\u043E \u0432\u0438 \u043D\u0435 \u043D\u0430\u0434\u0441\u0438\u043B\u0430\u043B\u0438 \u0437\u0430\u043F\u0438\u0442 \u2014 \u043F\u0440\u043E\u0441\u0442\u043E \u043F\u0440\u043E\u0456\u0433\u043D\u043E\u0440\u0443\u0439\u0442\u0435 \u043B\u0438\u0441\u0442, \u043F\u0430\u0440\u043E\u043B\u044C \u043D\u0435 \u0437\u043C\u0456\u043D\u0438\u0442\u044C\u0441\u044F.<br><br>\u042F\u043A\u0449\u043E \u043A\u043D\u043E\u043F\u043A\u0430 \u043D\u0435 \u043F\u0440\u0430\u0446\u044E\u0454, \u0441\u043A\u043E\u043F\u0456\u044E\u0439\u0442\u0435 \u0430\u0434\u0440\u0435\u0441\u0443 \u0432 \u0431\u0440\u0430\u0443\u0437\u0435\u0440:<br><a href="${esc(link)}" style="color:${C.brand};word-break:break-all">${esc(link)}</a></p>`,
+      after: `<div style="margin:16px 0 16px;padding:2px 0 2px 14px;border-left:3px solid ${C.amber};font-size:14px;line-height:1.6;color:${C.text}">${note} \u042F\u043A\u0449\u043E \u0432\u0438 \u043D\u0435 \u043D\u0430\u0434\u0441\u0438\u043B\u0430\u043B\u0438 \u0437\u0430\u043F\u0438\u0442 \u2014 \u043F\u0440\u043E\u0441\u0442\u043E \u043F\u0440\u043E\u0456\u0433\u043D\u043E\u0440\u0443\u0439\u0442\u0435 \u043B\u0438\u0441\u0442, \u043F\u0430\u0440\u043E\u043B\u044C \u043D\u0435 \u0437\u043C\u0456\u043D\u0438\u0442\u044C\u0441\u044F.</div>
+        <p style="margin:0;font-size:13.5px;line-height:1.6;color:${C.muted}">\u042F\u043A\u0449\u043E \u043A\u043D\u043E\u043F\u043A\u0430 \u043D\u0435 \u043F\u0440\u0430\u0446\u044E\u0454, \u0441\u043A\u043E\u043F\u0456\u044E\u0439\u0442\u0435 \u0430\u0434\u0440\u0435\u0441\u0443 \u0432 \u0431\u0440\u0430\u0443\u0437\u0435\u0440:<br><a href="${esc(link)}" style="color:${C.brand};word-break:break-all">${esc(link)}</a></p>`,
       footer: "\u0412\u0438 \u043E\u0442\u0440\u0438\u043C\u0430\u043B\u0438 \u0446\u0435\u0439 \u043B\u0438\u0441\u0442, \u0431\u043E \u0434\u043B\u044F \u0432\u0430\u0448\u043E\u0433\u043E \u0430\u043A\u0430\u0443\u043D\u0442\u0430 QuizFlow \u0437\u0430\u043F\u0440\u043E\u0441\u0438\u043B\u0438 \u0437\u043C\u0456\u043D\u0443 \u043F\u0430\u0440\u043E\u043B\u044F."
     }),
     text: `\u0412\u0456\u0442\u0430\u0454\u043C\u043E!
@@ -209,7 +211,7 @@ function welcomeEmail({ name, email, password, loginUrl, fromName, site, logoUrl
     <p style="margin:0 0 18px">${esc(hello)}</p>
     <p style="margin:0 0 18px">${esc(lead)}</p>
     <p style="margin:0 0 8px">\u0414\u0430\u043D\u0456 \u0434\u043B\u044F \u0432\u0445\u043E\u0434\u0443:</p>
-    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 22px;padding:10px 16px;background:#F4F6FB;border-radius:10px;width:100%">${row("Email", email)}${password ? row("\u041F\u0430\u0440\u043E\u043B\u044C", password) : ""}</table>`;
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 22px;padding:10px 16px;background:${C.tint};border-radius:14px;width:100%">${row("Email", email)}${password ? row("\u041F\u0430\u0440\u043E\u043B\u044C", password) : ""}</table>`;
   const after = `<p style="margin:18px 0 0;font-size:14px;line-height:1.6;color:${C.muted}">${password ? "\u0426\u0435 \u0442\u0438\u043C\u0447\u0430\u0441\u043E\u0432\u0438\u0439 \u043F\u0430\u0440\u043E\u043B\u044C. \u0429\u043E\u0431 \u0437\u0430\u0434\u0430\u0442\u0438 \u0432\u043B\u0430\u0441\u043D\u0438\u0439, \u043D\u0430 \u0441\u0442\u043E\u0440\u0456\u043D\u0446\u0456 \u0432\u0445\u043E\u0434\u0443 \u043D\u0430\u0442\u0438\u0441\u043D\u0456\u0442\u044C \xAB\u0417\u0430\u0431\u0443\u043B\u0438 \u043F\u0430\u0440\u043E\u043B\u044C?\xBB \u2014 \u043F\u0440\u0438\u0439\u0434\u0435 \u043B\u0438\u0441\u0442 \u0456\u0437 \u043F\u043E\u0441\u0438\u043B\u0430\u043D\u043D\u044F\u043C." : "\u041F\u0430\u0440\u043E\u043B\u044C \u0432\u0430\u043C \u043F\u043E\u0432\u0456\u0434\u043E\u043C\u0438\u0442\u044C \u0430\u0434\u043C\u0456\u043D\u0456\u0441\u0442\u0440\u0430\u0442\u043E\u0440. \u0410\u0431\u043E \u0437\u0430\u0434\u0430\u0439\u0442\u0435 \u0432\u043B\u0430\u0441\u043D\u0438\u0439: \u043D\u0430 \u0441\u0442\u043E\u0440\u0456\u043D\u0446\u0456 \u0432\u0445\u043E\u0434\u0443 \u043D\u0430\u0442\u0438\u0441\u043D\u0456\u0442\u044C \xAB\u0417\u0430\u0431\u0443\u043B\u0438 \u043F\u0430\u0440\u043E\u043B\u044C?\xBB."}</p>`;
   return {
     subject: "\u0412\u0430\u0448 \u0430\u043A\u0430\u0443\u043D\u0442 \u0443 QuizFlow",
