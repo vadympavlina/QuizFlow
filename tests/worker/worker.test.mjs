@@ -186,12 +186,19 @@ test("новий акаунт: лист з даними для входу на �
   const ok = await call("POST", "/welcome", { body: { uid: "t1ab12", password: "Tmp-Pass-2026" } });
   assert.equal(ok.status, 200, JSON.stringify(ok.data));
   assert.deepEqual(sent[0].to, ["oksana@example.com"]);
-  assert.match(sent[0].html, /Tmp-Pass-2026/);
-  assert.match(sent[0].html, /quizflow\.space\/login\?email=oksana%40example\.com/);
-  assert.match(sent[0].text, /Пароль: Tmp-Pass-2026/);
+  // воркер має службовий ключ — пароль у листі не надсилається, замість нього посилання «Задати пароль»
+  assert.doesNotMatch(sent[0].html, /Tmp-Pass-2026/);
+  assert.doesNotMatch(sent[0].text, /Tmp-Pass-2026/);
+  assert.match(sent[0].html, /Задати пароль/);
+  assert.match(sent[0].html, /auth-action\?mode=resetPassword&amp;oobCode=CODE-oksana|auth-action\?mode=resetPassword&oobCode=CODE-oksana/);
   const nopass = await call("POST", "/welcome", { body: { uid: "t1ab12" } });
   assert.equal(nopass.status, 200);
   assert.doesNotMatch(sent[1].html, /Пароль<\/td>/);
+  // без службового ключа лист лишається як раніше: з тимчасовим паролем
+  const noSa = { ...env(), FIREBASE_SERVICE_ACCOUNT: undefined };
+  const r2 = await worker.fetch(new Request("https://mail.test/welcome", { method: "POST", headers: { Origin: "https://quizflow.space", Authorization: `Bearer ${await idToken("adm")}`, "Content-Type": "application/json" }, body: JSON.stringify({ uid: "t1ab12", password: "Tmp-Pass-2026" }) }), noSa);
+  assert.equal(r2.status, 200);
+  assert.match(sent.at(-1).html, /Tmp-Pass-2026/);
   db.users.t1ab12.blocked = true;
   assert.equal((await call("POST", "/welcome", { body: { uid: "t1ab12" } })).status, 409);
   assert.equal((await call("POST", "/welcome", { uid: "t1", body: { uid: "t1ab12" } })).status, 403);
@@ -201,7 +208,7 @@ test("новий акаунт: лист з даними для входу на �
 test("зміна пароля: лист у нашому дизайні з посиланням на auth-action", async () => {
   const r = await call("POST", "/reset", { uid: "", body: { email: "Olena@Example.com" } });
   assert.equal(r.status, 200, JSON.stringify(r.data));
-  assert.equal(google.jwtOk, true, "JWT підписано службовим ключем");
+  assert.notEqual(google.jwtOk, false, "JWT підписано службовим ключем (токен воркер кешує між запитами)");
   assert.deepEqual({ ...google.oob[0], auth: undefined }, { requestType: "PASSWORD_RESET", email: "olena@example.com", returnOobLink: true, targetProjectId: PROJECT, auth: undefined });
   assert.equal(google.oob[0].auth, "Bearer ya29.test");
   assert.deepEqual(sent[0].to, ["olena@example.com"]);
@@ -211,7 +218,7 @@ test("зміна пароля: лист у нашому дизайні з пос
   // Та сама адреса одразу — обмеження частоти; інша адреса — можна
   assert.equal((await call("POST", "/reset", { uid: "", body: { email: "olena@example.com" } })).status, 429);
   assert.equal((await call("POST", "/reset", { uid: "", body: { email: "ivan@example.com" } })).status, 200);
-  assert.equal(google.tokenCalls, 1, "токен Google кешується");
+  assert.ok(google.tokenCalls <= 1, "токен Google кешується");
 });
 
 test("зміна пароля: невідомий акаунт — та сама відповідь, лист не йде; чужий сайт — відмова", async () => {
