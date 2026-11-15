@@ -9,6 +9,7 @@
 //   POST /preview       — HTML розсилки для попереднього перегляду (адмін)
 //   POST /invite        — лист із запрошенням викладачу (адмін)
 //   POST /telegram/notice — сигнал адміну в Telegram (токен бота — секрет TELEGRAM_BOT_TOKEN)
+//   POST /telegram/api    — виклики Telegram Bot API для сторінки адмінки (getMe, sendMessage, getUpdates, deleteMessage)
 //   POST /reset         — лист для зміни пароля в дизайні QuizFlow (сторінка входу — з
 //                         обмеженням частоти, адмін — без); потрібен FIREBASE_SERVICE_ACCOUNT
 //   POST /welcome       — дані для входу новому акаунту, створеному адміном (адмін)
@@ -20,7 +21,7 @@ import { inviteEmail, broadcastEmail, welcomeEmail, resetEmail, esc, LOGO_V } fr
 import { serviceAccount, passwordResetCode } from "./google.js";
 import { LOGO_PNG_B64 } from "./logo.js";
 import { aiChat, aiStatus } from "./ai.js";
-import { telegramNotice } from "./telegram.js";
+import { telegramNotice, telegramApi } from "./telegram.js";
 
 const logoUrl = origin => `${origin}/logo.png?v=${LOGO_V}`;
 const LOGO_BYTES = Uint8Array.from(atob(LOGO_PNG_B64), c => c.charCodeAt(0));
@@ -58,7 +59,7 @@ export default {
       if (url.pathname === "/telegram/notice" && request.method === "POST") return json(await telegramNotice(request, env, await readJson(request)), 200, cors);
       if (url.pathname === "/reset" && request.method === "POST") return json(await reset(request, env, url), 200, cors);
       const route = `${request.method} ${url.pathname}`;
-      const handler = { "GET /status": status, "GET /ai/status": aiStatus, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast }[route];
+      const handler = { "GET /status": status, "GET /ai/status": aiStatus, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast, "POST /telegram/api": telegramApi }[route];
       if (!handler) throw new HttpError(404, "Невідома адреса");
       const admin = await requireAdmin(request, env);
       const body = request.method === "POST" ? await readJson(request) : null;

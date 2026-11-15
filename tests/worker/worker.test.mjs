@@ -87,7 +87,7 @@ beforeEach(() => {
         ? Response.json({ choices: [{ message: { content: "Відповідь Groq" } }], usage: { total_tokens: 42 } })
         : Response.json({ candidates: [{ content: { parts: [{ text: "Відповідь Gemini" }] } }], usageMetadata: { totalTokenCount: 17 } });
     }
-    if (u.hostname === "api.telegram.org") { tg.push({ url: String(url), body: JSON.parse(init.body) }); return Response.json({ ok: true }); }
+    if (u.hostname === "api.telegram.org") { if (/getMe$/.test(u.pathname)) return Response.json({ ok: true, result: { username: "qf_bot", first_name: "QuizFlow" } }); if (/getUpdates$/.test(u.pathname)) return Response.json({ ok: false, error_code: 409, description: "conflict" }); tg.push({ url: String(url), body: JSON.parse(init.body) }); return Response.json({ ok: true }); }
     if (u.hostname === "api.resend.com") {
       if (resendStatus !== 200) return Response.json({ message: "rate" }, { status: resendStatus });
       const body = JSON.parse(init.body);
@@ -444,4 +444,18 @@ test("Telegram: вимкнено або без токена — нічого н�
   db.settings.telegramBot.enabled = false;
   assert.equal((await call("POST", "/telegram/notice", { uid: "t1", body: lim, origin: AO })).data.sent, false);
   assert.equal(tg.length, 0);
+});
+
+test("Telegram API для адмінки: лише адмін, лише дозволені методи, токен не віддається", async () => {
+  const me = await call("POST", "/telegram/api", { body: { method: "getMe" }, origin: "https://admin.quizflow.space" });
+  assert.equal(me.status, 200);
+  assert.equal(me.data.result.username, "qf_bot");
+  assert.ok(!JSON.stringify(me.data).includes("tgsecret"));
+  assert.equal((await call("POST", "/telegram/api", { uid: "t1", body: { method: "getMe" }, origin: "https://admin.quizflow.space" })).status, 403);
+  assert.equal((await call("POST", "/telegram/api", { body: { method: "logOut" }, origin: "https://admin.quizflow.space" })).status, 400);
+  const send = await call("POST", "/telegram/api", { body: { method: "sendMessage", params: { chat_id: "111", text: "привіт" } }, origin: "https://admin.quizflow.space" });
+  assert.equal(send.status, 200);
+  assert.equal(tg.at(-1).body.text, "привіт");
+  const bad = await call("POST", "/telegram/api", { body: { method: "getUpdates", params: {} }, origin: "https://admin.quizflow.space" });
+  assert.equal(bad.status, 502); assert.equal(bad.data.error, "conflict");
 });

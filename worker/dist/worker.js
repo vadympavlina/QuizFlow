@@ -691,6 +691,21 @@ ${esc2(noticeText({ ...body, type, key2: String(body?.limitKey || "") }, esc2(wh
   })));
   return { ok: true, sent: true };
 }
+var API_METHODS = /* @__PURE__ */ new Set(["getMe", "sendMessage", "getUpdates", "deleteMessage"]);
+async function telegramApi({ env, body }) {
+  if (!env.TELEGRAM_BOT_TOKEN) throw Object.assign(new HttpError(503, "\u041D\u0430 \u0432\u043E\u0440\u043A\u0435\u0440\u0456 \u043D\u0435 \u0437\u0430\u0434\u0430\u043D\u043E TELEGRAM_BOT_TOKEN"), { code: "no_token" });
+  const method = String(body?.method || "");
+  if (!API_METHODS.has(method)) throw new HttpError(400, "\u041D\u0435\u0432\u0456\u0434\u043E\u043C\u0438\u0439 \u043C\u0435\u0442\u043E\u0434 Telegram");
+  const params = body?.params && typeof body.params === "object" && !Array.isArray(body.params) ? body.params : {};
+  const r = await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/${method}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params)
+  });
+  const d = await r.json().catch(() => ({ ok: false, description: `HTTP ${r.status}` }));
+  if (!d.ok) throw Object.assign(new HttpError(502, d.description || "Telegram API \u043F\u043E\u043C\u0438\u043B\u043A\u0430"), { code: String(d.error_code || "tg") });
+  return { ok: true, result: d.result };
+}
 
 // ../worker/src/index.js
 var logoUrl = (origin) => `${origin}/logo.png?v=${LOGO_V}`;
@@ -722,7 +737,7 @@ var index_default = {
       if (url.pathname === "/telegram/notice" && request.method === "POST") return json(await telegramNotice(request, env, await readJson(request)), 200, cors);
       if (url.pathname === "/reset" && request.method === "POST") return json(await reset(request, env, url), 200, cors);
       const route = `${request.method} ${url.pathname}`;
-      const handler = { "GET /status": status, "GET /ai/status": aiStatus, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast }[route];
+      const handler = { "GET /status": status, "GET /ai/status": aiStatus, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast, "POST /telegram/api": telegramApi }[route];
       if (!handler) throw new HttpError(404, "\u041D\u0435\u0432\u0456\u0434\u043E\u043C\u0430 \u0430\u0434\u0440\u0435\u0441\u0430");
       const admin = await requireAdmin(request, env);
       const body = request.method === "POST" ? await readJson(request) : null;
