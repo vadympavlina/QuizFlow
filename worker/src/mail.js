@@ -1,12 +1,13 @@
-// Шаблони листів — «світлий мінімал»: білий фон без карток, логотип зліва,
-// великий заголовок і підпис команди, як лист від людини. Пошта не розуміє
+// Шаблони листів — «чистий мінімал»: біла картка із заокругленими кутами на світло-сірому тлі,
+// логотип зліва, великий заголовок, один яскравий блок дії і підпис команди. Без картинок-талісманів:
+// лист виглядає добре й тоді, коли пошта блокує зображення. Пошта не розуміє
 // зовнішніх CSS і SVG, тож лише таблиці, inline-стилі й PNG-логотип із сайту
 // (assets/email). Шрифт Manrope із запасними системними. Без емодзі.
 
 export const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
 const FONT = "Manrope,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
-const C = { ink: "#0D1340", text: "#2B3552", muted: "#6B7593", faint: "#8A94B0", line: "#E6EAF3", brand: "#2D5BE3" };
+const C = { ink: "#0D1340", text: "#2B3552", muted: "#6B7593", faint: "#7A84A3", line: "#E2E7F3", brand: "#2D5BE3", bg: "#EEF1F9", tint: "#F4F6FC", amber: "#E5A100" };
 const DEFAULT_SITE = "https://app.quizflow.space";
 // Логотип віддає сам воркер (/logo.png, див. index.js): поштові проксі можуть не
 // отримати картинку з домену сайту. Версія в адресі — бо Gmail кешує картинки
@@ -61,21 +62,22 @@ export function layout({ site = DEFAULT_SITE, logoUrl = "", preheader = "", titl
 <title>${esc(title || "QuizFlow")}</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-  @media (max-width:600px){ .qf-pad{padding-left:20px!important;padding-right:20px!important} .qf-h1{font-size:25px!important} .qf-btn, .qf-btn a{display:block!important;width:100%!important;text-align:center!important;box-sizing:border-box} }
+  @media (max-width:600px){ .qf-out{padding:16px 10px 20px!important} .qf-pad{padding:26px 22px!important} .qf-h1{font-size:25px!important} .qf-btn, .qf-btn a{display:block!important;width:100%!important;text-align:center!important;box-sizing:border-box} }
 </style></head>
-<body style="margin:0;padding:0;background:#ffffff">
+<body style="margin:0;padding:0;background:${C.bg}">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all">${esc(preheader)}&#8199;&#65279;&#847;&#8199;&#65279;&#847;&#8199;&#65279;&#847;</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff"><tr><td align="center" style="padding:40px 12px 36px">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px"><tr><td class="qf-pad" style="padding:0 24px;font:400 16px/1.7 ${FONT};color:${C.text}">
-    <a href="${esc(site)}" style="text-decoration:none"><img src="${esc(logo)}" width="125" height="36" alt="QuizFlow" style="display:block;border:0;margin:0 0 36px;font:800 20px ${FONT};color:${C.ink}"></a>
-    ${title ? `<h1 class="qf-h1" style="margin:0 0 22px;font:800 30px/1.2 ${FONT};color:${C.ink};letter-spacing:-.6px">${esc(title)}</h1>` : ""}
-    ${bodyHtml}
-    ${btn?.url ? button(btn) : ""}
-    ${after}
-    <p style="margin:32px 0 0">${uniq}З повагою,<br><strong style="color:${C.ink}">Команда QuizFlow</strong></p>
-    <div style="height:1px;line-height:1px;font-size:0;background:${C.line};margin:36px 0 18px">&nbsp;</div>
-    <p style="margin:0;font-size:12.5px;line-height:1.6;color:${C.faint}">${uniq}${footer}</p>
-  </td></tr></table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.bg}"><tr><td class="qf-out" align="center" style="padding:36px 12px 32px">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px">
+    <tr><td class="qf-pad" style="background:#ffffff;border:1px solid ${C.line};border-radius:16px;padding:38px 40px;font:400 16px/1.7 ${FONT};color:${C.text}">
+      <a href="${esc(site)}" style="text-decoration:none"><img src="${esc(logo)}" width="125" height="36" alt="QuizFlow" style="display:block;border:0;margin:0 0 30px;font:800 20px ${FONT};color:${C.ink}"></a>
+      ${title ? `<h1 class="qf-h1" style="margin:0 0 20px;font:800 28px/1.2 ${FONT};color:${C.ink};letter-spacing:-.5px">${esc(title)}</h1>` : ""}
+      ${bodyHtml}
+      ${btn?.url ? button(btn) : ""}
+      ${after}
+      <p style="margin:28px 0 0">${uniq}З повагою,<br><strong style="color:${C.ink}">Команда QuizFlow</strong></p>
+    </td></tr>
+    <tr><td align="center" style="padding:18px 20px 0;font:400 12.5px/1.6 ${FONT};color:${C.faint};text-align:center">${uniq}${footer}</td></tr>
+  </table>
 </td></tr></table>
 </body></html>`;
 }
@@ -95,8 +97,8 @@ export function inviteEmail({ link, name, fromName, expiresAt, message, site, lo
     <p style="margin:0 0 18px">${esc(hello)}</p>
     <p style="margin:0 0 18px">${esc(lead)}</p>
     ${message ? `<p style="margin:0 0 18px;padding:2px 0 2px 16px;border-left:3px solid ${C.brand};color:${C.ink}">${esc(message).replace(/\n/g, "<br>")}</p>` : ""}
-    <p style="margin:0 0 10px">Що вас чекає:</p>
-    <ul style="margin:0 0 26px;padding-left:22px">${FEATURES.map(([t, d]) => `<li style="margin:0 0 8px"><strong style="color:${C.ink}">${t}</strong> — ${d}</li>`).join("")}</ul>`;
+    <p style="margin:0 0 12px">Що вас чекає:</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;width:100%">${FEATURES.map(([t, d], i) => `<tr><td valign="top" style="width:30px;padding:0 12px 12px 0"><div style="width:30px;height:30px;line-height:30px;border-radius:9px;background:#E8EEFF;color:${C.brand};font:800 13px/30px ${FONT};text-align:center">${i + 1}</div></td><td valign="top" style="padding:0 0 12px;font-size:15px;line-height:1.55"><strong style="color:${C.ink}">${t}</strong><br><span style="color:${C.muted};font-size:14px">${d}</span></td></tr>`).join("")}</table>`;
   return {
     subject: "Вас запрошено до QuizFlow",
     html: layout({
@@ -126,7 +128,8 @@ export function resetEmail({ email, link, byAdmin, site, logoUrl }) {
       title: "Зміна пароля",
       bodyHtml: `<p style="margin:0 0 18px">Вітаємо!</p><p style="margin:0 0 24px">${esc(lead)}</p>`,
       button: { label: "Задати новий пароль", url: link },
-      after: `<p style="margin:18px 0 0;font-size:14px;line-height:1.6;color:${C.muted}">${note} Якщо ви не надсилали запит — просто проігноруйте лист, пароль не зміниться.<br><br>Якщо кнопка не працює, скопіюйте адресу в браузер:<br><a href="${esc(link)}" style="color:${C.brand};word-break:break-all">${esc(link)}</a></p>`,
+      after: `<div style="margin:16px 0 16px;padding:2px 0 2px 14px;border-left:3px solid ${C.amber};font-size:14px;line-height:1.6;color:${C.text}">${note} Якщо ви не надсилали запит — просто проігноруйте лист, пароль не зміниться.</div>
+        <p style="margin:0;font-size:13.5px;line-height:1.6;color:${C.muted}">Якщо кнопка не працює, скопіюйте адресу в браузер:<br><a href="${esc(link)}" style="color:${C.brand};word-break:break-all">${esc(link)}</a></p>`,
       footer: "Ви отримали цей лист, бо для вашого акаунта QuizFlow запросили зміну пароля.",
     }),
     text: `Вітаємо!\n\n${lead}\n\nЗадати новий пароль: ${link}\n\n${note} Якщо ви не надсилали запит — просто проігноруйте лист.\n\nЗ повагою,\nКоманда QuizFlow`,
@@ -142,7 +145,7 @@ export function welcomeEmail({ name, email, password, loginUrl, fromName, site, 
     <p style="margin:0 0 18px">${esc(hello)}</p>
     <p style="margin:0 0 18px">${esc(lead)}</p>
     <p style="margin:0 0 8px">Дані для входу:</p>
-    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 22px;padding:10px 16px;background:#F4F6FB;border-radius:10px;width:100%">${row("Email", email)}${password ? row("Пароль", password) : ""}</table>`;
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 22px;padding:10px 16px;background:${C.tint};border-radius:14px;width:100%">${row("Email", email)}${password ? row("Пароль", password) : ""}</table>`;
   const after = `<p style="margin:18px 0 0;font-size:14px;line-height:1.6;color:${C.muted}">${password
     ? "Це тимчасовий пароль. Щоб задати власний, на сторінці входу натисніть «Забули пароль?» — прийде лист із посиланням."
     : "Пароль вам повідомить адміністратор. Або задайте власний: на сторінці входу натисніть «Забули пароль?»."}</p>`;
