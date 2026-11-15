@@ -78,9 +78,6 @@
         }
       },
       "telegramBot": {
-        "token": {
-          ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin' && root.child('settings/ownerUid').val() === auth.uid"
-        },
         "$other": {
           ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'"
         },
@@ -356,13 +353,6 @@
         "$other": {
           ".write": "auth != null && auth.uid === $uid && root.child('users/' + auth.uid + '/blocked').val() !== true"
         }
-      }
-    },
-    "secrets": {
-      ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
-      "telegramToken": {
-        ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin' && root.child('settings/ownerUid').val() === auth.uid",
-        ".validate": "newData.isString() && newData.val().length <= 200"
       }
     }
   }
