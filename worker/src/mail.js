@@ -137,7 +137,7 @@ export function resetEmail({ email, link, byAdmin, site, logoUrl }) {
 }
 
 // ─── Новий акаунт, створений адміністратором ───────────────────────────
-export function welcomeEmail({ name, email, password, loginUrl, fromName, site, logoUrl }) {
+export function welcomeEmail({ name, email, password, setPasswordUrl, loginUrl, fromName, site, logoUrl }) {
   const hello = name ? `Вітаємо, ${name}!` : "Вітаємо!";
   const lead = `Для вас створено акаунт викладача в QuizFlow — платформі для тестів, журналу оцінок та ігор наживо зі студентами.${fromName ? ` Адміністратор: ${fromName}.` : ""}`;
   const row = (k, v) => `<tr><td style="padding:6px 16px 6px 0;color:${C.muted};font-size:14px;white-space:nowrap;vertical-align:top">${k}</td><td style="padding:6px 0;font:700 15px 'Geist Mono',ui-monospace,Menlo,Consolas,monospace;color:${C.ink};word-break:break-all">${esc(v)}</td></tr>`;
@@ -146,14 +146,16 @@ export function welcomeEmail({ name, email, password, loginUrl, fromName, site, 
     <p style="margin:0 0 18px">${esc(lead)}</p>
     <p style="margin:0 0 8px">Дані для входу:</p>
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 22px;padding:10px 16px;background:${C.tint};border-radius:14px;width:100%">${row("Email", email)}${password ? row("Пароль", password) : ""}</table>`;
-  const after = `<p style="margin:18px 0 0;font-size:14px;line-height:1.6;color:${C.muted}">${password
+  const after = `<p style="margin:18px 0 0;font-size:14px;line-height:1.6;color:${C.muted}">${setPasswordUrl
+    ? "Пароль у листі не надсилаємо: кнопка вище веде на сторінку, де ви задасте власний. Посилання одноразове; якщо воно застаріло, на сторінці входу натисніть «Забули пароль?»."
+    : password
     ? "Це тимчасовий пароль. Щоб задати власний, на сторінці входу натисніть «Забули пароль?» — прийде лист із посиланням."
     : "Пароль вам повідомить адміністратор. Або задайте власний: на сторінці входу натисніть «Забули пароль?»."}</p>`;
   return {
     subject: "Ваш акаунт у QuizFlow",
-    html: layout({ site, logoUrl, preheader: "Дані для входу в QuizFlow", title: "Ваш акаунт у QuizFlow", bodyHtml, button: { label: "Увійти", url: loginUrl }, after,
+    html: layout({ site, logoUrl, preheader: "Дані для входу в QuizFlow", title: "Ваш акаунт у QuizFlow", bodyHtml, button: setPasswordUrl ? { label: "Задати пароль", url: setPasswordUrl } : { label: "Увійти", url: loginUrl }, after,
       footer: "Ви отримали цей лист, бо адміністратор QuizFlow створив для вас акаунт. Якщо це помилка — просто проігноруйте лист." }),
-    text: `${hello}\n\n${lead}\n\nДані для входу:\nEmail: ${email}${password ? `\nПароль: ${password}` : ""}\n\nУвійти: ${loginUrl}\n\n${password ? "Це тимчасовий пароль. Щоб задати власний, на сторінці входу натисніть «Забули пароль?»." : "Пароль вам повідомить адміністратор або задайте власний через «Забули пароль?» на сторінці входу."}\n\nЗ повагою,\nКоманда QuizFlow`,
+    text: `${hello}\n\n${lead}\n\nДані для входу:\nEmail: ${email}${password ? `\nПароль: ${password}` : ""}\n\n${setPasswordUrl ? `Задати пароль: ${setPasswordUrl}` : `Увійти: ${loginUrl}`}\n\n${setPasswordUrl ? "Пароль у листі не надсилаємо — посилання вище веде на сторінку, де ви задасте власний." : password ? "Це тимчасовий пароль. Щоб задати власний, на сторінці входу натисніть «Забули пароль?»." : "Пароль вам повідомить адміністратор або задайте власний через «Забули пароль?» на сторінці входу."}\n\nЗ повагою,\nКоманда QuizFlow`,
   };
 }
 

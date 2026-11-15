@@ -217,8 +217,16 @@ async function welcome({ env, admin, body, url }) {
   if (u.blocked === true) throw new HttpError(409, "Акаунт заблоковано");
   const email = String(u.email || "").trim();
   if (!EMAIL_RE.test(email)) throw new HttpError(400, "В акаунта немає коректного email");
+  // Пароль у листі не надсилаємо, якщо воркер може дати посилання для його встановлення
+  let setPasswordUrl = "";
+  if (serviceAccount(env)) {
+    try {
+      const code = await passwordResetCode(env, email.toLowerCase());
+      if (code) setPasswordUrl = `${env.SITE_URL}/auth-action?mode=resetPassword&oobCode=${encodeURIComponent(code)}&lang=uk`;
+    } catch (e) { if (!(e instanceof HttpError)) throw e; }
+  }
   const mail = welcomeEmail({
-    name: String(u.name || "").trim().slice(0, 80), email, password,
+    name: String(u.name || "").trim().slice(0, 80), email, password: setPasswordUrl ? "" : password, setPasswordUrl,
     loginUrl: `${env.SITE_URL}/login?email=${encodeURIComponent(email)}`,
     fromName: [admin.me.name, admin.me.surname].filter(Boolean).join(" "),
     site: env.SITE_URL, logoUrl: logoUrl(url.origin),
