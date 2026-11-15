@@ -264,11 +264,6 @@ await t("aiUsage mail +1", true, () => set(ref(adm, `aiUsage/${M}/adm/mail/calls
 await t("aiUsage mail tokens", true, () => set(ref(adm, `aiUsage/${M}/adm/mail/tokens`), 500));
 await t("aiUsage unknown feature", false, () => set(ref(t1, `aiUsage/${M}/t1/spam/calls`), 1));
 await t("aiUsage mail jump", false, () => set(ref(t1, `aiUsage/${M}/t1/mail/calls`), 50));
-await t("aiUsage client +1 до воркера", true, () => set(ref(t1, `aiUsage/${M}/t1/comments/calls`), 1));
-await env.withSecurityRulesDisabled(async c => { await set(ref(c.database(), "settings/ai/viaWorker"), true); });
-await t("aiUsage client +1 у режимі воркера", false, () => set(ref(t1, `aiUsage/${M}/t1/comments/calls`), 2));
-await t("aiUsage anon tokens у режимі воркера", false, () => set(ref(anon, `aiUsage/${M}/t1/comments/tokens`), 100));
-await env.withSecurityRulesDisabled(async c => { await set(ref(c.database(), "settings/ai/viaWorker"), null); });
 
 // ── Адреса воркера пошти: читає сторінка входу без входу ──
 await t("anon read mail worker url", true, () => get(ref(anon, "settings/mail/workerUrl")));

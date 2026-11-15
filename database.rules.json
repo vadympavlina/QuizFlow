@@ -112,19 +112,19 @@
           "$feature": {
             ".validate": "$feature === 'comments' || $feature === 'analysis' || $feature === 'generation' || $feature === 'textcheck' || $feature === 'mail'",
             "calls": {
-              ".write": "root.child('settings/ai/viaWorker').val() !== true",
+              ".write": true,
               ".validate": "newData.isNumber() && newData.val() === (data.exists() ? data.val() : 0) + 1"
             },
             "errors": {
-              ".write": "root.child('settings/ai/viaWorker').val() !== true",
+              ".write": true,
               ".validate": "newData.isNumber() && newData.val() === (data.exists() ? data.val() : 0) + 1"
             },
             "tokens": {
-              ".write": "root.child('settings/ai/viaWorker').val() !== true",
+              ".write": true,
               ".validate": "newData.isNumber() && newData.val() > (data.exists() ? data.val() : 0) && newData.val() <= (data.exists() ? data.val() : 0) + 100000"
             },
             "last": {
-              ".write": "root.child('settings/ai/viaWorker').val() !== true",
+              ".write": true,
               ".validate": "newData.isNumber() && newData.val() <= now"
             },
             "$other": {
