@@ -112,19 +112,19 @@
           "$feature": {
             ".validate": "$feature === 'comments' || $feature === 'analysis' || $feature === 'generation' || $feature === 'textcheck' || $feature === 'mail'",
             "calls": {
-              ".write": true,
+              ".write": "root.child('settings/ai/viaWorker').val() !== true",
               ".validate": "newData.isNumber() && newData.val() === (data.exists() ? data.val() : 0) + 1"
             },
             "errors": {
-              ".write": true,
+              ".write": "root.child('settings/ai/viaWorker').val() !== true",
               ".validate": "newData.isNumber() && newData.val() === (data.exists() ? data.val() : 0) + 1"
             },
             "tokens": {
-              ".write": true,
+              ".write": "root.child('settings/ai/viaWorker').val() !== true",
               ".validate": "newData.isNumber() && newData.val() > (data.exists() ? data.val() : 0) && newData.val() <= (data.exists() ? data.val() : 0) + 100000"
             },
             "last": {
-              ".write": true,
+              ".write": "root.child('settings/ai/viaWorker').val() !== true",
               ".validate": "newData.isNumber() && newData.val() <= now"
             },
             "$other": {
@@ -146,7 +146,10 @@
       ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
       "$key": {
         ".write": "!data.exists() && newData.exists() && (auth != null || newData.child('type').val() === 'aierr')",
-        ".validate": "data.exists() || newData.child('type').isString() && newData.child('uid').isString() && root.child('users/' + newData.child('uid').val()).exists() && newData.child('at').val() === now && (auth == null || newData.child('type').val() === 'aierr' || newData.child('uid').val() === auth.uid)"
+        ".validate": "data.exists() || newData.child('type').isString() && newData.child('uid').isString() && root.child('users/' + newData.child('uid').val()).exists() && newData.child('at').val() === now && (auth == null || newData.child('type').val() === 'aierr' || newData.child('uid').val() === auth.uid)",
+        "$f": {
+          ".validate": "(newData.isBoolean() || newData.isNumber() || (newData.isString() && newData.val().length <= 400))"
+        }
       }
     },
     "roles": {
@@ -196,6 +199,9 @@
             },
             "online": {
               ".write": "root.child('rooms/' + $code + '/players/' + $pid).exists() && newData.isBoolean()"
+            },
+            "$f": {
+              ".validate": "(newData.isBoolean() || newData.isNumber() || (newData.isString() && newData.val().length <= 200))"
             }
           }
         },
@@ -274,7 +280,10 @@
         },
         "notifications": {
           "$nid": {
-            ".write": "!data.exists() && newData.exists()"
+            ".write": "!data.exists() && newData.exists()",
+            "$f": {
+              ".validate": "(newData.isBoolean() || newData.isNumber() || (newData.isString() && newData.val().length <= ($f === 'title' ? 200 : 1000)))"
+            }
           },
           ".write": "auth != null && auth.uid === $uid && root.child('users/' + auth.uid + '/blocked').val() !== true"
         },
@@ -292,7 +301,11 @@
             ".read": true,
             ".write": "(!data.exists() && newData.child('testId').isString() && newData.child('createdAt').isNumber()) || (data.exists() && newData.exists() && data.child('createdAt').val() > now - 86400000 && newData.child('testId').val() === data.child('testId').val())"
           },
-          ".write": "auth != null && auth.uid === $uid && root.child('users/' + auth.uid + '/blocked').val() !== true && root.child('users/' + auth.uid + '/perms/attempts_review').val() !== false"
+          ".write": "auth != null && auth.uid === $uid && root.child('users/' + auth.uid + '/blocked').val() !== true && root.child('users/' + auth.uid + '/perms/attempts_review').val() !== false",
+          ".indexOn": [
+            "createdAt",
+            "testId"
+          ]
         },
         "attemptIndex": {
           "$testId": {
@@ -306,7 +319,7 @@
         "students": {
           "$sid": {
             ".read": true,
-            ".write": "newData.exists() && newData.child('name').isString() && newData.child('surname').isString()"
+            ".write": "newData.exists() && newData.child('name').isString() && newData.child('surname').isString() && newData.child('name').val().length <= 80 && newData.child('surname').val().length <= 80 && (!data.exists() || (newData.child('name').val() === data.child('name').val() && newData.child('surname').val() === data.child('surname').val()))"
           },
           ".write": "auth != null && auth.uid === $uid && root.child('users/' + auth.uid + '/blocked').val() !== true"
         },
