@@ -1,0 +1,158 @@
+{
+ "type": "quiz",
+ "uuid": "216bbd85-2759-43c0-b56f-63e2d937e67c",
+ "language": "Українська",
+ "visibility": 1,
+ "title": "Minecraft AI: Розумні світи",
+ "quizType": "quiz",
+ "questions": [
+  {
+   "question": "Що таке Minecraft Education?",
+   "time": 60000,
+   "choices": [
+    {
+     "answer": "Версія гри для навчання",
+     "correct": true
+    },
+    {
+     "answer": "Гра тільки для розваг",
+     "correct": false
+    },
+    {
+     "answer": "Редактор відео",
+     "correct": false
+    },
+    {
+     "answer": "Соціальна мережа",
+     "correct": false
+    }
+   ],
+   "type": "quiz"
+  },
+  {
+   "question": "Яка головна мета сервісу MinecraftSkins?",
+   "time": 60000,
+   "choices": [
+    {
+     "answer": "Створення та завантаження скінів",
+     "correct": true
+    },
+    {
+     "answer": "Пошук нових ігор",
+     "correct": false
+    },
+    {
+     "answer": "Завантаження музики",
+     "correct": false
+    },
+    {
+     "answer": "Купівля меблів",
+     "correct": false
+    }
+   ],
+   "type": "quiz"
+  },
+  {
+   "question": "Що можна робити в Skin Editor?",
+   "time": 60000,
+   "choices": [
+    {
+     "answer": "Малювати власного персонажа",
+     "correct": true
+    },
+    {
+     "answer": "Редагувати карту гри",
+     "correct": false
+    },
+    {
+     "answer": "Змінювати пароль",
+     "correct": false
+    },
+    {
+     "answer": "Грати в футбол",
+     "correct": false
+    }
+   ],
+   "type": "quiz"
+  },
+  {
+   "question": "Які предмети можна створювати в Minecraft Education?",
+   "time": 60000,
+   "choices": [
+    {
+     "answer": "Хімічні елементи та сполуки",
+     "correct": true
+    },
+    {
+     "answer": "Справжні гроші",
+     "correct": false
+    },
+    {
+     "answer": "Телефони",
+     "correct": false
+    },
+    {
+     "answer": "Космічні кораблі NASA",
+     "correct": true
+    }
+   ],
+   "type": "quiz"
+  },
+  {
+   "type": "open_ended",
+   "question": "Столиця <b>України</b>?",
+   "choices": [
+    {
+     "answer": "Київ",
+     "correct": true
+    },
+    {
+     "answer": "Kyiv",
+     "correct": true
+    }
+   ]
+  },
+  {
+   "type": "jumble",
+   "question": "Розставте за порядком",
+   "choices": [
+    {
+     "answer": "Один"
+    },
+    {
+     "answer": "Два"
+    },
+    {
+     "answer": "Три"
+    }
+   ]
+  },
+  {
+   "type": "poll",
+   "question": "Опитування",
+   "choices": [
+    {
+     "answer": "А"
+    },
+    {
+     "answer": "Б"
+    }
+   ]
+  },
+  {
+   "type": "content",
+   "question": "Слайд",
+   "choices": []
+  },
+  {
+   "type": "quiz",
+   "question": "Лише один варіант",
+   "choices": [
+    {
+     "answer": "Єдиний",
+     "correct": true
+    }
+   ]
+  }
+ ]
+}
