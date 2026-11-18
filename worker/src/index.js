@@ -55,7 +55,7 @@ export default {
       if (url.pathname === "/logo.png" && (request.method === "GET" || request.method === "HEAD"))
         return new Response(request.method === "HEAD" ? null : LOGO_BYTES, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000, immutable", "Access-Control-Allow-Origin": "*" } });
       if (url.pathname === "/" && request.method === "GET") return json({ ok: true, service: "quizflow-mail" }, 200, cors);
-      if (url.pathname === "/ai" && request.method === "POST") return json(await aiChat(request, env, await readJson(request)), 200, cors);
+      if (url.pathname === "/ai" && request.method === "POST") return json(await aiChat(request, env, await readJson(request, request.headers.get("Authorization") ? 7_500_000 : 100_000)), 200, cors);
       if (url.pathname === "/telegram/notice" && request.method === "POST") return json(await telegramNotice(request, env, await readJson(request)), 200, cors);
       if (url.pathname === "/reset" && request.method === "POST") return json(await reset(request, env, url), 200, cors);
       const route = `${request.method} ${url.pathname}`;
@@ -81,9 +81,10 @@ function corsHeaders(request, env, list = env.ALLOWED_ORIGINS) {
   return h;
 }
 const json = (data, status = 200, headers = {}) => new Response(JSON.stringify(data), { status, headers: { ...headers, "Content-Type": "application/json; charset=utf-8" } });
-async function readJson(request) {
+// Запит із входом на /ai може містити скриншоти (до 4 × 1,8 МБ), решта — до 100 КБ
+async function readJson(request, max = 100_000) {
   const text = await request.text();
-  if (text.length > 100_000) throw new HttpError(413, "Завеликий запит");
+  if (text.length > max) throw new HttpError(413, "Завеликий запит");
   try { return JSON.parse(text || "{}"); } catch { throw new HttpError(400, "Некоректний JSON"); }
 }
 

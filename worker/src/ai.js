@@ -46,8 +46,15 @@ function readBody(b) {
   if (!messages.length || messages.length > 20) throw new HttpError(400, "Потрібно від 1 до 20 повідомлень");
   const clean = messages.map(m => ({ role: m?.role === "assistant" ? "assistant" : "user", content: String(m?.content ?? "").slice(0, 24000) }));
   if (clean.reduce((n, m) => n + m.content.length, 0) > 60000) throw new HttpError(413, "Завеликий запит");
+  // Зображення (скриншоти питань): лише для генерації, до 4 шт., data:-посилання на jpeg/png/webp
+  const images = Array.isArray(b?.images) ? b.images : [];
+  if (images.length) {
+    if (feature !== "generation") throw new HttpError(400, "Зображення приймаються лише для генерації питань");
+    if (images.length > 4) throw new HttpError(400, "Не більше 4 зображень");
+    images.forEach(x => { if (typeof x !== "string" || !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(x) || x.length > 1_800_000) throw new HttpError(400, "Некоректне зображення"); });
+  }
   return {
-    feature, messages: clean,
+    feature, messages: clean, images,
     maxTokens: Math.min(4000, Math.max(50, Number(b.maxTokens) || 800)),
     temp: Math.min(1, Math.max(0, b.temp === undefined ? 0.5 : Number(b.temp) || 0)),
     json: b.json === true,
@@ -99,11 +106,14 @@ async function track(env, uid, feature, { tokens = 0, ok = true }, token) {
   } catch { /* облік не повинен ламати відповідь */ }
 }
 
+const imgParts = imgs => (imgs || []).map(u => { const m = /^data:(image\/[a-z]+);base64,(.+)$/.exec(u); return { inline_data: { mime_type: m[1], data: m[2] } }; });
+
 async function callProvider(env, s, req) {
   const geminiKey = env.GEMINI_API_KEY || s.geminiApiKey || (s.provider === "gemini" ? s.apiKey : "") || "";
   const groqKey = env.GROQ_API_KEY || s.groqApiKey || (s.provider !== "gemini" ? s.apiKey : "") || "";
   const want = (s.featProviders && s.featProviders[req.feature]) || s.provider || "groq";
-  const provider = want === "gemini" ? (geminiKey || !groqKey ? "gemini" : "groq") : (groqKey || !geminiKey ? "groq" : "gemini");
+  const pick = req.images.length && geminiKey ? "gemini" : want;   // Gemini краще читає скриншоти
+  const provider = pick === "gemini" ? (geminiKey || !groqKey ? "gemini" : "groq") : (groqKey || !geminiKey ? "groq" : "gemini");
   if (provider === "gemini") {
     if (!geminiKey) throw new HttpError(503, "AI не налаштовано: на воркері немає ключа Gemini");
     const model = s.geminiModel || "gemini-2.5-flash";
@@ -111,7 +121,7 @@ async function callProvider(env, s, req) {
       method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: req.system }] },
-        contents: req.messages.map(m => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] })),
+        contents: req.messages.map((m, i) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }, ...(i === req.messages.length - 1 ? imgParts(req.images) : [])] })),
         generationConfig: { maxOutputTokens: req.maxTokens, temperature: req.temp, ...(req.json ? { responseMimeType: "application/json" } : {}), ...(/flash/i.test(model) ? { thinkingConfig: { thinkingBudget: 0 } } : {}) },
       }),
     });
@@ -120,10 +130,13 @@ async function callProvider(env, s, req) {
     return { text: d.candidates?.[0]?.content?.parts?.[0]?.text || "", tokens: Number(d.usageMetadata?.totalTokenCount) || 0, provider };
   }
   if (!groqKey) throw new HttpError(503, "AI не налаштовано: на воркері немає ключа Groq");
-  const model = s.groqModel || (s.provider !== "gemini" && s.model) || "llama-3.3-70b-versatile";
+  // З зображеннями потрібна модель із «зором»; звичайні текстові моделі Groq їх не приймають
+  const model = req.images.length ? (env.GROQ_VISION_MODEL || "meta-llama/llama-4-scout-17b-16e-instruct") : (s.groqModel || (s.provider !== "gemini" && s.model) || "llama-3.3-70b-versatile");
+  const msgs = req.messages.map((m, i) => i === req.messages.length - 1 && req.images.length
+    ? { role: m.role, content: [{ type: "text", text: m.content }, ...req.images.map(url => ({ type: "image_url", image_url: { url } }))] } : m);
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + groqKey },
-    body: JSON.stringify({ model, messages: [{ role: "system", content: req.system }, ...req.messages], max_tokens: req.maxTokens, temperature: req.temp, ...(req.json ? { response_format: { type: "json_object" } } : {}) }),
+    body: JSON.stringify({ model, messages: [{ role: "system", content: req.system }, ...msgs], max_tokens: req.maxTokens, temperature: req.temp, ...(req.json ? { response_format: { type: "json_object" } } : {}) }),
   });
   const d = await res.json().catch(() => ({}));
   if (d.error) throw new HttpError(502, "Groq: " + (d.error.message || "помилка"));

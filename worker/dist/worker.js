@@ -521,9 +521,18 @@ function readBody(b) {
   if (!messages.length || messages.length > 20) throw new HttpError(400, "\u041F\u043E\u0442\u0440\u0456\u0431\u043D\u043E \u0432\u0456\u0434 1 \u0434\u043E 20 \u043F\u043E\u0432\u0456\u0434\u043E\u043C\u043B\u0435\u043D\u044C");
   const clean = messages.map((m) => ({ role: m?.role === "assistant" ? "assistant" : "user", content: String(m?.content ?? "").slice(0, 24e3) }));
   if (clean.reduce((n, m) => n + m.content.length, 0) > 6e4) throw new HttpError(413, "\u0417\u0430\u0432\u0435\u043B\u0438\u043A\u0438\u0439 \u0437\u0430\u043F\u0438\u0442");
+  const images = Array.isArray(b?.images) ? b.images : [];
+  if (images.length) {
+    if (feature !== "generation") throw new HttpError(400, "\u0417\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u043D\u044F \u043F\u0440\u0438\u0439\u043C\u0430\u044E\u0442\u044C\u0441\u044F \u043B\u0438\u0448\u0435 \u0434\u043B\u044F \u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0456\u0457 \u043F\u0438\u0442\u0430\u043D\u044C");
+    if (images.length > 4) throw new HttpError(400, "\u041D\u0435 \u0431\u0456\u043B\u044C\u0448\u0435 4 \u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u044C");
+    images.forEach((x) => {
+      if (typeof x !== "string" || !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(x) || x.length > 18e5) throw new HttpError(400, "\u041D\u0435\u043A\u043E\u0440\u0435\u043A\u0442\u043D\u0435 \u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u043D\u044F");
+    });
+  }
   return {
     feature,
     messages: clean,
+    images,
     maxTokens: Math.min(4e3, Math.max(50, Number(b.maxTokens) || 800)),
     temp: Math.min(1, Math.max(0, b.temp === void 0 ? 0.5 : Number(b.temp) || 0)),
     json: b.json === true,
@@ -569,11 +578,16 @@ async function track(env, uid, feature, { tokens = 0, ok = true }, token) {
   } catch {
   }
 }
+var imgParts = (imgs) => (imgs || []).map((u) => {
+  const m = /^data:(image\/[a-z]+);base64,(.+)$/.exec(u);
+  return { inline_data: { mime_type: m[1], data: m[2] } };
+});
 async function callProvider(env, s, req) {
   const geminiKey = env.GEMINI_API_KEY || s.geminiApiKey || (s.provider === "gemini" ? s.apiKey : "") || "";
   const groqKey = env.GROQ_API_KEY || s.groqApiKey || (s.provider !== "gemini" ? s.apiKey : "") || "";
   const want = s.featProviders && s.featProviders[req.feature] || s.provider || "groq";
-  const provider = want === "gemini" ? geminiKey || !groqKey ? "gemini" : "groq" : groqKey || !geminiKey ? "groq" : "gemini";
+  const pick = req.images.length && geminiKey ? "gemini" : want;
+  const provider = pick === "gemini" ? geminiKey || !groqKey ? "gemini" : "groq" : groqKey || !geminiKey ? "groq" : "gemini";
   if (provider === "gemini") {
     if (!geminiKey) throw new HttpError(503, "AI \u043D\u0435 \u043D\u0430\u043B\u0430\u0448\u0442\u043E\u0432\u0430\u043D\u043E: \u043D\u0430 \u0432\u043E\u0440\u043A\u0435\u0440\u0456 \u043D\u0435\u043C\u0430\u0454 \u043A\u043B\u044E\u0447\u0430 Gemini");
     const model2 = s.geminiModel || "gemini-2.5-flash";
@@ -582,7 +596,7 @@ async function callProvider(env, s, req) {
       headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: req.system }] },
-        contents: req.messages.map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] })),
+        contents: req.messages.map((m, i) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }, ...i === req.messages.length - 1 ? imgParts(req.images) : []] })),
         generationConfig: { maxOutputTokens: req.maxTokens, temperature: req.temp, ...req.json ? { responseMimeType: "application/json" } : {}, .../flash/i.test(model2) ? { thinkingConfig: { thinkingBudget: 0 } } : {} }
       })
     });
@@ -591,11 +605,12 @@ async function callProvider(env, s, req) {
     return { text: d2.candidates?.[0]?.content?.parts?.[0]?.text || "", tokens: Number(d2.usageMetadata?.totalTokenCount) || 0, provider };
   }
   if (!groqKey) throw new HttpError(503, "AI \u043D\u0435 \u043D\u0430\u043B\u0430\u0448\u0442\u043E\u0432\u0430\u043D\u043E: \u043D\u0430 \u0432\u043E\u0440\u043A\u0435\u0440\u0456 \u043D\u0435\u043C\u0430\u0454 \u043A\u043B\u044E\u0447\u0430 Groq");
-  const model = s.groqModel || s.provider !== "gemini" && s.model || "llama-3.3-70b-versatile";
+  const model = req.images.length ? env.GROQ_VISION_MODEL || "meta-llama/llama-4-scout-17b-16e-instruct" : s.groqModel || s.provider !== "gemini" && s.model || "llama-3.3-70b-versatile";
+  const msgs = req.messages.map((m, i) => i === req.messages.length - 1 && req.images.length ? { role: m.role, content: [{ type: "text", text: m.content }, ...req.images.map((url) => ({ type: "image_url", image_url: { url } }))] } : m);
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: "Bearer " + groqKey },
-    body: JSON.stringify({ model, messages: [{ role: "system", content: req.system }, ...req.messages], max_tokens: req.maxTokens, temperature: req.temp, ...req.json ? { response_format: { type: "json_object" } } : {} })
+    body: JSON.stringify({ model, messages: [{ role: "system", content: req.system }, ...msgs], max_tokens: req.maxTokens, temperature: req.temp, ...req.json ? { response_format: { type: "json_object" } } : {} })
   });
   const d = await res.json().catch(() => ({}));
   if (d.error) throw new HttpError(502, "Groq: " + (d.error.message || "\u043F\u043E\u043C\u0438\u043B\u043A\u0430"));
@@ -733,7 +748,7 @@ var index_default = {
       if (url.pathname === "/logo.png" && (request.method === "GET" || request.method === "HEAD"))
         return new Response(request.method === "HEAD" ? null : LOGO_BYTES, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000, immutable", "Access-Control-Allow-Origin": "*" } });
       if (url.pathname === "/" && request.method === "GET") return json({ ok: true, service: "quizflow-mail" }, 200, cors);
-      if (url.pathname === "/ai" && request.method === "POST") return json(await aiChat(request, env, await readJson(request)), 200, cors);
+      if (url.pathname === "/ai" && request.method === "POST") return json(await aiChat(request, env, await readJson(request, request.headers.get("Authorization") ? 75e5 : 1e5)), 200, cors);
       if (url.pathname === "/telegram/notice" && request.method === "POST") return json(await telegramNotice(request, env, await readJson(request)), 200, cors);
       if (url.pathname === "/reset" && request.method === "POST") return json(await reset(request, env, url), 200, cors);
       const route = `${request.method} ${url.pathname}`;
@@ -757,9 +772,9 @@ function corsHeaders(request, env, list = env.ALLOWED_ORIGINS) {
   return h;
 }
 var json = (data, status2 = 200, headers = {}) => new Response(JSON.stringify(data), { status: status2, headers: { ...headers, "Content-Type": "application/json; charset=utf-8" } });
-async function readJson(request) {
+async function readJson(request, max = 1e5) {
   const text = await request.text();
-  if (text.length > 1e5) throw new HttpError(413, "\u0417\u0430\u0432\u0435\u043B\u0438\u043A\u0438\u0439 \u0437\u0430\u043F\u0438\u0442");
+  if (text.length > max) throw new HttpError(413, "\u0417\u0430\u0432\u0435\u043B\u0438\u043A\u0438\u0439 \u0437\u0430\u043F\u0438\u0442");
   try {
     return JSON.parse(text || "{}");
   } catch {

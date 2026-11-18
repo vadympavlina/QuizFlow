@@ -459,3 +459,25 @@ test("Telegram API для адмінки: лише адмін, лише дозв
   const bad = await call("POST", "/telegram/api", { body: { method: "getUpdates", params: {} }, origin: "https://admin.quizflow.space" });
   assert.equal(bad.status, 502); assert.equal(bad.data.error, "conflict");
 });
+
+const PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+test("AI: скриншоти питань — лише для генерації, до 4 шт., іде Gemini з inline_data", async () => {
+  const ok = await ask({ feature: "generation", images: [PNG, PNG] });
+  assert.equal(ok.status, 200, JSON.stringify(ok.data));
+  assert.equal(ok.data.provider, "gemini");
+  const parts = aiCalls.at(-1).body.contents.at(-1).parts;
+  assert.equal(parts.length, 3);
+  assert.equal(parts[1].inline_data.mime_type, "image/png");
+  assert.ok(parts[1].inline_data.data.startsWith("iVBOR"));
+  assert.equal((await ask({ feature: "analysis", images: [PNG] })).status, 400);
+  assert.equal((await ask({ feature: "generation", images: Array(5).fill(PNG) })).status, 400);
+  assert.equal((await ask({ feature: "generation", images: ["data:text/html;base64,PGI+"] })).status, 400);
+  assert.equal((await ask({ feature: "generation", images: ["https://evil.test/x.png"] })).status, 400);
+  assert.equal((await ask({ feature: "generation", images: ["data:image/png;base64," + "A".repeat(1_900_000)] })).status, 400);
+});
+test("AI: без входу скриншоти не приймаються, великий запит із входом проходить ліміт тіла", async () => {
+  const anon = await ask({ feature: "generation", images: [PNG] }, { uid: null });
+  assert.equal(anon.status, 401);
+  const big = await ask({ feature: "generation", messages: [{ role: "user", content: "x" }], images: [PNG, PNG, PNG, PNG] });
+  assert.equal(big.status, 200);
+});
