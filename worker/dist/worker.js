@@ -519,11 +519,11 @@ function readBody(b) {
   if (!FEATURE_FLAG[feature]) throw new HttpError(400, "\u041D\u0435\u0432\u0456\u0434\u043E\u043C\u0430 \u0444\u0443\u043D\u043A\u0446\u0456\u044F AI");
   const messages = Array.isArray(b?.messages) ? b.messages : [];
   if (!messages.length || messages.length > 20) throw new HttpError(400, "\u041F\u043E\u0442\u0440\u0456\u0431\u043D\u043E \u0432\u0456\u0434 1 \u0434\u043E 20 \u043F\u043E\u0432\u0456\u0434\u043E\u043C\u043B\u0435\u043D\u044C");
-  const clean = messages.map((m) => ({ role: m?.role === "assistant" ? "assistant" : "user", content: String(m?.content ?? "").slice(0, 24e3) }));
-  if (clean.reduce((n, m) => n + m.content.length, 0) > 6e4) throw new HttpError(413, "\u0417\u0430\u0432\u0435\u043B\u0438\u043A\u0438\u0439 \u0437\u0430\u043F\u0438\u0442");
+  const clean2 = messages.map((m) => ({ role: m?.role === "assistant" ? "assistant" : "user", content: String(m?.content ?? "").slice(0, 24e3) }));
+  if (clean2.reduce((n, m) => n + m.content.length, 0) > 6e4) throw new HttpError(413, "\u0417\u0430\u0432\u0435\u043B\u0438\u043A\u0438\u0439 \u0437\u0430\u043F\u0438\u0442");
   return {
     feature,
-    messages: clean,
+    messages: clean2,
     maxTokens: Math.min(4e3, Math.max(50, Number(b.maxTokens) || 800)),
     temp: Math.min(1, Math.max(0, b.temp === void 0 ? 0.5 : Number(b.temp) || 0)),
     json: b.json === true,
@@ -707,6 +707,69 @@ async function telegramApi({ env, body }) {
   return { ok: true, result: d.result };
 }
 
+// ../worker/src/kahoot.js
+var UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+var MAX_Q = 100;
+var clean = (s) => String(s ?? "").replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\s+/g, " ").trim();
+function mapQuestion(q) {
+  const text = clean(q?.question);
+  const ch = Array.isArray(q?.choices) ? q.choices.map((c) => ({ a: clean(c?.answer), ok: c?.correct === true })) : [];
+  if (!text) return null;
+  const type = String(q?.type || "");
+  if (type === "quiz" || type === "multiple_select_quiz") {
+    const opts = ch.filter((c) => c.a);
+    if (opts.length < 2) return null;
+    const correct = opts.map((c, i) => c.ok ? i : -1).filter((i) => i >= 0);
+    return { type: correct.length > 1 ? "multi" : "single", text, options: opts.slice(0, 6).map((c) => c.a), correct: correct.filter((i) => i < 6) };
+  }
+  if (type === "open_ended") {
+    const answers = ch.filter((c) => c.a).map((c) => c.a);
+    return answers.length ? { type: "text", text, correct: answers.join(" / ") } : null;
+  }
+  if (type === "jumble") {
+    const items = ch.filter((c) => c.a).map((c) => c.a).slice(0, 8);
+    return items.length >= 3 ? { type: "ordering", text, items } : null;
+  }
+  return null;
+}
+async function importKahoot(request, env, body) {
+  const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
+  if (!token) throw new HttpError(401, "\u041F\u043E\u0442\u0440\u0456\u0431\u0435\u043D \u0432\u0445\u0456\u0434");
+  const claims = await verifyIdToken(token, env.FIREBASE_PROJECT_ID);
+  const [profile, cfg] = await Promise.all([dbGet(env, `users/${claims.sub}`, token), dbGet(env, "settings/features")]);
+  if (!profile || !profile.role || profile.blocked === true) throw new HttpError(403, "\u041D\u0435\u043C\u0430\u0454 \u0434\u043E\u0441\u0442\u0443\u043F\u0443");
+  const perms = resolvePerms(cfg || {}, profile, null);
+  if (profile.role !== "admin" && perms.perms["tests.import"] === false) throw new HttpError(403, "\u0406\u043C\u043F\u043E\u0440\u0442 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0438\u0439 \u0434\u043B\u044F \u0446\u044C\u043E\u0433\u043E \u0430\u043A\u0430\u0443\u043D\u0442\u0430");
+  const m = UUID_RE.exec(String(body?.url || ""));
+  if (!m) throw new HttpError(400, "\u0423 \u043F\u043E\u0441\u0438\u043B\u0430\u043D\u043D\u0456 \u043D\u0435 \u0437\u043D\u0430\u0439\u0434\u0435\u043D\u043E \u0456\u0434\u0435\u043D\u0442\u0438\u0444\u0456\u043A\u0430\u0442\u043E\u0440 Kahoot. \u0412\u0441\u0442\u0430\u0432\u0442\u0435 \u0430\u0434\u0440\u0435\u0441\u0443 \u0442\u0435\u0441\u0442\u0443, \u043D\u0430\u043F\u0440\u0438\u043A\u043B\u0430\u0434 create.kahoot.it/share/\u2026/\u2026");
+  const uuid = m[0].toLowerCase();
+  if (env.MAIL_KV) {
+    const key = `kh:${claims.sub}:${Math.floor(Date.now() / 36e5)}`;
+    const n = Number(await env.MAIL_KV.get(key)) || 0;
+    if (n >= 30) throw new HttpError(429, "\u0417\u0430\u0431\u0430\u0433\u0430\u0442\u043E \u0456\u043C\u043F\u043E\u0440\u0442\u0456\u0432 \u0437\u0430 \u0433\u043E\u0434\u0438\u043D\u0443. \u0421\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u043F\u0456\u0437\u043D\u0456\u0448\u0435.");
+    await env.MAIL_KV.put(key, String(n + 1), { expirationTtl: 3700 });
+  }
+  let res;
+  try {
+    res = await fetch(`https://create.kahoot.it/rest/kahoots/${uuid}`, { headers: { Accept: "application/json" } });
+  } catch {
+    throw new HttpError(502, "\u041D\u0435 \u0432\u0434\u0430\u043B\u043E\u0441\u044F \u0437\u0432'\u044F\u0437\u0430\u0442\u0438\u0441\u044F \u0437 Kahoot. \u0421\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u043F\u0456\u0437\u043D\u0456\u0448\u0435.");
+  }
+  if (res.status === 404 || res.status === 403 || res.status === 401) throw new HttpError(404, "\u0422\u0435\u0441\u0442 \u043D\u0435 \u0437\u043D\u0430\u0439\u0434\u0435\u043D\u043E \u0430\u0431\u043E \u0432\u0456\u043D \u043F\u0440\u0438\u0432\u0430\u0442\u043D\u0438\u0439. \u0406\u043C\u043F\u043E\u0440\u0442 \u043F\u0440\u0430\u0446\u044E\u0454 \u043B\u0438\u0448\u0435 \u0437 \u043F\u0443\u0431\u043B\u0456\u0447\u043D\u0438\u043C\u0438 \u0442\u0435\u0441\u0442\u0430\u043C\u0438 Kahoot.");
+  if (!res.ok) throw new HttpError(502, `Kahoot \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0432 \u043F\u043E\u043C\u0438\u043B\u043A\u043E\u044E ${res.status}. \u0421\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u043F\u0456\u0437\u043D\u0456\u0448\u0435 \u0430\u0431\u043E \u0432\u0441\u0442\u0430\u0432\u0442\u0435 \u043F\u0438\u0442\u0430\u043D\u043D\u044F \u0442\u0435\u043A\u0441\u0442\u043E\u043C.`);
+  const d = await res.json().catch(() => null);
+  if (!d || !Array.isArray(d.questions)) throw new HttpError(502, "Kahoot \u0437\u043C\u0456\u043D\u0438\u0432 \u0444\u043E\u0440\u043C\u0430\u0442 \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u0456. \u0412\u0441\u0442\u0430\u0432\u0442\u0435 \u043F\u0438\u0442\u0430\u043D\u043D\u044F \u0442\u0435\u043A\u0441\u0442\u043E\u043C.");
+  const out = [];
+  let skipped = 0;
+  for (const q of d.questions.slice(0, MAX_Q)) {
+    const mq = mapQuestion(q);
+    if (mq) out.push(mq);
+    else skipped++;
+  }
+  if (!out.length) throw new HttpError(422, "\u0423 \u0446\u044C\u043E\u043C\u0443 \u0442\u0435\u0441\u0442\u0456 \u043D\u0435\u043C\u0430\u0454 \u043F\u0438\u0442\u0430\u043D\u044C, \u044F\u043A\u0456 \u043C\u043E\u0436\u043D\u0430 \u0456\u043C\u043F\u043E\u0440\u0442\u0443\u0432\u0430\u0442\u0438 (\u043F\u0456\u0434\u0442\u0440\u0438\u043C\u0443\u044E\u0442\u044C\u0441\u044F \u0432\u0438\u0431\u0456\u0440, \u043A\u0456\u043B\u044C\u043A\u0430 \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u0435\u0439, \u043A\u043E\u0440\u043E\u0442\u043A\u0430 \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u044C \u0456 \u043F\u043E\u0440\u044F\u0434\u043E\u043A).");
+  return { ok: true, title: clean(d.title).slice(0, 200), questions: out, skipped };
+}
+
 // ../worker/src/index.js
 var logoUrl = (origin) => `${origin}/logo.png?v=${LOGO_V}`;
 var LOGO_BYTES = Uint8Array.from(atob(LOGO_PNG_B64), (c) => c.charCodeAt(0));
@@ -726,7 +789,7 @@ var index_default = {
   async fetch(request, rawEnv) {
     const env = { ...DEFAULTS, ...Object.fromEntries(Object.entries(rawEnv || {}).filter(([, v]) => v !== void 0 && v !== "")) };
     const url = new URL(request.url);
-    const cors = corsHeaders(request, env, /^\/(ai|telegram)/.test(url.pathname) ? env.AI_ALLOWED_ORIGINS : env.ALLOWED_ORIGINS);
+    const cors = corsHeaders(request, env, /^\/(ai|telegram|import)/.test(url.pathname) ? env.AI_ALLOWED_ORIGINS : env.ALLOWED_ORIGINS);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     try {
       if (url.pathname === "/unsubscribe") return await unsubscribe(request, env, url);
@@ -734,6 +797,7 @@ var index_default = {
         return new Response(request.method === "HEAD" ? null : LOGO_BYTES, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000, immutable", "Access-Control-Allow-Origin": "*" } });
       if (url.pathname === "/" && request.method === "GET") return json({ ok: true, service: "quizflow-mail" }, 200, cors);
       if (url.pathname === "/ai" && request.method === "POST") return json(await aiChat(request, env, await readJson(request)), 200, cors);
+      if (url.pathname === "/import/kahoot" && request.method === "POST") return json(await importKahoot(request, env, await readJson(request)), 200, cors);
       if (url.pathname === "/telegram/notice" && request.method === "POST") return json(await telegramNotice(request, env, await readJson(request)), 200, cors);
       if (url.pathname === "/reset" && request.method === "POST") return json(await reset(request, env, url), 200, cors);
       const route = `${request.method} ${url.pathname}`;

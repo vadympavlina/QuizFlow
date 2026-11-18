@@ -10,6 +10,7 @@
 //   POST /invite        — лист із запрошенням викладачу (адмін)
 //   POST /telegram/notice — сигнал адміну в Telegram (токен бота — секрет TELEGRAM_BOT_TOKEN)
 //   POST /telegram/api    — виклики Telegram Bot API для сторінки адмінки (getMe, sendMessage, getUpdates, deleteMessage)
+//   POST /import/kahoot  — питання з публічного тесту Kahoot за посиланням (викладач)
 //   POST /reset         — лист для зміни пароля в дизайні QuizFlow (сторінка входу — з
 //                         обмеженням частоти, адмін — без); потрібен FIREBASE_SERVICE_ACCOUNT
 //   POST /welcome       — дані для входу новому акаунту, створеному адміном (адмін)
@@ -22,6 +23,7 @@ import { serviceAccount, passwordResetCode } from "./google.js";
 import { LOGO_PNG_B64 } from "./logo.js";
 import { aiChat, aiStatus } from "./ai.js";
 import { telegramNotice, telegramApi } from "./telegram.js";
+import { importKahoot } from "./kahoot.js";
 
 const logoUrl = origin => `${origin}/logo.png?v=${LOGO_V}`;
 const LOGO_BYTES = Uint8Array.from(atob(LOGO_PNG_B64), c => c.charCodeAt(0));
@@ -47,7 +49,7 @@ export default {
   async fetch(request, rawEnv) {
     const env = { ...DEFAULTS, ...Object.fromEntries(Object.entries(rawEnv || {}).filter(([, v]) => v !== undefined && v !== "")) };
     const url = new URL(request.url);
-    const cors = corsHeaders(request, env, /^\/(ai|telegram)/.test(url.pathname) ? env.AI_ALLOWED_ORIGINS : env.ALLOWED_ORIGINS);
+    const cors = corsHeaders(request, env, /^\/(ai|telegram|import)/.test(url.pathname) ? env.AI_ALLOWED_ORIGINS : env.ALLOWED_ORIGINS);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     try {
       if (url.pathname === "/unsubscribe") return await unsubscribe(request, env, url);
@@ -56,6 +58,7 @@ export default {
         return new Response(request.method === "HEAD" ? null : LOGO_BYTES, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000, immutable", "Access-Control-Allow-Origin": "*" } });
       if (url.pathname === "/" && request.method === "GET") return json({ ok: true, service: "quizflow-mail" }, 200, cors);
       if (url.pathname === "/ai" && request.method === "POST") return json(await aiChat(request, env, await readJson(request)), 200, cors);
+      if (url.pathname === "/import/kahoot" && request.method === "POST") return json(await importKahoot(request, env, await readJson(request)), 200, cors);
       if (url.pathname === "/telegram/notice" && request.method === "POST") return json(await telegramNotice(request, env, await readJson(request)), 200, cors);
       if (url.pathname === "/reset" && request.method === "POST") return json(await reset(request, env, url), 200, cors);
       const route = `${request.method} ${url.pathname}`;

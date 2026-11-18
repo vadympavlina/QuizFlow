@@ -2,6 +2,8 @@
 // а Google, база Firebase, Resend і KV — підмінені.  npm run worker
 import { test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+const KAHOOT = JSON.parse(readFileSync(new URL("./fixtures/kahoot-sample.json", import.meta.url), "utf8"));
 // WORKER_DIST=1 — ті самі тести на зібраному файлі worker/dist/worker.js (його вставляють у редактор Cloudflare)
 const worker = (await import(process.env.WORKER_DIST ? "../../worker/dist/worker.js" : "../../worker/src/index.js")).default;
 
@@ -23,7 +25,7 @@ const saPem = `-----BEGIN PRIVATE KEY-----\n${Buffer.from(await crypto.subtle.ex
 const SA = JSON.stringify({ type: "service_account", project_id: PROJECT, client_email: "mail@quizflow-test.iam.gserviceaccount.com", private_key: saPem });
 let google;   // { tokenCalls, oob: [], jwtOk }
 
-let tg, db, sent, kv, resendStatus, aiCalls, aiWrites, aiFail;
+let kahootStatus = 200, tg, db, sent, kv, resendStatus, aiCalls, aiWrites, aiFail;
 const env = () => ({
   FIREBASE_PROJECT_ID: PROJECT, FIREBASE_DB_URL: DB, SITE_URL: "https://quizflow.space", MAIL_FROM: "QuizFlow <noreply@quizflow.space>",
   ALLOWED_ORIGINS: "https://quizflow.space", RESEND_API_KEY: "re_test", TELEGRAM_BOT_TOKEN: "123:tgsecret", UNSUB_SECRET: "s3cret", FIREBASE_SERVICE_ACCOUNT: SA, GROQ_API_KEY: "gsk_env", GEMINI_API_KEY: "gem_env",
@@ -31,7 +33,7 @@ const env = () => ({
     list: async ({ prefix }) => ({ keys: [...kv.keys()].filter(k => k.startsWith(prefix)).map(name => ({ name })), list_complete: true }) },
 });
 beforeEach(() => {
-  kv = new Map(); tg = []; sent = []; resendStatus = 200; aiCalls = []; aiWrites = []; aiFail = false; google = { tokenCalls: 0, oob: [], jwtOk: null };
+  kv = new Map(); kahootStatus = 200; tg = []; sent = []; resendStatus = 200; aiCalls = []; aiWrites = []; aiFail = false; google = { tokenCalls: 0, oob: [], jwtOk: null };
   db = {
     users: {
       adm: { role: "admin", name: "Адмін", email: "admin@quizflow.space" },
@@ -87,6 +89,7 @@ beforeEach(() => {
         ? Response.json({ choices: [{ message: { content: "Відповідь Groq" } }], usage: { total_tokens: 42 } })
         : Response.json({ candidates: [{ content: { parts: [{ text: "Відповідь Gemini" }] } }], usageMetadata: { totalTokenCount: 17 } });
     }
+    if (u.hostname === "create.kahoot.it") return kahootStatus === 200 ? Response.json(KAHOOT) : new Response("{}", { status: kahootStatus });
     if (u.hostname === "api.telegram.org") { if (/getMe$/.test(u.pathname)) return Response.json({ ok: true, result: { username: "qf_bot", first_name: "QuizFlow" } }); if (/getUpdates$/.test(u.pathname)) return Response.json({ ok: false, error_code: 409, description: "conflict" }); tg.push({ url: String(url), body: JSON.parse(init.body) }); return Response.json({ ok: true }); }
     if (u.hostname === "api.resend.com") {
       if (resendStatus !== 200) return Response.json({ message: "rate" }, { status: resendStatus });
@@ -458,4 +461,31 @@ test("Telegram API для адмінки: лише адмін, лише дозв
   assert.equal(tg.at(-1).body.text, "привіт");
   const bad = await call("POST", "/telegram/api", { body: { method: "getUpdates", params: {} }, origin: "https://admin.quizflow.space" });
   assert.equal(bad.status, 502); assert.equal(bad.data.error, "conflict");
+});
+
+const KH = "https://create.kahoot.it/share/minecraft-ai/216bbd85-2759-43c0-b56f-63e2d937e67c";
+test("Kahoot: імпорт за посиланням — вибір, кілька, коротка, порядок; опитування й слайди пропускаються", async () => {
+  const r = await call("POST", "/import/kahoot", { uid: "t1", body: { url: KH }, origin: "https://app.quizflow.space" });
+  assert.equal(r.status, 200, JSON.stringify(r.data));
+  assert.equal(r.data.title, "Minecraft AI: Розумні світи");
+  const q = r.data.questions;
+  assert.equal(q.length, 6);                                   // 4 з Kahoot + коротка + порядок
+  assert.deepEqual(q[0], { type: "single", text: "Що таке Minecraft Education?", options: ["Версія гри для навчання", "Гра тільки для розваг", "Редактор відео", "Соціальна мережа"], correct: [0] });
+  assert.equal(q[3].type, "multi");                            // у питанні дві правильні
+  assert.deepEqual(q[3].correct.length, 2);
+  assert.deepEqual(q[4], { type: "text", text: "Столиця України?", correct: "Київ / Kyiv" });   // теги прибрано
+  assert.deepEqual(q[5], { type: "ordering", text: "Розставте за порядком", items: ["Один", "Два", "Три"] });
+  assert.equal(r.data.skipped, 3);                             // опитування, слайд, питання з одним варіантом
+});
+test("Kahoot: потрібен вхід, дозвіл на імпорт, коректне посилання; приватний тест і збої Kahoot — зрозумілі повідомлення", async () => {
+  assert.equal((await call("POST", "/import/kahoot", { uid: null, body: { url: KH }, origin: "https://app.quizflow.space" })).status, 401);
+  assert.equal((await call("POST", "/import/kahoot", { uid: "t1", body: { url: "https://example.com/x" }, origin: "https://app.quizflow.space" })).status, 400);
+  kahootStatus = 404;
+  const priv = await call("POST", "/import/kahoot", { uid: "t1", body: { url: KH }, origin: "https://app.quizflow.space" });
+  assert.equal(priv.status, 404); assert.match(priv.data.error, /публічн/);
+  kahootStatus = 500;
+  assert.equal((await call("POST", "/import/kahoot", { uid: "t1", body: { url: KH }, origin: "https://app.quizflow.space" })).status, 502);
+  kahootStatus = 200;
+  db.settings.features = { v: 2, perms: { tests_import: false } };
+  assert.equal((await call("POST", "/import/kahoot", { uid: "t1", body: { url: KH }, origin: "https://app.quizflow.space" })).status, 403);
 });
