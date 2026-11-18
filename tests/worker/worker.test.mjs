@@ -84,7 +84,7 @@ beforeEach(() => {
     }
     if (u.hostname === "api.groq.com" || u.hostname === "generativelanguage.googleapis.com") {
       aiCalls.push({ host: u.hostname, headers: init.headers, body: JSON.parse(init.body), url: String(url) });
-      if (aiFail) return Response.json({ error: { message: "boom" } }, { status: 500 });
+      if (aiFail === true || (aiFail === "groq" && u.hostname === "api.groq.com") || (aiFail === "gemini" && u.hostname !== "api.groq.com")) return Response.json({ error: { message: "boom" } }, { status: 500 });
       return u.hostname === "api.groq.com"
         ? Response.json({ choices: [{ message: { content: "Відповідь Groq" } }], usage: { total_tokens: 42 } })
         : Response.json({ candidates: [{ content: { parts: [{ text: "Відповідь Gemini" }] } }], usageMetadata: { totalTokenCount: 17 } });
@@ -488,4 +488,26 @@ test("Kahoot: потрібен вхід, дозвіл на імпорт, кор�
   kahootStatus = 200;
   db.settings.features = { v: 2, perms: { tests_import: false } };
   assert.equal((await call("POST", "/import/kahoot", { uid: "t1", body: { url: KH }, origin: "https://app.quizflow.space" })).status, 403);
+});
+
+test("AI: основний провайдер впав — відповідає запасний, облік як звичайний виклик", async () => {
+  aiFail = "groq";
+  const r = await ask();
+  assert.equal(r.status, 200, JSON.stringify(r.data));
+  assert.equal(r.data.provider, "gemini");
+  assert.equal(r.data.fallback, true);
+  assert.equal(r.data.text, "Відповідь Gemini");
+  assert.deepEqual(aiCalls.map(c => c.host), ["api.groq.com", "generativelanguage.googleapis.com"]);
+  assert.equal(db.aiUsage[month()].t1.analysis.calls, 1);
+  assert.equal(db.aiUsage[month()].t1.analysis.errors, undefined);
+  aiFail = "gemini";
+  db.settings.ai.featProviders = { analysis: "gemini" };
+  const r2 = await ask();
+  assert.equal(r2.data.provider, "groq");
+  assert.equal(r2.data.fallback, true);
+});
+test("AI: помилки самого запиту не повторюються іншим провайдером", async () => {
+  aiFail = "groq";
+  assert.equal((await ask({ feature: "hack" })).status, 400);
+  assert.equal(aiCalls.length, 0);
 });

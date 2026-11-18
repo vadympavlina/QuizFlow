@@ -570,16 +570,29 @@ async function track(env, uid, feature, { tokens = 0, ok = true }, token) {
   }
 }
 async function callProvider(env, s, req) {
-  const geminiKey = env.GEMINI_API_KEY || s.geminiApiKey || (s.provider === "gemini" ? s.apiKey : "") || "";
-  const groqKey = env.GROQ_API_KEY || s.groqApiKey || (s.provider !== "gemini" ? s.apiKey : "") || "";
+  const keys = {
+    gemini: env.GEMINI_API_KEY || s.geminiApiKey || (s.provider === "gemini" ? s.apiKey : "") || "",
+    groq: env.GROQ_API_KEY || s.groqApiKey || (s.provider !== "gemini" ? s.apiKey : "") || ""
+  };
   const want = s.featProviders && s.featProviders[req.feature] || s.provider || "groq";
-  const provider = want === "gemini" ? geminiKey || !groqKey ? "gemini" : "groq" : groqKey || !geminiKey ? "groq" : "gemini";
+  const first = want === "gemini" ? keys.gemini || !keys.groq ? "gemini" : "groq" : keys.groq || !keys.gemini ? "groq" : "gemini";
+  const second = first === "gemini" ? "groq" : "gemini";
+  try {
+    return await callOne(env, s, req, first, keys[first]);
+  } catch (e) {
+    const retriable = !(e instanceof HttpError) || e.status >= 500;
+    if (!retriable || !keys[second]) throw e;
+    const out = await callOne(env, s, req, second, keys[second]);
+    return { ...out, fallback: true, failed: first };
+  }
+}
+async function callOne(env, s, req, provider, key) {
   if (provider === "gemini") {
-    if (!geminiKey) throw new HttpError(503, "AI \u043D\u0435 \u043D\u0430\u043B\u0430\u0448\u0442\u043E\u0432\u0430\u043D\u043E: \u043D\u0430 \u0432\u043E\u0440\u043A\u0435\u0440\u0456 \u043D\u0435\u043C\u0430\u0454 \u043A\u043B\u044E\u0447\u0430 Gemini");
+    if (!key) throw new HttpError(503, "AI \u043D\u0435 \u043D\u0430\u043B\u0430\u0448\u0442\u043E\u0432\u0430\u043D\u043E: \u043D\u0430 \u0432\u043E\u0440\u043A\u0435\u0440\u0456 \u043D\u0435\u043C\u0430\u0454 \u043A\u043B\u044E\u0447\u0430 Gemini");
     const model2 = s.geminiModel || "gemini-2.5-flash";
     const res2 = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model2)}:generateContent`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
+      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: req.system }] },
         contents: req.messages.map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] })),
@@ -587,19 +600,23 @@ async function callProvider(env, s, req) {
       })
     });
     const d2 = await res2.json().catch(() => ({}));
-    if (d2.error) throw new HttpError(502, "Gemini: " + (d2.error.message || "\u043F\u043E\u043C\u0438\u043B\u043A\u0430"));
-    return { text: d2.candidates?.[0]?.content?.parts?.[0]?.text || "", tokens: Number(d2.usageMetadata?.totalTokenCount) || 0, provider };
+    if (d2.error || !res2.ok) throw new HttpError(502, "Gemini: " + (d2.error?.message || `\u043F\u043E\u043C\u0438\u043B\u043A\u0430 ${res2.status}`));
+    const text2 = d2.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    if (!text2.trim()) throw new HttpError(502, "Gemini \u043F\u043E\u0432\u0435\u0440\u043D\u0443\u0432 \u043F\u043E\u0440\u043E\u0436\u043D\u044E \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u044C");
+    return { text: text2, tokens: Number(d2.usageMetadata?.totalTokenCount) || 0, provider };
   }
-  if (!groqKey) throw new HttpError(503, "AI \u043D\u0435 \u043D\u0430\u043B\u0430\u0448\u0442\u043E\u0432\u0430\u043D\u043E: \u043D\u0430 \u0432\u043E\u0440\u043A\u0435\u0440\u0456 \u043D\u0435\u043C\u0430\u0454 \u043A\u043B\u044E\u0447\u0430 Groq");
+  if (!key) throw new HttpError(503, "AI \u043D\u0435 \u043D\u0430\u043B\u0430\u0448\u0442\u043E\u0432\u0430\u043D\u043E: \u043D\u0430 \u0432\u043E\u0440\u043A\u0435\u0440\u0456 \u043D\u0435\u043C\u0430\u0454 \u043A\u043B\u044E\u0447\u0430 Groq");
   const model = s.groqModel || s.provider !== "gemini" && s.model || "llama-3.3-70b-versatile";
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: "Bearer " + groqKey },
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + key },
     body: JSON.stringify({ model, messages: [{ role: "system", content: req.system }, ...req.messages], max_tokens: req.maxTokens, temperature: req.temp, ...req.json ? { response_format: { type: "json_object" } } : {} })
   });
   const d = await res.json().catch(() => ({}));
-  if (d.error) throw new HttpError(502, "Groq: " + (d.error.message || "\u043F\u043E\u043C\u0438\u043B\u043A\u0430"));
-  return { text: d.choices?.[0]?.message?.content || "", tokens: Number(d.usage?.total_tokens) || 0, provider };
+  if (d.error || !res.ok) throw new HttpError(502, "Groq: " + (d.error?.message || `\u043F\u043E\u043C\u0438\u043B\u043A\u0430 ${res.status}`));
+  const text = d.choices?.[0]?.message?.content || "";
+  if (!text.trim()) throw new HttpError(502, "Groq \u043F\u043E\u0432\u0435\u0440\u043D\u0443\u0432 \u043F\u043E\u0440\u043E\u0436\u043D\u044E \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u044C");
+  return { text, tokens: Number(d.usage?.total_tokens) || 0, provider };
 }
 async function aiChat(request, env, body) {
   const req = readBody(body);
@@ -621,7 +638,7 @@ async function aiChat(request, env, body) {
   try {
     const out = await callProvider(env, st, req);
     await track(env, who.billed, req.feature, { tokens: out.tokens }, who.token);
-    return { ok: true, text: out.text, tokens: out.tokens, provider: out.provider };
+    return { ok: true, text: out.text, tokens: out.tokens, provider: out.provider, ...out.fallback ? { fallback: true } : {} };
   } catch (e) {
     await track(env, who.billed, req.feature, { ok: false }, who.token);
     throw e;
