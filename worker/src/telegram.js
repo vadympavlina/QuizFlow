@@ -31,10 +31,17 @@ function noticeText(b, who) {
 
 export async function telegramNotice(request, env, body) {
   const key = String(body?.key || ""), type = String(body?.type || ""), uid = String(body?.uid || "");
-  if (!KEY_RE.test(key) || !ID_RE.test(uid) || !["limit", "aierr"].includes(type)) throw new HttpError(400, "Некоректний сигнал");
+  if (!KEY_RE.test(key) || !ID_RE.test(uid) || !["limit", "aierr", "bug"].includes(type)) throw new HttpError(400, "Некоректний сигнал");
   const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   let claims = null;
   if (token) claims = await verifyIdToken(token, env.FIREBASE_PROJECT_ID);
+  // Нове звернення з кульки «Підтримка»: текст беремо з бази (bugStatus автора), а не з запиту
+  let report = null;
+  if (type === "bug") {
+    if (!claims || claims.sub !== uid) throw new HttpError(403, "Сигнал можна надіслати лише про себе");
+    report = await dbGet(env, `bugStatus/${uid}/${key}`, token);
+    if (!report || typeof report.t !== "string") throw new HttpError(404, "Звернення не знайдено");
+  }
   if (type === "limit" && (!claims || claims.sub !== uid)) throw new HttpError(403, "Сигнал можна надіслати лише про себе");
   if (claims && claims.sub !== uid && type === "aierr") throw new HttpError(403, "Сигнал можна надіслати лише про себе");
   if (!env.TELEGRAM_BOT_TOKEN) return { ok: true, sent: false, reason: "no_token" };
@@ -55,7 +62,9 @@ export async function telegramNotice(request, env, body) {
     const u = await dbGet(env, `users/${uid}`, token).catch(() => null);
     who = [u?.name, u?.surname].filter(Boolean).join(" ") || u?.email || who;
   }
-  const text = `<b>QuizFlow · сигнал</b>\n${esc(noticeText({ ...body, type, key2: String(body?.limitKey || "") }, esc(who).slice(0, 120)))}`;
+  const text = report
+    ? `<b>QuizFlow · ${report.k === "idea" ? "Ідея покращення" : "Проблема"}</b>\n<blockquote>${esc(report.t.slice(0, 300))}</blockquote>\n${esc(who).slice(0, 120)}${report.p ? ` · ${esc(String(report.p).slice(0, 80))}` : ""}`
+    : `<b>QuizFlow · сигнал</b>\n${esc(noticeText({ ...body, type, key2: String(body?.limitKey || "") }, esc(who).slice(0, 120)))}`;
   await Promise.all(to.map(chat_id => fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chat_id, text, parse_mode: "HTML" }),
   }).catch(() => {})));

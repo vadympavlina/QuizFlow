@@ -181,7 +181,49 @@
       ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
       ".write": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
       "$id": {
-        ".write": "auth != null && root.child('users/' + auth.uid + '/role').exists() && root.child('users/' + auth.uid + '/blocked').val() !== true && !data.exists() && newData.exists()"
+        ".write": "auth != null && root.child('users/' + auth.uid + '/role').exists() && root.child('users/' + auth.uid + '/blocked').val() !== true && !data.exists() && newData.exists()",
+        "uid": {
+          ".validate": "root.child('users/' + auth.uid + '/role').val() === 'admin' || newData.val() === auth.uid"
+        },
+        "shot": {
+          ".validate": "newData.isString() && newData.val().length <= 400000 && newData.val().beginsWith('data:image/')"
+        },
+        "message": {
+          ".validate": "newData.isString() && newData.val().length <= 4000"
+        }
+      }
+    },
+    "bugStatus": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('users/' + auth.uid + '/role').val() === 'admin')",
+        "$id": {
+          ".write": "auth != null && ((auth.uid === $uid && !data.exists() && newData.child('s').val() === 'new' && root.child('users/' + auth.uid + '/role').exists() && root.child('users/' + auth.uid + '/blocked').val() !== true) || root.child('users/' + auth.uid + '/role').val() === 'admin')",
+          ".validate": "newData.hasChildren(['t', 's', 'at'])",
+          "t": {
+            ".validate": "newData.isString() && newData.val().length <= 300"
+          },
+          "k": {
+            ".validate": "newData.val() === 'bug' || newData.val() === 'idea'"
+          },
+          "p": {
+            ".validate": "newData.isString() && newData.val().length <= 80"
+          },
+          "at": {
+            ".validate": "newData.isNumber()"
+          },
+          "s": {
+            ".validate": "newData.val() === 'new' || newData.val() === 'in_progress' || newData.val() === 'resolved'"
+          },
+          "r": {
+            ".validate": "newData.isString() && newData.val().length <= 1000"
+          },
+          "up": {
+            ".validate": "newData.isNumber()"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
       }
     },
     "rooms": {

@@ -78,7 +78,7 @@ beforeEach(() => {
         if (!token) return new Response('{"error":"Permission denied"}', { status: 401 });
         const uid = JSON.parse(Buffer.from(token.split(".")[1], "base64url")).sub;
         const isAdmin = db.users[uid]?.role === "admin";
-        if (!isAdmin && path !== `users/${uid}` && !/^settings\//.test(path)) return new Response('{"error":"Permission denied"}', { status: 401 });
+        if (!isAdmin && path !== `users/${uid}` && !/^settings\//.test(path) && !path.startsWith(`bugStatus/${uid}/`)) return new Response('{"error":"Permission denied"}', { status: 401 });
       }
       return Response.json(path.split("/").reduce((n, k) => n?.[k], db) ?? null);
     }
@@ -463,6 +463,18 @@ test("Telegram: помилки AI від студента без токена; �
   assert.match(tg[0].body.text, /Часті помилки AI у Викладач: коментарі студентам, 5/);
   assert.equal((await call("POST", "/telegram/notice", { uid: null, body: { ...e, key: "k2", feature: "<x>" }, origin: AO })).status, 400);
   assert.equal((await call("POST", "/telegram/notice", { uid: "t1", body: { ...lim, key: "bad key!" }, origin: AO })).status, 400);
+});
+test("Telegram: нове звернення — текст береться з bugStatus автора, а не з запиту; чуже чи неіснуюче — відмова", async () => {
+  db.bugStatus = { t1: { rep1: { t: "Не зберігається <картинка>", k: "bug", p: "Конструктор", at: 1, s: "new" } } };
+  const r = await call("POST", "/telegram/notice", { uid: "t1", body: { key: "rep1", type: "bug", uid: "t1", text: "ПІДРОБКА" }, origin: AO });
+  assert.equal(r.data.sent, true);
+  assert.match(tg[0].body.text, /QuizFlow · Проблема/);
+  assert.match(tg[0].body.text, /Не зберігається &lt;картинка&gt;/);
+  assert.match(tg[0].body.text, /Конструктор/);
+  assert.ok(!tg[0].body.text.includes("ПІДРОБКА"));
+  assert.equal((await call("POST", "/telegram/notice", { uid: "t2", body: { key: "rep1", type: "bug", uid: "t1" }, origin: AO })).status, 403);
+  assert.equal((await call("POST", "/telegram/notice", { uid: null, body: { key: "rep1", type: "bug", uid: "t1" }, origin: AO })).status, 403);
+  assert.equal((await call("POST", "/telegram/notice", { uid: "t1", body: { key: "nope", type: "bug", uid: "t1" }, origin: AO })).status, 404);
 });
 test("Telegram: вимкнено або без токена — нічого не надсилаємо", async () => {
   db.settings.telegramBot.enabled = false;
