@@ -1,0 +1,60 @@
+name: Publish Rules
+
+# Після злиття змін database.rules.json у main: тести правил на емуляторі → публікація в Realtime Database.
+# Потрібен секрет репозиторію FIREBASE_SERVICE_ACCOUNT — увесь JSON службового ключа Firebase
+# (Firebase Console → Project settings → Service accounts → Generate new private key).
+# Попередні правила зберігаються як артефакт запуску «rules-before» (для відкату).
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "database.rules.json"
+      - ".github/workflows/rules.yml"
+      - "tests/scripts/publish-rules.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rules-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Тести й публікація правил
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tests/package-lock.json
+      - run: npm ci
+      - name: Тести правил (емулятор)
+        run: npm run rules
+      - name: Публікація в базу
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "::warning::Секрет FIREBASE_SERVICE_ACCOUNT не задано — правила не опубліковано. Опублікуйте вручну в консолі Firebase або додайте секрет."
+            exit 0
+          fi
+          node scripts/publish-rules.mjs --backup "$RUNNER_TEMP/rules-before.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rules-before
+          path: ${{ runner.temp }}/rules-before.json
+          if-no-files-found: ignore
+          retention-days: 90
