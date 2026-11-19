@@ -1,24 +1,19 @@
-# Cloudflare Worker для пошти QuizFlow: запрошення й розсилки через Resend.
-# Інструкція з розгортання — docs/email-setup.md, розділ «Воркер пошти».
+# Cloudflare Worker QuizFlow: пошта (Resend), AI, Telegram, імпорт із Kahoot.
+# Розгортається автоматично: .github/workflows/worker.yml після злиття змін у worker/ в main
+# (зібраний worker/dist/worker.js). Інструкція — docs/email-setup.md.
 name = "quizflow-mail"
 main = "src/index.js"
 compatibility_date = "2025-09-01"
 
-# Ці значення вже є в коді за замовчуванням (src/index.js → DEFAULTS); тут — лише щоб перевизначити
-[vars]
-FIREBASE_PROJECT_ID = "quizflow-8a978"
-FIREBASE_DB_URL = "https://quizflow-8a978-default-rtdb.europe-west1.firebasedatabase.app"
-SITE_URL = "https://app.quizflow.space"
-MAIL_FROM = "QuizFlow <noreply@quizflow.space>"
-# Звідки дозволено запити (через кому). Локальна розробка — додайте http://127.0.0.1:8765
-ALLOWED_ORIGINS = "https://app.quizflow.space,https://admin.quizflow.space"
+# Змінні, задані в панелі Cloudflare (Settings → Variables and Secrets), деплой не стирає.
+# Значення за замовчуванням — у коді (src/index.js → DEFAULTS), тому [vars] тут навмисно немає:
+# інакше кожен деплой перезаписував би те, що змінено в панелі.
+keep_vars = true
 
-# Відписки від розсилок. id створюється командою:
-#   npx wrangler kv namespace create MAIL_KV
+# Сховище відписок і лічильників (Storage & Databases → KV → quizflow-mail-unsub)
 [[kv_namespaces]]
 binding = "MAIL_KV"
-id = "REPLACE_WITH_KV_ID"
+id = "e7cad756e9674b71868f9fe7d262e574"
 
-# Секрети (не в коді!):
-#   npx wrangler secret put RESEND_API_KEY   — ключ re_… з Resend
-#   npx wrangler secret put UNSUB_SECRET     — будь-який довгий випадковий рядок
+# Секрети (RESEND_API_KEY, UNSUB_SECRET, GROQ_API_KEY, GEMINI_API_KEY, TELEGRAM_BOT_TOKEN,
+# FIREBASE_SERVICE_ACCOUNT) живуть лише в Cloudflare; деплой їх не чіпає.

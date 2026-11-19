@@ -172,6 +172,19 @@ npx wrangler deploy
 перезаписує змінні, задані на сайті.
 </details>
 
+### 1а. Автоматичне оновлення коду (GitHub Actions)
+
+Після першого розгортання код воркера більше не треба вставляти вручну: workflow
+`.github/workflows/worker.yml` після кожного злиття змін у `worker/` в `main` проганяє юніт-тести
+й розгортає `worker/dist/worker.js` у Cloudflare (`wrangler deploy`, назва й сховище KV — у `worker/wrangler.toml`).
+Секрети воркера й змінні з панелі Cloudflare деплой не стирає (`keep_vars = true`).
+
+Один раз потрібні секрети репозиторію (GitHub → Settings → Secrets and variables → Actions):
+- `CLOUDFLARE_API_TOKEN` — Cloudflare → My Profile → API Tokens → Create Token → шаблон **Edit Cloudflare Workers**;
+- `CLOUDFLARE_ACCOUNT_ID` — Account ID зі сторінки Workers.
+
+Запустити деплой вручну: GitHub → Actions → **Deploy Worker** → Run workflow.
+
 ### 2. Підключення в адмінці
 
 Адмінка → **Розсилки** → вставте адресу воркера → **Перевірити й зберегти**.
