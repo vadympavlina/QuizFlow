@@ -702,10 +702,16 @@ function noticeText(b, who) {
 }
 async function telegramNotice(request, env, body) {
   const key = String(body?.key || ""), type = String(body?.type || ""), uid = String(body?.uid || "");
-  if (!KEY_RE.test(key) || !ID_RE2.test(uid) || !["limit", "aierr"].includes(type)) throw new HttpError(400, "\u041D\u0435\u043A\u043E\u0440\u0435\u043A\u0442\u043D\u0438\u0439 \u0441\u0438\u0433\u043D\u0430\u043B");
+  if (!KEY_RE.test(key) || !ID_RE2.test(uid) || !["limit", "aierr", "bug"].includes(type)) throw new HttpError(400, "\u041D\u0435\u043A\u043E\u0440\u0435\u043A\u0442\u043D\u0438\u0439 \u0441\u0438\u0433\u043D\u0430\u043B");
   const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   let claims = null;
   if (token) claims = await verifyIdToken(token, env.FIREBASE_PROJECT_ID);
+  let report = null;
+  if (type === "bug") {
+    if (!claims || claims.sub !== uid) throw new HttpError(403, "\u0421\u0438\u0433\u043D\u0430\u043B \u043C\u043E\u0436\u043D\u0430 \u043D\u0430\u0434\u0456\u0441\u043B\u0430\u0442\u0438 \u043B\u0438\u0448\u0435 \u043F\u0440\u043E \u0441\u0435\u0431\u0435");
+    report = await dbGet(env, `bugStatus/${uid}/${key}`, token);
+    if (!report || typeof report.t !== "string") throw new HttpError(404, "\u0417\u0432\u0435\u0440\u043D\u0435\u043D\u043D\u044F \u043D\u0435 \u0437\u043D\u0430\u0439\u0434\u0435\u043D\u043E");
+  }
   if (type === "limit" && (!claims || claims.sub !== uid)) throw new HttpError(403, "\u0421\u0438\u0433\u043D\u0430\u043B \u043C\u043E\u0436\u043D\u0430 \u043D\u0430\u0434\u0456\u0441\u043B\u0430\u0442\u0438 \u043B\u0438\u0448\u0435 \u043F\u0440\u043E \u0441\u0435\u0431\u0435");
   if (claims && claims.sub !== uid && type === "aierr") throw new HttpError(403, "\u0421\u0438\u0433\u043D\u0430\u043B \u043C\u043E\u0436\u043D\u0430 \u043D\u0430\u0434\u0456\u0441\u043B\u0430\u0442\u0438 \u043B\u0438\u0448\u0435 \u043F\u0440\u043E \u0441\u0435\u0431\u0435");
   if (!env.TELEGRAM_BOT_TOKEN) return { ok: true, sent: false, reason: "no_token" };
@@ -724,7 +730,9 @@ async function telegramNotice(request, env, body) {
     const u = await dbGet(env, `users/${uid}`, token).catch(() => null);
     who = [u?.name, u?.surname].filter(Boolean).join(" ") || u?.email || who;
   }
-  const text = `<b>QuizFlow \xB7 \u0441\u0438\u0433\u043D\u0430\u043B</b>
+  const text = report ? `<b>QuizFlow \xB7 ${report.k === "idea" ? "\u0406\u0434\u0435\u044F \u043F\u043E\u043A\u0440\u0430\u0449\u0435\u043D\u043D\u044F" : "\u041F\u0440\u043E\u0431\u043B\u0435\u043C\u0430"}</b>
+<blockquote>${esc2(report.t.slice(0, 300))}</blockquote>
+${esc2(who).slice(0, 120)}${report.p ? ` \xB7 ${esc2(String(report.p).slice(0, 80))}` : ""}` : `<b>QuizFlow \xB7 \u0441\u0438\u0433\u043D\u0430\u043B</b>
 ${esc2(noticeText({ ...body, type, key2: String(body?.limitKey || "") }, esc2(who).slice(0, 120)))}`;
   await Promise.all(to.map((chat_id) => fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
     method: "POST",
