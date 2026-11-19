@@ -21,7 +21,7 @@ import { HttpError, requireAdmin, dbRead } from "./auth.js";
 import { inviteEmail, broadcastEmail, welcomeEmail, resetEmail, esc, LOGO_V } from "./mail.js";
 import { serviceAccount, passwordResetCode } from "./google.js";
 import { LOGO_PNG_B64 } from "./logo.js";
-import { aiChat, aiStatus } from "./ai.js";
+import { aiChat, aiStatus, aiModels } from "./ai.js";
 import { telegramNotice, telegramApi } from "./telegram.js";
 import { importKahoot } from "./kahoot.js";
 
@@ -62,7 +62,7 @@ export default {
       if (url.pathname === "/telegram/notice" && request.method === "POST") return json(await telegramNotice(request, env, await readJson(request)), 200, cors);
       if (url.pathname === "/reset" && request.method === "POST") return json(await reset(request, env, url), 200, cors);
       const route = `${request.method} ${url.pathname}`;
-      const handler = { "GET /status": status, "GET /ai/status": aiStatus, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast, "POST /telegram/api": telegramApi }[route];
+      const handler = { "GET /status": status, "GET /ai/status": aiStatus, "GET /ai/models": aiModels, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast, "POST /telegram/api": telegramApi }[route];
       if (!handler) throw new HttpError(404, "Невідома адреса");
       const admin = await requireAdmin(request, env);
       const body = request.method === "POST" ? await readJson(request) : null;

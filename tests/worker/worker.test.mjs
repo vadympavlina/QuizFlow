@@ -25,7 +25,7 @@ const saPem = `-----BEGIN PRIVATE KEY-----\n${Buffer.from(await crypto.subtle.ex
 const SA = JSON.stringify({ type: "service_account", project_id: PROJECT, client_email: "mail@quizflow-test.iam.gserviceaccount.com", private_key: saPem });
 let google;   // { tokenCalls, oob: [], jwtOk }
 
-let kahootStatus = 200, tg, db, sent, kv, resendStatus, aiCalls, aiWrites, aiFail;
+let kahootStatus = 200, tg, db, sent, kv, resendStatus, aiCalls, aiWrites, aiFail, modelsFail;
 const env = () => ({
   FIREBASE_PROJECT_ID: PROJECT, FIREBASE_DB_URL: DB, SITE_URL: "https://quizflow.space", MAIL_FROM: "QuizFlow <noreply@quizflow.space>",
   ALLOWED_ORIGINS: "https://quizflow.space", RESEND_API_KEY: "re_test", TELEGRAM_BOT_TOKEN: "123:tgsecret", UNSUB_SECRET: "s3cret", FIREBASE_SERVICE_ACCOUNT: SA, GROQ_API_KEY: "gsk_env", GEMINI_API_KEY: "gem_env",
@@ -33,7 +33,7 @@ const env = () => ({
     list: async ({ prefix }) => ({ keys: [...kv.keys()].filter(k => k.startsWith(prefix)).map(name => ({ name })), list_complete: true }) },
 });
 beforeEach(() => {
-  kv = new Map(); kahootStatus = 200; tg = []; sent = []; resendStatus = 200; aiCalls = []; aiWrites = []; aiFail = false; google = { tokenCalls: 0, oob: [], jwtOk: null };
+  kv = new Map(); kahootStatus = 200; tg = []; sent = []; resendStatus = 200; aiCalls = []; aiWrites = []; aiFail = false; modelsFail = false; google = { tokenCalls: 0, oob: [], jwtOk: null };
   db = {
     users: {
       adm: { role: "admin", name: "Адмін", email: "admin@quizflow.space" },
@@ -81,6 +81,12 @@ beforeEach(() => {
         if (!isAdmin && path !== `users/${uid}` && !/^settings\//.test(path)) return new Response('{"error":"Permission denied"}', { status: 401 });
       }
       return Response.json(path.split("/").reduce((n, k) => n?.[k], db) ?? null);
+    }
+    if (u.pathname.endsWith("/models") && (u.hostname === "api.groq.com" || u.hostname === "generativelanguage.googleapis.com")) {
+      if (modelsFail) return Response.json({ error: { message: "bad key" } }, { status: 401 });
+      return u.hostname === "api.groq.com"
+        ? Response.json({ data: [{ id: "llama-3.3-70b-versatile", active: true, context_window: 131072, owned_by: "Meta" }, { id: "whisper-large-v3", active: true }, { id: "qwen/qwen3-32b", active: true, context_window: 131072 }, { id: "old-model", active: false }] })
+        : Response.json({ models: [{ name: "models/gemini-2.5-flash", displayName: "Gemini 2.5 Flash", inputTokenLimit: 1048576, supportedGenerationMethods: ["generateContent"] }, { name: "models/text-embedding-004", supportedGenerationMethods: ["embedContent"] }, { name: "models/gemini-2.5-flash-preview-tts", supportedGenerationMethods: ["generateContent"] }] });
     }
     if (u.hostname === "api.groq.com" || u.hostname === "generativelanguage.googleapis.com") {
       aiCalls.push({ host: u.hostname, headers: init.headers, body: JSON.parse(init.body), url: String(url) });
@@ -402,6 +408,21 @@ test("AI: /ai/status для адміністратора не віддає кл�
   assert.equal((await call("GET", "/ai/status", { uid: "t1" })).status, 403);
   const pre = await worker.fetch(new Request("https://mail.test/status", { method: "OPTIONS", headers: { Origin: "https://test.quizflow.space" } }), env());
   assert.equal(pre.headers.get("Access-Control-Allow-Origin"), null);
+});
+
+test("AI: /ai/models — лише для адміна, лише текстові активні моделі; помилка провайдера не ламає відповідь", async () => {
+  const r = await call("GET", "/ai/models");
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.data.groq.models.map(m => m.id), ["llama-3.3-70b-versatile", "qwen/qwen3-32b"]);
+  assert.equal(r.data.groq.models[0].ctx, 131072);
+  assert.deepEqual(r.data.gemini.models.map(m => m.id), ["gemini-2.5-flash"]);
+  assert.ok(!JSON.stringify(r.data).includes("gsk_env"));
+  assert.equal((await call("GET", "/ai/models", { uid: "t1" })).status, 403);
+  modelsFail = true;
+  const f = await call("GET", "/ai/models");
+  assert.equal(f.status, 200);
+  assert.equal(f.data.groq.ok, false);
+  assert.match(f.data.groq.error, /bad key/);
 });
 
 test("AI: дозволи в базі зберігаються без крапки (games_run, tests_view), воркер їх розуміє", async () => {

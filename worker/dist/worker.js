@@ -652,6 +652,32 @@ async function aiStatus({ env }) {
     legacyKeysInDb: { groq: !!(s.groqApiKey || s.apiKey), gemini: !!s.geminiApiKey }
   };
 }
+var SKIP_GROQ = /whisper|tts|guard|distil|playai|orpheus|compound|embed|vision-preview/i;
+var SKIP_GEMINI = /embedding|aqa|imagen|veo|tts|image|live|native-audio|learnlm|robotics|computer-use/i;
+async function groqModels(key) {
+  const r = await fetch("https://api.groq.com/openai/v1/models", { headers: { Authorization: "Bearer " + key } });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error?.message || `\u043F\u043E\u043C\u0438\u043B\u043A\u0430 ${r.status}`);
+  return (d.data || []).filter((m) => m && m.id && m.active !== false && !SKIP_GROQ.test(m.id)).map((m) => ({ id: String(m.id), ctx: Number(m.context_window) || 0, by: String(m.owned_by || "") })).sort((a, b) => a.id.localeCompare(b.id));
+}
+async function geminiModels(key) {
+  const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=200", { headers: { "x-goog-api-key": key } });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error?.message || `\u043F\u043E\u043C\u0438\u043B\u043A\u0430 ${r.status}`);
+  return (d.models || []).filter((m) => (m.supportedGenerationMethods || []).includes("generateContent")).map((m) => ({ id: String(m.name || "").replace(/^models\//, ""), name: String(m.displayName || ""), ctx: Number(m.inputTokenLimit) || 0 })).filter((m) => /^gemini-/.test(m.id) && !SKIP_GEMINI.test(m.id)).sort((a, b) => b.id.localeCompare(a.id));
+}
+async function aiModels({ env }) {
+  const one = async (key, fn) => {
+    if (!key) return { ok: false, error: "\u041D\u0435\u043C\u0430\u0454 \u043A\u043B\u044E\u0447\u0430 \u0443 \u0432\u043E\u0440\u043A\u0435\u0440\u0456", models: [] };
+    try {
+      return { ok: true, models: await fn(key) };
+    } catch (e) {
+      return { ok: false, error: String(e.message || e).slice(0, 200), models: [] };
+    }
+  };
+  const [groq, gemini] = await Promise.all([one(env.GROQ_API_KEY, groqModels), one(env.GEMINI_API_KEY, geminiModels)]);
+  return { ok: true, groq, gemini };
+}
 
 // ../worker/src/telegram.js
 var KEY_RE = /^[\w-]{1,160}$/;
@@ -818,7 +844,7 @@ var index_default = {
       if (url.pathname === "/telegram/notice" && request.method === "POST") return json(await telegramNotice(request, env, await readJson(request)), 200, cors);
       if (url.pathname === "/reset" && request.method === "POST") return json(await reset(request, env, url), 200, cors);
       const route = `${request.method} ${url.pathname}`;
-      const handler = { "GET /status": status, "GET /ai/status": aiStatus, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast, "POST /telegram/api": telegramApi }[route];
+      const handler = { "GET /status": status, "GET /ai/status": aiStatus, "GET /ai/models": aiModels, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast, "POST /telegram/api": telegramApi }[route];
       if (!handler) throw new HttpError(404, "\u041D\u0435\u0432\u0456\u0434\u043E\u043C\u0430 \u0430\u0434\u0440\u0435\u0441\u0430");
       const admin = await requireAdmin(request, env);
       const body = request.method === "POST" ? await readJson(request) : null;
