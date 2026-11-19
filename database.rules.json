@@ -186,7 +186,7 @@
           ".validate": "root.child('users/' + auth.uid + '/role').val() === 'admin' || newData.val() === auth.uid"
         },
         "shot": {
-          ".validate": "newData.isString() && newData.val().length <= 400000 && newData.val().beginsWith('data:image/')"
+          ".validate": false
         },
         "message": {
           ".validate": "newData.isString() && newData.val().length <= 4000"

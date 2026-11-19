@@ -159,8 +159,7 @@ await t("teacher read bugReports", false, () => get(ref(t1, "bugReports")));
 // «Мої звернення»: коротка копія для автора; статус і відповідь змінює лише адмін
 await t("teacher bugReport with own uid", true, () => set(push(ref(t1, "bugReports")), { message: "x", uid: "t1" }));
 await t("teacher bugReport as someone else", false, () => set(push(ref(t1, "bugReports")), { message: "x", uid: "t2" }));
-await t("teacher bugReport with screenshot", true, () => set(push(ref(t1, "bugReports")), { message: "x", uid: "t1", shot: "data:image/jpeg;base64,AAAA" }));
-await t("teacher bugReport with bad screenshot", false, () => set(push(ref(t1, "bugReports")), { message: "x", uid: "t1", shot: "javascript:alert(1)" }));
+await t("teacher bugReport with screenshot (not stored)", false, () => set(push(ref(t1, "bugReports")), { message: "x", uid: "t1", shot: "data:image/jpeg;base64,AAAA" }));
 await t("teacher create own bugStatus", true, () => set(ref(t1, "bugStatus/t1/b1"), { t: "Не працює", k: "bug", p: "Тести", at: now, s: "new" }));
 await t("teacher read own bugStatus", true, () => get(ref(t1, "bugStatus/t1")));
 await t("teacher read other bugStatus", false, () => get(ref(t2, "bugStatus/t1")));
