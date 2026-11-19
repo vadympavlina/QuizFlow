@@ -6,6 +6,7 @@
 //                        • студент зі сторінки тесту: без токена, лише для comments і textcheck, з посиланням
 //                          на тест викладача (as: { teacherUid, linkId }), AI рахується викладачу.
 //   GET  /ai/status  — чи є ключі у воркері (адмін); самих ключів не віддаємо.
+//   GET  /ai/models  — моделі, які зараз доступні за ключами воркера (адмін): для вибору в адмінці.
 //
 // Воркер сам перевіряє те, що раніше вирішував браузер: дозвіл «AI» (shared/perms.js), увімкнення функції
 // в адмінці, місячний ліміт викладача, режим «лише перегляд». Облік використання пише воркер.
@@ -184,5 +185,35 @@ export async function aiStatus({ env }) {
     configured: { groq: !!env.GROQ_API_KEY, gemini: !!env.GEMINI_API_KEY },
     legacyKeysInDb: { groq: !!(s.groqApiKey || s.apiKey), gemini: !!s.geminiApiKey },
   };
+}
+
+// Списки моделей у провайдерів. Лишаємо лише текстові моделі для чату: без мовлення, ембедингів, картинок тощо.
+const SKIP_GROQ = /whisper|tts|guard|distil|playai|orpheus|compound|embed|vision-preview/i;
+const SKIP_GEMINI = /embedding|aqa|imagen|veo|tts|image|live|native-audio|learnlm|robotics|computer-use/i;
+async function groqModels(key) {
+  const r = await fetch("https://api.groq.com/openai/v1/models", { headers: { Authorization: "Bearer " + key } });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error?.message || `помилка ${r.status}`);
+  return (d.data || []).filter(m => m && m.id && m.active !== false && !SKIP_GROQ.test(m.id))
+    .map(m => ({ id: String(m.id), ctx: Number(m.context_window) || 0, by: String(m.owned_by || "") }))
+    .sort((a, b) => a.id.localeCompare(b.id));
+}
+async function geminiModels(key) {
+  const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=200", { headers: { "x-goog-api-key": key } });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error?.message || `помилка ${r.status}`);
+  return (d.models || []).filter(m => (m.supportedGenerationMethods || []).includes("generateContent"))
+    .map(m => ({ id: String(m.name || "").replace(/^models\//, ""), name: String(m.displayName || ""), ctx: Number(m.inputTokenLimit) || 0 }))
+    .filter(m => /^gemini-/.test(m.id) && !SKIP_GEMINI.test(m.id))
+    .sort((a, b) => b.id.localeCompare(a.id));
+}
+export async function aiModels({ env }) {
+  const one = async (key, fn) => {
+    if (!key) return { ok: false, error: "Немає ключа у воркері", models: [] };
+    try { return { ok: true, models: await fn(key) }; }
+    catch (e) { return { ok: false, error: String(e.message || e).slice(0, 200), models: [] }; }
+  };
+  const [groq, gemini] = await Promise.all([one(env.GROQ_API_KEY, groqModels), one(env.GEMINI_API_KEY, geminiModels)]);
+  return { ok: true, groq, gemini };
 }
 export { requireAdmin };
