@@ -16,4 +16,5 @@ binding = "MAIL_KV"
 id = "e7cad756e9674b71868f9fe7d262e574"
 
 # Секрети (RESEND_API_KEY, UNSUB_SECRET, GROQ_API_KEY, GEMINI_API_KEY, TELEGRAM_BOT_TOKEN,
-# FIREBASE_SERVICE_ACCOUNT) живуть лише в Cloudflare; деплой їх не чіпає.
+# FIREBASE_SERVICE_ACCOUNT, CF_API_TOKEN, CF_ACCOUNT_ID) живуть лише в Cloudflare; деплой їх не чіпає.
+# CF_API_TOKEN і CF_ACCOUNT_ID потрібні лише для панелі лімітів (docs/limits.md).

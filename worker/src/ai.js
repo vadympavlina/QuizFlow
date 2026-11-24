@@ -13,6 +13,7 @@
 // ═══════════════════════════════════════════════════════════════════════
 import { HttpError, verifyIdToken, requireAdmin } from "./auth.js";
 import { normalizeCfg, resolvePerms } from "./perms.js";
+import { recordAi, pickRateLimit } from "./limits.js";
 
 const FEATURE_FLAG = { comments: "aiComments", analysis: "aiAnalysis", generation: "aiGeneration", textcheck: "aiTextCheck", mail: "aiMail" };
 const PUBLIC_FEATURES = new Set(["comments", "textcheck"]);          // їх викликає сторінка студента
@@ -111,12 +112,24 @@ async function callProvider(env, s, req) {
   const first = want === "gemini" ? (keys.gemini || !keys.groq ? "gemini" : "groq") : (keys.groq || !keys.gemini ? "groq" : "gemini");
   const second = first === "gemini" ? "groq" : "gemini";
   try {
-    return await callOne(env, s, req, first, keys[first]);
+    return await callTracked(env, s, req, first, keys[first]);
   } catch (e) {
     const retriable = !(e instanceof HttpError) || e.status >= 500;
     if (!retriable || !keys[second]) throw e;
-    const out = await callOne(env, s, req, second, keys[second]);
+    const out = await callTracked(env, s, req, second, keys[second]);
     return { ...out, fallback: true, failed: first };
+  }
+}
+
+// Виклик провайдера з обліком для панелі лімітів (aiProv у базі; див. limits.js)
+async function callTracked(env, s, req, provider, key) {
+  try {
+    const out = await callOne(env, s, req, provider, key);
+    await recordAi(env, provider, { ok: true, tokens: out.tokens, rl: out.rl });
+    return out;
+  } catch (e) {
+    if (key) await recordAi(env, provider, { ok: false, status: e.upstream, rl: e.rl });
+    throw e;
   }
 }
 
@@ -133,7 +146,7 @@ async function callOne(env, s, req, provider, key) {
       }),
     });
     const d = await res.json().catch(() => ({}));
-    if (d.error || !res.ok) throw new HttpError(502, "Gemini: " + (d.error?.message || `помилка ${res.status}`));
+    if (d.error || !res.ok) throw Object.assign(new HttpError(502, "Gemini: " + (d.error?.message || `помилка ${res.status}`)), { upstream: res.status });
     const text = d.candidates?.[0]?.content?.parts?.[0]?.text || "";
     if (!text.trim()) throw new HttpError(502, "Gemini повернув порожню відповідь");
     return { text, tokens: Number(d.usageMetadata?.totalTokenCount) || 0, provider };
@@ -145,10 +158,10 @@ async function callOne(env, s, req, provider, key) {
     body: JSON.stringify({ model, messages: [{ role: "system", content: req.system }, ...req.messages], max_tokens: req.maxTokens, temperature: req.temp, ...(req.json ? { response_format: { type: "json_object" } } : {}) }),
   });
   const d = await res.json().catch(() => ({}));
-  if (d.error || !res.ok) throw new HttpError(502, "Groq: " + (d.error?.message || `помилка ${res.status}`));
+  if (d.error || !res.ok) throw Object.assign(new HttpError(502, "Groq: " + (d.error?.message || `помилка ${res.status}`)), { upstream: res.status, rl: pickRateLimit(res.headers) });
   const text = d.choices?.[0]?.message?.content || "";
   if (!text.trim()) throw new HttpError(502, "Groq повернув порожню відповідь");
-  return { text, tokens: Number(d.usage?.total_tokens) || 0, provider };
+  return { text, tokens: Number(d.usage?.total_tokens) || 0, provider, rl: pickRateLimit(res.headers) };
 }
 
 export async function aiChat(request, env, body) {

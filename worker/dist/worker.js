@@ -267,7 +267,7 @@ ${btn.label || "\u0412\u0456\u0434\u043A\u0440\u0438\u0442\u0438"}: ${btn.url}` 
 }
 
 // ../worker/src/google.js
-var SCOPE = "https://www.googleapis.com/auth/identitytoolkit https://www.googleapis.com/auth/cloud-platform";
+var SCOPE = "https://www.googleapis.com/auth/identitytoolkit https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/userinfo.email";
 var _tok = null;
 var b64url2 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 var b64urlStr = (s) => b64url2(new TextEncoder().encode(s));
@@ -489,13 +489,181 @@ function resolvePerms(cfg, profile = {}, nav) {
   return { perms, src, admin, readOnly };
 }
 
+// ../worker/src/limits.js
+var GiB = 1024 ** 3;
+var FB = { storage: 1 * GiB, download: 10 * GiB, connections: 100 };
+var CF = { requests: 1e5, kvRead: 1e5, kvWrite: 1e3, kvDelete: 1e3, kvList: 1e3 };
+var dayKey = (t = Date.now()) => new Date(t).toISOString().slice(0, 10);
+var monthStart = (t = Date.now()) => {
+  const d = new Date(t);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
+};
+var dayStart = (t = Date.now()) => {
+  const d = new Date(t);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+};
+var num = (v) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+};
+var iso = (t) => new Date(t).toISOString();
+async function monitoring(token, project, metric, { aligner, period, from, to }) {
+  const q = new URLSearchParams({
+    filter: `metric.type="${metric}"`,
+    "interval.startTime": iso(from),
+    "interval.endTime": iso(to),
+    "aggregation.alignmentPeriod": `${period}s`,
+    "aggregation.perSeriesAligner": aligner,
+    "aggregation.crossSeriesReducer": "REDUCE_SUM",
+    view: "FULL"
+  });
+  const r = await fetch(`https://monitoring.googleapis.com/v3/projects/${encodeURIComponent(project)}/timeSeries?${q}`, { headers: { Authorization: `Bearer ${token}` } });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const msg = String(d?.error?.message || r.status);
+    const e = new HttpError(r.status === 403 ? 403 : 502, msg);
+    e.perm = r.status === 403 || /permission|not enabled|disabled/i.test(msg);
+    throw e;
+  }
+  return (d.timeSeries?.[0]?.points || []).map((p) => ({ t: Date.parse(p.interval?.endTime), v: num(p.value?.int64Value ?? p.value?.doubleValue) }));
+}
+async function firebaseSection(env) {
+  const base = { id: "firebase", title: "Firebase \xB7 Realtime Database" };
+  if (!serviceAccount(env)) return { ...base, state: "unconfigured", hint: "\u041D\u0430 \u0432\u043E\u0440\u043A\u0435\u0440\u0456 \u043D\u0435\u043C\u0430\u0454 \u0441\u0435\u043A\u0440\u0435\u0442\u0443 FIREBASE_SERVICE_ACCOUNT (\u0441\u043B\u0443\u0436\u0431\u043E\u0432\u0438\u0439 \u043A\u043B\u044E\u0447 Firebase)." };
+  const project = env.FIREBASE_PROJECT_ID, now = Date.now();
+  try {
+    const token = await accessToken(env);
+    const [storage, sent, conns] = await Promise.all([
+      monitoring(token, project, "firebasedatabase.googleapis.com/storage/total_bytes", { aligner: "ALIGN_MAX", period: 3600, from: now - 36e5 * 6, to: now }),
+      monitoring(token, project, "firebasedatabase.googleapis.com/network/sent_bytes_count", { aligner: "ALIGN_SUM", period: 86400, from: monthStart(now), to: now }),
+      monitoring(token, project, "firebasedatabase.googleapis.com/network/active_connections", { aligner: "ALIGN_MAX", period: 3600, from: now - 864e5, to: now })
+    ]);
+    return {
+      ...base,
+      state: "ok",
+      plan: "\u0411\u0435\u0437\u043A\u043E\u0448\u0442\u043E\u0432\u043D\u0430 \u043A\u0432\u043E\u0442\u0430 (Spark)",
+      items: [
+        { key: "fb-storage", label: "\u0421\u0445\u043E\u0432\u0438\u0449\u0435 \u0431\u0430\u0437\u0438", used: storage[0]?.v ?? 0, limit: FB.storage, unit: "bytes", period: "\u0437\u0430\u0440\u0430\u0437" },
+        { key: "fb-download", label: "\u0417\u0430\u0432\u0430\u043D\u0442\u0430\u0436\u0435\u043D\u043E \u0437 \u0431\u0430\u0437\u0438", used: sent.reduce((s, p) => s + p.v, 0), limit: FB.download, unit: "bytes", period: "\u043C\u0456\u0441\u044F\u0446\u044C" },
+        { key: "fb-conns", label: "\u041E\u0434\u043D\u043E\u0447\u0430\u0441\u043D\u0456 \u043F\u0456\u0434\u043A\u043B\u044E\u0447\u0435\u043D\u043D\u044F (\u043F\u0456\u043A)", used: Math.max(0, ...conns.map((p) => p.v)), limit: FB.connections, unit: "count", period: "24 \u0433\u043E\u0434\u0438\u043D\u0438" }
+      ]
+    };
+  } catch (e) {
+    if (e.perm) return { ...base, state: "unconfigured", hint: "\u0421\u043B\u0443\u0436\u0431\u043E\u0432\u043E\u043C\u0443 \u0430\u043A\u0430\u0443\u043D\u0442\u0443 \u043F\u043E\u0442\u0440\u0456\u0431\u043D\u0430 \u0440\u043E\u043B\u044C \xABMonitoring Viewer\xBB \u0443 Google Cloud, \u0430 \u0442\u0430\u043A\u043E\u0436 \u0443\u0432\u0456\u043C\u043A\u043D\u0435\u043D\u0438\u0439 Cloud Monitoring API.", error: String(e.message).slice(0, 200) };
+    return { ...base, state: "error", error: String(e.message || e).slice(0, 200) };
+  }
+}
+var CF_QUERY = `query($acc:String!,$from:Time!,$to:Time!,$script:String!){viewer{accounts(filter:{accountTag:$acc}){
+  w:workersInvocationsAdaptive(limit:1000,filter:{scriptName:$script,datetime_geq:$from,datetime_leq:$to}){sum{requests errors}}
+  kv:kvOperationsAdaptiveGroups(limit:100,filter:{datetime_geq:$from,datetime_leq:$to}){sum{requests} dimensions{actionType}}
+}}}`;
+async function cloudflareSection(env) {
+  const base = { id: "cloudflare", title: "Cloudflare \xB7 Worker \u0456 KV" };
+  if (!env.CF_API_TOKEN || !env.CF_ACCOUNT_ID) return { ...base, state: "unconfigured", hint: "\u041D\u0430 \u0432\u043E\u0440\u043A\u0435\u0440\u0456 \u043D\u0435\u043C\u0430\u0454 \u0441\u0435\u043A\u0440\u0435\u0442\u0456\u0432 CF_API_TOKEN (\u0442\u043E\u043A\u0435\u043D \u0437 \u043F\u0440\u0430\u0432\u043E\u043C \u0447\u0438\u0442\u0430\u0442\u0438 Analytics) \u0456 CF_ACCOUNT_ID." };
+  const now = Date.now();
+  try {
+    const r = await fetch("https://api.cloudflare.com/client/v4/graphql", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${env.CF_API_TOKEN}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ query: CF_QUERY, variables: { acc: env.CF_ACCOUNT_ID, from: iso(dayStart(now)), to: iso(now), script: env.CF_SCRIPT_NAME || "quizflow-mail" } })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.status === 401 || r.status === 403) return { ...base, state: "unconfigured", hint: "Cloudflare \u043D\u0435 \u043F\u0440\u0438\u0439\u043D\u044F\u0432 \u0442\u043E\u043A\u0435\u043D: \u043F\u043E\u0442\u0440\u0456\u0431\u043D\u0435 \u043F\u0440\u0430\u0432\u043E Account \u2192 Account Analytics \u2192 Read.", error: `HTTP ${r.status}` };
+    if (!r.ok || d.errors?.length) return { ...base, state: "error", error: String(d.errors?.[0]?.message || `HTTP ${r.status}`).slice(0, 200) };
+    const acc = d.data?.viewer?.accounts?.[0] || {};
+    const requests = (acc.w || []).reduce((s, g) => s + num(g.sum?.requests), 0), errors = (acc.w || []).reduce((s, g) => s + num(g.sum?.errors), 0);
+    const kv = { read: 0, write: 0, delete: 0, list: 0 };
+    (acc.kv || []).forEach((g) => {
+      const k = String(g.dimensions?.actionType || "").toLowerCase();
+      if (k in kv) kv[k] += num(g.sum?.requests);
+    });
+    return {
+      ...base,
+      state: "ok",
+      plan: "\u0411\u0435\u0437\u043A\u043E\u0448\u0442\u043E\u0432\u043D\u0438\u0439 \u043F\u043B\u0430\u043D (Free), \u0434\u043D\u0456 \u0440\u0430\u0445\u0443\u044E\u0442\u044C\u0441\u044F \u0437\u0430 UTC",
+      items: [
+        { key: "cf-requests", label: "\u0417\u0430\u043F\u0438\u0442\u0438 \u0434\u043E \u0432\u043E\u0440\u043A\u0435\u0440\u0430", used: requests, limit: CF.requests, unit: "count", period: "\u0434\u0435\u043D\u044C", note: errors ? `\u0437 \u043F\u043E\u043C\u0438\u043B\u043A\u0430\u043C\u0438: ${errors}` : "" },
+        { key: "cf-kv-read", label: "KV: \u0447\u0438\u0442\u0430\u043D\u043D\u044F", used: kv.read, limit: CF.kvRead, unit: "count", period: "\u0434\u0435\u043D\u044C" },
+        { key: "cf-kv-write", label: "KV: \u0437\u0430\u043F\u0438\u0441", used: kv.write, limit: CF.kvWrite, unit: "count", period: "\u0434\u0435\u043D\u044C" },
+        { key: "cf-kv-delete", label: "KV: \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u043D\u044F", used: kv.delete, limit: CF.kvDelete, unit: "count", period: "\u0434\u0435\u043D\u044C" },
+        { key: "cf-kv-list", label: "KV: \u0441\u043F\u0438\u0441\u043A\u0438", used: kv.list, limit: CF.kvList, unit: "count", period: "\u0434\u0435\u043D\u044C" }
+      ]
+    };
+  } catch (e) {
+    return { ...base, state: "error", error: String(e.message || e).slice(0, 200) };
+  }
+}
+var DUR = /(?:(\d+(?:\.\d+)?)h)?(?:(\d+(?:\.\d+)?)m(?!s))?(?:(\d+(?:\.\d+)?)s)?(?:(\d+(?:\.\d+)?)ms)?/;
+function parseDuration(s) {
+  const m = DUR.exec(String(s || "").trim());
+  if (!m || !m[0]) return null;
+  return num(m[1]) * 3600 + num(m[2]) * 60 + num(m[3]) + num(m[4]) / 1e3;
+}
+function pickRateLimit(headers) {
+  if (!headers?.get) return null;
+  const g = (k) => headers.get(k);
+  const rl = { limitReq: num(g("x-ratelimit-limit-requests")), remReq: g("x-ratelimit-remaining-requests"), limitTok: num(g("x-ratelimit-limit-tokens")), remTok: g("x-ratelimit-remaining-tokens"), resetReq: parseDuration(g("x-ratelimit-reset-requests")), resetTok: parseDuration(g("x-ratelimit-reset-tokens")) };
+  return rl.limitReq || rl.limitTok ? rl : null;
+}
+var dbUrl = (env, path, token) => `${env.FIREBASE_DB_URL}/${path}.json?access_token=${encodeURIComponent(token)}`;
+async function recordAi(env, provider, { ok, status: status2, tokens = 0, rl = null }) {
+  if (!serviceAccount(env) || !/^(groq|gemini)$/.test(provider)) return;
+  try {
+    const token = await accessToken(env);
+    const inc = (n) => ({ ".sv": { increment: n } });
+    const body = { calls: inc(1), [ok ? "ok" : "err"]: inc(1), ...status2 === 429 ? { r429: inc(1) } : {}, ...ok && tokens > 0 ? { tokens: inc(Math.min(tokens, 1e5)) } : {} };
+    const writes = [fetch(dbUrl(env, `aiProv/${dayKey()}/${provider}`, token), { method: "PATCH", body: JSON.stringify(body) })];
+    if (rl) writes.push(fetch(dbUrl(env, `aiProv/limits/${provider}`, token), { method: "PUT", body: JSON.stringify({ ...rl, at: Date.now() }) }));
+    await Promise.all(writes);
+  } catch {
+  }
+}
+async function aiSection(env) {
+  const base = { id: "ai", title: "AI \xB7 Groq \u0456 Gemini" };
+  const have = { groq: !!env.GROQ_API_KEY, gemini: !!env.GEMINI_API_KEY };
+  if (!serviceAccount(env)) return { ...base, state: "unconfigured", hint: "\u0414\u043B\u044F \u043E\u0431\u043B\u0456\u043A\u0443 \u0437\u0430\u043F\u0438\u0442\u0456\u0432 \u0434\u043E AI \u0432\u043E\u0440\u043A\u0435\u0440\u0443 \u043F\u043E\u0442\u0440\u0456\u0431\u0435\u043D \u0441\u0435\u043A\u0440\u0435\u0442 FIREBASE_SERVICE_ACCOUNT.", providers: have };
+  try {
+    const token = await accessToken(env), now = Date.now();
+    const get = async (p) => {
+      const r = await fetch(dbUrl(env, p, token));
+      if (!r.ok) throw new HttpError(502, `\u0411\u0430\u0437\u0430: ${r.status}`);
+      return r.json();
+    };
+    const [today, lim] = await Promise.all([get(`aiProv/${dayKey(now)}`), get("aiProv/limits")]);
+    const items = [];
+    for (const prov of ["groq", "gemini"]) {
+      if (!have[prov]) continue;
+      const name = prov === "groq" ? "Groq" : "Gemini", d = today?.[prov] || {};
+      const L = lim?.[prov];
+      if (prov === "groq" && L) {
+        const age = (now - num(L.at)) / 1e3;
+        const rem = (x) => x === null || x === void 0 || x === "" ? null : num(x);
+        if (L.limitReq && rem(L.remReq) !== null) items.push({ key: "groq-day", label: "Groq: \u0437\u0430\u043F\u0438\u0442\u0438", used: Math.max(0, L.limitReq - rem(L.remReq)), limit: L.limitReq, unit: "count", period: "\u0434\u0435\u043D\u044C", note: L.resetReq ? `\u043E\u043D\u043E\u0432\u0438\u0442\u044C\u0441\u044F \u0447\u0435\u0440\u0435\u0437 ${fmtDur(Math.max(0, L.resetReq - age))}` : "", asOf: L.at });
+        if (L.limitTok && rem(L.remTok) !== null) {
+          const stale = L.resetTok !== null && age > num(L.resetTok);
+          items.push({ key: "groq-tpm", label: "Groq: \u0442\u043E\u043A\u0435\u043D\u0438 \u0437\u0430 \u0445\u0432\u0438\u043B\u0438\u043D\u0443", used: stale ? 0 : Math.max(0, L.limitTok - rem(L.remTok)), limit: L.limitTok, unit: "count", period: "\u0445\u0432\u0438\u043B\u0438\u043D\u0430", stale, asOf: L.at });
+        }
+      }
+      items.push({ key: `${prov}-calls`, label: `${name}: \u0437\u0430\u043F\u0438\u0442\u0438 \u0432\u043E\u0440\u043A\u0435\u0440\u0430`, used: num(d.calls), limit: prov === "gemini" ? num(env.GEMINI_DAILY_LIMIT) || null : null, unit: "count", period: "\u0434\u0435\u043D\u044C", note: [num(d.err) ? `\u043F\u043E\u043C\u0438\u043B\u043E\u043A: ${num(d.err)}` : "", num(d.r429) ? `\u043B\u0456\u043C\u0456\u0442 \u043F\u0435\u0440\u0435\u0432\u0438\u0449\u0435\u043D\u043E (429): ${num(d.r429)}` : ""].filter(Boolean).join(" \xB7 ") });
+    }
+    return { ...base, state: "ok", providers: have, items, hint: have.gemini && !num(env.GEMINI_DAILY_LIMIT) ? "Gemini \u043D\u0435 \u043F\u043E\u0432\u0456\u0434\u043E\u043C\u043B\u044F\u0454 \u0437\u0430\u043B\u0438\u0448\u043E\u043A \u0443 \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u044F\u0445. \u0429\u043E\u0431 \u0431\u0430\u0447\u0438\u0442\u0438 \u0441\u043C\u0443\u0433\u0443, \u0437\u0430\u0434\u0430\u0439\u0442\u0435 \u0437\u043C\u0456\u043D\u043D\u0443 \u0432\u043E\u0440\u043A\u0435\u0440\u0430 GEMINI_DAILY_LIMIT (\u0437\u0430\u043F\u0438\u0442\u0456\u0432 \u043D\u0430 \u0434\u0435\u043D\u044C \u0434\u043B\u044F \u0432\u0430\u0448\u043E\u0457 \u043C\u043E\u0434\u0435\u043B\u0456)." : "" };
+  } catch (e) {
+    return { ...base, state: "error", error: String(e.message || e).slice(0, 200), providers: have };
+  }
+}
+var fmtDur = (s) => s >= 3600 ? `${Math.round(s / 3600)} \u0433\u043E\u0434` : s >= 60 ? `${Math.round(s / 60)} \u0445\u0432` : `${Math.max(1, Math.round(s))} \u0441`;
+async function limitsReport({ env }) {
+  const sections = await Promise.all([firebaseSection(env), cloudflareSection(env), aiSection(env)]);
+  return { ok: true, at: Date.now(), sections };
+}
+
 // ../worker/src/ai.js
 var FEATURE_FLAG = { comments: "aiComments", analysis: "aiAnalysis", generation: "aiGeneration", textcheck: "aiTextCheck", mail: "aiMail" };
 var PUBLIC_FEATURES = /* @__PURE__ */ new Set(["comments", "textcheck"]);
 var ID_RE = /^[\w-]{1,128}$/;
 var UA = "\u0422\u0438 \u2014 \u0440\u043E\u0437\u0443\u043C\u043D\u0438\u0439 \u0430\u0441\u0438\u0441\u0442\u0435\u043D\u0442 \u0432\u0438\u043A\u043B\u0430\u0434\u0430\u0447\u0430. \u041E\u0411\u041E\u0412'\u042F\u0417\u041A\u041E\u0412\u041E \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u0430\u0439 \u0412\u0418\u041A\u041B\u042E\u0427\u041D\u041E \u0443\u043A\u0440\u0430\u0457\u043D\u0441\u044C\u043A\u043E\u044E \u043C\u043E\u0432\u043E\u044E.";
 var monthKey = (d = /* @__PURE__ */ new Date()) => `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-var num = (v) => {
+var num2 = (v) => {
   const n = Number(v);
   return Number.isFinite(n) && n >= 0 ? Math.floor(n) : null;
 };
@@ -506,13 +674,13 @@ async function dbGet(env, path, token) {
   return r.json();
 }
 function aiLimit(cfg, profile) {
-  const own = num(profile.features?.limits?.aiPerMonth);
+  const own = num2(profile.features?.limits?.aiPerMonth);
   if (own !== null) return own;
   const c = normalizeCfg(cfg, null);
   const ids = Array.isArray(profile.customRoleIds) ? profile.customRoleIds : Object.keys(profile.customRoleIds || {}).filter((k) => profile.customRoleIds[k]);
-  const rv = ids.map((id) => num(c.roles[id]?.limits?.aiPerMonth)).filter((v) => v !== null);
+  const rv = ids.map((id) => num2(c.roles[id]?.limits?.aiPerMonth)).filter((v) => v !== null);
   if (rv.length) return rv.includes(0) ? 0 : Math.max(...rv);
-  return num(c.limits?.aiPerMonth) || 0;
+  return num2(c.limits?.aiPerMonth) || 0;
 }
 function readBody(b) {
   const feature = String(b?.feature || "");
@@ -578,12 +746,22 @@ async function callProvider(env, s, req) {
   const first = want === "gemini" ? keys.gemini || !keys.groq ? "gemini" : "groq" : keys.groq || !keys.gemini ? "groq" : "gemini";
   const second = first === "gemini" ? "groq" : "gemini";
   try {
-    return await callOne(env, s, req, first, keys[first]);
+    return await callTracked(env, s, req, first, keys[first]);
   } catch (e) {
     const retriable = !(e instanceof HttpError) || e.status >= 500;
     if (!retriable || !keys[second]) throw e;
-    const out = await callOne(env, s, req, second, keys[second]);
+    const out = await callTracked(env, s, req, second, keys[second]);
     return { ...out, fallback: true, failed: first };
+  }
+}
+async function callTracked(env, s, req, provider, key) {
+  try {
+    const out = await callOne(env, s, req, provider, key);
+    await recordAi(env, provider, { ok: true, tokens: out.tokens, rl: out.rl });
+    return out;
+  } catch (e) {
+    if (key) await recordAi(env, provider, { ok: false, status: e.upstream, rl: e.rl });
+    throw e;
   }
 }
 async function callOne(env, s, req, provider, key) {
@@ -600,7 +778,7 @@ async function callOne(env, s, req, provider, key) {
       })
     });
     const d2 = await res2.json().catch(() => ({}));
-    if (d2.error || !res2.ok) throw new HttpError(502, "Gemini: " + (d2.error?.message || `\u043F\u043E\u043C\u0438\u043B\u043A\u0430 ${res2.status}`));
+    if (d2.error || !res2.ok) throw Object.assign(new HttpError(502, "Gemini: " + (d2.error?.message || `\u043F\u043E\u043C\u0438\u043B\u043A\u0430 ${res2.status}`)), { upstream: res2.status });
     const text2 = d2.candidates?.[0]?.content?.parts?.[0]?.text || "";
     if (!text2.trim()) throw new HttpError(502, "Gemini \u043F\u043E\u0432\u0435\u0440\u043D\u0443\u0432 \u043F\u043E\u0440\u043E\u0436\u043D\u044E \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u044C");
     return { text: text2, tokens: Number(d2.usageMetadata?.totalTokenCount) || 0, provider };
@@ -613,10 +791,10 @@ async function callOne(env, s, req, provider, key) {
     body: JSON.stringify({ model, messages: [{ role: "system", content: req.system }, ...req.messages], max_tokens: req.maxTokens, temperature: req.temp, ...req.json ? { response_format: { type: "json_object" } } : {} })
   });
   const d = await res.json().catch(() => ({}));
-  if (d.error || !res.ok) throw new HttpError(502, "Groq: " + (d.error?.message || `\u043F\u043E\u043C\u0438\u043B\u043A\u0430 ${res.status}`));
+  if (d.error || !res.ok) throw Object.assign(new HttpError(502, "Groq: " + (d.error?.message || `\u043F\u043E\u043C\u0438\u043B\u043A\u0430 ${res.status}`)), { upstream: res.status, rl: pickRateLimit(res.headers) });
   const text = d.choices?.[0]?.message?.content || "";
   if (!text.trim()) throw new HttpError(502, "Groq \u043F\u043E\u0432\u0435\u0440\u043D\u0443\u0432 \u043F\u043E\u0440\u043E\u0436\u043D\u044E \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u044C");
-  return { text, tokens: Number(d.usage?.total_tokens) || 0, provider };
+  return { text, tokens: Number(d.usage?.total_tokens) || 0, provider, rl: pickRateLimit(res.headers) };
 }
 async function aiChat(request, env, body) {
   const req = readBody(body);
@@ -684,19 +862,19 @@ var KEY_RE = /^[\w-]{1,160}$/;
 var ID_RE2 = /^[\w-]{1,128}$/;
 var LIMIT_LABEL = { maxTests: "\u0442\u0435\u0441\u0442\u0456\u0432", maxActiveLinks: "\u0430\u043A\u0442\u0438\u0432\u043D\u0438\u0445 \u043F\u043E\u0441\u0438\u043B\u0430\u043D\u044C", aiPerMonth: "AI-\u0437\u0430\u043F\u0438\u0442\u0456\u0432 \u043D\u0430 \u043C\u0456\u0441\u044F\u0446\u044C" };
 var FEAT_LABEL = { comments: "\u043A\u043E\u043C\u0435\u043D\u0442\u0430\u0440\u0456 \u0441\u0442\u0443\u0434\u0435\u043D\u0442\u0430\u043C", analysis: "\u0440\u043E\u0437\u0431\u0456\u0440 \u043F\u043E\u043C\u0438\u043B\u043E\u043A", generation: "\u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0456\u044F \u043F\u0438\u0442\u0430\u043D\u044C", textcheck: "\u043F\u0435\u0440\u0435\u0432\u0456\u0440\u043A\u0430 \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u0435\u0439", mail: "\u043B\u0438\u0441\u0442\u0438 \u0439 \u0440\u043E\u0437\u0441\u0438\u043B\u043A\u0438" };
-var num2 = (v) => {
+var num3 = (v) => {
   const n = Number(v);
   return Number.isFinite(n) && n >= 0 && n < 1e9 ? Math.floor(n) : null;
 };
 var esc2 = (s) => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 function noticeText(b, who) {
   if (b.type === "limit") {
-    const limit = num2(b.limit), used = num2(b.used);
+    const limit = num3(b.limit), used = num3(b.used);
     const what2 = LIMIT_LABEL[b.key2];
     if (!what2 || limit === null) throw new HttpError(400, "\u041D\u0435\u043A\u043E\u0440\u0435\u043A\u0442\u043D\u0438\u0439 \u0441\u0438\u0433\u043D\u0430\u043B");
     return Number(b.level) >= 100 ? `${who} \u0434\u043E\u0441\u044F\u0433 \u043B\u0456\u043C\u0456\u0442\u0443 ${what2}: ${limit}` : `${who} \u0432\u0438\u043A\u043E\u0440\u0438\u0441\u0442\u0430\u0432 ${used ?? "?"} \u0437 ${limit} ${what2} (80%)`;
   }
-  const errors = num2(b.errors), what = FEAT_LABEL[b.feature];
+  const errors = num3(b.errors), what = FEAT_LABEL[b.feature];
   if (!what || errors === null) throw new HttpError(400, "\u041D\u0435\u043A\u043E\u0440\u0435\u043A\u0442\u043D\u0438\u0439 \u0441\u0438\u0433\u043D\u0430\u043B");
   return `\u0427\u0430\u0441\u0442\u0456 \u043F\u043E\u043C\u0438\u043B\u043A\u0438 AI \u0443 ${who}: ${what}, ${errors} \u043F\u043E\u043C\u0438\u043B\u043E\u043A \u0446\u044C\u043E\u0433\u043E \u043C\u0456\u0441\u044F\u0446\u044F`;
 }
@@ -852,7 +1030,7 @@ var index_default = {
       if (url.pathname === "/telegram/notice" && request.method === "POST") return json(await telegramNotice(request, env, await readJson(request)), 200, cors);
       if (url.pathname === "/reset" && request.method === "POST") return json(await reset(request, env, url), 200, cors);
       const route = `${request.method} ${url.pathname}`;
-      const handler = { "GET /status": status, "GET /ai/status": aiStatus, "GET /ai/models": aiModels, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast, "POST /telegram/api": telegramApi }[route];
+      const handler = { "GET /status": status, "GET /ai/status": aiStatus, "GET /limits": limitsReport, "GET /ai/models": aiModels, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast, "POST /telegram/api": telegramApi }[route];
       if (!handler) throw new HttpError(404, "\u041D\u0435\u0432\u0456\u0434\u043E\u043C\u0430 \u0430\u0434\u0440\u0435\u0441\u0430");
       const admin = await requireAdmin(request, env);
       const body = request.method === "POST" ? await readJson(request) : null;

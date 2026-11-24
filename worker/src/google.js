@@ -5,7 +5,7 @@
 // (увесь JSON, завантажений з консолі Firebase).
 import { HttpError } from "./auth.js";
 
-const SCOPE = "https://www.googleapis.com/auth/identitytoolkit https://www.googleapis.com/auth/cloud-platform";
+const SCOPE = "https://www.googleapis.com/auth/identitytoolkit https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/userinfo.email";
 let _tok = null;   // { key, token, exp }
 
 const b64url = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
@@ -19,7 +19,7 @@ export function serviceAccount(env) {
   } catch { return null; }
 }
 
-async function accessToken(env) {
+export async function accessToken(env) {
   const sa = serviceAccount(env);
   if (!sa) throw new HttpError(503, "На воркері не задано FIREBASE_SERVICE_ACCOUNT");
   const now = Math.floor(Date.now() / 1000);
