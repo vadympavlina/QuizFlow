@@ -35,7 +35,7 @@ await env.withSecurityRulesDisabled(async c => {
       bl: { tests: { B1: { title: "b" } } },
       p1: { tests: { P1T: { title: "p" } }, links: { PL: { testId: "P1T", usedAttempts: 0 } }, attempts: { PA: { testId: "P1T", createdAt: now - 2 * 86400000 } }, folders: { f1: { name: "F" } }, students: { S: { name: "Іван", surname: "Петренко" } } },
     },
-    rooms: { "11112222": { hostUid: "t1", status: "question", currentQ: 0, players: { p1: { nickname: "Ann", active: true, online: true }, off: { nickname: "Z", active: false }, p5: { nickname: "Kim", active: true } } } },
+    rooms: { "11112222": { hostUid: "t1", status: "question", currentQ: 0, players: { p1: { nickname: "Ann", active: true, online: true }, off: { nickname: "Z", active: false }, p5: { nickname: "Kim", active: true } } }, "33334444": { hostUid: "t1", status: "lobby", players: { q1: { nickname: "Lob", avatar: "fox", glasses: "round", active: true } } } },
   });
 });
 
@@ -209,6 +209,19 @@ await t("anon join with long hero", false, () => set(ref(anon, `${R}/players/p8`
 await t("anon join with score", false, () => set(ref(anon, `${R}/players/p3`), { nickname: "Eve", score: 9999 }));
 await t("anon overwrite player", false, () => set(ref(anon, `${R}/players/p1`), { nickname: "Pwn" }));
 await t("anon set score", false, () => set(ref(anon, `${R}/players/p1/score`), 9999));
+// Змінити героя й окуляри можна, поки гра не запущена (лобі)
+const L = "rooms/33334444";
+await t("lobby: change hero", true, () => set(ref(anon, `${L}/players/q1/avatar`), "lion"));
+await t("lobby: change glasses", true, () => set(ref(anon, `${L}/players/q1/glasses`), "star"));
+await t("lobby: remove glasses", true, () => set(ref(anon, `${L}/players/q1/glasses`), null));
+await t("lobby: change hat", true, () => set(ref(anon, `${L}/players/q1/hat`), "wizard"));
+await t("lobby: bad hero value", false, () => set(ref(anon, `${L}/players/q1/avatar`), "<b>x</b>"));
+await t("lobby: long hero value", false, () => set(ref(anon, `${L}/players/q1/avatar`), "a".repeat(40)));
+await t("lobby: hero of missing player", false, () => set(ref(anon, `${L}/players/nope/avatar`), "lion"));
+await t("lobby: set score", false, () => set(ref(anon, `${L}/players/q1/score`), 9999));
+await t("lobby: rename player", false, () => set(ref(anon, `${L}/players/q1/nickname`), "Hacker"));
+await t("running game: change hero", false, () => set(ref(anon, `${R}/players/p1/avatar`), "lion"));
+await t("running game: change glasses", false, () => set(ref(anon, `${R}/players/p1/glasses`), "star"));
 await t("anon online flag", true, () => set(ref(anon, `${R}/players/p1/online`), false));
 await t("anon answer", true, () => set(ref(anon, `${R}/answers/0/p1`), { value: 2, answeredAt: serverTimestamp() }));
 await t("anon answer forged time", false, () => set(ref(anon, `${R}/answers/0/p2`), { value: 2, answeredAt: now - 60000 }));
