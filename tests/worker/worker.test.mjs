@@ -25,14 +25,16 @@ const saPem = `-----BEGIN PRIVATE KEY-----\n${Buffer.from(await crypto.subtle.ex
 const SA = JSON.stringify({ type: "service_account", project_id: PROJECT, client_email: "mail@quizflow-test.iam.gserviceaccount.com", private_key: saPem });
 let google;   // { tokenCalls, oob: [], jwtOk }
 
-let kahootStatus = 200, tg, db, sent, kv, resendStatus, aiCalls, aiWrites, aiFail, modelsFail;
-const env = () => ({
+let kahootStatus = 200, tg, db, sent, kv, resendStatus, aiCalls, aiWrites, aiFail, modelsFail, envOver = {}, mon, cfGql, svcWrites, groqHeaders, aiStatus429;
+const baseEnv = () => ({
   FIREBASE_PROJECT_ID: PROJECT, FIREBASE_DB_URL: DB, SITE_URL: "https://quizflow.space", MAIL_FROM: "QuizFlow <noreply@quizflow.space>",
   ALLOWED_ORIGINS: "https://quizflow.space", RESEND_API_KEY: "re_test", TELEGRAM_BOT_TOKEN: "123:tgsecret", UNSUB_SECRET: "s3cret", FIREBASE_SERVICE_ACCOUNT: SA, GROQ_API_KEY: "gsk_env", GEMINI_API_KEY: "gem_env",
   MAIL_KV: { get: async k => kv.get(k) ?? null, put: async (k, v, opts) => void kv.set(k, v), delete: async k => void kv.delete(k),
     list: async ({ prefix }) => ({ keys: [...kv.keys()].filter(k => k.startsWith(prefix)).map(name => ({ name })), list_complete: true }) },
 });
+const env = () => ({ ...baseEnv(), ...envOver });
 beforeEach(() => {
+  envOver = {}; mon = { fail: 0 }; cfGql = { status: 200 }; svcWrites = []; groqHeaders = null; aiStatus429 = false;
   kv = new Map(); kahootStatus = 200; tg = []; sent = []; resendStatus = 200; aiCalls = []; aiWrites = []; aiFail = false; modelsFail = false; google = { tokenCalls: 0, oob: [], jwtOk: null };
   db = {
     users: {
@@ -62,6 +64,28 @@ beforeEach(() => {
       if (b.email === "ghost@example.com") return Response.json({ error: { message: "EMAIL_NOT_FOUND" } }, { status: 400 });
       return Response.json({ email: b.email, oobLink: `https://${PROJECT}.firebaseapp.com/__/auth/action?mode=resetPassword&oobCode=CODE-${b.email.split("@")[0]}&apiKey=x&lang=uk` });
     }
+    if (u.hostname === "monitoring.googleapis.com") {
+      if (mon.fail) return Response.json({ error: { message: mon.fail === 403 ? "Permission monitoring.timeSeries.list denied" : "boom" } }, { status: mon.fail });
+      const metric = u.searchParams.get("filter");
+      const pts = /storage\/total_bytes/.test(metric) ? [500 * 1024 * 1024, 400 * 1024 * 1024] : /sent_bytes/.test(metric) ? [2 * 1024 ** 3, 1024 ** 3] : [7, 42, 3];
+      return Response.json({ timeSeries: [{ points: pts.map((v, i) => ({ interval: { endTime: new Date(Date.now() - i * 36e5).toISOString() }, value: { int64Value: String(v) } })) }] });
+    }
+    if (u.hostname === "api.cloudflare.com") {
+      if (cfGql.status !== 200) return Response.json({ errors: [{ message: "denied" }] }, { status: cfGql.status });
+      return Response.json({ data: { viewer: { accounts: [{ w: [{ sum: { requests: 6000, errors: 12 } }, { sum: { requests: 4000, errors: 0 } }], kv: [{ sum: { requests: 800 }, dimensions: { actionType: "read" } }, { sum: { requests: 950 }, dimensions: { actionType: "write" } }, { sum: { requests: 3 }, dimensions: { actionType: "list" } }] }] } } });
+    }
+    if (u.origin === DB && u.searchParams.get("access_token")) {
+      // службовий ключ: правила бази не діють
+      const path = u.pathname.replace(/^\/|\.json$/g, ""), keys = path.split("/");
+      if (init.method === "PATCH" || init.method === "PUT") {
+        const body = JSON.parse(init.body); let n = db; keys.slice(0, -1).forEach(k => { n = n[k] ??= {}; });
+        const last = keys.at(-1), apply = (o, v) => { for (const [k, x] of Object.entries(v)) o[k] = x && x[".sv"]?.increment ? (Number(o[k]) || 0) + x[".sv"].increment : x; };
+        if (init.method === "PUT") n[last] = body; else apply(n[last] ??= {}, body);
+        svcWrites.push([init.method, path, body]);
+        return Response.json(n[last]);
+      }
+      return Response.json(keys.reduce((n, k) => n?.[k], db) ?? null);
+    }
     if (u.origin === DB) {
       // Мінімальні «правила»: публічні шляхи читає будь-хто, решту (профілі, адмін) — лише з токеном
       const path = u.pathname.replace(/^\/|\.json$/g, ""), token = u.searchParams.get("auth");
@@ -90,9 +114,10 @@ beforeEach(() => {
     }
     if (u.hostname === "api.groq.com" || u.hostname === "generativelanguage.googleapis.com") {
       aiCalls.push({ host: u.hostname, headers: init.headers, body: JSON.parse(init.body), url: String(url) });
+      if (aiStatus429 && u.hostname === "api.groq.com") return Response.json({ error: { message: "rate" } }, { status: 429, headers: groqHeaders || {} });
       if (aiFail === true || (aiFail === "groq" && u.hostname === "api.groq.com") || (aiFail === "gemini" && u.hostname !== "api.groq.com")) return Response.json({ error: { message: "boom" } }, { status: 500 });
       return u.hostname === "api.groq.com"
-        ? Response.json({ choices: [{ message: { content: "Відповідь Groq" } }], usage: { total_tokens: 42 } })
+        ? Response.json({ choices: [{ message: { content: "Відповідь Groq" } }], usage: { total_tokens: 42 } }, { headers: groqHeaders || {} })
         : Response.json({ candidates: [{ content: { parts: [{ text: "Відповідь Gemini" }] } }], usageMetadata: { totalTokenCount: 17 } });
     }
     if (u.hostname === "create.kahoot.it") return kahootStatus === 200 ? Response.json(KAHOOT) : new Response("{}", { status: kahootStatus });
@@ -543,4 +568,84 @@ test("AI: помилки самого запиту не повторюються
   aiFail = "groq";
   assert.equal((await ask({ feature: "hack" })).status, 400);
   assert.equal(aiCalls.length, 0);
+});
+
+
+// ─── Панель лімітів ──────────────────────────────────────────────────────
+test("ліміти: лише для адміністратора", async () => {
+  assert.equal((await call("GET", "/limits", { uid: null })).status, 401);
+  assert.equal((await call("GET", "/limits", { uid: "t1" })).status, 403);
+  const r = await call("GET", "/limits");
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.data.sections.map(x => x.id), ["firebase", "cloudflare", "ai"]);
+  assert.ok(!JSON.stringify(r.data).includes("ya29.test") && !JSON.stringify(r.data).includes("gsk_env"), "секрети не віддаються");
+});
+
+test("ліміти Firebase: показники з Cloud Monitoring, а без прав — підказка", async () => {
+  const fb = (await call("GET", "/limits")).data.sections[0];
+  assert.equal(fb.state, "ok");
+  const by = Object.fromEntries(fb.items.map(i => [i.key, i]));
+  assert.equal(by["fb-storage"].used, 500 * 1024 * 1024);                 // найсвіжіша точка
+  assert.equal(by["fb-storage"].limit, 1024 ** 3);
+  assert.equal(by["fb-download"].used, 3 * 1024 ** 3);                     // сума за місяць
+  assert.equal(by["fb-conns"].used, 42);                                   // пік за добу
+  mon.fail = 403;
+  const noPerm = (await call("GET", "/limits")).data.sections[0];
+  assert.equal(noPerm.state, "unconfigured");
+  assert.match(noPerm.hint, /Monitoring Viewer/);
+  mon.fail = 500;
+  assert.equal((await call("GET", "/limits")).data.sections[0].state, "error");
+  envOver = { FIREBASE_SERVICE_ACCOUNT: "" };
+  assert.equal((await call("GET", "/limits")).data.sections[0].state, "unconfigured");
+});
+
+test("ліміти Cloudflare: без секретів — підказка; з ними — запити й KV за день", async () => {
+  assert.equal((await call("GET", "/limits")).data.sections[1].state, "unconfigured");
+  envOver = { CF_API_TOKEN: "cf_secret", CF_ACCOUNT_ID: "acc1" };
+  const cf = (await call("GET", "/limits")).data.sections[1];
+  assert.equal(cf.state, "ok");
+  const by = Object.fromEntries(cf.items.map(i => [i.key, i]));
+  assert.equal(by["cf-requests"].used, 10000); assert.equal(by["cf-requests"].limit, 100000);
+  assert.match(by["cf-requests"].note, /12/);
+  assert.equal(by["cf-kv-read"].used, 800);
+  assert.equal(by["cf-kv-write"].used, 950); assert.equal(by["cf-kv-write"].limit, 1000);
+  assert.equal(by["cf-kv-delete"].used, 0);
+  assert.ok(!JSON.stringify(cf).includes("cf_secret"));
+  cfGql.status = 403;
+  const denied = (await call("GET", "/limits")).data.sections[1];
+  assert.equal(denied.state, "unconfigured"); assert.match(denied.hint, /Analytics/);
+});
+
+test("ліміти AI: воркер веде облік запитів і запам'ятовує заголовки Groq", async () => {
+  groqHeaders = { "x-ratelimit-limit-requests": "14400", "x-ratelimit-remaining-requests": "14000", "x-ratelimit-limit-tokens": "6000", "x-ratelimit-remaining-tokens": "5000", "x-ratelimit-reset-requests": "1m30s", "x-ratelimit-reset-tokens": "2.5s" };
+  const ask = () => call("POST", "/ai", { uid: "t1", body: { feature: "comments", messages: [{ role: "user", content: "Привіт" }] } });
+  assert.equal((await ask()).status, 200);
+  await ask();
+  const day = new Date().toISOString().slice(0, 10);
+  assert.equal(db.aiProv[day].groq.calls, 2); assert.equal(db.aiProv[day].groq.ok, 2); assert.equal(db.aiProv[day].groq.tokens, 84);
+  assert.equal(db.aiProv.limits.groq.limitReq, 14400);
+  const ai = (await call("GET", "/limits")).data.sections[2];
+  assert.equal(ai.state, "ok");
+  const by = Object.fromEntries(ai.items.map(i => [i.key, i]));
+  assert.equal(by["groq-day"].used, 400); assert.equal(by["groq-day"].limit, 14400);
+  assert.equal(by["groq-tpm"].limit, 6000);
+  assert.equal(by["groq-calls"].used, 2);
+});
+
+test("ліміти AI: відповідь 429 від провайдера рахується окремо", async () => {
+  aiStatus429 = true;
+  const r = await call("POST", "/ai", { uid: "t1", body: { feature: "comments", messages: [{ role: "user", content: "Привіт" }] } });
+  assert.equal(r.status, 200); assert.equal(r.data.fallback, true);       // Groq вичерпано — відповів Gemini
+  const day = new Date().toISOString().slice(0, 10);
+  assert.equal(db.aiProv[day].groq.r429, 1); assert.equal(db.aiProv[day].groq.err, 1); assert.equal(db.aiProv[day].gemini.ok, 1);
+  const item = (await call("GET", "/limits")).data.sections[2].items.find(i => i.key === "groq-calls");
+  assert.match(item.note, /429/);
+});
+
+test("ліміти AI: без службового ключа відповідь AI працює, облік мовчки вимкнений", async () => {
+  envOver = { FIREBASE_SERVICE_ACCOUNT: "" };
+  const r = await call("POST", "/ai", { uid: "t1", body: { feature: "comments", messages: [{ role: "user", content: "Привіт" }] } });
+  assert.equal(r.status, 200);
+  assert.equal(svcWrites.length, 0);
+  assert.equal((await call("GET", "/limits")).data.sections[2].state, "unconfigured");
 });
