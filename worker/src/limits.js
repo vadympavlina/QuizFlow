@@ -49,19 +49,19 @@ async function firebaseSection(env) {
     const planRaw = await fetch(dbUrl(env, "settings/limits/firebasePlan", token)).then(r => r.ok ? r.json() : null).catch(() => null);
     const plan = planRaw === "spark" ? "spark" : "blaze", Q = FB[plan];
     const [storage, sent, conns] = await Promise.all([
-      monitoring(token, project, "firebasedatabase.googleapis.com/storage/total_bytes", { aligner: "ALIGN_MAX", period: 3600, from: now - 36e5 * 6, to: now }),
+      monitoring(token, project, "firebasedatabase.googleapis.com/storage/total_bytes", { aligner: "ALIGN_MAX", period: 3600, from: now - 864e5 * 3, to: now }),
       monitoring(token, project, "firebasedatabase.googleapis.com/network/sent_bytes_count", { aligner: "ALIGN_SUM", period: 86400, from: monthStart(now), to: now }),
       monitoring(token, project, "firebasedatabase.googleapis.com/network/active_connections", { aligner: "ALIGN_MAX", period: 3600, from: now - 864e5, to: now }),
     ]);
-    const used = { storage: storage[0]?.v ?? 0, download: sent.reduce((t, p) => t + p.v, 0), conns: Math.max(0, ...conns.map(p => p.v)) };
+    const used = { storage: storage.length ? storage[0].v : null, download: sent.reduce((t, p) => t + p.v, 0), conns: Math.max(0, ...conns.map(p => p.v)) };
     const blaze = plan === "blaze";
     const usd = (n) => `≈ $${(Math.round(n * 100) / 100).toFixed(2)}`;
-    const over = (u, free, price) => blaze && u > free ? `понад безкоштовну частину: ${usd((u - free) / GiB * price)}` : "";
+    const over = (u, free, price) => blaze && u !== null && u > free ? `понад безкоштовну частину: ${usd((u - free) / GiB * price)}` : "";
     return {
       ...base, state: "ok", planKey: plan,
       plan: blaze ? "Blaze: безкоштовна частина, понад неї оплата за використання" : "Spark: безкоштовний план, ліміти жорсткі",
       items: [
-        { key: "fb-storage", label: "Сховище бази", used: used.storage, limit: Q.storage, unit: "bytes", period: "зараз", paid: blaze, note: over(used.storage, Q.storage, Q.storageUsdPerGiB) },
+        { key: "fb-storage", label: "Сховище бази", used: used.storage, limit: Q.storage, unit: "bytes", period: "зараз", paid: blaze, note: used.storage === null ? "Google ще не віддав це значення (метрика оновлюється рідко)" : over(used.storage, Q.storage, Q.storageUsdPerGiB) },
         { key: "fb-download", label: "Завантажено з бази", used: used.download, limit: Q.download, unit: "bytes", period: "місяць", paid: blaze, note: over(used.download, Q.download, Q.downloadUsdPerGiB) },
         { key: "fb-conns", label: "Одночасні підключення (пік)", used: used.conns, limit: Q.connections, unit: "count", period: "24 години" },
       ],

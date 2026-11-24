@@ -676,3 +676,20 @@ test("ліміти Firebase: на Blaze понад безкоштовну час
     assert.match(by["fb-download"].note, /\$4\.00/);                     // (14 - 10) ГБ x $1
   } finally { globalThis.fetch = orig; }
 });
+
+test("ліміти Firebase: якщо Google не віддав значення сховища, це не нуль, а null з поясненням", async () => {
+  const orig = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    const u = new URL(url);
+    if (u.hostname === "monitoring.googleapis.com" && /storage\/total_bytes/.test(u.searchParams.get("filter"))) {
+      assert.ok(Date.parse(u.searchParams.get("interval.startTime")) < Date.now() - 2.5 * 864e5, "дивимось не менше ніж за 3 доби");
+      return Response.json({});                                              // точок немає
+    }
+    return orig(url, init);
+  };
+  try {
+    const it = (await call("GET", "/limits")).data.sections[0].items.find(i => i.key === "fb-storage");
+    assert.equal(it.used, null);
+    assert.match(it.note, /не віддав/);
+  } finally { globalThis.fetch = orig; }
+});
