@@ -236,12 +236,15 @@
           "$pid": {
             ".write": "!data.exists() && newData.child('nickname').isString() && newData.child('nickname').val().length <= 40 && !newData.hasChild('score') && !newData.hasChild('points')",
             "avatar": {
+              ".write": "root.child('rooms/' + $code + '/players/' + $pid).exists() && root.child('rooms/' + $code + '/status').val() === 'lobby'",
               ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9-]{1,24}$/)"
             },
             "hat": {
+              ".write": "root.child('rooms/' + $code + '/players/' + $pid).exists() && root.child('rooms/' + $code + '/status').val() === 'lobby'",
               ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9-]{1,24}$/)"
             },
             "glasses": {
+              ".write": "root.child('rooms/' + $code + '/players/' + $pid).exists() && root.child('rooms/' + $code + '/status').val() === 'lobby'",
               ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9-]{1,24}$/)"
             },
             "online": {
