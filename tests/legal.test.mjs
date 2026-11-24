@@ -15,7 +15,7 @@ for (const [file, path] of Object.entries(pages)) {
     assert.equal((h.match(/<h1>/g) || []).length, 1, "має бути один заголовок h1");
     assert.match(h, /href="mailto:[^"@\s]+@[^"@\s]+\.[a-z]{2,}"/i, "потрібна контактна пошта");
     assert.ok(h.includes('href="/privacy"') && h.includes('href="/terms"'), "сторінки посилаються одна на одну");
-    assert.ok(!/\p{Extended_Pictographic}/u.test(h), "без емодзі в інтерфейсі");
+    assert.ok(!/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}]/u.test(h), "без емодзі в інтерфейсі");   // знак © у підвалі дозволений
     assert.match(h, /Редакція від \d{1,2} \S+ \d{4} року/);
   });
 }
