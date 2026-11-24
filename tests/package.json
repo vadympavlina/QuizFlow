@@ -10,7 +10,8 @@
     "icons": "node scripts/icons.mjs",
     "icons:landing": "node scripts/icons-landing.mjs",
     "og": "node scripts/og.mjs",
-    "og:check": "node --test og.test.mjs"
+    "og:check": "node --test og.test.mjs",
+    "legal": "node --test legal.test.mjs"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^4.0.1",
