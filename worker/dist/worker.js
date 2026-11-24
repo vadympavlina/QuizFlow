@@ -491,7 +491,10 @@ function resolvePerms(cfg, profile = {}, nav) {
 
 // ../worker/src/limits.js
 var GiB = 1024 ** 3;
-var FB = { storage: 1 * GiB, download: 10 * GiB, connections: 100 };
+var FB = {
+  spark: { storage: 1 * GiB, download: 10 * GiB, connections: 100 },
+  blaze: { storage: 1 * GiB, download: 10 * GiB, connections: 2e5, storageUsdPerGiB: 5, downloadUsdPerGiB: 1 }
+};
 var CF = { requests: 1e5, kvRead: 1e5, kvWrite: 1e3, kvDelete: 1e3, kvList: 1e3 };
 var dayKey = (t = Date.now()) => new Date(t).toISOString().slice(0, 10);
 var monthStart = (t = Date.now()) => {
@@ -533,19 +536,26 @@ async function firebaseSection(env) {
   const project = env.FIREBASE_PROJECT_ID, now = Date.now();
   try {
     const token = await accessToken(env);
+    const planRaw = await fetch(dbUrl(env, "settings/limits/firebasePlan", token)).then((r) => r.ok ? r.json() : null).catch(() => null);
+    const plan = planRaw === "spark" ? "spark" : "blaze", Q = FB[plan];
     const [storage, sent, conns] = await Promise.all([
       monitoring(token, project, "firebasedatabase.googleapis.com/storage/total_bytes", { aligner: "ALIGN_MAX", period: 3600, from: now - 36e5 * 6, to: now }),
       monitoring(token, project, "firebasedatabase.googleapis.com/network/sent_bytes_count", { aligner: "ALIGN_SUM", period: 86400, from: monthStart(now), to: now }),
       monitoring(token, project, "firebasedatabase.googleapis.com/network/active_connections", { aligner: "ALIGN_MAX", period: 3600, from: now - 864e5, to: now })
     ]);
+    const used = { storage: storage[0]?.v ?? 0, download: sent.reduce((t, p) => t + p.v, 0), conns: Math.max(0, ...conns.map((p) => p.v)) };
+    const blaze = plan === "blaze";
+    const usd = (n) => `\u2248 $${(Math.round(n * 100) / 100).toFixed(2)}`;
+    const over = (u, free, price) => blaze && u > free ? `\u043F\u043E\u043D\u0430\u0434 \u0431\u0435\u0437\u043A\u043E\u0448\u0442\u043E\u0432\u043D\u0443 \u0447\u0430\u0441\u0442\u0438\u043D\u0443: ${usd((u - free) / GiB * price)}` : "";
     return {
       ...base,
       state: "ok",
-      plan: "\u0411\u0435\u0437\u043A\u043E\u0448\u0442\u043E\u0432\u043D\u0430 \u043A\u0432\u043E\u0442\u0430 (Spark)",
+      planKey: plan,
+      plan: blaze ? "Blaze: \u0431\u0435\u0437\u043A\u043E\u0448\u0442\u043E\u0432\u043D\u0430 \u0447\u0430\u0441\u0442\u0438\u043D\u0430, \u043F\u043E\u043D\u0430\u0434 \u043D\u0435\u0457 \u043E\u043F\u043B\u0430\u0442\u0430 \u0437\u0430 \u0432\u0438\u043A\u043E\u0440\u0438\u0441\u0442\u0430\u043D\u043D\u044F" : "Spark: \u0431\u0435\u0437\u043A\u043E\u0448\u0442\u043E\u0432\u043D\u0438\u0439 \u043F\u043B\u0430\u043D, \u043B\u0456\u043C\u0456\u0442\u0438 \u0436\u043E\u0440\u0441\u0442\u043A\u0456",
       items: [
-        { key: "fb-storage", label: "\u0421\u0445\u043E\u0432\u0438\u0449\u0435 \u0431\u0430\u0437\u0438", used: storage[0]?.v ?? 0, limit: FB.storage, unit: "bytes", period: "\u0437\u0430\u0440\u0430\u0437" },
-        { key: "fb-download", label: "\u0417\u0430\u0432\u0430\u043D\u0442\u0430\u0436\u0435\u043D\u043E \u0437 \u0431\u0430\u0437\u0438", used: sent.reduce((s, p) => s + p.v, 0), limit: FB.download, unit: "bytes", period: "\u043C\u0456\u0441\u044F\u0446\u044C" },
-        { key: "fb-conns", label: "\u041E\u0434\u043D\u043E\u0447\u0430\u0441\u043D\u0456 \u043F\u0456\u0434\u043A\u043B\u044E\u0447\u0435\u043D\u043D\u044F (\u043F\u0456\u043A)", used: Math.max(0, ...conns.map((p) => p.v)), limit: FB.connections, unit: "count", period: "24 \u0433\u043E\u0434\u0438\u043D\u0438" }
+        { key: "fb-storage", label: "\u0421\u0445\u043E\u0432\u0438\u0449\u0435 \u0431\u0430\u0437\u0438", used: used.storage, limit: Q.storage, unit: "bytes", period: "\u0437\u0430\u0440\u0430\u0437", paid: blaze, note: over(used.storage, Q.storage, Q.storageUsdPerGiB) },
+        { key: "fb-download", label: "\u0417\u0430\u0432\u0430\u043D\u0442\u0430\u0436\u0435\u043D\u043E \u0437 \u0431\u0430\u0437\u0438", used: used.download, limit: Q.download, unit: "bytes", period: "\u043C\u0456\u0441\u044F\u0446\u044C", paid: blaze, note: over(used.download, Q.download, Q.downloadUsdPerGiB) },
+        { key: "fb-conns", label: "\u041E\u0434\u043D\u043E\u0447\u0430\u0441\u043D\u0456 \u043F\u0456\u0434\u043A\u043B\u044E\u0447\u0435\u043D\u043D\u044F (\u043F\u0456\u043A)", used: used.conns, limit: Q.connections, unit: "count", period: "24 \u0433\u043E\u0434\u0438\u043D\u0438" }
       ]
     };
   } catch (e) {
