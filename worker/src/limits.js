@@ -6,8 +6,14 @@ import { HttpError } from "./auth.js";
 import { accessToken, serviceAccount } from "./google.js";
 
 const GiB = 1024 ** 3;
-// Безкоштовна квота Firebase Realtime Database (план Spark) і воркерів/KV Cloudflare (план Free)
-const FB = { storage: 1 * GiB, download: 10 * GiB, connections: 100 };
+// Firebase Realtime Database. Spark: безкоштовно до меж нижче, далі — стоп. Blaze: ті самі безкоштовні частини, але понад них —
+// оплата за використання ($5 за ГБ сховища на місяць, $1 за ГБ завантаження), а підключень до 200 000.
+// Який у вас план, задає адмін на сторінці (settings/limits/firebasePlan); без вибору вважаємо Blaze.
+const FB = {
+  spark: { storage: 1 * GiB, download: 10 * GiB, connections: 100 },
+  blaze: { storage: 1 * GiB, download: 10 * GiB, connections: 200_000, storageUsdPerGiB: 5, downloadUsdPerGiB: 1 },
+};
+// Воркери й KV Cloudflare (безкоштовний план)
 const CF = { requests: 100_000, kvRead: 100_000, kvWrite: 1000, kvDelete: 1000, kvList: 1000 };
 
 const dayKey = (t = Date.now()) => new Date(t).toISOString().slice(0, 10);
@@ -40,17 +46,24 @@ async function firebaseSection(env) {
   const project = env.FIREBASE_PROJECT_ID, now = Date.now();
   try {
     const token = await accessToken(env);
+    const planRaw = await fetch(dbUrl(env, "settings/limits/firebasePlan", token)).then(r => r.ok ? r.json() : null).catch(() => null);
+    const plan = planRaw === "spark" ? "spark" : "blaze", Q = FB[plan];
     const [storage, sent, conns] = await Promise.all([
       monitoring(token, project, "firebasedatabase.googleapis.com/storage/total_bytes", { aligner: "ALIGN_MAX", period: 3600, from: now - 36e5 * 6, to: now }),
       monitoring(token, project, "firebasedatabase.googleapis.com/network/sent_bytes_count", { aligner: "ALIGN_SUM", period: 86400, from: monthStart(now), to: now }),
       monitoring(token, project, "firebasedatabase.googleapis.com/network/active_connections", { aligner: "ALIGN_MAX", period: 3600, from: now - 864e5, to: now }),
     ]);
+    const used = { storage: storage[0]?.v ?? 0, download: sent.reduce((t, p) => t + p.v, 0), conns: Math.max(0, ...conns.map(p => p.v)) };
+    const blaze = plan === "blaze";
+    const usd = (n) => `≈ $${(Math.round(n * 100) / 100).toFixed(2)}`;
+    const over = (u, free, price) => blaze && u > free ? `понад безкоштовну частину: ${usd((u - free) / GiB * price)}` : "";
     return {
-      ...base, state: "ok", plan: "Безкоштовна квота (Spark)",
+      ...base, state: "ok", planKey: plan,
+      plan: blaze ? "Blaze: безкоштовна частина, понад неї оплата за використання" : "Spark: безкоштовний план, ліміти жорсткі",
       items: [
-        { key: "fb-storage", label: "Сховище бази", used: storage[0]?.v ?? 0, limit: FB.storage, unit: "bytes", period: "зараз" },
-        { key: "fb-download", label: "Завантажено з бази", used: sent.reduce((s, p) => s + p.v, 0), limit: FB.download, unit: "bytes", period: "місяць" },
-        { key: "fb-conns", label: "Одночасні підключення (пік)", used: Math.max(0, ...conns.map(p => p.v)), limit: FB.connections, unit: "count", period: "24 години" },
+        { key: "fb-storage", label: "Сховище бази", used: used.storage, limit: Q.storage, unit: "bytes", period: "зараз", paid: blaze, note: over(used.storage, Q.storage, Q.storageUsdPerGiB) },
+        { key: "fb-download", label: "Завантажено з бази", used: used.download, limit: Q.download, unit: "bytes", period: "місяць", paid: blaze, note: over(used.download, Q.download, Q.downloadUsdPerGiB) },
+        { key: "fb-conns", label: "Одночасні підключення (пік)", used: used.conns, limit: Q.connections, unit: "count", period: "24 години" },
       ],
     };
   } catch (e) {

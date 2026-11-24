@@ -589,6 +589,16 @@ test("ліміти Firebase: показники з Cloud Monitoring, а без �
   assert.equal(by["fb-storage"].limit, 1024 ** 3);
   assert.equal(by["fb-download"].used, 3 * 1024 ** 3);                     // сума за місяць
   assert.equal(by["fb-conns"].used, 42);                                   // пік за добу
+  assert.equal(fb.planKey, "blaze");                                       // без вибору — Blaze
+  assert.equal(by["fb-conns"].limit, 200000);                              // на Blaze підключень до 200 000, а не 100
+  assert.equal(by["fb-storage"].paid, true);
+  assert.equal(by["fb-download"].note, "");                                // у межах безкоштовної частини — без вартості
+  db.settings.limits = { firebasePlan: "spark" };
+  const spark = (await call("GET", "/limits")).data.sections[0];
+  assert.equal(spark.planKey, "spark");
+  assert.equal(spark.items.find(i => i.key === "fb-conns").limit, 100);    // на Spark — жорсткі 100
+  assert.equal(spark.items.find(i => i.key === "fb-storage").paid, false);
+  db.settings.limits = undefined;
   mon.fail = 403;
   const noPerm = (await call("GET", "/limits")).data.sections[0];
   assert.equal(noPerm.state, "unconfigured");
@@ -648,4 +658,21 @@ test("ліміти AI: без службового ключа відповідь
   assert.equal(r.status, 200);
   assert.equal(svcWrites.length, 0);
   assert.equal((await call("GET", "/limits")).data.sections[2].state, "unconfigured");
+});
+
+test("ліміти Firebase: на Blaze понад безкоштовну частину показується орієнтовна вартість", async () => {
+  const orig = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    const u = new URL(url);
+    if (u.hostname === "monitoring.googleapis.com") {
+      const metric = u.searchParams.get("filter"), v = /storage\/total_bytes/.test(metric) ? 3 * 1024 ** 3 : /sent_bytes/.test(metric) ? 14 * 1024 ** 3 : 5;
+      return Response.json({ timeSeries: [{ points: [{ interval: { endTime: new Date().toISOString() }, value: { int64Value: String(v) } }] }] });
+    }
+    return orig(url, init);
+  };
+  try {
+    const by = Object.fromEntries((await call("GET", "/limits")).data.sections[0].items.map(i => [i.key, i]));
+    assert.match(by["fb-storage"].note, /\$10\.00/);                     // (3 - 1) ГБ x $5
+    assert.match(by["fb-download"].note, /\$4\.00/);                     // (14 - 10) ГБ x $1
+  } finally { globalThis.fetch = orig; }
 });
