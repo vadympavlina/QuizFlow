@@ -34,6 +34,8 @@ jobs:
         run: npm run worker
       - name: Прев'ю посилань (мета-теги й картинки)
         run: npm run og:check
+      - name: Юридичні сторінки (контакт, без незаповнених полів)
+        run: npm run legal
       - name: Зібраний воркер відповідає worker/src
         run: |
           npm run worker:bundle

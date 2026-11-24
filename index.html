@@ -172,6 +172,7 @@ h2 mark{background:var(--sun);color:var(--ink);padding:0 .12em;border-radius:.12
 .end .pill:hover{box-shadow:7px 8px 0 var(--ink)}
 footer{position:relative;z-index:1;text-align:center;padding:44px 20px max(40px,env(safe-area-inset-bottom,0px));background:var(--ink);font-weight:600;font-size:14px;color:#9FB0F0;display:grid;gap:12px;justify-items:center}
 footer .brand{color:#fff}footer p{max-width:28em}
+footer .lg{display:flex;gap:6px 22px;flex-wrap:wrap;justify-content:center}footer .lg a{color:inherit;text-decoration:underline;text-underline-offset:3px;min-height:44px;display:inline-flex;align-items:center}footer .lg a:hover{color:#fff}
 
 @media (max-width:900px){
   .hg{grid-template-columns:1fr}.hv{width:100%;transform:rotate(-1.5deg);margin:0 0 34px;box-shadow:0 0 0 2px #fff,8px 9px 0 var(--ink)}
@@ -377,7 +378,7 @@ pa.forEach(function(p,i){
 if("IntersectionObserver"in window){new IntersectionObserver(function(en,io){if(en[0].isIntersecting){tm.classList.add("rdy");io.disconnect()}},{threshold:.2}).observe(acc)}else tm.classList.add("rdy");
 })();
 </script>
-<footer><span class="brand"><i><svg viewBox="0 0 24 24"><path d="M4 7h11a4 4 0 0 1 4 4v1"/><path d="M20 17H9a4 4 0 0 1-4-4v-1"/></svg></i>quizflow</span><p>Платформа для викладачів: тести, ігри наживо, журнал і аналітика.</p><p>© 2026 QuizFlow</p></footer>
+<footer><span class="brand"><i><svg viewBox="0 0 24 24"><path d="M4 7h11a4 4 0 0 1 4 4v1"/><path d="M20 17H9a4 4 0 0 1-4-4v-1"/></svg></i>quizflow</span><p>Платформа для викладачів: тести, ігри наживо, журнал і аналітика.</p><p class="lg"><a href="/privacy">Політика конфіденційності</a><a href="/terms">Умови використання</a></p><p>© 2026 QuizFlow</p></footer>
 
 <script>
 (function(){
