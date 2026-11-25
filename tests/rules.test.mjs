@@ -229,6 +229,10 @@ await t("anon answer future question", false, () => set(ref(anon, `${R}/answers/
 await t("anon answer with isCorrect", false, () => set(ref(anon, `${R}/answers/0/p2`), { value: 1, isCorrect: true, answeredAt: serverTimestamp() }));
 await t("anon answer huge text", false, () => set(ref(anon, `${R}/answers/0/p2`), { value: "x".repeat(500), answeredAt: serverTimestamp() }));
 await t("anon answer multi", true, () => set(ref(anon, `${R}/answers/0/p2`), { value: [0, 2], answeredAt: serverTimestamp() }));
+// Впорядкування й зіставлення: відповідь — масив номерів, у порядку учня (для зіставлення — по пунктах)
+await t("anon answer ordering", true, () => set(ref(anon, `${R}/answers/0/p6`), { value: [2, 0, 3, 1, 5, 4], answeredAt: serverTimestamp() }));
+await t("anon answer matching", true, () => set(ref(anon, `${R}/answers/0/p9`), { value: [2, 0, 3, 1], answeredAt: serverTimestamp() }));
+await t("anon answer ordering with junk", false, () => set(ref(anon, `${R}/answers/1/p6`), { value: [2, 0], isCorrect: true, answeredAt: serverTimestamp() }));
 await t("anon draft", true, () => set(ref(anon, `${R}/drafts/0/p1`), { value: "К", at: serverTimestamp() }));
 await t("anon draft overwrite", true, () => set(ref(anon, `${R}/drafts/0/p1`), { value: "Київ", at: serverTimestamp() }));
 await t("anon draft forged time", false, () => set(ref(anon, `${R}/drafts/0/p1`), { value: "Київ", at: now - 60000 }));
@@ -242,6 +246,7 @@ await t("anon change status", false, () => set(ref(anon, `${R}/status`), "finish
 await t("anon create room", false, () => set(ref(anon, "rooms/99990000"), { hostUid: "x" }));
 await t("host write ranks", true, () => set(ref(t1, `${R}/ranks/p1`), { r: 1, s: 900, g: 0, n: 2 }));
 await t("anon write ranks", false, () => set(ref(anon, `${R}/ranks/p1`), { r: 1, s: 99999 }));
+await t("host reveal order key", true, () => update(ref(t1, R), { "revealed/0": { correct: [2, 0, 3, 1], at: now, pct: 50 } }));
 await t("host reveal", true, () => set(ref(t1, `${R}/status`), "reveal"));
 await t("anon draft during reveal", false, () => set(ref(anon, `${R}/drafts/0/p5`), { value: "x", at: serverTimestamp() }));
 await t("anon answer during reveal", false, () => set(ref(anon, `${R}/answers/0/p5`), { value: 1, answeredAt: serverTimestamp() }));
@@ -251,6 +256,12 @@ await t("host kick player", true, () => update(ref(t1, `${R}/players/p2`), { act
 await t("other teacher hijack room", false, () => update(ref(t2, R), { status: "finished" }));
 await t("teacher create room as other host", false, () => set(ref(t2, "rooms/33334444"), { hostUid: "t1" }));
 await t("teacher create room", true, () => update(ref(t1), { "rooms/33334444": { hostUid: "t1", status: "lobby" }, "teachers/t1/liveRooms/33334444": { createdAt: now } }));
+await t("teacher create room with ordering and matching", true, () => update(ref(t1), {
+  "rooms/33334444": { hostUid: "t1", status: "lobby", currentQ: 0, qCount: 2, questions: [
+    { id: "o", type: "ordering", text: "Порядок", options: ["Б", "А", "В"] },
+    { id: "m", type: "matching", text: "Пари", lefts: ["Франція", "Італія"], options: ["Рим", "Париж"] }] },
+  "teachers/t1/liveRooms/33334444": { createdAt: now, key: { 0: [1, 0, 2], 1: [1, 0] } } }));
+await t("anyone cannot read the order key", false, () => get(ref(anon, "teachers/t1/liveRooms/33334444/key")));
 await t("teacher delete dead + own rooms (multi)", true, () => update(ref(t1), { "rooms/55556666": null, "rooms/33334444": null, "teachers/t1/liveRooms/33334444": null }));
 await t("blocked teacher create room", false, () => update(ref(bl), { "rooms/77778888": { hostUid: "bl" }, "teachers/bl/liveRooms/77778888": { createdAt: now } }));
 await t("teacher delete others room", false, () => remove(ref(t2, R)));
