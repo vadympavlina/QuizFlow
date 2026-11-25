@@ -14,6 +14,7 @@
 //   POST /reset         — лист для зміни пароля в дизайні QuizFlow (сторінка входу — з
 //                         обмеженням частоти, адмін — без); потрібен FIREBASE_SERVICE_ACCOUNT
 //   POST /welcome       — дані для входу новому акаунту, створеному адміном (адмін)
+//   POST /users/delete  — повне видалення користувача: акаунт Auth і всі його дані в базі (адмін)
 //   POST /broadcast     — розсилка викладачам або тестовий лист собі (адмін)
 //   GET|POST /unsubscribe?u=&s= — відписка за підписаним посиланням з листа
 // ═══════════════════════════════════════════════════════════════════════
@@ -25,6 +26,7 @@ import { aiChat, aiStatus, aiModels } from "./ai.js";
 import { telegramNotice, telegramApi } from "./telegram.js";
 import { importKahoot } from "./kahoot.js";
 import { limitsReport } from "./limits.js";
+import { eraseUser } from "./erase.js";
 
 const logoUrl = origin => `${origin}/logo.png?v=${LOGO_V}`;
 const LOGO_BYTES = Uint8Array.from(atob(LOGO_PNG_B64), c => c.charCodeAt(0));
@@ -63,7 +65,7 @@ export default {
       if (url.pathname === "/telegram/notice" && request.method === "POST") return json(await telegramNotice(request, env, await readJson(request)), 200, cors);
       if (url.pathname === "/reset" && request.method === "POST") return json(await reset(request, env, url), 200, cors);
       const route = `${request.method} ${url.pathname}`;
-      const handler = { "GET /status": status, "GET /ai/status": aiStatus, "GET /limits": limitsReport, "GET /ai/models": aiModels, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast, "POST /telegram/api": telegramApi }[route];
+      const handler = { "GET /status": status, "GET /ai/status": aiStatus, "GET /limits": limitsReport, "GET /ai/models": aiModels, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast, "POST /telegram/api": telegramApi, "POST /users/delete": eraseUser }[route];
       if (!handler) throw new HttpError(404, "Невідома адреса");
       const admin = await requireAdmin(request, env);
       const body = request.method === "POST" ? await readJson(request) : null;

@@ -35,7 +35,7 @@ const baseEnv = () => ({
 const env = () => ({ ...baseEnv(), ...envOver });
 beforeEach(() => {
   envOver = {}; mon = { fail: 0 }; cfGql = { status: 200 }; svcWrites = []; groqHeaders = null; aiStatus429 = false;
-  kv = new Map(); kahootStatus = 200; tg = []; sent = []; resendStatus = 200; aiCalls = []; aiWrites = []; aiFail = false; modelsFail = false; google = { tokenCalls: 0, oob: [], jwtOk: null };
+  kv = new Map(); kahootStatus = 200; tg = []; sent = []; resendStatus = 200; aiCalls = []; aiWrites = []; aiFail = false; modelsFail = false; google = { tokenCalls: 0, oob: [], jwtOk: null, deleted: [] };
   db = {
     users: {
       adm: { role: "admin", name: "Адмін", email: "admin@quizflow.space" },
@@ -60,6 +60,7 @@ beforeEach(() => {
       return Response.json({ access_token: "ya29.test", expires_in: 3600 });
     }
     if (u.hostname === "identitytoolkit.googleapis.com") {
+      if (u.pathname.endsWith("/accounts:delete")) { const b = JSON.parse(init.body); google.deleted.push(b.localId); return b.localId === "gone123" ? Response.json({ error: { message: "USER_NOT_FOUND" } }, { status: 400 }) : Response.json({}); }
       const b = JSON.parse(init.body); google.oob.push({ ...b, auth: init.headers.Authorization });
       if (b.email === "ghost@example.com") return Response.json({ error: { message: "EMAIL_NOT_FOUND" } }, { status: 400 });
       return Response.json({ email: b.email, oobLink: `https://${PROJECT}.firebaseapp.com/__/auth/action?mode=resetPassword&oobCode=CODE-${b.email.split("@")[0]}&apiKey=x&lang=uk` });
@@ -78,7 +79,12 @@ beforeEach(() => {
       // службовий ключ: правила бази не діють
       const path = u.pathname.replace(/^\/|\.json$/g, ""), keys = path.split("/");
       if (init.method === "PATCH" || init.method === "PUT") {
-        const body = JSON.parse(init.body); let n = db; keys.slice(0, -1).forEach(k => { n = n[k] ??= {}; });
+        const body = JSON.parse(init.body);
+        if (path === "" && init.method === "PATCH") {   // запис кількох шляхів одразу
+          for (const [p, v] of Object.entries(body)) { const ks = p.split("/"); let o = db; ks.slice(0, -1).forEach(k => { o = o?.[k]; }); if (o) { if (v === null) delete o[ks.at(-1)]; else o[ks.at(-1)] = v; } }
+          svcWrites.push([init.method, "", body]); return Response.json(body);
+        }
+        let n = db; keys.slice(0, -1).forEach(k => { n = n[k] ??= {}; });
         const last = keys.at(-1), apply = (o, v) => { for (const [k, x] of Object.entries(v)) o[k] = x && x[".sv"]?.increment ? (Number(o[k]) || 0) + x[".sv"].increment : x; };
         if (init.method === "PUT") n[last] = body; else apply(n[last] ??= {}, body);
         svcWrites.push([init.method, path, body]);
@@ -692,4 +698,56 @@ test("ліміти Firebase: якщо Google не віддав значення 
     assert.equal(it.used, null);
     assert.match(it.note, /не віддав/);
   } finally { globalThis.fetch = orig; }
+});
+
+test("видалення користувача: Auth, профіль, тести, журнали, звернення, ігри й відписка стираються", async () => {
+  Object.assign(db, {
+    nameHistory: { t1: { n1: { name: "Олена" } }, t2: { n2: { name: "Іван" } } },
+    attemptLog: { t1: { a: { c: 1 } } }, gameLog: { t1: { g: { x: 1 } } }, teacherStats: { t1: { x: 1 } }, bugStatus: { t1: { b1: { t: "тема" } } },
+    aiUsage: { "202611": { t1: { comments: { calls: 3 } }, t2: { comments: { calls: 1 } } } },
+    adminNotices: { n1: { uid: "t1", type: "limit" }, n2: { uid: "t2", type: "limit" } },
+    bugReports: { r1: { uid: "t1", message: "помилка" }, r2: { uid: "t2", message: "інше" } },
+    adminTasks: { k1: { title: "Лист для olena@example.com" }, k2: { title: "Чужа задача" } },
+    adminLog: { l1: { uid: "adm", action: "teacher.block", targetId: "t1", targetLabel: "Олена" }, l2: { uid: "adm", action: "invite.create", targetId: "tok1" } },
+    mailLog: { m1: { by: "adm", subject: "Новини" }, m2: { by: "adm", subject: "Привіт, OLENA@example.com" } },
+    rooms: { AAAA1111: { hostUid: "t1", status: "ended" }, BBBB2222: { hostUid: "t2", status: "lobby" } },
+  });
+  db.invite_tokens.usedtok1 = { used: true, usedBy: "t1" };
+  db.teachers.t2 = { links: { L2: { testId: "T2" } } };
+  kv.set("unsub:t1", "1");
+  const r = await call("POST", "/users/delete", { body: { uid: "t1" } });
+  assert.equal(r.status, 200, JSON.stringify(r.data));
+  assert.deepEqual(google.deleted, ["t1"]);
+  // усе про t1 зникло
+  for (const p of [db.users.t1, db.teachers.t1, db.nameHistory.t1, db.attemptLog.t1, db.gameLog.t1, db.teacherStats.t1, db.bugStatus.t1, db.aiUsage["202611"].t1,
+    db.adminNotices.n1, db.bugReports.r1, db.adminTasks.k1, db.adminLog.l1, db.mailLog.m2, db.rooms.AAAA1111, db.invite_tokens.usedtok1]) assert.equal(p, undefined);
+  assert.equal(kv.has("unsub:t1"), false);
+  assert.doesNotMatch(JSON.stringify(db), /"t1"|olena@example\.com|Олена/i);
+  // чуже лишилось
+  for (const p of [db.users.t2, db.teachers.t2, db.nameHistory.t2, db.aiUsage["202611"].t2, db.adminNotices.n2, db.bugReports.r2, db.adminTasks.k2, db.adminLog.l2, db.mailLog.m1, db.rooms.BBBB2222, db.invite_tokens.tok12345]) assert.ok(p);
+  // повторний запуск, коли Auth-акаунта вже немає, не падає
+  db.users.gone123 = { role: "teacher", email: "gone@example.com" };
+  assert.equal((await call("POST", "/users/delete", { body: { uid: "gone123" } })).status, 200);
+  assert.equal(db.users.gone123, undefined);
+});
+
+test("видалення користувача: лише адмін; себе, власника й чужого адміна видалити не можна", async () => {
+  assert.equal((await call("POST", "/users/delete", { uid: "t1", body: { uid: "t2" } })).status, 403);
+  assert.equal((await call("POST", "/users/delete", { body: { uid: "../x" } })).status, 400);
+  assert.equal((await call("POST", "/users/delete", { body: { uid: "adm" } })).status, 400);
+  db.users.adm2x1 = { role: "admin", email: "a2@example.com" };
+  db.settings.ownerUid = "adm";
+  assert.equal((await call("POST", "/users/delete", { body: { uid: "adm2x1" } })).status, 200);   // власник може
+  db.users.adm2x1 = { role: "admin" }; db.users.adm3y1 = { role: "admin" };
+  const r = await call("POST", "/users/delete", { uid: "adm3y1", body: { uid: "adm2x1" } });
+  assert.equal(r.status, 403);
+  assert.equal(db.users.adm2x1.role, "admin");
+  db.settings.ownerUid = "t2";
+  assert.equal((await call("POST", "/users/delete", { body: { uid: "t2" } })).status, 403);
+  assert.ok(db.users.t2);
+  assert.equal((await call("POST", "/users/delete", { body: { uid: "t4" } })).status, 200);       // без пошти теж працює
+  const noSa = { ...env(), FIREBASE_SERVICE_ACCOUNT: undefined };
+  const r2 = await worker.fetch(new Request("https://mail.test/users/delete", { method: "POST", headers: { Origin: "https://quizflow.space", Authorization: `Bearer ${await idToken("adm")}`, "Content-Type": "application/json" }, body: JSON.stringify({ uid: "t3" }) }), noSa);
+  assert.equal(r2.status, 503);
+  assert.ok(db.users.t3);
 });

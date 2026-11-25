@@ -1009,6 +1009,63 @@ async function importKahoot(request, env, body) {
   return { ok: true, title: clean(d.title).slice(0, 200), questions: out, skipped };
 }
 
+// ../worker/src/erase.js
+var dbUrl2 = (env, path, token, query = "") => `${env.FIREBASE_DB_URL}/${path}.json?${query ? query + "&" : ""}access_token=${encodeURIComponent(token)}`;
+async function dbGet2(env, token, path, query) {
+  const r = await fetch(dbUrl2(env, path, token, query));
+  if (!r.ok) throw new HttpError(502, `\u0411\u0430\u0437\u0430 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0430 (${path})`);
+  return r.json();
+}
+var SCAN = ["adminNotices", "bugReports", "adminTasks", "invite_tokens", "adminLog", "mailLog"];
+async function eraseUser({ env, admin, body }) {
+  const uid = String(body?.uid || "");
+  if (!/^[\w-]{2,128}$/.test(uid)) throw new HttpError(400, "\u041D\u0435\u043A\u043E\u0440\u0435\u043A\u0442\u043D\u0438\u0439 \u0430\u043A\u0430\u0443\u043D\u0442");
+  if (uid === admin.uid) throw new HttpError(400, "\u0412\u043B\u0430\u0441\u043D\u0438\u0439 \u0430\u043A\u0430\u0443\u043D\u0442 \u0432\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u043D\u0435 \u043C\u043E\u0436\u043D\u0430");
+  if (!serviceAccount(env)) throw new HttpError(503, "\u041D\u0430 \u0432\u043E\u0440\u043A\u0435\u0440\u0456 \u043D\u0435 \u0437\u0430\u0434\u0430\u043D\u043E FIREBASE_SERVICE_ACCOUNT");
+  const token = await accessToken(env);
+  const [u, owner] = await Promise.all([dbGet2(env, token, `users/${uid}`), dbGet2(env, token, "settings/ownerUid")]);
+  if (uid === owner) throw new HttpError(403, "\u0412\u043B\u0430\u0441\u043D\u0438\u043A\u0430 \u0432\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u043D\u0435 \u043C\u043E\u0436\u043D\u0430");
+  if (u?.role === "admin" && admin.uid !== owner) throw new HttpError(403, "\u0410\u0434\u043C\u0456\u043D\u0456\u0441\u0442\u0440\u0430\u0442\u043E\u0440\u0430 \u043C\u043E\u0436\u0435 \u0432\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u043B\u0438\u0448\u0435 \u0432\u043B\u0430\u0441\u043D\u0438\u043A");
+  const email = String(u?.email || "").trim().toLowerCase();
+  const pid = serviceAccount(env).project_id || env.FIREBASE_PROJECT_ID;
+  const del = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${pid}/accounts:delete`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ localId: uid })
+  });
+  if (!del.ok) {
+    const m = String((await del.json().catch(() => ({})))?.error?.message || "");
+    if (!/USER_NOT_FOUND|EMAIL_NOT_FOUND/.test(m)) throw new HttpError(502, "\u041D\u0435 \u0432\u0434\u0430\u043B\u043E\u0441\u044F \u0432\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u0430\u043A\u0430\u0443\u043D\u0442 Firebase: " + (m || del.status));
+  }
+  const upd = {};
+  ["teachers", "nameHistory", "attemptLog", "gameLog", "teacherStats", "bugStatus"].forEach((n) => {
+    upd[`${n}/${uid}`] = null;
+  });
+  const months = await dbGet2(env, token, "aiUsage", "shallow=true") || {};
+  Object.keys(months).forEach((m) => {
+    upd[`aiUsage/${m}/${uid}`] = null;
+  });
+  const mentions = (v) => {
+    const s = JSON.stringify(v).toLowerCase();
+    return s.includes(uid.toLowerCase()) || !!email && s.includes(email);
+  };
+  for (const node of SCAN) {
+    const all = await dbGet2(env, token, node) || {};
+    for (const [k, v] of Object.entries(all)) if (v && typeof v === "object" && mentions(v)) upd[`${node}/${k}`] = null;
+  }
+  const rooms = await dbGet2(env, token, "rooms", `orderBy=${encodeURIComponent('"hostUid"')}&equalTo=${encodeURIComponent(JSON.stringify(uid))}`) || {};
+  for (const [code, room] of Object.entries(rooms)) if (room?.hostUid === uid) upd[`rooms/${code}`] = null;
+  upd[`users/${uid}`] = null;
+  const paths = Object.keys(upd);
+  for (let i = 0; i < paths.length; i += 200) {
+    const part = Object.fromEntries(paths.slice(i, i + 200).map((p) => [p, null]));
+    const r = await fetch(dbUrl2(env, "", token), { method: "PATCH", body: JSON.stringify(part) });
+    if (!r.ok) throw new HttpError(502, "\u041D\u0435 \u0432\u0434\u0430\u043B\u043E\u0441\u044F \u0441\u0442\u0435\u0440\u0442\u0438 \u0434\u0430\u043D\u0456 \u0432 \u0431\u0430\u0437\u0456");
+  }
+  if (env.MAIL_KV) await env.MAIL_KV.delete(`unsub:${uid}`);
+  return { ok: true, removed: paths.length };
+}
+
 // ../worker/src/index.js
 var logoUrl = (origin) => `${origin}/logo.png?v=${LOGO_V}`;
 var LOGO_BYTES = Uint8Array.from(atob(LOGO_PNG_B64), (c) => c.charCodeAt(0));
@@ -1040,7 +1097,7 @@ var index_default = {
       if (url.pathname === "/telegram/notice" && request.method === "POST") return json(await telegramNotice(request, env, await readJson(request)), 200, cors);
       if (url.pathname === "/reset" && request.method === "POST") return json(await reset(request, env, url), 200, cors);
       const route = `${request.method} ${url.pathname}`;
-      const handler = { "GET /status": status, "GET /ai/status": aiStatus, "GET /limits": limitsReport, "GET /ai/models": aiModels, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast, "POST /telegram/api": telegramApi }[route];
+      const handler = { "GET /status": status, "GET /ai/status": aiStatus, "GET /limits": limitsReport, "GET /ai/models": aiModels, "POST /preview": preview, "POST /invite": invite, "POST /welcome": welcome, "POST /broadcast": broadcast, "POST /telegram/api": telegramApi, "POST /users/delete": eraseUser }[route];
       if (!handler) throw new HttpError(404, "\u041D\u0435\u0432\u0456\u0434\u043E\u043C\u0430 \u0430\u0434\u0440\u0435\u0441\u0430");
       const admin = await requireAdmin(request, env);
       const body = request.method === "POST" ? await readJson(request) : null;
