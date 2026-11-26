@@ -247,6 +247,10 @@
               ".write": "root.child('rooms/' + $code + '/players/' + $pid).exists() && root.child('rooms/' + $code + '/status').val() === 'lobby'",
               ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9-]{1,24}$/)"
             },
+            "outfit": {
+              ".write": "root.child('rooms/' + $code + '/players/' + $pid).exists() && root.child('rooms/' + $code + '/status').val() === 'lobby'",
+              ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9-]{1,24}$/)"
+            },
             "online": {
               ".write": "root.child('rooms/' + $code + '/players/' + $pid).exists() && newData.isBoolean()"
             },
