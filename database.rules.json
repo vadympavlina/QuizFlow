@@ -262,14 +262,14 @@
         "drafts": {
           "$qi": {
             "$pid": {
-              ".write": "root.child('rooms/' + $code + '/status').val() === 'question' && (root.child('rooms/' + $code + '/currentQ').val() + '') === $qi && newData.child('at').val() === now && newData.child('value').isString() && newData.child('value').val().length <= 200 && root.child('rooms/' + $code + '/players/' + $pid).exists() && root.child('rooms/' + $code + '/players/' + $pid + '/active').val() !== false"
+              ".write": "root.child('rooms/' + $code + '/status').val() === 'question' && (root.child('rooms/' + $code + '/currentQ').val() + '') === $qi && newData.child('at').val() === now && newData.child('value').isString() && newData.child('value').val().length <= 500 && root.child('rooms/' + $code + '/players/' + $pid).exists() && root.child('rooms/' + $code + '/players/' + $pid + '/active').val() !== false"
             }
           }
         },
         "answers": {
           "$qi": {
             "$pid": {
-              ".write": "!data.exists() && root.child('rooms/' + $code + '/status').val() === 'question' && (root.child('rooms/' + $code + '/currentQ').val() + '') === $qi && newData.child('answeredAt').val() === now && (newData.child('value').isNumber() || (newData.child('value').isString() && newData.child('value').val().length <= 200) || newData.child('value').hasChildren()) && !newData.hasChild('points') && !newData.hasChild('isCorrect') && !newData.hasChild('gradedByTeacher') && root.child('rooms/' + $code + '/players/' + $pid + '/active').val() !== false && root.child('rooms/' + $code + '/players/' + $pid).exists()"
+              ".write": "!data.exists() && root.child('rooms/' + $code + '/status').val() === 'question' && (root.child('rooms/' + $code + '/currentQ').val() + '') === $qi && newData.child('answeredAt').val() === now && (newData.child('value').isNumber() || (newData.child('value').isString() && newData.child('value').val().length <= 500) || newData.child('value').hasChildren()) && !newData.hasChild('points') && !newData.hasChild('isCorrect') && !newData.hasChild('gradedByTeacher') && root.child('rooms/' + $code + '/players/' + $pid + '/active').val() !== false && root.child('rooms/' + $code + '/players/' + $pid).exists()"
             }
           }
         }

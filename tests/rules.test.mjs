@@ -232,7 +232,7 @@ await t("anon answer", true, () => set(ref(anon, `${R}/answers/0/p1`), { value: 
 await t("anon answer forged time", false, () => set(ref(anon, `${R}/answers/0/p2`), { value: 2, answeredAt: now - 60000 }));
 await t("anon answer future question", false, () => set(ref(anon, `${R}/answers/3/p2`), { value: 1, answeredAt: serverTimestamp() }));
 await t("anon answer with isCorrect", false, () => set(ref(anon, `${R}/answers/0/p2`), { value: 1, isCorrect: true, answeredAt: serverTimestamp() }));
-await t("anon answer huge text", false, () => set(ref(anon, `${R}/answers/0/p2`), { value: "x".repeat(500), answeredAt: serverTimestamp() }));
+await t("anon answer huge text", false, () => set(ref(anon, `${R}/answers/0/p2`), { value: "x".repeat(501), answeredAt: serverTimestamp() }));
 await t("anon answer multi", true, () => set(ref(anon, `${R}/answers/0/p2`), { value: [0, 2], answeredAt: serverTimestamp() }));
 // Впорядкування й зіставлення: відповідь — масив номерів, у порядку учня (для зіставлення — по пунктах)
 await t("anon answer ordering", true, () => set(ref(anon, `${R}/answers/0/p6`), { value: [2, 0, 3, 1, 5, 4], answeredAt: serverTimestamp() }));
@@ -240,6 +240,7 @@ await t("anon answer matching", true, () => set(ref(anon, `${R}/answers/0/p9`), 
 await t("anon answer ordering with junk", false, () => set(ref(anon, `${R}/answers/1/p6`), { value: [2, 0], isCorrect: true, answeredAt: serverTimestamp() }));
 await t("anon draft", true, () => set(ref(anon, `${R}/drafts/0/p1`), { value: "К", at: serverTimestamp() }));
 await t("anon draft overwrite", true, () => set(ref(anon, `${R}/drafts/0/p1`), { value: "Київ", at: serverTimestamp() }));
+await t("anon draft long text (розгорнута відповідь)", true, () => set(ref(anon, `${R}/drafts/0/p1`), { value: "x".repeat(400), at: serverTimestamp() }));
 await t("anon draft forged time", false, () => set(ref(anon, `${R}/drafts/0/p1`), { value: "Київ", at: now - 60000 }));
 await t("anon draft future question", false, () => set(ref(anon, `${R}/drafts/2/p1`), { value: "x", at: serverTimestamp() }));
 await t("anon draft kicked player", false, () => set(ref(anon, `${R}/drafts/0/off`), { value: "x", at: serverTimestamp() }));
